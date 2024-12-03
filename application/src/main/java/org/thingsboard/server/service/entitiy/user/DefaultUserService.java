@@ -38,7 +38,9 @@ import org.springframework.util.CollectionUtils;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserActivationLink;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -53,8 +55,7 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import java.util.Collections;
 import java.util.List;
-
-import static org.thingsboard.server.controller.UserController.ACTIVATE_URL_PATTERN;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @TbCoreComponent
@@ -99,16 +100,12 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
             }
 
             if (sendEmail) {
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), savedUser.getId());
-                String baseUrl = systemSecurityService.getBaseUrl(user.getAuthority(), tenantId, user.getCustomerId(), request);
-                String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
-                        userCredentials.getActivateToken());
-                String email = savedUser.getEmail();
+                UserActivationLink activationLink = getActivationLink(tenantId, customerId, authority, savedUser.getId(), request);
                 try {
-                    mailService.sendActivationEmail(tenantId, activateUrl, email);
+                    mailService.sendActivationEmail(tenantId, activationLink.value(), activationLink.ttlMs(), savedUser.getEmail());
                 } catch (ThingsboardException e) {
                     userService.deleteUser(tenantId, savedUser);
-                    throw e;
+                    throw new ThingsboardException("Couldn't send user activation email", ThingsboardErrorCode.GENERAL);
                 }
             }
             logEntityActionService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId, actionType, user);
@@ -133,4 +130,18 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
             throw e;
         }
     }
+
+    @Override
+    public UserActivationLink getActivationLink(TenantId tenantId, CustomerId customerId, Authority authority, UserId userId, HttpServletRequest request) throws ThingsboardException {
+        UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, userId);
+        if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
+            userCredentials = userService.checkUserActivationToken(tenantId, userCredentials);
+            String baseUrl = systemSecurityService.getBaseUrl(authority, tenantId, customerId, request);
+            String link = baseUrl + "/api/noauth/activate?activateToken=" + userCredentials.getActivateToken();
+            return new UserActivationLink(link, userCredentials.getActivationTokenTtl());
+        } else {
+            throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+    }
+
 }

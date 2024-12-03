@@ -31,9 +31,9 @@
 
 -->
 <form [formGroup]="columnFormGroup" (ngSubmit)="save()" style="min-width: 600px;">
-  <mat-toolbar fxLayout="row" color="primary">
+  <mat-toolbar class="flex flex-row" color="primary">
     <h2>{{ (isReadOnly ? 'entity-group.column-details' : 'entity-group.edit-column') | translate }}</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -44,7 +44,7 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
-    <fieldset [disabled]="(isLoading$ | async) || isReadOnly" fxLayout="column">
+    <fieldset [disabled]="(isLoading$ | async) || isReadOnly" class="flex flex-col">
       <mat-form-field class="mat-block">
         <mat-label translate>entity-group.column-type.column-type</mat-label>
         <mat-select matInput required formControlName="type">
@@ -99,8 +99,9 @@
       <mat-checkbox formControlName="useCellStyleFunction">
         {{ 'entity-group.use-cell-style-function' | translate }}
       </mat-checkbox>
-      <tb-js-func [fxShow]="columnFormGroup.get('useCellStyleFunction').value"
+      <tb-js-func [class.!hidden]="!columnFormGroup.get('useCellStyleFunction').value"
         formControlName="cellStyleFunction"
+        withModules
         [functionArgs]="['value', 'entity']"
         [globalVariables]="functionScopeVariables"
         helpId="entity_group/cell_style_fn"
@@ -109,8 +110,9 @@
       <mat-checkbox formControlName="useCellContentFunction">
         {{ 'entity-group.use-cell-content-function' | translate }}
       </mat-checkbox>
-      <tb-js-func [fxShow]="columnFormGroup.get('useCellContentFunction').value"
+      <tb-js-func [class.!hidden]="!columnFormGroup.get('useCellContentFunction').value"
         formControlName="cellContentFunction"
+        withModules
         [functionArgs]="['value', 'entity', 'datePipe']"
         [globalVariables]="functionScopeVariables"
         helpId="entity_group/cell_content_fn"
@@ -118,8 +120,8 @@
       </tb-js-func>
     </fieldset>
   </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
+  <div mat-dialog-actions class="flex flex-row">
+    <span class="flex-1"></span>
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"

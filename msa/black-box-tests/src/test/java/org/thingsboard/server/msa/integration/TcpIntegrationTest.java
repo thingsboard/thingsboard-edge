@@ -45,6 +45,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.codec.string.StringEncoder;
+import jakarta.xml.bind.DatatypeConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -61,7 +62,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
-import jakarta.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.Objects;

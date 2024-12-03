@@ -34,9 +34,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -47,7 +50,6 @@ import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -104,9 +106,11 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceConnectivityService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.device.DockerComposeParams;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -167,13 +171,15 @@ import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemp
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -188,6 +194,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @TbCoreComponent
@@ -199,6 +207,9 @@ public class DefaultSolutionService implements SolutionService {
     public static final String SOLUTIONS_DIR = "solutions";
 
     private static final Map<SolutionTemplateLevel, Set<String>> allowedSolutionTemplateLevelsMap = new HashMap<>();
+
+    @Value("${ui.solution_templates.docs_base_url:https://thingsboard.io/docs/pe}")
+    private String docsBaseUrl;
 
     static {
         allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.MAKER, Set.of("Maker", "Prototype", "Startup", "Business"));
@@ -242,6 +253,7 @@ public class DefaultSolutionService implements SolutionService {
     private final AlarmService alarmService;
     private final SchedulerEventService schedulerEventService;
     private final SchedulerService schedulerService;
+    private final DeviceConnectivityService deviceConnectivityService;
     private final ExecutorService emulatorExecutor = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
 
     @PostConstruct
@@ -549,7 +561,9 @@ public class DefaultSolutionService implements SolutionService {
 
     private String prepareInstructions(SolutionInstallContext ctx, HttpServletRequest request) {
         String template = readFile(resolve(ctx.getSolutionId(), "instructions.md"));
-        template = template.replace("${BASE_URL}", systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
+        template = template.replace("${DOCS_BASE_URL}", docsBaseUrl);
+        String baseUrl = systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request);
+        template = template.replace("${BASE_URL}", baseUrl);
         TenantSolutionTemplateInstructions solutionInstructions = ctx.getSolutionInstructions();
         template = template.replace("${MAIN_DASHBOARD_URL}",
                 getDashboardLink(solutionInstructions, solutionInstructions.getDashboardGroupId(), solutionInstructions.getDashboardId(), false));
@@ -567,6 +581,20 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
 
+        if (template.contains("${GATEWAYS_DASHBOARD_URL}")) {
+            TenantId tenantId = ctx.getTenantId();
+            String dashboardLink;
+            try {
+                DashboardInfo thingsBoardIoTGateways = dashboardService.findFirstDashboardInfoByTenantIdAndName(tenantId, "ThingsBoard IoT Gateways");
+                EntityGroup dashboardGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME)
+                        .orElseThrow(() -> new RuntimeException("Could not find entity group by name 'All'."));
+                dashboardLink = getDashboardLink(solutionInstructions, dashboardGroup.getId(), thingsBoardIoTGateways.getId(), false);
+            } catch (Exception e) {
+                dashboardLink = "/dashboards";
+            }
+            template = template.replace("${GATEWAYS_DASHBOARD_URL}", dashboardLink);
+        }
+
         StringBuilder devList = new StringBuilder();
 
         devList.append("| Device name | Access token | Customer name |");
@@ -581,6 +609,10 @@ public class DefaultSolutionService implements SolutionService {
             devList.append(System.lineSeparator());
 
             template = template.replace("${" + credentialsInfo.getName() + "ACCESS_TOKEN}", credentialsInfo.getCredentials().getCredentialsId());
+
+            if (credentialsInfo.isGateway()) {
+                template = template.replace("${DOCKER_CONFIG}", prepareDockerComposeFile(ctx.getTenantId(), baseUrl, credentialsInfo.getCredentials().getDeviceId()));
+            }
         }
 
         template = template.replace("${device_list_and_credentials}", devList.toString());
@@ -641,6 +673,19 @@ public class DefaultSolutionService implements SolutionService {
             dashboardLink = "/dashboardGroups/" + dashboardGroupId.getId() + "/" + dashboardId.getId();
         }
         return dashboardLink;
+    }
+
+    private String prepareDockerComposeFile(TenantId tenantId, String baseUrl, DeviceId deviceId) {
+        Device device = new Device(deviceId);
+        device.setTenantId(tenantId);
+        DockerComposeParams params = new DockerComposeParams(false, false, true, false, false);
+        try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, params).getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        ) {
+            return reader.lines().collect(Collectors.joining("\n")).replaceAll("(image:\\s+([\\w\\-/]+))", "$1:latest");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read or process the docker-compose.yml file.", e);
+        }
     }
 
     private void provisionRoles(SolutionInstallContext ctx) {
@@ -845,12 +890,16 @@ public class DefaultSolutionService implements SolutionService {
             CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
             Path dashboardsPath = resolve(ctx.getSolutionId(), "dashboards", entityDef.getFile());
             JsonNode dashboardJson = replaceIds(ctx, JacksonUtil.toJsonNode(dashboardsPath));
+            Dashboard dashboardTemplate = JacksonUtil.treeToValue(dashboardJson, Dashboard.class);
+
             Dashboard dashboard = new Dashboard();
             dashboard.setTenantId(ctx.getTenantId());
             dashboard.setTitle(entityDef.getName());
-            dashboard.setConfiguration(dashboardJson.get("configuration"));
+            dashboard.setConfiguration(dashboardTemplate.getConfiguration());
             dashboard.setCustomerId(customerId);
+            dashboard.setResources(dashboardTemplate.getResources());
             dashboard = dashboardService.saveDashboard(dashboard);
+
             ctx.register(entityDef, dashboard);
             ctx.putIdToMap(EntityType.DASHBOARD, entityDef.getName(), dashboard.getId());
             EntityGroupId entityGroupId = addEntityToGroup(ctx, entityDef, dashboard.getId());
@@ -905,6 +954,7 @@ public class DefaultSolutionService implements SolutionService {
             ensureDeviceProfileExists(ctx, deviceTypeSet, entityDef);
             entity.setType(entityDef.getType());
             entity.setCustomerId(customerId);
+            entity.setAdditionalInfo(entityDef.getAdditionalInfo());
             entity = deviceService.saveDevice(entity);
 
             entityActionService.logEntityAction(user, entity.getId(), entity, customerId, ActionType.ADDED, null);
@@ -913,7 +963,9 @@ public class DefaultSolutionService implements SolutionService {
             log.info("[{}] Saved device: {}", entity.getId(), entity);
             DeviceId entityId = entity.getId();
             ctx.putIdToMap(entityDef, entityId);
+
             saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            saveSharedAttributes(ctx.getTenantId(), entityId, entityDef.getSharedAttributes());
             ctx.put(entityId, entityDef.getRelations());
             addEntityToGroup(ctx, entityDef, entityId);
 
@@ -922,6 +974,9 @@ public class DefaultSolutionService implements SolutionService {
             deviceCredentialsInfo.setType(entity.getType());
             deviceCredentialsInfo.setCustomerName(entityDef.getCustomer());
             deviceCredentialsInfo.setCredentials(deviceCredentialsService.findDeviceCredentialsByDeviceId(ctx.getTenantId(), entityId));
+            JsonNode additionalInfo = entity.getAdditionalInfo();
+            boolean isGateway = additionalInfo != null && additionalInfo.hasNonNull("gateway") && additionalInfo.get("gateway").asBoolean();
+            deviceCredentialsInfo.setGateway(isGateway);
 
             ctx.addDeviceCredentials(deviceCredentialsInfo);
 
@@ -1408,14 +1463,69 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void saveServerSideAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes, RandomNameData randomNameData) {
+        saveAttributes(tenantId, entityId, attributes, randomNameData, AttributeScope.SERVER_SCOPE);
+    }
+
+    private void saveSharedAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes) {
+        if (!EntityType.DEVICE.equals(entityId.getEntityType())) {
+            throw new IllegalArgumentException(entityId.getEntityType() + " cannot have shared attributes.");
+        }
+        saveAttributes(tenantId, entityId, attributes, null, AttributeScope.SHARED_SCOPE);
+    }
+
+    private void saveAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes, RandomNameData randomNameData, AttributeScope attributeScope) {
         if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
+            attributes = prepareAttributes(attributes);
             log.info("[{}] Saving attributes: {}", entityId, attributes);
             if (randomNameData != null) {
                 attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
             }
-            attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE,
+            attributesService.save(tenantId, entityId, attributeScope,
                     new ArrayList<>(JsonConverter.convertToAttributes(JsonParser.parseString(JacksonUtil.toString(attributes)))));
         }
+    }
+
+    private JsonNode prepareAttributes(JsonNode attributes) {
+        ObjectNode attributesObj = (ObjectNode) attributes;
+        attributes.fields().forEachRemaining(entry -> {
+            JsonNode value = entry.getValue();
+            if (value.isTextual() && isTimeExpression(value.asText())) {
+                value = JacksonUtil.toJsonNode(parseTimeExpression(value.asText()));
+            }
+            attributesObj.set(entry.getKey(), value);
+        });
+        return attributesObj;
+    }
+
+    private boolean isTimeExpression(String text) {
+        return Pattern.matches("\\$\\{currentTime(?:([+-])(\\d+)([mwdh]|min))?}", text);
+    }
+
+    private String parseTimeExpression(String timeExpression) {
+        Matcher matcher = Pattern.compile("\\$\\{currentTime(?:([+-])(\\d+)([mwdh]|min))?}").matcher(timeExpression);
+
+        if (!matcher.matches()) {
+            return timeExpression;
+        }
+
+        String operator = matcher.group(1);
+        String amountStr = matcher.group(2);
+        String unit = matcher.group(3);
+
+        ZonedDateTime now = ZonedDateTime.now();
+
+        if (operator != null && amountStr != null && unit != null) {
+            int amount = Integer.parseInt(amountStr);
+            now = switch (unit) {
+                case "m" -> operator.equals("+") ? now.plusMonths(amount) : now.minusMonths(amount);
+                case "w" -> operator.equals("+") ? now.plusWeeks(amount) : now.minusWeeks(amount);
+                case "d" -> operator.equals("+") ? now.plusDays(amount) : now.minusDays(amount);
+                case "h" -> operator.equals("+") ? now.plusHours(amount) : now.minusHours(amount);
+                case "min" -> operator.equals("+") ? now.plusMinutes(amount) : now.minusMinutes(amount);
+                default -> throw new IllegalArgumentException("Unsupported time unit: " + unit);
+            };
+        }
+        return String.valueOf(now.toInstant().toEpochMilli());
     }
 
     protected EntityGroup createEntityGroup(SolutionInstallContext ctx, EntityId ownerId, String name, EntityType type) {

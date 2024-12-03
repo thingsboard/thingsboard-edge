@@ -32,6 +32,8 @@ package org.thingsboard.server.service.integration;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -39,7 +41,6 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
@@ -59,10 +60,7 @@ import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -151,6 +149,10 @@ public class IntegrationContextComponent {
     @Autowired
     private IntegrationRateLimitService rateLimitService;
 
+    @Lazy
+    @Autowired
+    private EventStorageService eventStorageService;
+
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService callBackExecutorService;
@@ -159,7 +161,7 @@ public class IntegrationContextComponent {
     @PostConstruct
     public void init() {
         eventLoopGroup = new NioEventLoopGroup();
-        scheduledExecutorService = Executors.newScheduledThreadPool(3, ThingsBoardThreadFactory.forName("integration-scheduled"));
+        scheduledExecutorService = ThingsBoardExecutors.newScheduledThreadPool(3, "integration-scheduled");
         callBackExecutorService = ThingsBoardExecutors.newWorkStealingPool(Math.max(2, Runtime.getRuntime().availableProcessors()), "integration-callback");
         generalExecutorService = ThingsBoardExecutors.newWorkStealingPool(20, "integration-general");
     }

@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-list-select" [formGroup]="entityListSelectFormGroup">
+<div class="tb-entity-list-select flex flex-row" [formGroup]="entityListSelectFormGroup">
   <tb-entity-type-select
     style="min-width: 100px; padding-right: 8px;"
     *ngIf="displayEntityTypeSelect"
@@ -42,8 +42,8 @@
     formControlName="entityType">
   </tb-entity-type-select>
   <tb-entity-list
-    [ngClass]="{'tb-not-empty': this.modelValue.ids?.length > 0}"
-    fxFlex
+    class="flex-1"
+    [class.tb-not-empty]="modelValue.ids?.length > 0"
     *ngIf="modelValue.entityType"
     [required]="required"
     [entityType]="modelValue.entityType"

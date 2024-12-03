@@ -50,4 +50,9 @@ public class SystemParams {
     boolean whiteLabelingAllowed;
     boolean customerWhiteLabelingAllowed;
     Set<String> availableLocales;
+    boolean mobileQrEnabled;
+    int maxDebugModeDurationMinutes;
+    String ruleChainDebugPerTenantLimitsConfiguration;
+    String integrationDebugPerTenantLimitsConfiguration;
+    String converterDebugPerTenantLimitsConfiguration;
 }

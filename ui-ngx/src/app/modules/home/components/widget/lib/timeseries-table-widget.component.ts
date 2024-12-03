@@ -36,6 +36,7 @@ import {
   ElementRef,
   Injector,
   Input,
+  NgZone,
   OnDestroy,
   OnInit,
   QueryList,
@@ -73,20 +74,31 @@ import cssjs from '@core/css/css';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
-import { BehaviorSubject, fromEvent, merge, Observable, of, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, of, Subject, Subscription } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
-import { catchError, debounceTime, distinctUntilChanged, map, skip, startWith, takeUntil } from 'rxjs/operators';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  skip,
+  startWith,
+  switchMap,
+  takeUntil,
+  tap
+} from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
+  CellContentFunctionInfo,
   CellContentInfo,
   CellStyleInfo,
   checkHasActions,
   columnExportOptions,
   constructTableCssString,
   DisplayColumn,
-  getCellContentInfo,
+  getCellContentFunctionInfo,
   getCellStyleInfo,
   getColumnDefaultVisibility,
   getColumnSelectionAvailability,
@@ -103,7 +115,6 @@ import { Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { SubscriptionEntityInfo } from '@core/api/widget-api.models';
 import { DatePipe } from '@angular/common';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import {
   DISPLAY_COLUMNS_PANEL_DATA,
@@ -141,7 +152,7 @@ interface TimeseriesHeader {
   show: boolean;
   columnDefaultVisibility?: boolean;
   columnSelectionAvailability?: boolean;
-  styleInfo: CellStyleInfo;
+  styleInfo: Observable<CellStyleInfo>;
   contentInfo: CellContentInfo;
   order?: number;
 }
@@ -211,7 +222,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
 
   private displayedColumns: Array<DisplayColumn[]> = [];
 
-  private rowStylesInfo: RowStyleInfo;
+  private rowStylesInfo: Observable<RowStyleInfo>;
 
   private subscriptions: Subscription[] = [];
   private widgetTimewindowChanged$: Subscription;
@@ -245,7 +256,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               private domSanitizer: DomSanitizer,
               private datePipe: DatePipe,
               private cd: ChangeDetectorRef,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private zone: NgZone) {
     super(store);
   }
 
@@ -270,11 +282,13 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
         }
       );
       this.widgetResize$ = new ResizeObserver(() => {
-        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-        if (showHidePageSize !== this.hidePageSize) {
-          this.hidePageSize = showHidePageSize;
-          this.cd.markForCheck();
-        }
+        this.zone.run(() => {
+          const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+          if (showHidePageSize !== this.hidePageSize) {
+            this.hidePageSize = showHidePageSize;
+            this.cd.markForCheck();
+          }
+        });
       });
       this.widgetResize$.observe(this.elementRef.nativeElement);
     }
@@ -357,9 +371,12 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     } else {
       this.dateFormatFilter = isDefined(this.settings.dateFormat?.format) ? this.settings.dateFormat?.format : 'yyyy-MM-dd HH:mm:ss';
     }
-    this.exportTimestampColumn = isDefined(this.settings?.timestampExportOption) ? this.settings.timestampExportOption : columnExportOptions.onlyVisible;
+    this.ctx.exportDateFormat = this.dateFormatFilter;
 
-    this.rowStylesInfo = getRowStyleInfo(this.settings, 'rowData, ctx');
+    this.exportTimestampColumn = isDefined(this.settings?.timestampExportOption) ?
+      this.settings.timestampExportOption : columnExportOptions.onlyVisible;
+
+    this.rowStylesInfo = getRowStyleInfo(this.ctx, this.settings, 'rowData, ctx');
 
     const pageSize = this.settings.defaultPageSize;
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
@@ -535,12 +552,15 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     dataKeys.forEach((dataKey, index) => {
       const sortable = !dataKey.usePostProcessing;
       const keySettings: TableWidgetDataKeySettings = dataKey.settings;
-      const styleInfo = getCellStyleInfo(keySettings, 'value, rowData, ctx');
-      const contentInfo = getCellContentInfo(keySettings, 'value, rowData, ctx');
+      const styleInfo = getCellStyleInfo(this.ctx, keySettings, 'value, rowData, ctx');
+      const contentFunctionInfo = getCellContentFunctionInfo(this.ctx, keySettings, 'value, rowData, ctx');
       const columnDefaultVisibility = getColumnDefaultVisibility(keySettings, this.ctx);
       const columnSelectionAvailability = getColumnSelectionAvailability(keySettings);
-      contentInfo.units = dataKey.units;
-      contentInfo.decimals = dataKey.decimals;
+      const contentInfo: CellContentInfo = {
+        contentFunction: contentFunctionInfo,
+        units: dataKey.units,
+        decimals: dataKey.decimals
+      };
       header.push({
         index: index + 1,
         dataKey,
@@ -558,12 +578,15 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
         const index = dataKeys.length + latestIndex;
         const sortable = !dataKey.usePostProcessing;
         const keySettings: TimeseriesWidgetLatestDataKeySettings = dataKey.settings;
-        const styleInfo = getCellStyleInfo(keySettings, 'value, rowData, ctx');
-        const contentInfo = getCellContentInfo(keySettings, 'value, rowData, ctx');
+        const styleInfo = getCellStyleInfo(this.ctx, keySettings, 'value, rowData, ctx');
+        const contentFunctionInfo = getCellContentFunctionInfo(this.ctx, keySettings, 'value, rowData, ctx');
         const columnDefaultVisibility = getColumnDefaultVisibility(keySettings, this.ctx);
         const columnSelectionAvailability = getColumnSelectionAvailability(keySettings);
-        contentInfo.units = dataKey.units;
-        contentInfo.decimals = dataKey.decimals;
+        const contentInfo: CellContentInfo = {
+          contentFunction: contentFunctionInfo,
+          units: dataKey.units,
+          decimals: dataKey.decimals
+        };
         header.push({
           index: index + 1,
           dataKey,
@@ -674,111 +697,143 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     return source.datasource.entityId;
   }
 
-  public rowStyle(source: TimeseriesTableSource, row: TimeseriesRow, index: number): any {
+  public rowStyle(source: TimeseriesTableSource, row: TimeseriesRow, index: number): Observable<any> {
+    let style$: Observable<any>;
     let res = this.rowStyleCache[index];
     if (!res) {
-      res = {};
-      if (this.rowStylesInfo.useRowStyleFunction && this.rowStylesInfo.rowStyleFunction) {
-        try {
-          const rowData = source.rowDataTemplate;
-          rowData.Timestamp = row[0];
-          source.header.forEach((headerInfo) => {
-            rowData[headerInfo.dataKey.label] = row[headerInfo.index];
-          });
-          res = this.rowStylesInfo.rowStyleFunction(rowData, this.ctx);
-          if (!isObject(res)) {
-            throw new TypeError(`${res === null ? 'null' : typeof res} instead of style object`);
+      style$ = this.rowStylesInfo.pipe(
+        map(styleInfo => {
+          if (styleInfo.useRowStyleFunction && styleInfo.rowStyleFunction) {
+            const rowData = source.rowDataTemplate;
+            rowData.Timestamp = row[0];
+            source.header.forEach((headerInfo) => {
+              rowData[headerInfo.dataKey.label] = row[headerInfo.index];
+            });
+            const style = styleInfo.rowStyleFunction.execute(rowData, this.ctx);
+            if (!isObject(style)) {
+              throw new TypeError(`${style === null ? 'null' : typeof style} instead of style object`);
+            }
+            if (Array.isArray(style)) {
+              throw new TypeError(`Array instead of style object`);
+            }
+            return style;
+          } else {
+            return {};
           }
-          if (Array.isArray(res)) {
-            throw new TypeError(`Array instead of style object`);
-          }
-        } catch (e) {
-          res = {};
+        }),
+        catchError(e => {
           console.warn(`Row style function in widget ` +
             `'${this.ctx.widgetConfig.title}' returns '${e}'. Please check your row style function.`);
-        }
-      }
-      this.rowStyleCache[index] = res;
+          return of({});
+        })
+      );
+      style$ = style$.pipe(
+        tap((style) => {
+          this.rowStyleCache[index] = style;
+        })
+      );
+    } else {
+      style$ = of(res);
     }
-    return res;
+    return style$;
   }
 
   public cellStyle(source: TimeseriesTableSource, header: TimeseriesHeader,
-                   index: number, row: TimeseriesRow, value: any, rowIndex: number): any {
+                   index: number, row: TimeseriesRow, value: any, rowIndex: number): Observable<any> {
+    let style$: Observable<any>;
     const cacheIndex = rowIndex * (source.header.length + 1) + index;
     let res = this.cellStyleCache[cacheIndex];
     if (!res) {
-      res = {};
       if (index > 0) {
-        const styleInfo = header.styleInfo;
-        if (styleInfo.useCellStyleFunction && styleInfo.cellStyleFunction) {
-          try {
-            const rowData = source.rowDataTemplate;
-            rowData.Timestamp = row[0];
-            source.header.forEach((headerInfo) => {
-              rowData[headerInfo.dataKey.label] = row[headerInfo.index];
-            });
-            res = styleInfo.cellStyleFunction(value, rowData, this.ctx);
-            if (!isObject(res)) {
-              throw new TypeError(`${res === null ? 'null' : typeof res} instead of style object`);
+        style$ = header.styleInfo.pipe(
+          map(styleInfo => {
+            if (styleInfo.useCellStyleFunction && styleInfo.cellStyleFunction) {
+              const rowData = source.rowDataTemplate;
+              rowData.Timestamp = row[0];
+              source.header.forEach((headerInfo) => {
+                rowData[headerInfo.dataKey.label] = row[headerInfo.index];
+              });
+              const style = styleInfo.cellStyleFunction.execute(value, rowData, this.ctx);
+              if (!isObject(style)) {
+                throw new TypeError(`${style === null ? 'null' : typeof style} instead of style object`);
+              }
+              if (Array.isArray(style)) {
+                throw new TypeError(`Array instead of style object`);
+              }
+              return style;
+            } else {
+              return {};
             }
-            if (Array.isArray(res)) {
-              throw new TypeError(`Array instead of style object`);
-            }
-          } catch (e) {
-            res = {};
+          }),
+          catchError(e => {
             console.warn(`Cell style function for data key '${source.header[index - 1].dataKey.label}' in widget ` +
               `'${this.ctx.widgetConfig.title}' returns '${e}'. Please check your cell style function.`);
-          }
-        }
+            return of({});
+          })
+        );
+      } else {
+        style$ = of({});
       }
-      this.cellStyleCache[cacheIndex] = res;
+      style$ = style$.pipe(
+        tap((style) => {
+          this.cellStyleCache[cacheIndex] = style;
+        })
+      );
+    } else {
+      style$ = of(res);
     }
-    return res;
+    return style$;
   }
 
   public cellContent(source: TimeseriesTableSource, header: TimeseriesHeader,
-                     index: number, row: TimeseriesRow, value: any, rowIndex: number): SafeHtml {
+                     index: number, row: TimeseriesRow, value: any, rowIndex: number): Observable<SafeHtml> {
+    let content$: Observable<SafeHtml>;
     const cacheIndex = rowIndex * (source.header.length + 1) + index ;
     let res = this.cellContentCache[cacheIndex];
     if (isUndefined(res)) {
-      res = '';
       if (index === 0) {
-        res = row.formattedTs;
+        content$ = of(row.formattedTs);
       } else {
-        let content;
-        const contentInfo = header.contentInfo;
-        if (contentInfo.useCellContentFunction && contentInfo.cellContentFunction) {
-          try {
-            const rowData = source.rowDataTemplate;
-            rowData.Timestamp = row[0];
-            source.header.forEach((headerInfo) => {
-              rowData[headerInfo.dataKey.label] = row[headerInfo.index];
-            });
-            content = contentInfo.cellContentFunction(value, rowData, this.ctx);
-          } catch (e) {
-            content = '' + value;
-          }
-        } else {
-          const decimals = (contentInfo.decimals || contentInfo.decimals === 0) ? contentInfo.decimals : this.ctx.widgetConfig.decimals;
-          const units = contentInfo.units || this.ctx.widgetConfig.units;
-          content = this.ctx.utils.formatValue(value, decimals, units, true);
-        }
-
-        if (isDefined(content)) {
-          content = this.utils.customTranslation(content, content);
-          switch (typeof content) {
-            case 'string':
-              res = this.domSanitizer.bypassSecurityTrustHtml(content);
-              break;
-            default:
-              res = content;
-          }
-        }
+        content$ = header.contentInfo.contentFunction.pipe(
+          map((contentFunction) => {
+            let content: any;
+            if (contentFunction.useCellContentFunction && contentFunction.cellContentFunction) {
+              try {
+                const rowData = source.rowDataTemplate;
+                rowData.Timestamp = row[0];
+                source.header.forEach((headerInfo) => {
+                  rowData[headerInfo.dataKey.label] = row[headerInfo.index];
+                });
+                content = contentFunction.cellContentFunction.execute(value, rowData, this.ctx);
+              } catch (e) {
+                content = '' + value;
+              }
+            } else {
+              const decimals = (header.contentInfo.decimals || header.contentInfo.decimals === 0) ? header.contentInfo.decimals : this.ctx.widgetConfig.decimals;
+              const units = header.contentInfo.units || this.ctx.widgetConfig.units;
+              content = this.ctx.utils.formatValue(value, decimals, units, true);
+            }
+            if (isDefined(content)) {
+              content = this.utils.customTranslation(content, content);
+              switch (typeof content) {
+                case 'string':
+                  content = this.domSanitizer.bypassSecurityTrustHtml(content);
+                  break;
+              }
+            }
+            return content;
+          })
+        );
       }
-      this.cellContentCache[cacheIndex] = res;
+      content$ = content$.pipe(
+        tap((content) => {
+          this.cellContentCache[cacheIndex] = content;
+        })
+      );
+    } else {
+      content$ = of(res);
     }
-    return res;
+    return content$;
   }
 
   public onRowClick($event: Event, row: TimeseriesRow) {
@@ -852,8 +907,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     }
   }
 
-  customDataExport(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
-    const exportedData: {[key: string]: any}[] = [];
+  customDataExport(): Observable<{[key: string]: any}[]> {
     let columnsToExport = [];
     if (this.datasources.length) {
       this.datasources.forEach((datasource, index) => {
@@ -871,31 +925,27 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
       columnsToExport.unshift('Timestamp');
     }
 
-    let sourcesLatest: {[datasourceName: string]: {[key: string]: any}} = {};
-    const sourcesLatestContentFunc: {[datasourceName: string]: {[key: string]: {value: any, contentFunction: any, useContentFunctionOnExport: boolean}}} = {};
+    const sourcesLatest: {[datasourceName: string]: {[key: string]: any}} = {};
+    const sourcesLatestContentFunc:
+      {[datasourceName: string]: {[key: string]: {value: any; contentFunction: Observable<CellContentFunctionInfo>}}} = {};
     const sourcesTsRows: {[ts: string]: {[key: string]: any}} = {};
-    const sourcesTsRowsContentFunc: {[ts: string]: {[key: string]: {value: any, contentFunction: any, useContentFunctionOnExport: boolean}}} = {};
+    const sourcesTsRowsContentFunc:
+      {[ts: string]: {[key: string]: {value: any; contentFunction: Observable<CellContentFunctionInfo>}}} = {};
     if (this.sources.length) {
       this.sources.forEach((source, index) => {
-        const useCellContentFunction = source.header.filter(header => header?.contentInfo.useCellContentFunction);
         source.latestRawData.forEach(latestRow => {
           if (!sourcesLatest[latestRow.datasource.name]) {
             sourcesLatest[latestRow.datasource.name] = {};
           }
           sourcesLatest[latestRow.datasource.name][latestRow.dataKey.label] = latestRow.data[0][1];
-          if (useCellContentFunction.length) {
-            const header = source.header.find(value => value.dataKey.label === latestRow.dataKey.label);
-            if (isDefinedAndNotNull(header.contentInfo.cellContentFunction)) {
-              if (!sourcesLatestContentFunc[latestRow.datasource.name]) {
-                sourcesLatestContentFunc[latestRow.datasource.name] = {};
-              }
-              sourcesLatestContentFunc[latestRow.datasource.name][latestRow.dataKey.label] = {
-                value: latestRow.data[0][1],
-                contentFunction: header.contentInfo.cellContentFunction,
-                useContentFunctionOnExport: header.contentInfo.useCellContentFunctionOnExport
-              };
-            }
+          const header = source.header.find(value => value.dataKey.label === latestRow.dataKey.label);
+          if (!sourcesLatestContentFunc[latestRow.datasource.name]) {
+            sourcesLatestContentFunc[latestRow.datasource.name] = {};
           }
+          sourcesLatestContentFunc[latestRow.datasource.name][latestRow.dataKey.label] = {
+            value: latestRow.data[0][1],
+            contentFunction: header.contentInfo.contentFunction
+          };
         });
         source.rawData.forEach(datasourceData => {
           datasourceData.data.forEach(row => {
@@ -908,78 +958,90 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
             const value = row[1];
             let tsRow = sourcesTsRows[tsKey];
             if (!tsRow) {
-              tsRow = isDefined(sourcesLatest[datasourceData.datasource.name]) ? deepClone(sourcesLatest[datasourceData.datasource.name]) : {};
+              tsRow = isDefined(sourcesLatest[datasourceData.datasource.name])
+                ? deepClone(sourcesLatest[datasourceData.datasource.name]) : {};
               if (columnsToExport.includes('Timestamp')) {
-                tsRow.Timestamp = this.datePipe.transform(ts, this.dateFormatFilter);
+                tsRow.Timestamp = of(this.datePipe.transform(ts, this.dateFormatFilter));
               }
-              tsRow['Entity Name'] = datasourceData.datasource.entityName;
+              tsRow['Entity Name'] = of(datasourceData.datasource.entityName);
               sourcesTsRows[tsKey] = tsRow;
               if (!isEmpty(sourcesLatestContentFunc)) {
                 sourcesTsRowsContentFunc[tsKey] = deepClone(sourcesLatestContentFunc[datasourceData.datasource.name]);
               }
             }
-            if (useCellContentFunction.length) {
-              const header = source.header.find(value => value.dataKey.label === key);
-              if (isDefinedAndNotNull(header.contentInfo.useCellContentFunction)) {
-                if (!sourcesTsRowsContentFunc[tsKey]) {
-                  sourcesTsRowsContentFunc[tsKey] = {};
-                }
-                sourcesTsRowsContentFunc[tsKey][key] = deepClone({
-                  value,
-                  contentFunction: header.contentInfo.cellContentFunction,
-                  useContentFunctionOnExport: header.contentInfo.useCellContentFunctionOnExport
-                });
-              }
+            const header = source.header.find(headerValue => headerValue.dataKey.label === key);
+            if (!sourcesTsRowsContentFunc[tsKey]) {
+              sourcesTsRowsContentFunc[tsKey] = {};
             }
+            sourcesTsRowsContentFunc[tsKey][key] = deepClone({
+              value,
+              contentFunction: header.contentInfo.contentFunction
+            });
             key = this.checkProperty(tsRow, key);
             tsRow[key] = value;
           });
         });
-      })
+      });
     }
+    const exportedData: Observable<{[key: string]: any}>[] = [];
+    const outputTsRows: {[ts: string]: {[key: string]: Observable<any>}} = {};
 
     if (this.data.length) {
       const timestampsContentFunc = Object.keys(sourcesTsRowsContentFunc);
       if (timestampsContentFunc.length) {
         timestampsContentFunc.forEach(timestamp => {
-          if (isDefined(sourcesTsRowsContentFunc[timestamp])) {
-            const tsRowContentFuncKeys = Object.keys(sourcesTsRowsContentFunc[timestamp]);
-            tsRowContentFuncKeys.forEach(key => {
-              if (isDefinedAndNotNull(sourcesTsRowsContentFunc[timestamp][key].contentFunction) &&
-                sourcesTsRowsContentFunc[timestamp][key].useContentFunctionOnExport) {
-                const div = document.createElement('div');
-                try {
-                  div.innerHTML = sourcesTsRowsContentFunc[timestamp][key].contentFunction(sourcesTsRowsContentFunc[timestamp][key].value, sourcesTsRows[timestamp], this.ctx);
-                } catch (e) {
-                  div.innerText = sourcesTsRowsContentFunc[timestamp][key].value;
+          const tsRowContentFuncKeys = Object.keys(sourcesTsRowsContentFunc[timestamp]);
+          tsRowContentFuncKeys.forEach(key => {
+            outputTsRows[timestamp][key] = sourcesTsRowsContentFunc[timestamp][key].contentFunction.pipe(
+              map(contentFunction => {
+                if (contentFunction.useCellContentFunctionOnExport) {
+                  const div = document.createElement('div');
+                  try {
+                    div.innerHTML = contentFunction.cellContentFunction.execute(sourcesTsRowsContentFunc[timestamp][key].value, sourcesTsRows[timestamp], this.ctx);
+                  } catch (e) {
+                    div.innerText = sourcesTsRowsContentFunc[timestamp][key].value;
+                  }
+                  return div.textContent;
+                } else {
+                  return sourcesTsRowsContentFunc[timestamp][key].value;
                 }
-                sourcesTsRows[timestamp][key] = div.textContent;
-              }
-            });
-          }
+              })
+            );
+          });
         });
       }
-
       const timestamps = Object.keys(sourcesTsRows);
       timestamps.sort();
-      timestamps.forEach(timestamp=> {
-        const tsRow = sourcesTsRows[timestamp];
-        const dataObj: {[key: string]: any} = {};
-        columnsToExport.forEach(key => dataObj[key] = isDefined(tsRow[key]) ? tsRow[key] : null);
-        exportedData.push(dataObj);
+      timestamps.forEach(timestamp => {
+        const tsRow = outputTsRows[timestamp];
+        const dataObj: {[key: string]: Observable<any>} = {};
+        columnsToExport.forEach(key => dataObj[key] = isDefined(tsRow[key]) ? tsRow[key] : of(null));
+        if (Object.keys(dataObj).length) {
+          exportedData.push(forkJoin(dataObj));
+        } else {
+          exportedData.push(of(dataObj));
+        }
       });
 
       if (!exportedData.length) {
-        const dataObj: {[key: string]: any} = {};
-        dataObj.Timestamp = null;
+        const dataObj: {[key: string]: Observable<any>} = {};
+        dataObj.Timestamp = of(null);
         this.data.forEach((datasourceData) => {
           const key = datasourceData.dataKey.label;
-          dataObj[this.checkProperty(dataObj, key)] = null;
+          dataObj[this.checkProperty(dataObj, key)] = of(null);
         });
-        exportedData.push(dataObj);
+        if (Object.keys(dataObj).length) {
+          exportedData.push(forkJoin(dataObj));
+        } else {
+          exportedData.push(of(dataObj));
+        }
       }
     }
-    return exportedData;
+    if (exportedData.length) {
+      return forkJoin(exportedData);
+    } else {
+      return of(exportedData);
+    }
   }
 
   private checkProperty(dataObj: any, key: string): string {
@@ -1005,7 +1067,8 @@ class TimeseriesDatasource implements DataSource<TimeseriesRow> {
 
   private reserveSpaceForHiddenAction = true;
   private cellButtonActions: TableCellButtonActionDescriptor[];
-  private readonly usedShowCellActionFunction: boolean;
+  private usedShowCellActionFunction: boolean;
+  private inited = false;
 
   constructor(
     private source: TimeseriesTableSource,
@@ -1014,12 +1077,23 @@ class TimeseriesDatasource implements DataSource<TimeseriesRow> {
     private datePipe: DatePipe,
     private widgetContext: WidgetContext
   ) {
-    this.cellButtonActions = getTableCellButtonActions(widgetContext);
-    this.usedShowCellActionFunction = this.cellButtonActions.some(action => action.useShowActionCellButtonFunction);
     if (this.widgetContext.settings.reserveSpaceForHiddenAction) {
       this.reserveSpaceForHiddenAction = coerceBooleanProperty(this.widgetContext.settings.reserveSpaceForHiddenAction);
     }
     this.source.timeseriesDatasource = this;
+  }
+
+  private init(): Observable<any> {
+    if (this.inited) {
+      return of(null);
+    }
+    return getTableCellButtonActions(this.widgetContext).pipe(
+      tap(actions => {
+        this.cellButtonActions = actions
+        this.usedShowCellActionFunction = this.cellButtonActions.some(action => action.useShowActionCellButtonFunction);
+        this.inited = true;
+      })
+    );
   }
 
   connect(collectionViewer: CollectionViewer): Observable<TimeseriesRow[] | ReadonlyArray<TimeseriesRow>> {
@@ -1063,68 +1137,74 @@ class TimeseriesDatasource implements DataSource<TimeseriesRow> {
   }
 
   private updateSourceData() {
-    this.source.data = this.convertData(this.source.rawData, this.source.latestRawData);
-    this.allRowsSubject.next(this.source.data);
+    this.convertData(this.source.rawData, this.source.latestRawData).subscribe((data) => {
+      this.source.data = data;
+      this.allRowsSubject.next(this.source.data);
+    });
   }
 
-  private convertData(data: DatasourceData[], latestData: DatasourceData[]): TimeseriesRow[] {
-    const rowsMap: {[timestamp: number]: TimeseriesRow} = {};
-    for (let d = 0; d < data.length; d++) {
-      const columnData = data[d].data;
-      columnData.forEach((cellData) => {
-        const timestamp = cellData[0];
-        let row = rowsMap[timestamp];
-        if (!row) {
-          row = {
-            formattedTs: this.datePipe.transform(timestamp, this.dateFormatFilter)
-          };
-          if (this.cellButtonActions.length) {
-            if (this.usedShowCellActionFunction) {
-              const parsedData = formattedDataFormDatasourceData(data, undefined, timestamp);
-              row.actionCellButtons = prepareTableCellButtonActions(this.widgetContext, this.cellButtonActions,
-                parsedData[0], this.reserveSpaceForHiddenAction);
-              row.hasActions = checkHasActions(row.actionCellButtons);
-            } else {
-              row.hasActions = true;
-              row.actionCellButtons = this.cellButtonActions;
+  private convertData(data: DatasourceData[], latestData: DatasourceData[]): Observable<TimeseriesRow[]> {
+    return this.init().pipe(
+      map(() => {
+        const rowsMap: {[timestamp: number]: TimeseriesRow} = {};
+        for (let d = 0; d < data.length; d++) {
+          const columnData = data[d].data;
+          columnData.forEach((cellData) => {
+            const timestamp = cellData[0];
+            let row = rowsMap[timestamp];
+            if (!row) {
+              row = {
+                formattedTs: this.datePipe.transform(timestamp, this.dateFormatFilter)
+              };
+              if (this.cellButtonActions.length) {
+                if (this.usedShowCellActionFunction) {
+                  const parsedData = formattedDataFormDatasourceData(data, undefined, timestamp);
+                  row.actionCellButtons = prepareTableCellButtonActions(this.widgetContext, this.cellButtonActions,
+                    parsedData[0], this.reserveSpaceForHiddenAction);
+                  row.hasActions = checkHasActions(row.actionCellButtons);
+                } else {
+                  row.hasActions = true;
+                  row.actionCellButtons = this.cellButtonActions;
+                }
+              }
+              row[0] = timestamp;
+              for (let c = 0; c < (data.length + latestData.length); c++) {
+                row[c + 1] = undefined;
+              }
+              rowsMap[timestamp] = row;
+            }
+            row[d + 1] = cellData[1];
+          });
+        }
+
+        let rows: TimeseriesRow[]  = [];
+        if (this.hideEmptyLines) {
+          for (const t of Object.keys(rowsMap)) {
+            let hideLine = true;
+            for (let c = 0; (c < data.length) && hideLine; c++) {
+              if (rowsMap[t][c + 1]) {
+                hideLine = false;
+              }
+            }
+            if (!hideLine) {
+              rows.push(rowsMap[t]);
             }
           }
-          row[0] = timestamp;
-          for (let c = 0; c < (data.length + latestData.length); c++) {
-            row[c + 1] = undefined;
-          }
-          rowsMap[timestamp] = row;
+        } else {
+          rows = Object.keys(rowsMap).map(itm => rowsMap[itm]);
         }
-        row[d + 1] = cellData[1];
-      });
-    }
-
-    let rows: TimeseriesRow[]  = [];
-    if (this.hideEmptyLines) {
-      for (const t of Object.keys(rowsMap)) {
-        let hideLine = true;
-        for (let c = 0; (c < data.length) && hideLine; c++) {
-          if (rowsMap[t][c + 1]) {
-            hideLine = false;
+        for (let d = 0; d < latestData.length; d++) {
+          const columnData = latestData[d].data;
+          if (columnData.length) {
+            const value = columnData[0][1];
+            rows.forEach((row) => {
+              row[data.length + d + 1] = value;
+            });
           }
         }
-        if (!hideLine) {
-          rows.push(rowsMap[t]);
-        }
-      }
-    } else {
-      rows = Object.keys(rowsMap).map(itm => rowsMap[itm]);
-    }
-    for (let d = 0; d < latestData.length; d++) {
-      const columnData = latestData[d].data;
-      if (columnData.length) {
-        const value = columnData[0][1];
-        rows.forEach((row) => {
-          row[data.length + d + 1] = value;
-        });
-      }
-    }
-    return rows;
+        return rows;
+      })
+    );
   }
 
   isEmpty(): Observable<boolean> {
@@ -1140,19 +1220,23 @@ class TimeseriesDatasource implements DataSource<TimeseriesRow> {
   }
 
   private fetchRows(pageLink: PageLink): Observable<PageData<TimeseriesRow>> {
-    return this.allRows$.pipe(
-      map((data) => {
-        const fetchData = pageLink.filterData(data);
-        if (this.cellButtonActions.length) {
-          let maxCellButtonAction: number;
-          if (this.usedShowCellActionFunction && !this.reserveSpaceForHiddenAction) {
-            maxCellButtonAction = Math.max(...fetchData.data.map(tsRow => tsRow.actionCellButtons.length));
-          } else {
-            maxCellButtonAction = this.cellButtonActions.length;
-          }
-          this.countCellButtonAction = maxCellButtonAction;
-        }
-        return fetchData;
+    return this.init().pipe(
+      switchMap(() => {
+        return this.allRows$.pipe(
+          map((data) => {
+            const fetchData = pageLink.filterData(data);
+            if (this.cellButtonActions.length) {
+              let maxCellButtonAction: number;
+              if (this.usedShowCellActionFunction && !this.reserveSpaceForHiddenAction) {
+                maxCellButtonAction = Math.max(...fetchData.data.map(tsRow => tsRow.actionCellButtons.length));
+              } else {
+                maxCellButtonAction = this.cellButtonActions.length;
+              }
+              this.countCellButtonAction = maxCellButtonAction;
+            }
+            return fetchData;
+          })
+        );
       })
     );
   }

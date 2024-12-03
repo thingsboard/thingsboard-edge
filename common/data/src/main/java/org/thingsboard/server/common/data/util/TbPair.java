@@ -38,4 +38,8 @@ import lombok.Data;
 public class TbPair<S, T> {
     private S first;
     private T second;
+
+    public static <S, T> TbPair<S, T> of(S first, T second) {
+        return new TbPair<>(first, second);
+    }
 }

@@ -90,6 +90,9 @@ export class SecuritySettingsComponent extends PageComponent implements HasConfi
     this.securitySettingsFormGroup = this.fb.group({
       maxFailedLoginAttempts: [null, [Validators.min(0)]],
       userLockoutNotificationEmail: ['', []],
+      userActivationTokenTtl: [24, [Validators.required, Validators.min(1), Validators.max(24)]],
+      passwordResetTokenTtl: [24, [Validators.required, Validators.min(1), Validators.max(24)]],
+      mobileSecretKeyLength: [null, [Validators.min(1)]],
       passwordPolicy: this.fb.group(
         {
           minimumLength: [null, [Validators.required, Validators.min(6), Validators.max(50)]],
@@ -111,8 +114,8 @@ export class SecuritySettingsComponent extends PageComponent implements HasConfi
     this.jwtSecuritySettingsFormGroup = this.fb.group({
       tokenIssuer: ['', Validators.required],
       tokenSigningKey: ['', [Validators.required, this.base64Format]],
-      tokenExpirationTime: [0, [Validators.required, Validators.pattern('[0-9]*'), Validators.min(60)]],
-      refreshTokenExpTime: [0, [Validators.required, Validators.pattern('[0-9]*'), Validators.min(900)]]
+      tokenExpirationTime: [0, [Validators.required, Validators.min(60), Validators.max(2147483647)]],
+      refreshTokenExpTime: [0, [Validators.required, Validators.min(900), Validators.max(2147483647)]]
     }, {validators: this.refreshTokenTimeGreatTokenTime.bind(this)});
     this.jwtSecuritySettingsFormGroup.get('tokenExpirationTime').valueChanges.subscribe(
       () => this.jwtSecuritySettingsFormGroup.get('refreshTokenExpTime').updateValueAndValidity({onlySelf: true})
@@ -216,7 +219,7 @@ export class SecuritySettingsComponent extends PageComponent implements HasConfi
     }
     try {
       const value = atob(control.value);
-      if (value.length < 32) {
+      if (value.length < 64) {
         return {minLength: true};
       }
       return null;

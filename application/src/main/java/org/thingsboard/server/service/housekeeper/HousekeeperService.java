@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.housekeeper;
 
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.housekeeper.processor.HousekeeperTaskProcessor;
 import org.thingsboard.server.service.housekeeper.stats.HousekeeperStatsService;
 
-import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

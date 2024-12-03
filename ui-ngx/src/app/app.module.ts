@@ -42,6 +42,24 @@ import { AppComponent } from './app.component';
 import { DashboardRoutingModule } from '@modules/dashboard/dashboard-routing.module';
 import { RouterModule, Routes } from '@angular/router';
 import { SignupModule } from '@modules/signup/signup.module';
+import { EmptyPageModule } from '@modules/empty-page/empty-page.module';
+
+import { DefaultUrlSerializer, UrlSerializer, UrlTree } from '@angular/router';
+
+export default class TbUrlSerializer implements UrlSerializer {
+  private _defaultUrlSerializer: DefaultUrlSerializer = new DefaultUrlSerializer();
+
+  parse(url: string): UrlTree {
+    // Encode parentheses
+    url = url.replace(/\(/g, '%28').replace(/\)/g, '%29');
+    // Use the default serializer.
+    return this._defaultUrlSerializer.parse(url)
+  }
+
+  serialize(tree: UrlTree): string {
+    return this._defaultUrlSerializer.serialize(tree).replace(/%28/g, '(').replace(/%29/g, ')');
+  }
+}
 
 const routes: Routes = [
   { path: '**',
@@ -70,9 +88,12 @@ export class PageNotFoundRoutingModule { }
     SignupModule,
     HomeModule,
     DashboardRoutingModule,
+    EmptyPageModule,
     PageNotFoundRoutingModule
   ],
-  providers: [],
+  providers: [
+    { provide: UrlSerializer, useClass: TbUrlSerializer }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

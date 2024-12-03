@@ -37,7 +37,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.DonAsynchron;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -55,7 +55,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
 
 @Slf4j
 public abstract class AbstractPartitionBasedService<T extends EntityId> extends TbApplicationEventListener<PartitionChangeEvent> {
@@ -82,7 +81,7 @@ public abstract class AbstractPartitionBasedService<T extends EntityId> extends 
 
     protected void init() {
         // Should be always single threaded due to absence of locks.
-        scheduledExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName(getSchedulerExecutorName())));
+        scheduledExecutor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newSingleThreadScheduledExecutor(getSchedulerExecutorName()));
     }
 
     protected ServiceType getServiceType() {
@@ -105,13 +104,13 @@ public abstract class AbstractPartitionBasedService<T extends EntityId> extends 
     @Override
     public void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         log.debug("onTbApplicationEvent, processing event: {}", partitionChangeEvent);
-        subscribeQueue.add(partitionChangeEvent.getPartitions());
+        subscribeQueue.add(partitionChangeEvent.getCorePartitions());
         scheduledExecutor.submit(this::pollInitStateFromDB);
     }
 
     @Override
     protected boolean filterTbApplicationEvent(PartitionChangeEvent event) {
-        return getServiceType().equals(event.getServiceType());
+        return event.getServiceType() == getServiceType();
     }
 
     protected void pollInitStateFromDB() {

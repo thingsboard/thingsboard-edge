@@ -511,6 +511,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query) {
         QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), TenantId.SYS_TENANT_ID.equals(tenantId));
         MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
+        if (readPermissions == null) {
+            return 0L;
+        }
         if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
             if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
                 return 0L;
@@ -611,6 +614,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query, boolean ignorePermissionCheck) {
         QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), ignorePermissionCheck);
         MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
+        if (readPermissions == null) {
+            return new PageData<>();
+        }
         if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
             if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
                 return new PageData<>();
@@ -1732,9 +1738,15 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
             if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
                 if (genericPartAdded) {
-                    allowedGroupIdsSelect += " or ";
+                    if (customOwnerId == null) {
+                        allowedGroupIdsSelect += " or id in (:where_group_ids)";
+                    } else {
+                        allowedGroupIdsSelect += " or (id in (:where_group_ids) and owner_id = :customOwnerId) ";
+                        ctx.addUuidParameter("customOwnerId", customOwnerId.getId());
+                    }
+                } else {
+                    allowedGroupIdsSelect += " id in (:where_group_ids)";
                 }
-                allowedGroupIdsSelect += "id in (:where_group_ids)";
                 ctx.addUuidListParameter("where_group_ids",
                         groupTypePermissionInfo.getEntityGroupIds().stream()
                                 .map(EntityGroupId::getId).collect(Collectors.toList()));
@@ -1776,7 +1788,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     .append("nr.").append(fromOrTo).append("_id").append(" = re.").append(toOrFrom).append("_id")
                     .append(" and ")
                     .append("nr.").append(fromOrTo).append("_type").append(" = re.").append(toOrFrom).append("_type");
-
+            notExistsPart.append(" and nr.relation_type_group = 'COMMON'"); // hit the index, the same condition are on the recursive query
             notExistsPart.append(")");
             whereFilter += " and ( r_int.lvl = " + entityFilter.getMaxLevel() + " OR " + notExistsPart.toString() + ")";
         }
@@ -1843,10 +1855,16 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     .append(entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? "to" : "from")
                     .append("_type in (:where_entity_types").append(")");
             ctx.addStringListParameter("where_entity_types", Arrays.stream(RELATION_QUERY_ENTITY_TYPES).map(EntityType::name).collect(Collectors.toList()));
-        }
-
-        if (!noConditions && !single) {
-            whereFilter = new StringBuilder().append("(").append(whereFilter).append(")");
+        } else {
+            if (!single) {
+                whereFilter = new StringBuilder()
+                        .append(entityFilter.isNegate() ? " NOT (" : "(")
+                        .append(whereFilter).append(")");
+            } else if (entityFilter.isNegate()) {
+                whereFilter = new StringBuilder()
+                        .append(" NOT (")
+                        .append(whereFilter).append(")");
+            }
         }
 
         if (entityFilter.isFetchLastLevelOnly()) {
@@ -1861,7 +1879,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     .append("nr.").append(fromOrTo).append("_type").append(" = re.").append(toOrFrom).append("_type")
                     .append(" and ")
                     .append(whereFilter.toString().replaceAll("re\\.", "nr\\."));
-
+            notExistsPart.append(" and nr.relation_type_group = 'COMMON'"); // hit the index, the same condition are on the recursive query
             notExistsPart.append(")");
             whereFilter.append(" and ( r_int.lvl = ").append(entityFilter.getMaxLevel()).append(" OR ").append(notExistsPart.toString()).append(")");
         }
@@ -1882,7 +1900,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         boolean hasRelationType = !StringUtils.isEmpty(relationType);
         if (hasRelationType) {
             ctx.addStringParameter("where_relation_type" + entityTypeFilterIdx, relationType);
-            whereFilter.append("re.relation_type = :where_relation_type").append(entityTypeFilterIdx).append(" and ");
+            if (etf.isNegate()) {
+                whereFilter.append("re.relation_type != :where_relation_type");
+            } else {
+                whereFilter.append("re.relation_type = :where_relation_type");
+            }
+            whereFilter.append(entityTypeFilterIdx).append(" and ");
         }
 
         whereFilter.append("re.")

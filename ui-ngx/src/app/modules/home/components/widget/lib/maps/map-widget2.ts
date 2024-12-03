@@ -44,7 +44,7 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import { EntityDataPageLink } from '@shared/models/query/query.models';
-import { providerClass } from '@home/components/widget/lib/maps/providers';
+import { providerClass } from '@home/components/widget/lib/maps/providers/public-api';
 import { isDefined, isDefinedAndNotNull, parseFunction } from '@core/utils';
 import L from 'leaflet';
 import { forkJoin, Observable, of } from 'rxjs';
@@ -165,7 +165,7 @@ export class MapWidgetController implements MapWidgetInterface {
     }
 
     setMarkerLocation(e: FormattedData, lat?: number, lng?: number) {
-      let markerValue;
+      let markerValue: {[p: string]: any};
       if (isDefined(lat) && isDefined(lng)) {
         const point = lat != null && lng !== null ? L.latLng(lat, lng) : null;
         markerValue = this.map.convertToCustomFormat(point);
@@ -184,7 +184,7 @@ export class MapWidgetController implements MapWidgetInterface {
     }
 
     savePolygonLocation(e: FormattedData, coordinates?: Array<any>) {
-      let polygonValue;
+      let polygonValue: {[p: string]: any};
       if (isDefined(coordinates)) {
         polygonValue = this.map.convertToPolygonFormat(coordinates);
       } else {

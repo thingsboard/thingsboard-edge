@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
@@ -45,8 +46,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceM
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
-
-import jakarta.annotation.PostConstruct;
 
 @Service
 @TbIntegrationExecutorComponent
@@ -114,6 +113,21 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToEdgeMsg>> getTbEdgeMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToEdgeNotificationMsg>> getTbEdgeNotificationsMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToEdgeEventNotificationMsg>> getTbEdgeEventsMsgProducer() {
         throw new RuntimeException(NOT_IMPLEMENTED);
     }
 

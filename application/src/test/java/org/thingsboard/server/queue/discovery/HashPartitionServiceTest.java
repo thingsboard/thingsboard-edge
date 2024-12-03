@@ -36,8 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -54,8 +54,8 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
-import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -78,8 +78,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -460,6 +460,8 @@ public class HashPartitionServiceTest {
         ReflectionTestUtils.setField(partitionService, "vcPartitions", 10);
         ReflectionTestUtils.setField(partitionService, "integrationPartitions", 3);
         ReflectionTestUtils.setField(partitionService, "hashFunctionName", hashFunctionName);
+        ReflectionTestUtils.setField(partitionService, "edgeTopic", "tb.edge");
+        ReflectionTestUtils.setField(partitionService, "edgePartitions", 10);
         partitionService.init();
         partitionService.partitionsInit();
         return partitionService;

@@ -1,0 +1,74 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../../../scss/constants";
+
+.limit-slider-container {
+  width: 100%;
+  .limit-slider-value {
+    margin-left: 16px;
+    min-width: 25px;
+    max-width: 106px;
+  }
+  mat-form-field input[type=number] {
+    text-align: center;
+  }
+
+  .mdc-slider {
+    height: 40px;
+
+    ::ng-deep {
+      .mdc-slider__thumb {
+        left: -20px;
+        height: 40px;
+        width: 40px;
+
+        .mat-ripple-element.mat-mdc-slider-focus-ripple,
+        .mat-ripple-element.mat-mdc-slider-active-ripple,
+        .mat-ripple-element.mat-mdc-slider-hover-ripple {
+          left: 0 !important;
+          top: 0 !important;
+          height: 40px !important;
+          width: 40px !important;
+        }
+      }
+    }
+  }
+}
+
+@media #{$mat-gt-sm} {
+  .limit-slider-container {
+    > label {
+      margin-right: 16px;
+      width: min-content;
+      max-width: 40%;
+    }
+  }
+}

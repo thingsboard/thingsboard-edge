@@ -50,19 +50,18 @@ public class ConverterEdgeProcessor extends BaseEdgeProcessor {
 
     public DownlinkMsg convertConverterEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
-        DownlinkMsg downlinkMsg = null;
+        var msgConstructor = ((ConverterMsgConstructor) edgeCtx.getConverterMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion));
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-        switch (msgType) {
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                Converter converter = converterService.findConverterById(edgeEvent.getTenantId(), converterId);
-                if (converter != null) {
-                    return DownlinkMsg.newBuilder()
-                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addConverterMsg(((ConverterMsgConstructor) converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructConverterUpdateMsg(msgType, converter))
-                            .build();
-                }
-                break;
+        if (msgType == UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE) {
+            Converter converter = edgeCtx.getConverterService().findConverterById(edgeEvent.getTenantId(), converterId);
+            if (converter != null) {
+                return DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addConverterMsg(msgConstructor.constructConverterUpdateMsg(msgType, converter))
+                        .build();
+            }
         }
-        return downlinkMsg;
+        return null;
     }
+
 }

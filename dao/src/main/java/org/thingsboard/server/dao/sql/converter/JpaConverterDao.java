@@ -48,7 +48,6 @@ import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -103,6 +102,11 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     @Override
     public ListenableFuture<List<Converter>> findConvertersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> converterIds) {
         return service.submit(() -> DaoUtil.convertDataList(converterRepository.findConvertersByTenantIdAndIdIn(tenantId, converterIds)));
+    }
+
+    @Override
+    public boolean hasConverterOfType(UUID tenantId, ConverterType type) {
+        return converterRepository.existsByTenantIdAndType(tenantId, type);
     }
 
     @Override

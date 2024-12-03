@@ -42,6 +42,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.migrator.MigrationService;
 import org.thingsboard.migrator.Table;
+import org.thingsboard.migrator.utils.PostgresService;
+import org.thingsboard.migrator.utils.PostgresService.Blob;
 import org.thingsboard.migrator.utils.SqlPartitionService;
 import org.thingsboard.migrator.utils.Storage;
 
@@ -67,6 +69,7 @@ public class PostgresTenantDataImporter extends MigrationService {
     private final TransactionTemplate transactionTemplate;
     private final Storage storage;
     private final SqlPartitionService partitionService;
+    private final PostgresService postgresService;
 
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
@@ -78,7 +81,7 @@ public class PostgresTenantDataImporter extends MigrationService {
     @Value("${import.postgres.update_tenant_profile}")
     private boolean updateTenantProfile;
     @Value("${import.postgres.update_ts_kv_dictionary}")
-    private boolean updateTsKvDictionary;
+    private boolean updateKeyDictionary;
     @Value("${import.postgres.resolve_unknown_roles}")
     private boolean resolveUnknownRoles;
 
@@ -87,12 +90,14 @@ public class PostgresTenantDataImporter extends MigrationService {
     @Override
     protected void start() throws Exception {
         transactionTemplate.executeWithoutResult(status -> {
+            prepare();
             for (Table table : Table.values()) {
                 if (skippedTables.contains(table)) {
                     continue;
                 }
                 importTableData(table);
             }
+            tearDown();
         });
     }
 
@@ -156,15 +161,18 @@ public class PostgresTenantDataImporter extends MigrationService {
                 row = new LinkedHashMap<>(row);
                 row.put("tenant_profile_id", defaultTenantProfile);
             }
-        } else if (table == Table.LATEST_KV) {
+        } else if (table == Table.LATEST_KV || table == Table.ATTRIBUTE) {
             String keyName = (String) row.remove("key_name");
-            if (updateTsKvDictionary) {
-                Integer keyId = jdbcTemplate.queryForList("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName).stream().findFirst().orElse(null);
+            if (updateKeyDictionary) {
+                Integer keyId = jdbcTemplate.queryForList("SELECT key_id FROM key_dictionary WHERE key = ?", Integer.class, keyName).stream().findFirst().orElse(null);
                 if (keyId == null) {
-                    jdbcTemplate.update("INSERT INTO ts_kv_dictionary (key) VALUES (?)", keyName);
-                    keyId = jdbcTemplate.queryForObject("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName);
+                    keyId = jdbcTemplate.queryForObject("INSERT INTO key_dictionary (key) VALUES (?) RETURNING key_id", Integer.class, keyName);
                 }
-                Object oldKey = row.put("key", keyId);
+                if (table == Table.LATEST_KV) {
+                    row.put("key", keyId);
+                } else {
+                    row.put("attribute_key", keyId);
+                }
             }
         } else if (table == Table.GROUP_PERMISSION) {
             UUID roleId = (UUID) row.get("role_id");
@@ -184,6 +192,17 @@ public class PostgresTenantDataImporter extends MigrationService {
                 row.put("role_id", role.get("id"));
             }
         }
+        row.replaceAll((key, value) -> {
+            if (value instanceof Blob blob) {
+                return postgresService.saveBlob(blob);
+            }
+            return value;
+        });
+        row.remove("table_name");
+        Object version = row.get("version");
+        if (version instanceof Number) {
+            row.remove("version");
+        }
 
         Map<String, String> existingColumns = columns.computeIfAbsent(table, t -> {
             return jdbcTemplate.queryForList("SELECT column_name, udt_name FROM information_schema.columns " +
@@ -191,9 +210,6 @@ public class PostgresTenantDataImporter extends MigrationService {
                     .collect(Collectors.toMap(vals -> vals.get("column_name").toString(), vals -> vals.get("udt_name").toString()));
         });
         row.keySet().removeIf(column -> {
-            if (column.equals("table_name")) {
-                return true;
-            }
             boolean unknownColumn = !existingColumns.containsKey(column);
             if (unknownColumn) {
                 log.warn("Skipping unknown column {} for table {}", column, table.getName());
@@ -201,6 +217,16 @@ public class PostgresTenantDataImporter extends MigrationService {
             return unknownColumn;
         });
         return row;
+    }
+
+    private void prepare() {
+        jdbcTemplate.execute("ALTER TABLE ota_package DROP CONSTRAINT IF EXISTS fk_device_profile_ota_package");
+        log.info("Temporarily dropped fk_device_profile_ota_package constraint");
+    }
+
+    private void tearDown() {
+        jdbcTemplate.execute("ALTER TABLE ota_package ADD CONSTRAINT fk_device_profile_ota_package FOREIGN KEY (device_profile_id) REFERENCES device_profile (id) ON DELETE CASCADE");
+        log.info("Created fk_device_profile_ota_package constraint");
     }
 
 }

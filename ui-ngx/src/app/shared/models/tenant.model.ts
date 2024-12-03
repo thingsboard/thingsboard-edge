@@ -62,6 +62,7 @@ export interface DefaultTenantProfileConfiguration {
 
   integrationMsgsPerTenantRateLimit?: string;
   integrationMsgsPerDeviceRateLimit?: string;
+  integrationMsgsPerAssetRateLimit?: string;
 
   tenantEntityExportRateLimit?: string;
   tenantEntityImportRateLimit?: string;
@@ -101,6 +102,7 @@ export interface DefaultTenantProfileConfiguration {
   rpcTtlDays: number;
   queueStatsTtlDays: number;
   ruleEngineExceptionsTtlDays: number;
+  blobEntityTtlDays: number;
 }
 
 export type TenantProfileConfigurations = DefaultTenantProfileConfiguration;
@@ -155,7 +157,8 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           alarmsTtlDays: 0,
           rpcTtlDays: 0,
           queueStatsTtlDays: 0,
-          ruleEngineExceptionsTtlDays: 0
+          ruleEngineExceptionsTtlDays: 0,
+          blobEntityTtlDays: 0
         };
         configuration = {...defaultConfiguration, type: TenantProfileType.DEFAULT};
         break;

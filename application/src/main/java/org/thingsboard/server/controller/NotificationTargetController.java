@@ -31,6 +31,8 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -146,7 +148,7 @@ public class NotificationTargetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationTarget getNotificationTargetById(@PathVariable UUID id) throws ThingsboardException {
         NotificationTargetId notificationTargetId = new NotificationTargetId(id);
-        return checkEntityId(notificationTargetId, notificationTargetService::findNotificationTargetById, Operation.READ);
+        return checkNotificationTargetId(notificationTargetId, Operation.READ);
     }
 
     @ApiOperation(value = "Get recipients for notification target config (getRecipientsForNotificationTargetConfig)",
@@ -177,7 +179,7 @@ public class NotificationTargetController extends BaseController {
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping(value = "/targets", params = {"ids"})
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    public List<NotificationTarget> getNotificationTargetsByIds(@Parameter(description = "Comma-separated list of uuids representing targets ids", required = true)
+    public List<NotificationTarget> getNotificationTargetsByIds(@Parameter(description = "Comma-separated list of uuids representing targets ids", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
                                                                 @RequestParam("ids") UUID[] ids,
                                                                 @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
@@ -233,7 +235,7 @@ public class NotificationTargetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public void deleteNotificationTargetById(@PathVariable UUID id) throws Exception {
         NotificationTargetId notificationTargetId = new NotificationTargetId(id);
-        NotificationTarget notificationTarget = checkEntityId(notificationTargetId, notificationTargetService::findNotificationTargetById, Operation.DELETE);
+        NotificationTarget notificationTarget = checkNotificationTargetId(notificationTargetId, Operation.DELETE);
         doDeleteAndLog(EntityType.NOTIFICATION_TARGET, notificationTarget, notificationTargetService::deleteNotificationTargetById);
     }
 

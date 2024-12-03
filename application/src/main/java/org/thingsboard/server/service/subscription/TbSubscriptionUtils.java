@@ -38,10 +38,9 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.TbAlarmDeleteProto;
@@ -98,10 +97,12 @@ public class TbSubscriptionUtils {
         return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder).build();
     }
 
-    public static ToCoreNotificationMsg toProto(UUID id, int seqNumber, TbEntityUpdatesInfo update) {
+    public static ToCoreNotificationMsg toProto(TenantId tenantId, UUID id, int seqNumber, TbEntityUpdatesInfo update) {
         TransportProtos.TbEntitySubEventCallbackProto.Builder updateProto = TransportProtos.TbEntitySubEventCallbackProto.newBuilder()
                 .setEntityIdMSB(id.getMostSignificantBits())
                 .setEntityIdLSB(id.getLeastSignificantBits())
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setSeqNumber(seqNumber)
                 .setAttributesUpdateTs(update.attributesUpdateTs)
                 .setTimeSeriesUpdateTs(update.timeSeriesUpdateTs);

@@ -35,7 +35,7 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  Input,
+  Input, NgZone,
   OnDestroy,
   OnInit,
   ViewChild
@@ -67,7 +67,6 @@ import {
   WidgetActionDialogData
 } from '@home/components/widget/action/widget-action-dialog.component';
 import { deepClone } from '@core/utils';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { coerceBoolean } from '@shared/decorators/coercion';
@@ -134,7 +133,8 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
               private dialog: MatDialog,
               private dialogs: DialogService,
               private cd: ChangeDetectorRef,
-              private elementRef: ElementRef) {
+              private elementRef: ElementRef,
+              private zone: NgZone) {
     super(store);
     const sortOrder: SortOrder = { property: 'actionSourceName', direction: Direction.ASC };
     this.pageLink = new PageLink(10, 0, null, sortOrder);
@@ -144,11 +144,13 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   ngOnInit(): void {
     this.widgetResize$ = new ResizeObserver(() => {
-      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-      if (showHidePageSize !== this.hidePageSize) {
-        this.hidePageSize = showHidePageSize;
-        this.cd.markForCheck();
-      }
+      this.zone.run(() => {
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
     });
     this.widgetResize$.observe(this.elementRef.nativeElement);
   }

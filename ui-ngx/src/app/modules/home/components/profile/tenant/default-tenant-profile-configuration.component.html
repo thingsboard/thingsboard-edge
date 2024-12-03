@@ -30,13 +30,13 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="defaultTenantProfileConfigurationFormGroup" fxLayout="column">
+<section [formGroup]="defaultTenantProfileConfigurationFormGroup" class="flex flex-col">
   <fieldset class="fields-group">
     <legend class="group-title">
       {{ 'tenant-profile.entities' | translate }} <span translate>tenant-profile.unlimited</span>
     </legend>
-    <div class="fields-element" fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+    <div class="fields-element flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.maximum-devices</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxDevices"
@@ -49,7 +49,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.maximum-dashboards</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxDashboards"
@@ -63,8 +63,8 @@
         <mat-hint></mat-hint>
       </mat-form-field>
     </div>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.maximum-assets</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxAssets"
@@ -77,7 +77,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.maximum-users</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxUsers"
@@ -91,8 +91,8 @@
         <mat-hint></mat-hint>
       </mat-form-field>
     </div>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill">
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
         <mat-label translate>tenant-profile.maximum-integrations</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxIntegrations"
@@ -104,7 +104,7 @@
           {{ 'tenant-profile.maximum-integrations-range' | translate}}
         </mat-error>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
         <mat-label translate>tenant-profile.maximum-scheduler-events</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxSchedulerEvents"
@@ -119,13 +119,13 @@
     </div>
     <mat-expansion-panel class="configuration-panel">
       <mat-expansion-panel-header>
-        <mat-panel-description fxLayoutAlign="end" translate>
+        <mat-panel-description class="flex items-stretch justify-end" translate>
           tenant-profile.advanced-settings
         </mat-panel-description>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
             <mat-label translate>tenant-profile.maximum-customers</mat-label>
             <input matInput required min="0" step="1"
                    formControlName="maxCustomers"
@@ -138,7 +138,7 @@
             </mat-error>
             <mat-hint></mat-hint>
           </mat-form-field>
-          <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
             <mat-label translate>tenant-profile.maximum-rule-chains</mat-label>
             <input matInput required min="0" step="1"
                    formControlName="maxRuleChains"
@@ -152,8 +152,21 @@
             <mat-hint></mat-hint>
           </mat-form-field>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <mat-form-field fxFlex class="mat-block" appearance="fill">
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
+            <mat-label translate>tenant-profile.maximum-edges</mat-label>
+            <input matInput required min="0" step="1"
+                   formControlName="maxEdges"
+                   type="number">
+            <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxEdges').hasError('required')">
+              {{ 'tenant-profile.maximum-edges-required' | translate }}
+            </mat-error>
+            <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxEdges').hasError('min')">
+              {{ 'tenant-profile.maximum-edges-range' | translate }}
+            </mat-error>
+            <mat-hint></mat-hint>
+          </mat-form-field>
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
             <mat-label translate>tenant-profile.maximum-converters</mat-label>
             <input matInput required min="0" step="1"
                    formControlName="maxConverters"
@@ -165,7 +178,6 @@
               {{ 'tenant-profile.maximum-converters-range' | translate}}
             </mat-error>
           </mat-form-field>
-          <div fxFlex></div>
         </div>
       </ng-template>
     </mat-expansion-panel>
@@ -175,8 +187,8 @@
     <legend class="group-title">
       {{ 'tenant-profile.rule-engine' | translate }} <span translate>tenant-profile.unlimited</span>
     </legend>
-    <div class="fields-element" fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+    <div class="fields-element flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.max-r-e-executions</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxREExecutions"
@@ -189,7 +201,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.max-transport-messages</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxTransportMessages"
@@ -205,13 +217,13 @@
     </div>
     <mat-expansion-panel class="configuration-panel">
       <mat-expansion-panel-header>
-        <mat-panel-description fxLayoutAlign="end" translate>
+        <mat-panel-description class="flex items-stretch justify-end" translate>
           tenant-profile.advanced-settings
         </mat-panel-description>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
             <mat-label translate>tenant-profile.max-j-s-executions</mat-label>
             <input matInput required min="0" step="1"
                    formControlName="maxJSExecutions"
@@ -224,7 +236,7 @@
             </mat-error>
             <mat-hint></mat-hint>
           </mat-form-field>
-          <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
             <mat-label translate>tenant-profile.max-tbel-executions</mat-label>
             <input matInput required min="0" step="1"
                    formControlName="maxTbelExecutions"
@@ -238,8 +250,8 @@
             <mat-hint></mat-hint>
           </mat-form-field>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
             <mat-label translate>tenant-profile.max-rule-node-executions-per-message</mat-label>
             <input matInput required min="0" step="1"
                    formControlName="maxRuleNodeExecutionsPerMessage"
@@ -252,7 +264,7 @@
             </mat-error>
             <mat-hint></mat-hint>
           </mat-form-field>
-          <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
             <mat-label translate>tenant-profile.max-transport-data-points</mat-label>
             <input matInput required min="0" step="1"
                    formControlName="maxTransportDataPoints"
@@ -274,8 +286,8 @@
     <legend class="group-title">
       {{ 'tenant-profile.time-to-live' | translate }} <span translate>tenant-profile.unlimited</span>
     </legend>
-    <div class="fields-element" fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+    <div class="fields-element flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.max-d-p-storage-days</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxDPStorageDays"
@@ -288,7 +300,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.alarms-ttl-days</mat-label>
         <input matInput required min="0" step="1"
                formControlName="alarmsTtlDays"
@@ -302,8 +314,8 @@
         <mat-hint></mat-hint>
       </mat-form-field>
     </div>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.default-storage-ttl-days</mat-label>
         <input matInput required min="0" step="1"
                formControlName="defaultStorageTtlDays"
@@ -316,7 +328,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.rpc-ttl-days</mat-label>
         <input matInput required min="0" step="1"
                formControlName="rpcTtlDays"
@@ -330,8 +342,8 @@
         <mat-hint></mat-hint>
       </mat-form-field>
     </div>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.queue-stats-ttl-days</mat-label>
         <input matInput required min="0" step="1"
                formControlName="queueStatsTtlDays"
@@ -344,7 +356,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.rule-engine-exceptions-ttl-days</mat-label>
         <input matInput required min="0" step="1"
                formControlName="ruleEngineExceptionsTtlDays"
@@ -358,16 +370,32 @@
         <mat-hint></mat-hint>
       </mat-form-field>
     </div>
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
+        <mat-label translate>tenant-profile.blob-entity-ttl-days</mat-label>
+        <input matInput required min="0" step="1"
+               formControlName="blobEntityTtlDays"
+               type="number">
+        <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('blobEntityTtlDays').hasError('required')">
+          {{ 'tenant-profile.blob-entity-ttl-days-required' | translate}}
+        </mat-error>
+        <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('blobEntityTtlDays').hasError('min')">
+          {{ 'tenant-profile.blob-entity-ttl-days-range' | translate}}
+        </mat-error>
+        <mat-hint></mat-hint>
+      </mat-form-field>
+      <div class="flex-1"></div>
+    </div>
   </fieldset>
 
   <fieldset class="fields-group">
     <legend class="group-title">
       {{ 'tenant-profile.alarms-and-notifications' | translate }} <span translate>tenant-profile.unlimited</span>
     </legend>
-    <mat-slide-toggle class="slide-toggle-element" fxFlex formControlName="smsEnabled">
+    <mat-slide-toggle class="slide-toggle-element flex-1" formControlName="smsEnabled">
       {{ 'tenant-profile.sms-enabled' | translate }}
     </mat-slide-toggle>
-    <mat-form-field *ngIf="defaultTenantProfileConfigurationFormGroup.get('smsEnabled').value" fxFlex class="mat-block"
+    <mat-form-field *ngIf="defaultTenantProfileConfigurationFormGroup.get('smsEnabled').value" class="mat-block flex-1"
                     appearance="fill" subscriptSizing="dynamic">
       <mat-label translate>tenant-profile.max-sms</mat-label>
       <input matInput required min="0" step="1"
@@ -380,8 +408,8 @@
         {{ 'tenant-profile.max-sms-range' | translate}}
       </mat-error>
     </mat-form-field>
-    <div class="fields-element" fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+    <div class="fields-element flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.max-emails</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxEmails"
@@ -394,7 +422,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.max-created-alarms</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxCreatedAlarms"
@@ -412,10 +440,29 @@
 
   <fieldset class="fields-group">
     <legend class="group-title">
+      {{ 'tenant-profile.debug' | translate }}
+    </legend>
+    <div class="fields-element flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
+        <mat-label translate>tenant-profile.maximum-debug-duration-min</mat-label>
+        <input matInput min="0" step="1"
+               formControlName="maxDebugModeDurationMinutes"
+               type="number">
+        <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxDebugModeDurationMinutes').hasError('min')">
+          {{ 'tenant-profile.maximum-debug-duration-min-range' | translate }}
+        </mat-error>
+        <mat-hint></mat-hint>
+      </mat-form-field>
+      <div class="flex-1"></div>
+    </div>
+  </fieldset>
+
+  <fieldset class="fields-group">
+    <legend class="group-title">
       {{ 'tenant-profile.ota-files-in-bytes' | translate }} <span translate>tenant-profile.unlimited</span>
     </legend>
-    <div class="fields-element" fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+    <div class="fields-element flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.maximum-resources-sum-data-size</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxResourcesInBytes"
@@ -428,7 +475,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill" subscriptSizing="dynamic">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
         <mat-label translate>tenant-profile.maximum-ota-packages-sum-data-size</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxOtaPackagesInBytes"
@@ -442,8 +489,8 @@
         <mat-hint></mat-hint>
       </mat-form-field>
     </div>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill">
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
         <mat-label translate>tenant-profile.maximum-resource-size</mat-label>
         <input matInput required min="0" step="1"
                formControlName="maxResourceSize"
@@ -456,7 +503,7 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
-      <div fxFlex></div>
+      <div class="flex-1"></div>
     </div>
   </fieldset>
 
@@ -464,15 +511,15 @@
     <legend class="group-title">
       {{ 'tenant-profile.ws-title' | translate }} <span translate>tenant-profile.unlimited</span>
     </legend>
-    <div class="fields-element" fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill">
+    <div class="fields-element flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
         <mat-label translate>tenant-profile.ws-limit-max-sessions-per-tenant</mat-label>
         <input matInput type="number" formControlName="maxWsSessionsPerTenant">
         <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxWsSessionsPerTenant').hasError('min')">
           {{ 'tenant-profile.too-small-value-zero' | translate}}
         </mat-error>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
         <mat-label translate>tenant-profile.ws-limit-max-subscriptions-per-tenant</mat-label>
         <input matInput type="number" formControlName="maxWsSubscriptionsPerTenant">
         <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxWsSubscriptionsPerTenant').hasError('min')">
@@ -480,15 +527,15 @@
         </mat-error>
       </mat-form-field>
     </div>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill">
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
         <mat-label translate>tenant-profile.ws-limit-max-sessions-per-customer</mat-label>
         <input matInput type="number" formControlName="maxWsSessionsPerCustomer">
         <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxWsSessionsPerCustomer').hasError('min')">
           {{ 'tenant-profile.too-small-value-zero' | translate}}
         </mat-error>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block" appearance="fill">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
         <mat-label translate>tenant-profile.ws-limit-max-subscriptions-per-customer</mat-label>
         <input matInput type="number" formControlName="maxWsSubscriptionsPerCustomer">
         <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxWsSubscriptionsPerCustomer').hasError('min')">
@@ -498,20 +545,20 @@
     </div>
     <mat-expansion-panel class="configuration-panel">
       <mat-expansion-panel-header>
-        <mat-panel-description fxLayoutAlign="end" translate>
+        <mat-panel-description class="flex items-stretch justify-end" translate>
           tenant-profile.advanced-settings
         </mat-panel-description>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <mat-form-field fxFlex class="mat-block" appearance="fill">
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <mat-form-field class="mat-block flex-1" appearance="fill">
             <mat-label translate>tenant-profile.ws-limit-max-sessions-per-public-user</mat-label>
             <input matInput type="number" formControlName="maxWsSessionsPerPublicUser">
             <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxWsSessionsPerPublicUser').hasError('min')">
               {{ 'tenant-profile.too-small-value-zero' | translate}}
             </mat-error>
           </mat-form-field>
-          <mat-form-field fxFlex class="mat-block" appearance="fill">
+          <mat-form-field class="mat-block flex-1" appearance="fill">
             <mat-label translate>tenant-profile.ws-limit-max-subscriptions-per-public-user</mat-label>
             <input matInput type="number" formControlName="maxWsSubscriptionsPerPublicUser">
             <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxWsSubscriptionsPerPublicUser').hasError('min')">
@@ -519,15 +566,15 @@
             </mat-error>
           </mat-form-field>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <mat-form-field fxFlex class="mat-block" appearance="fill">
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <mat-form-field class="mat-block flex-1" appearance="fill">
             <mat-label translate>tenant-profile.ws-limit-max-sessions-per-regular-user</mat-label>
             <input matInput type="number" formControlName="maxWsSessionsPerRegularUser">
             <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxWsSessionsPerRegularUser').hasError('min')">
               {{ 'tenant-profile.too-small-value-zero' | translate}}
             </mat-error>
           </mat-form-field>
-          <mat-form-field fxFlex class="mat-block" appearance="fill">
+          <mat-form-field class="mat-block flex-1" appearance="fill">
             <mat-label translate>tenant-profile.ws-limit-max-subscriptions-per-regular-user</mat-label>
             <input matInput type="number" formControlName="maxWsSubscriptionsPerRegularUser">
             <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxWsSubscriptionsPerRegularUser').hasError('min')">
@@ -535,8 +582,8 @@
             </mat-error>
           </mat-form-field>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <mat-form-field fxFlex class="mat-block" appearance="fill">
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <mat-form-field class="mat-block flex-1" appearance="fill">
             <mat-label translate>tenant-profile.ws-limit-queue-per-session</mat-label>
             <input matInput type="number" formControlName="wsMsgQueueLimitPerSession">
             <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('wsMsgQueueLimitPerSession').hasError('min')">
@@ -546,7 +593,7 @@
               {{ 'tenant-profile.queue-size-is-limited-by-system-configuration' | translate}}
             </mat-hint>
           </mat-form-field>
-          <div fxFlex></div>
+          <div class="flex-1"></div>
         </div>
       </ng-template>
     </mat-expansion-panel>
@@ -556,90 +603,120 @@
     <legend class="group-title">
       {{ 'tenant-profile.rate-limits.rate-limits' | translate }}
     </legend>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <tb-rate-limits fxFlex formControlName="transportTenantMsgRateLimit"
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <tb-rate-limits class="flex-1" formControlName="transportTenantMsgRateLimit"
                       [type]="rateLimitsType.TENANT_MESSAGES">
       </tb-rate-limits>
-      <tb-rate-limits fxFlex formControlName="transportDeviceMsgRateLimit"
+      <tb-rate-limits class="flex-1" formControlName="transportDeviceMsgRateLimit"
                       [type]="rateLimitsType.DEVICE_MESSAGES">
       </tb-rate-limits>
     </div>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <tb-rate-limits fxFlex formControlName="transportTenantTelemetryMsgRateLimit"
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <tb-rate-limits class="flex-1" formControlName="transportTenantTelemetryMsgRateLimit"
                       [type]="rateLimitsType.TENANT_TELEMETRY_MESSAGES">
       </tb-rate-limits>
-      <tb-rate-limits fxFlex formControlName="transportDeviceTelemetryMsgRateLimit"
+      <tb-rate-limits class="flex-1" formControlName="transportDeviceTelemetryMsgRateLimit"
                       [type]="rateLimitsType.DEVICE_TELEMETRY_MESSAGES">
+      </tb-rate-limits>
+    </div>
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <tb-rate-limits class="flex-1" formControlName="transportGatewayMsgRateLimit"
+                      [type]="rateLimitsType.GATEWAY_MESSAGES">
+      </tb-rate-limits>
+      <tb-rate-limits class="flex-1" formControlName="transportGatewayDeviceMsgRateLimit"
+                      [type]="rateLimitsType.GATEWAY_DEVICE_MESSAGES">
+      </tb-rate-limits>
+    </div>
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <tb-rate-limits class="flex-1" formControlName="transportGatewayTelemetryMsgRateLimit"
+                      [type]="rateLimitsType.GATEWAY_TELEMETRY_MESSAGES">
+      </tb-rate-limits>
+      <tb-rate-limits class="flex-1" formControlName="transportGatewayDeviceTelemetryMsgRateLimit"
+                      [type]="rateLimitsType.GATEWAY_DEVICE_TELEMETRY_MESSAGES">
       </tb-rate-limits>
     </div>
     <mat-expansion-panel class="configuration-panel">
       <mat-expansion-panel-header>
-        <mat-panel-description fxLayoutAlign="end" translate>
+        <mat-panel-description class="flex items-stretch justify-end" translate>
           tenant-profile.advanced-settings
         </mat-panel-description>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <tb-rate-limits fxFlex formControlName="transportTenantTelemetryDataPointsRateLimit"
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="transportTenantTelemetryDataPointsRateLimit"
                           [type]="rateLimitsType.TENANT_TELEMETRY_DATA_POINTS">
           </tb-rate-limits>
-          <tb-rate-limits fxFlex formControlName="transportDeviceTelemetryDataPointsRateLimit"
+          <tb-rate-limits class="flex-1" formControlName="transportDeviceTelemetryDataPointsRateLimit"
                           [type]="rateLimitsType.DEVICE_TELEMETRY_DATA_POINTS">
           </tb-rate-limits>
         </div>
-        <div fxFlex fxLayout="row"  fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <tb-rate-limits fxFlex formControlName="integrationMsgsPerTenantRateLimit"
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="transportGatewayTelemetryDataPointsRateLimit"
+                          [type]="rateLimitsType.GATEWAY_TELEMETRY_DATA_POINTS">
+          </tb-rate-limits>
+          <tb-rate-limits class="flex-1" formControlName="transportGatewayDeviceTelemetryDataPointsRateLimit"
+                          [type]="rateLimitsType.GATEWAY_DEVICE_TELEMETRY_DATA_POINTS">
+          </tb-rate-limits>
+        </div>
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="integrationMsgsPerTenantRateLimit"
                           [type]="rateLimitsType.INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT">
           </tb-rate-limits>
-          <tb-rate-limits fxFlex formControlName="integrationMsgsPerDeviceRateLimit"
+          <tb-rate-limits class="flex-1" formControlName="integrationMsgsPerDeviceRateLimit"
                           [type]="rateLimitsType.INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT">
           </tb-rate-limits>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <tb-rate-limits fxFlex formControlName="tenantServerRestLimitsConfiguration"
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <div class="flex-1"></div>
+          <tb-rate-limits class="flex-1" formControlName="integrationMsgsPerAssetRateLimit"
+                          [type]="rateLimitsType.INTEGRATION_MSGS_PER_ASSET_RATE_LIMIT">
+          </tb-rate-limits>
+        </div>
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="tenantServerRestLimitsConfiguration"
                           [type]="rateLimitsType.TENANT_SERVER_REST_LIMITS_CONFIGURATION">
           </tb-rate-limits>
-          <tb-rate-limits fxFlex formControlName="customerServerRestLimitsConfiguration"
+          <tb-rate-limits class="flex-1" formControlName="customerServerRestLimitsConfiguration"
                           [type]="rateLimitsType.CUSTOMER_SERVER_REST_LIMITS_CONFIGURATION">
           </tb-rate-limits>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <tb-rate-limits fxFlex formControlName="tenantEntityExportRateLimit"
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="tenantEntityExportRateLimit"
                           [type]="rateLimitsType.TENANT_ENTITY_EXPORT_RATE_LIMIT">
           </tb-rate-limits>
-          <tb-rate-limits fxFlex formControlName="tenantEntityImportRateLimit"
+          <tb-rate-limits class="flex-1" formControlName="tenantEntityImportRateLimit"
                           [type]="rateLimitsType.TENANT_ENTITY_IMPORT_RATE_LIMIT">
           </tb-rate-limits>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <tb-rate-limits fxFlex formControlName="wsUpdatesPerSessionRateLimit"
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="wsUpdatesPerSessionRateLimit"
                           [type]="rateLimitsType.WS_UPDATE_PER_SESSION_RATE_LIMIT">
           </tb-rate-limits>
-          <tb-rate-limits fxFlex formControlName="cassandraQueryTenantRateLimitsConfiguration"
+          <tb-rate-limits class="flex-1" formControlName="cassandraQueryTenantRateLimitsConfiguration"
                           [type]="rateLimitsType.CASSANDRA_QUERY_TENANT_RATE_LIMITS_CONFIGURATION">
           </tb-rate-limits>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <tb-rate-limits fxFlex="50" formControlName="tenantNotificationRequestsRateLimit"
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="tenantNotificationRequestsRateLimit"
                           [type]="rateLimitsType.TENANT_NOTIFICATION_REQUEST_RATE_LIMIT">
           </tb-rate-limits>
-          <tb-rate-limits fxFlex="50" formControlName="tenantNotificationRequestsPerRuleRateLimit"
+          <tb-rate-limits class="flex-1" formControlName="tenantNotificationRequestsPerRuleRateLimit"
                           [type]="rateLimitsType.TENANT_NOTIFICATION_REQUESTS_PER_RULE_RATE_LIMIT">
           </tb-rate-limits>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <tb-rate-limits fxFlex="50" formControlName="edgeEventRateLimits"
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="edgeEventRateLimits"
                           [type]="rateLimitsType.EDGE_EVENTS_RATE_LIMIT">
           </tb-rate-limits>
-          <tb-rate-limits fxFlex="50" formControlName="edgeEventRateLimitsPerEdge"
+          <tb-rate-limits class="flex-1" formControlName="edgeEventRateLimitsPerEdge"
                           [type]="rateLimitsType.EDGE_EVENTS_PER_EDGE_RATE_LIMIT">
           </tb-rate-limits>
         </div>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-          <tb-rate-limits fxFlex="50" formControlName="edgeUplinkMessagesRateLimits"
+        <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+          <tb-rate-limits class="flex-1" formControlName="edgeUplinkMessagesRateLimits"
                           [type]="rateLimitsType.EDGE_UPLINK_MESSAGES_RATE_LIMIT">
           </tb-rate-limits>
-          <tb-rate-limits fxFlex="50" formControlName="edgeUplinkMessagesRateLimitsPerEdge"
+          <tb-rate-limits class="flex-1" formControlName="edgeUplinkMessagesRateLimitsPerEdge"
                           [type]="rateLimitsType.EDGE_UPLINK_MESSAGES_PER_EDGE_RATE_LIMIT">
           </tb-rate-limits>
         </div>

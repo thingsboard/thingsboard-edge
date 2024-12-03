@@ -30,26 +30,53 @@
  */
 package org.thingsboard.server.dao.menu;
 
+import org.thingsboard.server.common.data.CustomMenuDeleteResult;
+import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
+import org.thingsboard.server.common.data.menu.CustomMenuFilter;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+
+import java.util.List;
 
 public interface CustomMenuService {
 
-    CustomMenu getSystemCustomMenu(TenantId tenantId);
+    CustomMenu createCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force) throws ThingsboardException;
 
-    CustomMenu getTenantCustomMenu(TenantId tenantId);
+    CustomMenu updateCustomMenu(CustomMenu customMenu, boolean force) throws ThingsboardException;
 
-    CustomMenu getCustomerCustomMenu(TenantId tenantId, CustomerId customerId);
+    void updateAssigneeList(CustomMenu oldCustomMenu, CMAssigneeType newAssigneeType, List<EntityId> newAssignToList, boolean force) throws ThingsboardException;
 
-    CustomMenu getMergedTenantCustomMenu(TenantId tenantId);
+    PageData<CustomMenu> findCustomMenusByTenantId(TenantId tenantId, PageLink pageLink);
 
-    CustomMenu getMergedCustomerCustomMenu(TenantId tenantId, CustomerId customerId);
+    CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId);
 
-    CustomMenu saveSystemCustomMenu(CustomMenu customMenu);
+    CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
 
-    CustomMenu saveTenantCustomMenu(TenantId tenantId, CustomMenu customMenu);
+    PageData<CustomMenuInfo> findCustomMenuInfos(TenantId tenantId, CustomMenuFilter customMenuFilter, PageLink pageLink);
 
-    CustomMenu saveCustomerCustomMenu(TenantId tenantId, CustomerId customerId, CustomMenu customMenu);
+    CustomMenuConfig findSystemAdminCustomMenuConfig();
+
+    CustomMenuConfig findTenantUserCustomMenuConfig(TenantId tenantId, UserId id);
+
+    CustomMenuConfig findCustomerUserCustomMenuConfig(TenantId tenantId, CustomerId customerId, UserId userId);
+
+    CustomMenu findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
+
+    List<EntityInfo> findCustomMenuAssigneeList(CustomMenuInfo customMenuInfo);
+
+    CustomMenuDeleteResult deleteCustomMenu(CustomMenu customMenu, boolean force);
+
+    void deleteByTenantId(TenantId tenantId);
 
 }

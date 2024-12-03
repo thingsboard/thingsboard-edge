@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
+import jakarta.annotation.Nullable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
@@ -92,7 +93,6 @@ import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
-import jakarta.annotation.Nullable;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -232,7 +232,7 @@ public final class IntegrationGrpcSession implements Closeable {
             if (msg.getDeviceDataCount() > 0) {
                 for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
                     ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
-                    ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data.getDeviceName(), data::toString);
+                    ctx.getRateLimitService().checkLimitPerDevice(configuration.getTenantId(), data.getDeviceName(), data::toString);
 
                     final UUID sessionId = this.sessionId;
                     ctx.getPlatformIntegrationService().processUplinkData(configuration, sessionId, data, null);
@@ -242,6 +242,7 @@ public final class IntegrationGrpcSession implements Closeable {
             if (msg.getAssetDataCount() > 0) {
                 for (AssetUplinkDataProto data : msg.getAssetDataList()) {
                     ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
+                    ctx.getRateLimitService().checkLimitPerAsset(configuration.getTenantId(), data.getAssetName(), data::toString);
                     ctx.getPlatformIntegrationService().processUplinkData(configuration, data, null);
                 }
             }
@@ -353,17 +354,21 @@ public final class IntegrationGrpcSession implements Closeable {
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
         try {
-            if (proto.getEvent() != null && !proto.getEvent().isEmpty()) {
+            if (!proto.getEvent().isEmpty()) {
                 Event event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
-                event.setTenantId(tenantId);
-                event.setEntityId(entityId.getId());
-                saveEvent(tenantId, entityId, event);
+                if (event != null) {
+                    event.setTenantId(tenantId);
+                    event.setEntityId(entityId.getId());
+                    saveEvent(tenantId, entityId, event);
+                } else {
+                    log.warn("[{}][{}] Failed to decode event. Remote integration [{}] version is not compatible with new event api", tenantId, configuration.getId(), configuration.getName());
+                }
             } else {
                 //TODO: support backward compatibility by parsing the incoming data and converting it to the corresponding event.
-                log.warn("[{}][{}] Remote integration [{}] version is not compatible with new event api", configuration.getTenantId(), configuration.getId(), configuration.getName());
+                log.warn("[{}][{}] Remote integration [{}] version is not compatible with new event api", tenantId, configuration.getId(), configuration.getName());
             }
         } catch (Exception e) {
-            log.warn("[{}] Failed to convert event body!", proto.getEvent(), e);
+            log.warn("[{}][{}] Failed to convert event body from remote integration [{}]!", tenantId, configuration.getId(), configuration.getName(), e);
         }
     }
 
@@ -415,7 +420,7 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     private IntegrationConfigurationProto constructIntegrationConfigProto(Integration configuration, ConverterConfigurationProto defaultConverterProto, ConverterConfigurationProto downLinkConverterProto) throws JsonProcessingException {
-        return IntegrationConfigurationProto.newBuilder()
+        var builder = IntegrationConfigurationProto.newBuilder()
                 .setIntegrationIdMSB(configuration.getId().getId().getMostSignificantBits())
                 .setIntegrationIdLSB(configuration.getId().getId().getLeastSignificantBits())
                 .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
@@ -425,24 +430,28 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setName(configuration.getName())
                 .setRoutingKey(configuration.getRoutingKey())
                 .setType(configuration.getType().toString())
-                .setDebugMode(configuration.isDebugMode())
                 .setConfiguration(JacksonUtil.writeValueAsString(configuration.getConfiguration()))
                 .setAdditionalInfo(JacksonUtil.writeValueAsString(configuration.getAdditionalInfo()))
-                .setEnabled(configuration.isEnabled())
-                .build();
+                .setEnabled(configuration.isEnabled());
+        if (configuration.getDebugSettings() != null) {
+            builder.setDebugSettings(JacksonUtil.toString(configuration.getDebugSettings()));
+        }
+        return builder.build();
     }
 
     private ConverterConfigurationProto constructConverterConfigProto(Converter converter) throws JsonProcessingException {
-        return ConverterConfigurationProto.newBuilder()
+        var builder =  ConverterConfigurationProto.newBuilder()
                 .setTenantIdMSB(converter.getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(converter.getTenantId().getId().getLeastSignificantBits())
                 .setConverterIdMSB(converter.getId().getId().getMostSignificantBits())
                 .setConverterIdLSB(converter.getId().getId().getLeastSignificantBits())
                 .setName(converter.getName())
-                .setDebugMode(converter.isDebugMode())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
-                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()))
-                .build();
+                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+        if (converter.getDebugSettings() != null) {
+            builder.setDebugSettings(JacksonUtil.toString(converter.getDebugSettings()));
+        }
+        return builder.build();
     }
 
     @Override

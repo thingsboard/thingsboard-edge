@@ -31,16 +31,16 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -68,7 +68,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { AuthState } from '@core/auth/auth.models';
 
 @Injectable()
-export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<CustomerInfo>> {
+export class CustomersTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<CustomerInfo>,
               private userPermissionsService: UserPermissionsService,
@@ -154,7 +154,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
       columns.push(new EntityTableColumn<CustomerInfo>('ownerName', title, '20%'));
     }
     columns.push(
-      new GroupChipsEntityTableColumn<CustomerInfo>( 'groups', 'entity.groups', '20%')
+      new EntityChipsEntityTableColumn<CustomerInfo>( 'groups', 'entity.groups', '20%')
     );
     return columns;
   }

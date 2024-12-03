@@ -30,6 +30,14 @@
  */
 package org.thingsboard.server.common.data.converter;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum ConverterType {
-    UPLINK, DOWNLINK
+    UPLINK("uplink"),
+    DOWNLINK("downlink");
+
+    private final String directory;
 }

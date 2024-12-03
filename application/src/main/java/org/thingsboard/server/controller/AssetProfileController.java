@@ -31,13 +31,11 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,8 +55,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.config.annotations.ApiOperation;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.asset.profile.TbAssetProfileService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -243,7 +241,7 @@ public class AssetProfileController extends BaseController {
     @RequestMapping(value = "/assetProfileInfos", params = {"assetProfileIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<AssetProfileInfo> getAssetProfilesByIds(
-            @Parameter(description = "A list of asset profile ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of asset profile ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("assetProfileIds") String[] strAssetProfileIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("assetProfileIds", strAssetProfileIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ)) {

@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
@@ -51,6 +52,8 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
+import org.thingsboard.server.common.data.mobile.qrCodeSettings.QRCodeConfig;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -58,14 +61,15 @@ import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.dao.mobile.QrCodeSettingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
-import org.thingsboard.server.service.translation.TbTranslationService;
+import org.thingsboard.server.service.translation.TranslationService;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Hidden
@@ -87,6 +91,24 @@ public class SystemInfoController extends BaseController {
     @Value("${ui.dashboard.max_datapoints_limit}")
     private long maxDatapointsLimit;
 
+    @Value("${debug.settings.default_duration:15}")
+    private int defaultDebugDurationMinutes;
+
+    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled:true}")
+    private boolean ruleChainDebugPerTenantLimitsEnabled;
+
+    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.configuration:50000:3600}")
+    private String ruleChainDebugPerTenantLimitsConfiguration;
+
+    @Value("${event.debug.rate_limits.enabled}")
+    private boolean eventRateLimitsEnabled;
+
+    @Value("${event.debug.rate_limits.integration}")
+    private String integrationDebugPerTenantLimitsConfiguration;
+
+    @Value("${event.debug.rate_limits.converter}")
+    private String converterDebugPerTenantLimitsConfiguration;
+
     @Autowired(required = false)
     private BuildProperties buildProperties;
 
@@ -97,7 +119,10 @@ public class SystemInfoController extends BaseController {
     private WhiteLabelingService whiteLabelingService;
 
     @Autowired
-    private TbTranslationService translationService;
+    private TranslationService translationService;
+
+    @Autowired
+    private QrCodeSettingService qrCodeSettingService;
 
     @PostConstruct
     public void init() {
@@ -162,8 +187,19 @@ public class SystemInfoController extends BaseController {
         if (!currentUser.isSystemAdmin()) {
             DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
+            systemParams.setMaxDebugModeDurationMinutes(DebugModeUtil.getMaxDebugAllDuration(tenantProfileConfiguration.getMaxDebugModeDurationMinutes(), defaultDebugDurationMinutes));
+            if (ruleChainDebugPerTenantLimitsEnabled) {
+                systemParams.setRuleChainDebugPerTenantLimitsConfiguration(ruleChainDebugPerTenantLimitsConfiguration);
+            }
+            if (eventRateLimitsEnabled) {
+                systemParams.setIntegrationDebugPerTenantLimitsConfiguration(integrationDebugPerTenantLimitsConfiguration);
+                systemParams.setConverterDebugPerTenantLimitsConfiguration(converterDebugPerTenantLimitsConfiguration);
+            }
         }
         systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
+        systemParams.setMobileQrEnabled(Optional.ofNullable(qrCodeSettingService.getMergedQrCodeSettings(tenantId))
+                .map(QrCodeSettings::getQrCodeConfig).map(QRCodeConfig::isShowOnHomePage)
+                .orElse(false));
         return systemParams;
     }
 
@@ -183,6 +219,7 @@ public class SystemInfoController extends BaseController {
         } else {
             infoObject.put("version", "unknown");
         }
+        infoObject.put("type", "PE");
         return infoObject;
     }
 }

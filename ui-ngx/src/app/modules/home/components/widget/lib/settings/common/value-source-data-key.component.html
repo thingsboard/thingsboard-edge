@@ -1,0 +1,92 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div [formGroup]="valueSourceFormGroup" class="tb-value-source tb-form-row no-padding no-border">
+  <div class="tb-source-field">
+    <mat-form-field class="tb-type-field" appearance="outline" subscriptSizing="dynamic">
+      <mat-select formControlName="type">
+        <mat-option *ngFor="let type of valueSourceDataKeyTypes" [value]="type">
+          {{ valueSourceDataKeyTypeTranslation.get(type) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <tb-entity-alias-input
+      class="tb-entity-alias-field"
+      *ngIf="valueSourceFormGroup.get('type').value === valueSourceDataKeyType.entity"
+      [aliasController]="aliasController"
+      required
+      formControlName="entityAlias">
+    </tb-entity-alias-input>
+  </div>
+  <div class="tb-key-value-field">
+    <mat-form-field *ngIf="valueSourceFormGroup.get('type').value === valueSourceDataKeyType.constant"
+                    appearance="outline" class="tb-constant-field number" subscriptSizing="dynamic"
+                    [class.tb-suffix-absolute]="!valueSourceFormGroup.get('value').value">
+      <input required matInput formControlName="value" type="number" placeholder="{{ 'widget-config.set' | translate }}">
+      <mat-icon matSuffix
+                matTooltipPosition="above"
+                matTooltipClass="tb-error-tooltip"
+                [matTooltip]="'widgets.value-source.value-required' | translate"
+                *ngIf="valueSourceFormGroup.get('value').hasError('required')
+                       && valueSourceFormGroup.get('value').touched"
+                class="tb-error">
+        warning
+      </mat-icon>
+    </mat-form-field>
+    <tb-data-key-input
+      *ngIf="valueSourceFormGroup.get('type').value === valueSourceDataKeyType.latestKey"
+      required
+      requiredText="widgets.value-source.key-required"
+      [datasourceType]="datasource?.type"
+      [entityAliasId]="datasource?.entityAliasId"
+      [deviceId]="datasource?.deviceId"
+      [aliasController]="aliasController"
+      [dataKeyType]="datasource?.type === datasourceType.function ? dataKeyType.function : null"
+      [dataKeyTypes]="[dataKeyType.attribute, dataKeyType.timeseries]"
+      [callbacks]="dataKeyCallbacks"
+      [editable]="false"
+      [formControl]="latestKeyFormControl">
+    </tb-data-key-input>
+    <tb-data-key-input
+      *ngIf="valueSourceFormGroup.get('type').value === valueSourceDataKeyType.entity"
+      required
+      requiredText="widgets.value-source.entity-key-required"
+      [datasourceType]="datasourceType.entity"
+      [aliasController]="aliasController"
+      [entityAlias]="valueSourceFormGroup.get('entityAlias').value"
+      [dataKeyTypes]="[dataKeyType.attribute, dataKeyType.timeseries]"
+      [callbacks]="dataKeyCallbacks"
+      [editable]="false"
+      [formControl]="entityKeyFormControl">
+    </tb-data-key-input>
+  </div>
+</div>

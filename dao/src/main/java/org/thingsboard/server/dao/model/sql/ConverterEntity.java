@@ -39,18 +39,18 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TABLE_NAME;
@@ -62,7 +62,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = CONVERTER_TABLE_NAME)
-public final class ConverterEntity extends BaseSqlEntity<Converter> implements BaseEntity<Converter> {
+public final class ConverterEntity extends BaseVersionedEntity<Converter> {
 
     @Column(name = CONVERTER_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -74,8 +74,8 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements B
     @Column(name = CONVERTER_TYPE_PROPERTY)
     private ConverterType type;
 
-    @Column(name = CONVERTER_DEBUG_MODE_PROPERTY)
-    private boolean debugMode;
+    @Column(name = ModelConstants.DEBUG_SETTINGS)
+    private String debugSettings;
 
     @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.CONVERTER_CONFIGURATION_PROPERTY)
@@ -96,16 +96,13 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements B
     }
 
     public ConverterEntity(Converter converter) {
-        this.createdTime = converter.getCreatedTime();
-        if (converter.getId() != null) {
-            this.setUuid(converter.getId().getId());
-        }
+        super(converter);
         if (converter.getTenantId() != null) {
             this.tenantId = converter.getTenantId().getId();
         }
         this.name = converter.getName();
         this.type = converter.getType();
-        this.debugMode = converter.isDebugMode();
+        this.debugSettings = JacksonUtil.toString(converter.getDebugSettings());
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
         if (converter.getExternalId() != null) {
@@ -118,12 +115,13 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements B
     public Converter toData() {
         Converter converter = new Converter(new ConverterId(id));
         converter.setCreatedTime(createdTime);
+        converter.setVersion(version);
         if (tenantId != null) {
             converter.setTenantId(new TenantId(tenantId));
         }
         converter.setName(name);
         converter.setType(type);
-        converter.setDebugMode(debugMode);
+        converter.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
         if (externalId != null) {
@@ -132,4 +130,5 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements B
         converter.setEdgeTemplate(edgeTemplate);
         return converter;
     }
+
 }

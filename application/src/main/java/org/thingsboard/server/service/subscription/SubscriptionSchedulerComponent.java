@@ -30,14 +30,13 @@
  */
 package org.thingsboard.server.service.subscription;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +50,7 @@ public class SubscriptionSchedulerComponent {
 
     @PostConstruct
     public void initExecutor() {
-        scheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("subscription-scheduler"));
+        scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor("subscription-scheduler");
     }
 
     @PreDestroy

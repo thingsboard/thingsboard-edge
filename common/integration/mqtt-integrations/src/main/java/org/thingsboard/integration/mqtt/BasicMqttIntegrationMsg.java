@@ -36,7 +36,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.util.ConvertUtil;
 
 import java.nio.charset.StandardCharsets;
@@ -64,17 +64,17 @@ public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
     }
 
     @Override
-    public UplinkContentType getContentType() {
+    public ContentType getContentType() {
         try {
             JsonNode node = JacksonUtil.fromBytes(payload);
             if (node != null) {
-                return UplinkContentType.JSON;
+                return ContentType.JSON;
             }
         } catch (Exception ignored) {
         }
         if (StringUtils.isAsciiPrintable(new String(payload, StandardCharsets.UTF_8))) {
-            return UplinkContentType.TEXT;
+            return ContentType.TEXT;
         }
-        return UplinkContentType.BINARY;
+        return ContentType.BINARY;
     }
 }

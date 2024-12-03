@@ -34,7 +34,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  Input,
+  Input, NgZone,
   OnInit,
   ViewChild,
   ViewEncapsulation
@@ -63,7 +63,6 @@ import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/mod
 import { isDefined, isNotEmptyStr, isNumber } from '@core/utils';
 import { DialogService } from '@core/services/dialog.service';
 import { UtilsService } from '@core/services/utils.service';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { FormBuilder } from '@angular/forms';
 
@@ -130,7 +129,8 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
               private cd: ChangeDetectorRef,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private zone: NgZone) {
     super(store);
   }
 
@@ -157,11 +157,13 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     }
     if (this.displayPagination) {
       this.widgetResize$ = new ResizeObserver(() => {
-        const showHidePageSize = this.blobEntitiesWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-        if (showHidePageSize !== this.hidePageSize) {
-          this.hidePageSize = showHidePageSize;
-          this.cd.markForCheck();
-        }
+        this.zone.run(() => {
+          const showHidePageSize = this.blobEntitiesWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+          if (showHidePageSize !== this.hidePageSize) {
+            this.hidePageSize = showHidePageSize;
+            this.cd.markForCheck();
+          }
+        });
       });
       this.widgetResize$.observe(this.blobEntitiesWidgetContainerRef.nativeElement);
     }

@@ -48,6 +48,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -84,7 +85,8 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private DefaultIntegrationExecutorTenantProfileCache tenantProfileCache;
 
-    private static final String HTTP_UPLINK_CONVERTER_FILEPATH = "http/default_converter_configuration.json";
+    private static final String DEVICE_HTTP_UPLINK_CONVERTER_FILEPATH = "http/device_default_converter_configuration.json";
+    private static final String ASSET_HTTP_UPLINK_CONVERTER_FILEPATH = "http/asset_default_converter_configuration.json";
     private static final String HTTP_UPLINK_CONVERTER_NAME = "Default test uplink converter";
     private static final JsonNode TEST_DATA = JacksonUtil.fromString("{\"test\":1}", JsonNode.class);
 
@@ -101,33 +103,11 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
         updateDefaultTenantProfileConfig(profileConfig -> {
             profileConfig.setIntegrationMsgsPerTenantRateLimit("100:1,2000:60");
             profileConfig.setIntegrationMsgsPerDeviceRateLimit("100:1,2000:60");
+            profileConfig.setIntegrationMsgsPerAssetRateLimit("100:1,2000:60");
         });
 
         setFieldReflectively(limitService, "integrationEventsRateLimitsConf", "100:1,2000:60");
         setFieldReflectively(limitService, "converterEventsRateLimitsConf", "100:1,2000:60");
-
-        loginTenantAdmin();
-
-        InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(HTTP_UPLINK_CONVERTER_FILEPATH);
-        ObjectNode jsonFile = new ObjectMapper().readValue(resourceAsStream, ObjectNode.class);
-        Assert.assertNotNull(jsonFile);
-
-        if (jsonFile.has("configuration") && jsonFile.get("configuration").has("decoder")) {
-            createConverter(HTTP_UPLINK_CONVERTER_NAME, ConverterType.UPLINK, jsonFile.get("configuration"));
-        }
-        Assert.assertNotNull(uplinkConverter);
-
-        createIntegration("Test HTTP integration", IntegrationType.HTTP);
-        Assert.assertNotNull(integration);
-
-        enableIntegration();
-        waitUntilIntegrationStarted(tenantId, integration.getId());
-
-        Device device = new Device();
-        device.setName("http_device");
-        device.setType("http");
-
-        doPost("/api/device", device).andExpect(status().isOk());
     }
 
     @After
@@ -146,6 +126,8 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testIntegrationRateLimitPerTenant() throws Exception {
+        createIntegration(true);
+
         long startTime = System.currentTimeMillis();
         updateDefaultTenantProfileConfig(profileConfig -> {
             profileConfig.setIntegrationMsgsPerTenantRateLimit("10:1,20:60");
@@ -176,6 +158,8 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testIntegrationRateLimitPerDevice() throws Exception {
+        createIntegration(true);
+
         long startTime = System.currentTimeMillis();
         updateDefaultTenantProfileConfig(profileConfig -> {
             profileConfig.setIntegrationMsgsPerDeviceRateLimit("10:1,20:60");
@@ -195,7 +179,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
-        Mockito.verify(limitService, times(20)).checkLimit(eq(tenantId), eq("http_device"), any());
+        Mockito.verify(limitService, times(20)).checkLimitPerDevice(eq(tenantId), eq("http_device"), any());
 
         List<EventInfo> events = getIntegrationDebugMessages(startTime, "Uplink", "ERROR", 10);
 
@@ -205,7 +189,41 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void testIntegrationRateLimitPerAsset() throws Exception {
+        createIntegration(false);
+
+        long startTime = System.currentTimeMillis();
+        updateDefaultTenantProfileConfig(profileConfig -> {
+            profileConfig.setIntegrationMsgsPerAssetRateLimit("10:1,20:60");
+        });
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerAssetRateLimit() != null);
+
+        repeat(20, i -> {
+            try {
+                doPost("/api/v1/integrations/http/{routingKey}", TEST_DATA, integration.getRoutingKey()).andExpect(status().isOk());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        await().atMost(10, TimeUnit.SECONDS).until(() ->
+                getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
+        );
+
+        Mockito.verify(limitService, times(20)).checkLimitPerAsset(eq(tenantId), eq("http_asset"), any());
+
+        List<EventInfo> events = getIntegrationDebugMessages(startTime, "Uplink", "ERROR", 10);
+
+        Assert.assertNotNull(events);
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("ASSET rate limits reached!", events.get(0).getBody().get("error").asText());
+    }
+
+    @Test
     public void testIntegrationDebugEventRateLimit() throws Exception {
+        createIntegration(true);
+
         long startTime = System.currentTimeMillis();
         setFieldReflectively(limitService, "integrationEventsRateLimitsConf", "10:1,20:60");
 
@@ -235,6 +253,8 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testConverterDebugEventRateLimit() throws Exception {
+        createIntegration(true);
+
         long startTime = System.currentTimeMillis();
         setFieldReflectively(limitService, "converterEventsRateLimitsConf", "10:1,20:60");
 
@@ -262,6 +282,41 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(events);
         Assert.assertEquals(1, events.size());
         Assert.assertEquals("Converter debug rate limits reached!", events.get(0).getBody().get("error").asText());
+    }
+
+    private void createIntegration(boolean isDevice) throws Exception {
+        loginTenantAdmin();
+
+        String filePath = isDevice ? DEVICE_HTTP_UPLINK_CONVERTER_FILEPATH : ASSET_HTTP_UPLINK_CONVERTER_FILEPATH;
+
+        InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(filePath);
+        ObjectNode jsonFile = new ObjectMapper().readValue(resourceAsStream, ObjectNode.class);
+        Assert.assertNotNull(jsonFile);
+
+        if (jsonFile.has("configuration") && jsonFile.get("configuration").has("decoder")) {
+            createConverter(HTTP_UPLINK_CONVERTER_NAME, ConverterType.UPLINK, jsonFile.get("configuration"));
+        }
+        Assert.assertNotNull(uplinkConverter);
+
+        createIntegration("Test HTTP integration", IntegrationType.HTTP);
+        Assert.assertNotNull(integration);
+
+        enableIntegration();
+        waitUntilIntegrationStarted(tenantId, integration.getId());
+
+        if (isDevice) {
+            Device device = new Device();
+            device.setName("http_device");
+            device.setType("http");
+
+            doPost("/api/device", device).andExpect(status().isOk());
+        } else {
+            Asset asset = new Asset();
+            asset.setName("http_asset");
+            asset.setType("http");
+
+            doPost("/api/asset", asset).andExpect(status().isOk());
+        }
     }
 
     private void repeat(int n, IntConsumer i) {

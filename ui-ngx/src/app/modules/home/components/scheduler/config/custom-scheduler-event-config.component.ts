@@ -30,16 +30,14 @@
 ///
 
 import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { AfterViewInit, Directive, DoCheck, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { deepClone, isEqual } from '@core/utils';
-import { ControlValueAccessor, NgForm } from '@angular/forms';
-import { TbInject } from '@shared/decorators/tb-inject';
+import { AbstractControl, ControlValueAccessor, NgForm, ValidationErrors, Validator } from '@angular/forms';
 
 @Directive()
-export class CustomSchedulerEventConfigComponent extends PageComponent implements OnInit, AfterViewInit, DoCheck, ControlValueAccessor {
+export class CustomSchedulerEventConfigComponent
+  extends PageComponent implements OnInit, AfterViewInit, DoCheck, ControlValueAccessor, Validator {
 
   @ViewChildren(NgForm, {read: NgForm}) forms: QueryList<NgForm>;
 
@@ -50,17 +48,17 @@ export class CustomSchedulerEventConfigComponent extends PageComponent implement
 
   [key: string]: any;
 
-  private propagateChange = (v: any) => { };
+  private propagateChange = (_v: any) => { };
 
-  constructor(@TbInject(Store) protected store: Store<AppState>) {
-    super(store);
+  constructor() {
+    super();
   }
 
   registerOnChange(fn: any): void {
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   ngOnInit(): void {
@@ -87,7 +85,7 @@ export class CustomSchedulerEventConfigComponent extends PageComponent implement
   }
 
   ngDoCheck(): void {
-    const newConfiguration = this.validate() ? this.configuration : null;
+    const newConfiguration = this.doValidate() ? this.configuration : null;
     if (!isEqual(this.configurationSnapshot, newConfiguration)) {
       this.configurationSnapshot = deepClone(newConfiguration);
       setTimeout(() => {
@@ -105,12 +103,24 @@ export class CustomSchedulerEventConfigComponent extends PageComponent implement
           } else {
             form.control.enable();
           }
-        })
+        });
       }, 0);
     }
   }
 
-  private validate(): boolean {
+  public validate(_control: AbstractControl): ValidationErrors | null {
+    if (!this.doValidate()) {
+      return {
+        customSchedulerEventForm: {
+          valid: false
+        }
+      };
+    } else {
+      return null;
+    }
+  }
+
+  private doValidate(): boolean {
     if (this.forms) {
       const res = this.forms.toArray().filter((form) => form.valid === false);
       if (res && res.length) {

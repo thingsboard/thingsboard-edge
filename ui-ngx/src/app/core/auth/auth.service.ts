@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgZone } from '@angular/core';
+import { Inject, Injectable, NgZone } from '@angular/core';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { HttpClient } from '@angular/common/http';
 
@@ -60,12 +60,13 @@ import { CustomMenuService } from '@core/http/custom-menu.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
-import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
+import { OAuth2ClientLoginInfo, PlatformType } from '@shared/models/oauth2.models';
 import { isMobileApp } from '@core/utils';
 import { TwoFactorAuthProviderType, TwoFaProviderInfo } from '@shared/models/two-factor-auth.models';
 import { UserPasswordPolicy } from '@shared/models/settings.models';
 import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
 import { updateUserLang } from '@core/settings/settings.utils';
+import { DOCUMENT } from '@angular/common';
 
 @Injectable({
     providedIn: 'root'
@@ -84,12 +85,13 @@ export class AuthService {
     private zone: NgZone,
     private utils: UtilsService,
     private translate: TranslateService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    @Inject(DOCUMENT) private document: Document,
   ) {
   }
 
   redirectUrl: string;
-  oauth2Clients: Array<OAuth2ClientInfo> = null;
+  oauth2Clients: Array<OAuth2ClientLoginInfo> = null;
   twoFactorAuthProviders: Array<TwoFaProviderInfo> = null;
 
   private refreshTokenSubject: ReplaySubject<LoginResponse> = null;
@@ -246,9 +248,9 @@ export class AuthService {
     }
   }
 
-  public loadOAuth2Clients(): Observable<Array<OAuth2ClientInfo>> {
+  public loadOAuth2Clients(): Observable<Array<OAuth2ClientLoginInfo>> {
     const url = '/api/noauth/oauth2Clients?platform=' + PlatformType.WEB;
-    return this.http.post<Array<OAuth2ClientInfo>>(url,
+    return this.http.post<Array<OAuth2ClientLoginInfo>>(url,
       null, defaultHttpOptions()).pipe(
       catchError(err => of([])),
       tap((OAuth2Clients) => {
@@ -405,7 +407,7 @@ export class AuthService {
           )
         );
       } else if (loginError) {
-        this.showLoginErrorDialog(loginError);
+        Promise.resolve().then(() => this.showLoginErrorDialog(loginError));
         this.utils.updateQueryParam('loginError', null);
         return throwError(Error());
       }
@@ -504,7 +506,7 @@ export class AuthService {
         mergeMap((sysParams: SysParams) => {
           (this.translate.currentLoader as TranslateDefaultLoader).isAuthenticated = true;
           this.timeService.setMaxDatapointsLimit(sysParams.maxDatapointsLimit);
-          return updateUserLang(this.translate, userLang, sysParams.availableLocales, true).pipe(
+          return updateUserLang(this.translate, this.document, userLang, sysParams.availableLocales, true).pipe(
             map(() => sysParams)
           );
         })
@@ -692,6 +694,7 @@ export class AuthService {
   private userForceFullscreen(authPayload: AuthPayload): boolean {
     return (authPayload.authUser && authPayload.authUser.isPublic) ||
       (authPayload.userDetails && authPayload.userDetails.additionalInfo &&
+        authPayload.userDetails.additionalInfo.defaultDashboardId &&
         authPayload.userDetails.additionalInfo.defaultDashboardFullscreen &&
         authPayload.userDetails.additionalInfo.defaultDashboardFullscreen === true);
   }

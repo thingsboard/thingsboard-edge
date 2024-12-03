@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.transport.lwm2m.server.store;
 
-import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.SecurityMode;
 import org.eclipse.leshan.core.peer.OscoreIdentity;
 import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
@@ -42,7 +42,9 @@ import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MSecurityInfo;
+
 import java.util.concurrent.locks.Lock;
+
 import static org.thingsboard.server.transport.lwm2m.server.store.TbLwM2mRedisRegistrationStore.REG_EP;
 
 @Slf4j
@@ -72,10 +74,6 @@ public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
                 TbLwM2MSecurityInfo tbLwM2MSecurityInfo = JavaSerDesUtil.decode(data);
                 if (tbLwM2MSecurityInfo != null) {
                     if (SecurityMode.NO_SEC.equals(tbLwM2MSecurityInfo.getSecurityMode())){
-
-                        // for tests: redis connect NoSec (securityInfo == null)
-                        log.info("lwm2m redis securityStore (decode -ok). Endpoint: [{}], secMode: [NoSec] key: [{}], data [{}]", endpoint, SEC_EP, data);
-
                         return SecurityInfo.newPreSharedKeyInfo(SecurityMode.NO_SEC.toString(), SecurityMode.NO_SEC.toString(),
                                 SecurityMode.NO_SEC.toString().getBytes());
                     } else {

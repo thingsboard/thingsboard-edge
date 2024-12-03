@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ConcurrentReferenceHashMap;
+import org.thingsboard.common.util.DeduplicationUtil;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.common.data.EntityType;
@@ -48,11 +48,7 @@ import org.thingsboard.server.common.data.limit.LimitedApi;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-
-import static org.springframework.util.ConcurrentReferenceHashMap.ReferenceType.SOFT;
 
 @Service
 @TbCoreOrIntegrationExecutorComponent
@@ -74,8 +70,6 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
 
     private final RateLimitService rateLimitService;
 
-    private final ConcurrentMap<DeduplicationKey, Long> deduplicationCache = new ConcurrentReferenceHashMap<>(16, SOFT);
-
     @Override
     public void checkLimit(TenantId tenantId, Supplier<String> msg) {
         if (log.isTraceEnabled()) {
@@ -91,7 +85,7 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
     }
 
     @Override
-    public void checkLimit(TenantId tenantId, String deviceName, Supplier<String> msg) {
+    public void checkLimitPerDevice(TenantId tenantId, String deviceName, Supplier<String> msg) {
         if (log.isTraceEnabled()) {
             log.trace("[{}] Processing msg: {}", deviceName, msg.get());
         }
@@ -101,6 +95,20 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
                 log.trace("[{}][{}] Device level rate limit detected: {}", tenantId, deviceName, msg.get());
             }
             throw new TbRateLimitsException(EntityType.DEVICE);
+        }
+    }
+
+    @Override
+    public void checkLimitPerAsset(TenantId tenantId, String assetName, Supplier<String> msg) {
+        if (log.isTraceEnabled()) {
+            log.trace("[{}] Processing msg: {}", assetName, msg.get());
+        }
+
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS_PER_ASSET, tenantId, Pair.of(tenantId, assetName))) {
+            if (log.isTraceEnabled()) {
+                log.trace("[{}][{}] Asset level rate limit detected: {}", tenantId, assetName, msg.get());
+            }
+            throw new TbRateLimitsException(EntityType.ASSET);
         }
     }
 
@@ -149,21 +157,7 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
     @Override
     public boolean alreadyProcessed(EntityId entityId, EntityType entityType) {
         var deduplicationKey = DeduplicationKey.of(entityId, entityType);
-        var alreadyProcessed = new AtomicBoolean(false);
-
-        deduplicationCache.compute(deduplicationKey, (key, lastProcessedTs) -> {
-            if (lastProcessedTs != null) {
-                long passed = System.currentTimeMillis() - lastProcessedTs;
-                if (passed <= deduplicationDuration) {
-                    alreadyProcessed.set(true);
-                    return lastProcessedTs;
-                }
-            }
-
-            return System.currentTimeMillis();
-        });
-
-        return alreadyProcessed.get();
+        return DeduplicationUtil.alreadyProcessed(deduplicationKey, deduplicationDuration);
     }
 
     @Data(staticConstructor = "of")

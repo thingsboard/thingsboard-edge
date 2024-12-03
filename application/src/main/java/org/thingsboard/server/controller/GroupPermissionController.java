@@ -31,11 +31,8 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,6 +47,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -63,6 +61,7 @@ import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -132,7 +131,13 @@ public class GroupPermissionController extends BaseController {
         try {
             groupPermission.setTenantId(getCurrentUser().getTenantId());
 
-            checkEntity(groupPermission.getId(), groupPermission, Resource.GROUP_PERMISSION, null);
+            GroupPermission oldGroupPermission = null;
+            if (groupPermission.getId() == null) {
+                accessControlService
+                        .checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.CREATE, null, groupPermission);
+            } else {
+                oldGroupPermission = checkGroupPermissionId(groupPermission.getId(), Operation.WRITE);
+            }
 
             if (groupPermission.isPublic()) {
                 throw permissionDenied();
@@ -156,6 +161,9 @@ public class GroupPermissionController extends BaseController {
 
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
 
+            if (oldGroupPermission != null && !oldGroupPermission.getUserGroupId().equals(savedGroupPermission.getUserGroupId())) {
+                userPermissionsService.onGroupPermissionUpdated(oldGroupPermission);
+            }
             userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
 
             logEntityActionService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
@@ -251,6 +259,11 @@ public class GroupPermissionController extends BaseController {
         checkEntityGroupId(entityGroupId, Operation.READ);
         accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
         List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(tenantId, entityGroupId).get();
+        if (getCurrentUser().isCustomerUser()) {
+            var customerId = getCurrentUser().getCustomerId();
+            Set<EntityId> owners = ownersCacheService.getChildOwners(tenantId, customerId);
+            groupPermissions = groupPermissions.stream().filter(gp -> owners.contains(gp.getUserGroupOwnerId())).toList();
+        }
         return applyPermissionInfo(groupPermissions);
     }
 

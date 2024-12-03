@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.entitiy.widgets.type;
 
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -40,21 +40,22 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
-import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+import org.thingsboard.server.service.resource.TbResourceService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 @Service
 @TbCoreComponent
 @AllArgsConstructor
 public class DefaultWidgetTypeService extends AbstractTbEntityService implements TbWidgetTypeService {
 
-
     private final WidgetTypeService widgetTypeService;
+    private final TbResourceService tbResourceService;
 
     @Override
-    public WidgetTypeDetails save(WidgetTypeDetails widgetTypeDetails, boolean updateExistingByFqn, User user) throws Exception {
+    public WidgetTypeDetails save(WidgetTypeDetails widgetTypeDetails, boolean updateExistingByFqn, SecurityUser user) throws Exception {
         TenantId tenantId = widgetTypeDetails.getTenantId();
         if (widgetTypeDetails.getId() == null && StringUtils.isNotEmpty(widgetTypeDetails.getFqn()) && updateExistingByFqn) {
             WidgetType widgetType = widgetTypeService.findWidgetTypeByTenantIdAndFqn(tenantId, widgetTypeDetails.getFqn());
@@ -62,6 +63,10 @@ public class DefaultWidgetTypeService extends AbstractTbEntityService implements
                 widgetTypeDetails.setId(widgetType.getId());
             }
         }
+        if (CollectionUtils.isNotEmpty(widgetTypeDetails.getResources())) {
+            tbResourceService.importResources(widgetTypeDetails.getResources(), user);
+        }
+
         ActionType actionType = widgetTypeDetails.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         try {
             WidgetTypeDetails savedWidgetTypeDetails = checkNotNull(widgetTypeService.saveWidgetType(widgetTypeDetails));
@@ -87,4 +92,5 @@ public class DefaultWidgetTypeService extends AbstractTbEntityService implements
             throw e;
         }
     }
+
 }

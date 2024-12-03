@@ -30,8 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section class="tb-widget-settings" [formGroup]="schedulerEventsWidgetSettingsForm" fxLayout="column">
-  <mat-form-field fxFlex class="mat-block">
+<section class="tb-widget-settings flex flex-col" [formGroup]="schedulerEventsWidgetSettingsForm">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.table.scheduler-events-table-title</mat-label>
     <input matInput formControlName="title">
   </mat-form-field>
@@ -44,20 +44,20 @@
   <mat-slide-toggle formControlName="displayCustomer" class="slide-block">
     {{ 'widgets.table.display-customer' | translate }}
   </mat-slide-toggle>
-  <section fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
-    <mat-slide-toggle fxFlex formControlName="displayPagination">
+  <section class="flex flex-row items-center justify-start gap-2">
+    <mat-slide-toggle class="flex-1" formControlName="displayPagination">
       {{ 'widgets.table.display-pagination' | translate }}
     </mat-slide-toggle>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>widgets.table.default-page-size</mat-label>
       <input matInput type="number" min="1" step="1" formControlName="defaultPageSize">
     </mat-form-field>
   </section>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.table.default-sort-order</mat-label>
     <input matInput formControlName="defaultSortOrder">
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.scheduler.enabled-scheduler-event-views</mat-label>
     <mat-select formControlName="enabledViews">
       <mat-option [value]="'both'">
@@ -71,21 +71,21 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.table.no-data-display-message</mat-label>
     <input matInput formControlName="noDataDisplayMessage">
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.table.force-default-event-type</mat-label>
     <input matInput formControlName="forceDefaultEventType">
   </mat-form-field>
   <fieldset class="fields-group">
     <legend class="group-title" translate>widgets.scheduler.custom-event-types</legend>
-    <div fxLayout="column">
+    <div class="flex flex-col">
       <div class="tb-control-list">
         <div *ngFor="let customEventTypeControl of customEventTypesFormArray().controls; trackBy: trackByCustomEventType;
                  let $index = index; last as isLast;"
-             fxLayout="column" [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
+             class="flex flex-col" [class.pb-2]="!isLast">
           <tb-custom-scheduler-event-type [formControl]="customEventTypeControl"
                         [expanded]="customEventTypeControl.new"
                         (removeCustomSchedulerEventType)="removeCustomEventType($index)">
@@ -93,8 +93,8 @@
         </div>
       </div>
       <div *ngIf="!customEventTypesFormArray().controls.length">
-            <span translate fxLayoutAlign="center center"
-                  class="tb-prompt">widgets.scheduler.no-custom-event-types</span>
+            <span translate
+                  class="tb-prompt flex items-center justify-center">widgets.scheduler.no-custom-event-types</span>
       </div>
       <div style="padding-top: 16px;">
         <button mat-raised-button color="primary"

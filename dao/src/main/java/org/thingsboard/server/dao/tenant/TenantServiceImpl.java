@@ -53,6 +53,8 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.mobile.QrCodeSettingService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -98,6 +100,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private AdminSettingsService adminSettingsService;
     @Autowired
     private NotificationSettingsService notificationSettingsService;
+    @Autowired
+    private QrCodeSettingService qrCodeSettingService;
+    @Autowired
+    private CustomMenuService customMenuService;
     @Autowired
     private TenantDataValidator tenantValidator;
     @Autowired
@@ -194,12 +200,16 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
 
         userService.deleteAllByTenantId(tenantId);
-        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
+        whiteLabelingService.deleteAllTenantWhiteLabeling(tenantId);
         customTranslationService.deleteCustomTranslationByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
+        qrCodeSettingService.deleteByTenantId(tenantId);
+        customMenuService.deleteByTenantId(tenantId);
         notificationSettingsService.deleteNotificationSettings(tenantId);
+
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).entity(tenant).build());
 
         cleanUpService.removeTenantEntities(tenantId, // don't forget to implement deleteByTenantId from EntityDaoService when adding entity type to this list
                 EntityType.ENTITY_VIEW, EntityType.WIDGETS_BUNDLE, EntityType.WIDGET_TYPE,
@@ -209,9 +219,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
                 EntityType.GROUP_PERMISSION, EntityType.ROLE, EntityType.API_USAGE_STATE, EntityType.TB_RESOURCE,
                 EntityType.OTA_PACKAGE, EntityType.RPC, EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST,
                 EntityType.NOTIFICATION_RULE, EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET,
-                EntityType.QUEUE_STATS, EntityType.CUSTOMER
+                EntityType.QUEUE_STATS, EntityType.CUSTOMER, EntityType.DOMAIN, EntityType.MOBILE_APP_BUNDLE,
+                EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT
         );
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).entity(tenant).build());
     }
 
     @Override
@@ -267,7 +277,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
-        return Optional.ofNullable(findTenantById(new TenantId(entityId.getId())));
+        return Optional.ofNullable(findTenantById(TenantId.fromUUID(entityId.getId())));
     }
 
     @Override

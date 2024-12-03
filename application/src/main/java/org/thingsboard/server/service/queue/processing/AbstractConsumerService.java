@@ -57,11 +57,11 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.util.AfterStartUp;
+import org.thingsboard.server.queue.util.TbPackCallback;
+import org.thingsboard.server.queue.util.TbPackProcessingContext;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.queue.util.TbPackCallback;
-import org.thingsboard.server.queue.util.TbPackProcessingContext;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
 
 import java.util.List;
@@ -97,7 +97,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
     public void init(String prefix) {
         this.consumersExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName(prefix + "-consumer"));
         this.mgmtExecutor = ThingsBoardExecutors.newWorkStealingPool(getMgmtThreadPoolSize(), prefix + "-mgmt");
-        this.scheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName(prefix + "-consumer-scheduler"));
+        this.scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor(prefix + "-consumer-scheduler");
 
         this.nfConsumer = QueueConsumerManager.<TbProtoQueueMsg<N>>builder()
                 .name(getServiceType().getLabel() + " Notifications")
@@ -139,7 +139,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
     protected abstract TbQueueConsumer<TbProtoQueueMsg<N>> createNotificationsConsumer();
 
     protected void processNotifications(List<TbProtoQueueMsg<N>> msgs, TbQueueConsumer<TbProtoQueueMsg<N>> consumer) throws Exception {
-        List<IdMsgPair<N>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).collect(Collectors.toList());
+        List<IdMsgPair<N>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).toList();
         ConcurrentMap<UUID, TbProtoQueueMsg<N>> pendingMap = orderedMsgList.stream().collect(
                 Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));
         CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
@@ -226,4 +226,5 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
             scheduler.shutdownNow();
         }
     }
+
 }

@@ -31,9 +31,9 @@
 package org.thingsboard.server.dao.translation;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 
 import java.util.Set;
 
@@ -60,4 +60,5 @@ public interface CustomTranslationService {
     Set<String> getMergedCustomerCustomizedLocales(TenantId tenantId, CustomerId customerId);
 
     void deleteCustomTranslationByTenantId(TenantId tenantId);
+
 }

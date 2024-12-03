@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.transport.coap;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.CoapServer;
@@ -42,8 +44,6 @@ import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.transport.coap.efento.CoapEfentoTransportResource;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.net.UnknownHostException;
 
 @Service("CoapTransportService")

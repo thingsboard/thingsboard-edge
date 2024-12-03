@@ -37,6 +37,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.TransportPayloadType;
@@ -50,8 +51,8 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.AbstractMqttIntegrationTest;
 import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
 import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestCallback;
-import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestSubscribeOnTopicCallback;
 import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestClient;
+import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestSubscribeOnTopicCallback;
 
 import java.util.concurrent.TimeUnit;
 
@@ -81,6 +82,11 @@ public class MqttProvisionJsonDeviceTest extends AbstractMqttIntegrationTest {
     @Test
     public void testProvisioningCreateNewDeviceWithoutCredentials() throws Exception {
         processTestProvisioningCreateNewDeviceWithoutCredentials();
+    }
+
+    @Test
+    public void testProvisioningCreateNewGatewayDevice() throws Exception {
+        processTestProvisioningCreateNewGatewayDevice();
     }
 
     @Test
@@ -137,6 +143,37 @@ public class MqttProvisionJsonDeviceTest extends AbstractMqttIntegrationTest {
         Device createdDevice = deviceService.findDeviceByTenantIdAndName(tenantId, "Test Provision device");
 
         Assert.assertNotNull(createdDevice);
+
+        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, createdDevice.getId());
+
+        Assert.assertEquals(deviceCredentials.getCredentialsType().name(), response.get("credentialsType").asText());
+        Assert.assertEquals(ProvisionResponseStatus.SUCCESS.name(), response.get("status").asText());
+    }
+
+
+    protected void processTestProvisioningCreateNewGatewayDevice() throws Exception {
+        MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
+                .deviceName("Test Provision device3")
+                .transportPayloadType(TransportPayloadType.JSON)
+                .provisionType(DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES)
+                .provisionKey("testProvisionKey")
+                .provisionSecret("testProvisionSecret")
+                .build();
+        super.processBeforeTest(configProperties);
+        byte[] result = createMqttClientAndPublish(true);
+        JsonNode response = JacksonUtil.fromBytes(result);
+        Assert.assertTrue(response.hasNonNull("credentialsType"));
+        Assert.assertTrue(response.hasNonNull("status"));
+
+        Device createdDevice = deviceService.findDeviceByTenantIdAndName(tenantId, "Test Provision device");
+
+        Assert.assertNotNull(createdDevice);
+
+        JsonNode additionalInfo = createdDevice.getAdditionalInfo();
+        Assert.assertNotNull(additionalInfo);
+        Assert.assertTrue(additionalInfo.has(DataConstants.GATEWAY_PARAMETER)
+                && additionalInfo.get(DataConstants.GATEWAY_PARAMETER).isBoolean());
+        Assert.assertTrue(additionalInfo.get(DataConstants.GATEWAY_PARAMETER).asBoolean());
 
         DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, createdDevice.getId());
 
@@ -279,11 +316,19 @@ public class MqttProvisionJsonDeviceTest extends AbstractMqttIntegrationTest {
     }
 
     protected byte[] createMqttClientAndPublish() throws Exception {
-        return createMqttClientAndPublish("");
+        return createMqttClientAndPublish(false);
+    }
+
+    protected byte[] createMqttClientAndPublish(boolean isGateway) throws Exception {
+        return createMqttClientAndPublish("", isGateway);
     }
 
     protected byte[] createMqttClientAndPublish(String deviceCredentials) throws Exception {
-        String provisionRequestMsg = createTestProvisionMessage(deviceCredentials);
+        return createMqttClientAndPublish(deviceCredentials, false);
+    }
+
+    protected byte[] createMqttClientAndPublish(String deviceCredentials, boolean isGateway) throws Exception {
+        String provisionRequestMsg = createTestProvisionMessage(deviceCredentials, isGateway);
         MqttTestClient client = new MqttTestClient();
         client.connectAndWait("provision");
         MqttTestCallback onProvisionCallback = new MqttTestSubscribeOnTopicCallback(DEVICE_PROVISION_RESPONSE_TOPIC);
@@ -295,7 +340,12 @@ public class MqttProvisionJsonDeviceTest extends AbstractMqttIntegrationTest {
         return onProvisionCallback.getPayloadBytes();
     }
 
-    protected String createTestProvisionMessage(String deviceCredentials) {
-        return "{\"deviceName\":\"Test Provision device\",\"provisionDeviceKey\":\"testProvisionKey\", \"provisionDeviceSecret\":\"testProvisionSecret\"" + deviceCredentials + "}";
+    protected String createTestProvisionMessage(String deviceCredentials, boolean isGateway) {
+        String request = "{\"deviceName\":\"Test Provision device\",\"provisionDeviceKey\":\"testProvisionKey\", \"provisionDeviceSecret\":\"testProvisionSecret\"" + deviceCredentials;
+        if (isGateway) {
+            request += ",\"gateway\":true";
+        }
+        request += "}";
+        return request;
     }
 }

@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   DateEntityTableColumn,
   defaultEntityTablePermissions,
@@ -57,9 +57,10 @@ import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { isUndefined } from '@core/utils';
 import { EntityAction } from '@home/models/entity/entity-component.models';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 
 @Injectable()
-export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<Converter>> {
+export class ConvertersTableConfigResolver  {
 
   private readonly config: EntityTableConfig<Converter> = new EntityTableConfig<Converter>();
 
@@ -69,7 +70,8 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
               private importExport: ImportExportService,
               private datePipe: DatePipe,
               private router: Router,
-              private utils: UtilsService) {
+              private utils: UtilsService,
+              private customTranslate: CustomTranslatePipe) {
 
     this.config.entityType = EntityType.CONVERTER;
     this.config.entityComponent = ConverterComponent;
@@ -91,7 +93,10 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
       new EntityTableColumn<Converter>('name', 'converter.name', '33%', this.config.entityTitle),
       new EntityTableColumn<Converter>('type', 'converter.type', '33%', (converter) => {
         return this.translate.instant(converterTypeTranslationMap.get(converter.type));
-      })
+      }),
+      new EntityTableColumn<Converter>('description', 'converter.description', '33%',
+        (converter) => this.customTranslate.transform(converter.additionalInfo?.description || ''),
+        () => ({}), false),
     );
 
     this.config.cellActionDescriptors.push(

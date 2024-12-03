@@ -20,7 +20,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
         "name": "To All Customer Users",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "searchEntityGroupForTenantOnly": false,
           "groupType": "USER",
@@ -35,7 +36,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
         "name": "To All Customer Users",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "searchEntityGroupForTenantOnly": false,
           "groupType": "USER",
@@ -50,7 +52,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
         "name": "To All Customer Users",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "searchEntityGroupForTenantOnly": false,
           "groupType": "USER",
@@ -65,7 +68,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
         "name": "To All Customer Users",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "searchEntityGroupForTenantOnly": false,
           "groupType": "USER",
@@ -80,7 +84,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
         "name": "To All Customer Users",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "searchEntityGroupForTenantOnly": false,
           "groupType": "USER",
@@ -95,7 +100,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
         "name": "To All Customer Users",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "searchEntityGroupForTenantOnly": false,
           "groupType": "USER",
@@ -110,7 +116,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetCustomerAttributeNode",
         "name": "Load Customer Settings",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "attrMapping": {
             "lowTempEmailEnabled": "lowTempEmailEnabled",
@@ -131,7 +138,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Load User Phone Number",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "tellFailureIfAbsent": true,
           "clientAttributeNames": [],
@@ -151,7 +159,8 @@
         },
         "type": "org.thingsboard.rule.engine.sms.TbSendSmsNode",
         "name": "Send SMS",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "numbersToTemplate": "${ss_phoneNumber}",
           "smsMessageTemplate": "Device ${deviceName} reports high daily water consumption!",
@@ -167,7 +176,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Load User Phone Number",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "tellFailureIfAbsent": true,
           "clientAttributeNames": [],
@@ -187,7 +197,8 @@
         },
         "type": "org.thingsboard.rule.engine.sms.TbSendSmsNode",
         "name": "Send SMS",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "numbersToTemplate": "${ss_phoneNumber}",
           "smsMessageTemplate": "Device ${deviceName} reports high weekly water consumption!",
@@ -203,7 +214,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Load User Phone Number",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "tellFailureIfAbsent": true,
           "clientAttributeNames": [],
@@ -223,7 +235,8 @@
         },
         "type": "org.thingsboard.rule.engine.sms.TbSendSmsNode",
         "name": "Send SMS",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "numbersToTemplate": "${ss_phoneNumber}",
           "smsMessageTemplate": "Device ${deviceName} has low water temperature!",
@@ -239,7 +252,8 @@
         },
         "type": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
         "name": "Send Email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fromTemplate": "",
           "toTemplate": "${userEmail}",
@@ -257,7 +271,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
         "name": "Load User Email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fieldsMapping": {
             "email": "userEmail"
@@ -272,7 +287,8 @@
         },
         "type": "org.thingsboard.rule.engine.mail.TbSendEmailNode",
         "name": "Send Email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "useSystemSmtpSettings": true,
           "smtpHost": "localhost",
@@ -298,7 +314,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbJsSwitchNode",
         "name": "Switch Alarm Type",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "var relations = [];\n\nswitch (msg.type) {\n    case 'Low Temperature Customer Alarm':\n        if (metadata.lowTempEmailEnabled === 'true'){\n            relations.push('Low Temperature Email');\n        }\n        if (metadata.lowTempSmsEnabled === 'true'){\n            relations.push('Low Temperature SMS');\n        }\n        break;\n    case 'Daily Consumption Threshold Exceeded Customer Alarm':\n        if (metadata.dailyConsumptionEmailEnabled === 'true'){\n            relations.push('Daily Consumption Email');\n        }\n        if (metadata.dailyConsumptionSmsEnabled === 'true'){\n            relations.push('Daily Consumption SMS');\n        }\n        break; \n    case 'Weekly Consumption Threshold Exceeded Customer Alarm':\n        if (metadata.weeklyConsumptionEmailEnabled === 'true'){\n            relations.push('Weekly Consumption Email');\n        }\n        if (metadata.weeklyConsumptionSmsEnabled === 'true'){\n            relations.push('Weekly Consumption SMS');\n        }\n        break;\n    default:\n        relations.push('Other');\n}\n\nreturn relations;",
@@ -313,7 +330,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
         "name": "Load User Email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fieldsMapping": {
             "email": "userEmail"
@@ -328,7 +346,8 @@
         },
         "type": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
         "name": "Send Email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fromTemplate": "",
           "toTemplate": "${userEmail}",
@@ -346,7 +365,8 @@
         },
         "type": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
         "name": "Send Email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fromTemplate": "",
           "toTemplate": "${userEmail}",
@@ -364,7 +384,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
         "name": "Load User Email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fieldsMapping": {
             "email": "userEmail"
@@ -379,7 +400,8 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbAckNode",
         "name": "Ack Messages without phone number",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "version": 0
         }
@@ -392,7 +414,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
         "name": "Fetch Device Name",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fieldsMapping": {
             "name": "deviceName"
@@ -407,7 +430,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
         "name": "Fetch Device Name",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fieldsMapping": {
             "name": "deviceName"
@@ -422,7 +446,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
         "name": "Fetch Device Name",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fieldsMapping": {
             "name": "deviceName"
@@ -437,7 +462,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
         "name": "Fetch Device Name",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fieldsMapping": {
             "name": "deviceName"

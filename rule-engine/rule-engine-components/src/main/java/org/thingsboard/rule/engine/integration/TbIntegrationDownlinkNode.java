@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.integration;
 
 import com.google.common.util.concurrent.FutureCallback;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -43,8 +44,6 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
-
-import jakarta.annotation.Nullable;
 
 @Slf4j
 @RuleNode(

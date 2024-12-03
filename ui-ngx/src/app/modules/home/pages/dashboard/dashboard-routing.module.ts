@@ -30,7 +30,7 @@
 ///
 
 import { Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, Route, RouterModule, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, Route, RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { DashboardsTableConfigResolver } from './dashboards-table-config.resolver';
 import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
@@ -55,9 +55,10 @@ import { AppState } from '@core/core.state';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { Resource } from '@shared/models/security.models';
+import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
-export class DashboardResolver implements Resolve<Dashboard> {
+export class DashboardResolver  {
 
   constructor(private store: Store<AppState>,
               private dashboardService: DashboardService,
@@ -98,7 +99,7 @@ const dashboardRoute = (entityGroup: any, singlePageMode = false, isAllPage = fa
       } as BreadCrumbConfig<DashboardPageComponent>,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       canActivate: (userPermissionsService: UserPermissionsService): boolean =>
-        isAllPage ?
+        (isAllPage || entityGroup === 'emptyEntityGroupResolver') ?
           userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD) :
           userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
       title: 'dashboard.dashboard',
@@ -159,8 +160,7 @@ export const dashboardGroupsRoute: Route = {
   data: {
     groupType: EntityType.DASHBOARD,
     breadcrumb: {
-      label: 'dashboard.groups',
-      icon: 'dashboard'
+      menuId: MenuId.dashboard_groups
     }
   },
   children: dashboardGroupsChildrenRoutesTemplate(false)
@@ -172,8 +172,7 @@ const dashboardSharedGroupsRoute: Route = {
     groupType: EntityType.DASHBOARD,
     shared: true,
     breadcrumb: {
-      label: 'dashboard.shared',
-      icon: 'dashboard'
+      menuId: MenuId.dashboard_shared
     }
   },
   children: dashboardGroupsChildrenRoutesTemplate(true)
@@ -186,8 +185,7 @@ export const dashboardsRoute = (root = false): Route => {
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'dashboard.dashboards',
-        icon: 'dashboards'
+        menuId: MenuId.dashboards
       }
     },
     children: [
@@ -205,8 +203,7 @@ export const dashboardsRoute = (root = false): Route => {
           groupType: EntityType.DASHBOARD,
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           breadcrumb: {
-            label: 'dashboard.all',
-            icon: 'dashboards'
+            menuId: MenuId.dashboard_all
           }
         },
         children: [

@@ -73,7 +73,11 @@ enum EntityTypeProto {
   NOTIFICATION_REQUEST  = 31;
   NOTIFICATION          = 32;
   NOTIFICATION_RULE     = 33;
-  QUEUE_STATS     = 34;
+  QUEUE_STATS           = 34;
+  OAUTH2_CLIENT         = 35;
+  DOMAIN                = 36;
+  MOBILE_APP            = 37;
+  MOBILE_APP_BUNDLE     = 38;
 }
 
 /**
@@ -116,6 +120,9 @@ message SessionInfoProto {
   int64 deviceProfileIdLSB = 13;
   int64 customerIdMSB = 14;
   int64 customerIdLSB = 15;
+  optional int64 gatewayIdMSB = 16;
+  optional int64 gatewayIdLSB = 17;
+  bool isGateway = 18;
 }
 
 enum SessionEvent {
@@ -154,9 +161,9 @@ message KeyValueProto {
 }
 
 enum AttributeScopeProto {
-    CLIENT_SCOPE = 0;
-    SERVER_SCOPE = 1;
-    SHARED_SCOPE = 2;
+  CLIENT_SCOPE = 0;
+  SERVER_SCOPE = 1;
+  SHARED_SCOPE = 2;
 }
 
 message AttributeKey {
@@ -174,11 +181,13 @@ message AttributeValueProto {
   string string_v = 7;
   string json_v = 8;
   optional string key = 9;
+  optional int64 version = 10;
 }
 
 message TsKvProto {
   int64 ts = 1;
   KeyValueProto kv = 2;
+  optional int64 version = 3;
 }
 
 message TsKvListProto {
@@ -202,6 +211,7 @@ message DeviceInfoProto {
   int64 edrxCycle = 13;
   int64 psmActivityTimer = 14;
   int64 pagingTransmissionWindow = 15;
+  bool isGateway = 16;
 }
 
 message DeviceProto {
@@ -225,6 +235,7 @@ message DeviceProto {
   optional int64 softwareIdLSB = 18;
   optional int64 externalIdMSB = 19;
   optional int64 externalIdLSB = 20;
+  optional int64 version = 21;
 }
 
 message DeviceProfileProto {
@@ -255,6 +266,7 @@ message DeviceProfileProto {
   optional int64 defaultEdgeRuleChainIdLSB = 25;
   optional int64 externalIdMSB = 26;
   optional int64 externalIdLSB = 27;
+  optional int64 version = 28;
 }
 
 message TenantProto {
@@ -274,6 +286,7 @@ message TenantProto {
   optional string phone = 14;
   optional string email = 15;
   optional string additionalInfo = 16;
+  optional int64 version = 17;
 }
 
 message TenantProfileProto {
@@ -308,6 +321,7 @@ message TbResourceProto {
   optional bytes preview = 18;
   optional int64 customerIdMSB = 19;
   optional int64 customerIdLSB = 20;
+  optional string resourceSubType = 21;
 }
 
 message ApiUsageStateProto {
@@ -340,6 +354,7 @@ message RepositorySettingsProto {
   optional string defaultBranch = 8;
   bool readOnly = 9;
   bool showMergeCommits = 10;
+  bool localOnly = 11;
 }
 
 /**
@@ -418,8 +433,13 @@ message GetOrCreateDeviceFromGatewayResponseMsg {
   TransportApiRequestErrorCode error = 3;
 }
 
+message GatewayDisconnectDeviceMsg {
+  string deviceName = 1;
+  int32 reasonCode = 2;
+}
+
 enum TransportApiRequestErrorCode {
-  UNKNOWN_TRANSPORT_API_ERROR  = 0;
+  UNKNOWN_TRANSPORT_API_ERROR = 0;
   ENTITY_LIMIT = 1;
 }
 
@@ -440,6 +460,7 @@ message GetQueueRoutingInfoResponseMsg {
   string queueName = 5;
   string queueTopic = 6;
   int32 partitions = 7;
+  optional bool duplicateMsgToAllPartitions = 8;
 }
 
 message QueueUpdateMsg {
@@ -450,6 +471,7 @@ message QueueUpdateMsg {
   string queueName = 5;
   string queueTopic = 6;
   int32 partitions = 7;
+  optional bool duplicateMsgToAllPartitions = 8;
 }
 
 message QueueDeleteMsg {
@@ -480,6 +502,15 @@ message ImageCacheKeyProto {
 message TranslationCacheInvalidateMsg {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
+}
+
+message CustomMenuCacheInvalidateMsg {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 customerIdMSB = 3;
+  int64 customerIdLSB = 4;
+  int64 userIdMSB = 5;
+  int64 userIdLSB = 6;
 }
 
 message LwM2MRegistrationRequestMsg {
@@ -603,8 +634,17 @@ message ResourceDeleteMsg {
   string resourceKey = 4;
 }
 
+enum SessionCloseReason {
+  UNKNOWN_REASON = 0;
+  CREDENTIALS_UPDATED = 1;
+  MAX_CONCURRENT_SESSIONS_LIMIT_REACHED = 2;
+  SESSION_TIMEOUT = 3;
+  RPC_DELIVERY_TIMEOUT = 4;
+}
+
 message SessionCloseNotificationProto {
   string message = 1;
+  SessionCloseReason reason = 2;
 }
 
 message SubscribeToAttributeUpdatesMsg {
@@ -676,6 +716,7 @@ message DeviceCredentialsProto {
   CredentialsType credentialsType = 6;
   string credentialsId = 7;
   optional string credentialsValue = 8;
+  optional int64 version = 9;
 }
 
 message CredentialsDataProto {
@@ -689,6 +730,7 @@ message ProvisionDeviceRequestMsg {
   CredentialsType credentialsType = 2;
   ProvisionDeviceCredentialsMsg provisionDeviceCredentialsMsg = 3;
   CredentialsDataProto credentialsDataProto = 4;
+  bool gateway = 5;
 }
 
 message ProvisionDeviceCredentialsMsg {
@@ -878,6 +920,8 @@ message TbEntitySubEventCallbackProto {
   int32 seqNumber = 3;
   int64 attributesUpdateTs = 4;
   int64 timeSeriesUpdateTs = 5;
+  int64 tenantIdMSB = 6;
+  int64 tenantIdLSB = 7;
 }
 
 message TsValueProto {
@@ -1167,6 +1211,20 @@ message ComponentLifecycleMsgProto {
   ComponentLifecycleEvent event = 6;
 }
 
+message EdgeEventMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  string entityType = 3;
+  string action = 4;
+  optional int64 edgeIdMSB = 5;
+  optional int64 edgeIdLSB = 6;
+  optional int64 entityIdMSB = 7;
+  optional int64 entityIdLSB = 8;
+  optional string body = 9;
+  optional int64 entityGroupIdMSB = 10;
+  optional int64 entityGroupIdLSB = 11;
+}
+
 message EdgeNotificationMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1207,6 +1265,18 @@ message IntegrationValidationError {
   IntegrationValidationError cause = 4;
 }
 
+message EdgeHighPriorityMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  optional int64 edgeIdMSB = 3;
+  optional int64 edgeIdLSB = 4;
+  string type = 5;
+  string action = 6;
+  optional string body = 7;
+  optional int64 entityIdMSB = 8;
+  optional int64 entityIdLSB = 9;
+}
+
 message EdgeEventUpdateMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1221,6 +1291,7 @@ message ToEdgeSyncRequestMsgProto {
   int64 requestIdLSB = 4;
   int64 edgeIdMSB = 5;
   int64 edgeIdLSB = 6;
+  string serviceId = 7;
 }
 
 message FromEdgeSyncResponseMsgProto {
@@ -1231,6 +1302,7 @@ message FromEdgeSyncResponseMsgProto {
   int64 edgeIdMSB = 5;
   int64 edgeIdLSB = 6;
   bool success = 7;
+  string error = 8;
 }
 
 message DeviceEdgeUpdateMsgProto {
@@ -1550,7 +1622,7 @@ message ToCoreMsg {
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 3;
   bytes toDeviceActorNotificationMsg = 4 [deprecated = true];
   SchedulerServiceMsgProto schedulerServiceMsg = 5;
-  EdgeNotificationMsgProto edgeNotificationMsg = 7;
+  EdgeNotificationMsgProto edgeNotificationMsg = 7 [deprecated = true];
   DeviceActivityProto deviceActivityMsg = 8;
   NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = 9;
   LifecycleEventProto lifecycleEventMsg = 10;
@@ -1576,11 +1648,29 @@ message ToCoreNotificationMsg {
   NotificationRuleProcessorMsg notificationRuleProcessorMsg = 10;
   ComponentLifecycleMsgProto componentLifecycle = 11;
   CoreStartupMsg coreStartupMsg = 12;
-  EdgeEventUpdateMsgProto edgeEventUpdate = 13;
-  ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 14;
-  FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 15;
+  EdgeEventUpdateMsgProto edgeEventUpdate = 13 [deprecated = true];
+  ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 14 [deprecated = true];
+  FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 15 [deprecated = true];
   ResourceCacheInvalidateMsg resourceCacheInvalidateMsg = 16;
   TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
+  CustomMenuCacheInvalidateMsg customMenuCacheInvalidateMsg = 101;
+}
+
+/* Messages to Edge queue that are handled by ThingsBoard Core Service */
+message ToEdgeMsg {
+  EdgeNotificationMsgProto edgeNotificationMsg = 1;
+}
+
+message ToEdgeNotificationMsg {
+  EdgeHighPriorityMsgProto edgeHighPriority = 1;
+  EdgeEventUpdateMsgProto edgeEventUpdate = 2;
+  ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 3;
+  FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 4;
+  ComponentLifecycleMsgProto componentLifecycle = 5;
+}
+
+message ToEdgeEventNotificationMsg {
+  EdgeEventMsgProto edgeEventMsg = 1;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

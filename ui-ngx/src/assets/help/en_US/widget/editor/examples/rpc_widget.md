@@ -12,7 +12,7 @@ The **Widget Editor** will open, pre-populated with default **Control** template
 
 ```html
     <form #rpcForm="ngForm" (submit)="sendCommand()">
-      <div class="mat-content mat-padding" fxLayout="column">
+      <div class="mat-content mat-padding flex flex-col">
         <mat-form-field class="mat-block">
           <mat-label>RPC method</mat-label>
           <input matInput required name="rpcMethod" #rpcMethodField="ngModel" [(ngModel)]="rpcMethod"/>
@@ -123,7 +123,7 @@ To test how this widget performs RPC commands, we will need to place it in a das
 - Login as Tenant administrator.
 - Navigate to **Devices** and create new device with some name, for ex. "My RPC Device".
 - Open device details and click "Copy Access Token" button to copy device access token to clipboard.
-- Download [mqtt-js-rpc-from-server.sh{:target="_blank"}](${siteBaseUrl}/docs/reference/resources/mqtt-js-rpc-from-server.sh) and [mqtt-js-rpc-from-server.js{:target="_blank"}](${siteBaseUrl}/docs/reference/resources/mqtt-js-rpc-from-server.js). Place these files in a folder.
+- Download [mqtt-js-rpc-from-server.sh{:target="_blank"}](${siteBaseUrl}/docs${docPlatformPrefix}/reference/resources/mqtt-js-rpc-from-server.sh) and [mqtt-js-rpc-from-server.js{:target="_blank"}](${siteBaseUrl}/docs${docPlatformPrefix}/reference/resources/mqtt-js-rpc-from-server.js). Place these files in a folder.
   Edit **mqtt-js-rpc-from-server.sh** - replace **$ACCESS_TOKEN** with your device access token from the clipboard. And install mqtt client library.
 - Run **mqtt-js-rpc-from-server.sh** script. You should see a "connected" message in the console.
 - Navigate to **Dashboards** and create a new dashboard with some name, for ex. "My first control dashboard". Open this dashboard.

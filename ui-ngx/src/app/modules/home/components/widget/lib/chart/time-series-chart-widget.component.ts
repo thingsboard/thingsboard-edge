@@ -58,6 +58,7 @@ import {
   TimeSeriesChartWidgetSettings
 } from '@home/components/widget/lib/chart/time-series-chart-widget.models';
 import { mergeDeep } from '@core/utils';
+import { WidgetComponent } from '@home/components/widget/widget.component';
 
 @Component({
   selector: 'tb-time-series-chart-widget',
@@ -88,7 +89,6 @@ export class TimeSeriesChartWidgetComponent implements OnInit, OnDestroy, AfterV
 
   backgroundStyle$: Observable<ComponentStyle>;
   overlayStyle: ComponentStyle = {};
-  overlayEnabled: boolean;
   padding: string;
 
   legendColumnTitleStyle: ComponentStyle;
@@ -100,7 +100,8 @@ export class TimeSeriesChartWidgetComponent implements OnInit, OnDestroy, AfterV
 
   private timeSeriesChart: TbTimeSeriesChart;
 
-  constructor(private imagePipe: ImagePipe,
+  constructor(public widgetComponent: WidgetComponent,
+              private imagePipe: ImagePipe,
               private sanitizer: DomSanitizer,
               private renderer: Renderer2,
               private cd: ChangeDetectorRef) {
@@ -112,8 +113,7 @@ export class TimeSeriesChartWidgetComponent implements OnInit, OnDestroy, AfterV
 
     this.backgroundStyle$ = backgroundStyle(this.settings.background, this.imagePipe, this.sanitizer);
     this.overlayStyle = overlayStyle(this.settings.background.overlay);
-    this.overlayEnabled = this.settings.background.overlay.enabled;
-    this.padding = this.overlayEnabled ? undefined : this.settings.padding;
+    this.padding = this.settings.background.overlay.enabled ? undefined : this.settings.padding;
 
     this.showLegend = this.settings.showLegend;
     if (this.showLegend) {
@@ -127,6 +127,9 @@ export class TimeSeriesChartWidgetComponent implements OnInit, OnDestroy, AfterV
         legendKey.dataKey.settings = mergeDeep<TimeSeriesChartKeySettings>({} as TimeSeriesChartKeySettings,
           timeSeriesChartKeyDefaultSettings, legendKey.dataKey.settings);
         legendKey.dataKey.hidden = legendKey.dataKey.settings.dataHiddenByDefault;
+        if (this.settings.yAxes[legendKey.dataKey.settings.yAxisId]) {
+          this.settings.yAxes[legendKey.dataKey.settings.yAxisId].show = !legendKey.dataKey.settings.dataHiddenByDefault;
+        }
       });
       this.legendKeys = this.legendKeys.filter(legendKey => legendKey.dataKey.settings.showInLegend);
       if (!this.legendKeys.length) {
@@ -186,6 +189,6 @@ export class TimeSeriesChartWidgetComponent implements OnInit, OnDestroy, AfterV
   }
 
   public toggleLegendKey(legendKey: LegendKey) {
-    this.timeSeriesChart.toggleKey(legendKey.dataKey);
+    this.timeSeriesChart.toggleKey(legendKey.dataKey, legendKey.dataIndex);
   }
 }

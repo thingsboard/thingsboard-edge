@@ -90,8 +90,10 @@ public class TbCaffeineCacheConfiguration {
                 = Caffeine.newBuilder()
                 .weigher(collectionSafeWeigher())
                 .maximumWeight(cacheSpec.getMaxSize())
-                .expireAfterWrite(cacheSpec.getTimeToLiveInMinutes(), TimeUnit.MINUTES)
                 .ticker(ticker());
+        if (!cacheSpec.getTimeToLiveInMinutes().equals(0)) {
+            caffeineBuilder.expireAfterWrite(cacheSpec.getTimeToLiveInMinutes(), TimeUnit.MINUTES);
+        }
         return new CaffeineCache(name, caffeineBuilder.build());
     }
 
@@ -103,7 +105,7 @@ public class TbCaffeineCacheConfiguration {
     private Weigher<? super Object, ? super Object> collectionSafeWeigher() {
         return (Weigher<Object, Object>) (key, value) -> {
             if (value instanceof Collection) {
-                return ((Collection) value).size();
+                return ((Collection<?>) value).size();
             }
             return 1;
         };

@@ -40,13 +40,10 @@ import { Authority } from '@shared/models/authority.enum';
 import { AuthState } from '@core/auth/auth.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
-import {
-  MailTemplate,
-  MailTemplatesSettings,
-  mailTemplateTranslations
-} from '@shared/models/settings.models';
+import { MailTemplate, MailTemplatesSettings, mailTemplateTranslations } from '@shared/models/settings.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-mail-templates',
@@ -83,7 +80,11 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
   ngOnInit() {
     this.tinyMceOptions = {
       base_url: '/assets/tinymce',
-      suffix: '.min'
+      suffix: '.min',
+      branding: false,
+      autofocus: false,
+      height: 450,
+      promotion: false
     };
 
     if (this.readonly) {
@@ -91,9 +92,6 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       this.tinyMceOptions.menubar = false;
       this.tinyMceOptions.toolbar = false;
       this.tinyMceOptions.statusbar = false;
-      this.tinyMceOptions.height = 450;
-      this.tinyMceOptions.autofocus = false;
-      this.tinyMceOptions.branding = false;
       this.tinyMceOptions.resize = true;
       this.tinyMceOptions.readonly = 1;
       this.tinyMceOptions.setup = (ed) => {
@@ -111,14 +109,11 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       this.tinyMceOptions.toolbar = 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor ' +
         '| link | table | image | alignleft aligncenter alignright alignjustify  ' +
         '| numlist bullist outdent indent  | removeformat | code | fullscreen';
-      this.tinyMceOptions.height = 450;
-      this.tinyMceOptions.autofocus = false;
-      this.tinyMceOptions.branding = false;
     }
     this.mailTemplatesSettings = this.route.snapshot.data.mailTemplatesSettings;
     this.mailTemplateTypes = Object.keys(MailTemplate).filter(type => Object.keys(this.mailTemplatesSettings).includes(type));
     if (this.isTenantAdmin()) {
-      this.useSystemMailSettings = this.mailTemplatesSettings.useSystemMailSettings;
+      this.useSystemMailSettings = isDefinedAndNotNull(this.mailTemplatesSettings.useSystemMailSettings) ? this.mailTemplatesSettings.useSystemMailSettings : true;
     }
   }
 

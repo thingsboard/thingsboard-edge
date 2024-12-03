@@ -53,28 +53,24 @@ public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
         EntityGroupId entityGroupId = new EntityGroupId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
+        var msgConstructor = (GroupMsgConstructor) edgeCtx.getGroupMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         switch (msgType) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                EntityGroup entityGroup = entityGroupService.findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
+            case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
+                EntityGroup entityGroup = edgeCtx.getEntityGroupService().findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
                 if (entityGroup != null) {
-                    EntityGroupUpdateMsg entityGroupUpdateMsg = ((GroupMsgConstructor)
-                            groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityGroupUpdatedMsg(msgType, entityGroup);
+                    EntityGroupUpdateMsg entityGroupUpdateMsg = msgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityGroupUpdateMsg(entityGroupUpdateMsg)
                             .build();
                 }
-                break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                EntityGroupUpdateMsg entityGroupUpdateMsg = ((GroupMsgConstructor)
-                        groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityGroupDeleteMsg(entityGroupId);
-                downlinkMsg = DownlinkMsg.newBuilder()
-                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addEntityGroupUpdateMsg(entityGroupUpdateMsg)
-                        .build();
-                break;
+            }
+            case ENTITY_DELETED_RPC_MESSAGE -> downlinkMsg = DownlinkMsg.newBuilder()
+                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                    .addEntityGroupUpdateMsg(msgConstructor.constructEntityGroupDeleteMsg(entityGroupId))
+                    .build();
         }
         return downlinkMsg;
     }
+
 }

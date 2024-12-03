@@ -63,13 +63,15 @@ import {
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
-import { forkJoin, Observable, of } from 'rxjs';
+import { firstValueFrom, forkJoin, from, Observable, of } from 'rxjs';
 import { EntityType } from '@shared/models/entity-type.models';
 import { SelectEntityGroupDialogResult } from '@home/dialogs/select-entity-group-dialog.component';
 import { StateObject, StateParams } from '@core/api/widget-api.models';
 import { ServicesMap } from '@home/models/services.map';
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
+import { CompiledTbFunction, compileTbFunction, isNotEmptyTbFunction } from '@shared/models/js-function.models';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
@@ -84,10 +86,11 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
               protected dialog: MatDialog,
               protected homeDialogs: HomeDialogsService,
               protected router: Router,
+              protected http: HttpClient,
               protected injector: Injector) {
   }
 
-  prepareConfiguration(params: EntityGroupParams, config: GroupEntityTableConfig<T>): GroupEntityTableConfig<T> {
+  prepareConfiguration(params: EntityGroupParams, config: GroupEntityTableConfig<T>): Observable<GroupEntityTableConfig<T>> {
     if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
       config.addEnabled = config.settings.enableAdd;
     } else {
@@ -120,140 +123,144 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       column.columnKey = `column${index}`;
     });
 
-    const entityColumns = columns.map((column) => this.toEntityColumn(column));
-    if (entityColumns.length) {
-      const width = `${(100 / entityColumns.length).toFixed(2)}%`;
-      entityColumns.forEach(entityColumn => entityColumn.width = width);
-    }
+    const entityColumns$ = columns.map((column) => from(this.toEntityColumn(column)));
+    return (entityColumns$.length ? forkJoin(entityColumns$) : of([] as EntityTableColumn<ShortEntityView>[])).pipe(
+      map(entityColumns => {
+        if (entityColumns.length) {
+          const width = `${(100 / entityColumns.length).toFixed(2)}%`;
+          entityColumns.forEach(entityColumn => entityColumn.width = width);
+        }
 
-    config.columns = entityColumns;
+        config.columns = entityColumns;
 
-    const sortOrderColumn = columns.find((column) => column.sortOrder !== EntityGroupSortOrder.NONE);
-    if (sortOrderColumn) {
-      config.defaultSortOrder = {property: sortOrderColumn.columnKey,
-        direction: sortOrderColumn.sortOrder === EntityGroupSortOrder.ASC ? Direction.ASC : Direction.DESC};
-    } else {
-      config.defaultSortOrder = null;
-    }
+        const sortOrderColumn = columns.find((column) => column.sortOrder !== EntityGroupSortOrder.NONE);
+        if (sortOrderColumn) {
+          config.defaultSortOrder = {property: sortOrderColumn.columnKey,
+            direction: sortOrderColumn.sortOrder === EntityGroupSortOrder.ASC ? Direction.ASC : Direction.DESC};
+        } else {
+          config.defaultSortOrder = null;
+        }
 
-    config.dataSource = dataLoadedFunction => {
-      return new GroupEntitiesDataSource(
-        columns,
-        config.entityGroup.id.id,
-        config.entityGroup.type,
-        this.telemetryWsService,
-        this.zone,
-        config.entitySelectionEnabled,
-        dataLoadedFunction
-      );
-    };
+        config.dataSource = dataLoadedFunction => {
+          return new GroupEntitiesDataSource(
+            columns,
+            config.entityGroup.id.id,
+            config.entityGroup.type,
+            this.telemetryWsService,
+            this.zone,
+            config.entitySelectionEnabled,
+            dataLoadedFunction
+          );
+        };
 
-    if (config.entityGroup.configuration.actions) {
-      for (const actionSourceId of Object.keys(config.entityGroup.configuration.actions)) {
-        const descriptors = config.entityGroup.configuration.actions[actionSourceId];
-        const actionDescriptors: Array<WidgetActionDescriptor> = [];
-        descriptors.forEach((descriptor) => {
-          const actionDescriptor: WidgetActionDescriptor = deepClone(descriptor);
-          actionDescriptor.displayName = this.utils.customTranslation(descriptor.name, descriptor.name);
-          actionDescriptors.push(actionDescriptor);
-        });
-        config.actionDescriptorsBySourceId[actionSourceId] = actionDescriptors;
-      }
-    }
-
-    const actionCellButtonDescriptors = config.actionDescriptorsBySourceId.actionCellButton;
-    const cellActionDescriptors: CellActionDescriptor<ShortEntityView>[] = [];
-    if (actionCellButtonDescriptors) {
-      actionCellButtonDescriptors.forEach((descriptor) => {
-        cellActionDescriptors.push(
-          {
-            name: descriptor.displayName,
-            icon: descriptor.icon,
-            isEnabled: entity => true,
-            onAction: ($event, entity) => {
-              this.handleDescriptorAction($event, entity, descriptor, config);
-            }
-          }
-        );
-      });
-    }
-    cellActionDescriptors.push(...config.cellActionDescriptors);
-    config.cellActionDescriptors = cellActionDescriptors;
-    if (config.settings.detailsMode === EntityGroupDetailsMode.onActionButtonClick) {
-      if (this.userPermissionsService.hasGroupEntityPermission(Operation.READ, config.entityGroup)) {
-        config.cellActionDescriptors.push(
-          {
-            name: this.translate.instant(config.entityTranslations.details),
-            icon: 'edit',
-            isEnabled: entity => true,
-            onAction: ($event, entity) => {
-              config.onToggleEntityDetails($event, entity);
-            }
-          }
-        );
-      }
-    }
-    if (config.entitiesDeleteEnabled) {
-      config.entitiesDeleteEnabled = this.userPermissionsService.hasGroupEntityPermission(Operation.DELETE, config.entityGroup);
-    }
-    if (!this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE, config.entityGroup)) {
-      config.detailsReadonly = () => true;
-    }
-    if (this.userPermissionsService.hasGenericPermissionByEntityGroupType(Operation.CHANGE_OWNER, config.entityGroup.type) &&
-      this.userPermissionsService.isOwnedGroup(config.entityGroup)) {
-      config.groupActionDescriptors.push(
-        {
-          name: this.translate.instant('entity-group.change-owner'),
-          icon: 'assignment_ind',
-          isEnabled: true,
-          onAction: ($event, entities) => {
-            this.changeEntitiesOwner($event, entities, config, params);
+        if (config.entityGroup.configuration.actions) {
+          for (const actionSourceId of Object.keys(config.entityGroup.configuration.actions)) {
+            const descriptors = config.entityGroup.configuration.actions[actionSourceId];
+            const actionDescriptors: Array<WidgetActionDescriptor> = [];
+            descriptors.forEach((descriptor) => {
+              const actionDescriptor: WidgetActionDescriptor = deepClone(descriptor);
+              actionDescriptor.displayName = this.utils.customTranslation(descriptor.name, descriptor.name);
+              actionDescriptors.push(actionDescriptor);
+            });
+            config.actionDescriptorsBySourceId[actionSourceId] = actionDescriptors;
           }
         }
-      );
-    }
-    if (this.userPermissionsService.hasGenericEntityGroupPermission(Operation.ADD_TO_GROUP, config.entityGroup) &&
-      this.userPermissionsService.isOwnedGroup(config.entityGroup) &&
-      this.userPermissionsService.hasGenericEntityGroupPermission(Operation.READ, config.entityGroup)) {
-      config.groupActionDescriptors.push(
-        {
-          name: this.translate.instant('entity-group.add-to-group'),
-          icon: 'add_circle',
-          isEnabled: config.settings.enableGroupTransfer,
-          onAction: ($event, entities) => {
-            this.addEntitiesToEntityGroup($event, entities, config, params);
+
+        const actionCellButtonDescriptors = config.actionDescriptorsBySourceId.actionCellButton;
+        const cellActionDescriptors: CellActionDescriptor<ShortEntityView>[] = [];
+        if (actionCellButtonDescriptors) {
+          actionCellButtonDescriptors.forEach((descriptor) => {
+            cellActionDescriptors.push(
+              {
+                name: descriptor.displayName,
+                icon: descriptor.icon,
+                isEnabled: _entity => true,
+                onAction: ($event, entity) => {
+                  this.handleDescriptorAction($event, entity, descriptor, config);
+                }
+              }
+            );
+          });
+        }
+        cellActionDescriptors.push(...config.cellActionDescriptors);
+        config.cellActionDescriptors = cellActionDescriptors;
+        if (config.settings.detailsMode === EntityGroupDetailsMode.onActionButtonClick) {
+          if (this.userPermissionsService.hasGroupEntityPermission(Operation.READ, config.entityGroup)) {
+            config.cellActionDescriptors.push(
+              {
+                name: this.translate.instant(config.entityTranslations.details),
+                icon: 'edit',
+                isEnabled: _entity => true,
+                onAction: ($event, entity) => {
+                  config.onToggleEntityDetails($event, entity);
+                }
+              }
+            );
           }
         }
-      );
-    }
-
-    if (this.userPermissionsService.hasEntityGroupPermission(Operation.REMOVE_FROM_GROUP, config.entityGroup) &&
-      this.userPermissionsService.isOwnedGroup(config.entityGroup)) {
-      if (this.userPermissionsService.hasGenericEntityGroupPermission(Operation.ADD_TO_GROUP, config.entityGroup)) {
-        config.groupActionDescriptors.push(
-          {
-            name: this.translate.instant('entity-group.move-to-group'),
-            icon: 'swap_vertical_circle',
-            isEnabled: config.settings.enableGroupTransfer && !config.entityGroup.groupAll,
-            onAction: ($event, entities) => {
-              this.moveEntitiesToEntityGroup($event, entities, config, params);
+        if (config.entitiesDeleteEnabled) {
+          config.entitiesDeleteEnabled = this.userPermissionsService.hasGroupEntityPermission(Operation.DELETE, config.entityGroup);
+        }
+        if (!this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE, config.entityGroup)) {
+          config.detailsReadonly = () => true;
+        }
+        if (this.userPermissionsService.hasGenericPermissionByEntityGroupType(Operation.CHANGE_OWNER, config.entityGroup.type) &&
+          this.userPermissionsService.isOwnedGroup(config.entityGroup)) {
+          config.groupActionDescriptors.push(
+            {
+              name: this.translate.instant('entity-group.change-owner'),
+              icon: 'assignment_ind',
+              isEnabled: true,
+              onAction: ($event, entities) => {
+                this.changeEntitiesOwner($event, entities, config, params);
+              }
             }
-          }
-        );
-      }
-      config.groupActionDescriptors.push(
-        {
-          name: this.translate.instant('entity-group.remove-from-group'),
-          icon: 'remove_circle',
-          isEnabled: config.settings.enableGroupTransfer && !config.entityGroup.groupAll,
-          onAction: ($event, entities) => {
-            this.removeEntitiesFromEntityGroup($event, entities, config, params);
-          }
+          );
         }
-      );
-    }
+        if (this.userPermissionsService.hasGenericEntityGroupPermission(Operation.ADD_TO_GROUP, config.entityGroup) &&
+          this.userPermissionsService.isOwnedGroup(config.entityGroup) &&
+          this.userPermissionsService.hasGenericEntityGroupPermission(Operation.READ, config.entityGroup)) {
+          config.groupActionDescriptors.push(
+            {
+              name: this.translate.instant('entity-group.add-to-group'),
+              icon: 'add_circle',
+              isEnabled: config.settings.enableGroupTransfer,
+              onAction: ($event, entities) => {
+                this.addEntitiesToEntityGroup($event, entities, config, params);
+              }
+            }
+          );
+        }
 
-    return config;
+        if (this.userPermissionsService.hasEntityGroupPermission(Operation.REMOVE_FROM_GROUP, config.entityGroup) &&
+          this.userPermissionsService.isOwnedGroup(config.entityGroup)) {
+          if (this.userPermissionsService.hasGenericEntityGroupPermission(Operation.ADD_TO_GROUP, config.entityGroup)) {
+            config.groupActionDescriptors.push(
+              {
+                name: this.translate.instant('entity-group.move-to-group'),
+                icon: 'swap_vertical_circle',
+                isEnabled: config.settings.enableGroupTransfer && !config.entityGroup.groupAll,
+                onAction: ($event, entities) => {
+                  this.moveEntitiesToEntityGroup($event, entities, config, params);
+                }
+              }
+            );
+          }
+          config.groupActionDescriptors.push(
+            {
+              name: this.translate.instant('entity-group.remove-from-group'),
+              icon: 'remove_circle',
+              isEnabled: config.settings.enableGroupTransfer && !config.entityGroup.groupAll,
+              onAction: ($event, entities) => {
+                this.removeEntitiesFromEntityGroup($event, entities, config, params);
+              }
+            }
+          );
+        }
+
+        return config;
+      })
+    );
   }
 
   private changeEntitiesOwner($event: MouseEvent, entities: ShortEntityView[],
@@ -316,7 +323,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
                         params.hierarchyCallbacks.refreshCustomerGroups(refreshEntityGroupIds);
                         return true;
                       }),
-                    catchError((err) => {
+                    catchError((_err) => {
                        params.hierarchyCallbacks.refreshCustomerGroups(refreshEntityGroupIds);
                        return of(true);
                     })
@@ -457,7 +464,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     );
   }
 
-  private removeEntitiesFromEntityGroup($event: MouseEvent, entities: ShortEntityView[],
+  private removeEntitiesFromEntityGroup(_$event: MouseEvent, entities: ShortEntityView[],
                                         config: GroupEntityTableConfig<T>,
                                         params: EntityGroupParams) {
     const title = this.translate.instant('entity-group.remove-from-group');
@@ -528,19 +535,31 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         }
         const state = objToBase64URI([ stateObject ]);
         const url = `/dashboards/${targetDashboardId}?state=${state}`;
-        this.router.navigateByUrl(url);
+        if (descriptor.openNewBrowserTab) {
+          window.open(url, '_blank');
+        } else {
+          this.router.navigateByUrl(url);
+        }
         break;
       case WidgetActionType.custom:
         const customFunction = descriptor.customFunction;
-        if (customFunction && customFunction.length > 0) {
-          try {
-            const customActionFunction = new Function('$event', '$injector', 'entityId',
-              'entityName', 'servicesMap', 'tableConfig', customFunction);
-            const tableConfig = config.getTable();
-            customActionFunction(event, this.injector, entityId, entityName, ServicesMap, tableConfig);
-          } catch (e) {
-            console.error(e);
-          }
+        if (isNotEmptyTbFunction(customFunction)) {
+          compileTbFunction(this.http, customFunction, '$event', '$injector', 'entityId',
+            'entityName', 'servicesMap', 'tableConfig').subscribe(
+            {
+              next: (compiled) => {
+                try {
+                  const tableConfig = config.getTable();
+                  compiled.execute(event, this.injector, entityId, entityName, ServicesMap, tableConfig);
+                } catch (e) {
+                  console.error(e);
+                }
+              },
+              error: (err) => {
+                console.error(err);
+              }
+            }
+          )
         }
         break;
     }
@@ -596,7 +615,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     }
   }
 
-  private toEntityColumn(entityGroupColumn: EntityGroupColumn): EntityTableColumn<ShortEntityView> {
+  private async toEntityColumn(entityGroupColumn: EntityGroupColumn): Promise<EntityTableColumn<ShortEntityView>> {
     let title: string;
     if (entityGroupColumn.title && entityGroupColumn.title.length) {
       title = entityGroupColumn.title;
@@ -609,23 +628,24 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       }
     }
 
-    let columnCellContentFunction: (...args: any[]) => string = null;
-    if (entityGroupColumn.useCellContentFunction && entityGroupColumn.cellContentFunction && entityGroupColumn.cellContentFunction.length) {
+    let columnCellContentFunction: CompiledTbFunction<(...args: any[]) => string> = null;
+    if (entityGroupColumn.useCellContentFunction && isNotEmptyTbFunction(entityGroupColumn.cellContentFunction)) {
       try {
-        columnCellContentFunction =
-          new Function('value, entity, datePipe', entityGroupColumn.cellContentFunction) as (...args: any[]) => string;
+        columnCellContentFunction = await firstValueFrom(compileTbFunction(this.http, entityGroupColumn.cellContentFunction, 'value, entity, datePipe').pipe(
+          catchError(() => { return of(null) }))
+        );
       } catch (e) {}
     }
-    const cellContentFunction: CellContentFunction<ShortEntityView> = (entity, property) =>
+    const cellContentFunction: CellContentFunction<ShortEntityView> = (entity, _property) =>
       this.cellContent(entity, entityGroupColumn, columnCellContentFunction);
 
-    let columnCellStyleFunction: (...args: any[]) => object = null;
-    if (entityGroupColumn.useCellStyleFunction && entityGroupColumn.cellStyleFunction && entityGroupColumn.cellStyleFunction.length) {
-      try {
-        columnCellStyleFunction = new Function('value, entity', entityGroupColumn.cellStyleFunction) as (...args: any[]) => object;
-      } catch (e) {}
+    let columnCellStyleFunction: CompiledTbFunction<(...args: any[]) => object> = null;
+    if (entityGroupColumn.useCellStyleFunction && isNotEmptyTbFunction(entityGroupColumn.cellStyleFunction)) {
+      columnCellStyleFunction = await firstValueFrom(compileTbFunction(this.http, entityGroupColumn.cellStyleFunction, 'value, entity').pipe(
+        catchError(() => { return of(null) }))
+      );
     }
-    const cellStyleFunction: CellStyleFunction<ShortEntityView> = (entity, property) =>
+    const cellStyleFunction: CellStyleFunction<ShortEntityView> = (entity, _property) =>
       this.cellStyle(entity, entityGroupColumn, columnCellStyleFunction);
 
     const column = new EntityTableColumn<ShortEntityView>(
@@ -641,12 +661,12 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
   }
 
   private cellStyle(entity: ShortEntityView, column: EntityGroupColumn,
-                    cellFunction: (...args: any[]) => object): object {
+                    cellFunction: CompiledTbFunction<(...args: any[]) => object>): object {
     let style: object;
     if (cellFunction) {
       const value = entity[column.property];
       try {
-        style = cellFunction(value, entity);
+        style = cellFunction.execute(value, entity);
       } catch (e) {
         style = {};
       }
@@ -657,7 +677,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
   }
 
   private cellContent(entity: ShortEntityView,
-                      column: EntityGroupColumn, cellFunction: (...args: any[]) => string): string {
+                      column: EntityGroupColumn, cellFunction: CompiledTbFunction<(...args: any[]) => string>): string {
     let content: string;
     let value = entity[column.property];
     value = this.utils.customTranslation(value, value);
@@ -668,7 +688,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       }
       content = strContent;
       try {
-        content = cellFunction(value, entity, this.datePipe);
+        content = cellFunction.execute(value, entity, this.datePipe);
       } catch (e) {
         content = strContent;
       }

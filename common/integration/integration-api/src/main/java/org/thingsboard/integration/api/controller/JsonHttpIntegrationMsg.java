@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 
 import java.util.Map;
 
@@ -45,8 +45,8 @@ public class JsonHttpIntegrationMsg extends HttpIntegrationMsg<JsonNode> {
     }
 
     @Override
-    public UplinkContentType getContentType() {
-        return UplinkContentType.JSON;
+    public ContentType getContentType() {
+        return ContentType.JSON;
     }
 
     @Override

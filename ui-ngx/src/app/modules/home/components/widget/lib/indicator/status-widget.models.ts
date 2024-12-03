@@ -80,6 +80,7 @@ export interface StatusWidgetSettings {
   layout: StatusWidgetLayout;
   onState: StatusWidgetStateSettings;
   offState: StatusWidgetStateSettings;
+  padding: string
 }
 
 export const statusWidgetDefaultSettings: StatusWidgetSettings = {
@@ -99,6 +100,10 @@ export const statusWidgetDefaultSettings: StatusWidgetSettings = {
     getTimeSeries: {
       key: 'state'
     },
+    getAlarmStatus: {
+      severityList: null,
+      typeList: null
+    },
     dataToValue: {
       type: DataToValueType.NONE,
       compareToValue: true,
@@ -114,6 +119,10 @@ export const statusWidgetDefaultSettings: StatusWidgetSettings = {
     },
     getTimeSeries: {
       key: 'state'
+    },
+    getAlarmStatus: {
+      severityList: null,
+      typeList: null
     },
     dataToValue: {
       type: DataToValueType.NONE,
@@ -215,5 +224,6 @@ export const statusWidgetDefaultSettings: StatusWidgetSettings = {
         blur: 3
       }
     }
-  }
+  },
+  padding: ''
 };

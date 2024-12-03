@@ -42,7 +42,7 @@ public interface SystemDataLoaderService {
 
     void createRandomJwtSettings() throws Exception;
 
-    void updateJwtSettings() throws Exception;
+    void updateSecuritySettings() throws Exception;
 
     void loadMailTemplates() throws Exception;
 
@@ -60,4 +60,5 @@ public interface SystemDataLoaderService {
 
     void updateDefaultNotificationConfigs(boolean updateTenants);
 
+    void createDefaultCustomMenu();
 }

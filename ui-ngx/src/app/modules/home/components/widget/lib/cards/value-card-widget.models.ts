@@ -34,8 +34,10 @@ import {
   BackgroundType,
   ColorSettings,
   constantColor,
-  cssUnit, DateFormatSettings,
-  Font, lastUpdateAgoDateFormat
+  cssUnit,
+  DateFormatSettings,
+  Font,
+  lastUpdateAgoDateFormat
 } from '@shared/models/widget-settings.models';
 
 export enum ValueCardLayout {
@@ -95,6 +97,7 @@ export interface ValueCardWidgetSettings {
   dateFont: Font;
   dateColor: ColorSettings;
   background: BackgroundSettings;
+  padding: string;
 }
 
 export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSettings => ({
@@ -114,7 +117,7 @@ export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSe
   icon: 'thermostat',
   iconSize: 40,
   iconSizeUnit: 'px',
-  iconColor: constantColor('#5469FF'),
+  iconColor: constantColor('var(--tb-primary-500)'),
   valueFont: {
     family: 'Roboto',
     size: 52,
@@ -143,5 +146,6 @@ export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSe
       color: 'rgba(255,255,255,0.72)',
       blur: 3
     }
-  }
+  },
+  padding: ''
 });

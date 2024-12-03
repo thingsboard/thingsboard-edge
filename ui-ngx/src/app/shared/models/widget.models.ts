@@ -52,11 +52,14 @@ import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { IAliasController } from '@core/api/widget-api.models';
-import { isNotEmptyStr, mergeDeep } from '@core/utils';
+import { isNotEmptyStr, mergeDeepIgnoreArray } from '@core/utils';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import { ComponentStyle, Font, TimewindowStyle } from '@shared/models/widget-settings.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { HasTenantId, HasVersion } from '@shared/models/entity.models';
 import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
+import { TbFunction } from '@shared/models/js-function.models';
 
 export enum widgetType {
   timeseries = 'timeseries',
@@ -86,7 +89,7 @@ export const widgetTypesData = new Map<widgetType, WidgetTypeData>(
         icon: 'timeline',
         configHelpLinkId: 'widgetsConfigTimeseries',
         template: {
-          fullFqn: 'system.charts.basic_timeseries'
+          fullFqn: 'system.time_series_chart'
         }
       }
     ],
@@ -164,7 +167,7 @@ export interface WidgetTypeDescriptor {
   resources: Array<WidgetResource>;
   templateHtml: string;
   templateCss: string;
-  controllerScript: string;
+  controllerScript: TbFunction;
   settingsSchema?: string | any;
   dataKeySettingsSchema?: string | any;
   latestDataKeySettingsSchema?: string | any;
@@ -200,6 +203,7 @@ export interface WidgetTypeParameters {
   defaultLatestDataKeysFunction?: (configComponent: any, configData: any) => DataKey[];
   dataKeySettingsFunction?: DataKeySettingsFunction;
   displayRpcMessageToast?: boolean;
+  targetDeviceOptional?: boolean;
 }
 
 export interface WidgetControllerDescriptor {
@@ -211,11 +215,12 @@ export interface WidgetControllerDescriptor {
   actionSources?: {[actionSourceId: string]: WidgetActionSource};
 }
 
-export interface BaseWidgetType extends BaseData<WidgetTypeId> {
+export interface BaseWidgetType extends BaseData<WidgetTypeId>, HasTenantId, HasVersion {
   tenantId: TenantId;
   fqn: string;
   name: string;
   deprecated: boolean;
+  scada: boolean;
 }
 
 export const fullWidgetTypeFqn = (type: BaseWidgetType): string =>
@@ -260,6 +265,7 @@ export interface WidgetTypeDetails extends WidgetType, ExportableEntity<WidgetTy
   image: string;
   description: string;
   tags: string[];
+  resources?: Array<any>;
 }
 
 export enum DeprecatedFilter {
@@ -343,8 +349,8 @@ export interface KeyInfo {
   comparisonResultType?: ComparisonResultType;
   label?: string;
   color?: string;
-  funcBody?: string;
-  postFuncBody?: string;
+  funcBody?: TbFunction;
+  postFuncBody?: TbFunction;
   units?: string;
   decimals?: number;
 }
@@ -374,7 +380,7 @@ export interface DataKey extends KeyInfo {
   _hash?: number;
 }
 
-export type CellClickColumnInfo = Pick<DataKey, 'name' | 'label'>
+export type CellClickColumnInfo = Pick<DataKey, 'name' | 'label'>;
 
 export enum DataKeyConfigMode {
   general = 'general',
@@ -551,6 +557,7 @@ export interface LegendData {
 }
 
 export enum WidgetActionType {
+  doNothing = 'doNothing',
   openDashboardState = 'openDashboardState',
   updateDashboardState = 'updateDashboardState',
   openDashboard = 'openDashboard',
@@ -575,6 +582,7 @@ export const widgetActionTypes = Object.keys(WidgetActionType) as WidgetActionTy
 
 export const widgetActionTypeTranslationMap = new Map<WidgetActionType, string>(
   [
+    [ WidgetActionType.doNothing, 'widget-action.do-nothing' ],
     [ WidgetActionType.openDashboardState, 'widget-action.open-dashboard-state' ],
     [ WidgetActionType.updateDashboardState, 'widget-action.update-dashboard-state' ],
     [ WidgetActionType.openDashboard, 'widget-action.open-dashboard' ],
@@ -679,11 +687,11 @@ export interface WidgetMobileActionDescriptor extends WidgetMobileActionDescript
 }
 
 export interface CustomActionDescriptor {
-  customFunction?: string;
+  customFunction?: TbFunction;
   customResources?: Array<WidgetResource>;
   customHtml?: string;
   customCss?: string;
-  customModules?: Type<any>[];
+  customImports?: Type<any>[];
 }
 
 export interface WidgetAction extends CustomActionDescriptor {
@@ -716,7 +724,7 @@ export interface WidgetActionDescriptor extends WidgetAction {
   icon: string;
   displayName?: string;
   useShowWidgetActionFunction?: boolean;
-  showWidgetActionFunction?: string;
+  showWidgetActionFunction?: TbFunction;
   columnIndex?: number;
 }
 
@@ -786,6 +794,8 @@ export interface WidgetConfig {
   displayTimewindow?: boolean;
   timewindow?: Timewindow;
   timewindowStyle?: TimewindowStyle;
+  resizable?: boolean;
+  preserveAspectRatio?: boolean;
   desktopHide?: boolean;
   mobileHide?: boolean;
   mobileHeight?: number;
@@ -859,10 +869,13 @@ export interface WidgetPosition {
 export interface WidgetSize {
   sizeX: number;
   sizeY: number;
+  preserveAspectRatio: boolean;
+  resizable: boolean;
 }
 
 export interface IWidgetSettingsComponent {
   aliasController: IAliasController;
+  callbacks: WidgetConfigCallbacks;
   dataKeyCallbacks: DataKeysCallbacks;
   dashboard: Dashboard;
   widget: Widget;
@@ -880,6 +893,8 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
   IWidgetSettingsComponent, OnInit, AfterViewInit {
 
   aliasController: IAliasController;
+
+  callbacks: WidgetConfigCallbacks;
 
   dataKeyCallbacks: DataKeysCallbacks;
 
@@ -908,7 +923,7 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
     if (!value) {
       this.settingsValue = this.defaultSettings();
     } else {
-      this.settingsValue = mergeDeep(this.defaultSettings(), value);
+      this.settingsValue = mergeDeepIgnoreArray(this.defaultSettings(), value);
     }
     if (!this.settingsSet) {
       this.settingsSet = true;

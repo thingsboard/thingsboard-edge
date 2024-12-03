@@ -54,6 +54,8 @@ enum EdgeVersion {
   V_3_6_2 = 5;
   V_3_6_4 = 6;
   V_3_7_0 = 7;
+  V_3_8_0 = 8;
+  V_3_9_0 = 9;
 }
 
 /**
@@ -184,11 +186,12 @@ message RuleNodeProto {
   int64 idLSB = 2;
   string type = 3;
   string name = 4;
-  bool debugMode = 5;
+  bool debugMode = 5 [deprecated = true];
   string configuration = 6;
   string additionalInfo = 7;
   bool singletonMode = 8;
   int32 configurationVersion = 9;
+  string debugSettings = 10;
 }
 
 message NodeConnectionInfoProto {
@@ -506,8 +509,18 @@ message ResourceUpdateMsg {
   string entity = 11;
 }
 
-message OAuth2UpdateMsg {
-  string entity = 1;
+message OAuth2ClientUpdateMsg {
+  UpdateMsgType msgType = 1;
+  optional int64 idMSB = 2;
+  optional int64 idLSB = 3;
+  optional string entity = 4;
+}
+
+message OAuth2DomainUpdateMsg {
+  UpdateMsgType msgType = 1;
+  optional int64 idMSB = 2;
+  optional int64 idLSB = 3;
+  optional string entity = 4;
 }
 
 message NotificationRuleUpdateMsg {
@@ -707,10 +720,9 @@ message CustomTranslationProto {
 }
 
 message CustomMenuProto {
-  optional int64 entityIdMSB = 1;
-  optional int64 entityIdLSB = 2;
-  optional string entityType = 3;
-  optional string entity = 4;
+  optional UpdateMsgType msgType = 1;
+  optional string entity = 2;
+  optional string assigneeList = 3;
 }
 
 message CustomTranslationUpdateMsg {
@@ -925,9 +937,10 @@ message DownlinkMsg {
   CustomMenuProto customMenuProto = 45;
   repeated AlarmCommentUpdateMsg alarmCommentUpdateMsg = 46;
   repeated DeviceGroupOtaPackageUpdateMsg deviceGroupOtaPackageUpdateMsg = 47;
-  repeated OAuth2UpdateMsg oAuth2UpdateMsg = 48;
+  repeated OAuth2ClientUpdateMsg oAuth2ClientUpdateMsg = 48;
   repeated NotificationRuleUpdateMsg notificationRuleUpdateMsg = 49;
   repeated NotificationTargetUpdateMsg notificationTargetUpdateMsg = 50;
   repeated NotificationTemplateUpdateMsg notificationTemplateUpdateMsg = 51;
   CustomTranslationUpdateMsg customTranslationUpdateMsg = 100;
+  repeated OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg = 52;
 }

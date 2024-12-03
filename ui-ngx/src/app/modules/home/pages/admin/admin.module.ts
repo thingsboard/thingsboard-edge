@@ -39,13 +39,11 @@ import { GeneralSettingsComponent } from '@modules/home/pages/admin/general-sett
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
-import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 import { PaletteComponent } from '@home/pages/admin/palette.component';
 import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.component';
 import { CustomCssDialogComponent } from '@home/pages/admin/custom-css-dialog.component';
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
-import { OAuth2SettingsComponent } from '@modules/home/pages/admin/oauth2-settings.component';
 import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { SendTestSmsDialogComponent } from '@home/pages/admin/send-test-sms-dialog.component';
 import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
@@ -55,6 +53,10 @@ import { QueueComponent } from '@home/pages/admin/queue/queue.component';
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
 import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-admin-settings.component';
 import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-auth-settings.component';
+import { OAuth2Module } from '@home/pages/admin/oauth2/oauth2.module';
+import { JsLibraryTableHeaderComponent } from '@home/pages/admin/resource/js-library-table-header.component';
+import { JsResourceComponent } from '@home/pages/admin/resource/js-resource.component';
+import { NgxFlowModule } from '@flowjs/ngx-flow';
 
 @NgModule({
   declarations:
@@ -64,7 +66,6 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
       MailTemplatesComponent,
       SmsProviderComponent,
       SendTestSmsDialogComponent,
-      CustomMenuComponent,
       WhiteLabelingComponent,
       SecuritySettingsComponent,
       PaletteComponent,
@@ -72,10 +73,11 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
       CustomCssDialogComponent,
       SelfRegistrationComponent,
       SecuritySettingsComponent,
-      OAuth2SettingsComponent,
       HomeSettingsComponent,
       ResourcesLibraryComponent,
       ResourcesTableHeaderComponent,
+      JsResourceComponent,
+      JsLibraryTableHeaderComponent,
       QueueComponent,
       RepositoryAdminSettingsComponent,
       AutoCommitAdminSettingsComponent,
@@ -85,7 +87,9 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    AdminRoutingModule
+    AdminRoutingModule,
+    OAuth2Module,
+    NgxFlowModule
   ]
 })
 export class AdminModule { }

@@ -36,7 +36,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.ExportableEntityRepository;
-import org.thingsboard.server.dao.model.sql.WidgetTypeInfoEntity;
 import org.thingsboard.server.dao.model.sql.WidgetsBundleEntity;
 
 import java.util.List;
@@ -122,7 +121,7 @@ public interface WidgetsBundleRepository extends JpaRepository<WidgetsBundleEnti
                             "OR :textSearch ILIKE '% ' || currentTag " +
                             "OR :textSearch ILIKE '% ' || currentTag || ' %')" +
                     ")))) " +
-                    "ORDER BY wb.widgets_bundle_order ASC NULLS LAST",
+                    "ORDER BY CASE WHEN :scadaFirst then wb.scada END DESC, wb.widgets_bundle_order ASC NULLS LAST",
             countQuery = "SELECT count(*) FROM widgets_bundle wb WHERE wb.tenant_id IN (:tenantIds) " +
                     "AND (:textSearch IS NULL OR wb.title ILIKE CONCAT('%', :textSearch, '%') " +
                     "OR wb.description ILIKE CONCAT('%', :textSearch, '%') " +
@@ -141,8 +140,9 @@ public interface WidgetsBundleRepository extends JpaRepository<WidgetsBundleEnti
                     "))))"
     )
     Page<WidgetsBundleEntity> findAllTenantWidgetsBundlesByTenantIdsFullSearch(@Param("tenantIds") List<UUID> tenantIds,
-                                                                              @Param("textSearch") String textSearch,
-                                                                              Pageable pageable);
+                                                                               @Param("textSearch") String textSearch,
+                                                                               @Param("scadaFirst") boolean scadaFirst,
+                                                                               Pageable pageable);
 
     WidgetsBundleEntity findFirstByTenantIdAndTitle(UUID tenantId, String title);
 

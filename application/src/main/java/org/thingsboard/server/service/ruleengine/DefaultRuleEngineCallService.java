@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.service.ruleengine;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -40,12 +42,9 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -59,7 +58,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
     private final TbClusterService clusterService;
 
-    private ScheduledExecutorService rpcCallBackExecutor;
+    private ScheduledExecutorService executor;
 
     private final ConcurrentMap<UUID, Consumer<TbMsg>> requests = new ConcurrentHashMap<>();
 
@@ -69,20 +68,20 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
     @PostConstruct
     public void initExecutor() {
-        rpcCallBackExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("re-rpc-callback"));
+        executor = ThingsBoardExecutors.newSingleThreadScheduledExecutor("re-rest-callback");
     }
 
     @PreDestroy
     public void shutdownExecutor() {
-        if (rpcCallBackExecutor != null) {
-            rpcCallBackExecutor.shutdownNow();
+        if (executor != null) {
+            executor.shutdownNow();
         }
     }
 
     @Override
-    public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useQueueFromTbMsg, Consumer<TbMsg> consumer) {
+    public void processRestApiCallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useQueueFromTbMsg, Consumer<TbMsg> responseConsumer) {
         log.trace("[{}] Processing REST API call to rule engine: [{}] for entity: [{}]", tenantId, requestId, request.getOriginator());
-        requests.put(requestId, consumer);
+        requests.put(requestId, responseConsumer);
         sendRequestToRuleEngine(tenantId, request, useQueueFromTbMsg);
         scheduleTimeout(request, requestId, requests);
     }
@@ -107,7 +106,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         long expirationTime = Long.parseLong(request.getMetaData().getValue("expirationTime"));
         long timeout = Math.max(0, expirationTime - System.currentTimeMillis());
         log.trace("[{}] processing the request: [{}]", this.hashCode(), requestId);
-        rpcCallBackExecutor.schedule(() -> {
+        executor.schedule(() -> {
             Consumer<TbMsg> consumer = requestsMap.remove(requestId);
             if (consumer != null) {
                 log.trace("[{}] request timeout detected: [{}]", this.hashCode(), requestId);

@@ -42,6 +42,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,6 +77,7 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -86,6 +88,10 @@ import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
@@ -114,8 +120,10 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.mobile.MobileAppDao;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -139,7 +147,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.thingsboard.server.common.data.DataConstants.DEFAULT_DEVICE_TYPE;
 import static org.thingsboard.server.service.security.auth.jwt.settings.DefaultJwtSettingsService.isSigningKeyDefault;
-import static org.thingsboard.server.service.security.auth.jwt.settings.DefaultJwtSettingsService.validateTokenSigningKeyLength;
+import static org.thingsboard.server.service.security.auth.jwt.settings.DefaultJwtSettingsService.validateKeyLength;
 
 @Service
 @Profile("install")
@@ -165,9 +173,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     private final DeviceConnectivityConfiguration connectivityConfiguration;
     private final QueueService queueService;
     private final JwtSettingsService jwtSettingsService;
+    private final MobileAppDao mobileAppDao;
     private final NotificationSettingsService notificationSettingsService;
     private final NotificationTargetService notificationTargetService;
     private final EntityGroupService entityGroupService;
+    private final CustomMenuService customMenuService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -301,21 +311,20 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Override
     public void createRandomJwtSettings() throws Exception {
-            if (jwtSettingsService.getJwtSettings() == null) {
-                log.info("Creating JWT admin settings...");
-                var jwtSettings = new JwtSettings(this.tokenExpirationTime, this.refreshTokenExpTime, this.tokenIssuer, this.tokenSigningKey);
-                if (isSigningKeyDefault(jwtSettings) || !validateTokenSigningKeyLength(jwtSettings)) {
-                    jwtSettings.setTokenSigningKey(Base64.getEncoder().encodeToString(
-                            RandomStringUtils.randomAlphanumeric(64).getBytes(StandardCharsets.UTF_8)));
-                }
-                jwtSettingsService.saveJwtSettings(jwtSettings);
-            } else {
-                log.info("Skip creating JWT admin settings because they already exist.");
+        if (jwtSettingsService.getJwtSettings() == null) {
+            log.info("Creating JWT admin settings...");
+            var jwtSettings = new JwtSettings(this.tokenExpirationTime, this.refreshTokenExpTime, this.tokenIssuer, this.tokenSigningKey);
+            if (isSigningKeyDefault(jwtSettings) || !validateKeyLength(jwtSettings.getTokenSigningKey())) {
+                jwtSettings.setTokenSigningKey(generateRandomKey());
             }
+            jwtSettingsService.saveJwtSettings(jwtSettings);
+        } else {
+            log.info("Skip creating JWT admin settings because they already exist.");
+        }
     }
 
     @Override
-    public void updateJwtSettings() {
+    public void updateSecuritySettings() {
         JwtSettings jwtSettings = jwtSettingsService.getJwtSettings();
         boolean invalidSignKey = false;
         String warningMessage = null;
@@ -323,7 +332,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         if (isSigningKeyDefault(jwtSettings)) {
             warningMessage = "The platform is using the default JWT Signing Key, which is a security risk.";
             invalidSignKey = true;
-        } else if (!validateTokenSigningKeyLength(jwtSettings)) {
+        } else if (!validateKeyLength(jwtSettings.getTokenSigningKey())) {
             warningMessage = "The JWT Signing Key is shorter than 512 bits, which is a security risk.";
             invalidSignKey = true;
         }
@@ -333,10 +342,28 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
                     "You can change the JWT Signing Key using the Web UI: " +
                     "Navigate to \"System settings -> Security settings\" while logged in as a System Administrator.", warningMessage);
 
-            jwtSettings.setTokenSigningKey(Base64.getEncoder().encodeToString(
-                    RandomStringUtils.randomAlphanumeric(64).getBytes(StandardCharsets.UTF_8)));
+            jwtSettings.setTokenSigningKey(generateRandomKey());
             jwtSettingsService.saveJwtSettings(jwtSettings);
         }
+
+        List<MobileApp> mobiles = mobileAppDao.findByTenantId(TenantId.SYS_TENANT_ID, null, new PageLink(Integer.MAX_VALUE,0)).getData();
+        if (CollectionUtils.isNotEmpty(mobiles)) {
+            mobiles.stream()
+                    .filter(mobileApp -> !validateKeyLength(mobileApp.getAppSecret()))
+                    .forEach(mobileApp -> {
+                        log.warn("WARNING: The App secret is shorter than 512 bits, which is a security risk. " +
+                                "A new Application Secret has been added automatically for Mobile Application [{}]. " +
+                                "You can change the Application Secret using the Web UI: " +
+                                "Navigate to \"Security settings -> OAuth2 -> Mobile applications\" while logged in as a System Administrator.", mobileApp.getPkgName());
+                        mobileApp.setAppSecret(generateRandomKey());
+                        mobileAppDao.save(TenantId.SYS_TENANT_ID, mobileApp);
+                    });
+        }
+    }
+
+    private String generateRandomKey() {
+        return Base64.getEncoder().encodeToString(
+                RandomStringUtils.randomAlphanumeric(64).getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
@@ -530,6 +557,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
         installScripts.loadDashboards(demoTenant.getId(), null);
         installScripts.createDefaultTenantDashboards(demoTenant.getId(), null);
+
+        installScripts.createSystemNotificationTemplates(demoTenant.getId());
     }
 
     @Override
@@ -598,7 +627,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
                     Collections.singletonList(new BasicTsKvEntry(System.currentTimeMillis(), new BooleanDataEntry(key, value))), 0L);
             addTsCallback(saveFuture, new TelemetrySaveCallback<>(deviceId, key, value));
         } else {
-            ListenableFuture<List<String>> saveFuture = attributesService.save(TenantId.SYS_TENANT_ID, deviceId, AttributeScope.SERVER_SCOPE,
+            ListenableFuture<List<Long>> saveFuture = attributesService.save(TenantId.SYS_TENANT_ID, deviceId, AttributeScope.SERVER_SCOPE,
                     Collections.singletonList(new BaseAttributeKvEntry(new BooleanDataEntry(key, value)
                             , System.currentTimeMillis())));
             addTsCallback(saveFuture, new TelemetrySaveCallback<>(deviceId, key, value));
@@ -764,6 +793,47 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             executor.shutdown();
             executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
         }
+    }
+
+    @Override
+    public void createDefaultCustomMenu() {
+        CustomMenuInfo defaultSystemCustomMenu =
+                customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.SYSTEM);
+        if (defaultSystemCustomMenu == null) {
+            try {
+                customMenuService.createCustomMenu(createDefaultMenu("System default menu", CMScope.SYSTEM), null, false);
+            } catch (ThingsboardException e) {
+                log.warn("Failed to create System default menu", e);
+            }
+        }
+        CustomMenuInfo defaultTenantCustomMenu =
+                customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.TENANT);
+        if (defaultTenantCustomMenu == null) {
+            try {
+                customMenuService.createCustomMenu(createDefaultMenu("Tenant default menu", CMScope.TENANT), null, false);
+            } catch (ThingsboardException e) {
+                log.warn("Failed to create Tenant default menu", e);
+            }
+        }
+        CustomMenuInfo defaultCustomerCustomMenu =
+                customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.CUSTOMER);
+        if (defaultCustomerCustomMenu == null) {
+            try {
+                customMenuService.createCustomMenu(createDefaultMenu("Customer default menu", CMScope.CUSTOMER), null, false);
+            } catch (ThingsboardException e) {
+                log.warn("Failed to create Customer default menu", e);
+            }
+        }
+    }
+
+    private static CustomMenuInfo createDefaultMenu(String name, CMScope scope) {
+        CustomMenuInfo customMenuInfo = new CustomMenuInfo();
+        customMenuInfo.setTenantId(TenantId.SYS_TENANT_ID);
+        customMenuInfo.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
+        customMenuInfo.setName(name);
+        customMenuInfo.setScope(scope);
+        customMenuInfo.setAssigneeType(CMAssigneeType.ALL);
+        return customMenuInfo;
     }
 
 }

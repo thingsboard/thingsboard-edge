@@ -35,17 +35,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
@@ -118,7 +114,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
@@ -171,30 +166,14 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
-    private ListeningScheduledExecutorService scheduledExecutor;
-
-    @PostConstruct
-    public void init() {
-        scheduledExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("edge-requests")));
-    }
-
-    @PreDestroy
-    public void stop() {
-        if (scheduledExecutor != null) {
-            scheduledExecutor.shutdownNow();
-        }
-    }
-
     @Override
     public ListenableFuture<Void> processRuleChainMetadataRequestMsg(TenantId tenantId, Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg) {
         log.trace("[{}] processRuleChainMetadataRequestMsg [{}][{}]", tenantId, edge.getName(), ruleChainMetadataRequestMsg);
         if (ruleChainMetadataRequestMsg.getRuleChainIdMSB() == 0 || ruleChainMetadataRequestMsg.getRuleChainIdLSB() == 0) {
             return Futures.immediateFuture(null);
         }
-        RuleChainId ruleChainId =
-                new RuleChainId(new UUID(ruleChainMetadataRequestMsg.getRuleChainIdMSB(), ruleChainMetadataRequestMsg.getRuleChainIdLSB()));
-        return saveEdgeEvent(tenantId, edge.getId(),
-                EdgeEventType.RULE_CHAIN_METADATA, EdgeEventActionType.ADDED, ruleChainId, null);
+        RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainMetadataRequestMsg.getRuleChainIdMSB(), ruleChainMetadataRequestMsg.getRuleChainIdLSB()));
+        return saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.RULE_CHAIN_METADATA, EdgeEventActionType.ADDED, ruleChainId, null);
     }
 
     @Override
@@ -218,8 +197,10 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
     private ListenableFuture<Void> processEntityAttributesAndAddToEdgeQueue(TenantId tenantId, EntityId entityId, Edge edge,
                                                                             EdgeEventType entityType, String scope, List<AttributeKvEntry> ssAttributes,
                                                                             AttributesRequestMsg attributesRequestMsg) {
+        Map<String, Object> entityData = null;
+        ObjectNode attributes = null;
+        ListenableFuture<Void> future;
         try {
-            ListenableFuture<Void> future;
             if (ssAttributes == null || ssAttributes.isEmpty()) {
                 log.trace("[{}][{}] No attributes found for entity {} [{}]", tenantId,
                         edge.getName(),
@@ -227,8 +208,8 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                         entityId.getId());
                 future = Futures.immediateFuture(null);
             } else {
-                Map<String, Object> entityData = new HashMap<>();
-                ObjectNode attributes = JacksonUtil.newObjectNode();
+                entityData = new HashMap<>();
+                attributes = JacksonUtil.newObjectNode();
                 for (AttributeKvEntry attr : ssAttributes) {
                     if (DefaultDeviceStateService.PERSISTENT_ATTRIBUTES.contains(attr.getKey())
                             && !DefaultDeviceStateService.INACTIVITY_TIMEOUT.equals(attr.getKey())) {
@@ -246,7 +227,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                         attributes.put(attr.getKey(), attr.getValueAsString());
                     }
                 }
-                if (attributes.size() > 0) {
+                if (!attributes.isEmpty()) {
                     entityData.put("kv", attributes);
                     entityData.put("scope", scope);
                     JsonNode body = JacksonUtil.valueToTree(entityData);
@@ -258,7 +239,8 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             }
             return Futures.transformAsync(future, v -> processLatestTimeseriesAndAddToEdgeQueue(tenantId, entityId, edge, entityType), dbCallbackExecutorService);
         } catch (Exception e) {
-            String errMsg = String.format("[%s][%s] Failed to save attribute updates to the edge [%s]", tenantId, edge.getId(), attributesRequestMsg);
+            String errMsg = String.format("[%s][%s] Failed to save attribute updates to the edge [%s], scope = %s, entityData = %s, attributes = %s",
+                    tenantId, edge.getId(), attributesRequestMsg, scope, entityData, attributes);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }

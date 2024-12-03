@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.transport;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +42,6 @@ import org.thingsboard.server.common.transport.limits.TransportRateLimitService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
 
 /**

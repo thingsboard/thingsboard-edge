@@ -30,13 +30,13 @@
  */
 package org.thingsboard.server.common.msg;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +61,8 @@ import java.util.UUID;
 @Data
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = true)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(toBuilder = true)
 public final class TbMsg implements Serializable {
 
     public static final String EMPTY_JSON_OBJECT = "{}";
@@ -79,6 +81,10 @@ public final class TbMsg implements Serializable {
     private final String data;
     private final RuleChainId ruleChainId;
     private final RuleNodeId ruleNodeId;
+
+    private final UUID correlationId;
+    private final Integer partition;
+
     @Getter(value = AccessLevel.NONE)
     @JsonIgnore
     //This field is not serialized because we use queues and there is no need to do it
@@ -295,7 +301,7 @@ public final class TbMsg implements Serializable {
     @Deprecated(since = "3.6.0")
     public static TbMsg transformMsg(TbMsg tbMsg, String type, EntityId originator, TbMsgMetaData metaData, String data) {
         return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, null, type, originator, tbMsg.customerId, metaData.copy(), tbMsg.dataType,
-                data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.ctx.copy(), tbMsg.callback);
+                data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.callback);
     }
 
     public static TbMsg newMsg(TbMsgType type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data, RuleChainId ruleChainId, RuleNodeId ruleNodeId) {
@@ -309,54 +315,54 @@ public final class TbMsg implements Serializable {
     }
 
     public static TbMsg transformMsg(TbMsg tbMsg, TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data) {
-        return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, type, originator, tbMsg.customerId, metaData.copy(), tbMsg.dataType,
-                data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.ctx.copy(), tbMsg.callback);
+        return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, type, type.name(), originator, tbMsg.customerId, metaData.copy(), tbMsg.dataType,
+                data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.callback);
     }
 
     public static TbMsg transformMsgOriginator(TbMsg tbMsg, EntityId originatorId) {
         return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, tbMsg.internalType, tbMsg.type, originatorId, tbMsg.getCustomerId(), tbMsg.metaData, tbMsg.dataType,
-                tbMsg.data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.ctx.copy(), tbMsg.getCallback());
+                tbMsg.data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.getCallback());
     }
 
     public static TbMsg transformMsgData(TbMsg tbMsg, String data) {
         return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, tbMsg.internalType, tbMsg.type, tbMsg.originator, tbMsg.customerId, tbMsg.metaData, tbMsg.dataType,
-                data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.ctx.copy(), tbMsg.getCallback());
+                data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.getCallback());
     }
 
     public static TbMsg transformMsgMetadata(TbMsg tbMsg, TbMsgMetaData metadata) {
         return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, tbMsg.internalType, tbMsg.type, tbMsg.originator, tbMsg.customerId, metadata.copy(), tbMsg.dataType,
-                tbMsg.data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.ctx.copy(), tbMsg.getCallback());
+                tbMsg.data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.getCallback());
     }
 
     public static TbMsg transformMsg(TbMsg tbMsg, TbMsgMetaData metadata, String data) {
         return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, tbMsg.internalType, tbMsg.type, tbMsg.originator, tbMsg.customerId, metadata, tbMsg.dataType,
-                data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.ctx.copy(), tbMsg.getCallback());
+                data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.getCallback());
     }
 
     public static TbMsg transformMsgCustomerId(TbMsg tbMsg, CustomerId customerId) {
         return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, tbMsg.internalType, tbMsg.type, tbMsg.originator, customerId, tbMsg.metaData, tbMsg.dataType,
-                tbMsg.data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.ctx.copy(), tbMsg.getCallback());
+                tbMsg.data, tbMsg.ruleChainId, tbMsg.ruleNodeId, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.getCallback());
     }
 
     public static TbMsg transformMsgRuleChainId(TbMsg tbMsg, RuleChainId ruleChainId) {
         return new TbMsg(tbMsg.queueName, tbMsg.id, tbMsg.ts, tbMsg.internalType, tbMsg.type, tbMsg.originator, tbMsg.customerId, tbMsg.metaData, tbMsg.dataType,
-                tbMsg.data, ruleChainId, null, tbMsg.ctx.copy(), tbMsg.getCallback());
+                tbMsg.data, ruleChainId, null, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.getCallback());
     }
 
     public static TbMsg transformMsgQueueName(TbMsg tbMsg, String queueName) {
         return new TbMsg(queueName, tbMsg.id, tbMsg.ts, tbMsg.internalType, tbMsg.type, tbMsg.originator, tbMsg.customerId, tbMsg.metaData, tbMsg.dataType,
-                tbMsg.data, tbMsg.getRuleChainId(), null, tbMsg.ctx.copy(), tbMsg.getCallback());
+                tbMsg.data, tbMsg.getRuleChainId(), null, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.getCallback());
     }
 
     public static TbMsg transformMsg(TbMsg tbMsg, RuleChainId ruleChainId, String queueName) {
         return new TbMsg(queueName, tbMsg.id, tbMsg.ts, tbMsg.internalType, tbMsg.type, tbMsg.originator, tbMsg.customerId, tbMsg.metaData, tbMsg.dataType,
-                tbMsg.data, ruleChainId, null, tbMsg.ctx.copy(), tbMsg.getCallback());
+                tbMsg.data, ruleChainId, null, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), tbMsg.getCallback());
     }
 
     //used for enqueueForTellNext
     public static TbMsg newMsg(TbMsg tbMsg, String queueName, RuleChainId ruleChainId, RuleNodeId ruleNodeId) {
         return new TbMsg(queueName, UUID.randomUUID(), tbMsg.getTs(), tbMsg.getInternalType(), tbMsg.getType(), tbMsg.getOriginator(), tbMsg.customerId, tbMsg.getMetaData().copy(),
-                tbMsg.getDataType(), tbMsg.getData(), ruleChainId, ruleNodeId, tbMsg.ctx.copy(), TbMsgCallback.EMPTY);
+                tbMsg.getDataType(), tbMsg.getData(), ruleChainId, ruleNodeId, tbMsg.correlationId, tbMsg.partition, tbMsg.ctx.copy(), TbMsgCallback.EMPTY);
     }
 
     private TbMsg(String queueName, UUID id, long ts, TbMsgType internalType, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, TbMsgDataType dataType, String data,
@@ -364,19 +370,13 @@ public final class TbMsg implements Serializable {
         this(queueName, id, ts, internalType, internalType.name(), originator, customerId, metaData, dataType, data, ruleChainId, ruleNodeId, ctx, callback);
     }
 
-    //used for DownLinkMsg deserialization
-    @JsonCreator
-    private TbMsg(@JsonProperty("queueName") String queueName, @JsonProperty("id") UUID id, @JsonProperty("ts") long ts,
-                  @JsonProperty("internalType") TbMsgType internalType, @JsonProperty("type") String type,
-                  @JsonProperty("originator") EntityId originator, @JsonProperty("customerId") CustomerId customerId,
-                  @JsonProperty("metaData") TbMsgMetaData metaData, @JsonProperty("dataType") TbMsgDataType dataType,
-                  @JsonProperty("data") String data, @JsonProperty("ruleChainId") RuleChainId ruleChainId,
-                  @JsonProperty("ruleNodeId") RuleNodeId ruleNodeId) {
-        this(queueName, id, ts, internalType, type, originator, customerId, metaData, dataType, data, ruleChainId, ruleNodeId, null, null);
+    private TbMsg(String queueName, UUID id, long ts, TbMsgType internalType, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, TbMsgDataType dataType, String data,
+                  RuleChainId ruleChainId, RuleNodeId ruleNodeId, TbMsgProcessingCtx ctx, TbMsgCallback callback) {
+        this(queueName, id, ts, internalType, type, originator, customerId, metaData, dataType, data, ruleChainId, ruleNodeId, null, null, ctx, callback);
     }
 
     private TbMsg(String queueName, UUID id, long ts, TbMsgType internalType, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, TbMsgDataType dataType, String data,
-                  RuleChainId ruleChainId, RuleNodeId ruleNodeId, TbMsgProcessingCtx ctx, TbMsgCallback callback) {
+                  RuleChainId ruleChainId, RuleNodeId ruleNodeId, UUID correlationId, Integer partition, TbMsgProcessingCtx ctx, TbMsgCallback callback) {
         this.id = id;
         this.queueName = queueName;
         if (ts > 0) {
@@ -401,6 +401,8 @@ public final class TbMsg implements Serializable {
         this.data = data;
         this.ruleChainId = ruleChainId;
         this.ruleNodeId = ruleNodeId;
+        this.correlationId = correlationId;
+        this.partition = partition;
         this.ctx = ctx != null ? ctx : new TbMsgProcessingCtx();
         this.callback = Objects.requireNonNullElse(callback, TbMsgCallback.EMPTY);
     }
@@ -440,6 +442,14 @@ public final class TbMsg implements Serializable {
         builder.setDataType(msg.getDataType().ordinal());
         builder.setData(msg.getData());
 
+        if (msg.getCorrelationId() != null) {
+            builder.setCorrelationIdMSB(msg.getCorrelationId().getMostSignificantBits());
+            builder.setCorrelationIdLSB(msg.getCorrelationId().getLeastSignificantBits());
+        }
+        if (msg.getPartition() != null) {
+            builder.setPartition(msg.getPartition());
+        }
+
         builder.setCtx(msg.ctx.toProto());
         return builder.build().toByteArray();
     }
@@ -452,6 +462,8 @@ public final class TbMsg implements Serializable {
             CustomerId customerId = null;
             RuleChainId ruleChainId = null;
             RuleNodeId ruleNodeId = null;
+            UUID correlationId = null;
+            Integer partition = null;
             if (proto.getCustomerIdMSB() != 0L && proto.getCustomerIdLSB() != 0L) {
                 customerId = new CustomerId(new UUID(proto.getCustomerIdMSB(), proto.getCustomerIdLSB()));
             }
@@ -460,6 +472,10 @@ public final class TbMsg implements Serializable {
             }
             if (proto.getRuleNodeIdMSB() != 0L && proto.getRuleNodeIdLSB() != 0L) {
                 ruleNodeId = new RuleNodeId(new UUID(proto.getRuleNodeIdMSB(), proto.getRuleNodeIdLSB()));
+            }
+            if (proto.getCorrelationIdMSB() != 0L && proto.getCorrelationIdLSB() != 0L) {
+                correlationId = new UUID(proto.getCorrelationIdMSB(), proto.getCorrelationIdLSB());
+                partition = proto.getPartition();
             }
 
             TbMsgProcessingCtx ctx;
@@ -472,7 +488,7 @@ public final class TbMsg implements Serializable {
 
             TbMsgDataType dataType = TbMsgDataType.values()[proto.getDataType()];
             return new TbMsg(queueName, UUID.fromString(proto.getId()), proto.getTs(), null, proto.getType(), entityId, customerId,
-                    metaData, dataType, proto.getData(), ruleChainId, ruleNodeId, ctx, callback);
+                    metaData, dataType, proto.getData(), ruleChainId, ruleNodeId, correlationId, partition, ctx, callback);
         } catch (InvalidProtocolBufferException e) {
             throw new IllegalStateException("Could not parse protobuf for TbMsg", e);
         }
@@ -484,17 +500,17 @@ public final class TbMsg implements Serializable {
 
     public TbMsg copyWithRuleChainId(RuleChainId ruleChainId, UUID msgId) {
         return new TbMsg(this.queueName, msgId, this.ts, this.internalType, this.type, this.originator, this.customerId,
-                this.metaData, this.dataType, this.data, ruleChainId, null, this.ctx, callback);
+                this.metaData, this.dataType, this.data, ruleChainId, null, this.correlationId, this.partition, this.ctx, callback);
     }
 
     public TbMsg copyWithRuleNodeId(RuleChainId ruleChainId, RuleNodeId ruleNodeId, UUID msgId) {
         return new TbMsg(this.queueName, msgId, this.ts, this.internalType, this.type, this.originator, this.customerId,
-                this.metaData, this.dataType, this.data, ruleChainId, ruleNodeId, this.ctx, callback);
+                this.metaData, this.dataType, this.data, ruleChainId, ruleNodeId, this.correlationId, this.partition, this.ctx, callback);
     }
 
     public TbMsg copyWithNewCtx() {
         return new TbMsg(this.queueName, this.id, this.ts, this.internalType, this.type, this.originator, this.customerId,
-                this.metaData, this.dataType, this.data, ruleChainId, ruleNodeId, this.ctx.copy(), TbMsgCallback.EMPTY);
+                this.metaData, this.dataType, this.data, ruleChainId, ruleNodeId, this.correlationId, this.partition, this.ctx.copy(), TbMsgCallback.EMPTY);
     }
 
     public TbMsgCallback getCallback() {

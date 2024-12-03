@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.ws;
 
 import org.springframework.web.socket.CloseStatus;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.subscription.SubscriptionErrorCode;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.CmdUpdate;
 import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
@@ -51,4 +52,7 @@ public interface WebSocketService {
     void sendError(WebSocketSessionRef sessionRef, int subId, SubscriptionErrorCode errorCode, String errorMsg);
 
     void close(String sessionId, CloseStatus status);
+
+    void cleanupIfStale(TenantId tenantId, String sessionId);
+
 }

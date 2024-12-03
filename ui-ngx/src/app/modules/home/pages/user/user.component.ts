@@ -44,6 +44,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { CMAssigneeType, CMScope } from '@shared/models/custom-menu.models';
 
 @Component({
   selector: 'tb-user',
@@ -51,6 +52,10 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
   styleUrls: ['./user.component.scss']
 })
 export class UserComponent extends GroupEntityComponent<UserInfo> {
+
+  CMScope = CMScope;
+
+  CMAssigneeType = CMAssigneeType;
 
   authority = Authority;
 
@@ -94,6 +99,10 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
     return this.authUser.userId === this.entity?.id?.id;
   }
 
+  isUserTenantAdmin(): boolean {
+    return this.entity?.authority === Authority.TENANT_ADMIN;
+  }
+
   isUserCredentialsEnabled(): boolean {
       return this.entity.additionalInfo.userCredentialsEnabled === true;
   }
@@ -118,7 +127,8 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
             homeDashboardHideToolbar: [entity && entity.additionalInfo &&
             isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true]
           }
-        )
+        ),
+        customMenuId: [entity?.customMenuId]
       }
     );
   }
@@ -138,6 +148,7 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
     this.entityForm.patchValue({additionalInfo:
         {homeDashboardHideToolbar: entity.additionalInfo &&
           isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true}});
+    this.entityForm.patchValue({customMenuId: entity.customMenuId});
   }
 
   onUserIdCopied($event) {

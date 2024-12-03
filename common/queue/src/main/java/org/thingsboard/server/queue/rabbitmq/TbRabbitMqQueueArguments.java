@@ -30,13 +30,13 @@
  */
 package org.thingsboard.server.queue.rabbitmq;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.StringUtils;
 
-import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -56,6 +56,8 @@ public class TbRabbitMqQueueArguments {
     private String jsExecutorProperties;
     @Value("${queue.rabbitmq.queue-properties.version-control:}")
     private String vcProperties;
+    @Value("${queue.rabbitmq.queue-properties.edge:}")
+    private String edgeProperties;
     @Value("${queue.rabbitmq.queue-properties.integration-api:}")
     private String integrationApiProperties;
 
@@ -72,6 +74,8 @@ public class TbRabbitMqQueueArguments {
     @Getter
     private Map<String, Object> vcArgs;
     @Getter
+    private Map<String, Object> edgeArgs;
+    @Getter
     private Map<String, Object> integrationArgs;
 
     @PostConstruct
@@ -82,6 +86,7 @@ public class TbRabbitMqQueueArguments {
         notificationsArgs = getArgs(notificationsProperties);
         jsExecutorArgs = getArgs(jsExecutorProperties);
         vcArgs = getArgs(vcProperties);
+        edgeArgs = getArgs(edgeProperties);
         integrationArgs = getArgs(integrationApiProperties);
     }
 

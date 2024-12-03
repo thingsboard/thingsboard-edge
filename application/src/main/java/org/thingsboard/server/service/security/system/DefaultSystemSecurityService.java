@@ -33,6 +33,8 @@ package org.thingsboard.server.service.security.system;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
@@ -42,9 +44,6 @@ import org.passay.PasswordValidator;
 import org.passay.Rule;
 import org.passay.RuleResult;
 import org.passay.WhitespaceRule;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -69,94 +68,40 @@ import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettin
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.settings.SecuritySettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
-import org.thingsboard.server.service.security.exception.UserPasswordNotValidException;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.utils.MiscUtils;
 import ua_parser.Client;
 
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.server.common.data.CacheConstants.SECURITY_SETTINGS_CACHE;
-
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultSystemSecurityService implements SystemSecurityService {
 
-    @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private BCryptPasswordEncoder encoder;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private WhiteLabelingService whiteLabelingService;
-
-    @Autowired
-    private AuditLogService auditLogService;
-
-    @Resource
-    private SystemSecurityService self;
-
-    @Cacheable(cacheNames = SECURITY_SETTINGS_CACHE, key = "'securitySettings'")
-    @Override
-    public SecuritySettings getSecuritySettings() {
-        SecuritySettings securitySettings = null;
-        AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "securitySettings");
-        if (adminSettings != null) {
-            try {
-                securitySettings = JacksonUtil.convertValue(adminSettings.getJsonValue(), SecuritySettings.class);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to load security settings!", e);
-            }
-        } else {
-            securitySettings = new SecuritySettings();
-            securitySettings.setPasswordPolicy(new UserPasswordPolicy());
-            securitySettings.getPasswordPolicy().setMinimumLength(6);
-            securitySettings.getPasswordPolicy().setMaximumLength(72);
-        }
-        return securitySettings;
-    }
-
-    @CacheEvict(cacheNames = SECURITY_SETTINGS_CACHE, key = "'securitySettings'")
-    @Override
-    public SecuritySettings saveSecuritySettings(SecuritySettings securitySettings) {
-        AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "securitySettings");
-        if (adminSettings == null) {
-            adminSettings = new AdminSettings();
-            adminSettings.setTenantId(TenantId.SYS_TENANT_ID);
-            adminSettings.setKey("securitySettings");
-        }
-        adminSettings.setJsonValue(JacksonUtil.valueToTree(securitySettings));
-        AdminSettings savedAdminSettings = adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
-        try {
-            return JacksonUtil.convertValue(savedAdminSettings.getJsonValue(), SecuritySettings.class);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load security settings!", e);
-        }
-    }
+    private final AdminSettingsService adminSettingsService;
+    private final BCryptPasswordEncoder encoder;
+    private final UserService userService;
+    private final MailService mailService;
+    private final AuditLogService auditLogService;
+    private final WhiteLabelingService whiteLabelingService;
+    private final SecuritySettingsService securitySettingsService;
 
     @Override
     public void validateUserCredentials(TenantId tenantId, UserCredentials userCredentials, String username, String password) throws AuthenticationException {
         if (!encoder.matches(password, userCredentials.getPassword())) {
             int failedLoginAttempts = userService.increaseFailedLoginAttempts(tenantId, userCredentials.getUserId());
-            SecuritySettings securitySettings = self.getSecuritySettings();
+            SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();
             if (securitySettings.getMaxFailedLoginAttempts() != null && securitySettings.getMaxFailedLoginAttempts() > 0) {
                 if (failedLoginAttempts > securitySettings.getMaxFailedLoginAttempts() && userCredentials.isEnabled()) {
                     lockAccount(tenantId, userCredentials.getUserId(), username, securitySettings.getUserLockoutNotificationEmail(), securitySettings.getMaxFailedLoginAttempts());
@@ -172,7 +117,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
         userService.resetFailedLoginAttempts(tenantId, userCredentials.getUserId());
 
-        SecuritySettings securitySettings = self.getSecuritySettings();
+        SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();
         if (isPositiveInteger(securitySettings.getPasswordPolicy().getPasswordExpirationPeriodDays())) {
             if ((userCredentials.getCreatedTime()
                     + TimeUnit.DAYS.toMillis(securitySettings.getPasswordPolicy().getPasswordExpirationPeriodDays()))
@@ -200,7 +145,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         if (maxVerificationFailures != null && maxVerificationFailures > 0
                 && failedVerificationAttempts >= maxVerificationFailures) {
             userService.setUserCredentialsEnabled(TenantId.SYS_TENANT_ID, userId, false);
-            SecuritySettings securitySettings = self.getSecuritySettings();
+            SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();
             lockAccount(tenantId, userId, securityUser.getEmail(), securitySettings.getUserLockoutNotificationEmail(), maxVerificationFailures);
             throw new LockedException("User account was locked due to exceeded 2FA verification attempts");
         }
@@ -219,7 +164,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
     @Override
     public void validatePassword(String password, UserCredentials userCredentials) throws DataValidationException {
-        SecuritySettings securitySettings = self.getSecuritySettings();
+        SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();
         UserPasswordPolicy passwordPolicy = securitySettings.getPasswordPolicy();
 
         validatePasswordByPolicy(password, passwordPolicy);
@@ -305,7 +250,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         } else {
             return getBaseUrl(tenantId, customerId, httpServletRequest);
         }
-        return baseUrl;
+        return formatBaseUrl(baseUrl);
     }
 
     private boolean isBaseUrlSet(LoginWhiteLabelingParams loginWhiteLabelingParams) {
@@ -327,7 +272,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
             baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);
         }
 
-        return baseUrl;
+        return formatBaseUrl(baseUrl);
     }
 
     @Override
@@ -379,7 +324,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
             }
         }
         if (actionType == ActionType.LOGIN && e == null) {
-            userService.setLastLoginTs(user.getTenantId(), user.getId());
+            userService.updateLastLoginTs(user.getTenantId(), user.getId());
         }
         auditLogService.logEntityAction(
                 user.getTenantId(), user.getCustomerId(), user.getId(),
@@ -389,4 +334,12 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
     private static boolean isPositiveInteger(Integer val) {
         return val != null && val > 0;
     }
+
+    private static String formatBaseUrl(String baseUrl) {
+        if (!org.apache.commons.lang3.StringUtils.startsWithAny(baseUrl, "http://", "https://")) {
+            baseUrl = "https://" + baseUrl;
+        }
+        return baseUrl;
+    }
+
 }

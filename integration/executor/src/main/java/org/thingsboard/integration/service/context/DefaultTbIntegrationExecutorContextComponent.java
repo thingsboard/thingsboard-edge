@@ -32,25 +32,22 @@ package org.thingsboard.integration.service.context;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.server.cache.TbCacheValueWrapper;
-import org.thingsboard.server.cache.TbTransactionalCache;
+import org.thingsboard.server.cache.VersionedTbCache;
 import org.thingsboard.server.cache.device.DeviceCacheKey;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -60,7 +57,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrationExecutorContextComponent {
 
     private final DownlinkCacheService downlinkCacheService;
-    private final TbTransactionalCache<DeviceCacheKey, Device> deviceCache;
+    private final VersionedTbCache<DeviceCacheKey, Device> deviceCache;
     private final IntegrationStatisticsService integrationStatisticsService;
     private final IntegrationRateLimitService rateLimitService;
     private EventLoopGroup eventLoopGroup;
@@ -71,7 +68,7 @@ public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrati
     @PostConstruct
     public void init() {
         eventLoopGroup = new NioEventLoopGroup();
-        scheduledExecutorService = Executors.newScheduledThreadPool(3, ThingsBoardThreadFactory.forName("integration-scheduled"));
+        scheduledExecutorService = ThingsBoardExecutors.newScheduledThreadPool(3, "integration-scheduled");
         generalExecutorService = ThingsBoardExecutors.newWorkStealingPool(20, "integration-general");
         callBackExecutorService = ThingsBoardExecutors.newWorkStealingPool(Math.max(2, Runtime.getRuntime().availableProcessors()), "integration-callback");
     }

@@ -30,10 +30,10 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="saveWidgetTypeAsFormGroup" (ngSubmit)="saveAs()" style="width: 360px">
+<form [formGroup]="saveWidgetTypeAsFormGroup" (ngSubmit)="saveAs()" style="min-width: 360px">
   <mat-toolbar color="primary">
-    <h2 translate>widget.save-widget-as</h2>
-    <span fxFlex></span>
+    <h2 translate>{{ dialogTitle }}</h2>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -44,7 +44,7 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
-    <span translate>widget.save-widget-as-text</span>
+    <span translate>{{ dialogTitle }}</span>
     <mat-form-field class="mat-block">
       <mat-label translate>widget.title</mat-label>
       <input matInput formControlName="title" required>
@@ -54,10 +54,11 @@
     </mat-form-field>
     <tb-widgets-bundle-select
       formControlName="widgetsBundle"
+      createNew
       bundlesScope="{{bundlesScope}}">
     </tb-widgets-bundle-select>
   </div>
-  <div mat-dialog-actions fxLayoutAlign="end center">
+  <div mat-dialog-actions class="flex items-center justify-end">
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"
@@ -68,7 +69,7 @@
             type="submit"
             [disabled]="(isLoading$ | async) || saveWidgetTypeAsFormGroup.invalid
             || !saveWidgetTypeAsFormGroup.dirty">
-      {{ 'action.saveAs' | translate }}
+      {{ saveAsActionTitle | translate }}
     </button>
   </div>
 </form>

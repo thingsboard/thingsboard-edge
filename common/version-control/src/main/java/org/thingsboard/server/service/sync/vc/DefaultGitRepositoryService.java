@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.sync.vc;
 
+import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -37,7 +38,6 @@ import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
@@ -53,12 +53,11 @@ import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.service.sync.vc.GitRepository.Diff;
+import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 
-import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -75,7 +74,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Slf4j
-@ConditionalOnProperty(prefix = "vc", value = "git.service", havingValue = "local", matchIfMissing = true)
 @Service
 public class DefaultGitRepositoryService implements GitRepositoryService {
 
@@ -96,7 +94,9 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
 
     @Override
     public Set<TenantId> getActiveRepositoryTenants() {
-        return new HashSet<>(repositories.keySet());
+        HashSet<TenantId> tenants = new HashSet<>(repositories.keySet());
+        tenants.remove(TenantId.SYS_TENANT_ID);
+        return tenants;
     }
 
     @Override
@@ -104,13 +104,20 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
         GitRepository repository = checkRepository(commit.getTenantId());
         String branch = commit.getBranch();
         try {
-            repository.fetch();
-
-            repository.createAndCheckoutOrphanBranch(commit.getWorkingBranch());
-            repository.resetAndClean();
-
-            if (repository.listRemoteBranches().contains(new BranchInfo(branch, false))) {
-                repository.merge(branch);
+            List<String> branches = repository.listBranches().stream().map(BranchInfo::getName).toList();
+            if (repository.getSettings().isLocalOnly()) {
+                if (branches.contains(commit.getBranch())) {
+                    repository.checkoutBranch(commit.getBranch());
+                } else {
+                    repository.createAndCheckoutOrphanBranch(commit.getBranch());
+                }
+                repository.resetAndClean();
+            } else {
+                repository.createAndCheckoutOrphanBranch(commit.getWorkingBranch());
+                repository.resetAndClean();
+                if (branches.contains(branch)) {
+                    repository.merge(branch);
+                }
             }
         } catch (IOException | GitAPIException gitAPIException) {
             //TODO: analyze and return meaningful exceptions that we can show to the client;
@@ -198,9 +205,9 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     @Override
-    public String getFileContentAtCommit(TenantId tenantId, String relativePath, String versionId) throws IOException {
+    public String getFileContentAtCommit(TenantId tenantId, String relativePath, String versionId) {
         GitRepository repository = checkRepository(tenantId);
-        return repository.getFileContentAtCommit(relativePath, versionId);
+        return new String(repository.getFileContentAtCommit(relativePath, versionId), StandardCharsets.UTF_8);
     }
 
     @Override
@@ -219,7 +226,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     public List<BranchInfo> listBranches(TenantId tenantId) {
         GitRepository repository = checkRepository(tenantId);
         try {
-            return repository.listRemoteBranches();
+            return repository.listBranches();
         } catch (GitAPIException gitAPIException) {
             //TODO: analyze and return meaningful exceptions that we can show to the client;
             throw new RuntimeException(gitAPIException);
@@ -230,9 +237,9 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
         GitRepository gitRepository = Optional.ofNullable(repositories.get(tenantId))
                 .orElseThrow(() -> new IllegalStateException("Repository is not initialized"));
 
-        if (!Files.exists(Path.of(gitRepository.getDirectory()))) {
+        if (!GitRepository.exists(gitRepository.getDirectory())) {
             try {
-                return cloneRepository(tenantId, gitRepository.getSettings());
+                return openOrCloneRepository(tenantId, gitRepository.getSettings(), false);
             } catch (Exception e) {
                 throw new IllegalStateException("Could not initialize the repository: " + e.getMessage(), e);
             }
@@ -262,7 +269,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
             String path = recursive ? folder : StringUtils.emptyIfNull(folder) + entityType.name().toLowerCase();
             Pattern typePattern = buildPattern(entityType, false);
             Pattern groupPattern = buildPattern(entityType, true);
-            return repository.listFilesAtCommit(versionId, path).stream()
+            return repository.listAllFilesAtCommit(versionId, path).stream()
                     .filter(filePath -> typePattern.matcher(filePath).matches())
                     .filter(filePath -> groupPattern.matcher(filePath).matches() == isGroup)
                     .map(filePath -> {
@@ -282,7 +289,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
                 groupPatterns.put(et, buildPattern(et, true));
                 typePatterns.put(et, buildPattern(et, false));
             }
-            return repository.listFilesAtCommit(versionId, folder).stream()
+            return repository.listAllFilesAtCommit(versionId, folder).stream()
                     .map(filePath -> {
                         for (var pair : groupPatterns.entrySet()) {
                             if (pair.getValue().matcher(filePath).matches()) {
@@ -309,17 +316,23 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     @Override
+    public List<RepoFile> listFiles(TenantId tenantId, String versionId, String path, int depth) {
+        GitRepository repository = checkRepository(tenantId);
+        return repository.listFilesAtCommit(versionId, path, depth);
+    }
+
+    @Override
     public void testRepository(TenantId tenantId, RepositorySettings settings) throws Exception {
         Path testDirectory = Path.of(repositoriesFolder, "repo-test-" + UUID.randomUUID());
         GitRepository.test(settings, testDirectory.toFile());
     }
 
     @Override
-    public void initRepository(TenantId tenantId, RepositorySettings settings) throws Exception {
-        testRepository(tenantId, settings);
-
-        clearRepository(tenantId);
-        cloneRepository(tenantId, settings);
+    public void initRepository(TenantId tenantId, RepositorySettings settings, boolean fetch) throws Exception {
+        if (!settings.isLocalOnly()) {
+            clearRepository(tenantId);
+        }
+        openOrCloneRepository(tenantId, settings, fetch);
     }
 
     @Override
@@ -330,11 +343,10 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
 
     @Override
     public void clearRepository(TenantId tenantId) throws IOException {
-        GitRepository repository = repositories.get(tenantId);
+        GitRepository repository = repositories.remove(tenantId);
         if (repository != null) {
             log.debug("[{}] Clear tenant repository started.", tenantId);
             FileUtils.deleteDirectory(new File(repository.getDirectory()));
-            repositories.remove(tenantId);
             log.debug("[{}] Clear tenant repository completed.", tenantId);
         }
     }
@@ -357,17 +369,13 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
         return EntityIdFactory.getByTypeAndUuid(entityType, entityId);
     }
 
-    private GitRepository cloneRepository(TenantId tenantId, RepositorySettings settings) throws Exception {
+    private GitRepository openOrCloneRepository(TenantId tenantId, RepositorySettings settings, boolean fetch) throws Exception {
         log.debug("[{}] Init tenant repository started.", tenantId);
-        Path repositoryDirectory = Path.of(repositoriesFolder, tenantId.getId().toString());
-
-        if (Files.exists(repositoryDirectory)) {
-            FileUtils.forceDelete(repositoryDirectory.toFile());
-        }
-        Files.createDirectories(repositoryDirectory);
-        GitRepository repository = GitRepository.clone(settings, repositoryDirectory.toFile());
+        Path repositoryDirectory = Path.of(repositoriesFolder, settings.isLocalOnly() ? "local_" + settings.getRepositoryUri() : tenantId.getId().toString());
+        GitRepository repository = GitRepository.openOrClone(repositoryDirectory, settings, fetch);
         repositories.put(tenantId, repository);
         log.debug("[{}] Init tenant repository completed.", tenantId);
         return repository;
     }
+
 }

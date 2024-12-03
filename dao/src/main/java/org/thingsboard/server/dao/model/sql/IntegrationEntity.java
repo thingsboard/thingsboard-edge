@@ -39,13 +39,14 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -54,7 +55,6 @@ import java.util.UUID;
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_CONVERTER_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_IS_REMOTE_PROPERTY;
@@ -69,7 +69,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TYPE_P
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = INTEGRATION_TABLE_NAME)
-public class IntegrationEntity extends BaseSqlEntity<Integration> implements BaseEntity<Integration> {
+public class IntegrationEntity extends BaseVersionedEntity<Integration> {
 
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -93,8 +93,8 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Bas
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
-    @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
-    private boolean debugMode;
+    @Column(name = ModelConstants.DEBUG_SETTINGS)
+    private String debugSettings;
 
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
@@ -124,10 +124,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Bas
     }
 
     public IntegrationEntity(Integration integration) {
-        this.createdTime = integration.getCreatedTime();
-        if (integration.getId() != null) {
-            this.setUuid(integration.getId().getId());
-        }
+        super(integration);
         if (integration.getTenantId() != null) {
             this.tenantId = integration.getTenantId().getId();
         }
@@ -141,7 +138,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Bas
         this.routingKey = integration.getRoutingKey();
         this.secret = integration.getSecret();
         this.type = integration.getType();
-        this.debugMode = integration.isDebugMode();
+        this.debugSettings = JacksonUtil.toString(integration.getDebugSettings());
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -157,6 +154,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Bas
     public Integration toData() {
         Integration integration = new Integration(new IntegrationId(id));
         integration.setCreatedTime(this.createdTime);
+        integration.setVersion(version);
         if (tenantId != null) {
             integration.setTenantId(new TenantId(tenantId));
         }
@@ -170,7 +168,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Bas
         integration.setRoutingKey(routingKey);
         integration.setSecret(secret);
         integration.setType(type);
-        integration.setDebugMode(debugMode);
+        integration.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
@@ -182,4 +180,5 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Bas
         integration.setEdgeTemplate(edgeTemplate);
         return integration;
     }
+
 }

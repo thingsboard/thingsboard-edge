@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM thingsboard/node:16.20.2-bookworm-slim
+FROM thingsboard/node:20.18.0-bookworm-slim
 
 ARG TARGETPLATFORM
 ARG DEBIAN_FRONTEND=noninteractive
@@ -58,7 +58,7 @@ RUN apt-get update \
     libxdamage1 libxext6 libxfixes3 libxkbcommon0 libxrandr2 \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /noto \
-    && wget --no-verbose --no-check-certificate -O /noto/NotoSansCJKjp-hinted.zip https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip \
+    && wget --no-verbose --no-check-certificate -O /noto/NotoSansCJKjp-hinted.zip https://noto-website-2.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip \
     && unzip /noto/NotoSansCJKjp-hinted.zip -d /noto && \
     mkdir -p /usr/share/fonts/noto && \
     cp /noto/*.otf /usr/share/fonts/noto && \

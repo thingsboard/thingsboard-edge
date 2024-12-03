@@ -240,8 +240,8 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
                 }
             }
         }
-        subIdsToCancel.forEach(subId -> localSubscriptionService.cancelSubscription(getSessionId(), subId));
-        subsToAdd.forEach(localSubscriptionService::addSubscription);
+        subIdsToCancel.forEach(subId -> localSubscriptionService.cancelSubscription(getTenantId(), getSessionId(), subId));
+        subsToAdd.forEach(subscription -> localSubscriptionService.addSubscription(subscription, sessionRef));
         sendWsMsg(new EntityDataUpdate(cmdId, data, null, maxEntitiesPerDataSubscription));
     }
 
@@ -257,4 +257,5 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
         }
         return query;
     }
+
 }

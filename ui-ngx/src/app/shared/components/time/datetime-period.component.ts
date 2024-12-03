@@ -32,6 +32,7 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FixedWindow } from '@shared/models/time/time.models';
+import { MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-datetime-period',
@@ -48,6 +49,12 @@ import { FixedWindow } from '@shared/models/time/time.models';
 export class DatetimePeriodComponent implements OnInit, ControlValueAccessor {
 
   @Input() disabled: boolean;
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
+
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
 
   modelValue: FixedWindow;
 

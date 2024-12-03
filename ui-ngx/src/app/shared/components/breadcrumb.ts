@@ -33,14 +33,14 @@ import { ActivatedRouteSnapshot, Params } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import { HasUUID } from '@shared/models/id/has-uuid';
+import { MenuId } from '@core/services/menu.models';
 
 export interface BreadCrumb extends HasUUID{
   label: string;
+  customTranslate: boolean;
   labelFunction?: () => string;
-  ignoreTranslate: boolean;
   icon: string;
-  iconUrl: string;
-  link: any[];
+  link: any[] | string;
   queryParams: Params;
 }
 
@@ -53,8 +53,9 @@ export type BreadCrumbLabelFunction<C> = (
 
 export interface BreadCrumbConfig<C> {
   labelFunction: BreadCrumbLabelFunction<C>;
-  label: string;
-  icon: string;
+  menuId?: MenuId;
+  label?: string;
+  icon?: string;
   skip: boolean;
   custom: boolean;
   customChild: boolean;

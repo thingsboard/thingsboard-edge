@@ -33,8 +33,8 @@ package org.thingsboard.server.dao.wl;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -81,7 +81,7 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams);
 
-    void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, CustomerId customerId);
+    void deleteAllTenantWhiteLabeling(TenantId tenantId);
 
     boolean isWhiteLabelingAllowed(TenantId tenantId, CustomerId customerId);
 
@@ -99,5 +99,22 @@ public interface WhiteLabelingService {
 
     WhiteLabeling findByEntityId(TenantId tenantId, CustomerId customerId, WhiteLabelingType type);
 
-    WhiteLabeling findByDomainName(String domainName);
+    WhiteLabeling findWhiteLabelingByDomainAndType(String domainName, WhiteLabelingType type);
+
+    WebSelfRegistrationParams saveTenantSelfRegistrationParams(TenantId tenantId, WebSelfRegistrationParams selfRegistrationParams);
+
+    WebSelfRegistrationParams getTenantSelfRegistrationParams(TenantId tenantId);
+
+    WebSelfRegistrationParams getWebSelfRegistrationParams(String domainName);
+
+    JsonNode getWebPrivacyPolicy(String domainName);
+
+    JsonNode getTenantPrivacyPolicy(TenantId tenantId);
+
+    JsonNode getWebTermsOfUse(String domainName);
+
+    JsonNode getTenantTermsOfUse(TenantId tenantId);
+
+    void deleteWhiteLabeling(TenantId tenantId, CustomerId customerId, WhiteLabelingType type);
+
 }

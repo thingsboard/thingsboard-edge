@@ -55,7 +55,10 @@ public enum Resource {
     USER(EntityType.USER),
     WIDGETS_BUNDLE(EntityType.WIDGETS_BUNDLE),
     WIDGET_TYPE(EntityType.WIDGET_TYPE),
-    OAUTH2_CONFIGURATION_INFO(),
+    OAUTH2_CLIENT(EntityType.OAUTH2_CLIENT),
+    DOMAIN(EntityType.DOMAIN),
+    MOBILE_APP(EntityType.MOBILE_APP),
+    MOBILE_APP_BUNDLE(EntityType.MOBILE_APP_BUNDLE),
     OAUTH2_CONFIGURATION_TEMPLATE(),
     TENANT_PROFILE(EntityType.TENANT_PROFILE),
     DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
@@ -82,7 +85,9 @@ public enum Resource {
     QUEUE_STATS(EntityType.QUEUE_STATS),
     VERSION_CONTROL,
     NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
-            EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE);
+            EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE),
+    MOBILE_APP_SETTINGS,
+    CUSTOM_MENU;
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -111,7 +116,10 @@ public enum Resource {
         operationsByResource.put(Resource.ALL, Set.of(Operation.values()));
         operationsByResource.put(Resource.PROFILE, Set.of(Operation.ALL, Operation.WRITE));
         operationsByResource.put(Resource.ADMIN_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
-        operationsByResource.put(Resource.OAUTH2_CONFIGURATION_INFO, Operation.crudOperations);
+        operationsByResource.put(Resource.OAUTH2_CLIENT, Operation.crudOperations);
+        operationsByResource.put(Resource.DOMAIN, Operation.crudOperations);
+        operationsByResource.put(Resource.MOBILE_APP, Operation.crudOperations);
+        operationsByResource.put(Resource.MOBILE_APP_BUNDLE, Operation.crudOperations);
         operationsByResource.put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, Operation.crudOperations);
         operationsByResource.put(Resource.ALARM, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE));
         operationsByResource.put(Resource.DEVICE, Set.of(Operation.ALL, Operation.READ, Operation.WRITE,
@@ -155,6 +163,7 @@ public enum Resource {
         operationsByResource.put(Resource.QUEUE_STATS, Set.of(Operation.ALL, Operation.READ));
         operationsByResource.put(Resource.VERSION_CONTROL, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE));
         operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
+        operationsByResource.put(Resource.MOBILE_APP_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, Set.of(
                 Resource.ALL,
@@ -169,12 +178,16 @@ public enum Resource {
                 Resource.WIDGET_TYPE,
                 Resource.ROLE,
                 Resource.WHITE_LABELING,
-                Resource.OAUTH2_CONFIGURATION_INFO,
+                Resource.OAUTH2_CLIENT,
+                Resource.DOMAIN,
+                Resource.MOBILE_APP,
+                Resource.MOBILE_APP_BUNDLE,
                 Resource.OAUTH2_CONFIGURATION_TEMPLATE,
                 Resource.TB_RESOURCE,
                 Resource.QUEUE,
                 Resource.QUEUE_STATS,
-                Resource.NOTIFICATION
+                Resource.NOTIFICATION,
+                Resource.MOBILE_APP_SETTINGS
         ));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, Set.of(
@@ -209,13 +222,18 @@ public enum Resource {
                 Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
+                Resource.OAUTH2_CLIENT,
+                Resource.DOMAIN,
+                Resource.MOBILE_APP,
+                Resource.MOBILE_APP_BUNDLE,
                 Resource.AUDIT_LOG,
                 Resource.TB_RESOURCE,
                 Resource.OTA_PACKAGE,
                 Resource.QUEUE,
                 Resource.QUEUE_STATS,
                 Resource.VERSION_CONTROL,
-                Resource.NOTIFICATION
+                Resource.NOTIFICATION,
+                Resource.MOBILE_APP_SETTINGS
         ));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, Set.of(
@@ -243,9 +261,12 @@ public enum Resource {
                 Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
+                Resource.DOMAIN,
+                Resource.OAUTH2_CLIENT,
                 Resource.AUDIT_LOG,
                 Resource.DEVICE_PROFILE,
-                Resource.ASSET_PROFILE
+                Resource.ASSET_PROFILE,
+                Resource.MOBILE_APP_SETTINGS
         ));
 
     }

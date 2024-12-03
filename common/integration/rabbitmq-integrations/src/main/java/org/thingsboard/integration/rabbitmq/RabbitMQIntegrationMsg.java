@@ -30,7 +30,12 @@
  */
 package org.thingsboard.integration.rabbitmq;
 
-public interface RabbitMQIntegrationMsg {
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-    String getMsg();
+@Data
+@AllArgsConstructor
+public class RabbitMQIntegrationMsg {
+
+    private final String msg;
 }

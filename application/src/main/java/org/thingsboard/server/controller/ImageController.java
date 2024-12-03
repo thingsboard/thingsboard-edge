@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +41,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -54,7 +56,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.thingsboard.server.common.data.ImageDescriptor;
-import org.thingsboard.server.common.data.ImageExportData;
+import org.thingsboard.server.common.data.ResourceExportData;
+import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
 import org.thingsboard.server.common.data.TbResource;
@@ -75,13 +78,11 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.resource.TbImageService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import jakarta.servlet.http.HttpServletRequest;
-
-import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_IMAGE_SUB_TYPE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_INCLUDE_SYSTEM_IMAGES_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
@@ -111,9 +112,10 @@ public class ImageController extends BaseController {
     private static final String IMAGE_KEY_PARAM_DESCRIPTION = "Image resource key, for example thermostats_dashboard_background.jpeg";
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @PostMapping("/api/image")
+    @PostMapping(value = "/api/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public TbResourceInfo uploadImage(@RequestPart MultipartFile file,
-                                      @RequestPart(required = false) String title) throws Exception {
+                                      @RequestPart(required = false) String title,
+                                      @RequestPart(required = false) String imageSubType) throws Exception {
         SecurityUser user = getCurrentUser();
         TbResource image = new TbResource();
         image.setTenantId(user.getTenantId());
@@ -126,7 +128,14 @@ public class ImageController extends BaseController {
         } else {
             image.setTitle(file.getOriginalFilename());
         }
+
+        ResourceSubType subType = ResourceSubType.IMAGE;
+        if (StringUtils.isNotEmpty(imageSubType)) {
+            subType = ResourceSubType.valueOf(imageSubType);
+        }
+
         image.setResourceType(ResourceType.IMAGE);
+        image.setResourceSubType(subType);
         ImageDescriptor descriptor = new ImageDescriptor();
         descriptor.setMediaType(file.getContentType());
         image.setDescriptorValue(descriptor);
@@ -136,7 +145,7 @@ public class ImageController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @PutMapping(IMAGE_URL)
+    @PutMapping(value = IMAGE_URL, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public TbResourceInfo updateImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                       @PathVariable String type,
                                       @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
@@ -231,47 +240,19 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = IMAGE_URL + "/export")
-    public ImageExportData exportImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
-                                       @PathVariable String type,
-                                       @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
-                                       @PathVariable String key) throws Exception {
+    public ResourceExportData exportImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
+                                          @PathVariable String type,
+                                          @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                          @PathVariable String key) throws Exception {
         TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.READ);
-        ImageDescriptor descriptor = imageInfo.getDescriptor(ImageDescriptor.class);
-        byte[] data = imageService.getImageData(imageInfo.getTenantId(), imageInfo.getId());
-        return ImageExportData.builder()
-                .mediaType(descriptor.getMediaType())
-                .fileName(imageInfo.getFileName())
-                .title(imageInfo.getTitle())
-                .resourceKey(imageInfo.getResourceKey())
-                .isPublic(imageInfo.isPublic())
-                .publicResourceKey(imageInfo.getPublicResourceKey())
-                .data(Base64.getEncoder().encodeToString(data))
-                .build();
+        return imageService.exportImage(imageInfo);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping("/api/image/import")
-    public TbResourceInfo importImage(@RequestBody ImageExportData imageData) throws Exception {
+    public TbResourceInfo importImage(@RequestBody ResourceExportData imageData) throws Exception {
         SecurityUser user = getCurrentUser();
-        TbResource image = new TbResource();
-        image.setTenantId(user.getTenantId());
-        image.setCustomerId(user.getCustomerId());
-
-        image.setFileName(imageData.getFileName());
-        if (StringUtils.isNotEmpty(imageData.getTitle())) {
-            image.setTitle(imageData.getTitle());
-        } else {
-            image.setTitle(imageData.getFileName());
-        }
-        image.setResourceType(ResourceType.IMAGE);
-        image.setResourceKey(imageData.getResourceKey());
-        image.setPublic(imageData.isPublic());
-        image.setPublicResourceKey(imageData.getPublicResourceKey());
-        ImageDescriptor descriptor = new ImageDescriptor();
-        descriptor.setMediaType(imageData.getMediaType());
-        image.setDescriptorValue(descriptor);
-        image.setData(Base64.getDecoder().decode(imageData.getData()));
-        return tbImageService.save(image, user);
+        return tbImageService.importImage(imageData, false, user);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -299,6 +280,8 @@ public class ImageController extends BaseController {
                                               @RequestParam int pageSize,
                                               @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
                                               @RequestParam int page,
+                                              @Parameter(description = RESOURCE_IMAGE_SUB_TYPE_DESCRIPTION, schema = @Schema(allowableValues = {"IMAGE", "SCADA_SYMBOL"}))
+                                              @RequestParam(required = false) String imageSubType,
                                               @Parameter(description = RESOURCE_INCLUDE_SYSTEM_IMAGES_DESCRIPTION)
                                               @RequestParam(required = false) boolean includeSystemImages,
                                               @Parameter(description = RESOURCE_TEXT_SEARCH_DESCRIPTION)
@@ -309,12 +292,16 @@ public class ImageController extends BaseController {
                                               @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         TenantId tenantId = getTenantId();
+        ResourceSubType subType = ResourceSubType.IMAGE;
+        if (StringUtils.isNotEmpty(imageSubType)) {
+            subType = ResourceSubType.valueOf(imageSubType);
+        }
         if (getCurrentUser().isCustomerUser()) {
-            return checkNotNull(imageService.getImagesByCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));
+            return checkNotNull(imageService.getImagesByCustomerId(tenantId, getCurrentUser().getCustomerId(), subType, pageLink));
         } else if (getCurrentUser().getAuthority() == Authority.SYS_ADMIN || !includeSystemImages) {
-            return checkNotNull(imageService.getImagesByTenantId(tenantId, pageLink));
+            return checkNotNull(imageService.getImagesByTenantId(tenantId, subType, pageLink));
         } else {
-            return checkNotNull(imageService.getAllImagesByTenantId(tenantId, pageLink));
+            return checkNotNull(imageService.getAllImagesByTenantId(tenantId, subType, pageLink));
         }
     }
 
@@ -344,7 +331,7 @@ public class ImageController extends BaseController {
         if (StringUtils.isNotEmpty(etag)) {
             etag = StringUtils.remove(etag, '\"'); // etag is wrapped in double quotes due to HTTP specification
             if (etag.equals(tbImageService.getETag(cacheKey))) {
-                return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
+                return response(HttpStatus.NOT_MODIFIED);
             }
         }
 

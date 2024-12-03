@@ -69,10 +69,10 @@ import { ImagePipe } from '@shared/pipe/image.pipe';
 export class ImageInputComponent extends PageComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
 
   @Input()
-  label: string;
+  accept = 'image/*';
 
   @Input()
-  accept = 'image/*';
+  label: string;
 
   @Input()
   emptyImageText = this.translate.instant('dashboard.empty-image');
@@ -131,6 +131,9 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   inputId = this.utils.guid();
 
   @Input()
+  allowedExtensions: string;
+
+  @Input()
   @coerceBoolean()
   processImageApiLink = false;
 
@@ -187,37 +190,39 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
           );
           return false;
         }
-        const reader = new FileReader();
-        reader.onload = (loadEvent) => {
-          let allowedImage = true;
-          let type;
-          let dataUrl;
-          if (typeof reader.result === 'string' && reader.result.startsWith('data:image/')) {
-            dataUrl = reader.result;
-            type = this.extractType(dataUrl);
-            if (this.allowedImageMimeTypes && this.allowedImageMimeTypes.length) {
-              if (!type || this.allowedImageMimeTypes.indexOf(type) === -1) {
-                allowedImage = false;
+        if (this.filterFile(flowFile)) {
+          const reader = new FileReader();
+          reader.onload = (loadEvent) => {
+            let allowedImage = true;
+            let type;
+            let dataUrl;
+            if (typeof reader.result === 'string' && reader.result.startsWith('data:image/')) {
+              dataUrl = reader.result;
+              type = this.extractType(dataUrl);
+              if (this.allowedImageMimeTypes && this.allowedImageMimeTypes.length) {
+                if (!type || this.allowedImageMimeTypes.indexOf(type) === -1) {
+                  allowedImage = false;
+                }
               }
+            } else {
+              allowedImage = false;
             }
+            if (allowedImage) {
+              this.imageType = type;
+              this.imageUrl = dataUrl;
+              this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(dataUrl);
+              this.file = file;
+              this.fileName = fileName;
+              this.updateModel();
+            } else {
+              this.imageTypeError.emit();
+            }
+          };
+          if (this.maxImageSize > 0 && file.size > this.maxImageSize) {
+            this.imageSizeOverflow.emit();
           } else {
-            allowedImage = false;
+            reader.readAsDataURL(file);
           }
-          if (allowedImage) {
-            this.imageType = type;
-            this.imageUrl = dataUrl;
-            this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(dataUrl);
-            this.file = file;
-            this.fileName = fileName;
-            this.updateModel();
-          } else {
-            this.imageTypeError.emit();
-          }
-        };
-        if (this.maxImageSize > 0 && file.size > this.maxImageSize) {
-          this.imageSizeOverflow.emit();
-        } else {
-          reader.readAsDataURL(file);
         }
       }
     });
@@ -280,6 +285,14 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
       this.imageTypeChanged.emit(this.imageType);
     }
     this.fileNameChanged.emit(this.fileName);
+  }
+
+  private filterFile(file: flowjs.FlowFile): boolean {
+    if (this.allowedExtensions) {
+      return this.allowedExtensions.split(',').indexOf(file.getExtension()) > -1;
+    } else {
+      return true;
+    }
   }
 
   clearImage() {

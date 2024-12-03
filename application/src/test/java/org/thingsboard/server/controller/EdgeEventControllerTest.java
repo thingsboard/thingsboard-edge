@@ -132,7 +132,7 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
 
         EntityGroup assetEntityGroup = constructEntityGroup("TestAssetGroup", EntityType.ASSET);
         EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
-        doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
+        doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString() + "/ASSET", EntityGroup.class);
         awaitForNumberOfEdgeEvents(edgeId, 4);
 
         Asset asset = constructAsset("TestAsset", "default");
@@ -192,6 +192,15 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
         });
     }
 
+    private void awaitForNumberOfEdgeEvents(EdgeId edgeId, int expectedNumber) {
+        Awaitility.await()
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
+                    return edgeEvents.size() == expectedNumber;
+                });
+    }
+
     private boolean popEdgeEvent(List<EdgeEvent> edgeEvents, EdgeEventType edgeEventType, EdgeEventActionType actionType) {
         for (EdgeEvent edgeEvent : edgeEvents) {
             if (edgeEventType.equals(edgeEvent.getType())) {
@@ -203,15 +212,6 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
             }
         }
         return false;
-    }
-
-    private void awaitForNumberOfEdgeEvents(EdgeId edgeId, int expectedNumber) {
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
-                    return edgeEvents.size() == expectedNumber;
-                });
     }
 
     private List<EdgeEvent> findEdgeEvents(EdgeId edgeId) throws Exception {

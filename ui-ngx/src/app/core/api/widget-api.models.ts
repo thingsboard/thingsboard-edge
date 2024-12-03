@@ -38,7 +38,7 @@ import {
   DatasourceType,
   KeyInfo,
   LegendConfig,
-  LegendData, TargetDevice,
+  LegendData, TargetDevice, WidgetAction,
   WidgetActionDescriptor,
   widgetType
 } from '@shared/models/widget.models';
@@ -58,7 +58,6 @@ import { EntityAliases } from '@shared/models/alias.models';
 import { EntityInfo } from '@app/shared/models/entity.models';
 import { IDashboardComponent } from '@home/models/dashboard-component.models';
 import { DatePipe } from '@angular/common';
-import moment_ from 'moment';
 import {
   AlarmData,
   AlarmDataPageLink,
@@ -79,6 +78,7 @@ import { PopoverPlacement } from '@shared/components/popover.models';
 import { PersistentRpc } from '@shared/models/rpc.models';
 import { EventEmitter } from '@angular/core';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
+import { MatDialogRef } from '@angular/material/dialog';
 
 export interface TimewindowFunctions {
   onUpdateTimewindow: (startTimeMs: number, endTimeMs: number, interval?: number) => void;
@@ -111,12 +111,13 @@ export interface WidgetActionsApi {
   getActionDescriptors: (actionSourceId: string) => Array<WidgetActionDescriptor>;
   handleWidgetAction: ($event: Event, descriptor: WidgetActionDescriptor,
                        entityId?: EntityId, entityName?: string, additionalParams?: any, entityLabel?: string) => void;
+  onWidgetAction: ($event: Event, action: WidgetAction) => void;
   elementClick: ($event: Event) => void;
   cardClick: ($event: Event) => void;
   click: ($event: Event) => void;
   getActiveEntityInfo: () => SubscriptionEntityInfo;
   openDashboardStateInSeparateDialog: (targetDashboardStateId: string, params?: StateParams, dialogTitle?: string,
-                                       hideDashboardToolbar?: boolean, dialogWidth?: number, dialogHeight?: number) => void;
+                                       hideDashboardToolbar?: boolean, dialogWidth?: number, dialogHeight?: number) => MatDialogRef<any>;
   openDashboardStateInPopover: ($event: Event, targetDashboardStateId: string, params?: StateParams,
                                 hideDashboardToolbar?: boolean, preferredPlacement?: PopoverPlacement,
                                 hideOnClickOutside?: boolean, popoverWidth?: string,
@@ -151,6 +152,7 @@ export interface IAliasController {
   resolveAlarmSource(alarmSource: Datasource): Observable<Datasource>;
   getEntityAliases(): EntityAliases;
   getFilters(): Filters;
+  getUserFilters(): Filters;
   getFilterInfo(filterId: string): FilterInfo;
   getKeyFilters(filterId: string): Array<KeyFilter>;
   updateCurrentAliasEntity(aliasId: string, currentEntity: EntityInfo): void;

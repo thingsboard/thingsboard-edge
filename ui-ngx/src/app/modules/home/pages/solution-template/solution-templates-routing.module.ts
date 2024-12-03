@@ -30,7 +30,7 @@
 ///
 
 import { Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { SolutionTemplatesComponent } from '@home/pages/solution-template/solution-templates.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -44,9 +44,10 @@ import {
 import { SolutionsService } from '@core/http/solutions.service';
 import { SolutionTemplateDetailsComponent } from '@home/pages/solution-template/solution-template-details.component';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
+import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
-export class SolutionTemplateInfosResolver implements Resolve<Array<TenantSolutionTemplateInfo>> {
+export class SolutionTemplateInfosResolver  {
 
   constructor(private solutionService: SolutionsService) {
   }
@@ -57,7 +58,7 @@ export class SolutionTemplateInfosResolver implements Resolve<Array<TenantSoluti
 }
 
 @Injectable()
-export class SolutionTemplateDetailsResolver implements Resolve<TenantSolutionTemplateDetails> {
+export class SolutionTemplateDetailsResolver  {
 
   constructor(private solutionService: SolutionsService) {
   }
@@ -79,8 +80,7 @@ const routes: Routes = [
     path: 'solutionTemplates',
     data: {
       breadcrumb: {
-        label: 'solution-template.solution-templates',
-        icon: 'apps'
+        menuId: MenuId.solution_templates
       }
     },
     children: [

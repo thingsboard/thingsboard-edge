@@ -177,7 +177,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
           }
         }),
         filter((value) => typeof value === 'string'),
-        map((value) => value ? (typeof value === 'string' ? value : value.name) : ''),
+        map((value) => value ? value : ''),
         mergeMap(name => this.fetchEntityGroups(name) ),
         share()
       );

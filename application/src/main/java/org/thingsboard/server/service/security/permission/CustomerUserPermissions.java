@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TbResourceId;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -62,7 +63,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Slf4j
-@Component(value="customerUserPermissions")
+@Component(value = "customerUserPermissions")
 public class CustomerUserPermissions extends AbstractPermissions {
 
     @Autowired
@@ -107,6 +108,11 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.ASSET_PROFILE, profilePermissionChecker);
         put(Resource.TB_RESOURCE, customerResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, otaPackagePermissionChecker);
+        put(Resource.MOBILE_APP_SETTINGS, qrCodeSettingsPermissionChecker);
+        put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
+        put(Resource.OAUTH2_CLIENT, customerStandaloneEntityPermissionChecker);
+        put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, new PermissionChecker.GenericPermissionChecker(Operation.READ));
+        put(Resource.DOMAIN, customerStandaloneEntityPermissionChecker);
     }
 
     private final PermissionChecker<AlarmId, Alarm> customerAlarmPermissionChecker = new PermissionChecker<>() {
@@ -149,7 +155,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
 
         @Override
-        public  boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }
@@ -159,7 +165,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
             }
             Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
             if (entityId != null) {
-                if (ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId)entity)).contains(user.getOwnerId())) {
+                if (ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId) entity)).contains(user.getOwnerId())) {
                     // This entity does not have groups, so we are checking only generic level permissions
                     return user.getUserPermissions().hasGenericPermission(resource, operation);
                 } else {
@@ -179,7 +185,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
 
         @Override
-        public  boolean hasPermission(SecurityUser user, Operation operation, GroupPermissionId groupPermissionId, GroupPermission groupPermission) {
+        public boolean hasPermission(SecurityUser user, Operation operation, GroupPermissionId groupPermissionId, GroupPermission groupPermission) {
             if (!user.getTenantId().equals(groupPermission.getTenantId())) {
                 return false;
             }
@@ -299,18 +305,22 @@ public class CustomerUserPermissions extends AbstractPermissions {
             new PermissionChecker<TbResourceId, TbResourceInfo>() {
 
                 @Override
-                @SuppressWarnings("unchecked")
                 public boolean hasPermission(SecurityUser user, Operation operation, TbResourceId resourceId, TbResourceInfo resource) {
-                    if (operation != Operation.READ) {
-                        return false;
-                    }
                     if (resource.getResourceType() == null || !resource.getResourceType().isCustomerAccess()) {
                         return false;
                     }
-                    if (resource.getTenantId() == null || resource.getTenantId().isNullUid()) {
-                        return true;
+                    if (operation == Operation.READ) {
+                        if (resource.getTenantId() == null || resource.getTenantId().isNullUid()) {
+                            return true;
+                        }
+                        return user.getTenantId().equals(resource.getTenantId());
+                    } else {
+                        if (resource.getResourceType() == ResourceType.IMAGE) {
+                            return user.getCustomerId().equals(resource.getCustomerId());
+                        } else {
+                            return false;
+                        }
                     }
-                    return user.getTenantId().equals(resource.getTenantId());
                 }
 
             };
@@ -431,4 +441,31 @@ public class CustomerUserPermissions extends AbstractPermissions {
             return user.getUserPermissions().hasGenericPermission(resource, operation);
         }
     };
+
+    private static final PermissionChecker qrCodeSettingsPermissionChecker = new PermissionChecker.GenericPermissionChecker(Operation.READ) {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return operation == Operation.READ;
+        }
+    };
+
+    private final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
+        @Override
+        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) {
+            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId()) ||
+                    !user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)) {
+                return false;
+            }
+            if (operation == Operation.READ) {
+                return user.getTenantId().equals(customMenu.getTenantId()) && customMenu.getCustomerId() != null &&
+                        (user.getCustomerId().equals(customMenu.getCustomerId()) ||
+                                ownersCacheService.getOwners(customMenu.getTenantId(), customMenu.getCustomerId(), null)
+                                        .contains(user.getCustomerId()));
+            } else {
+                return user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
+            }
+        }
+    };
+
 }

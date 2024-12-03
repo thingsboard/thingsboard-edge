@@ -31,16 +31,16 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRoute, ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   checkBoxCell,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -101,7 +101,7 @@ interface DevicePageQueryParams extends PageQueryParam {
 }
 
 @Injectable()
-export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<DeviceInfo>> {
+export class DevicesTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<DeviceInfo>,
               private store: Store<AppState>,
@@ -223,7 +223,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       columns.push(new EntityTableColumn<DeviceInfo>('ownerName', title, '20%'));
     }
     columns.push(
-      new GroupChipsEntityTableColumn<DeviceInfo>( 'groups', 'entity.groups', '25%')
+      new EntityChipsEntityTableColumn<DeviceInfo>( 'groups', 'entity.groups', '25%')
     );
     columns.push(
       new EntityTableColumn<DeviceInfo>('gateway', 'device.is-gateway', '60px',

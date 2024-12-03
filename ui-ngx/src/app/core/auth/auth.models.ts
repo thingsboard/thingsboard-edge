@@ -41,8 +41,13 @@ export interface SysParamsState {
   hasRepository: boolean;
   tbelEnabled: boolean;
   persistDeviceStateToTelemetry: boolean;
+  mobileQrEnabled: boolean;
   userSettings: UserSettings;
   maxResourceSize: number;
+  maxDebugModeDurationMinutes: number;
+  ruleChainDebugPerTenantLimitsConfiguration?: string;
+  integrationDebugPerTenantLimitsConfiguration?: string;
+  converterDebugPerTenantLimitsConfiguration?: string;
   availableLocales: string[];
 }
 

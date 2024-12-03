@@ -35,12 +35,12 @@
     <div class="tb-form-panel-title" translate>widgets.power-button.behavior</div>
     <div class="tb-form-row">
       <div class="fixed-title-width" tb-hint-tooltip-icon="{{'widgets.rpc-state.initial-state-hint' | translate}}" translate>widgets.rpc-state.initial-state</div>
-      <tb-get-value-action-settings fxFlex
-                                    panelTitle="widgets.rpc-state.initial-state"
+      <tb-get-value-action-settings class="flex-1"
+                                    panelTitle="{{ 'widgets.rpc-state.initial-state' | translate }}"
                                     [valueType]="valueType.BOOLEAN"
-                                    trueLabel="widgets.rpc-state.on"
-                                    falseLabel="widgets.rpc-state.off"
-                                    stateLabel="widgets.rpc-state.on"
+                                    trueLabel="{{ 'widgets.rpc-state.on' | translate }}"
+                                    falseLabel="{{ 'widgets.rpc-state.off' | translate }}"
+                                    stateLabel="{{ 'widgets.rpc-state.on' | translate }}"
                                     [aliasController]="aliasController"
                                     [targetDevice]="targetDevice"
                                     [widgetType]="widgetType"
@@ -48,8 +48,8 @@
     </div>
     <div class="tb-form-row space-between">
       <div class="fixed-title-width" tb-hint-tooltip-icon="{{'widgets.power-button.power-on-hint' | translate}}" translate>widgets.power-button.power-on</div>
-      <tb-set-value-action-settings fxFlex
-                                    panelTitle="widgets.power-button.power-on "
+      <tb-set-value-action-settings class="flex-1"
+                                    panelTitle="{{ 'widgets.power-button.power-on' | translate }}"
                                     [aliasController]="aliasController"
                                     [targetDevice]="targetDevice"
                                     [widgetType]="widgetType"
@@ -57,8 +57,8 @@
     </div>
     <div class="tb-form-row space-between">
       <div class="fixed-title-width" tb-hint-tooltip-icon="{{'widgets.power-button.power-off-hint' | translate}}" translate>widgets.power-button.power-off</div>
-      <tb-set-value-action-settings fxFlex
-                                    panelTitle="widgets.power-button.power-off"
+      <tb-set-value-action-settings class="flex-1"
+                                    panelTitle="{{ 'widgets.power-button.power-off' | translate }}"
                                     [aliasController]="aliasController"
                                     [targetDevice]="targetDevice"
                                     [widgetType]="widgetType"
@@ -66,10 +66,10 @@
     </div>
     <div class="tb-form-row">
       <div class="fixed-title-width" tb-hint-tooltip-icon="{{'widgets.rpc-state.disabled-state-hint' | translate}}" translate>widgets.rpc-state.disabled-state</div>
-      <tb-get-value-action-settings fxFlex
-                                    panelTitle="widgets.rpc-state.disabled-state"
+      <tb-get-value-action-settings class="flex-1"
+                                    panelTitle="{{ 'widgets.rpc-state.disabled-state' | translate }}"
                                     [valueType]="valueType.BOOLEAN"
-                                    stateLabel="widgets.rpc-state.disabled"
+                                    stateLabel="{{ 'widgets.rpc-state.disabled' | translate }}"
                                     [aliasController]="aliasController"
                                     [targetDevice]="targetDevice"
                                     [widgetType]="widgetType"
@@ -96,13 +96,19 @@
       <tb-background-settings formControlName="background">
       </tb-background-settings>
     </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widget-config.card-padding' | translate }}</div>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <input matInput formControlName="padding" placeholder="{{ 'widget-config.set' | translate }}">
+      </mat-form-field>
+    </div>
   </div>
   <div class="tb-form-panel">
     <div class="tb-form-panel-title" translate>widgets.power-button.button</div>
     <div class="tb-form-row space-between column-xs">
       <div>{{ 'widgets.power-button.power-on-colors' | translate }}</div>
-      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="12px">
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+      <div class="flex flex-row items-center justify-start gap-3">
+        <div class="flex flex-row items-center justify-start gap-2">
           <div translate>widgets.power-button.main</div>
           <tb-color-input asBoxInput
                           useThemePalette
@@ -110,7 +116,7 @@
           </tb-color-input>
         </div>
         <mat-divider vertical></mat-divider>
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+        <div class="flex flex-row items-center justify-start gap-2">
           <div translate>widgets.power-button.background</div>
           <tb-color-input asBoxInput
                           useThemePalette
@@ -121,8 +127,8 @@
     </div>
     <div class="tb-form-row space-between column-xs">
       <div>{{ 'widgets.power-button.power-off-colors' | translate }}</div>
-      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="12px">
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+      <div class="flex flex-row items-center justify-start gap-3">
+        <div class="flex flex-row items-center justify-start gap-2">
           <div translate>widgets.power-button.main</div>
           <tb-color-input asBoxInput
                           useThemePalette
@@ -130,7 +136,7 @@
           </tb-color-input>
         </div>
         <mat-divider vertical></mat-divider>
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+        <div class="flex flex-row items-center justify-start gap-2">
           <div translate>widgets.power-button.background</div>
           <tb-color-input asBoxInput
                           useThemePalette
@@ -141,8 +147,8 @@
     </div>
     <div class="tb-form-row space-between column-xs">
       <div>{{ 'widgets.power-button.disabled-colors' | translate }}</div>
-      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="12px">
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+      <div class="flex flex-row items-center justify-start gap-3">
+        <div class="flex flex-row items-center justify-start gap-2">
           <div translate>widgets.power-button.main</div>
           <tb-color-input asBoxInput
                           useThemePalette
@@ -150,7 +156,7 @@
           </tb-color-input>
         </div>
         <mat-divider vertical></mat-divider>
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+        <div class="flex flex-row items-center justify-start gap-2">
           <div translate>widgets.power-button.background</div>
           <tb-color-input asBoxInput
                           useThemePalette

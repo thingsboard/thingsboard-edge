@@ -56,7 +56,6 @@ import {
   textStyle
 } from '@shared/models/widget-settings.models';
 import { WidgetComponent } from '@home/components/widget/widget.component';
-import { ResizeObserver } from '@juggle/resize-observer';
 import {
   valueChartCardDefaultSettings,
   ValueChartCardLayout,
@@ -113,6 +112,7 @@ export class ValueChartCardWidgetComponent implements OnInit, AfterViewInit, OnD
 
   backgroundStyle$: Observable<ComponentStyle>;
   overlayStyle: ComponentStyle = {};
+  padding: string;
 
   private lineChart: TbTimeSeriesChart;
   private lineChartDataKey: DataKey;
@@ -161,6 +161,7 @@ export class ValueChartCardWidgetComponent implements OnInit, AfterViewInit, OnD
 
     this.backgroundStyle$ = backgroundStyle(this.settings.background, this.imagePipe, this.sanitizer);
     this.overlayStyle = overlayStyle(this.settings.background.overlay);
+    this.padding = this.settings.background.overlay.enabled ? undefined : this.settings.padding;
 
     if (this.ctx.defaultSubscription.firstDatasource?.dataKeys?.length) {
       this.lineChartDataKey = this.ctx.defaultSubscription.firstDatasource?.dataKeys[0];

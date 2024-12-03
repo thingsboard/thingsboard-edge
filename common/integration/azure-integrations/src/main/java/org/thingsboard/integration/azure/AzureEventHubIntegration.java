@@ -32,8 +32,15 @@ package org.thingsboard.integration.azure;
 
 import com.azure.core.amqp.AmqpRetryOptions;
 import com.azure.core.amqp.implementation.ConnectionStringProperties;
+import com.azure.messaging.eventhubs.CheckpointStore;
 import com.azure.messaging.eventhubs.EventHubClientBuilder;
-import com.azure.messaging.eventhubs.EventHubConsumerAsyncClient;
+import com.azure.messaging.eventhubs.EventProcessorClient;
+import com.azure.messaging.eventhubs.EventProcessorClientBuilder;
+import com.azure.messaging.eventhubs.checkpointstore.blob.BlobCheckpointStore;
+import com.azure.messaging.eventhubs.models.Checkpoint;
+import com.azure.messaging.eventhubs.models.PartitionOwnership;
+import com.azure.storage.blob.BlobContainerAsyncClient;
+import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -46,6 +53,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -54,6 +62,8 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -66,21 +76,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 @Slf4j
 public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubIntegrationMsg> {
 
     private ServiceClient serviceClient;
-    private EventHubConsumerAsyncClient receiver;
+    private EventProcessorClient eventProcessorClient;
+    private LocalCheckpointStore localCheckpointStore;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         AzureEventHubClientConfiguration clientConfiguration = getClientConfiguration(configuration, AzureEventHubClientConfiguration.class);
 
-        initReceiver(clientConfiguration);
+        eventProcessorClient = buildProcessorClient(clientConfiguration);
+        eventProcessorClient.start();
 
         if (downlinkConverter != null) {
             serviceClient = initServiceClient(clientConfiguration);
@@ -92,14 +106,9 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (serviceClient != null) {
             serviceClient.closeAsync();
         }
-
-        if (receiver != null) {
-            receiver.close();
+        if (eventProcessorClient != null) {
+            eventProcessorClient.stop();
         }
-    }
-
-    public void process() {
-
     }
 
     @Override
@@ -111,19 +120,11 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
+            integrationStatistics.incErrorsOccurred();
             exception = e;
             status = "ERROR";
         }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-        }
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.toJson()), status, exception);
     }
 
     @Override
@@ -141,11 +142,24 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                 integration.getConfiguration().get("clientConfiguration"),
                 AzureEventHubClientConfiguration.class
         );
-        try (var consumerClient = buildConsumerClient(configuration)) {
-            checkConnection(consumerClient);
+
+        EventHubClientBuilder builder = new EventHubClientBuilder()
+                .consumerGroup(configuration.getConsumerGroup())
+                .connectionString(configuration.getConnectionString())
+                .retry(new AmqpRetryOptions().setTryTimeout(Duration.ofSeconds(configuration.getConnectTimeoutSec())));
+        try (var consumerClient = builder.buildAsyncConsumerClient()) {
+            try {
+                consumerClient.getPartitionIds().blockFirst();
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to connect. Check for correct Connection String!", e);
+            }
+            try {
+                buildContainerClient(configuration).exists().block();
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to connect. Check for correct Storage Connection String!", e);
+            }
         }
     }
-
 
     protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
         String status = "OK";
@@ -223,23 +237,37 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         return deviceIdToMessage;
     }
 
-    private void initReceiver(AzureEventHubClientConfiguration configuration) {
-        this.receiver = buildConsumerClient(configuration);
-
-        checkConnection(this.receiver);
-
-        this.receiver.receive(false).subscribe(
-                event -> process(new AzureEventHubIntegrationMsg(event.getData())),
-                error -> log.error("It was trouble when receiving: " + error.getMessage()));
-
-    }
-
-    private EventHubConsumerAsyncClient buildConsumerClient(AzureEventHubClientConfiguration configuration) {
-        return new EventHubClientBuilder()
+    private EventProcessorClient buildProcessorClient(AzureEventHubClientConfiguration configuration) {
+        return new EventProcessorClientBuilder()
                 .consumerGroup(configuration.getConsumerGroup())
                 .connectionString(configuration.getConnectionString())
-                .retry(new AmqpRetryOptions().setTryTimeout(Duration.ofSeconds(configuration.getConnectTimeoutSec())))
-                .buildAsyncConsumerClient();
+                .retryOptions(new AmqpRetryOptions().setTryTimeout(Duration.ofSeconds(configuration.getConnectTimeoutSec())))
+                .processEvent(eventContext -> {
+                    process(new AzureEventHubIntegrationMsg(eventContext.getEventData()));
+                    eventContext.updateCheckpoint();
+                })
+                .processError(error -> log.error("It was trouble when receiving: " + error.getThrowable().getMessage()))
+                .checkpointStore(buildCheckpointStore(configuration))
+                .buildEventProcessorClient();
+    }
+
+    private CheckpointStore buildCheckpointStore(AzureEventHubClientConfiguration configuration) {
+        CheckpointStore checkpointStore;
+        if (configuration.isEnablePersistentCheckpoints()) {
+            checkpointStore = new BlobCheckpointStore(buildContainerClient(configuration));
+        } else if (localCheckpointStore != null) {
+            checkpointStore = localCheckpointStore;
+        } else {
+            checkpointStore = localCheckpointStore = new LocalCheckpointStore();
+        }
+        return checkpointStore;
+    }
+
+    private BlobContainerAsyncClient buildContainerClient(AzureEventHubClientConfiguration configuration) {
+        return new BlobContainerClientBuilder()
+                .connectionString(configuration.getStorageConnectionString())
+                .containerName(configuration.getContainerName())
+                .buildAsyncClient();
     }
 
     private ServiceClient initServiceClient(AzureEventHubClientConfiguration clientConfiguration) throws Exception {
@@ -264,20 +292,18 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     private void logEventHubDownlink(IntegrationContext context, Message message, String deviceId, String contentType) {
-        if (configuration.isDebugMode()) {
-            try {
-                ObjectNode json = JacksonUtil.newObjectNode();
-                json.put("deviceId", deviceId);
-                json.set("payload", getDownlinkPayloadJson(message, contentType));
-                json.set("properties", JacksonUtil.valueToTree(message.getProperties()));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        Supplier<String> msgSupplier = () -> {
+            ObjectNode json = JacksonUtil.newObjectNode();
+            json.put("deviceId", deviceId);
+            json.set("payload", getDownlinkPayloadJson(message, contentType));
+            json.set("properties", JacksonUtil.valueToTree(message.getProperties()));
+            return JacksonUtil.toString(json);
+        };
+        persistDebug(context, "Downlink", ContentType.JSON, msgSupplier, status, null);
     }
 
-    private JsonNode getDownlinkPayloadJson(Message message, String contentType) throws IOException {
+    private JsonNode getDownlinkPayloadJson(Message message, String contentType) {
         if ("JSON".equals(contentType)) {
             return JacksonUtil.fromBytes(message.getBytes());
         } else if ("TEXT".equals(contentType)) {
@@ -287,11 +313,75 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         }
     }
 
-    private void checkConnection(EventHubConsumerAsyncClient receiver) {
-        try {
-            receiver.getPartitionIds().blockFirst();
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to connect. Check for correct Connection String or try to set bigger Timeout. ", e);
+    private static class LocalCheckpointStore implements CheckpointStore {
+
+        private final Map<String, PartitionOwnership> ownershipMap = new ConcurrentHashMap<>();
+        private final Map<String, Checkpoint> checkpointMap = new ConcurrentHashMap<>();
+
+        @Override
+        public Flux<PartitionOwnership> listOwnership(String fullyQualifiedNamespace, String eventHubName, String consumerGroup) {
+            return Flux.fromIterable(ownershipMap.values())
+                    .filter(o -> matches(o, fullyQualifiedNamespace, eventHubName, consumerGroup));
+        }
+
+        @Override
+        public Flux<PartitionOwnership> claimOwnership(List<PartitionOwnership> requestedPartitionOwnerships) {
+            return Flux.fromIterable(requestedPartitionOwnerships).flatMap(partitionOwnership -> {
+                String key = getKey(partitionOwnership);
+                ownershipMap.compute(key, (k, existingOwnership) -> {
+                    if (existingOwnership == null || existingOwnership.getETag() == null || existingOwnership.getETag().equals(partitionOwnership.getETag())) {
+                        partitionOwnership.setETag(UUID.randomUUID().toString());
+                        partitionOwnership.setLastModifiedTime(System.currentTimeMillis());
+                        return partitionOwnership;
+                    } else {
+                        return existingOwnership;
+                    }
+                });
+
+                return Mono.just(partitionOwnership);
+            });
+        }
+
+        @Override
+        public Flux<Checkpoint> listCheckpoints(String fullyQualifiedNamespace, String eventHubName, String consumerGroup) {
+            return Flux.fromIterable(checkpointMap.values())
+                    .filter(checkpoint -> matches(checkpoint, fullyQualifiedNamespace, eventHubName, consumerGroup));
+        }
+
+        @Override
+        public Mono<Void> updateCheckpoint(Checkpoint checkpoint) {
+            return Mono.fromRunnable(() -> checkpointMap.put(getKey(checkpoint), checkpoint));
+        }
+
+        private boolean matches(Object item, String namespace, String eventHub, String consumerGroup) {
+            if (item instanceof PartitionOwnership ownership) {
+                return ownership.getFullyQualifiedNamespace().equals(namespace) &&
+                        ownership.getEventHubName().equals(eventHub) &&
+                        ownership.getConsumerGroup().equals(consumerGroup);
+            } else if (item instanceof Checkpoint checkpoint) {
+                return checkpoint.getFullyQualifiedNamespace().equals(namespace) &&
+                        checkpoint.getEventHubName().equals(eventHub) &&
+                        checkpoint.getConsumerGroup().equals(consumerGroup);
+            }
+            return false;
+        }
+
+        private String getKey(PartitionOwnership ownership) {
+            return String.format("%s/%s/%s/%s",
+                    ownership.getFullyQualifiedNamespace(),
+                    ownership.getEventHubName(),
+                    ownership.getConsumerGroup(),
+                    ownership.getPartitionId()
+            );
+        }
+
+        private String getKey(Checkpoint checkpoint) {
+            return String.format("%s/%s/%s/%s",
+                    checkpoint.getFullyQualifiedNamespace(),
+                    checkpoint.getEventHubName(),
+                    checkpoint.getConsumerGroup(),
+                    checkpoint.getPartitionId()
+            );
         }
     }
 

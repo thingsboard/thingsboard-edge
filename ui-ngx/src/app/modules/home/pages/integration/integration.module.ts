@@ -37,6 +37,8 @@ import { IntegrationComponent } from '@home/pages/integration/integration.compon
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { IntegrationRoutingModule } from '@home/pages/integration/integration-routing.module';
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
+import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
+import { DebugSettingsButtonComponent } from '@home/components/debug-settings/debug-settings-button.component';
 
 @NgModule({
   declarations: [
@@ -48,7 +50,9 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     SharedModule,
     HomeComponentsModule,
     IntegrationRoutingModule,
-    IntegrationComponentModule
-  ]
+    IntegrationComponentModule,
+    DebugSettingsButtonComponent,
+  ],
+  providers: [DurationLeftPipe]
 })
 export class IntegrationModule { }

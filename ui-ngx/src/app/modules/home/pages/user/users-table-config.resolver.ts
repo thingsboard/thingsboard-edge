@@ -31,21 +31,21 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { AuthUser, User, UserInfo } from '@shared/models/user.model';
+import { AuthUser, UserInfo } from '@shared/models/user.model';
 import { UserService } from '@core/http/user.service';
 import { UserComponent } from '@modules/home/pages/user/user.component';
 import { CustomerService } from '@core/http/customer.service';
@@ -84,7 +84,7 @@ export interface UsersTableRouteData {
 }
 
 @Injectable()
-export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserInfo>> {
+export class UsersTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<UserInfo>,
               private store: Store<AppState>,
@@ -195,7 +195,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
         columns[3].width = '35%';
       }
       columns.push(
-        new GroupChipsEntityTableColumn<UserInfo>('groups', 'entity.groups', groupsColumnSize)
+        new EntityChipsEntityTableColumn<UserInfo>('groups', 'entity.groups', groupsColumnSize)
       );
     }
     return columns;
@@ -228,7 +228,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
             this.translate.instant('user.login-as-tenant-admin') :
             this.translate.instant('user.login-as-customer-user'),
           icon: 'mdi:login',
-          isEnabled: () => true,
+          isEnabled: (user) => user.id.id !== auth.authUser.userId,
           onAction: ($event, entity) => this.loginAsUser($event, entity)
         }
       );
@@ -290,14 +290,14 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
     if ($event) {
       $event.stopPropagation();
     }
-    this.userService.getActivationLink(user.id.id).subscribe(
-      (activationLink) => {
+    this.userService.getActivationLinkInfo(user.id.id).subscribe(
+      (activationLinkInfo) => {
         this.dialog.open<ActivationLinkDialogComponent, ActivationLinkDialogData,
           void>(ActivationLinkDialogComponent, {
           disableClose: true,
           panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
           data: {
-            activationLink
+            activationLinkInfo
           }
         });
       }

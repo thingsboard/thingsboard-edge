@@ -95,6 +95,7 @@ export interface SingleSwitchWidgetSettings {
   offLabelFont: Font;
   offLabelColor: string;
   background: BackgroundSettings;
+  padding: string;
 }
 
 export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
@@ -114,6 +115,10 @@ export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
     getTimeSeries: {
       key: 'state'
     },
+    getAlarmStatus: {
+      severityList: null,
+      typeList: null
+    },
     dataToValue: {
       type: DataToValueType.NONE,
       compareToValue: true,
@@ -129,6 +134,10 @@ export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
     },
     getTimeSeries: {
       key: 'state'
+    },
+    getAlarmStatus: {
+      severityList: null,
+      typeList: null
     },
     dataToValue: {
       type: DataToValueType.NONE,
@@ -232,5 +241,6 @@ export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
       color: 'rgba(255,255,255,0.72)',
       blur: 3
     }
-  }
+  },
+  padding: ''
 };

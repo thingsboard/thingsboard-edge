@@ -32,13 +32,11 @@ package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -162,7 +160,7 @@ public class AssetController extends BaseController {
             @RequestBody Asset asset,
             @Parameter(description = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
-            @Parameter(description = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
+            @Parameter(description = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION, array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(asset, strEntityGroupId, strEntityGroupIds, (asset1, entityGroups) -> {
@@ -405,7 +403,7 @@ public class AssetController extends BaseController {
     @RequestMapping(value = "/assets", params = {"assetIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Asset> getAssetsByIds(
-            @Parameter(description = "A list of asset ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of asset ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("assetIds") String[] strAssetIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("assetIds", strAssetIds);
         SecurityUser user = getCurrentUser();

@@ -32,11 +32,17 @@ package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Immutable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -46,15 +52,9 @@ import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_IS_REMOTE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_NAME_PROPERTY;
@@ -79,8 +79,8 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
-    @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
-    private Boolean debugMode;
+    @Column(name = ModelConstants.DEBUG_SETTINGS)
+    private String debugSettings;
 
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
@@ -105,14 +105,14 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     }
 
     public IntegrationInfoEntity(UUID id, Long createdTime, UUID tenantId, String name,
-                                 String type, Boolean debugMode, Boolean enabled, Boolean isRemote,
+                                 String type, DebugSettings debugSettings, Boolean enabled, Boolean isRemote,
                                  Boolean allowCreateDevicesOrAssets, Boolean edgeTemplate, String stats, String status) {
         this.id = id;
         this.createdTime = createdTime;
         this.tenantId = tenantId;
         this.name = name;
         this.type = IntegrationType.valueOf(type);
-        this.debugMode = debugMode;
+        this.debugSettings = JacksonUtil.toString(debugSettings);
         this.enabled = enabled;
         this.isRemote = isRemote;
         this.allowCreateDevicesOrAssets = allowCreateDevicesOrAssets;
@@ -131,7 +131,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         this.name = integration.getName();
         this.type = integration.getType();
-        this.debugMode = integration.isDebugMode();
+        this.debugSettings = JacksonUtil.toString(debugSettings);
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -147,7 +147,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         integration.setName(name);
         integration.setType(type);
-        integration.setDebugMode(debugMode);
+        integration.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);

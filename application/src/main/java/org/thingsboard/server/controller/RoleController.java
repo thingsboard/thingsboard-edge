@@ -31,12 +31,10 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -262,7 +260,7 @@ public class RoleController extends AutoCommitController {
     @RequestMapping(value = "/roles", params = {"roleIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Role> getRolesByIds(
-            @Parameter(description = "A list of role ids, separated by comma ','")
+            @Parameter(description = "A list of role ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam("roleIds") String[] strRoleIds) throws Exception {
         checkArrayParameter("roleIds", strRoleIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ)) {

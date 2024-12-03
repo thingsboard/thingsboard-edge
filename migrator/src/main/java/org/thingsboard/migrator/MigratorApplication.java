@@ -48,6 +48,7 @@ public class MigratorApplication {
     @Bean
     public ApplicationRunner runner(List<MigrationService> migrationServices, Storage storage) {
         return args -> {
+            storage.open();
             for (MigrationService migrationService : migrationServices) {
                 migrationService.run();
             }

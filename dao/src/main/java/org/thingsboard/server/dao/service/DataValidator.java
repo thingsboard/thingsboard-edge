@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Streams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,13 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.TenantEntityWithDataDao;
-import org.thingsboard.server.exception.EntitiesLimitException;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.exception.EntitiesLimitException;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
@@ -59,7 +63,8 @@ public abstract class DataValidator<D extends BaseData<?>> {
             Pattern.compile("^[A-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern QUEUE_PATTERN = Pattern.compile("^[a-zA-Z0-9_.\\-]+$");
-
+    private static final String DOMAIN_REGEX = "^(((?!-))(xn--|_)?[a-z0-9-]{0,61}[a-z0-9]{1,1}\\.)*(xn--)?([a-z0-9][a-z0-9\\-]{0,60}|[a-z0-9-]{1,30}\\.[a-z]{2,})$";
+    private static final Pattern DOMAIN_PATTERN = Pattern.compile(DOMAIN_REGEX);
     private static final String NAME = "name";
     private static final String TOPIC = "topic";
 
@@ -138,6 +143,14 @@ public abstract class DataValidator<D extends BaseData<?>> {
         }
     }
 
+    public static void validateCustomTranslation(JsonNode customTranslation) {
+        Streams.stream(customTranslation.fieldNames()).forEach(key -> {
+            if (key.endsWith(".")) {
+                throw new DataValidationException("The key can`t end with '.'");
+            }
+        });
+    }
+
     public static boolean doValidateLocaleCode(String localeCode) {
         if (localeCode == null) {
             return false;
@@ -211,6 +224,24 @@ public abstract class DataValidator<D extends BaseData<?>> {
         if (!QUEUE_PATTERN.matcher(value).matches()) {
             throw new DataValidationException(
                     String.format("Queue %s contains a character other than ASCII alphanumerics, '.', '_' and '-'!", fieldName));
+        }
+    }
+
+    public static boolean isValidDomain(String domainName) {
+        if (domainName == null) {
+            return false;
+        }
+        return DOMAIN_PATTERN.matcher(domainName).matches();
+    }
+
+    public static boolean isValidUrl(String url) {
+        try {
+            new URL(url).toURI();
+            return true;
+        } catch (MalformedURLException e) {
+            return false;
+        } catch (URISyntaxException e) {
+            return false;
         }
     }
 

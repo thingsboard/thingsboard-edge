@@ -31,15 +31,15 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -79,7 +79,7 @@ import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 
 @Injectable()
-export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo>> {
+export class EdgesTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<EdgeInfo>,
               private userPermissionsService: UserPermissionsService,
@@ -172,7 +172,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
       columns.push(new EntityTableColumn<EdgeInfo>('ownerName', title, '20%'));
     }
     columns.push(
-      new GroupChipsEntityTableColumn<EdgeInfo>( 'groups', 'entity.groups', '25%')
+      new EntityChipsEntityTableColumn<EdgeInfo>( 'groups', 'entity.groups', '25%')
     );
     return columns;
   }

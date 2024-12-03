@@ -107,7 +107,7 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select a.id, a.created_time, a.additional_info, a.customer_id, a.\"name\", a.label, " +
-            "a.tenant_id, a.type, a.external_id, a.asset_profile_id, a.groups, " +
+            "a.tenant_id, a.type, a.external_id, a.version, a.asset_profile_id, a.groups, " +
             "c.title as owner_name from asset_info_view a " +
             "LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
@@ -130,7 +130,7 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select a.id, a.created_time, a.additional_info, a.customer_id, a.\"name\", a.label, " +
-            "a.tenant_id, a.type, a.external_id, a.asset_profile_id, a.groups, " +
+            "a.tenant_id, a.type, a.external_id, a.version, a.asset_profile_id, a.groups, " +
             "c.title as owner_name from asset_info_view a " +
             "LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +

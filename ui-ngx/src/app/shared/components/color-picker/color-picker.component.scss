@@ -139,7 +139,9 @@
 
   indicator-component {
     svg {
-      vertical-align: -100% !important;
+      transform: scale(0.5);
+      height: 100% !important;
+      vertical-align: baseline !important;
     }
   }
 

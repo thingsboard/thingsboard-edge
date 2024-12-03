@@ -29,13 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import { ActivatedRoute } from '@angular/router';
+import { FormGroupDirective, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { LoginWhiteLabelingParams, WhiteLabelingParams } from '@shared/models/white-labeling.models';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -44,24 +43,29 @@ import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { environment as env } from '@env/environment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { Observable, Subject } from 'rxjs';
+import { mergeMap, Observable } from 'rxjs';
 import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
 import { UiSettingsService } from '@core/http/ui-settings.service';
-import { share, skip, takeUntil } from 'rxjs/operators';
+import { share } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
+import { EntityType } from '@shared/models/entity-type.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EntityId } from '@shared/models/id/entity-id';
+import { BaseData } from '@shared/models/base-data';
+import { DomainDialogComponent } from '@home/pages/admin/oauth2/domains/domain-dialog.component';
+import { Domain } from '@shared/models/oauth2.models';
 
 @Component({
   selector: 'tb-white-labeling',
   templateUrl: './white-labeling.component.html',
   styleUrls: ['./settings-card.scss']
 })
-export class WhiteLabelingComponent extends PageComponent implements OnInit, OnDestroy, HasConfirmForm {
+export class WhiteLabelingComponent extends PageComponent implements OnInit, HasConfirmForm {
 
   wlSettings: UntypedFormGroup;
-  whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams;
+  private whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams;
 
   isSysAdmin = getCurrentAuthUser(this.store).authority === Authority.SYS_ADMIN;
   isTenant = getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN;
@@ -86,19 +90,20 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
     }
   ];
 
-  private destroy$ = new Subject<void>();
+  readonly EntityType = EntityType;
+  readonly operation = Operation;
+  readonly resource = Resource;
 
   constructor(protected store: Store<AppState>,
-              private router: Router,
               private route: ActivatedRoute,
               private userPermissionsService: UserPermissionsService,
               private whiteLabelingService: WhiteLabelingService,
               private uiSettingsService: UiSettingsService,
-              private translate: TranslateService,
               private dialog: MatDialog,
-              public fb: UntypedFormBuilder,
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef,
               @Inject(WINDOW) private window: Window) {
-    super(store);
+    super();
   }
 
   ngOnInit() {
@@ -106,31 +111,12 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
     this.loadWhiteLabelingParams();
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private loadWhiteLabelingParams() {
-    (this.isLoginWl ? this.whiteLabelingService.getCurrentLoginWhiteLabelParams()
-      : this.whiteLabelingService.getCurrentWhiteLabelParams()).subscribe((whiteLabelingParams) => {
-      this.whiteLabelingParams = whiteLabelingParams;
-      if (!this.whiteLabelingParams.paletteSettings) {
-        this.whiteLabelingParams.paletteSettings = {};
-      }
-      if(this.whiteLabelingParams.platformName === null){
-        this.whiteLabelingParams.platformName = 'ThingsBoard';
-      }
-      if(this.whiteLabelingParams.platformVersion === null){
-        this.whiteLabelingParams.platformVersion = env.tbVersion;
-      }
-      if (this.whiteLabelingParams.showNameBottom === null){
-        this.whiteLabelingParams.showNameBottom = true;
-      }
-      this.wlSettings.reset(this.whiteLabelingParams);
-      if (!this.readonly) {
-        this.updateValidators();
-      }
+    (this.isLoginWl
+        ? this.whiteLabelingService.getCurrentLoginWhiteLabelParams()
+        : this.whiteLabelingService.getCurrentWhiteLabelParams()
+    ).subscribe((whiteLabelingParams) => {
+      this.setWhiteLabelingParams(whiteLabelingParams);
     });
   }
 
@@ -158,7 +144,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
 
     if (this.isLoginWl) {
       this.wlSettings.addControl('baseUrl',
-        this.fb.control('', [])
+        this.fb.control('', [Validators.required, Validators.pattern(/^(https?:\/\/)?(localhost|([\w\-]+\.)+[\w\-]+)(:\d+)?(\/[\w\-._~:\/?#[\]@!$&'()*+,;=%]*)?$/)])
       );
       this.wlSettings.addControl('prohibitDifferentUrl',
         this.fb.control('', [])
@@ -166,8 +152,8 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
     }
 
     if (this.isLoginWl && !this.isSysAdmin) {
-      this.wlSettings.addControl('domainName',
-        this.fb.control('', [Validators.required, Validators.pattern('((?![:/]).)*$')])
+      this.wlSettings.addControl('domainId',
+        this.fb.control(null, Validators.required)
       );
     } else {
       this.wlSettings.addControl('enableHelpLinks',
@@ -199,20 +185,11 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
     if (this.readonly) {
       this.wlSettings.disable();
     } else {
-      this.wlSettings.get('showNameVersion').valueChanges.subscribe(() => {
+      this.wlSettings.get('showNameVersion').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateValidators();
       });
-      if (this.isLoginWl && !this.isSysAdmin) {
-        this.wlSettings.get('domainName').valueChanges.pipe(
-          skip(1),
-          takeUntil(this.destroy$)
-        ).subscribe((value) => {
-          const baseUrlFormControl = this.wlSettings.get('baseUrl');
-          if (baseUrlFormControl.pristine) {
-            baseUrlFormControl.patchValue(value ? this.window.location.protocol + '//' + value : '');
-          }
-        });
-      }
     }
   }
 
@@ -279,4 +256,48 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
     return this.whiteLabelingService.cancelWhiteLabelPreview();
   }
 
+  delete(form: FormGroupDirective) {
+    let deleteParams: Observable<LoginWhiteLabelingParams | WhiteLabelingParams>;
+    if (this.isLoginWl) {
+      deleteParams = this.whiteLabelingService.deleteCurrentLoginWhiteLabelParams().pipe(
+        mergeMap(() => this.whiteLabelingService.getCurrentLoginWhiteLabelParams())
+      );
+    } else {
+      deleteParams =  this.whiteLabelingService.deleteCurrentWhiteLabelParams().pipe(
+        mergeMap(() => this.whiteLabelingService.getCurrentWhiteLabelParams())
+      );
+    }
+    deleteParams.subscribe((value) => {
+      this.setWhiteLabelingParams(value);
+      form.resetForm(value);
+    })
+  }
+
+  private setWhiteLabelingParams(whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams) {
+    this.whiteLabelingParams = whiteLabelingParams;
+    this.wlSettings.reset(this.whiteLabelingParams, {emitEvent: false});
+    if (!this.readonly) {
+      this.updateValidators();
+    }
+  }
+
+  domainChange(domain: BaseData<EntityId>) {
+    const baseUrlFormControl = this.wlSettings.get('baseUrl');
+    if (baseUrlFormControl.pristine && !this.whiteLabelingParams?.baseUrl) {
+      baseUrlFormControl.patchValue(domain?.name ? this.window.location.protocol + '//' + domain.name : '');
+    }
+  }
+
+  createDomain() {
+    this.dialog.open<DomainDialogComponent, any, Domain>(DomainDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+    }).afterClosed()
+      .subscribe((domain) => {
+        if (domain) {
+          this.wlSettings.get('domainId').patchValue(domain.id);
+          this.wlSettings.get('domainId').markAsDirty();
+        }
+      });
+  }
 }

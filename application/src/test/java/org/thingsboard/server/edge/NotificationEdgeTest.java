@@ -33,7 +33,6 @@ package org.thingsboard.server.edge;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
@@ -288,14 +287,6 @@ public class NotificationEdgeTest extends AbstractEdgeTest {
         recipientsConfig.setEscalationTable(escalationTable);
         notificationRule.setRecipientsConfig(recipientsConfig);
         return saveNotificationRule(notificationRule);
-    }
-
-    private NotificationTemplate saveNotificationTemplate(NotificationTemplate notificationTemplate) {
-        return doPost("/api/notification/template", notificationTemplate, NotificationTemplate.class);
-    }
-
-    private NotificationTarget saveNotificationTarget(NotificationTarget notificationTarget) {
-        return doPost("/api/notification/target", notificationTarget, NotificationTarget.class);
     }
 
     private NotificationRule saveNotificationRule(NotificationRule notificationRule) {

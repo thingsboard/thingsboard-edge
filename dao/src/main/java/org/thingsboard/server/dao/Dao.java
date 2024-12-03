@@ -33,6 +33,7 @@ package org.thingsboard.server.dao;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,12 +55,16 @@ public interface Dao<T> {
 
     T saveAndFlush(TenantId tenantId, T t);
 
-    boolean removeById(TenantId tenantId, UUID id);
+    void removeById(TenantId tenantId, UUID id);
 
     void removeAllByIds(Collection<UUID> ids);
 
     List<UUID> findIdsByTenantIdAndIdOffset(TenantId tenantId, UUID idOffset, int limit);
 
-    default EntityType getEntityType() { return null; }
+    List<TbPair<UUID, UUID>> findIdsByTenantProfileIdAndIdOffsetAndExpired(UUID tenantProfileId, UUID idOffset, int limit, long ttl);
+
+    default EntityType getEntityType() {
+        return null;
+    }
 
 }

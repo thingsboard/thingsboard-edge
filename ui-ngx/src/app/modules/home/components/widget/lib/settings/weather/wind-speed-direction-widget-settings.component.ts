@@ -106,7 +106,8 @@ export class WindSpeedDirectionWidgetSettingsComponent extends WidgetSettingsCom
 
       arrowColor: [settings.arrowColor, []],
 
-      background: [settings.background, []]
+      background: [settings.background, []],
+      padding: [settings.padding, []]
     });
   }
 

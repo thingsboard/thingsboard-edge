@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import {
@@ -112,12 +112,12 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
             this.translate.instant('user.login-as-tenant-admin') :
             this.translate.instant('user.login-as-customer-user'),
           icon: 'mdi:login',
-          isEnabled: config.loginAsUserEnabled,
+          isEnabled: (entity) => config.loginAsUserEnabled(entity) && entity.id.id !== auth.authUser.userId,
           onAction: ($event, entity) => this.loginAsUser($event, entity)
         }
       );
     }
-    return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
+    return this.groupConfigTableConfigService.prepareConfiguration(params, config);
   }
 
   addUser(config: GroupEntityTableConfig<UserInfo>): Observable<UserInfo> {
@@ -162,14 +162,14 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     if ($event) {
       $event.stopPropagation();
     }
-    this.userService.getActivationLink(user.id.id).subscribe(
-      (activationLink) => {
+    this.userService.getActivationLinkInfo(user.id.id).subscribe(
+      (activationLinkInfo) => {
         this.dialog.open<ActivationLinkDialogComponent, ActivationLinkDialogData,
           void>(ActivationLinkDialogComponent, {
           disableClose: true,
           panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
           data: {
-            activationLink
+            activationLinkInfo
           }
         });
       }

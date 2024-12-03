@@ -93,6 +93,7 @@ import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -101,12 +102,15 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.mobile.MobileAppBundleService;
+import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
+import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.queue.QueueStatsService;
@@ -431,6 +435,22 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private OAuth2ClientService oAuth2ClientService;
+
+    @Autowired
+    @Getter
+    private DomainService domainService;
+
+    @Autowired
+    @Getter
+    private MobileAppService mobileAppService;
+
+    @Autowired
+    @Getter
+    private MobileAppBundleService mobileAppBundleService;
+
+    @Autowired
+    @Getter
     private SlackService slackService;
 
     @Lazy
@@ -630,6 +650,10 @@ public class ActorSystemContext {
     @Getter
     private String rpcSubmitStrategy;
 
+    @Value("${actors.rpc.close_session_on_rpc_delivery_timeout:false}")
+    @Getter
+    private boolean closeTransportSessionOnRpcDeliveryTimeout;
+
     @Value("${actors.rpc.response_timeout_ms:30000}")
     @Getter
     private long rpcResponseTimeout;
@@ -731,6 +755,10 @@ public class ActorSystemContext {
 
     public TopicPartitionInfo resolve(ServiceType serviceType, String queueName, TenantId tenantId, EntityId entityId) {
         return partitionService.resolve(serviceType, queueName, tenantId, entityId);
+    }
+
+    public TopicPartitionInfo resolve(TenantId tenantId, EntityId entityId, TbMsg msg) {
+        return partitionService.resolve(ServiceType.TB_RULE_ENGINE, msg.getQueueName(), tenantId, entityId, msg.getPartition());
     }
 
     public String getServiceId() {

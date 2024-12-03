@@ -322,6 +322,7 @@ export interface SlackNotificationTargetConfig {
 export interface MicrosoftTeamsNotificationTargetConfig {
   webhookUrl: string;
   channelName: string;
+  useOldApi?: boolean;
 }
 export enum NotificationTargetType {
   PLATFORM_USERS = 'PLATFORM_USERS',
@@ -397,6 +398,7 @@ interface SlackDeliveryMethodNotificationTemplate {
 interface MicrosoftTeamsDeliveryMethodNotificationTemplate {
   subject?: string;
   button: NotificationButtonConfig;
+  themeColor?: string;
 }
 
 interface MobileDeliveryMethodNotificationTemplate {
@@ -569,7 +571,9 @@ export enum NotificationType {
   RATE_LIMITS = 'RATE_LIMITS',
   EDGE_CONNECTION = 'EDGE_CONNECTION',
   EDGE_COMMUNICATION_FAILURE = 'EDGE_COMMUNICATION_FAILURE',
-  TASK_PROCESSING_FAILURE = 'TASK_PROCESSING_FAILURE'
+  TASK_PROCESSING_FAILURE = 'TASK_PROCESSING_FAILURE',
+  USER_ACTIVATED = 'USER_ACTIVATED',
+  USER_REGISTERED = 'USER_REGISTERED'
 }
 
 export const NotificationTypeIcons = new Map<NotificationType, string | null>([
@@ -707,6 +711,18 @@ export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, No
       helpId: 'notification/task_processing_failure'
     }
   ],
+  [NotificationType.USER_ACTIVATED,
+    {
+      name: 'notification.template-type.user-activated',
+      helpId: 'notification/user_activated'
+    }
+  ],
+  [NotificationType.USER_REGISTERED,
+    {
+      name: 'notification.template-type.user-registered',
+      helpId: 'notification/user_registered'
+    }
+  ]
 ]);
 
 export enum TriggerType {

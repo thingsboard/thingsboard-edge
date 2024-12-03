@@ -33,9 +33,11 @@ package org.thingsboard.server.common.data.widget;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
@@ -43,7 +45,8 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
-public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, TenantEntity {
+@EqualsAndHashCode(callSuper = true)
+public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, TenantEntity, HasVersion {
 
     private static final long serialVersionUID = 8388684344603660756L;
 
@@ -61,6 +64,11 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, T
     @Schema(description = "Whether widget type is deprecated.", example = "true")
     private boolean deprecated;
 
+    @Schema(description = "Whether widget type is SCADA symbol.", example = "true")
+    private boolean scada;
+
+    private Long version;
+
     public BaseWidgetType() {
         super();
     }
@@ -75,6 +83,8 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, T
         this.fqn = widgetType.getFqn();
         this.name = widgetType.getName();
         this.deprecated = widgetType.isDeprecated();
+        this.scada = widgetType.isScada();
+        this.version = widgetType.getVersion();
     }
 
     @Override
@@ -86,7 +96,7 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, T
     @Schema(description = "JSON object with the Widget Type Id. " +
             "Specify this field to update the Widget Type. " +
             "Referencing non-existing Widget Type Id will cause error. " +
-            "Omit this field to create new Widget Type." )
+            "Omit this field to create new Widget Type.")
     @Override
     public WidgetTypeId getId() {
         return super.getId();
@@ -97,4 +107,5 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, T
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
+
 }

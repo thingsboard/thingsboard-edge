@@ -30,6 +30,12 @@
  */
 package org.thingsboard.server.common.data.notification;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
 public enum NotificationType {
 
     GENERAL,
@@ -47,5 +53,11 @@ public enum NotificationType {
     RATE_LIMITS,
     EDGE_CONNECTION,
     EDGE_COMMUNICATION_FAILURE,
-    TASK_PROCESSING_FAILURE
+    TASK_PROCESSING_FAILURE,
+    USER_ACTIVATED(true),
+    USER_REGISTERED(true);
+
+    @Getter
+    private boolean system;
+
 }

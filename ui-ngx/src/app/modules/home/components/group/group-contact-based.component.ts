@@ -34,12 +34,12 @@ import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ContactBased } from '@shared/models/contact-based.model';
 import { AfterViewInit, ChangeDetectorRef, Directive } from '@angular/core';
-import { POSTAL_CODE_PATTERNS } from '@home/models/contact.models';
 import { HasId } from '@shared/models/base-data';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { CountryData } from '@shared/models/country.models';
 
 @Directive()
 export abstract class GroupContactBasedComponent<T extends ContactBased<HasId>> extends GroupEntityComponent<T> implements AfterViewInit {
@@ -49,6 +49,7 @@ export abstract class GroupContactBasedComponent<T extends ContactBased<HasId>> 
                         protected entityValue: T,
                         protected entitiesTableConfigValue: EntityTableConfig<T> | GroupEntityTableConfig<T>,
                         protected cd: ChangeDetectorRef,
+                        protected countryData: CountryData,
                         protected userPermissionsService: UserPermissionsService) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
@@ -93,9 +94,11 @@ export abstract class GroupContactBasedComponent<T extends ContactBased<HasId>> 
 
   zipValidators(country: string): ValidatorFn[] {
     const zipValidators = [];
-    if (country && POSTAL_CODE_PATTERNS[country]) {
-      const postalCodePattern = POSTAL_CODE_PATTERNS[country];
-      zipValidators.push(Validators.pattern(postalCodePattern));
+    if (country) {
+      const postCodePattern = this.countryData.allCountries.find(item => item.name === country)?.postCodePattern;
+      if (postCodePattern) {
+        zipValidators.push(Validators.pattern(postCodePattern));
+      }
     }
     return zipValidators;
   }

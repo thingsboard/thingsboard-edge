@@ -67,6 +67,10 @@ import { NotificationModule } from '@home/pages/notification/notification.module
 import { AccountModule } from '@home/pages/account/account.module';
 import { IntegrationsCenterModule } from '@home/pages/integration/integrations-center.module';
 import { CustomTranslationModule } from '@home/pages/custom-translation/custom-translation.module';
+import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module';
+import { GatewaysModule } from '@home/pages/gateways/gateways.module';
+import { MobileModule } from '@home/pages/mobile/mobile.module';
+import { CustomMenuModule } from '@home/pages/custom-menu/custom-menu.module';
 
 @NgModule({
   exports: [
@@ -81,6 +85,7 @@ import { CustomTranslationModule } from '@home/pages/custom-translation/custom-t
     ProfilesModule,
     EntitiesModule,
     FeaturesModule,
+    MobileModule,
     NotificationModule,
     DeviceModule,
     AssetModule,
@@ -93,6 +98,8 @@ import { CustomTranslationModule } from '@home/pages/custom-translation/custom-t
     DashboardModule,
     AuditLogModule,
     ApiUsageModule,
+    GatewaysModule,
+    OtaUpdateModule,
     UserModule,
     AccountModule,
     RoleModule,
@@ -106,7 +113,9 @@ import { CustomTranslationModule } from '@home/pages/custom-translation/custom-t
     SolutionTemplatesModule,
     VcModule,
     AccountModule,
-    CustomTranslationModule
+    ScadaSymbolModule,
+    CustomTranslationModule,
+    CustomMenuModule
   ]
 })
 export class HomePagesModule { }

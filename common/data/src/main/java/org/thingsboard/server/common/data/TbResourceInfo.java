@@ -32,11 +32,11 @@ package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TbResourceId;
@@ -64,6 +64,8 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
     private String title;
     @Schema(description = "Resource type.", example = "LWM2M_MODEL", accessMode = Schema.AccessMode.READ_ONLY)
     private ResourceType resourceType;
+    @Schema(description = "Resource sub type.", example = "IOT_SVG", accessMode = Schema.AccessMode.READ_ONLY)
+    private ResourceSubType resourceSubType;
     @NoXss
     @Length(fieldName = "resourceKey")
     @Schema(description = "Resource key.", example = "19_1.0", accessMode = Schema.AccessMode.READ_ONLY)
@@ -97,6 +99,7 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
         this.customerId = resourceInfo.customerId;
         this.title = resourceInfo.title;
         this.resourceType = resourceInfo.resourceType;
+        this.resourceSubType = resourceInfo.resourceSubType;
         this.resourceKey = resourceInfo.resourceKey;
         this.searchText = resourceInfo.searchText;
         this.isPublic = resourceInfo.isPublic;
@@ -130,11 +133,12 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getLink() {
+        String scope = (tenantId != null && tenantId.isSysTenantId()) ? "system" : "tenant"; // tenantId is null in case of export to git
         if (resourceType == ResourceType.IMAGE) {
-            String type = (tenantId != null && tenantId.isSysTenantId()) ? "system" : "tenant"; // tenantId is null in case of export to git
-            return "/api/images/" + type + "/" + resourceKey;
+            return "/api/images/" + scope + "/" + resourceKey;
+        } else {
+            return "/api/resource/" + resourceType.name().toLowerCase() + "/" + scope + "/" + resourceKey;
         }
-        return null;
     }
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -156,11 +160,12 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
         return EntityType.TB_RESOURCE;
     }
 
-    public <T> T getDescriptor(Class<T> type) throws JsonProcessingException {
+    @SneakyThrows
+    public <T> T getDescriptor(Class<T> type) {
         return descriptor != null ? mapper.treeToValue(descriptor, type) : null;
     }
 
-    public <T> void updateDescriptor(Class<T> type, UnaryOperator<T> updater) throws JsonProcessingException {
+    public <T> void updateDescriptor(Class<T> type, UnaryOperator<T> updater) {
         T descriptor = getDescriptor(type);
         descriptor = updater.apply(descriptor);
         setDescriptorValue(descriptor);

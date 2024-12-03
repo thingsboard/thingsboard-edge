@@ -47,6 +47,7 @@ import { isDefined } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import { IntegrationService } from '@core/http/integration.service';
 import { PageLink } from '@shared/models/page/page-link';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 @Component({
   selector: 'tb-integration',
@@ -58,6 +59,8 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
   converterType = ConverterType;
 
   integrationScope: 'tenant' | 'edges' | 'edge';
+
+  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
 
   private integrationType: IntegrationType;
 
@@ -92,7 +95,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
         type: [{value: this.integrationType, disabled: true}, [Validators.required]],
         enabled: [isDefined(entity?.enabled) ? entity.enabled : true],
-        debugMode: [isDefined(entity?.debugMode) ? entity.debugMode : true],
+        debugSettings: [entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true }],
         allowCreateDevicesOrAssets: [entity && isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true],
         defaultConverterId: [entity ? entity.defaultConverterId : null, [Validators.required]],
         downlinkConverterId: [entity ? entity.downlinkConverterId : null, []],
@@ -161,7 +164,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       name: entity.name,
       type: entity.type,
       enabled: isDefined(entity.enabled) ? entity.enabled : true,
-      debugMode: isDefined(entity.debugMode) ? entity.debugMode : true,
+      debugSettings: entity?.debugSettings ?? { allEnabled: true, failuresEnabled: true },
       allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true,
       defaultConverterId: entity.defaultConverterId,
       downlinkConverterId: entity.downlinkConverterId,

@@ -162,7 +162,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         testBroadcastEntityStateChangeEventTimeManyTimeTenant(savedTenant, ComponentLifecycleEvent.CREATED, 1);
 
         savedTenant.setTitle("My new tenant");
-        saveTenant(savedTenant);
+        savedTenant = saveTenant(savedTenant);
         Tenant foundTenant = doGet("/api/tenant/" + savedTenant.getId().getId().toString(), Tenant.class);
         Assert.assertEquals(foundTenant.getTitle(), savedTenant.getTitle());
 
@@ -468,7 +468,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         tenantProfile = doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
 
         tenant.setTenantProfileId(tenantProfile.getId());
-        saveTenant(tenant);
+        tenant = saveTenant(tenant);
 
         login(username, password);
 
@@ -498,7 +498,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         tenantProfile2 = doPost("/api/tenantProfile", tenantProfile2, TenantProfile.class);
 
         tenant.setTenantProfileId(tenantProfile2.getId());
-        saveTenant(tenant);
+        tenant = saveTenant(tenant);
 
         login(username, password);
 
@@ -540,7 +540,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         loginSysAdmin();
 
         tenant.setTenantProfileId(null);
-        saveTenant(tenant);
+        tenant = saveTenant(tenant);
 
         login(username, password);
         for (Queue queue : foundTenantQueues) {
@@ -614,6 +614,14 @@ public class TenantControllerTest extends AbstractControllerTest {
             assertThat(usedTpi.getTopic()).isEqualTo(DataConstants.HP_QUEUE_TOPIC);
             assertThat(usedTpi.getTenantId()).get().isEqualTo(TenantId.SYS_TENANT_ID);
         });
+        assertThat(partitionService.resolve(ServiceType.TB_RULE_ENGINE, null, tenantId, tenantId)).satisfies(tpi -> {
+            assertThat(tpi.getTopic()).isEqualTo(MAIN_QUEUE_TOPIC);
+            assertThat(tpi.getTenantId()).get().isEqualTo(tenantId);
+        });
+        assertThat(partitionService.resolve(ServiceType.TB_RULE_ENGINE, "", tenantId, tenantId)).satisfies(tpi -> {
+            assertThat(tpi.getTopic()).isEqualTo(MAIN_QUEUE_TOPIC);
+            assertThat(tpi.getTenantId()).get().isEqualTo(tenantId);
+        });
 
         loginSysAdmin();
         tenantProfile.setIsolatedTbRuleEngine(true);
@@ -654,7 +662,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         savedDifferentTenant.setTenantProfileId(tenantProfile.getId());
         savedDifferentTenant = saveTenant(savedDifferentTenant);
         TenantId tenantId = differentTenantId;
-        await().atMost(30, TimeUnit.SECONDS)
+        await().atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, MAIN_QUEUE_NAME, tenantId, tenantId);
                     return !tpi.getTenantId().get().isSysTenantId();
@@ -668,7 +676,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         tenantProfile.setIsolatedTbRuleEngine(false);
         tenantProfile.getProfileData().setQueueConfiguration(Collections.emptyList());
         tenantProfile = doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
-        await().atMost(30, TimeUnit.SECONDS)
+        await().atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> partitionService.resolve(ServiceType.TB_RULE_ENGINE, MAIN_QUEUE_NAME, tenantId, tenantId)
                         .getTenantId().get().isSysTenantId());
 
@@ -680,7 +688,7 @@ public class TenantControllerTest extends AbstractControllerTest {
             submittedMsgs.add(tbMsg.getId());
             Thread.sleep(timeLeft / msgs);
         }
-        await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(queueAdmin, times(1)).deleteTopic(eq(isolatedTopic));
         });
 
@@ -709,13 +717,13 @@ public class TenantControllerTest extends AbstractControllerTest {
         savedDifferentTenant.setTenantProfileId(tenantProfile.getId());
         savedDifferentTenant = saveTenant(savedDifferentTenant);
         TenantId tenantId = differentTenantId;
-        await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
             assertThat(partitionService.getMyPartitions(new QueueKey(ServiceType.TB_RULE_ENGINE, tenantId))).isNotNull();
         });
         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tenantId, tenantId);
         assertThat(tpi.getTenantId()).hasValue(tenantId);
         TbMsg tbMsg = publishTbMsg(tenantId, tpi);
-        await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(actorContext).tell(argThat(msg -> {
                 return msg instanceof QueueToRuleEngineMsg && ((QueueToRuleEngineMsg) msg).getMsg().getId().equals(tbMsg.getId());
             }));
@@ -723,7 +731,7 @@ public class TenantControllerTest extends AbstractControllerTest {
 
         deleteDifferentTenant();
 
-        await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
             assertThat(partitionService.getMyPartitions(new QueueKey(ServiceType.TB_RULE_ENGINE, tenantId))).isNull();
             assertThatThrownBy(() -> partitionService.resolve(ServiceType.TB_RULE_ENGINE, tenantId, tenantId))
                     .isInstanceOf(TenantNotFoundException.class);
@@ -743,7 +751,7 @@ public class TenantControllerTest extends AbstractControllerTest {
     }
 
     private void verifyUsedQueueAndMessage(String queue, TenantId tenantId, EntityId entityId, String msgType, Runnable action, Consumer<TopicPartitionInfo> tpiAssert) {
-        await().atMost(30, TimeUnit.SECONDS)
+        await().atMost(TIMEOUT, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, queue, tenantId, entityId);
                     tpiAssert.accept(tpi);
@@ -848,4 +856,5 @@ public class TenantControllerTest extends AbstractControllerTest {
         testBroadcastEntityStateChangeEventNever(createEntityId_NULL_UUID(new Tenant()));
         Mockito.reset(tbClusterService);
     }
+
 }

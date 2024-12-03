@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -53,6 +54,7 @@ import org.thingsboard.server.service.security.model.ChangePasswordRequest;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,10 +64,13 @@ public class UserEdgeTest extends AbstractEdgeTest {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Autowired
+    protected RoleService roleService;
+
     @Test
     public void testCreateUpdateDeleteTenantUser() throws Exception {
-        // create user and add to tenant admin group
-        edgeImitator.expectMessageAmount(2);
+        // create user
+        edgeImitator.expectMessageAmount(3);
         User newTenantAdmin = new User();
         newTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         newTenantAdmin.setTenantId(tenantId);
@@ -75,6 +80,8 @@ public class UserEdgeTest extends AbstractEdgeTest {
         EntityGroupInfo tenantAdminsGroup = findTenantAdminsGroup();
         User savedTenantAdmin = createUser(newTenantAdmin, "tenant", tenantAdminsGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages()); // user update msg with entityGroupId and user credentials update msg
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(UserUpdateMsg.class).size());
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(UserCredentialsUpdateMsg.class).size());
         Optional<UserUpdateMsg> latestMessageOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
         Assert.assertTrue(latestMessageOpt.isPresent());
         UserUpdateMsg userUpdateMsg = latestMessageOpt.get();
@@ -102,13 +109,13 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(edgeUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
 
         // update user
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         savedTenantAdmin.setLastName("Borisov");
         savedTenantAdmin = doPost("/api/user", savedTenantAdmin, User.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof UserUpdateMsg);
-        userUpdateMsg = (UserUpdateMsg) latestMessage;
+        Optional<UserUpdateMsg> userUpdateMsgOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
+        Assert.assertTrue(userUpdateMsgOpt.isPresent());
+        userUpdateMsg = userUpdateMsgOpt.get();
         userMsg = JacksonUtil.fromString(userUpdateMsg.getEntity(), User.class, true);
         Assert.assertNotNull(userMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
@@ -134,7 +141,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         changePasswordRequest.setNewPassword("newTenant");
         doPost("/api/auth/changePassword", changePasswordRequest);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        latestMessage = edgeImitator.getLatestMessage();
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
         UserCredentials userCredentialsMsg = JacksonUtil.fromString(userCredentialsUpdateMsg.getEntity(), UserCredentials.class, true);
@@ -164,11 +171,14 @@ public class UserEdgeTest extends AbstractEdgeTest {
         // create sub customer
         saveCustomer("Edge Sub Customer", savedCustomer.getId());
 
+        // must sleep to make sure that role creation events are processed by edge consumer before edge owner changed
+        TimeUnit.SECONDS.sleep(1);
+
         // change owner from tenant to parent customer
         changeEdgeOwnerToCustomer(savedCustomer);
 
-        // create user and add to customer admin group
-        edgeImitator.expectMessageAmount(2);
+        // create user, activate user and add to customer admin group
+        edgeImitator.expectMessageAmount(3);
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);
         customerUser.setTenantId(tenantId);
@@ -179,6 +189,8 @@ public class UserEdgeTest extends AbstractEdgeTest {
         EntityGroupInfo customerAdminsGroup = findCustomerAdminsGroup(savedCustomer);
         User savedCustomerUser = createUser(customerUser, "customer", customerAdminsGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());  // user update msg with entityGroupId and user credentials update msg
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(UserUpdateMsg.class).size());
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(UserCredentialsUpdateMsg.class).size());
         Optional<UserUpdateMsg> latestMessageOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
         Assert.assertTrue(latestMessageOpt.isPresent());
         UserUpdateMsg userUpdateMsg = latestMessageOpt.get();
@@ -207,13 +219,13 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(customUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
 
         // update user
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         savedCustomerUser.setLastName("Addams");
         savedCustomerUser = doPost("/api/user", savedCustomerUser, User.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof UserUpdateMsg);
-        userUpdateMsg = (UserUpdateMsg) latestMessage;
+        Optional<UserUpdateMsg> userUpdateMsgOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
+        Assert.assertTrue(userUpdateMsgOpt.isPresent());
+        userUpdateMsg = userUpdateMsgOpt.get();
         userMsg = JacksonUtil.fromString(userUpdateMsg.getEntity(), User.class, true);
         Assert.assertNotNull(userMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
@@ -241,7 +253,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         changePasswordRequest.setNewPassword("newCustomer");
         doPost("/api/auth/changePassword", changePasswordRequest);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        latestMessage = edgeImitator.getLatestMessage();
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
         UserCredentials userCredentialsMsg = JacksonUtil.fromString(userCredentialsUpdateMsg.getEntity(), UserCredentials.class, true);
@@ -323,4 +335,5 @@ public class UserEdgeTest extends AbstractEdgeTest {
 
         testAutoGeneratedCodeByProtobuf(userCredentialsUpdateMsg);
     }
+
 }

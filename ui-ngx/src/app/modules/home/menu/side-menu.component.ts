@@ -31,9 +31,7 @@
 
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { MenuService } from '@core/services/menu.service';
-import { Observable } from 'rxjs';
 import { MenuSection } from '@core/services/menu.models';
-import { map, share } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-side-menu',
@@ -43,13 +41,9 @@ import { map, share } from 'rxjs/operators';
 })
 export class SideMenuComponent implements OnInit {
 
-  menuSections$: Observable<Array<MenuSection>>;
+  menuSections$ = this.menuService.menuSections();
 
   constructor(private menuService: MenuService) {
-    this.menuSections$ = this.menuService.menuSections().pipe(
-      map((sections) => this.filterSections(sections)),
-      share()
-    );
   }
 
   trackByMenuSection(index: number, section: MenuSection){
@@ -58,15 +52,4 @@ export class SideMenuComponent implements OnInit {
   ngOnInit() {
   }
 
-  private filterSections(sections: Array<MenuSection>): Array<MenuSection> {
-    const enabledSections = sections.filter(section => !section.disabled);
-    const filteredSections: MenuSection[] = [];
-    for (const enabledSection of enabledSections) {
-      const sectionPages = enabledSection.pages || [];
-      if (!sectionPages.length || sectionPages.filter((page) => !page.disabled).length > 0) {
-        filteredSections.push(enabledSection);
-      }
-    }
-    return filteredSections;
-  }
 }

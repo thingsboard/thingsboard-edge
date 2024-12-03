@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section fxLayout="row" class="layout-wrap tb-footer-fab-buttons" [ngClass]="{'relative-buttons': relative}">
+<section class="tb-footer-fab-buttons flex flex-row flex-wrap" [class.relative-buttons]="relative">
   <div class="fab-container">
     <button [disabled]="isLoading$ | async"
             mat-fab class="fab-toggler tb-btn-footer"

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,7 +59,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.translation.TbTranslationService;
+import org.thingsboard.server.service.translation.TbCustomTranslationService;
 
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
@@ -79,7 +80,7 @@ public class CustomTranslationController extends BaseController {
             MARKDOWN_CODE_BLOCK_END;
 
     @Autowired
-    private TbTranslationService tbTranslationService;
+    private TbCustomTranslationService tbCustomTranslationService;
 
     @Autowired
     private CustomTranslationService customTranslationService;
@@ -143,7 +144,7 @@ public class CustomTranslationController extends BaseController {
                 .localeCode(localeCode)
                 .value(customTranslationValue)
                 .build();
-        tbTranslationService.saveCustomTranslation(customTranslation);
+        tbCustomTranslationService.saveCustomTranslation(customTranslation);
     }
 
     @ApiOperation(value = "Update Custom Translation for specified translation keys only (patchCustomTranslation)",
@@ -159,8 +160,9 @@ public class CustomTranslationController extends BaseController {
                                                     @RequestBody JsonNode newCustomTranslation) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
+        DataValidator.validateCustomTranslation(newCustomTranslation);
         SecurityUser currentUser = getCurrentUser();
-        tbTranslationService.patchCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
+        tbCustomTranslationService.patchCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, newCustomTranslation);
     }
 
@@ -178,7 +180,7 @@ public class CustomTranslationController extends BaseController {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();
-        tbTranslationService.deleteCustomTranslationKey(currentUser.getTenantId(), currentUser.getCustomerId(),
+        tbCustomTranslationService.deleteCustomTranslationKey(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, keyPath);
     }
 
@@ -187,7 +189,7 @@ public class CustomTranslationController extends BaseController {
                     "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
                     ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @PostMapping(value = "/translation/custom/{localeCode}/upload")
+    @PostMapping(value = "/translation/custom/{localeCode}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
     public void uploadCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                      @PathVariable("localeCode") String localeCode,
@@ -202,7 +204,7 @@ public class CustomTranslationController extends BaseController {
         customTranslation.setLocaleCode(localeCode);
         customTranslation.setValueBytes(file.getBytes());
 
-        tbTranslationService.saveCustomTranslation(customTranslation);
+        tbCustomTranslationService.saveCustomTranslation(customTranslation);
     }
 
     @ApiOperation(value = "Delete Custom Translation for specified locale (deleteCustomTranslation)",
@@ -216,7 +218,7 @@ public class CustomTranslationController extends BaseController {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();
-        tbTranslationService.deleteCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
+        tbCustomTranslationService.deleteCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode);
     }
 

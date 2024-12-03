@@ -30,7 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectEntityFormGroup" class="mat-block" [appearance]="appearance">
+<mat-form-field [formGroup]="selectEntityFormGroup" class="mat-block" [appearance]="appearance" [subscriptSizing]="subscriptSizing"
+                [class]="additionalClasses">
   <mat-label>{{ label | translate }}</mat-label>
   <input matInput type="text"
          #entityInput
@@ -38,7 +39,7 @@
          (focusin)="onFocus()"
          [required]="required"
          [matAutocomplete]="entityAutocomplete"
-         [fxShow]="!disabled || !selectEntityFormGroup.get('entity').value">
+         [class.!hidden]="disabled && selectEntityFormGroup.get('entity').value">
   <a *ngIf="selectEntityFormGroup.get('entity').value && disabled" aria-label="Open device profile" [routerLink]=entityURL>
     {{ displayEntityFn(selectEntityFormGroup.get('entity').value) }}
   </a>
@@ -48,6 +49,12 @@
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
+  <button mat-button color="primary" matSuffix
+          type="button"
+          *ngIf="allowCreateNew && !selectEntityFormGroup.get('entity').value && !disabled"
+          (click)="createNewEntity($event)">
+    <span style="white-space: nowrap">{{ 'entity.create-new' | translate }}</span>
+  </button>
   <mat-autocomplete class="tb-autocomplete"
                     #entityAutocomplete="matAutocomplete"
                     [displayWith]="displayEntityFn">
@@ -55,9 +62,16 @@
       <span [innerHTML]="entity.name | highlight:searchText:true:'ig'"></span>
     </mat-option>
     <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null">
-      <span>
-          {{ translate.get(noEntitiesMatchingText, {entity: searchText}) | async }}
-      </span>
+      <div (click)="$event.stopPropagation()">
+        <div *ngIf="!textIsNotEmpty(searchText); else searchNotEmpty">
+          <span>{{ notFoundEntities | translate }}</span>
+        </div>
+        <ng-template #searchNotEmpty>
+          <span>
+              {{ translate.get(noEntitiesMatchingText, {entity: searchText}) | async }}
+          </span>
+        </ng-template>
+      </div>
     </mat-option>
   </mat-autocomplete>
   <mat-error *ngIf="selectEntityFormGroup.get('entity').hasError('required')">

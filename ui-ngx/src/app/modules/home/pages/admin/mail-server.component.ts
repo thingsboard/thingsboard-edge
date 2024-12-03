@@ -246,6 +246,7 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
       this.mailSettings.get('enableTls').disable({emitEvent: false});
       this.mailSettings.get('enableProxy').disable({emitEvent: false});
       this.mailSettings.get('changePassword').disable({emitEvent: false});
+      this.mailSettings.get('enableOauth2').disable({emitEvent: false});
       if (this.isTenantAdmin()) {
         this.mailSettings.get('useSystemMailSettings').disable({emitEvent: false});
       }

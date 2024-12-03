@@ -35,6 +35,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -44,11 +47,14 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+import java.util.Locale;
+import java.util.Optional;
+
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient {
+public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient, HasVersion {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -64,6 +70,11 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
     private String lastName;
     @NoXss
     private String phone;
+    @Getter @Setter
+    private CustomMenuId customMenuId;
+
+    @Getter @Setter
+    private Long version;
 
     public User() {
         super();
@@ -82,8 +93,9 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.phone = user.getPhone();
+        this.version = user.getVersion();
+        this.customMenuId = user.getCustomMenuId();
     }
-
 
     @Schema(description = "JSON object with the User Id. " +
             "Specify this field to update the device. " +
@@ -251,6 +263,11 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
     @JsonIgnore
     public boolean isCustomerUser() {
         return !isSystemAdmin() && !isTenantAdmin();
+    }
+
+    @JsonIgnore
+    public String getLocale() {
+        return getAdditionalInfoField("lang", JsonNode::asText, Locale.US.toString());
     }
 
     @Override

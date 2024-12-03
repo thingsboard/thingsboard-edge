@@ -29,23 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-
-///
-/// Copyright © 2016-2023 The Thingsboard Authors
-///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
-///
-///     http://www.apache.org/licenses/LICENSE-2.0
-///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
-///
-
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -72,7 +55,6 @@ import {
 } from '@shared/models/widget-settings.models';
 import { WidgetComponent } from '@home/components/widget/widget.component';
 import { formatValue, isDefinedAndNotNull, isNumeric, isUndefinedOrNull } from '@core/utils';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { Element, G, Svg, SVG } from '@svgdotjs/svg.js';
 import {
   signalBarActive,
@@ -140,6 +122,7 @@ export class SignalStrengthWidgetComponent implements OnInit, OnDestroy, AfterVi
 
   backgroundStyle$: Observable<ComponentStyle>;
   overlayStyle: ComponentStyle = {};
+  padding: string;
 
   shapeResize$: ResizeObserver;
 
@@ -160,6 +143,7 @@ export class SignalStrengthWidgetComponent implements OnInit, OnDestroy, AfterVi
   private rssi = -100;
   private noSignal = false;
   private noData = false;
+  private noSignalRssiValue = -100;
 
   constructor(public widgetComponent: WidgetComponent,
               private imagePipe: ImagePipe,
@@ -180,6 +164,9 @@ export class SignalStrengthWidgetComponent implements OnInit, OnDestroy, AfterVi
       this.dateStyle = textStyle(this.settings.dateFont);
       this.dateStyle.color = this.settings.dateColor;
     }
+
+    this.noSignalRssiValue = this.settings.noSignalRssiValue ?? -100;
+    this.rssi = this.noSignalRssiValue;
 
     this.activeBarsColor = ColorProcessor.fromSettings(this.settings.activeBarsColor);
     const inactiveBarsColor = tinycolor(this.settings.inactiveBarsColor);
@@ -223,6 +210,7 @@ export class SignalStrengthWidgetComponent implements OnInit, OnDestroy, AfterVi
 
     this.backgroundStyle$ = backgroundStyle(this.settings.background, this.imagePipe, this.sanitizer);
     this.overlayStyle = overlayStyle(this.settings.background.overlay);
+    this.padding = this.settings.background.overlay.enabled ? undefined : this.settings.padding;
 
     this.hasCardClickAction = this.ctx.actionsApi.getActionDescriptors('cardClick').length > 0;
   }
@@ -270,13 +258,13 @@ export class SignalStrengthWidgetComponent implements OnInit, OnDestroy, AfterVi
         this.tooltipValueText = formatValue(value, this.decimals, this.units, false);
       }
     } else {
-      this.rssi = -100;
+      this.rssi = this.noSignalRssiValue;
       if (this.showTooltipValue) {
         this.tooltipValueText = 'N/A';
       }
     }
 
-    this.noSignal = this.rssi <= this.settings.noSignalRssiValue;
+    this.noSignal = this.rssi <= this.noSignalRssiValue;
 
     this.activeBarsColor.update(this.rssi);
 
@@ -356,7 +344,7 @@ export class SignalStrengthWidgetComponent implements OnInit, OnDestroy, AfterVi
       const activeBarsOpacity = activeBarsColor.getAlpha();
       for (let index = 0; index < this.bars.length; index++) {
         const bar = this.bars[index];
-        const active = signalBarActive(this.rssi, index);
+        const active = signalBarActive(this.rssi, index, this.noSignalRssiValue);
         const newFill = active ? activeBarsColorHex : this.inactiveBarsColorHex;
         const newOpacity = active ? activeBarsOpacity : this.inactiveBarsOpacity;
         if (newFill !== bar.fill() || newOpacity !== bar.opacity()) {

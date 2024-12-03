@@ -99,6 +99,11 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         if (!allowLocalNetworkHosts && isLocalNetworkHost(mqttClientConfiguration.getHost())) {
             throw new IllegalArgumentException("Usage of local network host for MQTT broker connection is not allowed!");
         }
+        String clientId = mqttClientConfiguration.getClientId();
+        if (StringUtils.isNotBlank(clientId) && clientId.length() > 23) {
+            throw new IllegalArgumentException("Client ID is too long '" + clientId + "'. " +
+                    "The length of Client ID cannot be longer than 23, but current length is " + clientId.length() + ".");
+        }
     }
 
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
@@ -187,13 +192,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     private void persistDebug(T msg, String status, Throwable exception) {
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.toJson()), status, exception);
     }
 
     @Override
@@ -206,18 +205,14 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
-        String status = "OK";
-        Exception exception = null;
         try {
             if (doProcessDownLinkMsg(context, msg)) {
                 integrationStatistics.incMessagesProcessed();
             }
         } catch (Exception e) {
             log.warn("Failed to process downLink message", e);
-            exception = e;
-            status = "ERROR";
+            reportDownlinkError(context, msg, "ERROR", e);
         }
-        reportDownlinkError(context, msg, status, exception);
     }
 
     protected abstract boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception;

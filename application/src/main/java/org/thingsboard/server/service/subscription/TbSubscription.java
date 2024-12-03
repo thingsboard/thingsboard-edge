@@ -30,18 +30,18 @@
  */
 package org.thingsboard.server.service.subscription;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 @Data
-@AllArgsConstructor
 public abstract class TbSubscription<T> {
+
+    /** Cache the hash code */
+    private transient int hash; // Default to 0. The hash code calculated for this object likely never be zero
 
     private final String serviceId;
     private final String sessionId;
@@ -65,6 +65,10 @@ public abstract class TbSubscription<T> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(sessionId, subscriptionId, tenantId, entityId, type);
+        if (hash == 0) {
+            hash = Objects.hash(sessionId, subscriptionId, tenantId, entityId, type);
+        }
+        return hash;
     }
+
 }

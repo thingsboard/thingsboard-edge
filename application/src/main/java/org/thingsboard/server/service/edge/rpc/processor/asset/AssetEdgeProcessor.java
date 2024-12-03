@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
@@ -70,24 +69,23 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
         try {
             edgeSynchronizationManager.getEdgeId().set(edge.getId());
 
-            switch (assetUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
+            return switch (assetUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                     saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edge);
-                    return Futures.immediateFuture(null);
-                case ENTITY_DELETED_RPC_MESSAGE:
+                    yield Futures.immediateFuture(null);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
                         EntityGroupId entityGroupId = new EntityGroupId(
                                 new UUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB()));
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
+                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
                     } else {
                         removeAssetFromEdgeAllAssetGroup(tenantId, edge, assetId);
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
+            };
         } catch (DataValidationException | ThingsboardException e) {
             if (e.getMessage().contains("limit reached")) {
                 log.warn("[{}] Number of allowed asset violated {}", tenantId, assetUpdateMsg, e);
@@ -116,7 +114,7 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
 
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, Edge edge, AssetId assetId) {
         try {
-            Asset asset = assetService.findAssetById(tenantId, assetId);
+            Asset asset = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
             String assetAsString = JacksonUtil.toString(asset);
             TbMsgMetaData msgMetaData = getEdgeActionTbMsgMetaData(edge, asset.getCustomerId());
             pushEntityEventToRuleEngine(tenantId, assetId, asset.getCustomerId(), TbMsgType.ENTITY_CREATED, assetAsString, msgMetaData);
@@ -126,12 +124,12 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
     }
 
     private void removeAssetFromEdgeAllAssetGroup(TenantId tenantId, Edge edge, AssetId assetId) {
-        Asset assetToDelete = assetService.findAssetById(tenantId, assetId);
+        Asset assetToDelete = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
         if (assetToDelete != null) {
             try {
-                EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), assetToDelete.getOwnerId().getEntityType(), EntityType.ASSET).get();
+                EntityGroup edgeAssetGroup = edgeCtx.getEntityGroupService().findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), assetToDelete.getOwnerId().getEntityType(), EntityType.ASSET).get();
                 if (edgeAssetGroup != null) {
-                    entityGroupService.removeEntityFromEntityGroup(tenantId, edgeAssetGroup.getId(), assetToDelete.getId());
+                    edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, edgeAssetGroup.getId(), assetToDelete.getId());
                 }
             } catch (Exception e) {
                 log.warn("[{}] Can't delete asset from edge asset 'All' group, asset id [{}]", tenantId, assetId, e);
@@ -142,10 +140,10 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
 
     private void addAssetToEdgeAllAssetGroup(TenantId tenantId, Edge edge, AssetId assetId) {
         try {
-            Asset asset = assetService.findAssetById(tenantId, assetId);
-            EntityGroup edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), asset.getOwnerId().getEntityType(), EntityType.ASSET).get();
+            Asset asset = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
+            EntityGroup edgeAssetGroup = edgeCtx.getEntityGroupService().findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), asset.getOwnerId().getEntityType(), EntityType.ASSET).get();
             if (edgeAssetGroup != null) {
-                entityGroupService.addEntityToEntityGroup(tenantId, edgeAssetGroup.getId(), assetId);
+                edgeCtx.getEntityGroupService().addEntityToEntityGroup(tenantId, edgeAssetGroup.getId(), assetId);
             }
         } catch (Exception e) {
             log.warn("Can't add asset to edge asset group, asset id [{}]", assetId, e);
@@ -154,40 +152,34 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
     }
 
     @Override
-    public DownlinkMsg convertAssetEventToDownlink(EdgeEvent edgeEvent, EdgeId edgeId, EdgeVersion edgeVersion) {
+    public DownlinkMsg convertAssetEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         AssetId assetId = new AssetId(edgeEvent.getEntityId());
-        DownlinkMsg downlinkMsg = null;
+        var msgConstructor = (AssetMsgConstructor) edgeCtx.getAssetMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
             case ADDED, ADDED_TO_ENTITY_GROUP, UPDATED, ASSIGNED_TO_EDGE -> {
-                Asset asset = assetService.findAssetById(edgeEvent.getTenantId(), assetId);
+                Asset asset = edgeCtx.getAssetService().findAssetById(edgeEvent.getTenantId(), assetId);
                 if (asset != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
-                            assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetUpdatedMsg(msgType, asset, entityGroupId);
+                    AssetUpdateMsg assetUpdateMsg = msgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAssetUpdateMsg(assetUpdateMsg);
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
-                        AssetProfile assetProfile = assetProfileService.findAssetProfileById(edgeEvent.getTenantId(), asset.getAssetProfileId());
-                        assetProfile = checkIfAssetProfileDefaultFieldsAssignedToEdge(edgeEvent.getTenantId(), edgeId, assetProfile, edgeVersion);
-                        builder.addAssetProfileUpdateMsg(((AssetMsgConstructor) assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
-                                .constructAssetProfileUpdatedMsg(msgType, assetProfile));
+                        AssetProfile assetProfile = edgeCtx.getAssetProfileService().findAssetProfileById(edgeEvent.getTenantId(), asset.getAssetProfileId());
+                        builder.addAssetProfileUpdateMsg(msgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile));
                     }
-                    downlinkMsg = builder.build();
+                    return builder.build();
                 }
             }
             case DELETED, REMOVED_FROM_ENTITY_GROUP, UNASSIGNED_FROM_EDGE, CHANGE_OWNER -> {
-                AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
-                        assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetDeleteMsg(assetId, entityGroupId);
-                downlinkMsg = DownlinkMsg.newBuilder()
+                return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAssetUpdateMsg(assetUpdateMsg)
+                        .addAssetUpdateMsg(msgConstructor.constructAssetDeleteMsg(assetId, entityGroupId))
                         .build();
             }
         }
-        return downlinkMsg;
+        return null;
     }
 
 }
-

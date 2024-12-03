@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.cache;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +38,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.thingsboard.server.common.data.CacheConstants;
 
-import jakarta.annotation.PostConstruct;
 import java.util.Map;
 
 @Configuration

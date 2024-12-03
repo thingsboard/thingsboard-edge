@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -87,7 +88,9 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     public Converter saveConverter(Converter converter) {
         log.trace("Executing saveConverter [{}]", converter);
         converterValidator.validate(converter, Converter::getTenantId);
+        TenantId tenantId = converter.getTenantId();
         try {
+            updateDebugSettings(tenantId, converter, System.currentTimeMillis());
             Converter savedConverter = converterDao.save(converter.getTenantId(), converter);
             if (converter.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);
@@ -161,7 +164,9 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     public void deleteConverter(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing deleteConverter [{}]", converterId);
         Converter converter = findConverterById(tenantId, converterId);
-        validateId(converterId, id -> INCORRECT_CONVERTER_ID + id);
+        if (converter == null) {
+            return;
+        }
         try {
             converterDao.removeById(tenantId, converterId.getId());
         } catch (Exception t) {
@@ -189,6 +194,12 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         log.trace("Executing deleteConvertersByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantConvertersRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public boolean hasConverterOfType(TenantId tenantId, ConverterType converterType) {
+        log.trace("Executing hasConverterOfType, tenantId [{}], type [{}]", tenantId, converterType);
+        return converterDao.hasConverterOfType(tenantId.getId(), converterType);
     }
 
     @Override

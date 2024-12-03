@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
+import org.thingsboard.server.common.data.query.OriginatorAlarmFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
@@ -344,11 +345,10 @@ public class BaseAlarmService extends AbstractCachedEntityService<TenantId, Page
         return alarmCounts;
     }
 
-    @Override
-    public PageData<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, PageLink pageLink) {
-        log.trace("[{}] Executing findAlarmIdsByAssigneeId [{}]", tenantId, userId);
+    public List<TbPair<UUID, Long>> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, long createdTimeOffset, AlarmId idOffset, int limit) {
+        log.trace("[{}] Executing findAlarmIdsByAssigneeId [{}][{}]", tenantId, userId, idOffset);
         validateId(userId, id -> "Incorrect userId " + id);
-        return alarmDao.findAlarmIdsByAssigneeId(tenantId, userId.getId(), pageLink);
+        return alarmDao.findAlarmIdsByAssigneeId(tenantId, userId, createdTimeOffset, idOffset, limit).getData();
     }
 
     @Override
@@ -400,6 +400,12 @@ public class BaseAlarmService extends AbstractCachedEntityService<TenantId, Page
                     alarmDao.findTenantAlarmTypes(tenantId.getId(), pageLink), false);
         }
         return alarmDao.findTenantAlarmTypes(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public List<UUID> findActiveOriginatorAlarms(TenantId tenantId, OriginatorAlarmFilter originatorAlarmFilter, int limit) {
+        log.trace("Executing findActiveOriginatorAlarms, tenantId [{}], originatorAlarmFilter [{}]", tenantId, originatorAlarmFilter);
+        return alarmDao.findActiveOriginatorAlarms(tenantId, originatorAlarmFilter, limit);
     }
 
     private Alarm merge(Alarm existing, Alarm alarm) {
@@ -527,4 +533,5 @@ public class BaseAlarmService extends AbstractCachedEntityService<TenantId, Page
             request.setEndTs(request.getStartTs());
         }
     }
+
 }

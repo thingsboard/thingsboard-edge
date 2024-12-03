@@ -35,14 +35,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,7 +55,7 @@ import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
@@ -124,6 +122,8 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHO
 import static org.thingsboard.server.controller.ControllerConstants.TEST_DOWNLINK_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.TEST_UPLINK_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_GATEWAY_INFO;
+import static org.thingsboard.server.controller.ControllerConstants.IS_GATEWAY_INFO_INCLUDED;
 
 @RestController
 @TbCoreComponent
@@ -289,6 +289,7 @@ public class ConverterController extends AutoCommitController {
         ObjectNode debugIn = JacksonUtil.newObjectNode();
         ObjectNode metadata = JacksonUtil.newObjectNode();
         metadata.put(INTEGRATION_NAME, integrationName);
+        metadata.put(INCLUDE_GATEWAY_INFO, IS_GATEWAY_INFO_INCLUDED);
         String inContent = converterDefaultMessages.get(targetIntegrationType);
 
         if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
@@ -297,7 +298,7 @@ public class ConverterController extends AutoCommitController {
 
         debugIn.put("inMetadata", JacksonUtil.toString(metadata));
         debugIn.put("inContent", inContent);
-        debugIn.put("inContentType", UplinkContentType.JSON.name());
+        debugIn.put("inContentType", ContentType.JSON.name());
 
         return debugIn.isEmpty() ? null : debugIn;
     }
@@ -387,7 +388,7 @@ public class ConverterController extends AutoCommitController {
 
         Map<String, String> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {
         });
-        UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
+        UplinkMetaData uplinkMetaData = new UplinkMetaData(ContentType.JSON, metadataMap);
 
         String output = "";
         String errorText = "";
@@ -499,7 +500,7 @@ public class ConverterController extends AutoCommitController {
     @RequestMapping(value = "/converters", params = {"converterIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Converter> getConvertersByIds(
-            @Parameter(description = "A list of converter ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of converter ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("converterIds") String[] strConverterIds) throws Exception {
         checkArrayParameter("converterIds", strConverterIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ)) {

@@ -37,10 +37,11 @@ import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.mvel2.CompileException;
 import org.mvel2.ExecutionContext;
 import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
@@ -61,8 +62,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
@@ -267,4 +266,8 @@ public class DefaultTbelInvokeService extends AbstractScriptInvokeService implem
         return hasher.hash().toString();
     }
 
+    @Override
+    protected long getMaxEvalRequestsTimeout() {
+        return maxInvokeRequestsTimeout * 2;
+    }
 }

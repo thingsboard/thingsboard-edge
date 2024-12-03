@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -45,12 +45,12 @@ import { ItemBufferService } from '@core/services/item-buffer.service';
 import { EdgeService } from '@core/http/edge.service';
 import { MatDialog } from '@angular/material/dialog';
 import { UtilsService } from '@core/services/utils.service';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { RuleChainsTableConfig } from '@home/pages/rulechain/rulechains-table-config';
-import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
-export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<RuleChain>> {
+export class RuleChainsTableConfigResolver  {
 
   constructor(private ruleChainService: RuleChainService,
               private dialogService: DialogService,
@@ -58,10 +58,10 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
               private importExport: ImportExportService,
               private itembuffer: ItemBufferService,
               private edgeService: EdgeService,
-              private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,
+              private customTranslate: CustomTranslatePipe,
               private utils: UtilsService,
               private userPermissionsService: UserPermissionsService) {
   }
@@ -81,6 +81,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       this.translate,
       this.datePipe,
       this.router,
+      this.customTranslate,
       this.utils,
       this.userPermissionsService,
       params

@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResourceInfoFilter;
@@ -79,10 +80,13 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
         if (CollectionsUtil.isEmpty(resourceTypes)) {
             resourceTypes = EnumSet.allOf(ResourceType.class);
         }
+        Set<ResourceSubType> resourceSubTypes = filter.getResourceSubTypes();
         return DaoUtil.toPageData(resourceInfoRepository
                 .findAllTenantResourcesByTenantId(
                         filter.getTenantId().getId(), TenantId.NULL_UUID,
                         resourceTypes.stream().map(Enum::name).collect(Collectors.toList()),
+                        CollectionsUtil.isEmpty(resourceSubTypes) ? null :
+                                resourceSubTypes.stream().map(Enum::name).collect(Collectors.toList()),
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
@@ -94,12 +98,16 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
             resourceTypes = EnumSet.allOf(ResourceType.class);
         }
         var resourceTypesList = resourceTypes.stream().map(Enum::name).collect(Collectors.toList());
+        Set<ResourceSubType> resourceSubTypes = filter.getResourceSubTypes();
+        var resourceSubTypesList = CollectionsUtil.isEmpty(resourceSubTypes) ? null :
+                resourceSubTypes.stream().map(Enum::name).collect(Collectors.toList());
         if (filter.getCustomerId() != null) {
             return DaoUtil.toPageData(resourceInfoRepository
                     .findTenantResourcesByCustomerId(
                             filter.getTenantId().getId(),
                             filter.getCustomerId().getId(),
                             resourceTypesList,
+                            resourceSubTypesList,
                             pageLink.getTextSearch(),
                             DaoUtil.toPageable(pageLink)));
         } else {
@@ -107,6 +115,7 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
                     .findTenantResourcesByTenantId(
                             filter.getTenantId().getId(),
                             resourceTypesList,
+                            resourceSubTypesList,
                             pageLink.getTextSearch(),
                             DaoUtil.toPageable(pageLink)));
         }
@@ -138,8 +147,8 @@ public class JpaTbResourceInfoDao extends JpaAbstractDao<TbResourceInfoEntity, T
     }
 
     @Override
-    public TbResourceInfo findSystemOrTenantImageByEtag(TenantId tenantId, ResourceType resourceType, String etag) {
-        return DaoUtil.getData(resourceInfoRepository.findSystemOrTenantImageByEtag(tenantId.getId(), resourceType.name(), etag));
+    public TbResourceInfo findSystemOrTenantResourceByEtag(TenantId tenantId, ResourceType resourceType, String etag) {
+        return DaoUtil.getData(resourceInfoRepository.findSystemOrTenantResourceByEtag(tenantId.getId(), resourceType.name(), etag));
     }
 
     @Override

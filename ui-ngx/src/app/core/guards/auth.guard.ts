@@ -30,7 +30,7 @@
 ///
 
 import { Injectable, NgZone } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '../core.state';
@@ -54,7 +54,7 @@ import { ReportService } from '@core/http/report.service';
 @Injectable({
   providedIn: 'root'
 })
-export class AuthGuard implements CanActivate, CanActivateChild {
+export class AuthGuard  {
 
   constructor(private store: Store<AppState>,
               private router: Router,
@@ -181,15 +181,10 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               return of(false);
             } else if (data.redirectTo) {
               let redirect;
-              if (isObject(data.redirectTo) && !data.redirectTo.hasOwnProperty('condition')) {
+              if (isObject(data.redirectTo)) {
                 redirect = data.redirectTo[authority];
               } else {
                 redirect = data.redirectTo;
-              }
-              if (isObject(redirect) && redirect.hasOwnProperty('condition')) {
-                const userPermissionsService = this.userPermissionsService; // used in eval
-                // eslint-disable-next-line no-eval
-                redirect = eval(redirect.condition);
               }
               return this.menuService.getRedirectPath(path, redirect).pipe(
                 map((redirectPath) => {

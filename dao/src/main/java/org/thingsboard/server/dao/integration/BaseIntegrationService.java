@@ -52,7 +52,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.CachedVersionedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
@@ -72,7 +72,7 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service("IntegrationDaoService")
 @Slf4j
-public class BaseIntegrationService extends AbstractCachedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
+public class BaseIntegrationService extends CachedVersionedEntityService<IntegrationCacheKey, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_INTEGRATION_ID = "Incorrect integrationId ";
@@ -93,18 +93,24 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @TransactionalEventListener(classes = IntegrationCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(IntegrationCacheEvictEvent event) {
-        cache.evict(event.getIntegrationId());
+        if (event.getSavedIntegration() != null) {
+            cache.put(IntegrationCacheKey.forId(event.getSavedIntegration().getId()), event.getSavedIntegration());
+        } else {
+            cache.evict(IntegrationCacheKey.forId(event.getIntegrationId()));
+        }
     }
 
     @Override
     public Integration saveIntegration(Integration integration) {
         log.trace("Executing saveIntegration [{}]", integration);
         integrationValidator.validate(integration, Integration::getTenantId);
+        TenantId tenantId = integration.getTenantId();
         try {
-            var result = integrationDao.save(integration.getTenantId(), integration);
-            publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
+            updateDebugSettings(tenantId, integration, System.currentTimeMillis());
+            var result = integrationDao.save(tenantId, integration);
+            publishEvictEvent(new IntegrationCacheEvictEvent(result.getId(), result));
             if (integration.getId() == null) {
-                entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
+                entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
                     .entityId(result.getId()).created(integration.getId() == null).build());
@@ -120,7 +126,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
-        return cache.getAndPutInTransaction(integrationId, () -> integrationDao.findById(tenantId, integrationId.getId()), true);
+        return cache.get(IntegrationCacheKey.forId(integrationId), () -> integrationDao.findById(tenantId, integrationId.getId()));
     }
 
     @Override
@@ -200,7 +206,9 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         Integration integration = findIntegrationById(tenantId, integrationId);
-        validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
+        if (integration == null) {
+            return;
+        }
         integrationDao.removeById(tenantId, integrationId.getId());
         publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
@@ -298,19 +306,18 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         return integrationInfoDao.findIntegrationsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
-    private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =
-            new PaginatedRemover<>() {
+    private final PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover = new PaginatedRemover<>() {
 
-                @Override
-                protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
-                    return integrationDao.findByTenantId(id.getId(), pageLink);
-                }
+        @Override
+        protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+            return integrationDao.findByTenantId(id.getId(), pageLink);
+        }
 
-                @Override
-                protected void removeEntity(TenantId tenantId, Integration entity) {
-                    deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
-                }
-            };
+        @Override
+        protected void removeEntity(TenantId tenantId, Integration entity) {
+            deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
+        }
+    };
 
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {

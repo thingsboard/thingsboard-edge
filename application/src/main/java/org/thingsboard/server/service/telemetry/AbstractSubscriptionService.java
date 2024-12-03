@@ -33,6 +33,9 @@ package org.thingsboard.server.service.telemetry;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
@@ -47,9 +50,6 @@ import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 
-import jakarta.annotation.Nullable;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -93,7 +93,7 @@ public abstract class AbstractSubscriptionService extends TbApplicationEventList
     protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
             currentPartitions.clear();
-            currentPartitions.addAll(partitionChangeEvent.getPartitions());
+            currentPartitions.addAll(partitionChangeEvent.getCorePartitions());
         }
     }
 

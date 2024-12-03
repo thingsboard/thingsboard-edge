@@ -31,6 +31,7 @@
 package org.thingsboard.server.queue.provider;
 
 import com.google.protobuf.util.JsonFormat;
+import jakarta.annotation.PreDestroy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -44,15 +45,18 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos.RemoteJsRequest;
 import org.thingsboard.server.gen.js.JsInvokeProtos.RemoteJsResponse;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiResponseMsg;
 import org.thingsboard.server.queue.TbQueueAdmin;
@@ -70,6 +74,7 @@ import org.thingsboard.server.queue.pubsub.TbPubSubProducerTemplate;
 import org.thingsboard.server.queue.pubsub.TbPubSubSettings;
 import org.thingsboard.server.queue.pubsub.TbPubSubSubscriptionSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
@@ -78,7 +83,6 @@ import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueVersionControlSettings;
 
-import jakarta.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
 
 @Component
@@ -94,6 +98,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueVersionControlSettings vcSettings;
+    private final TbQueueEdgeSettings edgeSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
@@ -103,6 +108,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     private final TbQueueAdmin transportApiAdmin;
     private final TbQueueAdmin notificationAdmin;
     private final TbQueueAdmin vcAdmin;
+    private final TbQueueAdmin edgeAdmin;
     private final TbQueueAdmin integrationApiAdmin;
 
     public PubSubMonolithQueueFactory(TbPubSubSettings pubSubSettings,
@@ -115,6 +121,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
                                       TbPubSubSubscriptionSettings pubSubSubscriptionSettings,
                                       TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                       TbQueueVersionControlSettings vcSettings,
+                                      TbQueueEdgeSettings edgeSettings,
                                       TbQueueIntegrationApiSettings integrationApiSettings,
                                       TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.pubSubSettings = pubSubSettings;
@@ -125,6 +132,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         this.topicService = topicService;
         this.serviceInfoProvider = serviceInfoProvider;
         this.vcSettings = vcSettings;
+        this.edgeSettings = edgeSettings;
         this.integrationApiSettings = integrationApiSettings;
         this.integrationExecutorSettings = integrationExecutorSettings;
 
@@ -134,6 +142,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         this.transportApiAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getTransportApiSettings());
         this.notificationAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getNotificationsSettings());
         this.vcAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getVcSettings());
+        this.edgeAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getEdgeSettings());
 
         this.jsInvokeSettings = jsInvokeSettings;
         this.integrationApiAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getIntegrationSettings());
@@ -166,9 +175,9 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     }
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createToVersionControlMsgConsumer() {
+    public TbQueueConsumer<TbProtoQueueMsg<ToVersionControlServiceMsg>> createToVersionControlMsgConsumer() {
         return new TbPubSubConsumerTemplate<>(vcAdmin, pubSubSettings, topicService.buildTopicName(vcSettings.getTopic()),
-                msg -> new TbProtoQueueMsg<>(msg.getKey(), TransportProtos.ToVersionControlServiceMsg.parseFrom(msg.getData()), msg.getHeaders())
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToVersionControlServiceMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
 
@@ -255,7 +264,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createVersionControlMsgProducer() {
+    public TbQueueProducer<TbProtoQueueMsg<ToVersionControlServiceMsg>> createVersionControlMsgProducer() {
         return new TbPubSubProducerTemplate<>(vcAdmin, pubSubSettings, topicService.buildTopicName(vcSettings.getTopic()));
     }
 
@@ -304,7 +313,6 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, topicService.buildTopicName(integrationExecutorSettings.getDownlinkTopic()));
     }
 
-
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperMsgProducer() {
         return new TbPubSubProducerTemplate<>(coreAdmin, pubSubSettings, topicService.buildTopicName(coreSettings.getHousekeeperTopic()));
@@ -327,6 +335,35 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToHousekeeperServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));
     }
 
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeMsg>> createEdgeMsgProducer() {
+        return new TbPubSubProducerTemplate<>(edgeAdmin, pubSubSettings, topicService.buildTopicName(edgeSettings.getTopic()));
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToEdgeMsg>> createEdgeMsgConsumer() {
+        return new TbPubSubConsumerTemplate<>(edgeAdmin, pubSubSettings, topicService.buildTopicName(edgeSettings.getTopic()),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToEdgeMsg.parseFrom(msg.getData()), msg.getHeaders()));
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToEdgeNotificationMsg>> createToEdgeNotificationsMsgConsumer() {
+        return new TbPubSubConsumerTemplate<>(notificationAdmin, pubSubSettings,
+                topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName(),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToEdgeNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> createEdgeNotificationsMsgProducer() {
+        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings,
+                topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> createEdgeEventMsgProducer() {
+        return null;
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -346,6 +383,9 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         }
         if (vcAdmin != null) {
             vcAdmin.destroy();
+        }
+        if (edgeAdmin != null) {
+            edgeAdmin.destroy();
         }
         if (integrationApiAdmin != null) {
             integrationApiAdmin.destroy();

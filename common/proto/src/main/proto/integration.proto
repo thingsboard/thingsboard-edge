@@ -155,12 +155,13 @@ message IntegrationConfigurationProto {
   string name = 5;
   string routingKey = 6;
   string type = 7;
-  bool debugMode = 8;
+  bool debugMode = 8 [deprecated = true];
   string configuration = 9;
   string additionalInfo = 10;
   bool enabled = 11;
   int64 integrationIdMSB = 12;
   int64 integrationIdLSB = 13;
+  optional string debugSettings = 14;
 }
 
 message UplinkProcessingResultProto {
@@ -175,9 +176,10 @@ message ConverterConfigurationProto {
   int64 converterIdMSB = 3;
   int64 converterIdLSB = 4;
   string name = 5;
-  bool debugMode = 6;
+  bool debugMode = 6 [deprecated = true];
   string configuration = 7;
   string additionalInfo = 8;
+  optional string debugSettings = 9;
 }
 
 /**
@@ -223,7 +225,7 @@ message IntegrationProto {
   int64 tenantIdLSB = 5;
   string type = 6;
   string name = 7;
-  bool debugMode = 8;
+  bool debugMode = 8 [deprecated = true];
   bool enabled = 9;
   bool remote = 10;
   bool allowCreateDevicesOrAssets = 11;
@@ -238,6 +240,8 @@ message IntegrationProto {
   optional string additionalInfo = 20;
   optional int64 externalIdMSB = 21;
   optional int64 externalIdLSB = 22;
+  optional int64 version = 23;
+  optional string debugSettings = 24;
 }
 
 message ConverterProto {
@@ -248,12 +252,14 @@ message ConverterProto {
   int64 tenantIdLSB = 5;
   string type = 6;
   string name = 7;
-  bool debugMode = 8;
+  bool debugMode = 8 [deprecated = true];
   string configuration = 9;
   optional string additionalInfo = 10;
   bool isEdgeTemplate = 11;
   optional int64 externalIdMSB = 12;
   optional int64 externalIdLSB = 13;
+  optional int64 version = 14;
+  optional string debugSettings = 15;
 }
 
 message IntegrationInfoListRequestProto {

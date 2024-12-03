@@ -29,20 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  AfterViewInit,
-  Component,
-  ComponentFactoryResolver,
-  Inject,
-  Injector,
-  SkipSelf,
-  ViewChild
-} from '@angular/core';
+import { AfterViewInit, Component, Inject, SkipSelf, ViewChild } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UntypedFormControl, FormGroupDirective, NgForm } from '@angular/forms';
+import { FormGroupDirective, NgForm, UntypedFormControl } from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { DeviceProfile } from '@shared/models/device.models';
@@ -74,8 +66,6 @@ export class DeviceProfileDialogComponent extends
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: DeviceProfileDialogData,
               public dialogRef: MatDialogRef<DeviceProfileDialogComponent, DeviceProfile>,
-              private componentFactoryResolver: ComponentFactoryResolver,
-              private injector: Injector,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               private deviceProfileService: DeviceProfileService) {
     super(store, router, dialogRef);

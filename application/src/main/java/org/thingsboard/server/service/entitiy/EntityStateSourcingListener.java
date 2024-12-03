@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.entitiy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,6 +39,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -45,12 +47,12 @@ import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -64,26 +66,27 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.rule.engine.DeviceCredentialsUpdateNotificationMsg;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.tenant.TenantService;
 
-import javax.annotation.PostConstruct;
 import java.util.Set;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class EntityStateSourcingListener {
 
-    private final TbClusterService tbClusterService;
     private final TenantService tenantService;
+    private final TbClusterService tbClusterService;
 
     @PostConstruct
     public void init() {
-        log.info("EntityStateSourcingListener initiated");
+        log.debug("EntityStateSourcingListener initiated");
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -124,7 +127,7 @@ public class EntityStateSourcingListener {
                 onDeviceProfileUpdate(deviceProfile, event.getOldEntity(), isCreated);
             }
             case EDGE -> {
-                handleEdgeEvent(tenantId, entityId, event.getEntity(), lifecycleEvent);
+                onEdgeEvent(tenantId, entityId, event.getEntity(), lifecycleEvent);
             }
             case TB_RESOURCE -> {
                 TbResource tbResource = (TbResource) event.getEntity();
@@ -146,6 +149,16 @@ public class EntityStateSourcingListener {
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, converter.getId(), lifecycleEvent);
                 }
             }
+            case CUSTOMER -> {
+                if (!isCreated) {
+                    tbClusterService.onCustomerUpdated((Customer) event.getEntity(), (Customer) event.getOldEntity());
+                }
+            }
+            case USER -> {
+                if (!isCreated) {
+                    tbClusterService.onUserUpdated((User) event.getEntity(), (User) event.getOldEntity());
+                }
+            }
             default -> {}
         }
     }
@@ -165,7 +178,7 @@ public class EntityStateSourcingListener {
         log.debug("[{}][{}][{}] Handling entity deletion event: {}", tenantId, entityType, entityId, event);
 
         switch (entityType) {
-            case ASSET, ASSET_PROFILE, ENTITY_VIEW, CUSTOMER, EDGE, NOTIFICATION_RULE -> {
+            case ASSET, ASSET_PROFILE, EDGE, ENTITY_VIEW, CUSTOMER, NOTIFICATION_RULE -> {
                 tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityId, ComponentLifecycleEvent.DELETED);
             }
             case NOTIFICATION_REQUEST -> {
@@ -262,10 +275,7 @@ public class EntityStateSourcingListener {
     }
 
     private DeviceProfile getOldDeviceProfile(Object oldEntity) {
-        if (oldEntity instanceof DeviceProfile) {
-            return (DeviceProfile) oldEntity;
-        }
-        return null;
+        return oldEntity instanceof DeviceProfile ? (DeviceProfile) oldEntity : null;
     }
 
     private void onDeviceProfileDelete(TenantId tenantId, EntityId entityId, DeviceProfile deviceProfile) {
@@ -282,11 +292,11 @@ public class EntityStateSourcingListener {
         tbClusterService.onDeviceUpdated(device, oldDevice);
     }
 
-    private void handleEdgeEvent(TenantId tenantId, EntityId entityId, Object entity, ComponentLifecycleEvent lifecycleEvent) {
+    private void onEdgeEvent(TenantId tenantId, EntityId entityId, Object entity, ComponentLifecycleEvent lifecycleEvent) {
         if (entity instanceof Edge) {
-            tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityId, lifecycleEvent);
-        } else if (entity instanceof EdgeEvent) {
-            tbClusterService.onEdgeEventUpdate(tenantId, (EdgeId) entityId);
+            tbClusterService.onEdgeStateChangeEvent(new ComponentLifecycleMsg(tenantId, entityId, lifecycleEvent));
+        } else if (entity instanceof EdgeEvent edgeEvent) {
+            tbClusterService.onEdgeEventUpdate(new EdgeEventUpdateMsg(tenantId, edgeEvent.getEdgeId()));
         }
     }
 
@@ -305,4 +315,5 @@ public class EntityStateSourcingListener {
         metaData.putValue("assignedFromTenantName", tenant.getName());
         return metaData;
     }
+
 }

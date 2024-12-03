@@ -31,15 +31,15 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -70,7 +70,7 @@ import { AuthUser } from '@shared/models/user.model';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
-export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig<EntityViewInfo>> {
+export class EntityViewsTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<EntityViewInfo>,
               private store: Store<AppState>,
@@ -163,7 +163,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
       columns.push(new EntityTableColumn<EntityViewInfo>('ownerName', title, '25%'));
     }
     columns.push(
-      new GroupChipsEntityTableColumn<EntityViewInfo>( 'groups', 'entity.groups', '30%')
+      new EntityChipsEntityTableColumn<EntityViewInfo>( 'groups', 'entity.groups', '30%')
     );
     return columns;
   }

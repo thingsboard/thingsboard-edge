@@ -34,7 +34,6 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ComponentFactoryResolver,
   ComponentRef,
   EventEmitter,
   Injector,
@@ -55,11 +54,12 @@ import { UntypedFormGroup } from '@angular/forms';
 import { EntityComponent } from './entity.component';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { Observable, ReplaySubject, Subscription } from 'rxjs';
+import { Observable, ReplaySubject, Subscription, throwError } from 'rxjs';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { EntityTabsComponent } from '@home/components/entity/entity-tabs.component';
 import { deepClone, mergeDeep } from '@core/utils';
-import { entityIdEquals } from '@shared/models/id/entity-id';
+import { catchError } from 'rxjs/operators';
+import { HttpStatusCode } from '@angular/common/http';
 
 @Component({
   selector: 'tb-entity-details-panel',
@@ -111,8 +111,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements AfterV
 
   constructor(protected store: Store<AppState>,
               protected injector: Injector,
-              protected cd: ChangeDetectorRef,
-              protected componentFactoryResolver: ComponentFactoryResolver) {
+              protected cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -181,7 +180,6 @@ export class EntityDetailsPanelComponent extends PageComponent implements AfterV
       this.entityComponentRef.destroy();
       this.entityComponentRef = null;
     }
-    const componentFactory = this.componentFactoryResolver.resolveComponentFactory(this.entitiesTableConfig.entityComponent);
     const viewContainerRef = this.entityDetailsFormAnchor.viewContainerRef;
     viewContainerRef.clear();
     const injector: Injector = Injector.create(
@@ -199,7 +197,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements AfterV
         parent: this.injector
       }
     );
-    this.entityComponentRef = viewContainerRef.createComponent(componentFactory, 0, injector);
+    this.entityComponentRef = viewContainerRef.createComponent(this.entitiesTableConfig.entityComponent, {index: 0, injector});
     this.entityComponent = this.entityComponentRef.instance;
     this.entityComponent.isEdit = this.isEdit;
     this.detailsForm = this.entityComponent.entityForm;
@@ -221,8 +219,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements AfterV
     viewContainerRef.clear();
     this.entityTabsComponent = null;
     if (this.entitiesTableConfig.entityTabsComponent) {
-      const componentTabsFactory = this.componentFactoryResolver.resolveComponentFactory(this.entitiesTableConfig.entityTabsComponent);
-      this.entityTabsComponentRef = viewContainerRef.createComponent(componentTabsFactory);
+      this.entityTabsComponentRef = viewContainerRef.createComponent(this.entitiesTableConfig.entityTabsComponent);
       this.entityTabsComponent = this.entityTabsComponentRef.instance;
       this.entityTabsComponent.isEdit = this.isEdit;
       this.entityTabsComponent.entitiesTableConfig = this.entitiesTableConfig;
@@ -243,7 +240,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements AfterV
   }
 
   hideDetailsTabs(): boolean {
-    return this.isEditValue && this.entitiesTableConfig.hideDetailsTabsOnEdit;
+    return !this.entityTabsComponent || this.isEditValue && this.entitiesTableConfig.hideDetailsTabsOnEdit;
   }
 
   reloadEntity(): Observable<BaseData<HasId>> {
@@ -303,7 +300,16 @@ export class EntityDetailsPanelComponent extends PageComponent implements AfterV
         editingEntity.additionalInfo =
           mergeDeep((this.editingEntity as any).additionalInfo, this.entityComponent.entityFormValue()?.additionalInfo);
       }
-      this.entitiesTableConfig.saveEntity(editingEntity, this.editingEntity).subscribe(
+      this.entitiesTableConfig.saveEntity(editingEntity, this.editingEntity)
+        .pipe(
+          catchError((err) => {
+           if (err.status === HttpStatusCode.Conflict) {
+             return this.entitiesTableConfig.loadEntity(this.currentEntityId);
+           }
+           return throwError(() => err);
+          })
+        )
+        .subscribe(
         (entity) => {
           this.entity = entity;
           this.entityComponent.entity = entity;

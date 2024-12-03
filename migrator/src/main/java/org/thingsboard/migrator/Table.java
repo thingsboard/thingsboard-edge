@@ -44,11 +44,11 @@ public enum Table {
     TENANT("tenant", "id"),
     CUSTOMER("customer"),
     ADMIN_SETTINGS("admin_settings"),
+    CUSTOM_MENU("custom_menu"),
     QUEUE("queue"),
     RPC("rpc"),
     RULE_CHAIN("rule_chain"),
     OTA_PACKAGE("ota_package"), // TODO: drop constraint in ota_package for device_profile due to circular reference
-    DEVICE_PROFILE("device_profile"),
     RESOURCE("resource"),
     ROLE("role"),
     ENTITY_GROUP("entity_group", Pair.of(
@@ -87,6 +87,7 @@ public enum Table {
             "widgets_bundle_id", of(WIDGETS_BUNDLE)
     ), of("widget_type_id")),
     DASHBOARD("dashboard"),
+    DEVICE_PROFILE("device_profile"),
     DEVICE("device"),
     DEVICE_CREDENTIALS("device_credentials", Pair.of(
             "device_id", of(DEVICE)
@@ -100,16 +101,15 @@ public enum Table {
     LC_EVENT("lc_event", true, "ts", "event"),
     RAW_DATA_EVENT("raw_data_event", true, "ts", "event"),
     STATS_EVENT("stats_event", true, "ts", "event"),
-    OAUTH2_PARAMS("oauth2_params"),
-    OAUTH2_DOMAIN("oauth2_domain", Pair.of(
-            "oauth2_params_id", of(OAUTH2_PARAMS)
-    )),
-    OAUTH2_MOBILE("oauth2_mobile", Pair.of(
-            "oauth2_params_id", of(OAUTH2_PARAMS)
-    )),
-    OAUTH2_REGISTRATION("oauth2_registration", Pair.of(
-            "oauth2_params_id", of(OAUTH2_PARAMS)
-    )),
+    DOMAIN("domain"),
+    MOBILE_APP("mobile_app"),
+    OAUTH2_CLIENT("oauth2_client"),
+    DOMAIN_OAUTH2_CLIENT("domain_oauth2_client", Pair.of(
+            "oauth2_client_id", of(OAUTH2_CLIENT)
+    ), of("domain_id", "oauth2_client_id")),
+    MOBILE_APP_OAUTH2_CLIENT("mobile_app_oauth2_client", Pair.of(
+            "oauth2_client_id", of(OAUTH2_CLIENT)
+    ), of("mobile_app_id", "oauth2_client_id")),
     RULE_NODE_STATE("rule_node_state", Pair.of(
             "entity_id", of(DEVICE)
     )),
@@ -122,6 +122,8 @@ public enum Table {
     NOTIFICATION_RULE("notification_rule"),
     WHITE_LABELING("white_labeling", List.of("tenant_id", "customer_id", "type")),
     ALARM_TYPES("alarm_types", null, of("type")),
+    CUSTOM_TRANSLATION("custom_translation", List.of("tenant_id", "customer_id", "locale_code")),
+    MOBILE_APP_SETTINGS("mobile_app_settings"),
 
     /*
      * data from tables below is exported for each entity separately
@@ -130,16 +132,19 @@ public enum Table {
             "from_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER,
                     INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW)
     ), List.of("to_id")),
-    ATTRIBUTE("attribute_kv", Pair.of( // TODO: update to 3.7 structure
+    ATTRIBUTE("attribute_kv", Pair.of(
             "entity_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
                     INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION)
-    ), List.of("last_update_ts", "attribute_key")),
+    ), List.of("last_update_ts", "attribute_key"), tenantId -> {
+        return "SELECT attribute_kv.*, dict.key as key_name FROM attribute_kv " +
+                "INNER JOIN key_dictionary dict ON attribute_kv.attribute_key = dict.key_id WHERE ";
+    }),
     LATEST_KV("ts_kv_latest", Pair.of(
             "entity_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
                     INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION)
     ), List.of("key", "ts"), tenantId -> {
         return "SELECT ts_kv_latest.*, dict.key as key_name FROM ts_kv_latest " +
-                "INNER JOIN ts_kv_dictionary dict ON ts_kv_latest.key = dict.key_id WHERE ";
+                "INNER JOIN key_dictionary dict ON ts_kv_latest.key = dict.key_id WHERE ";
     });
 
     private final String name;
@@ -189,8 +194,7 @@ public enum Table {
         this.sortColumns = sortColumns;
     }
 
-    Table(String name, Pair<String, List<Table>> reference, List<String> sortColumns,
-          Function<UUID, String> customSelect) {
+    Table(String name, Pair<String, List<Table>> reference, List<String> sortColumns, Function<UUID, String> customSelect) {
         this.name = name;
         this.reference = reference;
         this.sortColumns = sortColumns;

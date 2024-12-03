@@ -41,6 +41,8 @@ public class CacheConstants {
     public static final String DOWNLINK_CACHE = "downlink";
     public static final String ENTITY_VIEW_CACHE = "entityViews";
     public static final String EDGE_CACHE = "edges";
+    public static final String EDGE_SESSIONS_CACHE = "edgeSessions";
+    public static final String RELATED_EDGES_CACHE = "relatedEdges";
     public static final String ROLE_CACHE = "roles";
     public static final String USER_PERMISSIONS_CACHE = "permissions";
     public static final String ENTITY_OWNERS_CACHE = "owners";
@@ -56,6 +58,7 @@ public class CacheConstants {
     public static final String ASSET_PROFILE_CACHE = "assetProfiles";
     public static final String REMOTE_INTEGRATIONS_CACHE = "remoteIntegrations";
     public static final String ATTRIBUTES_CACHE = "attributes";
+    public static final String TS_LATEST_CACHE = "tsLatest";
     public static final String USERS_SESSION_INVALIDATION_CACHE = "userSessionsInvalidation";
     public static final String OTA_PACKAGE_CACHE = "otaPackages";
     public static final String OTA_PACKAGE_DATA_CACHE = "otaPackagesData";
@@ -71,4 +74,8 @@ public class CacheConstants {
     public static final String WHITE_LABELING_CACHE = "whiteLabeling";
     public static final String CUSTOM_TRANSLATION_CACHE = "customTranslation";
     public static final String ALARM_TYPES_CACHE = "alarmTypes";
+    public static final String QR_CODE_SETTINGS_CACHE = "qrCodeSettings";
+    public static final String MOBILE_SECRET_KEY_CACHE = "mobileSecretKey";
+    public static final String CUSTOM_MENU_CACHE = "customMenu";
+    public static final String ENTITY_GROUP_CACHE = "entityGroups";
 }

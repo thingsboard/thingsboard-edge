@@ -59,11 +59,13 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.translation.TbTranslationService;
+import org.thingsboard.server.service.translation.TbCustomTranslationService;
+import org.thingsboard.server.service.translation.TranslationService;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -84,7 +86,7 @@ import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_COD
 @RequiredArgsConstructor
 public class TranslationController extends BaseController {
 
-    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN", "ccp_BD", "ii_CH", "sat_IN", "en_001");
+    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN", "ccp_BD", "ii_CN", "sat_IN");
 
     private static final String CUSTOM_TRANSLATION_INFO_EXAMPLE = "\n\n" +
             MARKDOWN_CODE_BLOCK_START +
@@ -104,7 +106,23 @@ public class TranslationController extends BaseController {
             "]" +
             MARKDOWN_CODE_BLOCK_END;
 
-    private final TbTranslationService tbTranslationService;
+    private static final ObjectNode AVAILABLE_JAVA_LOCALE_CODES = JacksonUtil.newObjectNode();
+
+    static {
+        List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
+                .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
+                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString())
+                        && !availableLocale.toString().matches(".*\\d+.*"))
+                .toList();
+        for (Locale availableLocale : availableLocales) {
+            String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
+            String displayCountry = availableLocale.getDisplayCountry(availableLocale).isBlank() ? "" : " (" + availableLocale.getDisplayCountry(availableLocale) + ")";
+            AVAILABLE_JAVA_LOCALE_CODES.put(availableLocale.toString(), displayLanguage + displayCountry);
+        }
+    }
+
+    private final TbCustomTranslationService tbCustomTranslationService;
+    private final TranslationService translationService;
     private final WhiteLabelingService whiteLabelingService;
 
     @ApiOperation(value = "Get Translation info (getTranslationInfos)",
@@ -116,7 +134,7 @@ public class TranslationController extends BaseController {
     @GetMapping(value = "/translation/info")
     public List<TranslationInfo> getTranslationInfos() throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.READ);
-        return tbTranslationService.getTranslationInfos(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+        return translationService.getTranslationInfos(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
     }
 
     @ApiOperation(value = "Get list of available locales (getAvailableLocales)",
@@ -124,9 +142,8 @@ public class TranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/availableLocales")
     public JsonNode getAvailableLocales() throws ThingsboardException {
-        checkWhiteLabelingPermissions(Operation.READ);
         ObjectNode result = JacksonUtil.newObjectNode();
-        Set<String> availableLocaleCodes = tbTranslationService.getAvailableLocaleCodes(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+        Set<String> availableLocaleCodes = translationService.getAvailableLocaleCodes(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
         for (String localeCode : availableLocaleCodes) {
             String[] locale_parts = localeCode.split("_");
             Locale locale = new Locale(locale_parts[0], locale_parts[1]);
@@ -142,18 +159,7 @@ public class TranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/availableJavaLocales")
     public JsonNode getAvailableJavaLocales() {
-        ObjectNode result = JacksonUtil.newObjectNode();
-
-        List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
-                .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
-                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString()))
-                .toList();
-        for (Locale availableLocale : availableLocales) {
-            String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
-            String displayCountry = availableLocale.getDisplayCountry(availableLocale).isBlank() ? "" : " (" + availableLocale.getDisplayCountry(availableLocale) + ")";
-            result.put(availableLocale.toString(), displayLanguage + displayCountry);
-        }
-        return result;
+        return AVAILABLE_JAVA_LOCALE_CODES;
     }
 
     @ApiOperation(value = "Get system translation for login page",
@@ -167,19 +173,19 @@ public class TranslationController extends BaseController {
             @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
             HttpServletRequest request, HttpServletResponse response) throws IOException {
         String domainName = request.getServerName();
-        WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
+        WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, WhiteLabelingType.LOGIN);
         TranslationCacheKey cacheKey;
         if (loginWL != null) {
             cacheKey = TranslationCacheKey.forLoginTranslation(loginWL.getTenantId(), loginWL.getCustomerId(), localeCode, domainName);
         } else {
             cacheKey = TranslationCacheKey.forLoginTranslation(localeCode, domainName);
         }
-        if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbTranslationService.getETag(cacheKey))) {
+        if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbCustomTranslationService.getETag(cacheKey))) {
             response.setStatus(HttpStatus.NOT_MODIFIED.value());
         } else {
-            JsonNode loginTranslation = tbTranslationService.getLoginTranslation(localeCode, domainName);
+            JsonNode loginTranslation = translationService.getLoginTranslation(localeCode, domainName);
             String calculatedEtag = calculateTranslationEtag(loginTranslation);
-            tbTranslationService.putETag(cacheKey, calculatedEtag);
+            tbCustomTranslationService.putETag(cacheKey, calculatedEtag);
             response.setHeader("Etag", calculatedEtag);
             response.setContentType(APPLICATION_JSON_VALUE);
             compressResponseWithGzipIFAccepted(acceptEncodingHeader, response, JacksonUtil.writeValueAsBytes(loginTranslation));
@@ -201,12 +207,12 @@ public class TranslationController extends BaseController {
         CustomerId customerId = getCurrentUser().getCustomerId();
 
         TranslationCacheKey cacheKey = TranslationCacheKey.forFullTranslation(tenantId, customerId, localeCode);
-        if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbTranslationService.getETag(cacheKey))) {
+        if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbCustomTranslationService.getETag(cacheKey))) {
             response.setStatus(HttpStatus.NOT_MODIFIED.value());
         } else {
-            JsonNode fullTranslation = tbTranslationService.getFullTranslation(tenantId, customerId, localeCode);
+            JsonNode fullTranslation = translationService.getFullTranslation(tenantId, customerId, localeCode);
             String calculatedEtag = calculateTranslationEtag(fullTranslation);
-            tbTranslationService.putETag(cacheKey, calculatedEtag);
+            tbCustomTranslationService.putETag(cacheKey, calculatedEtag);
             response.setHeader("Etag", calculatedEtag);
             response.setContentType(APPLICATION_JSON_VALUE);
             compressResponseWithGzipIFAccepted(acceptEncodingHeader, response, JacksonUtil.writeValueAsBytes(fullTranslation));
@@ -223,7 +229,7 @@ public class TranslationController extends BaseController {
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
 
-        return tbTranslationService.getTranslationForBasicEdit(tenantId, customerId, localeCode);
+        return translationService.getTranslationForBasicEdit(tenantId, customerId, localeCode);
     }
 
     @ApiOperation(value = "Download end-user all-to-one translation (downloadFullTranslation)",
@@ -237,7 +243,7 @@ public class TranslationController extends BaseController {
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
 
-        JsonNode fullSystemTranslation = checkNotNull(tbTranslationService.getFullTranslation(tenantId, customerId, localeCode));
+        JsonNode fullSystemTranslation = checkNotNull(translationService.getFullTranslation(tenantId, customerId, localeCode));
 
         String fileName = localeCode + "_custom_translation.json";
         ByteArrayResource translation = new ByteArrayResource(writeValueAsStringWithDefaultPrettyPrinter(fullSystemTranslation).getBytes());

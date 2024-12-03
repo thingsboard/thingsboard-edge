@@ -32,14 +32,12 @@ package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -152,6 +150,7 @@ public class EntityViewController extends BaseController {
             @Parameter(description = "A JSON object representing the entity view.")
             @RequestBody EntityView entityView,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @Parameter(description = "A list of entity group ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws Exception {
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(entityView, strEntityGroupId, strEntityGroupIds, (entityView1, entityGroups) -> {
@@ -387,7 +386,7 @@ public class EntityViewController extends BaseController {
     @RequestMapping(value = "/entityViews", params = {"entityViewIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<EntityView> getEntityViewsByIds(
-            @Parameter(description = "A list of entity view ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of entity view ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("entityViewIds") String[] strEntityViewIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("entityViewIds", strEntityViewIds);
         SecurityUser user = getCurrentUser();

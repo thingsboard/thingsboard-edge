@@ -50,6 +50,12 @@ public interface EdgeRepository extends JpaRepository<EdgeEntity, UUID> {
                                                  @Param("textSearch") String textSearch,
                                                  Pageable pageable);
 
+    @Query("SELECT d.id FROM EdgeEntity d WHERE d.tenantId = :tenantId " +
+            "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%')) = true)")
+    Page<UUID> findIdsByTenantId(@Param("tenantId") UUID tenantId,
+                                 @Param("textSearch") String textSearch,
+                                 Pageable pageable);
+
     @Query("SELECT d FROM EdgeEntity d WHERE d.tenantId = :tenantId " +
             "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%')) = true)")
     Page<EdgeEntity> findByTenantId(@Param("tenantId") UUID tenantId,
@@ -107,12 +113,25 @@ public interface EdgeRepository extends JpaRepository<EdgeEntity, UUID> {
                                                      @Param("relationType") String relationType,
                                                      Pageable pageable);
 
+    @Query("SELECT ee.id FROM EdgeEntity ee, RelationEntity re WHERE ee.tenantId = :tenantId " +
+            "AND ee.id = re.fromId AND re.fromType = 'EDGE' AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = 'Contains' AND re.toId = :entityId AND re.toType = :entityType " +
+            "AND (:textSearch IS NULL OR ilike(ee.name, CONCAT('%', :textSearch, '%')) = true)")
+    Page<UUID> findIdsByTenantIdAndEntityId(@Param("tenantId") UUID tenantId,
+                                            @Param("entityId") UUID entityId,
+                                            @Param("entityType") String entityType,
+                                            @Param("textSearch") String textSearch,
+                                            Pageable pageable);
+
     @Query("SELECT ee FROM EdgeEntity ee, TenantEntity te WHERE ee.tenantId = te.id AND te.tenantProfileId = :tenantProfileId ")
     Page<EdgeEntity> findByTenantProfileId(@Param("tenantProfileId") UUID tenantProfileId,
                                            Pageable pageable);
 
     @Query("SELECT DISTINCT d.type FROM EdgeEntity d WHERE d.tenantId = :tenantId")
     List<String> findTenantEdgeTypes(@Param("tenantId") UUID tenantId);
+
+    @Query("SELECT count(*) FROM EdgeEntity e WHERE e.tenantId = :tenantId")
+    Long countByTenantId(@Param("tenantId") UUID tenantId);
 
     EdgeEntity findByTenantIdAndName(UUID tenantId, String name);
 
@@ -156,4 +175,5 @@ public interface EdgeRepository extends JpaRepository<EdgeEntity, UUID> {
                                                  @Param("type") String type,
                                                  @Param("textSearch") String textSearch,
                                                  Pageable pageable);
+
 }

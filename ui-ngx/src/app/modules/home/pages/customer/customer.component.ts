@@ -41,7 +41,9 @@ import { GroupContactBasedComponent } from '@home/components/group/group-contact
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { CountryData } from '@shared/models/country.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { CMAssigneeType, CMScope } from '@shared/models/custom-menu.models';
 
 @Component({
   selector: 'tb-customer',
@@ -49,6 +51,10 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
   styleUrls: ['./customer.component.scss']
 })
 export class CustomerComponent extends GroupContactBasedComponent<CustomerInfo> {
+
+  CMScope = CMScope;
+
+  CMAssigneeType = CMAssigneeType;
 
   isPublic = false;
 
@@ -63,8 +69,9 @@ export class CustomerComponent extends GroupContactBasedComponent<CustomerInfo> 
               protected entitiesTableConfigValue: EntityTableConfig<CustomerInfo> | GroupEntityTableConfig<CustomerInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
+              protected countryData: CountryData,
               protected userPermissionsService: UserPermissionsService) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, countryData, userPermissionsService);
   }
 
   hideDelete() {
@@ -144,7 +151,8 @@ export class CustomerComponent extends GroupContactBasedComponent<CustomerInfo> 
             homeDashboardHideToolbar: [entity && entity.additionalInfo &&
             isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true]
           }
-        )
+        ),
+        customMenuId: [entity?.customMenuId]
       }
     );
   }
@@ -160,6 +168,7 @@ export class CustomerComponent extends GroupContactBasedComponent<CustomerInfo> 
         homeDashboardHideToolbar: entity.additionalInfo &&
         isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true
       }});
+    this.entityForm.patchValue({customMenuId: entity.customMenuId});
   }
 
   onCustomerIdCopied(event) {

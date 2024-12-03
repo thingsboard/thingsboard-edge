@@ -31,15 +31,13 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -207,7 +205,7 @@ public class BlobEntityController extends BaseController {
     @RequestMapping(value = "/blobEntities", params = {"blobEntityIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<BlobEntityInfo> getBlobEntitiesByIds(
-            @Parameter(description = "A list of blob entity ids, separated by comma ','", required = true) @RequestParam("blobEntityIds") String[] strBlobEntityIds) throws ThingsboardException, ExecutionException, InterruptedException {
+            @Parameter(description = "A list of blob entity ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true) @RequestParam("blobEntityIds") String[] strBlobEntityIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("blobEntityIds", strBlobEntityIds);
         if (!accessControlService.hasPermission(getCurrentUser(), org.thingsboard.server.common.data.permission.Resource.BLOB_ENTITY, Operation.READ)) {
             return Collections.emptyList();

@@ -37,14 +37,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.domain.DomainService;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DaoSqlTest
 public class WhiteLabelingServiceTest extends AbstractServiceTest {
@@ -53,8 +58,11 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     CustomerService customerService;
     @Autowired
     WhiteLabelingService whiteLabelingService;
+    @Autowired
+    DomainService domainService;
 
     private CustomerId customerId;
+    private Domain domain;
 
     @Before
     public void beforeRun() {
@@ -62,6 +70,26 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         customer.setTenantId(tenantId);
         customer.setTitle("My customer");
         customerId = customerService.saveCustomer(customer).getId();
+
+        domain = constructDomain(tenantId, customerId, "my.test.domain");
+        domain = domainService.saveDomain(tenantId, domain);
+    }
+
+    @Test
+    public void testInvalidBaseUrl()  {
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        loginWhiteLabelingParams.setDomainId(domain.getId());
+        String baseUrlWithWhiteSpace = "https://wrong url";
+        loginWhiteLabelingParams.setBaseUrl(baseUrlWithWhiteSpace);
+        assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
+                .isInstanceOf(IncorrectParameterException.class)
+                .hasMessage("Base url " + baseUrlWithWhiteSpace + " is invalid");
+
+        String baseUrlWithoutSchema = "wrongurl";
+        loginWhiteLabelingParams.setBaseUrl(baseUrlWithoutSchema);
+        assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
+                .isInstanceOf(IncorrectParameterException.class)
+                .hasMessage("Base url " + baseUrlWithoutSchema + " is invalid");
     }
 
     @Test
@@ -215,5 +243,14 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
             customer.setAdditionalInfo(JacksonUtil.toJsonNode(additionalInfo));
             customerService.saveCustomer(customer);
         }
+    }
+    private Domain constructDomain(TenantId tenantId, CustomerId customerId, String domainName) {
+        Domain domain = new Domain();
+        domain.setTenantId(tenantId);
+        domain.setCustomerId(customerId);
+        domain.setName(domainName);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
+        return domain;
     }
 }

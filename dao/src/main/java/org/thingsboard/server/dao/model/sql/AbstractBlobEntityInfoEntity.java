@@ -31,7 +31,9 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
@@ -40,9 +42,6 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;

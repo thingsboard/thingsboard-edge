@@ -39,12 +39,12 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -55,7 +55,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T> implements BaseEntity<T> {
+public abstract class AbstractUserEntity<T extends User> extends BaseVersionedEntity<T> {
 
     public static final Map<String, String> userColumnMap = new HashMap<>();
 
@@ -89,15 +89,15 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
     @Column(name = ModelConstants.USER_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = ModelConstants.USER_CUSTOM_MENU_ID_PROPERTY)
+    private UUID customMenuId;
+
     public AbstractUserEntity() {
         super();
     }
 
-    public AbstractUserEntity(User user) {
-        if (user.getId() != null) {
-            this.setUuid(user.getId().getId());
-        }
-        this.setCreatedTime(user.getCreatedTime());
+    public AbstractUserEntity(T user) {
+        super(user);
         this.authority = user.getAuthority();
         if (user.getTenantId() != null) {
             this.tenantId = user.getTenantId().getId();
@@ -110,11 +110,13 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
         this.lastName = user.getLastName();
         this.phone = user.getPhone();
         this.additionalInfo = user.getAdditionalInfo();
+        if (user.getCustomMenuId() != null) {
+            this.customMenuId = user.getCustomMenuId().getId();
+        }
     }
 
     public AbstractUserEntity(UserEntity userEntity) {
-        this.setId(userEntity.getId());
-        this.setCreatedTime(userEntity.getCreatedTime());
+        super(userEntity);
         this.tenantId = userEntity.getTenantId();
         this.customerId = userEntity.getCustomerId();
         this.authority = userEntity.getAuthority();
@@ -123,11 +125,13 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
         this.lastName = userEntity.getLastName();
         this.phone = userEntity.getPhone();
         this.additionalInfo = userEntity.getAdditionalInfo();
+        this.customMenuId = userEntity.getCustomMenuId();
     }
 
     protected User toUser() {
         User user = new User(new UserId(this.getUuid()));
         user.setCreatedTime(createdTime);
+        user.setVersion(version);
         user.setAuthority(authority);
         if (tenantId != null) {
             user.setTenantId(TenantId.fromUUID(tenantId));
@@ -140,6 +144,9 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
         user.setLastName(lastName);
         user.setPhone(phone);
         user.setAdditionalInfo(additionalInfo);
+        if (customMenuId != null) {
+            user.setCustomMenuId(new CustomMenuId(customMenuId));
+        }
         return user;
     }
 
