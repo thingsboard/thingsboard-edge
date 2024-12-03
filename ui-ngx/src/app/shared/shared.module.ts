@@ -185,6 +185,7 @@ import { OtaPackageAutocompleteComponent } from '@shared/components/ota-package/
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CopyButtonComponent } from '@shared/components/button/copy-button.component';
 import { TogglePasswordComponent } from '@shared/components/button/toggle-password.component';
+import { WidgetButtonToggleComponent } from '@shared/components/button/widget-button-toggle.component';
 import { HelpPopupComponent } from '@shared/components/help-popup.component';
 import { TbPopoverComponent, TbPopoverDirective } from '@shared/components/popover.component';
 import { TbStringTemplateOutletDirective } from '@shared/components/directives/sring-template-outlet.directive';
@@ -252,7 +253,6 @@ import { CountryData } from '@shared/models/country.models';
 import { SvgXmlComponent } from '@shared/components/svg-xml.component';
 import { CustomMenuAutocompleteComponent } from '@shared/components/custom-menu-autocomplete.component';
 import { DatapointsLimitComponent } from '@shared/components/time/datapoints-limit.component';
-import { WidgetButtonToggleComponent } from '@shared/components/button/widget-button-toggle.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
