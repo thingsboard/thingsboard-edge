@@ -115,32 +115,30 @@ public class ThingsboardInstallService {
                     log.info("Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...");
                     latestMigrateService.migrate();
                 } else {
-                    boolean fromCE = "CE".equals(upgradeFromVersion);
-                    databaseSchemaVersionService.validateSchemaSettings(fromCE);
-                    //TODO DON'T FORGET to update SUPPORTED_VERSIONS_FROM in DatabaseSchemaVersionService,
-                    // this list should include last version and can include previous versions without upgrade
-                    if (fromCE) {
+                    // TODO DON'T FORGET to update SUPPORTED_VERSIONS_FROM in DefaultDatabaseSchemaSettingsService
+                    var updateFromCE = "CE".equals(upgradeFromVersion);
+                    databaseSchemaVersionService.validateSchemaSettings(updateFromCE);
+                    if (updateFromCE) {
                         log.info("Upgrading ThingsBoard from version CE to PE ...");
                     } else {
                         String fromVersion = databaseSchemaVersionService.getDbSchemaVersion();
                         String toVersion = databaseSchemaVersionService.getPackageSchemaVersion();
                         log.info("Upgrading ThingsBoard from version {} to {} ...", fromVersion, toVersion);
                     }
-
                     cacheCleanupService.clearCache();
+                    // Apply the schema_update.sql script. The script may include DDL statements to change structure
+                    // of *existing* tables and DML statements to manipulate the DB records.
+                    databaseEntitiesUpgradeService.upgradeDatabase(updateFromCE);
+                    // All new tables that do not have any data will be automatically created here.
                     entityDatabaseSchemaService.createDatabaseSchema(false);
-
-                    if (!fromCE) {
-                        databaseEntitiesUpgradeService.upgradeDatabase(false);
-                        dataUpdateService.updateData(false); //TODO: update data should be cleaned after each release
-                    }
-
-                    // We always run the CE to PE update script, just in case..
-                    databaseEntitiesUpgradeService.upgradeDatabase(true); //CE
+                    // Re-create all views, functions.
                     entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
-                    dataUpdateService.updateData(true); //CE
+                    // Creates missing indexes.
                     entityDatabaseSchemaService.createDatabaseIndexes();
+                    // Runs upgrade scripts that are not possible in plain SQL.
+                    // TODO: cleanup update code after each release
+                    dataUpdateService.updateData(updateFromCE);
                     log.info("Updating system data...");
                     dataUpdateService.upgradeRuleNodes();
                     systemDataLoaderService.loadSystemWidgets();

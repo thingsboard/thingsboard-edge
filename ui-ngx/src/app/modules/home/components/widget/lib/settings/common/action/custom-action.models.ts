@@ -78,8 +78,7 @@ const customActionCompletions: TbEditorCompletions = {
       type: 'string',
       description: 'Label of the entity for which the action was triggered.'
     }
-  },
-  ...serviceCompletions
+  }
 };
 
 const customPrettyActionCompletions: TbEditorCompletions = {

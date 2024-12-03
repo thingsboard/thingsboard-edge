@@ -110,6 +110,7 @@ export interface MenuItem {
   icon?: string;
   visible?: boolean;
   pages?: MenuItem[];
+  id?: MenuId;
 }
 
 export interface DefaultMenuItem extends MenuItem, MenuReference {
@@ -288,6 +289,29 @@ const afterLoadMenuItems = (items: MenuItem[]): MenuItem[] => {
   return items;
 };
 
+const mergeFromDefaultMenu = (items: MenuItem[], defaultItems: MenuItem[]): MenuItem[] => {
+  const menuItems: MenuItem[] = [];
+  const defaultItemsMap = new Map<string, MenuItem>(defaultItems.map(item => [item.id, item]));
+  for (const item of items) {
+    if (item.type !== MenuItemType.CUSTOM) {
+      if (defaultItemsMap.has(item.id)) {
+        if (item.pages) {
+          item.pages = mergeFromDefaultMenu(item.pages, defaultItemsMap.get(item.id).pages);
+        }
+        menuItems.push(item);
+        defaultItemsMap.delete(item.id);
+      }
+    } else {
+      menuItems.push(item);
+    }
+  }
+  for (const item of defaultItemsMap.values()) {
+    item.visible = false;
+    menuItems.push(item);
+  }
+  return menuItems;
+};
+
 export const defaultCustomMenuConfig = (scope: CMScope): CustomMenuConfig => {
   const authority = cmScopeToAuthority(scope);
   const references = defaultUserMenuMap.get(authority);
@@ -297,10 +321,11 @@ export const defaultCustomMenuConfig = (scope: CMScope): CustomMenuConfig => {
 };
 
 export const afterLoadCustomMenuConfig = (config: CustomMenuConfig, scope: CMScope): CustomMenuConfig => {
+  const defaultMenuConfig = defaultCustomMenuConfig(scope);
   if (!config?.items?.length) {
-    return defaultCustomMenuConfig(scope);
+    return defaultMenuConfig;
   } else {
-    config.items = afterLoadMenuItems(config.items);
+    config.items = afterLoadMenuItems(mergeFromDefaultMenu(config.items, defaultMenuConfig.items));
     return config;
   }
 };

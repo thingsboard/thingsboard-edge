@@ -31,17 +31,21 @@
 package org.thingsboard.server.common.data.converter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasDebugSettings;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -49,7 +53,9 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class Converter extends BaseData<ConverterId> implements HasName, TenantEntity, ExportableEntity<ConverterId>, HasVersion {
+@ToString(callSuper = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Converter extends BaseData<ConverterId> implements HasName, TenantEntity, ExportableEntity<ConverterId>, HasVersion, HasDebugSettings {
 
     private static final long serialVersionUID = -1541581333235769915L;
 
@@ -58,7 +64,9 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     @Length(fieldName = "name")
     private String name;
     private ConverterType type;
+    @Deprecated
     private boolean debugMode;
+    private DebugSettings debugSettings;
     private JsonNode configuration;
     @NoXss
     private JsonNode additionalInfo;
@@ -84,7 +92,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.tenantId = converter.getTenantId();
         this.name = converter.getName();
         this.type = converter.getType();
-        this.debugMode = converter.isDebugMode();
+        this.debugSettings = converter.getDebugSettings();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
         this.edgeTemplate = converter.isEdgeTemplate();
@@ -135,13 +143,27 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.type = type;
     }
 
-    @Schema(description = "Boolean flag to enable/disable saving received messages as debug events")
+    @Schema(description = "Enable/disable debug. ", example = "false", deprecated = true)
+    @Override
     public boolean isDebugMode() {
         return debugMode;
     }
 
+    @Deprecated
+    @Override
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;
+    }
+
+    @Schema(description = "Debug settings object.")
+    @Override
+    public DebugSettings getDebugSettings() {
+        return debugSettings;
+    }
+
+    @Override
+    public void setDebugSettings(DebugSettings debugSettings) {
+        this.debugSettings = debugSettings;
     }
 
     @Schema(description = "JSON object representing converter configuration. It should contain one of two possible fields: 'decoder' or 'encoder'. " +
@@ -171,31 +193,6 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
 
     public void setEdgeTemplate(boolean edgeTemplate) {
         this.edgeTemplate = edgeTemplate;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Converter [tenantId=");
-        builder.append(tenantId);
-        builder.append(", name=");
-        builder.append(name);
-        builder.append(", type=");
-        builder.append(type);
-        builder.append(", debugMode=");
-        builder.append(debugMode);
-        builder.append(", configuration=");
-        builder.append(configuration);
-        builder.append(", additionalInfo=");
-        builder.append(additionalInfo);
-        builder.append(", edgeTemplate=");
-        builder.append(edgeTemplate);
-        builder.append(", createdTime=");
-        builder.append(createdTime);
-        builder.append(", id=");
-        builder.append(id);
-        builder.append("]");
-        return builder.toString();
     }
 
     @Override

@@ -117,14 +117,8 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         } else {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, "Uplink", msg.getContentType(),
-                        ConvertUtil.toDebugMessage(msg.getContentType(), msg.getPayloadBytes()), isOk ? "OK" : "ERROR", exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", msg.getContentType(),
+                () -> ConvertUtil.toDebugMessage(msg.getContentType(), msg.getPayloadBytes()), isOk ? "OK" : "ERROR", exception);
     }
 
     protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
