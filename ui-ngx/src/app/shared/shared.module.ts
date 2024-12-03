@@ -252,6 +252,8 @@ import { CountryData } from '@shared/models/country.models';
 import { SvgXmlComponent } from '@shared/components/svg-xml.component';
 import { CustomMenuAutocompleteComponent } from '@shared/components/custom-menu-autocomplete.component';
 import { DatapointsLimitComponent } from '@shared/components/time/datapoints-limit.component';
+import { JsFuncModulesComponent } from '@shared/components/js-func-modules.component';
+import { JsFuncModuleRowComponent } from '@shared/components/js-func-module-row.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -377,6 +379,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsonObjectViewComponent,
     JsonContentComponent,
     JsFuncComponent,
+    JsFuncModulesComponent,
+    JsFuncModuleRowComponent,
     CssComponent,
     HtmlComponent,
     SvgXmlComponent,
@@ -601,6 +605,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsonObjectViewComponent,
     JsonContentComponent,
     JsFuncComponent,
+    JsFuncModulesComponent,
+    JsFuncModuleRowComponent,
     CssComponent,
     HtmlComponent,
     SvgXmlComponent,

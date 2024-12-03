@@ -35,7 +35,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { forkJoin, Observable, of } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
-import { Resource, ResourceInfo, ResourceType, TBResourceScope } from '@shared/models/resource.models';
+import { Resource, ResourceInfo, ResourceSubType, ResourceType, TBResourceScope } from '@shared/models/resource.models';
 import { catchError, mergeMap } from 'rxjs/operators';
 import { isNotEmptyStr } from '@core/utils';
 import { ResourcesService } from '@core/services/resources.service';
@@ -51,10 +51,13 @@ export class ResourceService {
 
   }
 
-  public getResources(pageLink: PageLink, resourceType?: ResourceType, config?: RequestConfig): Observable<PageData<ResourceInfo>> {
+  public getResources(pageLink: PageLink, resourceType?: ResourceType, resourceSubType?: ResourceSubType, config?: RequestConfig): Observable<PageData<ResourceInfo>> {
     let url = `/api/resource${pageLink.toQuery()}`;
     if (isNotEmptyStr(resourceType)) {
       url += `&resourceType=${resourceType}`;
+    }
+    if (isNotEmptyStr(resourceSubType)) {
+      url += `&resourceSubType=${resourceSubType}`;
     }
     return this.http.get<PageData<ResourceInfo>>(url, defaultHttpOptionsFromConfig(config));
   }

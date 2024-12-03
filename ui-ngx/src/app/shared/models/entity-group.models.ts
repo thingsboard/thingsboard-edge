@@ -43,6 +43,7 @@ import { RoleId } from '@shared/models/id/role-id';
 import { Edge } from '@shared/models/edge.models';
 import { OtaPackageId } from '@shared/models/id/ota-package-id';
 import { DeviceGroupOtaPackage } from '@shared/models/ota-package.models';
+import { TbFunction } from '@shared/models/js-function.models';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -247,9 +248,9 @@ export interface EntityGroupColumn {
   sortOrder: EntityGroupSortOrder;
   mobileHide: boolean;
   useCellStyleFunction?: boolean;
-  cellStyleFunction?: string;
+  cellStyleFunction?: TbFunction;
   useCellContentFunction?: string;
-  cellContentFunction?: string;
+  cellContentFunction?: TbFunction;
 }
 
 export interface EntityGroupConfiguration {

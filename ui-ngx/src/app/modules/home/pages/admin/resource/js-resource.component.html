@@ -41,13 +41,13 @@
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'downloadResource')"
           [class.!hidden]="isEdit">
-    {{ 'resource.download' | translate }}
+    {{ 'javascript.download' | translate }}
   </button>
   <button mat-raised-button color="primary" class="xs:flex-1"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
           [class.!hidden]="hideDelete() || isEdit">
-    {{ 'resource.delete' | translate }}
+    {{ 'javascript.delete' | translate }}
   </button>
   <div class="flex flex-row xs:flex-col">
     <button mat-raised-button
@@ -64,14 +64,14 @@
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
-        <mat-label translate>resource.resource-type</mat-label>
-        <mat-select formControlName="resourceType" required>
-          <mat-option *ngFor="let resourceType of resourceTypes" [value]="resourceType">
-            {{ resourceTypesTranslationMap.get(resourceType) | translate }}
+        <mat-label translate>javascript.javascript-type</mat-label>
+        <mat-select formControlName="resourceSubType" required>
+          <mat-option *ngFor="let resourceSubType of jsResourceSubTypes" [value]="resourceSubType">
+            {{ ResourceSubTypeTranslationMap.get(resourceSubType) | translate }}
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field class="mat-block" *ngIf="entityForm.get('resourceType').value !== resourceType.LWM2M_MODEL || !isAdd">
+      <mat-form-field class="mat-block">
         <mat-label translate>resource.title</mat-label>
         <input matInput formControlName="title" required>
         <mat-error *ngIf="entityForm.get('title').hasError('required')">
@@ -81,21 +81,47 @@
           {{ 'resource.title-max-length' | translate }}
         </mat-error>
       </mat-form-field>
-      <tb-file-input *ngIf="isAdd"
-        formControlName="data"
-        required
-        label="{{ (entityForm.get('resourceType').value === resourceType.LWM2M_MODEL ? 'resource.resource-files' : 'resource.resource-file') | translate }}"
-        [readAsBinary]="true"
-        [maxSizeByte]="maxResourceSize"
-        [allowedExtensions]="getAllowedExtensions()"
-        [contentConvertFunction]="convertToBase64File"
-        [accept]="getAcceptType()"
-        [multipleFile]="entityForm.get('resourceType').value === resourceType.LWM2M_MODEL"
-        dropLabel="{{'resource.drop-resource-file-or' | translate}}"
-        [existingFileName]="entityForm.get('fileName')?.value"
-        (fileNameChanged)="entityForm?.get('fileName').patchValue($event)">
+      <tb-file-input *ngIf="(isAdd || isEdit) && entityForm.get('resourceSubType').value === ResourceSubType.EXTENSION"
+                     formControlName="data"
+                     [required]="isAdd"
+                     label="{{ 'javascript.resource-file' | translate }}"
+                     [readAsBinary]="true"
+                     [maxSizeByte]="maxResourceSize"
+                     [allowedExtensions]="getAllowedExtensions()"
+                     [contentConvertFunction]="convertToBase64File"
+                     [accept]="getAcceptType()"
+                     dropLabel="{{'javascript.drop-resource-file-or' | translate}}"
+                     [existingFileName]="entityForm.get('fileName')?.value"
+                     (fileNameChanged)="entityForm?.get('fileName').patchValue($event)">
       </tb-file-input>
-      <div *ngIf="!isAdd" class="flex flex-row xs:flex-col sm:gap-2 md:flex-col gt-md:gap-2">
+      <tb-js-func *ngIf="entityForm.get('resourceSubType').value === ResourceSubType.MODULE"
+                  formControlName="content"
+                  required
+                  hideBrackets
+                  hideLabel
+                  minHeight="300px">
+        <div toolbarStartButton
+             class="flex flex-row gap-4">
+          <label class="tb-title no-padding tb-required"
+                 [class.tb-error]="entityForm.get('content').invalid && entityForm.get('content').touched"
+                 style="font-size: 16px;">
+            {{ 'javascript.module-script' | translate }}
+          </label>
+          <tb-file-input *ngIf="(isAdd || isEdit)"
+                         asButton
+                         uploadButtonText="{{ 'javascript.upload-from-file' | translate }}"
+                         uploadButtonClass="tb-ignore-browse-file-button-style"
+                         [maxSizeByte]="maxResourceSize"
+                         [allowedExtensions]="getAllowedExtensions()"
+                         [accept]="getAcceptType()"
+                         [ngModel]=""
+                         [ngModelOptions]="{ standalone: true }"
+                         (ngModelChange)="uploadContentFromFile($event)"
+                         (fileNameChanged)="entityForm?.get('fileName').patchValue($event)">
+          </tb-file-input>
+        </div>
+      </tb-js-func>
+      <div *ngIf="!isAdd && !isEdit && entityForm.get('resourceSubType').value === ResourceSubType.EXTENSION" class="flex flex-row xs:flex-col sm:gap-2 md:flex-col gt-md:gap-2">
         <mat-form-field class="flex-1">
           <mat-label translate>resource.file-name</mat-label>
           <input matInput formControlName="fileName" type="text">

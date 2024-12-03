@@ -29,57 +29,29 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
+import { Resource, ResourceInfo, ResourceSubType, ResourceSubTypeTranslationMap } from '@shared/models/resource.models';
+import { PageLink } from '@shared/models/page/page-link';
 
-import { isUndefined } from '@core/utils';
-import { WidgetContext } from '@home/models/widget-component.models';
-import { UtilsService } from '@core/services/utils.service';
+@Component({
+  selector: 'tb-js-library-table-header',
+  templateUrl: './js-library-table-header.component.html',
+  styleUrls: []
+})
+export class JsLibraryTableHeaderComponent extends EntityTableHeaderComponent<Resource, PageLink, ResourceInfo> {
 
-export interface ExceptionData {
-  message?: string;
-  name?: string;
-  lineNumber?: number;
-  columnNumber?: number;
-}
+  readonly jsResourceSubTypes: ResourceSubType[] = [ResourceSubType.EXTENSION, ResourceSubType.MODULE];
+  readonly resourceSubTypesTranslationMap = ResourceSubTypeTranslationMap;
 
-
-export const parseException = (exception: any, lineOffset?: number): ExceptionData => {
-  const data: ExceptionData = {};
-  if (exception) {
-    if (typeof exception === 'string') {
-      data.message = exception;
-    } else if (exception instanceof String) {
-      data.message = exception.toString();
-    } else {
-      if (exception.name) {
-        data.name = exception.name;
-      } else {
-        data.name = 'UnknownError';
-      }
-      if (exception.message) {
-        data.message = exception.message;
-      }
-      if (exception.lineNumber) {
-        data.lineNumber = exception.lineNumber;
-        if (exception.columnNumber) {
-          data.columnNumber = exception.columnNumber;
-        }
-      } else if (exception.stack) {
-        const lineInfoRegexp = /(.*<anonymous>):(\d*)(:)?(\d*)?/g;
-        const lineInfoGroups = lineInfoRegexp.exec(exception.stack);
-        if (lineInfoGroups != null && lineInfoGroups.length >= 3) {
-          if (isUndefined(lineOffset)) {
-            lineOffset = -2;
-          }
-          data.lineNumber = Number(lineInfoGroups[2]) + lineOffset;
-          if (lineInfoGroups.length >= 5) {
-            data.columnNumber = Number(lineInfoGroups[4]);
-          }
-        }
-      }
-    }
+  constructor(protected store: Store<AppState>) {
+    super(store);
   }
-  return data;
-}
 
-export const parseError = (err: any): string =>
-  parseException(err).message || 'Unknown Error';
+  jsResourceSubTypeChanged(resourceSubType: ResourceSubType) {
+    this.entitiesTableConfig.componentsData.resourceSubType = resourceSubType;
+    this.entitiesTableConfig.getTable().resetSortAndFilter(true);
+  }
+}

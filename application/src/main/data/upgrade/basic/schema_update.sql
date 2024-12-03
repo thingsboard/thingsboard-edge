@@ -242,6 +242,12 @@ $$
     END;
 $$;
 
+-- UPDATE RESOURCE JS_MODULE SUB TYPE START
+
+UPDATE resource SET resource_sub_type = 'EXTENSION' WHERE resource_type = 'JS_MODULE' AND resource_sub_type IS NULL;
+
+-- UPDATE RESOURCE JS_MODULE SUB TYPE END
+
 -- migrate self-registration attributes
 DO
 $$
