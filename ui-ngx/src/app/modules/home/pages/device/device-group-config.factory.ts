@@ -30,7 +30,7 @@
 ///
 
 import { DeviceCredentials, DeviceInfo } from '@shared/models/device.models';
-import { Observable, of, Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import {
@@ -154,7 +154,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         }
       );
     }
-    return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
+    return this.groupConfigTableConfigService.prepareConfiguration(params, config);
   }
 
   deviceWizard(config: GroupEntityTableConfig<DeviceInfo>): Observable<DeviceInfo> {

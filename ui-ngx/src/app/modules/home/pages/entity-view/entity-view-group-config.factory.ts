@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import {
@@ -95,7 +95,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
 
     config.onEntityAction = action => this.onEntityViewAction(action, config, params);
 
-    return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
+    return this.groupConfigTableConfigService.prepareConfiguration(params, config);
   }
 
   private openEntityView($event: Event, entityView: EntityViewInfo,
