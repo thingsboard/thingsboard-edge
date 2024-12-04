@@ -227,8 +227,8 @@ public class ProtoUtils {
         return edgeEvent;
     }
 
-    public static TransportProtos.EdgeEventMsgProto toProto(CloudEvent cloudEvent) {
-        TransportProtos.EdgeEventMsgProto.Builder builder = TransportProtos.EdgeEventMsgProto.newBuilder();
+    public static TransportProtos.CloudEventMsgProto toProto(CloudEvent cloudEvent) {
+        TransportProtos.CloudEventMsgProto.Builder builder = TransportProtos.CloudEventMsgProto.newBuilder();
 
         builder.setTenantIdMSB(cloudEvent.getTenantId().getId().getMostSignificantBits());
         builder.setTenantIdLSB(cloudEvent.getTenantId().getId().getLeastSignificantBits());
@@ -246,7 +246,7 @@ public class ProtoUtils {
         return builder.build();
     }
 
-    public static CloudEvent fromProto(TransportProtos.EdgeEventMsgProto proto) {
+    public static CloudEvent fromProto(TransportProtos.CloudEventMsgProto proto) {
         CloudEvent cloudEvent = new CloudEvent();
         TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
         cloudEvent.setTenantId(tenantId);

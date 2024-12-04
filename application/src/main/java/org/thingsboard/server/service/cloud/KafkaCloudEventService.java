@@ -46,7 +46,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.server.gen.transport.TransportProtos.EdgeEventMsgProto;
+import static org.thingsboard.server.gen.transport.TransportProtos.CloudEventMsgProto;
 import static org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 
 @Service
@@ -124,7 +124,7 @@ public class KafkaCloudEventService implements CloudEventService {
         TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> producer = chooseProducer(isTS);
         TopicPartitionInfo tpi = new TopicPartitionInfo(producer.getDefaultTopic(), cloudEvent.getTenantId(), 1, true);
 
-        EdgeEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
+        CloudEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
         ToCloudEventMsg toCloudEventMsg = ToCloudEventMsg.newBuilder().setCloudEventMsg(cloudEventMsgProto).build();
 
         UUID entityId = cloudEvent.getEntityId() == null ? UUID.fromString(cloudEvent.getEntityBody().get("from").get("id").asText()) : cloudEvent.getEntityId();
