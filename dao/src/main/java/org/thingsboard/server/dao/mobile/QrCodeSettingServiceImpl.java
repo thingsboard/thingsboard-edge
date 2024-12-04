@@ -141,17 +141,19 @@ public class QrCodeSettingServiceImpl extends AbstractCachedEntityService<Tenant
             qrCodeSettings.setQrCodeConfig(qrCodeConfig);
             qrCodeSettings.setMobileAppBundleId(qrCodeSettings.getMobileAppBundleId());
         }
-        if (qrCodeSettings.isUseDefaultApp()) {
-            qrCodeSettings.setGooglePlayLink(googlePlayLink);
-            qrCodeSettings.setAppStoreLink(appStoreLink);
-        } else {
-            MobileApp androidApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), ANDROID);
-            MobileApp iosApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), IOS);
-            if (androidApp != null && androidApp.getStoreInfo() != null) {
-                qrCodeSettings.setGooglePlayLink(androidApp.getStoreInfo().getStoreLink());
-            }
-            if (iosApp != null && iosApp.getStoreInfo() != null) {
-                qrCodeSettings.setAppStoreLink(iosApp.getStoreInfo().getStoreLink());
+        if (!qrCodeSettings.isUseSystemSettings()) {
+            if (qrCodeSettings.isUseDefaultApp()) {
+                qrCodeSettings.setGooglePlayLink(googlePlayLink);
+                qrCodeSettings.setAppStoreLink(appStoreLink);
+            } else {
+                MobileApp androidApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), ANDROID);
+                MobileApp iosApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), IOS);
+                if (androidApp != null && androidApp.getStoreInfo() != null) {
+                    qrCodeSettings.setGooglePlayLink(androidApp.getStoreInfo().getStoreLink());
+                }
+                if (iosApp != null && iosApp.getStoreInfo() != null) {
+                    qrCodeSettings.setAppStoreLink(iosApp.getStoreInfo().getStoreLink());
+                }
             }
         }
         return qrCodeSettings;
