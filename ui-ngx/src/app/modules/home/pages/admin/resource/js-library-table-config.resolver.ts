@@ -58,6 +58,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { JsLibraryTableHeaderComponent } from '@home/pages/admin/resource/js-library-table-header.component';
 import { JsResourceComponent } from '@home/pages/admin/resource/js-resource.component';
 import { switchMap } from 'rxjs/operators';
+import { ResourceTabsComponent } from '@home/pages/admin/resource/resource-tabs.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
@@ -74,6 +75,7 @@ export class JsLibraryTableConfigResolver  {
 
     this.config.entityType = EntityType.TB_RESOURCE;
     this.config.entityComponent = JsResourceComponent;
+    this.config.entityTabsComponent = ResourceTabsComponent;
     this.config.entityTranslations = {
       details: 'javascript.javascript-resource-details',
       add: 'javascript.add',
