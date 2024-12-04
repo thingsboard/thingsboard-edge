@@ -151,6 +151,9 @@ public class QrCodeSettingsController extends BaseController {
         SecurityUser currentUser = getCurrentUser();
         accessControlService.checkPermission(currentUser, Resource.MOBILE_APP_SETTINGS, Operation.WRITE);
         qrCodeSettings.setTenantId(getTenantId());
+        if (qrCodeSettings.getMobileAppBundleId() != null) {
+            checkEntityId(qrCodeSettings.getMobileAppBundleId(), Operation.READ);
+        }
         return qrCodeSettingService.saveQrCodeSettings(currentUser.getTenantId(), qrCodeSettings);
     }
 
