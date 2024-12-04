@@ -37,9 +37,8 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class DefaultEdgeSettingsService implements EdgeSettingsService {
+
     private static final String FETCHING_EDGE_SETTINGS_ERROR_MESSAGE = "Fetching edge settings failed";
-    private static final String FOUND_CURRENT_EDGE_SETTINGS_MESSAGE = "Found current edge settings ";
-    private static final String NOT_FOUND_EDGE_SETTINGS_MESSAGE = "Edge settings not found";
     public final AttributesService attributesService;
 
     @Override
@@ -49,10 +48,10 @@ public class DefaultEdgeSettingsService implements EdgeSettingsService {
                     attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
 
             if (attr.isPresent()) {
-                log.trace(FOUND_CURRENT_EDGE_SETTINGS_MESSAGE + "{}", attr.get().getValueAsString());
+                log.trace("Found current edge settings {}", attr.get().getValueAsString());
                 return JacksonUtil.fromString(attr.get().getValueAsString(), EdgeSettings.class);
             } else {
-                log.trace(NOT_FOUND_EDGE_SETTINGS_MESSAGE);
+                log.trace("Edge settings not found");
                 return null;
             }
         } catch (Exception e) {

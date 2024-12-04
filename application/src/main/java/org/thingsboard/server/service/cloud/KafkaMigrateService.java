@@ -18,6 +18,7 @@ package org.thingsboard.server.service.cloud;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +54,7 @@ import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS
 @Slf4j
 @Service
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
-public class KafkaCloudEventSync implements CloudEventSync {
+public class KafkaMigrateService implements MigrateService {
     private final TbCloudEventProvider tbCloudEventProvider;
     private final CloudEventDao cloudEventDao;
     private final TsKvCloudEventDao tsKvCloudEventDao;
@@ -61,8 +62,10 @@ public class KafkaCloudEventSync implements CloudEventSync {
     private final DbCallbackExecutorService dbCallbackExecutorService;
     @Setter
     private TenantId tenantId;
+    @Getter
+    private boolean isMigrated = false;
 
-    public KafkaCloudEventSync(TbCloudEventProvider tbCloudEventProvider, CloudEventDao cloudEventDao,
+    public KafkaMigrateService(TbCloudEventProvider tbCloudEventProvider, CloudEventDao cloudEventDao,
                                TsKvCloudEventDao tsKvCloudEventDao, AttributesService attributesService,
                                DbCallbackExecutorService dbCallbackExecutorService) {
         this.tbCloudEventProvider = tbCloudEventProvider;
@@ -73,12 +76,14 @@ public class KafkaCloudEventSync implements CloudEventSync {
     }
 
     @Override
-    public void init(TenantId tenantId) {
+    public void migrateUnprocessedEventToKafka(TenantId tenantId) {
         this.tenantId = tenantId;
+        cloudEventSync();
+        cloudEventTsSync();
+        isMigrated = true;
     }
 
-    @Override
-    public void cloudEventSync() {
+    private void cloudEventSync() {
         log.info("Sync cloud event to kafka started");
 
         while (true) {
@@ -93,8 +98,7 @@ public class KafkaCloudEventSync implements CloudEventSync {
         log.info("Sync cloud event to kafka finished");
     }
 
-    @Override
-    public void cloudEventTsSync() {
+    private void cloudEventTsSync() {
         log.info("Sync cloud event ts to kafka started");
 
         while (true) {

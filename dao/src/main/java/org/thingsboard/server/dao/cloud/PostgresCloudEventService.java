@@ -39,9 +39,6 @@ import java.util.concurrent.ExecutionException;
 @AllArgsConstructor
 @ConditionalOnExpression("'${queue.type:null}'!='kafka'")
 public class PostgresCloudEventService implements CloudEventService {
-    private static final String SKIPPING_ADDING_IT_IS_ALREADY_PRESENT =
-            "{} Skipping adding of {} event because it's already present in db {} {}";
-    private static final String METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE = "Method cannot be used for this service";
     private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES = List.of(
             EdgeEventActionType.ATTRIBUTES_REQUEST,
             EdgeEventActionType.RELATION_REQUEST
@@ -88,7 +85,7 @@ public class PostgresCloudEventService implements CloudEventService {
         );
 
         if (countMsgsInQueue > 0) {
-            log.info(SKIPPING_ADDING_IT_IS_ALREADY_PRESENT, tenantId, cloudEventAction, entityId, cloudEventType);
+            log.info("{} Skipping adding of {} event because it's already present in db {} {}", tenantId, cloudEventAction, entityId, cloudEventType);
             return false;
         }
 
@@ -120,8 +117,7 @@ public class PostgresCloudEventService implements CloudEventService {
     }
 
     @Override
-    public void unsubscribeConsumers() {
-        throw new UnsupportedOperationException(METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE);
+    public void cleanUp() {
     }
 
 }

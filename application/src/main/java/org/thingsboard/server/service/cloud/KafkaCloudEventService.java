@@ -173,7 +173,7 @@ public class KafkaCloudEventService implements CloudEventService {
     }
 
     @Override
-    public void unsubscribeConsumers() {
+    public void cleanUp() {
         tbCloudEventProvider.getCloudEventMsgConsumer().unsubscribe();
         tbCloudEventProvider.getCloudEventTSMsgConsumer().unsubscribe();
     }

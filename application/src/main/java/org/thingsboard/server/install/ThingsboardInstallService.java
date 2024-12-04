@@ -53,9 +53,6 @@ public class ThingsboardInstallService {
     @Value("${state.persistToTelemetry:false}")
     private boolean persistToTelemetry;
 
-    @Value("${queue.type}")
-    private String queueType;
-
     @Autowired
     private EntityDatabaseSchemaService entityDatabaseSchemaService;
 

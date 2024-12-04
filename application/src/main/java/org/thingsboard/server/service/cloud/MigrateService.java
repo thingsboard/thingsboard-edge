@@ -17,11 +17,10 @@ package org.thingsboard.server.service.cloud;
 
 import org.thingsboard.server.common.data.id.TenantId;
 
-public interface CloudEventSync {
+public interface MigrateService {
 
-    void init(TenantId tenantId);
+    boolean isMigrated();
 
-    void cloudEventSync();
-    void cloudEventTsSync();
+    void migrateUnprocessedEventToKafka(TenantId tenantId);
 
 }

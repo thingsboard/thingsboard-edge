@@ -88,9 +88,6 @@ public class CloudManagerService {
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
 
-    @Value("${queue.type}")
-    protected String queueType;
-
     @Autowired
     private EdgeService edgeService;
 
@@ -138,9 +135,7 @@ public class CloudManagerService {
     private ConfigurableApplicationContext context;
 
     @Autowired(required = false)
-    private CloudEventSync cloudEventSync;
-
-    private boolean isCloudEventSync = false;
+    private MigrateService migrateService;
 
     private EdgeSettings currentEdgeSettings;
 
@@ -305,11 +300,8 @@ public class CloudManagerService {
 
         initialized = true;
 
-        if (queueType.equals("kafka") && !isCloudEventSync) {
-            cloudEventSync.init(tenantId);
-            cloudEventSync.cloudEventSync();
-            cloudEventSync.cloudEventTsSync();
-            isCloudEventSync = true;
+        if (migrateService != null && !migrateService.isMigrated()) {
+            migrateService.migrateUnprocessedEventToKafka(tenantId);
         }
     }
 
@@ -413,10 +405,7 @@ public class CloudManagerService {
 
     private void scheduleReconnect(Exception e) {
         initialized = false;
-
-        if (queueType.equals("kafka")) {
-            cloudEventService.unsubscribeConsumers();
-        }
+        cloudEventService.cleanUp();
 
         updateConnectivityStatus(false);
 

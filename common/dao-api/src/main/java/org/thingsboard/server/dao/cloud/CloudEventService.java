@@ -51,5 +51,6 @@ public interface CloudEventService {
 
     PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
-    void unsubscribeConsumers();
+    void cleanUp();
+
 }

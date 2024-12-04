@@ -22,8 +22,10 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Service
+@TbCoreComponent
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class TbCoreCloudEventProvider implements TbCloudEventProvider {
 
@@ -64,4 +66,6 @@ public class TbCoreCloudEventProvider implements TbCloudEventProvider {
     public TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventTSMsgConsumer() {
         return toCloudEventTSConsumer;
     }
+
 }
+
