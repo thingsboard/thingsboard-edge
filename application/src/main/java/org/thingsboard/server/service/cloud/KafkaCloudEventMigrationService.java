@@ -54,7 +54,7 @@ import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS
 @Slf4j
 @Service
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
-public class KafkaMigrateService implements MigrateService {
+public class KafkaCloudEventMigrationService implements CloudEventMigrationService {
     private final TbCloudEventProvider tbCloudEventProvider;
     private final CloudEventDao cloudEventDao;
     private final TsKvCloudEventDao tsKvCloudEventDao;
@@ -65,9 +65,9 @@ public class KafkaMigrateService implements MigrateService {
     @Getter
     private boolean isMigrated = false;
 
-    public KafkaMigrateService(TbCloudEventProvider tbCloudEventProvider, CloudEventDao cloudEventDao,
-                               TsKvCloudEventDao tsKvCloudEventDao, AttributesService attributesService,
-                               DbCallbackExecutorService dbCallbackExecutorService) {
+    public KafkaCloudEventMigrationService(TbCloudEventProvider tbCloudEventProvider, CloudEventDao cloudEventDao,
+                                           TsKvCloudEventDao tsKvCloudEventDao, AttributesService attributesService,
+                                           DbCallbackExecutorService dbCallbackExecutorService) {
         this.tbCloudEventProvider = tbCloudEventProvider;
         this.cloudEventDao = cloudEventDao;
         this.tsKvCloudEventDao = tsKvCloudEventDao;

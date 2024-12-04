@@ -17,7 +17,7 @@ package org.thingsboard.server.service.cloud;
 
 import org.thingsboard.server.common.data.id.TenantId;
 
-public interface MigrateService {
+public interface CloudEventMigrationService {
 
     boolean isMigrated();
 

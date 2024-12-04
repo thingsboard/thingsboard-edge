@@ -135,7 +135,7 @@ public class CloudManagerService {
     private ConfigurableApplicationContext context;
 
     @Autowired(required = false)
-    private MigrateService migrateService;
+    private CloudEventMigrationService cloudEventMigrationService;
 
     private EdgeSettings currentEdgeSettings;
 
@@ -300,8 +300,8 @@ public class CloudManagerService {
 
         initialized = true;
 
-        if (migrateService != null && !migrateService.isMigrated()) {
-            migrateService.migrateUnprocessedEventToKafka(tenantId);
+        if (cloudEventMigrationService != null && !cloudEventMigrationService.isMigrated()) {
+            cloudEventMigrationService.migrateUnprocessedEventToKafka(tenantId);
         }
     }
 
