@@ -64,7 +64,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                         if (deviceProfileMsg == null) {
                             throw new RuntimeException("[{" + tenantId + "}] deviceProfileUpdateMsg {" + deviceProfileUpdateMsg + "} cannot be converted to device profile");
                         }
-                        DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileMsg.getName());
+                        DeviceProfile deviceProfileByName = edgeCtx.getDeviceProfileService().findDeviceProfileByName(tenantId, deviceProfileMsg.getName());
                         boolean removePreviousProfile = false;
                         if (deviceProfileByName != null && !deviceProfileByName.getId().equals(deviceProfileId)) {
                             renameExistingOnEdgeDeviceProfile(deviceProfileByName);
@@ -72,13 +72,13 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                         }
                         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDeviceProfile(tenantId, deviceProfileId, deviceProfileUpdateMsg);
                         boolean created = resultPair.getFirst();
-                        DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+                        DeviceProfile deviceProfile = edgeCtx.getDeviceProfileService().findDeviceProfileById(tenantId, deviceProfileId);
                         if (!deviceProfile.isDefault() && deviceProfileMsg.isDefault()) {
-                            deviceProfileService.setDefaultDeviceProfile(tenantId, deviceProfileId);
+                            edgeCtx.getDeviceProfileService().setDefaultDeviceProfile(tenantId, deviceProfileId);
                         }
                         if (removePreviousProfile) {
                             updateDevices(tenantId, deviceProfileId, deviceProfileByName.getId());
-                            deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileByName.getId());
+                            edgeCtx.getDeviceProfileService().deleteDeviceProfile(tenantId, deviceProfileByName.getId());
                         }
                         if (created) {
                             pushDeviceProfileCreatedEventToRuleEngine(tenantId, deviceProfileId);
@@ -88,9 +88,9 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    DeviceProfile deviceProfileToDelete = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+                    DeviceProfile deviceProfileToDelete = edgeCtx.getDeviceProfileService().findDeviceProfileById(tenantId, deviceProfileId);
                     if (deviceProfileToDelete != null) {
-                        deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
+                        edgeCtx.getDeviceProfileService().deleteDeviceProfile(tenantId, deviceProfileId);
                         pushDeviceProfileDeletedEventToRuleEngine(tenantId, deviceProfileToDelete);
                     }
                     break;
@@ -104,7 +104,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
     }
 
     private void pushDeviceProfileCreatedEventToRuleEngine(TenantId tenantId, DeviceProfileId deviceProfileId) {
-        DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
+        DeviceProfile deviceProfile = edgeCtx.getDeviceProfileService().findDeviceProfileById(tenantId, deviceProfileId);
         pushDeviceProfileEventToRuleEngine(tenantId, deviceProfile, TbMsgType.ENTITY_CREATED);
     }
 
@@ -123,30 +123,28 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
 
     private void updateDevices(TenantId tenantId, DeviceProfileId newDeviceProfileId, DeviceProfileId previousDeviceProfileId) {
         PageDataIterable<DeviceInfo> deviceInfosIterable = new PageDataIterable<>(
-                link -> deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).deviceProfileId(previousDeviceProfileId).build(), link), 1024);
+                link -> edgeCtx.getDeviceService().findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).deviceProfileId(previousDeviceProfileId).build(), link), 1024);
         deviceInfosIterable.forEach(deviceInfo -> {
             deviceInfo.setDeviceProfileId(newDeviceProfileId);
-            deviceService.saveDevice(new Device(deviceInfo));
+            edgeCtx.getDeviceService().saveDevice(new Device(deviceInfo));
         });
     }
 
     private void renameExistingOnEdgeDeviceProfile(DeviceProfile deviceProfileByName) {
         deviceProfileByName.setName(deviceProfileByName.getName() + StringUtils.randomAlphanumeric(15));
-        deviceProfileService.saveDeviceProfile(deviceProfileByName);
+        edgeCtx.getDeviceProfileService().saveDeviceProfile(deviceProfileByName);
     }
 
     public UplinkMsg convertDeviceProfileEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(cloudEvent.getEntityId());
-        UplinkMsg msg = null;
+        var msgConstructor = (DeviceMsgConstructor) edgeCtx.getDeviceMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED -> {
-                DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(cloudEvent.getTenantId(), deviceProfileId);
+                DeviceProfile deviceProfile = edgeCtx.getDeviceProfileService().findDeviceProfileById(cloudEvent.getTenantId(), deviceProfileId);
                 if (deviceProfile != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    DeviceProfileUpdateMsg deviceProfileUpdateMsg = ((DeviceMsgConstructor)
-                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
-                            .constructDeviceProfileUpdatedMsg(msgType, deviceProfile);
-                    msg = UplinkMsg.newBuilder()
+                    DeviceProfileUpdateMsg deviceProfileUpdateMsg = msgConstructor.constructDeviceProfileUpdatedMsg(msgType, deviceProfile);
+                    return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceProfileUpdateMsg(deviceProfileUpdateMsg).build();
                 } else {
@@ -154,14 +152,13 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                 }
             }
             case DELETED -> {
-                DeviceProfileUpdateMsg deviceProfileUpdateMsg = ((DeviceMsgConstructor)
-                        deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceProfileDeleteMsg(deviceProfileId);
-                msg = UplinkMsg.newBuilder()
+                DeviceProfileUpdateMsg deviceProfileUpdateMsg = msgConstructor.constructDeviceProfileDeleteMsg(deviceProfileId);
+                return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceProfileUpdateMsg(deviceProfileUpdateMsg).build();
             }
         }
-        return msg;
+        return null;
     }
 
     @Override
@@ -174,7 +171,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
         RuleChainId defaultRuleChainId = deviceProfile.getDefaultEdgeRuleChainId();
         RuleChain ruleChain = null;
         if (defaultRuleChainId != null) {
-            ruleChain = ruleChainService.findRuleChainById(tenantId, defaultRuleChainId);
+            ruleChain = edgeCtx.getRuleChainService().findRuleChainById(tenantId, defaultRuleChainId);
         }
         deviceProfile.setDefaultRuleChainId(ruleChain != null ? ruleChain.getId() : null);
     }
@@ -189,7 +186,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
         DashboardId defaultDashboardId = deviceProfile.getDefaultDashboardId();
         DashboardInfo dashboard = null;
         if (defaultDashboardId != null) {
-            dashboard = dashboardService.findDashboardInfoById(tenantId, defaultDashboardId);
+            dashboard = edgeCtx.getDashboardService().findDashboardInfoById(tenantId, defaultDashboardId);
         }
         deviceProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }

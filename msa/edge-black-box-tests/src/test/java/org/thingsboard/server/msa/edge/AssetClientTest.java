@@ -18,6 +18,7 @@ package org.thingsboard.server.msa.edge;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -87,6 +88,7 @@ public class AssetClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getAssetById(savedAsset2.getId()).get().getCustomerId()));
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
 
         // unassign asset #2 from customer
         cloudRestClient.unassignAssetFromCustomer(savedAsset2.getId());

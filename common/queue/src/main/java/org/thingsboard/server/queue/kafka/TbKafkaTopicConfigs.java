@@ -46,6 +46,8 @@ public class TbKafkaTopicConfigs {
     private String vcProperties;
     @Value("${queue.kafka.topic-properties.edge:}")
     private String edgeProperties;
+    @Value("${queue.kafka.topic-properties.edge-event:}")
+    private String edgeEventProperties;
     @Value("${queue.kafka.topic-properties.housekeeper:}")
     private String housekeeperProperties;
     @Value("${queue.kafka.topic-properties.housekeeper-reprocessing:}")
@@ -80,6 +82,8 @@ public class TbKafkaTopicConfigs {
     @Getter
     private Map<String, String> edgeConfigs;
     @Getter
+    private Map<String, String> edgeEventConfigs;
+    @Getter
     private Map<String, String> cloudEventConfigs;
     @Getter
     private Map<String, String> cloudEventTSConfigs;
@@ -100,6 +104,7 @@ public class TbKafkaTopicConfigs {
         housekeeperConfigs = PropertyUtils.getProps(housekeeperProperties);
         housekeeperReprocessingConfigs = PropertyUtils.getProps(housekeeperReprocessingProperties);
         edgeConfigs = PropertyUtils.getProps(edgeProperties);
+        edgeEventConfigs = PropertyUtils.getProps(edgeEventProperties);
         cloudEventConfigs = PropertyUtils.getProps(cloudEventProperties);
         cloudEventTSConfigs = PropertyUtils.getProps(cloudEventTSProperties);
     }

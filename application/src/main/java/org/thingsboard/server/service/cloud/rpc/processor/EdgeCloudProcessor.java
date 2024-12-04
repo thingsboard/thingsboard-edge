@@ -43,7 +43,7 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
         edgeCreationLock.lock();
         try {
             cloudSynchronizationManager.getSync().set(true);
-            Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+            Edge edge = edgeCtx.getEdgeService().findEdgeById(tenantId, edgeId);
             if (edge == null) {
                 edge = new Edge();
                 edge.setId(edgeId);
@@ -57,7 +57,7 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
             edge.setRoutingKey(edgeConfiguration.getRoutingKey());
             edge.setSecret(edgeConfiguration.getSecret());
             edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
-            edgeService.saveEdge(edge, false);
+            edgeCtx.getEdgeService().saveEdge(edge, false);
         } finally {
             cloudSynchronizationManager.getSync().remove();
             edgeCreationLock.unlock();

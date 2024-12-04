@@ -100,7 +100,6 @@ import * as TruncateWithTooltipDirective from '@shared/directives/truncate-with-
 
 import * as coercion from '@shared/decorators/coercion';
 import * as enumerable from '@shared/decorators/enumerable';
-import * as TbInject from '@shared/decorators/tb-inject';
 
 import * as FooterComponent from '@shared/components/footer.component';
 import * as LogoComponent from '@shared/components/logo.component';
@@ -339,6 +338,7 @@ import { TimezonePanelComponent } from '@shared/components/time/timezone-panel.c
 import { DatapointsLimitComponent } from '@shared/components/time/datapoints-limit.component';
 import { Observable, map, of } from 'rxjs';
 import { getFlexLayout } from '@shared/legacy/flex-layout.models';
+import { isJSResourceUrl } from '@shared/public-api';
 
 class ModulesMap implements IModulesMap {
 
@@ -432,7 +432,6 @@ class ModulesMap implements IModulesMap {
 
     '@shared/decorators/coercion': coercion,
     '@shared/decorators/enumerable': enumerable,
-    '@shared/decorators/tb-inject': TbInject,
 
     '@shared/import-export/import-export.service': ImportExportService,
     '@shared/import-export/import-dialog.component': ImportDialogComponent,
@@ -695,7 +694,7 @@ class ModulesMap implements IModulesMap {
           for (const moduleId of Object.keys(this.modulesMap)) {
             System.set('app:' + moduleId, this.modulesMap[moduleId]);
           }
-          System.constructor.prototype.shouldFetch = (url: string) => url.endsWith('/download');
+          System.constructor.prototype.shouldFetch = (url: string) => url.endsWith('/download') || isJSResourceUrl(url);
           System.constructor.prototype.fetch = (url: string, options: RequestInit & {meta?: any}) => {
             if (options?.meta?.additionalHeaders) {
               options.headers = { ...options.headers, ...options.meta.additionalHeaders };

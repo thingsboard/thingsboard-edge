@@ -51,13 +51,13 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
                     }
                     oAuth2Client.getMapperConfig().setActivateUser(false);
                     oAuth2Client.getMapperConfig().setAllowUserCreation(false);
-                    oAuth2ClientService.saveOAuth2Client(oAuth2Client.getTenantId(), oAuth2Client);
+                    edgeCtx.getOAuth2ClientService().saveOAuth2Client(oAuth2Client.getTenantId(), oAuth2Client);
                     return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     OAuth2ClientId oAuth2ClientId = new OAuth2ClientId(new UUID(oAuth2ClientUpdateMsg.getIdMSB(), oAuth2ClientUpdateMsg.getIdLSB()));
-                    OAuth2Client oAuth2ClientById = oAuth2ClientService.findOAuth2ClientById(TenantId.SYS_TENANT_ID, oAuth2ClientId);
+                    OAuth2Client oAuth2ClientById = edgeCtx.getOAuth2ClientService().findOAuth2ClientById(TenantId.SYS_TENANT_ID, oAuth2ClientId);
                     if (oAuth2ClientById != null) {
-                        oAuth2ClientService.deleteOAuth2ClientById(TenantId.SYS_TENANT_ID, oAuth2ClientId);
+                        edgeCtx.getOAuth2ClientService().deleteOAuth2ClientById(TenantId.SYS_TENANT_ID, oAuth2ClientId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -87,18 +87,18 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
                     if (domain.isOauth2Enabled() && !domain.isPropagateToEdge()) {
                         domain.setOauth2Enabled(false);
                     }
-                    Domain savedDomain = domainService.saveDomain(TenantId.SYS_TENANT_ID, domain);
+                    Domain savedDomain = edgeCtx.getDomainService().saveDomain(TenantId.SYS_TENANT_ID, domain);
                     List<OAuth2ClientId> oAuth2Clients = domainInfo.getOauth2ClientInfos().stream().map(IdBased::getId).collect(Collectors.toList());
                     if (!CollectionUtils.isEmpty(oAuth2Clients)) {
-                        domainService.updateOauth2Clients(savedDomain.getTenantId(), savedDomain.getId(), oAuth2Clients);
+                        edgeCtx.getDomainService().updateOauth2Clients(savedDomain.getTenantId(), savedDomain.getId(), oAuth2Clients);
                     }
                     return Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE:
                     DomainId domainId = new DomainId(new UUID(oAuth2DomainUpdateMsg.getIdMSB(), oAuth2DomainUpdateMsg.getIdLSB()));
-                    Domain domain = domainService.findDomainById(TenantId.SYS_TENANT_ID, domainId);
+                    Domain domain = edgeCtx.getDomainService().findDomainById(TenantId.SYS_TENANT_ID, domainId);
                     if (domain != null) {
-                        domainService.deleteDomainById(TenantId.SYS_TENANT_ID, domainId);
+                        edgeCtx.getDomainService().deleteDomainById(TenantId.SYS_TENANT_ID, domainId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:

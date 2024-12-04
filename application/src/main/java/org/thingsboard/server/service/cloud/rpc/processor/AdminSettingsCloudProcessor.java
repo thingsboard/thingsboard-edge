@@ -42,17 +42,17 @@ public class AdminSettingsCloudProcessor extends BaseEdgeProcessor {
             throw new RuntimeException("[{" + tenantId + "}] adminSettingsUpdateMsg {" + adminSettingsUpdateMsg + " } cannot be converted to admin settings");
         }
         if (TenantId.SYS_TENANT_ID.equals(adminSettingsMsg.getTenantId())) {
-            AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, adminSettingsMsg.getKey());
+            AdminSettings adminSettings = edgeCtx.getAdminSettingsService().findAdminSettingsByKey(TenantId.SYS_TENANT_ID, adminSettingsMsg.getKey());
             if (adminSettings != null) {
                 adminSettings.setJsonValue(adminSettingsMsg.getJsonValue());
-                adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
+                edgeCtx.getAdminSettingsService().saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
             } else {
-                adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettingsMsg);
+                edgeCtx.getAdminSettingsService().saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettingsMsg);
             }
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
             attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), JacksonUtil.toString(adminSettingsMsg.getJsonValue())), System.currentTimeMillis()));
-            attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
+            edgeCtx.getAttributesService().save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
         }
         return Futures.immediateFuture(null);
     }

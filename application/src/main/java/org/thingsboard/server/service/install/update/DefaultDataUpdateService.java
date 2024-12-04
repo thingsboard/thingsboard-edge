@@ -43,7 +43,6 @@ import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceConnectivityConfiguration;
-import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
@@ -91,11 +90,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private TenantProfileService tenantProfileService;
 
-
     // edge-only: for case "edge" in updateData
-    @Autowired
-    private EdgeEventDao edgeEventDao;
-
     @Autowired
     private TenantService tenantService;
 
@@ -108,10 +103,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Override
     public void updateData(String fromVersion) throws Exception {
         switch (fromVersion) {
-            case "3.5.1":
-                log.info("Updating data from version 3.5.1 to 3.6.0 ...");
-                migrateEdgeEvents("Starting edge events migration - adding seq_id column. ");
-                break;
             case "3.6.0":
                 log.info("Updating data from version 3.6.0 to 3.6.1 ...");
                 migrateDeviceConnectivity();
@@ -131,16 +122,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
-        }
-    }
-
-    private void migrateEdgeEvents(String logPrefix) {
-        boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
-        if (!skipEdgeEventsMigration) {
-            log.info(logPrefix + "Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
-            edgeEventDao.migrateEdgeEvents();
-        } else {
-            log.info("Skipping edge events migration");
         }
     }
 

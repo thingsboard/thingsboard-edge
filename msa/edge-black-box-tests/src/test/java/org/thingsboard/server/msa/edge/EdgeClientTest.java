@@ -33,23 +33,12 @@ public class EdgeClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Edge Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
-        cloudRestClient.assignEdgeToCustomer(savedCustomer.getId(), edge.getId());
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
 
-        try {
-            // wait until sync process completed fully
-            TimeUnit.SECONDS.sleep(5);
-        } catch (Exception ignored) {}
+        // assign edge to customer
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
 
         // unassign edge from customer
-        cloudRestClient.unassignEdgeFromCustomer(edge.getId());
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
     }
 
 }

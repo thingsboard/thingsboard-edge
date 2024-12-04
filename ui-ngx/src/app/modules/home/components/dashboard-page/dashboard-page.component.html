@@ -128,7 +128,7 @@
               <mat-icon>close</mat-icon>{{ 'action.cancel' | translate }}</button>
             <mat-divider class="tb-toolbar-divider" vertical></mat-divider>
           </ng-container>
-          <!-- @voba: not visible on edge
+          <!-- Edge-only: not visible on edge
           <ng-container *ngIf="currentDashboardId && isEdit && isTenantAdmin()">
             <button class="lt-lg:!hidden gt-lg:!hidden" mat-icon-button
                     #versionControlIconButton

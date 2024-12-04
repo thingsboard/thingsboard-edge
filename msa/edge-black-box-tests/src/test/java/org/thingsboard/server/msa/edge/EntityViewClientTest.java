@@ -86,6 +86,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEntityViewById(savedEntityView2.getId()).get().getCustomerId().getId()));
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
         // delete entity view #2

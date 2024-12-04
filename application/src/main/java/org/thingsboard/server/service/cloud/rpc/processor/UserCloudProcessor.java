@@ -55,9 +55,9 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                         if (user == null) {
                             throw new RuntimeException("[{" + tenantId + "}] userUpdateMsg {" + userUpdateMsg + "} cannot be converted to user");
                         }
-                        User userById = userService.findUserById(tenantId, userId);
+                        User userById = edgeCtx.getUserService().findUserById(tenantId, userId);
                         boolean created = userById == null;
-                        User savedUser = userService.saveUser(tenantId, user, false);
+                        User savedUser = edgeCtx.getUserService().saveUser(tenantId, user, false);
                         if (created) {
                             createDefaultUserCredentials(savedUser.getTenantId(), savedUser.getId());
                         }
@@ -66,9 +66,9 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     }
                     return requestForAdditionalData(tenantId, userId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    User userToDelete = userService.findUserById(tenantId, userId);
+                    User userToDelete = edgeCtx.getUserService().findUserById(tenantId, userId);
                     if (userToDelete != null) {
-                        userService.deleteUser(tenantId, userToDelete);
+                        edgeCtx.getUserService().deleteUser(tenantId, userToDelete);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -87,9 +87,9 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
             if (userCredentialsMsg == null) {
                 throw new RuntimeException("[{" + tenantId + "}] userCredentialsUpdateMsg {" + userCredentialsUpdateMsg + "} cannot be converted to user credentials");
             }
-            User user = userService.findUserById(tenantId, userCredentialsMsg.getUserId());
+            User user = edgeCtx.getUserService().findUserById(tenantId, userCredentialsMsg.getUserId());
             if (user != null) {
-                UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(tenantId, user.getId());
+                UserCredentials userCredentialsByUserId = edgeCtx.getUserService().findUserCredentialsByUserId(tenantId, user.getId());
                 if (userCredentialsByUserId == null) {
                     userCredentialsByUserId = createDefaultUserCredentials(tenantId, userCredentialsMsg.getUserId());
                 }
@@ -98,7 +98,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                 userCredentialsByUserId.setActivateToken(userCredentialsMsg.getActivateToken());
                 userCredentialsByUserId.setResetToken(userCredentialsMsg.getResetToken());
                 userCredentialsByUserId.setAdditionalInfo(userCredentialsMsg.getAdditionalInfo());
-                userService.saveUserCredentials(tenantId, userCredentialsByUserId);
+                edgeCtx.getUserService().saveUserCredentials(tenantId, userCredentialsByUserId);
             }
         } finally {
             cloudSynchronizationManager.getSync().remove();
@@ -113,7 +113,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
         userCredentials.setUserId(userId);
         userCredentials.setAdditionalInfo(JacksonUtil.newObjectNode());
         // TODO: Edge-only:  save or update user password history?
-        return userService.saveUserCredentials(tenantId, userCredentials, false);
+        return edgeCtx.getUserService().saveUserCredentials(tenantId, userCredentials, false);
     }
 
 }
