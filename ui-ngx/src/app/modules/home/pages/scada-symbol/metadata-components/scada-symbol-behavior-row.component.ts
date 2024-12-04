@@ -72,6 +72,7 @@ import {
 } from '@home/pages/scada-symbol/metadata-components/scada-symbol-behaviors.component';
 import { IAliasController } from '@core/api/widget-api.models';
 import { WidgetActionCallbacks } from '@home/components/widget/action/manage-widget-actions.component.models';
+import { isNotEmptyTbFunction } from '@shared/models/js-function.models';
 
 export const behaviorValid = (behavior: ScadaSymbolBehavior): boolean => {
   if (!behavior.id || !behavior.name || !behavior.type) {
@@ -92,7 +93,7 @@ export const behaviorValid = (behavior: ScadaSymbolBehavior): boolean => {
         return false;
       }
       if (behavior.defaultSetValueSettings.valueToData?.type === ValueToDataType.FUNCTION
-        && isUndefinedOrNull(behavior.defaultSetValueSettings.valueToData?.valueToDataFunction)) {
+        && !isNotEmptyTbFunction(behavior.defaultSetValueSettings.valueToData?.valueToDataFunction)) {
         return false;
       }
       break;

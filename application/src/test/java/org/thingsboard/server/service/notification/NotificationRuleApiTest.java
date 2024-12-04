@@ -445,6 +445,8 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
                 edge.setType("default");
                 edge.setSecret("secret_" + i);
                 edge.setRoutingKey("routingKey_" + i);
+                edge.setEdgeLicenseKey("licenseKey_" + i);
+                edge.setCloudEndpoint("endpoint");
                 doPost("/api/edge", edge);
             }
         }, notification -> {
