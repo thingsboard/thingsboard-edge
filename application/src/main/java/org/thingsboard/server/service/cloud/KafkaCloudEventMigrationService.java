@@ -15,19 +15,21 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -36,20 +38,31 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.TsKvCloudEventDao;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCloudEventProvider;
+import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static org.thingsboard.server.service.cloud.PostgresUplinkMessageService.FAILED_TO_FIND_CLOUD_EVENTS;
+import static org.thingsboard.server.service.cloud.PostgresUplinkMessageService.FAILED_TO_UPDATE_QUEUE_OFFSET_ERROR_MESSAGE;
 import static org.thingsboard.server.service.cloud.PostgresUplinkMessageService.QUEUE_END_TS_LESS_THAN_CURRENT_TIME_MESSAGE;
+import static org.thingsboard.server.service.cloud.PostgresUplinkMessageService.QUEUE_OFFSET_WAS_UPDATED_MESSAGE;
+import static org.thingsboard.server.service.cloud.PostgresUplinkMessageService.STARTED_NEW_CYCLE_MESSAGE;
+import static org.thingsboard.server.service.cloud.PostgresUplinkMessageService.UPDATE_QUEUE_START_TS_SEQ_ID_OFFSET_MESSAGE;
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_START_TS_ATTR_KEY;
 
 @Slf4j
 @Service
@@ -60,6 +73,7 @@ public class KafkaCloudEventMigrationService implements CloudEventMigrationServi
     private final TsKvCloudEventDao tsKvCloudEventDao;
     private final AttributesService attributesService;
     private final DbCallbackExecutorService dbCallbackExecutorService;
+    private final CloudEventStorageSettings cloudEventStorageSettings;
     @Setter
     private TenantId tenantId;
     @Getter
@@ -67,88 +81,57 @@ public class KafkaCloudEventMigrationService implements CloudEventMigrationServi
 
     public KafkaCloudEventMigrationService(TbCloudEventProvider tbCloudEventProvider, CloudEventDao cloudEventDao,
                                            TsKvCloudEventDao tsKvCloudEventDao, AttributesService attributesService,
-                                           DbCallbackExecutorService dbCallbackExecutorService) {
+                                           DbCallbackExecutorService dbCallbackExecutorService, CloudEventStorageSettings cloudEventStorageSettings) {
         this.tbCloudEventProvider = tbCloudEventProvider;
         this.cloudEventDao = cloudEventDao;
         this.tsKvCloudEventDao = tsKvCloudEventDao;
         this.attributesService = attributesService;
         this.dbCallbackExecutorService = dbCallbackExecutorService;
+        this.cloudEventStorageSettings = cloudEventStorageSettings;
     }
 
     @Override
     public void migrateUnprocessedEventToKafka(TenantId tenantId) {
         this.tenantId = tenantId;
-        cloudEventSync();
-        cloudEventTsSync();
+
+        migrateCloudEvent();
+        migrateTS();
         isMigrated = true;
     }
 
-    private void cloudEventSync() {
+    private void migrateCloudEvent() {
         log.info("Sync cloud event to kafka started");
 
-        while (true) {
-            PageData<CloudEvent> cloudEvents = getCloudEventFromDB(false);
-            if (!cloudEvents.getData().isEmpty()) {
-                cloudEvents.getData().forEach(this::sendCloudEvent);
-            } else {
-                break;
-            }
+        Long cloudEventsQueueSeqIdStart = getQueueSeqIdStart(QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
+        TimePageLink cloudEventsPageLink = newCloudEventsAvailable(QUEUE_START_TS_ATTR_KEY, cloudEventsQueueSeqIdStart, cloudEventDao);
+
+        if (cloudEventsPageLink != null) {
+            processCloudEvents(cloudEventDao, cloudEventsQueueSeqIdStart, cloudEventsPageLink, false);
         }
 
         log.info("Sync cloud event to kafka finished");
     }
 
-    private void cloudEventTsSync() {
-        log.info("Sync cloud event ts to kafka started");
+    private void migrateTS() {
+        log.info("Sync cloud event TS to kafka started");
 
-        while (true) {
-            PageData<CloudEvent> cloudEventsTS = getCloudEventFromDB(true);
+        Long cloudEventsQueueSeqIdStart = getQueueSeqIdStart(QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY);
+        TimePageLink cloudEventsPageLink = newCloudEventsAvailable(QUEUE_TS_KV_START_TS_ATTR_KEY, cloudEventsQueueSeqIdStart, tsKvCloudEventDao);
 
-            if (!cloudEventsTS.getData().isEmpty()) {
-                cloudEventsTS.getData().forEach(this::sendCloudEventTS);
-            } else {
-                break;
-            }
+        if (cloudEventsPageLink != null) {
+            processCloudEvents(tsKvCloudEventDao, cloudEventsQueueSeqIdStart, cloudEventsPageLink, true);
         }
-        log.info("Sync cloud event ts to kafka finished");
+
+        log.info("Sync cloud event TS to kafka finished");
     }
 
-    @NotNull
-    private PageData<CloudEvent> getCloudEventFromDB(boolean isTs) {
-        try {
-            Long queueSeqIdStart = getSeqId(QUEUE_SEQ_ID_OFFSET_ATTR_KEY).get();
-            TimePageLink pageLink = prepareTimePageLink();
-            TsKvCloudEventDao dao = isTs ? tsKvCloudEventDao : cloudEventDao;
-
-            PageData<CloudEvent> cloudEvents = dao.findCloudEvents(tenantId.getId(), queueSeqIdStart, null, pageLink);
-
-            if (cloudEvents.getData().isEmpty()) {
-                // check if new cycle started (seq_id starts from '1')
-                cloudEvents = getCloudEventFromBeginning(tsKvCloudEventDao, pageLink, pageLink.getEndTime(), cloudEvents, queueSeqIdStart);
-            }
-
-            return cloudEvents;
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private TimePageLink prepareTimePageLink() throws InterruptedException, ExecutionException {
-        int maxReadRecordsCount = 50;
-        long queueStartTs = getSeqId(QUEUE_START_TS_ATTR_KEY).get();
-        long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
-
-        return new TimePageLink(maxReadRecordsCount, 0, null, null, queueStartTs, queueEndTs);
-    }
-
-    @NotNull
-    private ListenableFuture<Long> getSeqId(String attribute) {
-        ListenableFuture<Optional<AttributeKvEntry>> future =
-                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attribute);
+    private ListenableFuture<Long> getLongAttrByKey(String attrKey) {
+        ListenableFuture<Optional<AttributeKvEntry>> future = attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKey);
 
         return Futures.transform(
                 future,
-                attributeKvEntryOpt -> attributeExist(attributeKvEntryOpt) ? attributeKvEntryOpt.get().getLongValue().orElse(0L) : 0L,
+                attributeKvEntryOpt ->
+                        attributeExist(attributeKvEntryOpt) ? attributeKvEntryOpt.get().getLongValue().orElse(0L) : 0L,
                 dbCallbackExecutorService
         );
     }
@@ -157,61 +140,146 @@ public class KafkaCloudEventMigrationService implements CloudEventMigrationServi
         return attributeKvEntryOpt != null && attributeKvEntryOpt.isPresent();
     }
 
-    private PageData<CloudEvent> getCloudEventFromBeginning(TsKvCloudEventDao tsKvCloudEventDao, TimePageLink pageLink, long queueEndTs, PageData<CloudEvent> cloudEvents, Long queueSeqIdStart) {
-        long seqIdEnd = Integer.toUnsignedLong(50);
-        seqIdEnd = Math.max(seqIdEnd, 50L);
+    public TimePageLink newCloudEventsAvailable(String seqIdStart, Long queueSeqIdStart, TsKvCloudEventDao cloudEventsDao) {
+        try {
+            TimePageLink pageLink = prepareTimePageLink(seqIdStart);
 
-        PageData<CloudEvent> cloudEventsTemp = tsKvCloudEventDao.findCloudEvents(tenantId.getId(), 0L, seqIdEnd, pageLink);
+            PageData<CloudEvent> cloudEvents = cloudEventsDao.findCloudEvents(tenantId.getId(), queueSeqIdStart, null, pageLink);
 
-        if (cloudEventsTemp.getData().stream().noneMatch(ce -> ce.getSeqId() == 1)) {
-            cloudEvents = findFromQueueEndToToday(tsKvCloudEventDao, queueEndTs, cloudEvents, queueSeqIdStart);
+            if (cloudEvents.getData().isEmpty()) {
+                return getLastTimePageLink(cloudEventsDao, queueSeqIdStart, pageLink);
+            } else {
+                return pageLink;
+            }
+        } catch (Exception e) {
+            log.warn(FAILED_TO_FIND_CLOUD_EVENTS, e);
+            return null;
         }
-
-        return cloudEvents;
     }
 
-    private PageData<CloudEvent> findFromQueueEndToToday(TsKvCloudEventDao tsKvCloudEventDao, long queueEndTs, PageData<CloudEvent> cloudEvents, Long queueSeqIdStart) {
+    private TimePageLink prepareTimePageLink(String seqIdStart) {
+        int maxReadRecordsCount = cloudEventStorageSettings.getMaxReadRecordsCount();
+        long queueStartTs = getQueueSeqIdStart(seqIdStart);
+        long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
+
+        return new TimePageLink(maxReadRecordsCount, 0, null, null, queueStartTs, queueEndTs);
+    }
+
+    private TimePageLink getLastTimePageLink(TsKvCloudEventDao dao, Long queueSeqIdStart, TimePageLink pageLink) {
+        PageData<CloudEvent> cloudEvents = findCloudEventsFromBeginning(dao, pageLink);
+
+        if (cloudEvents.getData().stream().noneMatch(ce -> ce.getSeqId() == 1)) {
+            return findFromQueueEndToToday(dao, queueSeqIdStart, pageLink.getEndTime());
+        } else {
+            log.info(STARTED_NEW_CYCLE_MESSAGE);
+            return pageLink;
+        }
+    }
+
+    private Long getQueueSeqIdStart(String attribute) {
+        try {
+            return getLongAttrByKey(attribute).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private PageData<CloudEvent> findCloudEventsFromBeginning(TsKvCloudEventDao dao, TimePageLink pageLink) {
+        long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
+        seqIdEnd = Math.max(seqIdEnd, 50L);
+
+        return dao.findCloudEvents(tenantId.getId(), 0L, seqIdEnd, pageLink);
+    }
+
+    private TimePageLink findFromQueueEndToToday(TsKvCloudEventDao dao, Long queueSeqIdStart, long queueEndTs) {
         long queueStartTs;
 
         while (queueEndTs < System.currentTimeMillis()) {
             log.trace(QUEUE_END_TS_LESS_THAN_CURRENT_TIME_MESSAGE + " [{}] [{}]", queueEndTs, System.currentTimeMillis());
             queueStartTs = queueEndTs;
             queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
-            TimePageLink pageLink2 = new TimePageLink(50,
+            TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
                     0, null, null, queueStartTs, queueEndTs);
 
-            cloudEvents = tsKvCloudEventDao.findCloudEvents(tenantId.getId(), queueSeqIdStart, null, pageLink2);
+            PageData<CloudEvent> cloudEvents = dao.findCloudEvents(tenantId.getId(), queueSeqIdStart, null, pageLink);
 
             if (!cloudEvents.getData().isEmpty()) {
-                break;
+                return pageLink;
             }
+        }
+
+        return null;
+    }
+
+    public void processCloudEvents(TsKvCloudEventDao cloudEventDao, Long queueSeqIdStart, TimePageLink pageLink, boolean isTs) {
+        PageData<CloudEvent> cloudEvents;
+
+        do {
+            cloudEvents = prepareCloudEvents(cloudEventDao, queueSeqIdStart, pageLink);
+
+            sendCloudEvent(isTs, cloudEvents);
+
+            pageLink = prepareNextPageLink(isTs, cloudEvents, pageLink);
+        } while (cloudEvents.hasNext());
+    }
+
+    private PageData<CloudEvent> prepareCloudEvents(TsKvCloudEventDao cloudEventDao, Long queueSeqIdStart, TimePageLink pageLink) {
+        PageData<CloudEvent> cloudEvents = cloudEventDao.findCloudEvents(tenantId.getId(), queueSeqIdStart, null, pageLink);
+
+        if (cloudEvents.getData().isEmpty()) {
+            return findCloudEventsFromBeginning(cloudEventDao, pageLink);
         }
 
         return cloudEvents;
     }
 
-    private void sendCloudEvent(CloudEvent event) {
+    private TimePageLink prepareNextPageLink(boolean isTs, PageData<CloudEvent> cloudEvents, TimePageLink pageLink) {
+        if (cloudEvents.getTotalElements() > 0) {
+            chooseAnotherStartTs(isTs, cloudEvents);
+        }
+
+        return pageLink.nextPageLink();
+    }
+
+    private void chooseAnotherStartTs(boolean isTs, PageData<CloudEvent> cloudEvents) {
+        CloudEvent latestCloudEvent = cloudEvents.getData().get(cloudEvents.getData().size() - 1);
+
         try {
-            sendCloudEventToTopicAsync(event, false).get();
+            Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
+            updateQueueStartTsSeqIdOffset(isTs, newStartTs, latestCloudEvent.getSeqId());
+            log.debug(QUEUE_OFFSET_WAS_UPDATED_MESSAGE + " [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
+        } catch (Exception e) {
+            log.error(FAILED_TO_UPDATE_QUEUE_OFFSET_ERROR_MESSAGE + " [{}]", latestCloudEvent);
+        }
+    }
+
+    protected void updateQueueStartTsSeqIdOffset(boolean isTs, Long newStartTs, Long newSeqId) {
+        String startTs = isTs ? QUEUE_TS_KV_START_TS_ATTR_KEY : QUEUE_START_TS_ATTR_KEY;
+        String offset = isTs ? QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY : QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
+
+        log.trace(UPDATE_QUEUE_START_TS_SEQ_ID_OFFSET_MESSAGE + " [{}][{}][{}][{}]", startTs, offset, newStartTs, newSeqId);
+        List<AttributeKvEntry> attributes = Arrays.asList(
+                new BaseAttributeKvEntry(new LongDataEntry(startTs, newStartTs), System.currentTimeMillis()),
+                new BaseAttributeKvEntry(new LongDataEntry(offset, newSeqId), System.currentTimeMillis())
+        );
+
+        attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
+    }
+
+    private void sendCloudEvent(boolean isTs, PageData<CloudEvent> events) {
+        try {
+            sendCloudEventToTopicAsync(isTs, events.getData()).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void sendCloudEventTS(CloudEvent event) {
-        try {
-            sendCloudEventToTopicAsync(event, true).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private ListenableFuture<Void> sendCloudEventToTopicAsync(CloudEvent cloudEvent, boolean isTS) {
+    private ListenableFuture<Void> sendCloudEventToTopicAsync(boolean isTs, List<CloudEvent> cloudEvents) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
 
         CompletableFuture.runAsync(() -> {
             try {
-                sendCloudEventToTopic(cloudEvent, isTS);
+                cloudEvents.forEach(cloudEvent -> sendCloudEventToTopic(isTs, cloudEvent));
                 futureToSet.set(null);
             } catch (Exception e) {
                 futureToSet.setException(e);
@@ -221,8 +289,8 @@ public class KafkaCloudEventMigrationService implements CloudEventMigrationServi
         return futureToSet;
     }
 
-    private void sendCloudEventToTopic(CloudEvent cloudEvent, boolean isTS) {
-        TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> producer = chooseProducer(isTS);
+    private void sendCloudEventToTopic(boolean isTs, CloudEvent cloudEvent) {
+        TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> producer = chooseProducer(isTs);
         TopicPartitionInfo tpi = new TopicPartitionInfo(producer.getDefaultTopic(), cloudEvent.getTenantId(), 1, true);
 
         TransportProtos.CloudEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
@@ -235,7 +303,7 @@ public class KafkaCloudEventMigrationService implements CloudEventMigrationServi
         producer.send(tpi, cloudEventMsg, null);
     }
 
-    private TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> chooseProducer(boolean isTS) {
+    private TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> chooseProducer(boolean isTS) {
         return isTS ? tbCloudEventProvider.getCloudEventTSMsgProducer() : tbCloudEventProvider.getCloudEventMsgProducer();
     }
 

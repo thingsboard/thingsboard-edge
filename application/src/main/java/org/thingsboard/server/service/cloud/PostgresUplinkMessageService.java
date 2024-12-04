@@ -43,12 +43,12 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class PostgresUplinkMessageService extends BaseUplinkMessageService {
     public static final String QUEUE_END_TS_LESS_THAN_CURRENT_TIME_MESSAGE = "newCloudEventsAvailable: queueEndTs < System.currentTimeMillis()";
-    private static final String FAILED_TO_FIND_CLOUD_EVENTS = "Failed to find cloudEvents";
+    public static final String FAILED_TO_FIND_CLOUD_EVENTS = "Failed to find cloudEvents";
+    public static final String STARTED_NEW_CYCLE_MESSAGE = "newCloudEventsAvailable: new cycle started (seq_id starts from '1')!";
+    public static final String QUEUE_OFFSET_WAS_UPDATED_MESSAGE = "Queue offset was updated";
+    public static final String FAILED_TO_UPDATE_QUEUE_OFFSET_ERROR_MESSAGE = "Failed to update queue offset";
+    public static final String UPDATE_QUEUE_START_TS_SEQ_ID_OFFSET_MESSAGE = "updateQueueStartTsSeqIdOffset";
     private static final String TABLE_STARTED_NEW_CYCLE_MESSAGE = "seqId column of {} table started new cycle";
-    private static final String QUEUE_OFFSET_WAS_UPDATED_MESSAGE = "Queue offset was updated";
-    private static final String STARTED_NEW_CYCLE_MESSAGE = "newCloudEventsAvailable: new cycle started (seq_id starts from '1')!";
-    private static final String FAILED_TO_UPDATE_QUEUE_OFFSET_ERROR_MESSAGE = "Failed to update queue offset";
-    private static final String UPDATE_QUEUE_START_TS_SEQ_ID_OFFSET_MESSAGE = "updateQueueStartTsSeqIdOffset";
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
