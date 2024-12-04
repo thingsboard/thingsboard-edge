@@ -16,7 +16,9 @@
 package org.thingsboard.server.service.cloud;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -25,38 +27,35 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 
 @Slf4j
 @Service
-public class DefaultGeneralUplinkMessageService extends BaseUplinkMessageService implements GeneralUplinkMessageService {
-
-    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
+@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+public class KafkaGeneralUplinkMessageService extends KafkaUplinkMessageService implements GeneralUplinkMessageService {
+    public PageData<CloudEvent> newCloudEvents = new PageData<>();
 
     @Override
-    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        return cloudEventService.findCloudEvents(tenantId, seqIdStart, seqIdEnd, pageLink);
+    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId) {
+        return cloudEventService.findCloudEvents(tenantId, null, null, null);
     }
 
     @Override
-    protected String getTableName() {
-        return "cloud_event";
+    public TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart) {
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, null, null, null);
+
+        newCloudEvents = cloudEvents;
+
+        return cloudEvents.getTotalElements() != 0 ? new TimePageLink(0) : null;
+    }
+
+    @Override
+    public ListenableFuture<Long> getQueueStartTs(TenantId tenantId) {
+        SettableFuture<Long> futureToSet = SettableFuture.create();
+
+        futureToSet.set(0L);
+
+        return futureToSet;
     }
 
     @Override
     protected boolean newMessagesAvailableInGeneralQueue(TenantId tenantId) {
         return false;
     }
-
-    @Override
-    protected void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId) {
-        updateQueueStartTsSeqIdOffset(tenantId, QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, newSeqId);
-    }
-
-    @Override
-    public ListenableFuture<Long> getQueueStartTs(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_START_TS_ATTR_KEY);
-    }
-
-    @Override
-    protected ListenableFuture<Long> getQueueSeqIdStart(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
-    }
-
 }

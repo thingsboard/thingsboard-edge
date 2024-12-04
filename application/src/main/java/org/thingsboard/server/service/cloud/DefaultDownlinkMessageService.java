@@ -28,6 +28,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
@@ -99,6 +100,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private CloudEventService cloudEventService;
+
+    @Autowired
+    private EdgeSettingsService edgeSettingsService;
 
     @Autowired
     private EdgeCloudProcessor edgeCloudProcessor;
@@ -221,7 +225,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 }
             }
             if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
-                for (AssetProfileUpdateMsg assetProfileUpdateMsg  : downlinkMsg.getAssetProfileUpdateMsgList()) {
+                for (AssetProfileUpdateMsg assetProfileUpdateMsg : downlinkMsg.getAssetProfileUpdateMsgList()) {
                     result.add(assetProfileProcessor.processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg));
                 }
             }
@@ -375,7 +379,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             } catch (Exception e) {
                 log.error("Failed to request attributes for tenant and customer entities", e);
             }
-            return Futures.transform(cloudEventService.saveEdgeSettings(tenantId, currentEdgeSettings),
+            return Futures.transform(edgeSettingsService.saveEdgeSettings(tenantId, currentEdgeSettings),
                     result -> {
                         log.debug("Full sync required marked as false");
                         return null;
