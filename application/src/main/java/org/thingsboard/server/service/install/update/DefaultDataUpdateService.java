@@ -180,7 +180,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private NotificationTemplateService notificationTemplateService;
 
     @Override
-    public void updateData(boolean fromCe, boolean isEdge) throws Exception {
+    public void updateData(boolean fromCe) throws Exception {
         log.info("Updating data ...");
         if (fromCe) {
             updateDataFromCe();

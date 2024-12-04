@@ -139,7 +139,7 @@ public class ThingsboardInstallService {
                     entityDatabaseSchemaService.createDatabaseIndexes();
                     // Runs upgrade scripts that are not possible in plain SQL.
                     // TODO: cleanup update code after each release
-                    dataUpdateService.updateData(updateFromCE, true);
+                    dataUpdateService.updateData(updateFromCE);
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
                     // systemDataLoaderService.loadSystemWidgets();
