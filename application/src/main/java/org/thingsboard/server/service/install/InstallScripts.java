@@ -202,7 +202,7 @@ public class InstallScripts {
         ruleChain = ruleChainService.saveRuleChain(ruleChain, false);
 
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
-        ruleChainService.saveRuleChainMetaData(TenantId.SYS_TENANT_ID, ruleChainMetaData, Function.identity(), false, true);
+        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetaData, Function.identity(), false, true);
 
         return ruleChain;
     }
