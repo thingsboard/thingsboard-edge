@@ -228,7 +228,7 @@ public class InstallScripts {
             ruleChain = ruleChainService.saveRuleChain(ruleChain, false);
 
             ruleChainMetaData.setRuleChainId(ruleChain.getId());
-            ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetaData, Function.identity(), false, false);
+            ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetaData, Function.identity(), false, true);
             return ruleChain;
         } catch (Exception e) {
             log.error("Unable to load rule chain from json: [{}]", path.toString());
