@@ -36,7 +36,9 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Schema
 @Data
@@ -69,6 +71,16 @@ public class MergedGroupTypePermissionInfo {
         mergedList.addAll(this.entityGroupIds);
         mergedList.add(id);
         return new MergedGroupTypePermissionInfo(mergedList, this.hasGenericRead);
+    }
+
+    public MergedGroupTypePermissionInfo addIds(List<EntityGroupId> ids) {
+        if (this.entityGroupIds == null || this.entityGroupIds.isEmpty()) {
+            return new MergedGroupTypePermissionInfo(new ArrayList<>(ids), this.hasGenericRead);
+        }
+        Set<EntityGroupId> result = new LinkedHashSet<>();
+        result.addAll(this.entityGroupIds);
+        result.addAll(ids);
+        return new MergedGroupTypePermissionInfo(new ArrayList<>(result), this.hasGenericRead);
     }
 
 }

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 
 public class ConverterPrototypes {
 
@@ -42,7 +43,7 @@ public class ConverterPrototypes {
         converter.setName("Uplink converter " + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(config);
-        converter.setDebugAll(true);
+        converter.setDebugSettings(DebugSettings.all());
         return converter;
     }
 
@@ -51,7 +52,7 @@ public class ConverterPrototypes {
         converter.setName("Downlink converter " + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.DOWNLINK);
         converter.setConfiguration(config);
-        converter.setDebugAll(true);
+        converter.setDebugSettings(DebugSettings.all());
         return converter;
     }
 }

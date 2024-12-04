@@ -150,4 +150,30 @@ class MergedGroupTypePermissionInfoTest {
         assertThat(added.isHasGenericRead()).isEqualTo(hasGenericRead);
     }
 
+    @Test
+    void testAddIdsImmutableWithInitialEmptyIds() {
+        EntityGroupId id = new EntityGroupId(UUID.randomUUID());
+        MergedGroupTypePermissionInfo mgtpi = new MergedGroupTypePermissionInfo(Collections.emptyList(), true);
+        MergedGroupTypePermissionInfo added = mgtpi.addIds(List.of(id));
+        assertThat(added).isNotSameAs(mgtpi);
+        assertThat(added.getEntityGroupIds()).containsExactlyElementsOf(List.of(id));
+        assertThat(added.isHasGenericRead()).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testAddIdsImmutableWithInitialExistedIds(final boolean hasGenericRead) {
+        final List<EntityGroupId> ids = List.of(new EntityGroupId(UUID.randomUUID()), new EntityGroupId(UUID.randomUUID()));
+        final EntityGroupId id = new EntityGroupId(UUID.randomUUID());
+        final List<EntityGroupId> allIds = new ArrayList<>(ids);
+        allIds.add(id);
+
+        final MergedGroupTypePermissionInfo mgtpi = new MergedGroupTypePermissionInfo(ids, hasGenericRead);
+        final MergedGroupTypePermissionInfo added = mgtpi.addIds(List.of(id));
+
+        assertThat(added).isNotSameAs(mgtpi);
+        assertThat(added.getEntityGroupIds()).containsExactlyElementsOf(allIds);
+        assertThat(added.isHasGenericRead()).isEqualTo(hasGenericRead);
+    }
+
 }

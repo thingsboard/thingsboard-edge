@@ -37,7 +37,10 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,42 +98,51 @@ public final class MergedUserPermissions implements Serializable {
             }
         }
 
-        this.groupPermissions.forEach((id, info) -> {
-            if (checkOperation(info.getOperations(), Operation.READ)) {
-                addId(this.readGroupPermissions, info.getEntityType(), id);
-                Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
-                addId(this.readEntityPermissions, entityResource, id);
-                Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
-                if (groupResource != null) {
-                    addId(this.readEntityPermissions, groupResource, id);
+        if (!this.groupPermissions.isEmpty()) {
+            Map<EntityType, List<EntityGroupId>> readGroupPermissionIds = new HashMap<>();
+            Map<Resource, List<EntityGroupId>> readEntityPermissionIds = new HashMap<>();
+            Map<Resource, List<EntityGroupId>> readAttrPermissionIds = new HashMap<>();
+            Map<Resource, List<EntityGroupId>> readTsPermissionIds = new HashMap<>();
+            this.groupPermissions.forEach((id, info) -> {
+                if (checkOperation(info.getOperations(), Operation.READ)) {
+                    readGroupPermissionIds.computeIfAbsent(info.getEntityType(), et -> new ArrayList<>()).add(id);
+                    Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
+                    readEntityPermissionIds.computeIfAbsent(entityResource, et -> new ArrayList<>()).add(id);
+                    Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
+                    if (groupResource != null) {
+                        readEntityPermissionIds.computeIfAbsent(groupResource, et -> new ArrayList<>()).add(id);
+                    }
                 }
-            }
-            if (checkOperation(info.getOperations(), Operation.READ_ATTRIBUTES)) {
-                Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
-                addId(this.readAttrPermissions, entityResource, id);
-                Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
-                if (groupResource != null) {
-                    addId(this.readAttrPermissions, groupResource, id);
+                if (checkOperation(info.getOperations(), Operation.READ_ATTRIBUTES)) {
+                    Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
+                    readAttrPermissionIds.computeIfAbsent(entityResource, et -> new ArrayList<>()).add(id);
+                    Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
+                    if (groupResource != null) {
+                        readAttrPermissionIds.computeIfAbsent(groupResource, et -> new ArrayList<>()).add(id);
+                    }
                 }
-            }
-            if (checkOperation(info.getOperations(), Operation.READ_TELEMETRY)) {
-                Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
-                addId(this.readTsPermissions, entityResource, id);
-                Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
-                if (groupResource != null) {
-                    addId(this.readTsPermissions, groupResource, id);
+                if (checkOperation(info.getOperations(), Operation.READ_TELEMETRY)) {
+                    Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
+                    readTsPermissionIds.computeIfAbsent(entityResource, et -> new ArrayList<>()).add(id);
+                    Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
+                    if (groupResource != null) {
+                        readTsPermissionIds.computeIfAbsent(groupResource, et -> new ArrayList<>()).add(id);
+                    }
                 }
-            }
-        });
+            });
+            addIds(this.readGroupPermissions, readGroupPermissionIds);
+            addIds(this.readEntityPermissions, readEntityPermissionIds);
+            addIds(this.readAttrPermissions, readAttrPermissionIds);
+            addIds(this.readTsPermissions, readTsPermissionIds);
+        }
     }
 
-    // Immutable entityGroupIds brings a high complexity O(N^2 / 2) on copyOnAdd and O(N) on put permission to the hashmap
-    // GroupIds list should be as small as possible to keep the performance.
-    // Most of the groupId is empty in most of the cases so no problem expected
-    <T> void addId(Map<T, MergedGroupTypePermissionInfo> permissions, T key, EntityGroupId id) {
-        final MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = permissions.get(key);
-        final MergedGroupTypePermissionInfo newInfo = mergedGroupTypePermissionInfo.addId(id);
-        permissions.put(key, newInfo);
+    <T> void addIds(Map<T, MergedGroupTypePermissionInfo> permissions, Map<T, List<EntityGroupId>> ids) {
+        ids.forEach((key, value) -> {
+            final MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = permissions.get(key);
+            final MergedGroupTypePermissionInfo newInfo = mergedGroupTypePermissionInfo.addIds(value);
+            permissions.put(key, newInfo);
+        });
     }
 
     public MergedGroupTypePermissionInfo getGroupPermissionsByEntityTypeAndOperation(EntityType entityType, Operation operation) {
