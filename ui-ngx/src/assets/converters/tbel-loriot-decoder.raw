@@ -39,7 +39,7 @@ var attributes = {};
 // --- attributes and telemetry objects ---
 
 // --- Timestamp parsing
-timestamp = data.ts;
+var timestamp = data.ts;
 // --- Timestamp parsing
 
 // Message parsing
@@ -140,11 +140,8 @@ function addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName) {
 }
 
 function processTelemetryData(telemetry, addDataToTelemetry) {
-    if (telemetry.size > 1) {
-        telemetry = addDataToMultipleTelemetries(telemetry, addDataToTelemetry);
-    }
-    else if (telemetry.size == 1) {
-        telemetry = addDataToSingleTelemetry(telemetry, addDataToTelemetry);
+    if (telemetry.size >= 1) {
+        telemetry = addDataToTelemetries(telemetry, addDataToTelemetry);
     }
     else {
         telemetry.add(addDataToTelemetry);
@@ -153,25 +150,14 @@ function processTelemetryData(telemetry, addDataToTelemetry) {
     return telemetry;
 }
 
-function addDataToMultipleTelemetries(telemetry, addDataToTelemetry) {
-    foreach(element : addDataToTelemetry.entrySet()) {
-        if(!telemetry[0]["values"].keys.contains(element.key)) {
-            telemetry[0]["values"][element.key] = element.value;
-        }
-        if (!telemetry[1]["values"].keys.contains(element.key)) {
-            telemetry[1]["values"][element.key] = element.value;
-        }
-    }
-
-    return telemetry;
-}
-
-function addDataToSingleTelemetry(telemetry, addDataToTelemetry) {
-    foreach(element : addDataToTelemetry.entrySet()) {
-            if(!telemetry[0]["values"].keys.contains(element.key)) {
-                telemetry[0]["values"][element.key] = element.value;
+function addDataToTelemetries(telemetries, addDataToTelemetry) {
+    foreach(telemetry : telemetries) {
+        foreach(element : addDataToTelemetry.entrySet()) {
+            if(!telemetry["values"].keys.contains(element.key)) {
+                telemetry["values"][element.key] = element.value;
             }
+        }
     }
 
-    return telemetry;
+    return telemetries;
 }

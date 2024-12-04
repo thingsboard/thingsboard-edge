@@ -41,8 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -51,12 +49,10 @@ import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -80,12 +76,9 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
-import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.device.DeviceConnectivityConfiguration;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -93,15 +86,14 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
-import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
+import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
@@ -146,9 +138,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private UserService userService;
 
     @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
     private WhiteLabelingService whiteLabelingService;
 
     @Autowired
@@ -182,210 +171,48 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private ComponentDiscoveryService componentDiscoveryService;
 
     @Autowired
-    private EdgeEventDao edgeEventDao;
-
-    @Autowired
-    private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
-
-    @Autowired
     JpaExecutorService jpaExecutorService;
 
     @Autowired
-    DeviceConnectivityConfiguration connectivityConfiguration;
-
-    @Autowired
-    private CustomerDao customerDao;
-
-    @Autowired
-    private TenantProfileService tenantProfileService;
+    private InstallScripts installScripts;
 
     @Autowired
     private NotificationTemplateService notificationTemplateService;
 
     @Override
-    public void updateData(String fromVersion) throws Exception {
-        switch (fromVersion) {
-            case "3.5.1":
-                log.info("Updating data from version 3.5.1 to 3.6.0 ...");
-                integrationRateLimitsUpdater.updateEntities();
-                migrateEdgeEvents("Starting edge events migration - adding seq_id column. ");
-                break;
-            case "3.6.0":
-                log.info("Updating data from version 3.6.0 to 3.6.1 ...");
-                migrateDeviceConnectivity();
-                break;
-            case "3.6.4":
-                log.info("Updating data from version 3.6.4 to 3.7.0 ...");
-                updateCustomersWithTheSameTitle();
-                updateMaxRuleNodeExecsPerMessage();
-                updateGatewayRateLimits();
-                break;
-            case "3.8.1":
-                log.info("Updating data from version 3.8.1 to 3.9.0 ...");
-                moveMailTemplatesToNotificationCenter(Map.of(
-                        "userActivated", NotificationType.USER_ACTIVATED,
-                        "userRegistered", NotificationType.USER_REGISTERED
-                ));
-                break;
-            case "ce":
-                log.info("Updating data ...");
-                tenantsCustomersGroupAllUpdater.updateEntities();
-                tenantEntitiesGroupAllUpdater.updateEntities();
-                // tenantIntegrationUpdater.updateEntities();
-                //for 2.4.0
-                JsonNode mailTemplatesSettings = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
-                if (mailTemplatesSettings.isEmpty()) {
-                    systemDataLoaderService.loadMailTemplates();
-                } else {
-                    systemDataLoaderService.updateMailTemplates(mailTemplatesSettings);
-                }
-                break;
-            case "edge":
-                // remove this line in 4+ release
-                fixDuplicateSystemWidgetsBundles();
-
-                // reset full sync required - to upload latest widgets from cloud
-                tenantsFullSyncRequiredUpdater.updateEntities(null);
-                break;
-            default:
-                throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
-        }
-    }
-
-    private void migrateEdgeEvents(String logPrefix) {
-        boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
-        if (!skipEdgeEventsMigration) {
-            log.info(logPrefix + "Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
-            edgeEventDao.migrateEdgeEvents();
+    public void updateData(boolean fromCe, boolean isEdge) throws Exception {
+        log.info("Updating data ...");
+        if (fromCe) {
+            updateDataFromCe();
         } else {
-            log.info("Skipping edge events migration");
+            //TODO: should be cleaned after each release
+            installScripts.updateResourcesUsage();
+            moveMailTemplatesToNotificationCenter(Map.of(
+                    "userActivated", NotificationType.USER_ACTIVATED,
+                    "userRegistered", NotificationType.USER_REGISTERED
+            ));
         }
+        // Edge-only: always run next config:
+
+        // remove this line in 4+ release
+        fixDuplicateSystemWidgetsBundles();
+        // reset full sync required - to upload latest widgets from cloud
+        tenantsFullSyncRequiredUpdater.updateEntities(null);
+
+        // ... Edge-only
+        log.info("Data updated.");
     }
 
-    private void updateGatewayRateLimits() {
-        var tenantProfiles = new PageDataIterable<>(link -> tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, link), DEFAULT_PAGE_SIZE);
-        tenantProfiles.forEach(tenantProfile -> {
-            var configurationOpt = tenantProfile.getProfileConfiguration();
-            configurationOpt.ifPresent(configuration -> {
-                boolean updated = false;
-                if (configuration.getTransportDeviceMsgRateLimit() != null) {
-                    if (configuration.getTransportGatewayMsgRateLimit() == null) {
-                        configuration.setTransportGatewayMsgRateLimit(configuration.getTransportDeviceMsgRateLimit());
-                        updated = true;
-                    }
-                    if (configuration.getTransportGatewayDeviceMsgRateLimit() == null) {
-                        configuration.setTransportGatewayDeviceMsgRateLimit(configuration.getTransportDeviceMsgRateLimit());
-                        updated = true;
-                    }
-                }
-                if (configuration.getTransportDeviceTelemetryMsgRateLimit() != null) {
-                    if (configuration.getTransportGatewayTelemetryMsgRateLimit() == null) {
-                        configuration.setTransportGatewayTelemetryMsgRateLimit(configuration.getTransportDeviceTelemetryMsgRateLimit());
-                        updated = true;
-                    }
-                    if (configuration.getTransportGatewayDeviceTelemetryMsgRateLimit() == null) {
-                        configuration.setTransportGatewayDeviceTelemetryMsgRateLimit(configuration.getTransportDeviceTelemetryMsgRateLimit());
-                        updated = true;
-                    }
-                }
-                if (configuration.getTransportDeviceTelemetryDataPointsRateLimit() != null) {
-                    if (configuration.getTransportGatewayTelemetryDataPointsRateLimit() == null) {
-                        configuration.setTransportGatewayTelemetryDataPointsRateLimit(configuration.getTransportDeviceTelemetryDataPointsRateLimit());
-                        updated = true;
-                    }
-                    if (configuration.getTransportGatewayDeviceTelemetryDataPointsRateLimit() == null) {
-                        configuration.setTransportGatewayDeviceTelemetryDataPointsRateLimit(configuration.getTransportDeviceTelemetryDataPointsRateLimit());
-                        updated = true;
-                    }
-                }
-                if (updated) {
-                    try {
-                        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
-                    } catch (Exception e) {
-                        log.error("Failed to update tenant profile with id: {} due to: ", tenantProfile.getId(), e);
-                    }
-                }
-            });
-        });
-    }
-
-    private void updateMaxRuleNodeExecsPerMessage() {
-        var tenantProfiles = new PageDataIterable<>(
-                link -> tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, link), DEFAULT_PAGE_SIZE);
-        tenantProfiles.forEach(tenantProfile -> {
-            var configurationOpt = tenantProfile.getProfileConfiguration();
-            configurationOpt.ifPresent(configuration -> {
-                if (configuration.getMaxRuleNodeExecsPerMessage() == 0) {
-                    configuration.setMaxRuleNodeExecutionsPerMessage(1000);
-                    try {
-                        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
-                    } catch (Exception e) {
-                        log.error("Failed to update tenant profile with id: {} due to: ", tenantProfile.getId(), e);
-                    }
-                }
-            });
-        });
-    }
-
-    private void updateCustomersWithTheSameTitle() {
-        var customers = new ArrayList<Customer>();
-        new PageDataIterable<>(pageLink ->
-                customerDao.findCustomersWithTheSameTitle(pageLink), DEFAULT_PAGE_SIZE
-        ).forEach(customers::add);
-        if (customers.isEmpty()) {
-            return;
-        }
-        var firstCustomer = customers.get(0);
-        var titleToDeduplicate = firstCustomer.getTitle();
-        var tenantIdToDeduplicate = firstCustomer.getTenantId();
-        int duplicateCounter = 1;
-
-        for (int i = 1; i < customers.size(); i++) {
-            var currentCustomer = customers.get(i);
-            if (currentCustomer.getTitle().equals(titleToDeduplicate) && currentCustomer.getTenantId().equals(tenantIdToDeduplicate)) {
-                duplicateCounter++;
-                String currentTitle = currentCustomer.getTitle();
-                String newTitle = currentTitle + " " + duplicateCounter;
-                try {
-                    Optional<Customer> customerOpt = customerService.findCustomerByTenantIdAndTitle(tenantIdToDeduplicate, newTitle);
-                    if (customerOpt.isPresent()) {
-                        // fallback logic: customer with title 'currentTitle + " " + duplicateCounter;' might be another duplicate.
-                        newTitle = currentTitle + "_" + currentCustomer.getId();
-                    }
-                } catch (Exception e) {
-                    log.trace("Failed to find customer with title due to: ", e);
-                    // fallback logic: customer with title 'currentTitle + " " + duplicateCounter;' might be another duplicate.
-                    newTitle = currentTitle + "_" + currentCustomer.getId();
-                }
-                currentCustomer.setTitle(newTitle);
-                try {
-                    Customer savedCustomer = customerDao.save(tenantIdToDeduplicate, currentCustomer);
-                    List<EdgeId> edgeIds = edgeService.findAllRelatedEdgeIds(savedCustomer.getTenantId(), savedCustomer.getId());
-                    if (edgeIds != null) {
-                        for (EdgeId edgeId : edgeIds) {
-                            Edge edge = edgeService.findEdgeById(savedCustomer.getTenantId(), edgeId);
-                            edgeService.renameEdgeAllGroups(savedCustomer.getTenantId(), edge, edge.getName(), currentTitle, savedCustomer.getTitle());
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("[{}] Failed to update public customer with id and title: {}, oldTitle: {}, due to: ",
-                            currentCustomer.getTenantId(), newTitle, currentTitle, e);
-                }
-                continue;
-            }
-            titleToDeduplicate = currentCustomer.getTitle();
-            tenantIdToDeduplicate = currentCustomer.getTenantId();
-            duplicateCounter = 1;
-        }
-    }
-
-    private void migrateDeviceConnectivity() {
-        if (adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "connectivity") == null) {
-            AdminSettings connectivitySettings = new AdminSettings();
-            connectivitySettings.setTenantId(TenantId.SYS_TENANT_ID);
-            connectivitySettings.setKey("connectivity");
-            connectivitySettings.setJsonValue(JacksonUtil.valueToTree(connectivityConfiguration.getConnectivity()));
-            adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, connectivitySettings);
+    private void updateDataFromCe() throws Exception {
+        tenantsCustomersGroupAllUpdater.updateEntities();
+        tenantEntitiesGroupAllUpdater.updateEntities();
+        tenantIntegrationUpdater.updateEntities();
+        //for 2.4.0
+        JsonNode mailTemplatesSettings = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+        if (mailTemplatesSettings.isEmpty()) {
+            systemDataLoaderService.loadMailTemplates();
+        } else {
+            systemDataLoaderService.updateMailTemplates(mailTemplatesSettings);
         }
     }
 
@@ -1055,4 +882,5 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     }
                 }
             };
+
 }

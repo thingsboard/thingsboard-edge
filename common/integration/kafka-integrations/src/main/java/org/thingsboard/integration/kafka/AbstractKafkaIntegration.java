@@ -83,13 +83,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.getMsg()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.getMsg()), status, exception);
     }
 
     @Override

@@ -237,6 +237,7 @@ import {
 import { EntityChipsComponent } from '@home/components/entity/entity-chips.component';
 import { DashboardViewComponent } from '@home/components/dashboard-view/dashboard-view.component';
 import { ConverterLibraryComponent } from '@home/components/converter/converter-library.component';
+import { DebugSettingsButtonComponent } from '@home/components/debug-settings/debug-settings-button.component';
 
 @NgModule({
   declarations:
@@ -427,7 +428,8 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
     StatesControllerModule,
     DeviceCredentialsModule,
     DeviceProfileCommonModule,
-    IntegrationComponentModule
+    IntegrationComponentModule,
+    DebugSettingsButtonComponent
   ],
   exports: [
     SharedHomeComponentsModule,

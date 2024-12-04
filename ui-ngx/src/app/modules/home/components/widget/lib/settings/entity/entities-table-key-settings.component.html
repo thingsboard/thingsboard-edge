@@ -106,6 +106,7 @@
       <ng-template matExpansionPanelContent>
         <tb-js-func required
                     formControlName="cellStyleFunction"
+                    withModules
                     [globalVariables]="functionScopeVariables"
                     [functionArgs]="['value', 'entity', 'ctx']"
                     functionTitle="{{ 'widgets.table.cell-style-function' | translate }}"
@@ -132,6 +133,7 @@
         </mat-slide-toggle>
         <tb-js-func required
                     formControlName="cellContentFunction"
+                    withModules
                     [globalVariables]="functionScopeVariables"
                     [functionArgs]="['value', 'entity', 'ctx']"
                     functionTitle="{{ 'widgets.table.cell-content-function' | translate }}"

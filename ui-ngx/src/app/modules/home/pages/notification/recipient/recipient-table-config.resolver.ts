@@ -50,6 +50,7 @@ import { RecipientTableHeaderComponent } from '@home/pages/notification/recipien
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
@@ -62,6 +63,7 @@ export class RecipientTableConfigResolver  {
               private translate: TranslateService,
               private dialog: MatDialog,
               private datePipe: DatePipe,
+              private customTranslate: CustomTranslatePipe,
               private userPermissionsService: UserPermissionsService) {
 
     this.config.entityType = EntityType.NOTIFICATION_TARGET;
@@ -103,7 +105,7 @@ export class RecipientTableConfigResolver  {
         (target) => this.translate.instant(NotificationTargetTypeTranslationMap.get(target.configuration.type)),
         () => ({}), false),
       new EntityTableColumn<NotificationTarget>('configuration.description', 'notification.description', '60%',
-      (target) => target.configuration.description || '',
+      (target) => this.customTranslate.transform(target.configuration.description || ''),
       () => ({}), false)
     );
   }

@@ -42,11 +42,19 @@
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <mat-card-content style="padding-top: 16px">
     <div class="tb-form-panel no-border no-padding" [formGroup]="mobileAppSettingsForm">
-      <div class="tb-form-row no-border no-padding-bottom" *ngIf="isTenantAdmin()">
-        <mat-slide-toggle class="mat-slide" formControlName="useSystemSettings">
-          {{ 'admin.mobile-app.use-system-settings' | translate }}
-        </mat-slide-toggle>
-      </div>
+      <section *ngIf="isTenantAdmin()">
+        <div class="tb-form-row no-border no-padding-bottom">
+          <mat-slide-toggle class="mat-slide" formControlName="useSystemSettings">
+            {{ 'admin.mobile-app.use-system-settings' | translate }}
+          </mat-slide-toggle>
+        </div>
+        <div class="tb-form-hint flex items-center gap-2" *ngIf="!mobileAppSettingsForm.get('useSystemSettings').value && !setBaseURL">
+          <mat-icon>warning</mat-icon>
+          <span class="flex-1">
+            {{'admin.mobile-app.warning-not-set-white-labeling' | translate }} <a routerLink="/white-labeling/loginWhiteLabel" translate>admin.mobile-app.base-url</a>
+          </span>
+        </div>
+      </section>
       <div class="tb-form-panel" *ngIf="!mobileAppSettingsForm.get('useSystemSettings').value">
         <div class="tb-form-row column-xs no-border no-padding space-between">
           <div class="tb-form-panel-title" translate>admin.mobile-app.applications</div>
@@ -138,3 +146,6 @@
     </div>
   </mat-card-content>
 </mat-card>
+<ng-template #baseUrl>
+  '<a routerLink="/home" translate>admin.mobile-app.base-url</a> '
+</ng-template>

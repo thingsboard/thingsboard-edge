@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import {
@@ -55,7 +55,6 @@ import { AppState } from '@core/core.state';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { WINDOW } from '@core/services/window.service';
 import { mergeMap } from 'rxjs/operators';
-import { DeviceInfo } from '@shared/models/device.models';
 
 @Injectable()
 export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<CustomerInfo> {
@@ -185,7 +184,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
+    return this.groupConfigTableConfigService.prepareConfiguration(params, config);
   }
 
   private openCustomer($event: Event, customer: CustomerInfo, config: GroupEntityTableConfig<CustomerInfo>, params: EntityGroupParams) {

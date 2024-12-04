@@ -551,7 +551,7 @@ actors:
       debug_mode_rate_limits_per_tenant:
         # Enable/Disable the rate limit of persisted debug events for all rule nodes per tenant
         enabled: "${ACTORS_RULE_CHAIN_DEBUG_MODE_RATE_LIMITS_PER_TENANT_ENABLED:true}"
-        # The value of DEBUG mode rate limit. By default, no more then 50 thousand events per hour
+        # The value of DEBUG mode rate limit. By default, no more than 50 thousand events per hour
         configuration: "${ACTORS_RULE_CHAIN_DEBUG_MODE_RATE_LIMITS_PER_TENANT_CONFIGURATION:50000:3600}"
     node:
       # Errors for particular actor are persisted once per specified amount of milliseconds
@@ -573,6 +573,17 @@ actors:
     submit_strategy: "${ACTORS_RPC_SUBMIT_STRATEGY_TYPE:BURST}"
     # Time in milliseconds for RPC to receive a response after delivery. Used only for SEQUENTIAL_ON_RESPONSE_FROM_DEVICE submit strategy.
     response_timeout_ms: "${ACTORS_RPC_RESPONSE_TIMEOUT_MS:30000}"
+    # Close transport session if RPC delivery timed out. If enabled, RPC will be reverted to the queued state.
+    # Note:
+    # - For MQTT transport:
+    #   - QoS level 0: This feature does not apply, as no acknowledgment is expected, and therefore no timeout is triggered.
+    #   - QoS level 1: This feature applies, as an acknowledgment is expected.
+    #   - QoS level 2: Unsupported.
+    # - For CoAP transport:
+    #   - Confirmable requests: This feature applies, as delivery confirmation is expected.
+    #   - Non-confirmable requests: This feature does not apply, as no delivery acknowledgment is expected.
+    # - For HTTP and SNPM transports: RPC is considered delivered immediately, and there is no logic to await acknowledgment.
+    close_session_on_rpc_delivery_timeout: "${ACTORS_RPC_CLOSE_SESSION_ON_RPC_DELIVERY_TIMEOUT:false}"
   statistics:
     # Enable/disable actor statistics
     enabled: "${ACTORS_STATISTICS_ENABLED:true}"
@@ -580,6 +591,12 @@ actors:
     js_print_interval_ms: "${ACTORS_JS_STATISTICS_PRINT_INTERVAL_MS:10000}"
     # Actors statistic persistence frequency in milliseconds
     persist_frequency: "${ACTORS_STATISTICS_PERSIST_FREQUENCY:3600000}"
+
+debug:
+  settings:
+    # Default duration (in minutes) for debug mode. Min value is 1 minute. Tenant profile settings override this one.
+    # If value from this setting is invalid, the default value (15 minutes) will be used.
+    default_duration: "${DEBUG_SETTINGS_DEFAULT_DURATION_MINUTES:15}"
 
 # Platform integrations parameters
 integrations:

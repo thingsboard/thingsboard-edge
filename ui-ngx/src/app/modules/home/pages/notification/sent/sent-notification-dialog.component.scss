@@ -194,14 +194,6 @@
         letter-spacing: 0.25px;
       }
 
-      .html-content {
-        margin-top: 12px;
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 20px;
-        overflow-x: auto;
-      }
-
       &.mini {
         font-size: 12px;
         line-height: 1.25;
@@ -244,15 +236,6 @@
         @media #{$mat-gt-sm} {
           min-width: 500px;
         }
-      }
-    }
-  }
-
-  .preview-group {
-    .notification-content {
-      .html-content,
-      .html-content * {
-        all: revert;
       }
     }
   }

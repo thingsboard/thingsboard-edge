@@ -83,6 +83,8 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
         if (stopped) {
             return;
         }
+        String status = "OK";
+        Exception exception = null;
         try {
             List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), msg.getDeviceMetadata()));
             if (uplinkDataList != null) {
@@ -92,15 +94,14 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
                 }
             }
             integrationStatistics.incMessagesProcessed();
-            if (configuration.isDebugMode()) {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(),
-                        ConvertUtil.toDebugMessage(getDefaultUplinkContentType(), msg.getPayload()), "OK", null);
-            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             integrationStatistics.incErrorsOccurred();
-            persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
+            exception = e;
+            status = "ERROR";
         }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(),
+                () -> ConvertUtil.toDebugMessage(getDefaultUplinkContentType(), msg.getPayload()), status, exception);
     }
 
     @Override

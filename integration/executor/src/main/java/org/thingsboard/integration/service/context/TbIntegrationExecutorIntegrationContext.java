@@ -179,7 +179,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     @Override
     public void onDownlinkMessageProcessed(boolean success) {
         if (configuration != null) {
-            statisticsService.onUplinkMsg(configuration.getType(), success);
+            statisticsService.onDownlinkMsg(configuration.getType(), success);
         }
     }
 

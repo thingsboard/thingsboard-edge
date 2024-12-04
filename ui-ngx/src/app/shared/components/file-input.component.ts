@@ -117,6 +117,16 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
   @Input()
   workFromFileObj = false;
 
+  @Input()
+  @coerceBoolean()
+  asButton: boolean;
+
+  @Input()
+  uploadButtonClass = 'browse-file';
+
+  @Input()
+  uploadButtonText: string;
+
   private multipleFileValue = false;
 
   @Input()

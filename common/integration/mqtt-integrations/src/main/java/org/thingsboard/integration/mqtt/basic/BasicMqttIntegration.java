@@ -41,6 +41,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
@@ -64,6 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -186,8 +188,8 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         for (Map.Entry<String, List<DownlinkData>> topicEntry : topicToDataMap.entrySet()) {
             for (DownlinkData data : topicEntry.getValue()) {
                 String topic = topicEntry.getKey();
-                logMqttDownlink(context, topic, data);
                 mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()), MqttQoS.AT_LEAST_ONCE, mqttClientConfiguration.isRetainedMessage());
+                logMqttDownlink(context, topic, data);
             }
         }
         return !topicToDataMap.isEmpty();
@@ -219,16 +221,14 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     }
 
     private void logMqttDownlink(IntegrationContext context, String topic, DownlinkData data) {
-        if (configuration.isDebugMode()) {
-            try {
-                ObjectNode json = JacksonUtil.newObjectNode();
-                json.put("topic", topic);
-                json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        Supplier<String> msgSupplier = () -> {
+            ObjectNode json = JacksonUtil.newObjectNode();
+            json.put("topic", topic);
+            json.set("payload", getDownlinkPayloadJson(data));
+            return JacksonUtil.toString(json);
+        };
+        persistDebug(context, "Downlink", ContentType.JSON, msgSupplier, status, null);
     }
 
 }

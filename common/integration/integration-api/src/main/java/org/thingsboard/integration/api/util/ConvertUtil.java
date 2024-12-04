@@ -33,14 +33,14 @@ package org.thingsboard.integration.api.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class ConvertUtil {
 
-    public static String toDebugMessage(UplinkContentType messageType, byte[] message) {
+    public static String toDebugMessage(ContentType messageType, byte[] message) {
         return toDebugMessage(messageType.name(), message);
     }
 

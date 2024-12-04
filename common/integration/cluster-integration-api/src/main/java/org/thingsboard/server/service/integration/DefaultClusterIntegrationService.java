@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.TbActorMsg;
@@ -99,7 +100,7 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
     @PostConstruct
     public void init() {
         supportedIntegrationTypes = serviceInfoProvider.getSupportedIntegrationTypes();
-        queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("scheduler-service")));
+        queueExecutor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newSingleThreadScheduledExecutor("scheduler-service"));
         notificationsConsumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ie-nf-consumer"));
         consumersExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName("ie-downlink-consumer"));
         nfConsumer = queueFactory.createToIntegrationExecutorNotificationsMsgConsumer();

@@ -61,6 +61,9 @@
       <mat-form-field class="mat-block">
         <mat-label translate>integration.container-name</mat-label>
         <input matInput formControlName="containerName">
+        <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('containerName').hasError('required')">
+          integration.container-name-required
+        </mat-error>
       </mat-form-field>
     </ng-template>
   </mat-expansion-panel>

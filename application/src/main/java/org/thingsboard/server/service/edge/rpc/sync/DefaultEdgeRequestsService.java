@@ -35,17 +35,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
@@ -118,7 +114,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
@@ -170,20 +165,6 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
-
-    private ListeningScheduledExecutorService scheduledExecutor;
-
-    @PostConstruct
-    public void init() {
-        scheduledExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("edge-requests")));
-    }
-
-    @PreDestroy
-    public void stop() {
-        if (scheduledExecutor != null) {
-            scheduledExecutor.shutdownNow();
-        }
-    }
 
     @Override
     public ListenableFuture<Void> processRuleChainMetadataRequestMsg(TenantId tenantId, Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg) {

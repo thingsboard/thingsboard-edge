@@ -1465,7 +1465,7 @@ public abstract class BaseController {
     }
 
     protected void compressResponseWithGzipIFAccepted(String acceptEncodingHeader, HttpServletResponse response, byte[] content) throws IOException {
-        if (org.apache.commons.lang3.StringUtils.isNotEmpty(acceptEncodingHeader) && acceptEncodingHeader.contains("gzip")) {
+        if (StringUtils.isNotEmpty(acceptEncodingHeader) && acceptEncodingHeader.contains("gzip")) {
             response.setHeader(HttpHeaders.CONTENT_ENCODING, "gzip");
             response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());
             try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(response.getOutputStream())) {

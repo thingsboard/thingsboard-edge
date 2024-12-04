@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.device.profile.AlarmConditionKeyType;
 import org.thingsboard.server.common.data.device.profile.AlarmRule;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -140,7 +141,8 @@ import static org.thingsboard.server.common.data.notification.rule.trigger.confi
 @DaoSqlTest
 @TestPropertySource(properties = {
         "transport.http.enabled=true",
-        "notification_system.rules.deduplication_durations=RATE_LIMITS:10000"
+        "notification_system.rules.deduplication_durations=RATE_LIMITS:10000",
+        "edges.enabled=true"
 })
 public class NotificationRuleApiTest extends AbstractNotificationApiTest {
 
@@ -388,6 +390,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
             profileConfiguration.setMaxUsers(limit);
             profileConfiguration.setMaxDashboards(limit);
             profileConfiguration.setMaxRuleChains(limit);
+            profileConfiguration.setMaxEdges(limit);
         });
 
         EntitiesLimitNotificationRuleTriggerConfig triggerConfig = EntitiesLimitNotificationRuleTriggerConfig.builder()
@@ -433,6 +436,21 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
             }
         }, notification -> {
             assertThat(notification.getText()).isEqualTo("Rule chains usage: " + threshold + "/" + limit + " (80%)");
+        });
+
+        checkNotificationAfter(() -> {
+            for (int i = 1; i <= threshold; i++) {
+                Edge edge = new Edge();
+                edge.setName(i + "");
+                edge.setType("default");
+                edge.setSecret("secret_" + i);
+                edge.setRoutingKey("routingKey_" + i);
+                edge.setEdgeLicenseKey("licenseKey_" + i);
+                edge.setCloudEndpoint("endpoint");
+                doPost("/api/edge", edge);
+            }
+        }, notification -> {
+            assertThat(notification.getText()).isEqualTo("Edges usage: " + threshold + "/" + limit + " (80%)");
         });
 
         triggerConfig.setThreshold(1.0f);

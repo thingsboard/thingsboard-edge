@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import {
@@ -61,8 +61,8 @@ import { Authority } from '@shared/models/authority.enum';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { WINDOW } from '@core/services/window.service';
 import {
-  EdgeInstructionsDialogData,
-  EdgeInstructionsDialogComponent
+  EdgeInstructionsDialogComponent,
+  EdgeInstructionsDialogData
 } from '@home/pages/edge/edge-instructions-dialog.component';
 
 @Injectable()
@@ -221,7 +221,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       );
     }
 
-    return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
+    return this.groupConfigTableConfigService.prepareConfiguration(params, config);
   }
 
   importEdges($event: Event, config: GroupEntityTableConfig<EdgeInfo>) {
