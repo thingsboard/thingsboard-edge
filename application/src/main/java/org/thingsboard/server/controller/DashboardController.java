@@ -38,15 +38,19 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -92,6 +96,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_AUTHORITY_PARAGRAPH;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_ID_PARAM_DESCRIPTION;
@@ -180,17 +185,20 @@ public class DashboardController extends BaseController {
     )
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/dashboard/{dashboardId}")
-    public Dashboard getDashboardById(@Parameter(description = DASHBOARD_ID_PARAM_DESCRIPTION)
+    public void getDashboardById(@Parameter(description = DASHBOARD_ID_PARAM_DESCRIPTION)
                                       @PathVariable(DASHBOARD_ID) String strDashboardId,
                                       @Parameter(description = INCLUDE_RESOURCES_DESCRIPTION)
-                                      @RequestParam(value = INCLUDE_RESOURCES, required = false) boolean includeResources) throws ThingsboardException {
+                                      @RequestParam(value = INCLUDE_RESOURCES, required = false) boolean includeResources,
+                                      @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
+                                      HttpServletResponse response) throws Exception {
         checkParameter(DASHBOARD_ID, strDashboardId);
         DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
         Dashboard dashboard = checkDashboardId(dashboardId, Operation.READ);
         if (includeResources) {
             dashboard.setResources(tbResourceService.exportResources(dashboard, getCurrentUser()));
         }
-        return dashboard;
+        response.setContentType(APPLICATION_JSON_VALUE);
+        compressResponseWithGzipIFAccepted(acceptEncodingHeader, response, JacksonUtil.writeValueAsBytes(dashboard));
     }
 
     @ApiOperation(value = "Create Or Update Dashboard (saveDashboard)",
@@ -202,21 +210,24 @@ public class DashboardController extends BaseController {
                     "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Dashboard entity. " +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/dashboard", method = RequestMethod.POST)
-    @ResponseBody
-    public Dashboard saveDashboard(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the dashboard.")
+    @PostMapping(value = "/dashboard")
+    public void saveDashboard(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the dashboard.")
                                    @RequestBody Dashboard dashboard,
                                    @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
                                    @Parameter(description = "A list of entity group ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
-                                   @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
+                                   @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds,
+                                   @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
+                                   HttpServletResponse response) throws Exception {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(dashboard, strEntityGroupId, strEntityGroupIds, (dashboard1, entityGroups) -> {
+        var savedDashboard = saveGroupEntity(dashboard, strEntityGroupId, strEntityGroupIds, (dashboard1, entityGroups) -> {
             try {
                 return tbDashboardService.save(dashboard1, entityGroups, user);
             } catch (Exception e) {
                 throw handleException(e);
             }
         });
+        response.setContentType(APPLICATION_JSON_VALUE);
+        compressResponseWithGzipIFAccepted(acceptEncodingHeader, response, JacksonUtil.writeValueAsBytes(savedDashboard));
     }
 
     @ApiOperation(value = "Delete the Dashboard (deleteDashboard)",
@@ -478,18 +489,21 @@ public class DashboardController extends BaseController {
             notes = "Export the dashboards that belong to specified group id."
                     + DASHBOARD_DEFINITION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards/export", params = {"limit"}, method = RequestMethod.GET)
-    @ResponseBody
-    public List<Dashboard> exportGroupDashboards(
+    @GetMapping(value = "/entityGroup/{entityGroupId}/dashboards/export", params = {"limit"})
+    public void exportGroupDashboards(
             @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
             @Parameter(description = "Limit of the entities to export", required = true)
-            @RequestParam int limit) throws ThingsboardException {
+            @RequestParam int limit,
+            @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
+            HttpServletResponse response) throws Exception {
         TenantId tenantId = getCurrentUser().getTenantId();
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         checkEntityGroupId(entityGroupId, Operation.READ);
         TimePageLink pageLink = new TimePageLink(limit);
-        return dashboardService.exportDashboards(tenantId, entityGroupId, pageLink);
+        response.setContentType(APPLICATION_JSON_VALUE);
+        var dashboards = dashboardService.exportDashboards(tenantId, entityGroupId, pageLink);
+        compressResponseWithGzipIFAccepted(acceptEncodingHeader, response, JacksonUtil.writeValueAsBytes(dashboards));
     }
 
     private List<DashboardInfo> filterDashboardsByReadPermission(List<DashboardInfo> dashboards) {
@@ -508,12 +522,13 @@ public class DashboardController extends BaseController {
                     "If 'homeDashboardId' parameter is not set on the User and Customer levels then checks the same parameter for the Tenant that owns the user. "
                     + DASHBOARD_DEFINITION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/dashboard/home", method = RequestMethod.GET)
-    @ResponseBody
-    public HomeDashboard getHomeDashboard() throws ThingsboardException {
+    @GetMapping(value = "/dashboard/home")
+    public void getHomeDashboard(@RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
+                                 HttpServletResponse response) throws Exception {
         SecurityUser securityUser = getCurrentUser();
+        response.setContentType(APPLICATION_JSON_VALUE);
         if (securityUser.isSystemAdmin()) {
-            return null;
+            return;
         }
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
         JsonNode additionalInfo;
@@ -539,7 +554,9 @@ public class DashboardController extends BaseController {
                 homeDashboard = extractHomeDashboardFromAdditionalInfo(additionalInfo);
             }
         }
-        return homeDashboard;
+        if (homeDashboard != null) {
+            compressResponseWithGzipIFAccepted(acceptEncodingHeader, response, JacksonUtil.writeValueAsBytes(homeDashboard));
+        }
     }
 
     @ApiOperation(value = "Get Home Dashboard Info (getHomeDashboardInfo)",
