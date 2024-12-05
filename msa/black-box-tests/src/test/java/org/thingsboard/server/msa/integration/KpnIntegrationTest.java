@@ -41,6 +41,7 @@ import org.awaitility.Awaitility;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -176,7 +177,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
         integration.setType(IntegrationType.KPN);
         integration.setEnabled(true);
         integration.setRemote(false);
-        integration.setDebugAll(true);
+        integration.setDebugSettings(DebugSettings.all());
         integration.setAllowCreateDevicesOrAssets(true);
         integration.setRoutingKey(ROUTING_KEY);
         integration.setSecret("secret-key-kpn-integration");
