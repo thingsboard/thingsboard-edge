@@ -101,6 +101,7 @@
       </mat-checkbox>
       <tb-js-func [class.!hidden]="!columnFormGroup.get('useCellStyleFunction').value"
         formControlName="cellStyleFunction"
+        withModules
         [functionArgs]="['value', 'entity']"
         [globalVariables]="functionScopeVariables"
         helpId="entity_group/cell_style_fn"
@@ -111,6 +112,7 @@
       </mat-checkbox>
       <tb-js-func [class.!hidden]="!columnFormGroup.get('useCellContentFunction').value"
         formControlName="cellContentFunction"
+        withModules
         [functionArgs]="['value', 'entity', 'datePipe']"
         [globalVariables]="functionScopeVariables"
         helpId="entity_group/cell_content_fn"

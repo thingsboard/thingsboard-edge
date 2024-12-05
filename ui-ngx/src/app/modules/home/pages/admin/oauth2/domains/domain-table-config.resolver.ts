@@ -33,6 +33,7 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import {
   DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityActionTableColumn,
   EntityChipsEntityTableColumn,
   EntityTableColumn,
@@ -48,7 +49,8 @@ import { DomainComponent } from '@home/pages/admin/oauth2/domains/domain.compone
 import { isEqual } from '@core/utils';
 import { DomainTableHeaderComponent } from '@home/pages/admin/oauth2/domains/domain-table-header.component';
 import { Direction } from '@app/shared/models/page/sort-order';
-import { map, Observable, of, mergeMap } from 'rxjs';
+import { map, mergeMap, Observable, of } from 'rxjs';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class DomainTableConfigResolver  {
@@ -58,7 +60,9 @@ export class DomainTableConfigResolver  {
   constructor(private translate: TranslateService,
               private datePipe: DatePipe,
               private utilsService: UtilsService,
-              private domainService: DomainService) {
+              private domainService: DomainService,
+              private userPermissionsService: UserPermissionsService,
+              ) {
     this.config.tableTitle = this.translate.instant('admin.oauth2.domains');
     this.config.selectionEnabled = false;
     this.config.entityType = EntityType.DOMAIN;
@@ -98,7 +102,7 @@ export class DomainTableConfigResolver  {
 
     this.config.deleteEntityTitle = (domain) => this.translate.instant('admin.oauth2.delete-domain-title', {domainName: domain.name});
     this.config.deleteEntityContent = () => this.translate.instant('admin.oauth2.delete-domain-text');
-    this.config.entitiesFetchFunction = pageLink => this.domainService.getTenantDomainInfos(pageLink);
+    this.config.entitiesFetchFunction = pageLink => this.domainService.getDomainInfos(pageLink);
     this.config.loadEntity = id => this.domainService.getDomainInfoById(id.id);
     this.config.saveEntity = (domain, originalDomain) => {
       const clientsIds = domain.oauth2ClientInfos as Array<string> || [];
@@ -121,7 +125,8 @@ export class DomainTableConfigResolver  {
     this.config.deleteEntity = id => this.domainService.deleteDomain(id.id);
   }
 
-  resolve(route: ActivatedRouteSnapshot): EntityTableConfig<DomainInfo> {
+  resolve(_route: ActivatedRouteSnapshot): EntityTableConfig<DomainInfo> {
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

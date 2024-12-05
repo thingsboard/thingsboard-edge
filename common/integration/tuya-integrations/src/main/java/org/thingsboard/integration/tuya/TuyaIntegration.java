@@ -52,7 +52,7 @@ import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.tuya.mq.MessageVO;
@@ -244,18 +244,14 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                 exception = e;
                 integrationStatistics.incErrorsOccurred();
             }
-            try {
-                persistDebug(this.context, "Uplink", UplinkContentType.JSON, msg.toString(), exception == null ? "OK" : "ERROR", exception);
-            } catch (Exception e) {
-                log.warn("[{}] Failed to persist debug message!", getConfigurationId(), e);
-            }
+            persistDebug(this.context, "Uplink", ContentType.JSON, msg.toString(), exception == null ? "OK" : "ERROR", exception);
         }
     }
 
     private void doProcess(TuyaIntegrationMsg msg) throws Exception {
         byte[] data = JacksonUtil.writeValueAsBytes(msg.getJson());
         Map<String, String> metadataMap = msg.getDeviceMetadata();
-        List<UplinkData> uplinkDataList = this.convertToUplinkDataList(this.context, data, new UplinkMetaData(UplinkContentType.JSON, metadataMap));
+        List<UplinkData> uplinkDataList = this.convertToUplinkDataList(this.context, data, new UplinkMetaData(ContentType.JSON, metadataMap));
         if (uplinkDataList != null && !uplinkDataList.isEmpty()) {
             for (UplinkData uplinkData : uplinkDataList) {
                 UplinkData uplinkDataResult = UplinkData.builder().deviceName(uplinkData.getDeviceName())
@@ -280,16 +276,13 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
             } catch (Exception e) {
                 exception = e;
             }
-            if (exception != null || configuration.isDebugMode()) {
-                resultHandler("Downlink", msg.getData(), exception);
-            }
+            resultHandler("Downlink", msg.getData(), exception);
         }
     }
 
     private void resultHandler(String type, String msg, Exception exception) {
         String status = exception == null ? "SUCCESS" : "FAILURE";
-        persistDebug(context, type, UplinkContentType.JSON, msg, status, exception);
-
+        persistDebug(context, type, ContentType.JSON, msg, status, exception);
     }
 
     private MqConsumer createMqConsumer(String accessId, String accessKey) {

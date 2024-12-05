@@ -59,7 +59,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.translation.TbTranslationService;
+import org.thingsboard.server.service.translation.TbCustomTranslationService;
 
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
@@ -80,7 +80,7 @@ public class CustomTranslationController extends BaseController {
             MARKDOWN_CODE_BLOCK_END;
 
     @Autowired
-    private TbTranslationService tbTranslationService;
+    private TbCustomTranslationService tbCustomTranslationService;
 
     @Autowired
     private CustomTranslationService customTranslationService;
@@ -144,7 +144,7 @@ public class CustomTranslationController extends BaseController {
                 .localeCode(localeCode)
                 .value(customTranslationValue)
                 .build();
-        tbTranslationService.saveCustomTranslation(customTranslation);
+        tbCustomTranslationService.saveCustomTranslation(customTranslation);
     }
 
     @ApiOperation(value = "Update Custom Translation for specified translation keys only (patchCustomTranslation)",
@@ -162,7 +162,7 @@ public class CustomTranslationController extends BaseController {
         DataValidator.validateLocaleCode(localeCode);
         DataValidator.validateCustomTranslation(newCustomTranslation);
         SecurityUser currentUser = getCurrentUser();
-        tbTranslationService.patchCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
+        tbCustomTranslationService.patchCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, newCustomTranslation);
     }
 
@@ -180,7 +180,7 @@ public class CustomTranslationController extends BaseController {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();
-        tbTranslationService.deleteCustomTranslationKey(currentUser.getTenantId(), currentUser.getCustomerId(),
+        tbCustomTranslationService.deleteCustomTranslationKey(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, keyPath);
     }
 
@@ -204,7 +204,7 @@ public class CustomTranslationController extends BaseController {
         customTranslation.setLocaleCode(localeCode);
         customTranslation.setValueBytes(file.getBytes());
 
-        tbTranslationService.saveCustomTranslation(customTranslation);
+        tbCustomTranslationService.saveCustomTranslation(customTranslation);
     }
 
     @ApiOperation(value = "Delete Custom Translation for specified locale (deleteCustomTranslation)",
@@ -218,7 +218,7 @@ public class CustomTranslationController extends BaseController {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();
-        tbTranslationService.deleteCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
+        tbCustomTranslationService.deleteCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode);
     }
 

@@ -131,7 +131,7 @@ import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import org.thingsboard.server.service.sync.vc.GitVersionControlQueueService;
-import org.thingsboard.server.service.translation.TbTranslationService;
+import org.thingsboard.server.service.translation.TbCustomTranslationService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
@@ -181,7 +181,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final NotificationRuleProcessor notificationRuleProcessor;
     private final TbCoreQueueFactory queueFactory;
     private final TbImageService imageService;
-    private final TbTranslationService translationService;
+    private final TbCustomTranslationService translationService;
     private final TbCustomMenuService customMenuService;
     private final TbCoreConsumerStats stats;
 
@@ -210,7 +210,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         NotificationSchedulerService notificationSchedulerService,
                                         NotificationRuleProcessor notificationRuleProcessor,
                                         TbImageService imageService,
-                                        TbTranslationService translationService,
+                                        TbCustomTranslationService translationService,
                                         TbCustomMenuService customMenuService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, apiUsageStateService, partitionService,
                 eventPublisher, jwtSettingsService);
@@ -583,7 +583,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     }
 
     private void forwardToResourceService(TransportProtos.ResourceCacheInvalidateMsg msg, TbCallback callback) {
-        var tenantId = new TenantId(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
+        var tenantId = TenantId.fromUUID(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
         msg.getKeysList().stream().map(cacheKeyProto -> {
             if (cacheKeyProto.hasResourceKey()) {
                 return ImageCacheKey.forImage(tenantId, cacheKeyProto.getResourceKey());

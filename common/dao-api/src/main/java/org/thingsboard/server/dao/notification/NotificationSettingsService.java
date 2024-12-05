@@ -34,6 +34,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 
 public interface NotificationSettingsService {
 
@@ -50,5 +51,9 @@ public interface NotificationSettingsService {
     void createDefaultNotificationConfigs(TenantId tenantId);
 
     void updateDefaultNotificationConfigs(TenantId tenantId);
+
+    void updateSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template);
+
+    void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template);
 
 }

@@ -183,6 +183,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
 
   widgetConfigCallbacks: WidgetConfigCallbacks = {
     createEntityAlias: this.createEntityAlias.bind(this),
+    editEntityAlias: this.editEntityAlias.bind(this),
     createFilter: this.createFilter.bind(this),
     generateDataKey: this.generateDataKey.bind(this),
     fetchEntityKeysForDevice: this.fetchEntityKeysForDevice.bind(this),
@@ -855,6 +856,27 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
         allowedEntityTypes,
         entityAliases: this.dashboard.configuration.entityAliases,
         alias: singleEntityAlias
+      }
+    }).afterClosed().pipe(
+      tap((entityAlias) => {
+        if (entityAlias) {
+          this.dashboard.configuration.entityAliases[entityAlias.id] = entityAlias;
+          this.aliasController.updateEntityAliases(this.dashboard.configuration.entityAliases);
+        }
+      })
+    );
+  }
+
+  private editEntityAlias(alias: EntityAlias, allowedEntityTypes: Array<EntityType>): Observable<EntityAlias> {
+    return this.dialog.open<EntityAliasDialogComponent, EntityAliasDialogData,
+      EntityAlias>(EntityAliasDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        isAdd: false,
+        allowedEntityTypes,
+        entityAliases: this.dashboard.configuration.entityAliases,
+        alias: deepClone(alias)
       }
     }).afterClosed().pipe(
       tap((entityAlias) => {

@@ -40,6 +40,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.thingsboard.migrator.MigrationService;
 import org.thingsboard.migrator.Table;
+import org.thingsboard.migrator.utils.PostgresService;
 import org.thingsboard.migrator.utils.SqlPartitionService;
 
 import java.io.IOException;
@@ -62,6 +63,7 @@ public class PostgresTenantDataExporter extends MigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final SqlPartitionService partitionService;
+    private final PostgresService postgresService;
 
     @Value("${export.tenant_id}")
     private UUID exportedTenantId;
@@ -144,6 +146,7 @@ public class PostgresTenantDataExporter extends MigrationService {
         Writer writer = writers.computeIfAbsent(table, k -> storage.newWriter(table.getName()));
         Consumer<Map<String, Object>> processor = row -> {
             try {
+                prepareRow(table, row);
                 try {
                     storage.addToFile(writer, row);
                 } catch (Throwable e) {
@@ -181,6 +184,15 @@ public class PostgresTenantDataExporter extends MigrationService {
                         partitionStart, table.getName(), table.getPartitionColumn(), partitionEnd);
                 query(insertAfter(query, "WHERE", tsFilter), processor);
             });
+        }
+    }
+
+    private void prepareRow(Table table, Map<String, Object> row) {
+        if (table == Table.OTA_PACKAGE) {
+            Long dataOid = (Long) row.get("data");
+            if (dataOid != null) {
+                row.put("data", postgresService.getBlob(dataOid));
+            }
         }
     }
 

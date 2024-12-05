@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceConfiguration;
@@ -287,11 +288,15 @@ class ProtoUtilsTest {
         assertEqualDeserializedEntity(expectedSettings, actualSettings, "RepositorySettings");
 
         Integration expectedIntegration = easyRandom.nextObject(Integration.class);
+        expectedIntegration.setDebugMode(false); // Debug Mode is always false until removed.
+        expectedIntegration.setDebugSettings(DebugSettings.failures());
         IntegrationProto integrationProto = ProtoUtils.toProto(expectedIntegration);
         Integration actualIntegration = ProtoUtils.fromProto(integrationProto);
         assertEqualDeserializedEntity(expectedIntegration, actualIntegration, "Integration");
 
         Converter expectedConverter = easyRandom.nextObject(Converter.class);
+        expectedConverter.setDebugMode(false); // Debug Mode is always false until removed.
+        expectedConverter.setDebugSettings(DebugSettings.failures());
         ConverterProto converterProto = ProtoUtils.toProto(expectedConverter);
         Converter actualConverter = ProtoUtils.fromProto(converterProto);
         assertEqualDeserializedEntity(expectedConverter, actualConverter, "Converter");

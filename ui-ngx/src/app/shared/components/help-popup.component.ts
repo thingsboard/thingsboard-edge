@@ -45,9 +45,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { isDefinedAndNotNull } from '@core/utils';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { Observable } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
-  selector: '[tb-help-popup], [tb-help-popup-content]',
+  selector: '[tb-help-popup], [tb-help-popup-content], [tb-help-popup-content-base64], [tb-help-popup-async-content]',
   templateUrl: './help-popup.component.html',
   styleUrls: ['./help-popup.component.scss'],
   encapsulation: ViewEncapsulation.None
@@ -60,6 +62,22 @@ export class HelpPopupComponent implements OnChanges, OnDestroy {
   @Input('tb-help-popup') helpId: string;
 
   @Input('tb-help-popup-content') helpContent: string;
+
+  @Input('tb-help-popup-content-base64') helpContentBase64: string;
+
+  @Input('tb-help-popup-async-content') asyncHelpContent: () => Observable<string> | null;
+
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  @Input('help-icon') helpIcon = 'help_outline';
+
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  @Input('help-opened-icon') helpOpenedIcon = 'help';
+
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  @Input('help-icon-tooltip') helpIconTooltip = this.translate.instant('help.show-help');
+
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  @Input('help-icon-button-class') helpIconButtonClass = 'tb-mat-32';
 
   // eslint-disable-next-line @angular-eslint/no-input-rename
   @Input('trigger-text') triggerText: string;
@@ -85,10 +103,10 @@ export class HelpPopupComponent implements OnChanges, OnDestroy {
   textMode = false;
 
   constructor(private viewContainerRef: ViewContainerRef,
-              private element: ElementRef<HTMLElement>,
               private sanitizer: DomSanitizer,
               private renderer: Renderer2,
               private popoverService: TbPopoverService,
+              private translate: TranslateService,
               public wl: WhiteLabelingService) {
   }
 
@@ -101,19 +119,27 @@ export class HelpPopupComponent implements OnChanges, OnDestroy {
     this.textMode = this.triggerSafeHtml != null;
   }
 
+  disabled(): boolean {
+    return !this.helpId && !this.helpContent && !this.helpContentBase64 && !this.asyncHelpContent;
+  }
+
   toggleHelp() {
-    const trigger = this.textMode ? this.toggleHelpTextButton.nativeElement : this.toggleHelpButton.nativeElement;
-    this.popoverService.toggleHelpPopover(trigger, this.renderer, this.viewContainerRef,
-      this.helpId,
-      this.helpContent,
-      (visible) => {
-        this.popoverVisible = visible;
-      }, (ready => {
-        this.popoverReady = ready;
-      }),
-      this.helpPopupPlacement,
-      {},
-      this.helpPopupStyle);
+    if (!this.disabled()) {
+      const trigger = this.textMode ? this.toggleHelpTextButton.nativeElement : this.toggleHelpButton.nativeElement;
+      this.popoverService.toggleHelpPopover(trigger, this.renderer, this.viewContainerRef,
+        this.helpId,
+        this.helpContent,
+        this.helpContentBase64,
+        this.asyncHelpContent ? this.asyncHelpContent() : null,
+        (visible) => {
+          this.popoverVisible = visible;
+        }, (ready => {
+          this.popoverReady = ready;
+        }),
+        this.helpPopupPlacement,
+        {},
+        this.helpPopupStyle);
+    }
   }
 
   ngOnDestroy(): void {

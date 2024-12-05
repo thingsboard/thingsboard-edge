@@ -53,8 +53,6 @@ public class MailTemplates {
     public static final String API_USAGE_STATE_DISABLED = "apiUsageStateDisabled";
     public static final String RESET_PASSWORD = "resetPassword"; //NOSONAR, used as constant defining key for mail template
     public static final String PASSWORD_WAS_RESET = "passwordWasReset"; //NOSONAR, used as constant defining key for mail template
-    public static final String USER_ACTIVATED = "userActivated";
-    public static final String USER_REGISTERED = "userRegistered";
     public static final String TWO_FA_VERIFICATION = "twoFaVerification";
 
     private static final String SUBJECT = "subject";
@@ -85,7 +83,7 @@ public class MailTemplates {
         }
     }
 
-    private static JsonNode getTemplate(JsonNode config, String template) {
+    public static JsonNode getTemplate(JsonNode config, String template) {
         JsonNode templateNode = config.get(template);
         if (templateNode == null) {
             throw new IncorrectParameterException("Can't find template with name '"+template+"'.");

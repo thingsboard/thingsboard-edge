@@ -32,6 +32,7 @@
 CREATE TABLE IF NOT EXISTS tb_schema_settings
 (
     schema_version bigint NOT NULL,
+    product varchar(2) NOT NULL,
     CONSTRAINT tb_schema_settings_pkey PRIMARY KEY (schema_version)
 );
 
@@ -95,7 +96,7 @@ CREATE TABLE IF NOT EXISTS converter (
     created_time bigint NOT NULL,
     additional_info varchar,
     configuration varchar(10000000),
-    debug_mode boolean,
+    debug_settings varchar(1024),
     name varchar(255),
     tenant_id uuid,
     type varchar(255),
@@ -110,7 +111,7 @@ CREATE TABLE IF NOT EXISTS integration (
     created_time bigint NOT NULL,
     additional_info varchar,
     configuration varchar(10000000),
-    debug_mode boolean,
+    debug_settings varchar(1024),
     enabled boolean,
     is_remote boolean,
     allow_create_devices_or_assets boolean,
@@ -239,7 +240,7 @@ CREATE TABLE IF NOT EXISTS rule_node (
     configuration varchar(10000000),
     type varchar(255),
     name varchar(255),
-    debug_mode boolean,
+    debug_settings varchar(1024),
     singleton_mode boolean,
     queue_name varchar(255),
     external_id uuid
@@ -743,6 +744,7 @@ CREATE TABLE IF NOT EXISTS oauth2_client (
     id uuid NOT NULL CONSTRAINT oauth2_client_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
+    customer_id uuid NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     title varchar(100) NOT NULL,
     additional_info varchar,
     client_id varchar(255),
@@ -780,6 +782,7 @@ CREATE TABLE IF NOT EXISTS domain (
     id uuid NOT NULL CONSTRAINT domain_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
+    customer_id uuid NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     name varchar(255) UNIQUE,
     oauth2_enabled boolean,
     edge_enabled boolean
@@ -789,9 +792,30 @@ CREATE TABLE IF NOT EXISTS mobile_app (
     id uuid NOT NULL CONSTRAINT mobile_app_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid,
-    pkg_name varchar(255) UNIQUE,
+    pkg_name varchar(255),
     app_secret varchar(2048),
-    oauth2_enabled boolean
+    platform_type varchar(32),
+    status varchar(32),
+    version_info varchar(100000),
+    store_info varchar(16384),
+    CONSTRAINT mobile_app_pkg_name_platform_unq_key UNIQUE (pkg_name, platform_type)
+);
+
+CREATE TABLE IF NOT EXISTS mobile_app_bundle (
+    id uuid NOT NULL CONSTRAINT mobile_app_bundle_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    title varchar(255),
+    description varchar(1024),
+    android_app_id uuid UNIQUE,
+    ios_app_id uuid UNIQUE,
+    layout_config varchar(16384),
+    self_registration_config varchar(16384),
+    terms_of_use varchar(10000000),
+    privacy_policy varchar(10000000),
+    oauth2_enabled boolean,
+    CONSTRAINT fk_android_app_id FOREIGN KEY (android_app_id) REFERENCES mobile_app(id) ON DELETE SET NULL,
+    CONSTRAINT fk_ios_app_id FOREIGN KEY (ios_app_id) REFERENCES mobile_app(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS domain_oauth2_client (
@@ -801,10 +825,10 @@ CREATE TABLE IF NOT EXISTS domain_oauth2_client (
     CONSTRAINT fk_oauth2_client FOREIGN KEY (oauth2_client_id) REFERENCES oauth2_client(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS mobile_app_oauth2_client (
-    mobile_app_id uuid NOT NULL,
+CREATE TABLE IF NOT EXISTS mobile_app_bundle_oauth2_client (
+    mobile_app_bundle_id uuid NOT NULL,
     oauth2_client_id uuid NOT NULL,
-    CONSTRAINT fk_domain FOREIGN KEY (mobile_app_id) REFERENCES mobile_app(id) ON DELETE CASCADE,
+    CONSTRAINT fk_domain FOREIGN KEY (mobile_app_bundle_id) REFERENCES mobile_app_bundle(id) ON DELETE CASCADE,
     CONSTRAINT fk_oauth2_client FOREIGN KEY (oauth2_client_id) REFERENCES oauth2_client(id) ON DELETE CASCADE
 );
 
@@ -1046,10 +1070,12 @@ CREATE TABLE IF NOT EXISTS user_settings (
 CREATE TABLE IF NOT EXISTS white_labeling (
     tenant_id UUID NOT NULL,
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
-    type VARCHAR(16),
+    type VARCHAR(30),
     settings VARCHAR(10000000),
-    domain_name VARCHAR(255) UNIQUE,
-    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type)
+    domain_id UUID,
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type),
+    CONSTRAINT white_labeling_domain_id_type_key UNIQUE (type, domain_id),
+    CONSTRAINT fk_white_labeling_domain_id FOREIGN KEY (domain_id) REFERENCES domain(id)
 );
 
 CREATE TABLE IF NOT EXISTS custom_menu (
@@ -1087,14 +1113,15 @@ CREATE TABLE IF NOT EXISTS custom_translation (
     CONSTRAINT custom_translation_pkey PRIMARY KEY (tenant_id, customer_id, locale_code)
 );
 
-CREATE TABLE IF NOT EXISTS mobile_app_settings (
-    id uuid NOT NULL CONSTRAINT mobile_app_settings_pkey PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS qr_code_settings (
+    id uuid NOT NULL CONSTRAINT qr_code_settings_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
     use_system_settings boolean,
     use_default_app boolean,
-    android_config VARCHAR(1000),
-    ios_config VARCHAR(1000),
+    android_enabled boolean,
+    ios_enabled boolean,
+    mobile_app_bundle_id uuid,
     qr_code_config VARCHAR(100000),
-    CONSTRAINT mobile_app_settings_tenant_id_unq_key UNIQUE (tenant_id)
+    CONSTRAINT qr_code_settings_tenant_id_unq_key UNIQUE (tenant_id)
 );

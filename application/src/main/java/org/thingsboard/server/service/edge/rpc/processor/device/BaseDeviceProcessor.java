@@ -31,7 +31,9 @@
 package org.thingsboard.server.service.edge.rpc.processor.device;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -40,6 +42,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -48,6 +51,12 @@ import java.util.UUID;
 
 @Slf4j
 public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
+
+    @Autowired
+    private TbClusterService tbClusterService;
+
+    @Autowired
+    private DataValidator<Device> deviceValidator;
 
     protected Pair<Boolean, Boolean> saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) throws ThingsboardException {
         boolean created = false;
@@ -58,7 +67,7 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
             if (device == null) {
                 throw new RuntimeException("[{" + tenantId + "}] deviceUpdateMsg {" + deviceUpdateMsg + "} cannot be converted to device");
             }
-            Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
+            Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
             if (deviceById == null) {
                 created = true;
                 device.setId(null);
@@ -67,7 +76,7 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 device.setId(deviceId);
             }
             String deviceName = device.getName();
-            Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
+            Device deviceByName = edgeCtx.getDeviceService().findDeviceByTenantIdAndName(tenantId, deviceName);
             if (deviceByName != null && !deviceByName.getId().equals(deviceId)) {
                 deviceName = deviceName + "_" + StringUtils.randomAlphabetic(15);
                 log.warn("[{}] Device with name {} already exists. Renaming device name to {}",
@@ -81,9 +90,9 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
             if (created) {
                 device.setId(deviceId);
             }
-            Device savedDevice = deviceService.saveDevice(device, false);
+            Device savedDevice = edgeCtx.getDeviceService().saveDevice(device, false);
             if (created) {
-                entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+                edgeCtx.getEntityGroupService().addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
             }
             safeAddToEntityGroup(tenantId, deviceUpdateMsg, deviceId);
             tbClusterService.onDeviceUpdated(savedDevice, created ? null : device);
@@ -109,12 +118,12 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
         if (deviceCredentials == null) {
             throw new RuntimeException("[{" + tenantId + "}] deviceCredentialsUpdateMsg {" + deviceCredentialsUpdateMsg + "} cannot be converted to device credentials");
         }
-        Device device = deviceService.findDeviceById(tenantId, deviceCredentials.getDeviceId());
+        Device device = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceCredentials.getDeviceId());
         if (device != null) {
             log.debug("[{}] Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
                     tenantId, device.getName(), deviceCredentials.getCredentialsId(), deviceCredentials.getCredentialsValue());
             try {
-                DeviceCredentials deviceCredentialsByDeviceId = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
+                DeviceCredentials deviceCredentialsByDeviceId = edgeCtx.getDeviceCredentialsService().findDeviceCredentialsByDeviceId(tenantId, device.getId());
                 if (deviceCredentialsByDeviceId == null) {
                     deviceCredentialsByDeviceId = new DeviceCredentials();
                     deviceCredentialsByDeviceId.setDeviceId(device.getId());
@@ -122,7 +131,7 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 deviceCredentialsByDeviceId.setCredentialsType(deviceCredentials.getCredentialsType());
                 deviceCredentialsByDeviceId.setCredentialsId(deviceCredentials.getCredentialsId());
                 deviceCredentialsByDeviceId.setCredentialsValue(deviceCredentials.getCredentialsValue());
-                deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentialsByDeviceId);
+                edgeCtx.getDeviceCredentialsService().updateDeviceCredentials(tenantId, deviceCredentialsByDeviceId);
 
             } catch (Exception e) {
                 log.error("[{}] Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]",

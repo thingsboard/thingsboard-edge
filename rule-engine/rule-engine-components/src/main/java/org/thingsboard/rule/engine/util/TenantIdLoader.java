@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.MobileAppId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
@@ -84,7 +85,7 @@ public class TenantIdLoader {
         HasTenantId tenantEntity;
         switch (entityType) {
             case TENANT:
-                return new TenantId(id);
+                return TenantId.fromUUID(id);
             case CUSTOMER:
                 tenantEntity = ctx.getCustomerService().findCustomerById(ctxTenantId, new CustomerId(id));
                 break;
@@ -205,6 +206,9 @@ public class TenantIdLoader {
                 break;
             case MOBILE_APP:
                 tenantEntity = ctx.getMobileAppService().findMobileAppById(ctxTenantId, new MobileAppId(id));
+                break;
+            case MOBILE_APP_BUNDLE:
+                tenantEntity = ctx.getMobileAppBundleService().findMobileAppBundleById(ctxTenantId, new MobileAppBundleId(id));
                 break;
             default:
                 throw new RuntimeException("Unexpected entity type: " + entityId.getEntityType());

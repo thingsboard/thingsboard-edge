@@ -144,7 +144,10 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
 
         Optional<GroupPermission> groupPermission = groupPermissionService.findPublicGroupPermissionByTenantIdAndEntityGroupId(tenantId, entityGroup.getId());
         if (groupPermission.isPresent()) {
-            groupPermissionService.deleteGroupPermission(tenantId, groupPermission.get().getId());
+            EntityGroup updatedEntityGroup = groupPermissionService.deleteGroupPermission(tenantId, groupPermission.get().getId());
+            if (updatedEntityGroup != null) {
+                entityGroup = updatedEntityGroup;
+            }
             userPermissionsService.onGroupPermissionDeleted(groupPermission.get());
         }
 
@@ -156,7 +159,7 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
         ((ObjectNode) additionalInfo).put("publicCustomerId", "");
         entityGroup.setAdditionalInfo(additionalInfo);
 
-        entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
+        entityGroup = entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
 
         logEntityActionService.logEntityAction(tenantId, entityGroup.getId(), null,
                 ActionType.MADE_PRIVATE, user, entityGroup.getId().toString(), entityGroup.getName());
@@ -172,4 +175,5 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
         }
         return groupType;
     }
+
 }

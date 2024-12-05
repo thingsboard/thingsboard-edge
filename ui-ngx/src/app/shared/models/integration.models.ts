@@ -34,6 +34,7 @@ import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
 import { ActivatedRouteSnapshot } from '@angular/router';
+import { HasDebugSettings } from '@shared/models/entity.models';
 
 export enum IntegrationType {
   MQTT = 'MQTT',
@@ -386,6 +387,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.KPN, 'integrationKpn'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
     [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
+    [IntegrationType.AZURE_SERVICE_BUS, 'integrationAzureServiceBus'],
     [IntegrationType.OPC_UA, 'integrationOpcUa'],
     [IntegrationType.UDP, 'integrationUdp'],
     [IntegrationType.TCP, 'integrationTcp'],
@@ -418,9 +420,8 @@ export interface IntegrationMetaData {
   metadata?: { [k: string]: string };
 }
 
-export interface IntegrationBasic extends BaseData<IntegrationId>, ExportableEntity<IntegrationId> {
+export interface IntegrationBasic extends BaseData<IntegrationId>, ExportableEntity<IntegrationId>, HasDebugSettings {
   type: IntegrationType;
-  debugMode: boolean;
   enabled: boolean;
   remote: boolean;
   allowCreateDevicesOrAssets: boolean;
@@ -695,6 +696,9 @@ export interface AzureEventHubIntegration {
     connectionString: string;
     consumerGroup?: string;
     iotHubName?: string;
+    storageConnectionString?: string;
+    containerName?: string;
+    enablePersistentCheckpoints?: boolean;
   };
 }
 

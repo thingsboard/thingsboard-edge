@@ -58,6 +58,7 @@ public enum Resource {
     OAUTH2_CLIENT(EntityType.OAUTH2_CLIENT),
     DOMAIN(EntityType.DOMAIN),
     MOBILE_APP(EntityType.MOBILE_APP),
+    MOBILE_APP_BUNDLE(EntityType.MOBILE_APP_BUNDLE),
     OAUTH2_CONFIGURATION_TEMPLATE(),
     TENANT_PROFILE(EntityType.TENANT_PROFILE),
     DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
@@ -118,6 +119,7 @@ public enum Resource {
         operationsByResource.put(Resource.OAUTH2_CLIENT, Operation.crudOperations);
         operationsByResource.put(Resource.DOMAIN, Operation.crudOperations);
         operationsByResource.put(Resource.MOBILE_APP, Operation.crudOperations);
+        operationsByResource.put(Resource.MOBILE_APP_BUNDLE, Operation.crudOperations);
         operationsByResource.put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, Operation.crudOperations);
         operationsByResource.put(Resource.ALARM, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE));
         operationsByResource.put(Resource.DEVICE, Set.of(Operation.ALL, Operation.READ, Operation.WRITE,
@@ -179,6 +181,7 @@ public enum Resource {
                 Resource.OAUTH2_CLIENT,
                 Resource.DOMAIN,
                 Resource.MOBILE_APP,
+                Resource.MOBILE_APP_BUNDLE,
                 Resource.OAUTH2_CONFIGURATION_TEMPLATE,
                 Resource.TB_RESOURCE,
                 Resource.QUEUE,
@@ -219,6 +222,10 @@ public enum Resource {
                 Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
+                Resource.OAUTH2_CLIENT,
+                Resource.DOMAIN,
+                Resource.MOBILE_APP,
+                Resource.MOBILE_APP_BUNDLE,
                 Resource.AUDIT_LOG,
                 Resource.TB_RESOURCE,
                 Resource.OTA_PACKAGE,
@@ -254,6 +261,8 @@ public enum Resource {
                 Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
+                Resource.DOMAIN,
+                Resource.OAUTH2_CLIENT,
                 Resource.AUDIT_LOG,
                 Resource.DEVICE_PROFILE,
                 Resource.ASSET_PROFILE,

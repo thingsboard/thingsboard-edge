@@ -85,14 +85,15 @@ import org.thingsboard.server.dao.tenant.TenantService;
  *     future.addCallback(eventPublisher.publishEvent(...))
  *   }
  * */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class EdgeEventSourcingListener {
 
     private final TbClusterService tbClusterService;
-    private final EdgeSynchronizationManager edgeSynchronizationManager;
     private final TenantService tenantService;
+
+    private final EdgeSynchronizationManager edgeSynchronizationManager;
 
     @PostConstruct
     public void init() {
@@ -126,7 +127,7 @@ public class EdgeEventSourcingListener {
         }
         try {
             EntityType entityType = event.getEntityId().getEntityType();
-            if (EntityType.EDGE.equals(entityType) || EntityType.TENANT.equals(entityType)) {
+            if (EntityType.TENANT.equals(entityType) || EntityType.EDGE.equals(entityType)) {
                 return;
             }
             log.trace("[{}] DeleteEntityEvent called: {}", tenantId, event);
@@ -165,7 +166,7 @@ public class EdgeEventSourcingListener {
                     return;
                 }
             }
-            if (event.getEntityId().getEntityType().equals(EntityType.RULE_CHAIN) && event.getEdgeId() != null && event.getActionType().equals(ActionType.ASSIGNED_TO_EDGE)) {
+            if (EntityType.RULE_CHAIN.equals(event.getEntityId() != null ? event.getEntityId().getEntityType() : null) && event.getEdgeId() != null && event.getActionType().equals(ActionType.ASSIGNED_TO_EDGE)) {
                 try {
                     Edge edge = JacksonUtil.fromString(event.getBody(), Edge.class);
                     if (edge != null && new RuleChainId(event.getEntityId().getId()).equals(edge.getRootRuleChainId())) {

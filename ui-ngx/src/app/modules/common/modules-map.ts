@@ -116,7 +116,6 @@ import * as TruncateWithTooltipDirective from '@shared/directives/truncate-with-
 
 import * as coercion from '@shared/decorators/coercion';
 import * as enumerable from '@shared/decorators/enumerable';
-import * as TbInject from '@shared/decorators/tb-inject';
 
 import * as FooterComponent from '@shared/components/footer.component';
 import * as LogoComponent from '@shared/components/logo.component';
@@ -208,6 +207,7 @@ import * as HintTooltipIconComponent from '@shared/components/hint-tooltip-icon.
 import * as ScrollGridComponent from '@shared/components/grid/scroll-grid.component';
 import * as GalleryImageInputComponent from '@shared/components/image/gallery-image-input.component';
 import * as MultipleGalleryImageInputComponent from '@shared/components/image/multiple-gallery-image-input.component';
+import * as TbPopoverService from '@shared/components/popover.service';
 import * as EntityGroupAutocompleteComponent from '@shared/components/group/entity-group-autocomplete.component';
 import * as OwnerAutocompleteComponent from '@shared/components/group/owner-autocomplete.component';
 import * as EntityGroupSelectComponent from '@shared/components/group/entity-group-select.component';
@@ -268,6 +268,7 @@ import * as CustomActionPrettyEditorComponent from '@home/components/widget/lib/
 import * as MobileActionEditorComponent from '@home/components/widget/lib/settings/common/action/mobile-action-editor.component';
 import * as CustomDialogService from '@home/components/widget/dialog/custom-dialog.service';
 import * as CustomDialogContainerComponent from '@home/components/widget/dialog/custom-dialog-container.component';
+import * as ImportExportService from '@shared/import-export/import-export.service';
 import * as ImportDialogComponent from '@shared/import-export/import-dialog.component';
 import * as AddWidgetToDashboardDialogComponent from '@home/components/attribute/add-widget-to-dashboard-dialog.component';
 import * as ImportDialogCsvComponent from '@shared/import-export/import-dialog-csv.component';
@@ -386,13 +387,17 @@ import * as AssetProfileComponent from '@home/components/profile/asset-profile.c
 import * as AssetProfileDialogComponent from '@home/components/profile/asset-profile-dialog.component';
 import * as AssetProfileAutocompleteComponent from '@home/components/profile/asset-profile-autocomplete.component';
 import * as RuleChainSelectComponent from '@shared/components/rule-chain/rule-chain-select.component';
+import * as TimezoneComponent from '@shared/components/time/timezone.component';
+import * as TimezonePanelComponent from '@shared/components/time/timezone-panel.component';
+import * as DatapointsLimitComponent from '@shared/components/time/datapoints-limit.component';
+import * as AggregationTypeSelectComponent from '@shared/components/time/aggregation/aggregation-type-select.component';
+import * as AggregationOptionsConfigComponent from '@shared/components/time/aggregation/aggregation-options-config-panel.component';
+import * as IntervalOptionsConfigPanelComponent from '@shared/components/time/interval-options-config-panel.component';
 
 import { IModulesMap } from '@modules/common/modules-map.models';
-import { TimezoneComponent } from '@shared/components/time/timezone.component';
-import { TimezonePanelComponent } from '@shared/components/time/timezone-panel.component';
-import { DatapointsLimitComponent } from '@shared/components/time/datapoints-limit.component';
 import { Observable, map, of } from 'rxjs';
 import { getFlexLayout } from '@shared/legacy/flex-layout.models';
+import { isJSResourceUrl } from '@shared/public-api';
 
 class ModulesMap implements IModulesMap {
 
@@ -487,8 +492,8 @@ class ModulesMap implements IModulesMap {
 
     '@shared/decorators/coercion': coercion,
     '@shared/decorators/enumerable': enumerable,
-    '@shared/decorators/tb-inject': TbInject,
 
+    '@shared/import-export/import-export.service': ImportExportService,
     '@shared/import-export/import-dialog.component': ImportDialogComponent,
     '@shared/import-export/import-dialog-csv.component': ImportDialogCsvComponent,
     '@shared/import-export/table-columns-assignment.component': TableColumnsAssignmentComponent,
@@ -525,7 +530,10 @@ class ModulesMap implements IModulesMap {
     '@shared/components/time/timezone-select.component': TimezoneSelectComponent,
     '@shared/components/time/timezone.component': TimezoneComponent,
     '@shared/components/time/timezone-panel.component': TimezonePanelComponent,
-    '@shared/components/time/datapoints-limit': DatapointsLimitComponent,
+    '@shared/components/time/datapoints-limit.component': DatapointsLimitComponent,
+    '@shared/components/time/aggregation/aggregation-type-select.component': AggregationTypeSelectComponent,
+    '@shared/components/time/aggregation/aggregation-options-config-panel.component': AggregationOptionsConfigComponent,
+    '@shared/components/time/interval-options-config-panel.component': IntervalOptionsConfigPanelComponent,
     '@shared/components/value-input.component': ValueInputComponent,
     '@shared/components/dashboard-autocomplete.component': DashboardAutocompleteComponent,
     '@shared/components/entity/entity-subtype-autocomplete.component': EntitySubTypeAutocompleteComponent,
@@ -596,6 +604,7 @@ class ModulesMap implements IModulesMap {
     '@shared/components/role/group-permissions.component': GroupPermissionsComponent,
     '@shared/components/role/group-permission-dialog.component': GroupPermissionDialogComponent,
     '@shared/components/group/share-entity-group.component': ShareEntityGroupComponent,
+    '@shared/components/popover.service': TbPopoverService,
 
     '@home/components/alarm/alarm-filter-config.component': AlarmFilterConfigComponent,
     '@home/components/alarm/alarm-comment-dialog.component': AlarmCommentDialogComponent,
@@ -788,7 +797,7 @@ class ModulesMap implements IModulesMap {
           for (const moduleId of Object.keys(this.modulesMap)) {
             System.set('app:' + moduleId, this.modulesMap[moduleId]);
           }
-          System.constructor.prototype.shouldFetch = (url: string) => url.endsWith('/download');
+          System.constructor.prototype.shouldFetch = (url: string) => url.endsWith('/download') || isJSResourceUrl(url);
           System.constructor.prototype.fetch = (url: string, options: RequestInit & {meta?: any}) => {
             if (options?.meta?.additionalHeaders) {
               options.headers = { ...options.headers, ...options.meta.additionalHeaders };

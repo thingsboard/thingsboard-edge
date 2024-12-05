@@ -107,12 +107,17 @@ export enum MenuId {
   images = 'images',
   scada_symbols = 'scada_symbols',
   resources_library = 'resources_library',
+  javascript_library = 'javascript_library',
   notifications_center = 'notifications_center',
   notification_inbox = 'notification_inbox',
   notification_sent = 'notification_sent',
   notification_recipients = 'notification_recipients',
   notification_templates = 'notification_templates',
   notification_rules = 'notification_rules',
+  mobile_center = 'mobile_center',
+  mobile_apps = 'mobile_apps',
+  mobile_bundles = 'mobile_bundles',
+  mobile_qr_code_widget = 'mobile_qr_code_widget',
   settings = 'settings',
   general = 'general',
   mail_server = 'mail_server',
@@ -121,13 +126,11 @@ export enum MenuId {
   repository_settings = 'repository_settings',
   auto_commit_settings = 'auto_commit_settings',
   queues = 'queues',
-  mobile_app_settings = 'mobile_app_settings',
   security_settings = 'security_settings',
   security_settings_general = 'security_settings_general',
   two_fa = 'two_fa',
   oauth2 = 'oauth2',
   domains = 'domains',
-  mobile_apps = 'mobile_apps',
   clients = 'clients',
   audit_log = 'audit_log',
   alarms = 'alarms',
@@ -136,6 +139,7 @@ export enum MenuId {
   devices = 'devices',
   assets = 'assets',
   entity_views = 'entity_views',
+  gateways = 'gateways',
   profiles = 'profiles',
   device_profiles = 'device_profiles',
   asset_profiles = 'asset_profiles',
@@ -292,6 +296,16 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
+    MenuId.javascript_library,
+    {
+      id: MenuId.javascript_library,
+      name: 'javascript.javascript-library',
+      type: 'link',
+      path: '/resources/javascript-library',
+      icon: 'mdi:language-javascript'
+    }
+  ],
+  [
     MenuId.notifications_center,
     {
       id: MenuId.notifications_center,
@@ -354,6 +368,47 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/notification/rules',
       icon: 'mdi:message-cog'
+    }
+  ],
+  [
+    MenuId.mobile_center,
+    {
+      id: MenuId.mobile_center,
+      name: 'mobile.mobile-center',
+      type: 'link',
+      path: '/mobile-center',
+      icon: 'smartphone'
+    }
+  ],
+  [
+    MenuId.mobile_apps,
+    {
+      id: MenuId.mobile_apps,
+      name: 'mobile.applications',
+      type: 'link',
+      path: '/mobile-center/applications',
+      icon: 'list'
+    }
+  ],
+  [
+    MenuId.mobile_bundles,
+    {
+      id: MenuId.mobile_bundles,
+      name: 'mobile.bundles',
+      type: 'link',
+      path: '/mobile-center/bundles',
+      icon: 'mdi:package'
+    }
+  ],
+  [
+    MenuId.mobile_qr_code_widget,
+    {
+      id: MenuId.mobile_qr_code_widget,
+      name: 'mobile.qr-code-widget',
+      fullName: 'mobile.qr-code-widget',
+      type: 'link',
+      path: '/mobile-center/qr-code-widget',
+      icon: 'qr_code'
     }
   ],
   [
@@ -442,17 +497,6 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
-    MenuId.mobile_app_settings,
-    {
-      id: MenuId.mobile_app_settings,
-      name: 'admin.mobile-app.mobile-app',
-      fullName: 'admin.mobile-app.mobile-app',
-      type: 'link',
-      path: '/settings/mobile-app',
-      icon: 'smartphone'
-    }
-  ],
-  [
     MenuId.security_settings,
     {
       id: MenuId.security_settings,
@@ -501,16 +545,6 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/security-settings/oauth2/domains',
       icon: 'domain'
-    }
-  ],
-  [
-    MenuId.mobile_apps,
-    {
-      id: MenuId.mobile_apps,
-      name: 'admin.oauth2.mobile-apps',
-      type: 'link',
-      path: '/security-settings/oauth2/mobile-applications',
-      icon: 'smartphone'
     }
   ],
   [
@@ -591,6 +625,16 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/entities/entityViews',
       icon: 'view_quilt'
+    }
+  ],
+  [
+    MenuId.gateways,
+    {
+      id: MenuId.gateways,
+      name: 'gateway.gateways',
+      type: 'link',
+      path: '/entities/gateways',
+      icon: 'lan'
     }
   ],
   [
@@ -1190,6 +1234,13 @@ const menuFilters = new Map<MenuId, MenuFilter>([
           userPermissionsService.hasSharedReadGroupsPermission(EntityType.ENTITY_VIEW)
   ],
   [
+    MenuId.gateways, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN &&
+          userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE) &&
+          (userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD) ||
+            userPermissionsService.hasReadGenericPermission(Resource.WIDGET_TYPE))
+  ],
+  [
     MenuId.device_profiles, (authState, userPermissionsService) =>
           authState.authUser.authority === Authority.TENANT_ADMIN &&
           userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)
@@ -1289,6 +1340,11 @@ const menuFilters = new Map<MenuId, MenuFilter>([
             userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)
   ],
   [
+    MenuId.javascript_library, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)
+  ],
+  [
     MenuId.notification_sent, (authState, userPermissionsService) =>
             authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
@@ -1364,7 +1420,17 @@ const menuFilters = new Map<MenuId, MenuFilter>([
             userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
-    MenuId.mobile_app_settings, (authState, userPermissionsService) =>
+    MenuId.mobile_bundles, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP_BUNDLE)
+  ],
+  [
+    MenuId.mobile_apps, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP)
+  ],
+  [
+    MenuId.mobile_qr_code_widget, (authState, userPermissionsService) =>
             authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP_SETTINGS)
   ],
@@ -1376,6 +1442,14 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   [
     MenuId.roles, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.ROLE)
+  ],
+  [
+    MenuId.clients, (authState, userPermissionsService) =>
+            userPermissionsService.hasReadGenericPermission(Resource.OAUTH2_CLIENT)
+  ],
+  [
+    MenuId.domains, (authState, userPermissionsService) =>
+            userPermissionsService.hasReadGenericPermission(Resource.DOMAIN)
   ],
   [
     MenuId.self_registration, (authState, userPermissionsService) =>
@@ -1407,6 +1481,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           },
           {id: MenuId.images},
           {id: MenuId.scada_symbols},
+          {id: MenuId.javascript_library},
           {id: MenuId.resources_library}
         ]
       },
@@ -1418,6 +1493,14 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.notification_recipients},
           {id: MenuId.notification_templates},
           {id: MenuId.notification_rules}
+        ]
+      },
+      {
+        id: MenuId.mobile_center,
+        pages: [
+          {id: MenuId.mobile_bundles},
+          {id: MenuId.mobile_apps},
+          {id: MenuId.mobile_qr_code_widget}
         ]
       },
       {
@@ -1436,8 +1519,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.general},
           {id: MenuId.mail_server},
           {id: MenuId.notification_settings},
-          {id: MenuId.queues},
-          {id: MenuId.mobile_app_settings}
+          {id: MenuId.queues}
         ]
       },
       {
@@ -1449,7 +1531,6 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
             id: MenuId.oauth2,
             pages: [
               {id: MenuId.domains},
-              {id: MenuId.mobile_apps},
               {id: MenuId.clients}
             ]
           }
@@ -1497,7 +1578,8 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
               {id: MenuId.entity_view_groups},
               {id: MenuId.entity_view_shared}
             ]
-          }
+          },
+          {id: MenuId.gateways}
         ]
       },
       {
@@ -1567,6 +1649,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           },
           {id: MenuId.images},
           {id: MenuId.scada_symbols},
+          {id: MenuId.javascript_library},
           {id: MenuId.resources_library}
         ]
       },
@@ -1578,6 +1661,14 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.notification_recipients},
           {id: MenuId.notification_templates},
           {id: MenuId.notification_rules}
+        ]
+      },
+      {
+        id: MenuId.mobile_center,
+        pages: [
+          {id: MenuId.mobile_bundles},
+          {id: MenuId.mobile_apps},
+          {id: MenuId.mobile_qr_code_widget}
         ]
       },
       {id: MenuId.api_usage},
@@ -1598,8 +1689,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.mail_server},
           {id: MenuId.notification_settings},
           {id: MenuId.repository_settings},
-          {id: MenuId.auto_commit_settings},
-          {id: MenuId.mobile_app_settings}
+          {id: MenuId.auto_commit_settings}
         ]
       },
       {
@@ -1608,7 +1698,14 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.two_fa},
           {id: MenuId.roles},
           {id: MenuId.self_registration},
-          {id: MenuId.audit_log}
+          {id: MenuId.audit_log},
+          {
+            id: MenuId.oauth2,
+            pages: [
+              {id: MenuId.domains},
+              {id: MenuId.clients}
+            ]
+          }
         ]
       }
     ]
@@ -1712,7 +1809,14 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         id: MenuId.security_settings,
         pages: [
           {id: MenuId.roles},
-          {id: MenuId.audit_log}
+          {id: MenuId.audit_log},
+          {
+            id: MenuId.oauth2,
+            pages: [
+              {id: MenuId.domains},
+              {id: MenuId.clients}
+            ]
+          }
         ]
       }
     ]
@@ -1735,7 +1839,7 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
         name: 'admin.system-settings',
         places: [MenuId.general, MenuId.mail_server,
           MenuId.notification_settings, MenuId.security_settings, MenuId.oauth2, MenuId.domains, MenuId.mobile_apps,
-          MenuId.clients, MenuId.two_fa, MenuId.resources_library, MenuId.queues, MenuId.mobile_app_settings]
+          MenuId.clients, MenuId.two_fa, MenuId.resources_library, MenuId.queues]
       },
       {
         name: 'white-labeling.white-labeling',

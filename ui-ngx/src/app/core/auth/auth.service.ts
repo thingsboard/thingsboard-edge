@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgZone } from '@angular/core';
+import { Inject, Injectable, NgZone } from '@angular/core';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { HttpClient } from '@angular/common/http';
 
@@ -66,6 +66,7 @@ import { TwoFactorAuthProviderType, TwoFaProviderInfo } from '@shared/models/two
 import { UserPasswordPolicy } from '@shared/models/settings.models';
 import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
 import { updateUserLang } from '@core/settings/settings.utils';
+import { DOCUMENT } from '@angular/common';
 
 @Injectable({
     providedIn: 'root'
@@ -84,7 +85,8 @@ export class AuthService {
     private zone: NgZone,
     private utils: UtilsService,
     private translate: TranslateService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    @Inject(DOCUMENT) private document: Document,
   ) {
   }
 
@@ -504,7 +506,7 @@ export class AuthService {
         mergeMap((sysParams: SysParams) => {
           (this.translate.currentLoader as TranslateDefaultLoader).isAuthenticated = true;
           this.timeService.setMaxDatapointsLimit(sysParams.maxDatapointsLimit);
-          return updateUserLang(this.translate, userLang, sysParams.availableLocales, true).pipe(
+          return updateUserLang(this.translate, this.document, userLang, sysParams.availableLocales, true).pipe(
             map(() => sysParams)
           );
         })

@@ -93,7 +93,7 @@ export class DeviceCheckConnectivityDialogComponent extends
 
   notShowAgain = false;
 
-  helpBaseUrl = this.wl.getHelpLinkBaseUrl();
+  docsLink = this.wl.getDocsUrl();
 
   httpTabIndex = 0;
   mqttTabIndex = 0;

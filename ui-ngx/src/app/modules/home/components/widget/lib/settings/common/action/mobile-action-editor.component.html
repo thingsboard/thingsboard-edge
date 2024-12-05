@@ -57,6 +57,7 @@
       <tb-js-func
         formControlName="getLocationFunction"
         functionName="getLocation"
+        withModules
         [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
         [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
@@ -68,6 +69,7 @@
       <tb-js-func
         formControlName="getPhoneNumberFunction"
         functionName="getPhoneNumber"
+        withModules
         [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
         [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
@@ -82,6 +84,7 @@
       <tb-js-func
         formControlName="processImageFunction"
         functionName="processImage"
+        withModules
         [functionArgs]="['imageUrl', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
         [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
@@ -93,6 +96,7 @@
       <tb-js-func
         formControlName="processQrCodeFunction"
         functionName="processQrCode"
+        withModules
         [functionArgs]="['code', 'format', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
         [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
@@ -104,6 +108,7 @@
       <tb-js-func
         formControlName="processLocationFunction"
         functionName="processLocation"
+        withModules
         [functionArgs]="['latitude', 'longitude', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
         [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
@@ -118,6 +123,7 @@
       <tb-js-func
         formControlName="processLaunchResultFunction"
         functionName="processLaunchResult"
+        withModules
         [functionArgs]="['launched', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
         [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
@@ -129,6 +135,7 @@
   <tb-js-func *ngIf="mobileActionFormGroup.get('type').value"
               formControlName="handleEmptyResultFunction"
               functionName="handleEmptyResult"
+              withModules
               [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
               [globalVariables]="functionScopeVariables"
               [editorCompleter]="customActionEditorCompleter"
@@ -138,6 +145,7 @@
   <tb-js-func *ngIf="mobileActionFormGroup.get('type').value"
               formControlName="handleErrorFunction"
               functionName="handleError"
+              withModules
               [functionArgs]="['error', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
               [globalVariables]="functionScopeVariables"
               [editorCompleter]="customActionEditorCompleter"

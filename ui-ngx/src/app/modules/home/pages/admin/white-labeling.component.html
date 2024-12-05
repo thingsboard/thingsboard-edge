@@ -43,19 +43,30 @@
     </mat-progress-bar>
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
     <mat-card-content style="padding-top: 16px;">
-      <form [formGroup]="wlSettings" (ngSubmit)="save()">
+      <form [formGroup]="wlSettings" (ngSubmit)="save()" #wlSettingsForm="ngForm">
         <fieldset [disabled]="(isLoading$ | async) || readonly">
-          <mat-form-field *ngIf="isLoginWl && !isSysAdmin" class="mat-block">
-            <mat-label translate>white-labeling.domain-name</mat-label>
-            <input matInput formControlName="domainName" required/>
-            <mat-error *ngIf="wlSettings.get('domainName').hasError('pattern')">
-              {{ 'white-labeling.error-verification-url' | translate }}
-            </mat-error>
-          </mat-form-field>
+          <tb-entity-autocomplete
+            *ngIf="isLoginWl && !isSysAdmin"
+            [entityType]="EntityType.DOMAIN"
+            labelText="white-labeling.domain-name"
+            useFullEntityId
+            required
+            formControlName="domainId"
+            [allowCreateNew]="resource.DOMAIN | hasGenericPermission: operation.CREATE"
+            (entityChanged)="domainChange($event)"
+            (createNew)="createDomain()"
+          >
+          </tb-entity-autocomplete>
           <div *ngIf="isLoginWl">
-            <mat-form-field  class="mat-block">
+            <mat-form-field class="mat-block">
               <mat-label translate>white-labeling.base-url</mat-label>
               <input matInput formControlName="baseUrl"/>
+              <mat-error *ngIf="wlSettings.get('baseUrl').hasError('required')">
+                {{ 'white-labeling.base-url-required' | translate }}
+              </mat-error>
+              <mat-error *ngIf="wlSettings.get('baseUrl').hasError('pattern')">
+                {{ 'white-labeling.error-verification-url' | translate }}
+              </mat-error>
             </mat-form-field>
             <mat-checkbox formControlName="prohibitDifferentUrl">
               {{ 'white-labeling.prohibit-different-url' | translate }}
@@ -123,32 +134,43 @@
                         *ngIf="!isLoginWl && isTenant">
             {{ 'white-labeling.hide-connectivity-dialog' | translate }}
           </mat-checkbox>
-          <mat-checkbox formControlName="showNameVersion" style="display: block;">
+          <mat-checkbox formControlName="showNameVersion" class="block" [class.mb-4]="!wlSettings.get('showNameVersion').value">
             {{ 'white-labeling.show-platform-name-version' | translate }}
           </mat-checkbox>
           <mat-form-field floatLabel='always' class="mat-block" *ngIf="wlSettings.get('showNameVersion').value">
             <mat-label translate>white-labeling.platform-name</mat-label>
             <input matInput required placeholder="ThingsBoard" formControlName="platformName"/>
           </mat-form-field>
-          <mat-form-field floatLabel='always' class="mat-block" *ngIf="wlSettings.get('showNameVersion').value">
+          <mat-form-field floatLabel='always' class="mat-block" [class.mb-4]="!isLoginWl" *ngIf="wlSettings.get('showNameVersion').value">
             <mat-label translate>white-labeling.platform-version</mat-label>
             <input matInput required placeholder="{{thingsboardVersion}}" formControlName="platformVersion"/>
           </mat-form-field>
-          <mat-form-field class="mat-block flex-1" *ngIf="isLoginWl && wlSettings.get('showNameVersion').value">
+          <mat-form-field class="mat-block mb-4 flex-1" *ngIf="isLoginWl && wlSettings.get('showNameVersion').value">
             <mat-label translate>white-labeling.position.label</mat-label>
-            <mat-select matInput formControlName="showNameBottom">
+            <mat-select formControlName="showNameBottom">
               <mat-option *ngFor="let position of showPosition"
                           [value]="position.value">
                 {{ position.name | translate }}
               </mat-option>
             </mat-select>
           </mat-form-field>
-          <div class="flex w-full flex-row flex-wrap items-center justify-end">
-            <button *ngIf="!isLoginWl && !readonly" mat-button mat-raised-button [disabled]="(isLoading$ | async) || wlSettings.invalid"
-                    type="button" style="margin-right: 16px;" (click)="preview()">{{'white-labeling.preview' | translate}}
+          <div class="flex w-full flex-wrap items-center justify-between gap-4">
+            <button mat-raised-button
+                    color="warn"
+                    [disabled]="(isLoading$ | async)"
+                    type="button"
+                    (click)="delete(wlSettingsForm)">
+              <tb-icon matButtonIcon>mdi:broom</tb-icon>
+              {{ 'action.reset-default' | translate }}
             </button>
-            <button *ngIf="!readonly" mat-button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || wlSettings.invalid || !wlSettings.dirty"
-                    type="submit">{{'action.save' | translate}}
+            <span class="flex-1"></span>
+            <button *ngIf="!isLoginWl && !readonly" mat-button mat-raised-button
+                    [disabled]="(isLoading$ | async) || wlSettings.invalid"
+                    type="button" (click)="preview()">{{ 'white-labeling.preview' | translate }}
+            </button>
+            <button *ngIf="!readonly" mat-button mat-raised-button color="primary"
+                    [disabled]="(isLoading$ | async) || wlSettings.invalid || !wlSettings.dirty"
+                    type="submit">{{ 'action.save' | translate }}
             </button>
           </div>
         </fieldset>

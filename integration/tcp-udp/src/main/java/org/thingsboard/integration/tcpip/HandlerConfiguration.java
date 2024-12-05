@@ -33,7 +33,7 @@ package org.thingsboard.integration.tcpip;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.tcpip.configs.BinaryHandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.HexHandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.JsonHandlerConfiguration;
@@ -52,6 +52,6 @@ public interface HandlerConfiguration {
 
     String getHandlerType();
 
-    UplinkContentType getUplinkContentType();
+    ContentType getUplinkContentType();
 
 }

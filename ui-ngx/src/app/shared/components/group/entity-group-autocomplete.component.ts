@@ -53,6 +53,8 @@ import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { EntityInfoData } from '@shared/models/entity.models';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
+import { coerceBoolean } from '@app/shared/decorators/coercion';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -68,14 +70,14 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   selectEntityGroupFormGroup: FormGroup;
 
-  modelValue: string | null = null;
+  modelValue: EntityId | string | null = null;
 
   private groupTypeValue: EntityType;
   get groupType(): EntityType {
     return this.groupTypeValue;
   }
 
-  @Input()
+  @Input({required: true})
   set groupType(value: EntityType) {
     if (this.groupTypeValue !== value) {
       if (this.groupTypeValue) {
@@ -109,7 +111,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   @Input()
   placeholderText: string;
 
-  @Input()
+  @Input({required: true})
   notFoundText: string;
 
   @Input()
@@ -126,6 +128,13 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   @Input()
   disabled: boolean;
+
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
+
+  @Input()
+  @coerceBoolean()
+  useFullEntityId: boolean;
 
   @Output()
   entityGroupLoaded = new EventEmitter<EntityInfoData>();
@@ -167,7 +176,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
           if (typeof value === 'string' || !value) {
             modelValue = null;
           } else {
-            modelValue = value.id.id;
+            modelValue = this.useFullEntityId ? value.id : value.id.id;
           }
           this.updateView(modelValue, value);
           if (value === null) {
@@ -213,15 +222,16 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     if (value !== null) {
       if ((value as EntityInfoData).id) {
         const entityGroup = value as EntityInfoData;
-        this.modelValue = entityGroup.id.id;
+        this.modelValue = this.useFullEntityId ? entityGroup.id : entityGroup.id.id;
         this.selectEntityGroupFormGroup.get('entityGroup').patchValue(entityGroup, {emitEvent: false});
         this.entityGroupLoaded.next(entityGroup);
       } else {
         this.entityGroupService.getEntityGroup(value as string, {ignoreLoading: true}).subscribe({
-          next: ({ name, id, ownerId }) => {
+          next: ({ name, id, ownerId, type }) => {
             const entityGroup = { name, id };
-            this.modelValue = id.id;
-            this.ownerId = ownerId;
+            this.modelValue = this.useFullEntityId ? id : id.id;
+            this.ownerIdValue = ownerId;
+            this.groupTypeValue = type;
             this.selectEntityGroupFormGroup.get('entityGroup').patchValue(entityGroup, {emitEvent: false});
             this.entityGroupLoaded.next(entityGroup);
           },
@@ -257,8 +267,8 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  updateView(value: string | null, entityGroup: EntityInfoData | string | null ) {
-    if (this.modelValue !== value) {
+  updateView(value: EntityId | string | null, entityGroup: EntityInfoData | string | null ) {
+    if (!isEqual(this.modelValue, value)) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);
       if (!(isString(entityGroup) || entityGroup === null)) {

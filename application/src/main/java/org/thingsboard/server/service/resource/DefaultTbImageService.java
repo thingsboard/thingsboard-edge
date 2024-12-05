@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ImageDescriptor;
-import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.ResourceExportData;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
@@ -47,17 +47,23 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.permission.AccessControlService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 
 @Service
 @Slf4j
@@ -66,13 +72,16 @@ public class DefaultTbImageService extends AbstractTbEntityService implements Tb
 
     private final TbClusterService clusterService;
     private final ImageService imageService;
+    private final AccessControlService accessControlService;
     private final Cache<ImageCacheKey, String> etagCache;
 
     public DefaultTbImageService(TbClusterService clusterService, ImageService imageService,
+                                 AccessControlService accessControlService,
                                  @Value("${cache.image.etag.timeToLiveInMinutes:44640}") int cacheTtl,
                                  @Value("${cache.image.etag.maxSize:10000}") int cacheMaxSize) {
         this.clusterService = clusterService;
         this.imageService = imageService;
+        this.accessControlService = accessControlService;
         this.etagCache = Caffeine.newBuilder()
                 .expireAfterAccess(cacheTtl, TimeUnit.MINUTES)
                 .maximumSize(cacheMaxSize)
@@ -104,7 +113,7 @@ public class DefaultTbImageService extends AbstractTbEntityService implements Tb
         try {
             var oldEtag = getEtag(image);
             TbResourceInfo existingImage = null;
-            if (image.getId() == null && StringUtils.isNotEmpty(image.getResourceKey())) {
+            if (image.getId() == null && isNotEmpty(image.getResourceKey())) {
                 if (user.isCustomerUser()) {
                     existingImage = imageService.getImageInfoByTenantIdAndCustomerIdAndKey(tenantId, user.getCustomerId(), image.getResourceKey());
                 } else {
@@ -191,6 +200,18 @@ public class DefaultTbImageService extends AbstractTbEntityService implements Tb
             logEntityActionService.logEntityAction(tenantId, imageId, ActionType.DELETED, user, e, imageId.toString());
             throw e;
         }
+    }
+
+    @Override
+    public TbResourceInfo importImage(ResourceExportData imageData, boolean checkExisting, SecurityUser user) throws Exception {
+        TbResource image = imageService.toImage(user.getTenantId(), user.getCustomerId(), imageData, checkExisting);
+        if (checkExisting && image.getId() != null) {
+            accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.READ, image.getId(), image);
+            return image;
+        } else {
+            accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.CREATE, null, image);
+        }
+        return save(image, user);
     }
 
     private void evictFromCache(TenantId tenantId, List<ImageCacheKey> toEvict) {

@@ -33,10 +33,11 @@ package org.thingsboard.server.service.entitiy.device.profile;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface TbDeviceProfileService {
 
-    DeviceProfile save(DeviceProfile deviceProfile, User user) throws Exception;
+    DeviceProfile save(DeviceProfile deviceProfile, SecurityUser user) throws Exception;
 
     void delete(DeviceProfile deviceProfile, User user) throws ThingsboardException;
 

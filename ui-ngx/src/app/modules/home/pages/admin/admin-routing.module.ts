@@ -59,7 +59,6 @@ import { ImageGalleryComponent } from '@shared/components/image/image-gallery.co
 import { rolesRoutes } from '@home/pages/role/role-routing.module';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { CustomTranslationRoutes } from '@home/pages/custom-translation/custom-translation-routing.module';
-import { MobileAppSettingsComponent } from '@home/pages/admin/mobile-app-settings.component';
 import { oAuth2Routes } from '@home/pages/admin/oauth2/oauth2-routing.module';
 import { ImageResourceType, IMAGES_URL_PREFIX, ResourceSubType } from '@shared/models/resource.models';
 import { ScadaSymbolComponent } from '@home/pages/scada-symbol/scada-symbol.component';
@@ -68,6 +67,7 @@ import { ScadaSymbolData } from '@home/pages/scada-symbol/scada-symbol-editor.mo
 import { MenuId } from '@core/services/menu.models';
 import { CustomMenuRoutes } from '@home/pages/custom-menu/custom-menu-routing.module';
 import { catchError } from 'rxjs/operators';
+import { JsLibraryTableConfigResolver } from '@home/pages/admin/resource/js-library-table-config.resolver';
 
 export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
@@ -210,6 +210,43 @@ const routes: Routes = [
             }
           }
         ]
+      },
+      {
+        path: 'javascript-library',
+        data: {
+          breadcrumb: {
+            menuId: MenuId.javascript_library
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'javascript.javascript-library',
+            },
+            resolve: {
+              entitiesTableConfig: JsLibraryTableConfigResolver
+            }
+          },
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'mdi:language-javascript'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'javascript.javascript-library'
+            },
+            resolve: {
+              entitiesTableConfig: JsLibraryTableConfigResolver
+            }
+          }
+        ]
       }
     ]
   },
@@ -342,18 +379,6 @@ const routes: Routes = [
           title: 'admin.auto-commit-settings',
           breadcrumb: {
             menuId: MenuId.auto_commit_settings
-          }
-        }
-      },
-      {
-        path: 'mobile-app',
-        component: MobileAppSettingsComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-          title: 'admin.mobile-app.mobile-app',
-          breadcrumb: {
-            menuId: MenuId.mobile_app_settings
           }
         }
       },
@@ -529,6 +554,7 @@ const routes: Routes = [
   exports: [RouterModule],
   providers: [
     ResourcesLibraryTableConfigResolver,
+    JsLibraryTableConfigResolver,
     QueuesTableConfigResolver
   ]
 })

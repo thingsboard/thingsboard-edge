@@ -30,7 +30,7 @@
 ///
 
 import { ActivationEnd, Router } from '@angular/router';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
@@ -46,6 +46,7 @@ import { updateUserLang } from '@app/core/settings/settings.utils';
 import { UtilsService } from '@core/services/utils.service';
 import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { ActionAuthUpdateLastPublicDashboardId } from '../auth/auth.actions';
+import { DOCUMENT } from '@angular/common';
 import { FaviconService } from '@core/services/favicon.service';
 import { ReportService } from '@core/http/report.service';
 
@@ -60,9 +61,10 @@ export class SettingsEffects {
     private router: Router,
     private localStorageService: LocalStorageService,
     private titleService: TitleService,
-    private faviconService: FaviconService,
     private translate: TranslateService,
-    private reportService: ReportService
+    @Inject(DOCUMENT) private document: Document,
+    private faviconService: FaviconService,
+    private reportService: ReportService,
   ) {
   }
 
@@ -75,7 +77,7 @@ export class SettingsEffects {
       this.localStorageService.setItem(SETTINGS_KEY, {userLang: settings.userLang});
       if (!settings.ignoredLoad) {
         const availableLocales = getCurrentAuthState(this.store)?.availableLocales;
-        updateUserLang(this.translate, settings.userLang, availableLocales, settings.reload)
+        updateUserLang(this.translate, this.document, settings.userLang, availableLocales, settings.reload)
           .subscribe(() => {});
       }
     })

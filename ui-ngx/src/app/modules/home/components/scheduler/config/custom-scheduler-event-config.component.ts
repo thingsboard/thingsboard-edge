@@ -30,13 +30,10 @@
 ///
 
 import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { AfterViewInit, Directive, DoCheck, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { deepClone, isEqual } from '@core/utils';
 import { AbstractControl, ControlValueAccessor, NgForm, ValidationErrors, Validator } from '@angular/forms';
-import { TbInject } from '@shared/decorators/tb-inject';
 
 @Directive()
 export class CustomSchedulerEventConfigComponent
@@ -53,8 +50,8 @@ export class CustomSchedulerEventConfigComponent
 
   private propagateChange = (_v: any) => { };
 
-  constructor(@TbInject(Store) protected store: Store<AppState>) {
-    super(store);
+  constructor() {
+    super();
   }
 
   registerOnChange(fn: any): void {

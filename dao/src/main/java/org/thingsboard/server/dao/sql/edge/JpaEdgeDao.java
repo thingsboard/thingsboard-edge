@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -71,6 +72,15 @@ public class JpaEdgeDao extends JpaAbstractDao<EdgeEntity, Edge> implements Edge
     @Override
     protected JpaRepository<EdgeEntity, UUID> getRepository() {
         return edgeRepository;
+    }
+
+    @Override
+    public PageData<EdgeId> findEdgeIdsByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.pageToPageData(
+                edgeRepository.findIdsByTenantId(
+                        tenantId,
+                        pageLink.getTextSearch(),
+                        DaoUtil.toPageable(pageLink))).mapData(EdgeId::fromUUID);
     }
 
     @Override
@@ -239,6 +249,11 @@ public class JpaEdgeDao extends JpaAbstractDao<EdgeEntity, Edge> implements Edge
                 edgeRepository.findByTenantProfileId(
                         tenantProfileId,
                         DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public Long countByTenantId(TenantId tenantId) {
+        return edgeRepository.countByTenantId(tenantId.getId());
     }
 
     @Override
