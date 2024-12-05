@@ -36,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
@@ -136,10 +137,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getLoginWhiteLabelParams(null, null);
-                    if (edgeLoginWhiteLabelParams.isEmpty()) {
-                        return false;
-                    }
-                    return Boolean.TRUE.equals(edgeLoginWhiteLabelParams.get().getShowNameBottom());
+                    return edgeLoginWhiteLabelParams.filter(whiteLabelingParams -> Boolean.TRUE.equals(whiteLabelingParams.getShowNameBottom())).isPresent();
                 });
     }
 
@@ -150,9 +148,16 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
     }
 
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) {
-        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        loginWhiteLabelingParams.setAppTitle(updatedDomainName);
-        cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
+        Domain domain = new Domain();
+        domain.setName("tmp-" + updatedDomainName);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
+        domain = cloudRestClient.saveDomain(domain);
+
+        LoginWhiteLabelingParams newLoginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        newLoginWhiteLabelingParams.setAppTitle(updatedDomainName);
+        newLoginWhiteLabelingParams.setDomainId(domain.getId());
+        cloudRestClient.saveLoginWhiteLabelParams(newLoginWhiteLabelingParams);
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -200,7 +205,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         menu.setName(customMenuName);
         menu.setScope(scope);
         menu.setAssigneeType(CMAssigneeType.ALL);
-        menu = cloudRestClient.saveCustomMenu(menu, null, false);
+        cloudRestClient.saveCustomMenu(menu, null, false);
         PageLink pageLink = new PageLink(1000);
 
         Awaitility.await()

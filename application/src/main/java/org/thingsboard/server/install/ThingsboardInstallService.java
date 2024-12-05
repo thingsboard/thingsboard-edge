@@ -117,7 +117,6 @@ public class ThingsboardInstallService {
                 } else {
                     // TODO DON'T FORGET to update SUPPORTED_VERSIONS_FROM in DefaultDatabaseSchemaSettingsService
                     var updateFromCE = "CE".equals(upgradeFromVersion);
-                    var updateEdge = "edge".equals(upgradeFromVersion);
                     databaseSchemaVersionService.validateSchemaSettings(updateFromCE);
                     if (updateFromCE) {
                         log.info("Upgrading ThingsBoard from version CE to PE ...");
