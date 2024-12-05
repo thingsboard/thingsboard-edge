@@ -61,7 +61,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -149,12 +149,12 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
 
     @Override
     public List<ResourceExportData> exportResources(Dashboard dashboard, SecurityUser user) throws ThingsboardException {
-        return exportResources(dashboard, imageService::getUsedImages, resourceService::getUsedResources, user);
+        return exportResources(() -> imageService.getUsedImages(dashboard), () -> resourceService.getUsedResources(user.getTenantId(), dashboard), user);
     }
 
     @Override
     public List<ResourceExportData> exportResources(WidgetTypeDetails widgetTypeDetails, SecurityUser user) throws ThingsboardException {
-        return exportResources(widgetTypeDetails, imageService::getUsedImages, resourceService::getUsedResources, user);
+        return exportResources(() -> imageService.getUsedImages(widgetTypeDetails), () -> resourceService.getUsedResources(user.getTenantId(), widgetTypeDetails), user);
     }
 
     @Override
@@ -170,13 +170,12 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
         }
     }
 
-    private <T> List<ResourceExportData> exportResources(T entity,
-                                                         Function<T, Collection<TbResourceInfo>> imagesProcessor,
-                                                         Function<T, Collection<TbResourceInfo>> resourcesProcessor,
+    private <T> List<ResourceExportData> exportResources(Supplier<Collection<TbResourceInfo>> imagesProcessor,
+                                                         Supplier<Collection<TbResourceInfo>> resourcesProcessor,
                                                          SecurityUser user) throws ThingsboardException {
         List<TbResourceInfo> resources = new ArrayList<>();
-        resources.addAll(imagesProcessor.apply(entity));
-        resources.addAll(resourcesProcessor.apply(entity));
+        resources.addAll(imagesProcessor.get());
+        resources.addAll(resourcesProcessor.get());
         for (TbResourceInfo resourceInfo : resources) {
             accessControlService.checkPermission(user, Resource.TB_RESOURCE, Operation.READ, resourceInfo.getId(), resourceInfo);
         }

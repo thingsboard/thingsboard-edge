@@ -192,19 +192,20 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             dashboardValidator.validate(dashboard, Dashboard::getTenantId);
         }
         try {
+            TenantId tenantId = dashboard.getTenantId();
             if (CollectionUtils.isNotEmpty(dashboard.getResources())) {
-                resourceService.importResources(dashboard.getTenantId(), dashboard.getCustomerId(), dashboard.getResources());
+                resourceService.importResources(tenantId, dashboard.getCustomerId(), dashboard.getResources());
             }
             imageService.updateImagesUsage(dashboard);
-            resourceService.updateResourcesUsage(dashboard);
+            resourceService.updateResourcesUsage(tenantId, dashboard);
 
-            var saved = dashboardDao.save(dashboard.getTenantId(), dashboard);
+            var saved = dashboardDao.save(tenantId, dashboard);
             if (dashboard.getId() == null) {
-                entityGroupService.addEntityToEntityGroupAll(saved.getTenantId(), saved.getOwnerId(), saved.getId());
-                countService.publishCountEntityEvictEvent(saved.getTenantId(), EntityType.DASHBOARD);
+                entityGroupService.addEntityToEntityGroupAll(tenantId, saved.getOwnerId(), saved.getId());
+                countService.publishCountEntityEvictEvent(tenantId, EntityType.DASHBOARD);
             }
             publishEvictEvent(new DashboardTitleEvictEvent(saved.getId()));
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(saved.getTenantId())
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
                     .entityId(saved.getId()).created(dashboard.getId() == null).build());
             return saved;
         } catch (Exception e) {
