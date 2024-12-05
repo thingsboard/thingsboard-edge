@@ -767,3 +767,7 @@ export interface NotificationUserSetting {
   enabled: boolean;
   enabledDeliveryMethods: {[key: string]: boolean};
 }
+
+export const singleNotificationTypeTemplate = (type: NotificationType) => {
+  return type === NotificationType.USER_ACTIVATED || type === NotificationType.USER_REGISTERED;
+}
