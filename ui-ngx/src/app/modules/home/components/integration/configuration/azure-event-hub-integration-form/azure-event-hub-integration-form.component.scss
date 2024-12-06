@@ -50,9 +50,9 @@
     .mat-content {
       overflow: visible;
     }
-  }
 
-  .toggle {
-    margin: 0 0 8px;
+    .mat-expansion-panel-body {
+      padding: 0 16px;
+    }
   }
 }
