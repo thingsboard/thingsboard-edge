@@ -172,6 +172,43 @@ public class QrCodeSettingsControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testShouldNotSaveTenantQrCodeSettingsWithoutRequiredConfig() throws Exception {
+        loginSysAdmin();
+        QrCodeSettings qrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+        assertThat(qrCodeSettings.isUseSystemSettings()).isFalse();
+        qrCodeSettings.setUseDefaultApp(true);
+        qrCodeSettings.setQrCodeConfig(QRCodeConfig.builder().showOnHomePage(true).build());
+        doPost("/api/mobile/qr/settings", qrCodeSettings);
+
+        loginTenantAdmin();
+        QrCodeSettings tenantQrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+        assertThat(tenantQrCodeSettings.isUseSystemSettings()).isTrue();
+
+        tenantQrCodeSettings.setUseSystemSettings(false);
+        tenantQrCodeSettings.setUseDefaultApp(false);
+        doPost("/api/mobile/qr/settings", tenantQrCodeSettings)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Mobile app bundle is required to use custom application!")));
+
+        tenantQrCodeSettings.setMobileAppBundleId(mobileAppBundle.getId());
+        doPost("/api/mobile/qr/settings", tenantQrCodeSettings)
+                .andExpect(status().isForbidden());
+
+        MobileAppBundle tenantBundle = new MobileAppBundle();
+        tenantBundle.setTitle("Test bundle");
+        tenantBundle = doPost("/api/mobile/bundle", tenantBundle, MobileAppBundle.class);
+
+        tenantQrCodeSettings.setMobileAppBundleId(tenantBundle.getId());
+        tenantQrCodeSettings = doPost("/api/mobile/qr/settings", tenantQrCodeSettings, QrCodeSettings.class);
+
+        //set system settings
+        tenantQrCodeSettings.setMobileAppBundleId(null);
+        tenantQrCodeSettings.setUseSystemSettings(true);
+        doPost("/api/mobile/qr/settings", tenantQrCodeSettings)
+                .andExpect(status().isOk());
+    }
+
+    @Test
     public void testShouldSaveQrCodeSettingsForDefaultApp() throws Exception {
         loginSysAdmin();
         QrCodeSettings qrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
