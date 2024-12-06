@@ -4693,7 +4693,9 @@
             "registration-form-field": "Registration form fields",
             "remove-registration-field": "Remove registration field",
             "required": "Required",
-            "self-registration": "Self-registration"
+            "self-registration": "Self-registration",
+            "reset-self-registration-title": "Are you sure you want to reset the self registration settings to default?",
+            "reset-self-registration-text": "Be careful, after confirmation, all settings will be lost and cannot be recovered."
         }
     },
     "notification": {
@@ -7341,7 +7343,11 @@
             "label": "Platform name and version position",
             "under-logo": "Under the logo",
             "bottom": "Bottom of the login form"
-        }
+        },
+        "reset-white-label-title": "Are you sure you want to reset the white labeling settings to default?",
+        "reset-white-label-text": "Be careful, after confirmation, all customized settings will be lost and cannot be recovered.",
+        "reset-login-white-label-title": "Are you sure you want to reset the login white labeling settings to default?",
+        "reset-login-white-label-text": "Be careful, after confirmation, all customized settings will be lost and cannot be recovered."
     },
     "widgets": {
         "mobile-app-qr-code": {
