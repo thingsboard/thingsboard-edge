@@ -169,7 +169,7 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
         checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
         MobileAppBundle appBundle = findMobileAppBundleByPkgNameAndPlatform(tenantId, pkgName, platformType, true);
         if (appBundle != null && appBundle.getSelfRegistrationParams() != null) {
-            return appBundle.getSelfRegistrationParams().getTermsOfUse();
+            return appBundle.getSelfRegistrationParams().getPrivacyPolicy();
         }
         return null;
     }
