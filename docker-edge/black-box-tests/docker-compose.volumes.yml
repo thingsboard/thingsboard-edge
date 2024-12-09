@@ -17,20 +17,26 @@
 version: '3.0'
 
 services:
-  tb-edge1:
+  postgres:
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+  tb-monolith:
+    volumes:
+      - tb-log-volume:/var/log/thingsboard
+  tb-edge:
     volumes:
       - tb-edge-log-volume:/var/log/tb-edge
-  tb-edge2:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine1:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine2:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
-
+      - tb-edge-data-volume:/data
 volumes:
+  postgres-db-volume:
+    external:
+      name: ${POSTGRES_DATA_VOLUME}
   tb-log-volume:
     external:
       name: ${TB_LOG_VOLUME}
+  tb-edge-log-volume:
+    external:
+      name: ${TB_EDGE_LOG_VOLUME}
+  tb-edge-data-volume:
+    external:
+      name: ${TB_EDGE_DATA_VOLUME}

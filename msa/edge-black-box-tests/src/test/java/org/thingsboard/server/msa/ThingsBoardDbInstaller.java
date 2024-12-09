@@ -46,9 +46,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
     public ThingsBoardDbInstaller() {
         try {
-            List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/docker-compose.yml"),
-                    new File("./../../docker-edge/docker-compose.postgres.yml"),
-                    new File("./../../docker-edge/docker-compose.volumes.yml"));
+            List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/black-box-tests/docker-compose.yml"),
+                    new File("./../../docker-edge/black-box-tests/docker-compose.postgres.yml"),
+                    new File("./../../docker-edge/black-box-tests/docker-compose.volumes.yml"));
 
             String identifier = Base58.randomString(6).toLowerCase();
             String project = identifier + Base58.randomString(6).toLowerCase();
@@ -60,7 +60,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
             dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
-            Dotenv dotenv = Dotenv.configure().directory("./../../docker-edge").filename(".env").load();
+            Dotenv dotenv = Dotenv.configure().directory("./../../docker-edge/black-box-tests").filename(".env").load();
 
             env = new HashMap<>();
             for (DotenvEntry entry : dotenv.entries()) {

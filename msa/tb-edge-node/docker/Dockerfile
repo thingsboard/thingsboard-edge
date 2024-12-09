@@ -14,23 +14,18 @@
 # limitations under the License.
 #
 
-version: '3.0'
+FROM thingsboard/openjdk17:bookworm-slim
 
-services:
-  tb-edge1:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-  tb-edge2:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine1:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine2:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
+COPY start-tb-edge-node.sh ${pkg.name}.deb /tmp/
 
-volumes:
-  tb-log-volume:
-    external:
-      name: ${TB_LOG_VOLUME}
+RUN chmod a+x /tmp/*.sh \
+    && mv /tmp/start-tb-edge-node.sh /usr/bin && \
+    (yes | dpkg -i /tmp/${pkg.name}.deb) && \
+    rm /tmp/${pkg.name}.deb && \
+    (systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :) && \
+    chown -R ${pkg.user}:${pkg.user} /tmp && \
+    chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
+
+USER ${pkg.user}
+
+CMD ["start-tb-edge-node.sh"]

@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright © 2016-2024 The Thingsboard Authors
 #
@@ -14,23 +15,6 @@
 # limitations under the License.
 #
 
-version: '3.0'
-
-services:
-  tb-edge1:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-  tb-edge2:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine1:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine2:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
-
-volumes:
-  tb-log-volume:
-    external:
-      name: ${TB_LOG_VOLUME}
+set -e
+source compose-utils.sh
+checkFolders --create

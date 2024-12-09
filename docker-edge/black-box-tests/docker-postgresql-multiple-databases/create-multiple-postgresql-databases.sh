@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright © 2016-2024 The Thingsboard Authors
 #
@@ -14,23 +15,24 @@
 # limitations under the License.
 #
 
-version: '3.0'
 
-services:
-  tb-edge1:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-  tb-edge2:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine1:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine2:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
+set -e
+set -u
 
-volumes:
-  tb-log-volume:
-    external:
-      name: ${TB_LOG_VOLUME}
+function create_user_and_database() {
+	local database=$1
+	echo "  Creating user and database '$database'"
+	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+	    CREATE USER $database;
+	    CREATE DATABASE $database;
+	    GRANT ALL PRIVILEGES ON DATABASE $database TO $database;
+EOSQL
+}
+
+if [ -n "$POSTGRES_MULTIPLE_DATABASES" ]; then
+	echo "Multiple database creation requested: $POSTGRES_MULTIPLE_DATABASES"
+	for db in $(echo $POSTGRES_MULTIPLE_DATABASES | tr ',' ' '); do
+		create_user_and_database $db
+	done
+	echo "Multiple databases created"
+fi

@@ -23,16 +23,17 @@ firstlaunch=${DATA_FOLDER}/.firstlaunch
 source "${CONF_FOLDER}/${configfile}"
 
 if [ "$INSTALL_TB_EDGE" == "true" ]; then
-
   install-tb-edge.sh --loadDemo
+  echo "File = ${firstlaunch}"
   touch ${firstlaunch}
-
 else
   if [ ! -f ${firstlaunch} ]; then
+      echo "Are we doing the installation?"
       install-tb-edge.sh --loadDemo
       touch ${firstlaunch}
   fi
 
+  echo "What a shit is going on???"
   echo "Starting ThingsBoard Edge ..."
 
   java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \

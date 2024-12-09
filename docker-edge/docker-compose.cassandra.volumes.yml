@@ -17,20 +17,11 @@
 version: '3.0'
 
 services:
-  tb-edge1:
+  cassandra:
     volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-  tb-edge2:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine1:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
-#  tb-rule-engine2:
-#    volumes:
-#      - tb-edge-log-volume:/var/log/tb-edge
+      - cassandra-volume:/var/lib/cassandra
 
 volumes:
-  tb-log-volume:
+  cassandra-volume:
     external:
-      name: ${TB_LOG_VOLUME}
+      name: ${CASSANDRA_DATA_VOLUME}

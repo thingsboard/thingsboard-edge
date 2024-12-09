@@ -19,23 +19,31 @@ version: '3.0'
 services:
   postgres:
     restart: always
-    image: "postgres:15"
+    image: "postgres:16"
     ports:
     - "5432"
     environment:
-      POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb_edge"'
+      POSTGRES_DB: thingsboard
       POSTGRES_PASSWORD: postgres
     volumes:
-      - ./tb-node/postgres:/var/lib/postgresql/data
-      - ./docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
-      - ./custom-sql:/custom-sql
-  tb-monolith:
+      - ./tb-edge/postgres:/var/lib/postgresql/data
+  tb-edge1:
     env_file:
-      - tb-node.env
+      - tb-edge.postgres.env
     depends_on:
       - postgres
-  tb-edge:
+  tb-edge2:
     env_file:
-      - tb-edge.env
+      - tb-edge.postgres.env
     depends_on:
       - postgres
+#  tb-rule-engine1:
+#    env_file:
+#      - tb-edge.postgres.env
+#    depends_on:
+#      - postgres
+#  tb-rule-engine2:
+#    env_file:
+#      - tb-edge.postgres.env
+#    depends_on:
+#      - postgres

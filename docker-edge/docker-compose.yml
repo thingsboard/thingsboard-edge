@@ -18,55 +18,6 @@
 version: '3.0'
 
 services:
-  tb-edge:
-    restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
-    ports:
-      - "8082"
-      - "1883"
-    environment:
-      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
-      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
-      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
-      HTTP_BIND_PORT: "8082"
-      CONF_FOLDER: "/config"
-    env_file:
-      - tb-edge.env
-    volumes:
-      - ./tb-edge/conf:/config
-      - ./tb-edge/data:/data
-      - ./tb-edge/log:/var/log/tb-edge
-  tb-monolith:
-    restart: always
-    image: "${DOCKER_REPO}/${TB_NODE_DOCKER_NAME}:${TB_VERSION}"
-    ports:
-      - "7070"
-      - "8080"
-      - "1883"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200m"
-        max-file: "30"
-    environment:
-      TB_SERVICE_ID: tb-monolith
-      TB_SERVICE_TYPE: monolith
-      MQTT_ENABLED: "false"
-      COAP_ENABLED: "false"
-      LWM2M_ENABLED: "false"
-      SNMP_ENABLED: "false"
-      EDGES_ENABLED: "true"
-      TB_QUEUE_TYPE: "in-memory"
-      TB_KAFKA_SERVERS: "kafka:9092"
-    env_file:
-      - tb-node.env
-    volumes:
-      - ./tb-node/conf:/config
-      - ./tb-node/log:/var/log/thingsboard
-      - ./tb-node/data:/data
-    depends_on:
-      - zookeeper
-      - kafka
   zookeeper:
     restart: always
     image: "zookeeper:3.8.0"
@@ -80,18 +31,122 @@ services:
     restart: always
     image: "bitnami/kafka:3.7.0"
     ports:
-      - "9092"
-    environment:
-      ALLOW_PLAINTEXT_LISTENER: "yes"
-      KAFKA_CFG_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      KAFKA_CFG_LISTENERS: "INSIDE://:9093,OUTSIDE://:9092"
-      KAFKA_CFG_ADVERTISED_LISTENERS: "INSIDE://:9093,OUTSIDE://kafka:9092"
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT"
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: "INSIDE"
-      KAFKA_CFG_LOG_RETENTION_BYTES: "1073741824"
-      KAFKA_CFG_SEGMENT_BYTES: "268435456"
-      KAFKA_CFG_LOG_RETENTION_MS: "300000"
-      KAFKA_CFG_LOG_CLEANUP_POLICY: "delete"
+      - "9092:9092"
+    env_file:
+      - kafka.env
     depends_on:
       - zookeeper
+  tb-edge1:
+    restart: always
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+    ports:
+      - "8080"
+      - "7070"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "30"
+    environment:
+      TB_SERVICE_ID: tb-edge1
+      TB_SERVICE_TYPE: tb-core
+      JAVA_OPTS: "${JAVA_OPTS}"
+      TB_QUEUE_TYPE: "kafka"
+      TB_KAFKA_SERVERS: "kafka:9092"
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
+      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
+    env_file:
+      - tb-edge.env
+    volumes:
+      - ./tb-edge/conf:/config
+      - ./tb-edge/log:/var/log/tb-edge
+    depends_on:
+      - zookeeper
+      - kafka
+#      - tb-rule-engine1
+#      - tb-rule-engine2
+  tb-edge2:
+    restart: always
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+    ports:
+      - "8080"
+      - "7070"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "30"
+    environment:
+      TB_SERVICE_ID: tb-edge2
+      TB_SERVICE_TYPE: tb-core
+      JAVA_OPTS: "${JAVA_OPTS}"
+      TB_QUEUE_TYPE: "kafka"
+      TB_KAFKA_SERVERS: "kafka:9092"
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
+      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
+    env_file:
+      - tb-edge.env
+    volumes:
+      - ./tb-edge/conf:/config
+      - ./tb-edge/log:/var/log/tb-edge
+    depends_on:
+      - zookeeper
+      - kafka
+#      - tb-rule-engine1
+#      - tb-rule-engine2
+#  tb-rule-engine1:
+#    restart: always
+#    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+#    ports:
+#      - "8080"
+#    logging:
+#      driver: "json-file"
+#      options:
+#        max-size: "200m"
+#        max-file: "30"
+#    environment:
+#      TB_SERVICE_ID: tb-rule-engine1
+#      TB_SERVICE_TYPE: tb-rule-engine
+#      JAVA_OPTS: "${JAVA_OPTS}"
+#      TB_QUEUE_TYPE: "kafka"
+#      TB_KAFKA_SERVERS: "kafka:9092"
+#      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
+#      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
+#      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
+#    env_file:
+#      - tb-edge.env
+#    volumes:
+#      - ./tb-edge/conf:/config
+#      - ./tb-edge/log:/var/log/tb-edge
+#    depends_on:
+#      - zookeeper
+#      - kafka
+#  tb-rule-engine2:
+#    restart: always
+#    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+#    ports:
+#      - "8080"
+#    logging:
+#      driver: "json-file"
+#      options:
+#        max-size: "200m"
+#        max-file: "30"
+#    environment:
+#      TB_SERVICE_ID: tb-rule-engine2
+#      TB_SERVICE_TYPE: tb-rule-engine
+#      JAVA_OPTS: "${JAVA_OPTS}"
+#      TB_QUEUE_TYPE: "kafka"
+#      TB_KAFKA_SERVERS: "kafka:9092"
+#      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
+#      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
+#      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
+#    env_file:
+#      - tb-edge.env
+#    volumes:
+#      - ./tb-edge/conf:/config
+#      - ./tb-edge/log:/var/log/tb-edge
+#    depends_on:
+#      - zookeeper
+#      - kafka
