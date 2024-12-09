@@ -169,14 +169,13 @@ public class SelfRegistrationController extends BaseController {
     public String getPrivacyPolicy(@RequestParam(required = false) String pkgName,
                                    @RequestParam(required = false) PlatformType platform,
                                    HttpServletRequest request) {
-        JsonNode privacyPolicyNode;
         if (!StringUtils.isEmpty(pkgName)) {
-            privacyPolicyNode = mobileAppBundleService.getMobilePrivacyPolicy(TenantId.SYS_TENANT_ID, pkgName, platform);
+            return mobileAppBundleService.getMobilePrivacyPolicy(TenantId.SYS_TENANT_ID, pkgName, platform);
         } else {
-            privacyPolicyNode = whiteLabelingService.getWebPrivacyPolicy(request.getServerName());
-        }
-        if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
-            return privacyPolicyNode.get(PRIVACY_POLICY).toString();
+            JsonNode privacyPolicyNode = whiteLabelingService.getWebPrivacyPolicy(request.getServerName());
+            if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
+                return privacyPolicyNode.get(PRIVACY_POLICY).toString();
+            }
         }
         return "";
     }
@@ -187,14 +186,13 @@ public class SelfRegistrationController extends BaseController {
     public String getTermsOfUse(@RequestParam(required = false) String pkgName,
                                 @RequestParam(required = false) PlatformType platform,
                                 HttpServletRequest request) {
-        JsonNode termsOfUse;
         if (!StringUtils.isEmpty(pkgName)) {
-            termsOfUse = mobileAppBundleService.getMobileTermsOfUse(TenantId.SYS_TENANT_ID, pkgName, platform);
+            return mobileAppBundleService.getMobileTermsOfUse(TenantId.SYS_TENANT_ID, pkgName, platform);
         } else {
-            termsOfUse = whiteLabelingService.getWebTermsOfUse(request.getServerName());
-        }
-        if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
-            return termsOfUse.get(TERMS_OF_USE).toString();
+            JsonNode termsOfUse = whiteLabelingService.getWebTermsOfUse(request.getServerName());
+            if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
+                return termsOfUse.get(TERMS_OF_USE).toString();
+            }
         }
         return "";
     }
