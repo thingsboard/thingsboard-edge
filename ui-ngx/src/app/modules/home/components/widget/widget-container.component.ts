@@ -60,8 +60,8 @@ import { GridsterItemComponent } from 'angular-gridster2';
 import { UtilsService } from '@core/services/utils.service';
 import { from } from 'rxjs';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
-import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
 import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
+import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
 
 export enum WidgetComponentActionType {
   MOUSE_DOWN,
@@ -232,8 +232,8 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     });
   }
 
-  onClicked(event: MouseEvent) {
-    if (event) {
+  onClicked(event: MouseEvent): void {
+    if (event && this.isEdit) {
       event.stopPropagation();
     }
     this.widgetComponentAction.emit({
@@ -242,8 +242,8 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     });
   }
 
-  onContextMenu(event: TbContextMenuEvent) {
-    if (event) {
+  onContextMenu(event: TbContextMenuEvent): void {
+    if (event && this.isEdit) {
       event.stopPropagation();
     }
     this.widgetComponentAction.emit({
@@ -404,7 +404,7 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
         {{ 'widget.reference' | translate }}
         <button mat-icon-button class="tb-mat-16"
                 color="primary"
-                [fxShow]="container.isEditActionEnabled"
+                [class.!hidden]="!container.isEditActionEnabled"
                 (click)="container.onReplaceReferenceWithWidgetCopy($event)"
                 matTooltip="{{ 'widget.replace-reference-with-widget-copy' | translate }}"
                 matTooltipPosition="above">
@@ -413,21 +413,21 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
       </div>
       <div class="tb-widget-actions-panel">
         <button mat-icon-button class="tb-mat-20"
-                [fxShow]="container.isEditActionEnabled"
+                [class.!hidden]="!container.isEditActionEnabled"
                 (click)="container.onEdit($event)"
                 matTooltip="{{ 'widget.edit' | translate }}"
                 matTooltipPosition="above">
           <tb-icon>edit</tb-icon>
         </button>
         <button mat-icon-button class="tb-mat-20"
-                [fxShow]="container.isExportActionEnabled"
+                [class.!hidden]="!container.isExportActionEnabled"
                 (click)="container.onExport($event)"
                 matTooltip="{{ 'widget.export' | translate }}"
                 matTooltipPosition="above">
           <tb-icon>file_download</tb-icon>
         </button>
         <button mat-icon-button class="tb-mat-20"
-                [fxShow]="container.isRemoveActionEnabled"
+                [class.!hidden]="!container.isRemoveActionEnabled"
                 (click)="container.onRemove($event);"
                 matTooltip="{{ 'widget.remove' | translate }}"
                 matTooltipPosition="above">

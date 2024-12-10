@@ -29,7 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { MapProviders } from '@home/components/widget/lib/maps/map-models';
 import {
   createLabelFromDatasource,
   hashCode,
@@ -45,6 +44,7 @@ import { map } from 'rxjs/operators';
 import { FormattedData } from '@shared/models/widget.models';
 import L from 'leaflet';
 import { ImagePipe } from '@shared/pipe/image.pipe';
+import { CompiledTbFunction, GenericFunction } from '@shared/models/js-function.models';
 
 export function getRatio(firsMoment: number, secondMoment: number, intermediateMoment: number): number {
   return (intermediateMoment - firsMoment) / (secondMoment - firsMoment);
@@ -73,7 +73,7 @@ export function findAngle(startPoint: FormattedData, endPoint: FormattedData, la
 }
 
 
-export function getDefCenterPosition(position): [number, number] {
+export function getDefCenterPosition(position: string | [number, number]): [number, number] {
   if (typeof (position) === 'string') {
     const parts = position.split(',');
     if (parts.length === 2) {
@@ -273,11 +273,11 @@ export const parseWithTranslation = {
   }
 };
 
-export function functionValueCalculator(useFunction: boolean, func: (...args: any[]) => any, params = [], defaultValue: any) {
-  let res;
+export function functionValueCalculator<T>(useFunction: boolean, func: CompiledTbFunction<GenericFunction>, params = [], defaultValue: T): T {
+  let res: T;
   if (useFunction && isDefined(func) && isFunction(func)) {
     try {
-      res = func(...params);
+      res = func.execute(...params);
       if (!isDefinedAndNotNull(res) || res === '') {
         res = defaultValue;
       }

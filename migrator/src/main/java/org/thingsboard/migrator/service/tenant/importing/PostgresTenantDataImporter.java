@@ -42,6 +42,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.migrator.MigrationService;
 import org.thingsboard.migrator.Table;
+import org.thingsboard.migrator.utils.PostgresService;
+import org.thingsboard.migrator.utils.PostgresService.Blob;
 import org.thingsboard.migrator.utils.SqlPartitionService;
 import org.thingsboard.migrator.utils.Storage;
 
@@ -67,6 +69,7 @@ public class PostgresTenantDataImporter extends MigrationService {
     private final TransactionTemplate transactionTemplate;
     private final Storage storage;
     private final SqlPartitionService partitionService;
+    private final PostgresService postgresService;
 
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
@@ -87,12 +90,14 @@ public class PostgresTenantDataImporter extends MigrationService {
     @Override
     protected void start() throws Exception {
         transactionTemplate.executeWithoutResult(status -> {
+            prepare();
             for (Table table : Table.values()) {
                 if (skippedTables.contains(table)) {
                     continue;
                 }
                 importTableData(table);
             }
+            tearDown();
         });
     }
 
@@ -187,6 +192,17 @@ public class PostgresTenantDataImporter extends MigrationService {
                 row.put("role_id", role.get("id"));
             }
         }
+        row.replaceAll((key, value) -> {
+            if (value instanceof Blob blob) {
+                return postgresService.saveBlob(blob);
+            }
+            return value;
+        });
+        row.remove("table_name");
+        Object version = row.get("version");
+        if (version instanceof Number) {
+            row.remove("version");
+        }
 
         Map<String, String> existingColumns = columns.computeIfAbsent(table, t -> {
             return jdbcTemplate.queryForList("SELECT column_name, udt_name FROM information_schema.columns " +
@@ -194,9 +210,6 @@ public class PostgresTenantDataImporter extends MigrationService {
                     .collect(Collectors.toMap(vals -> vals.get("column_name").toString(), vals -> vals.get("udt_name").toString()));
         });
         row.keySet().removeIf(column -> {
-            if (column.equals("table_name")) {
-                return true;
-            }
             boolean unknownColumn = !existingColumns.containsKey(column);
             if (unknownColumn) {
                 log.warn("Skipping unknown column {} for table {}", column, table.getName());
@@ -204,6 +217,16 @@ public class PostgresTenantDataImporter extends MigrationService {
             return unknownColumn;
         });
         return row;
+    }
+
+    private void prepare() {
+        jdbcTemplate.execute("ALTER TABLE ota_package DROP CONSTRAINT IF EXISTS fk_device_profile_ota_package");
+        log.info("Temporarily dropped fk_device_profile_ota_package constraint");
+    }
+
+    private void tearDown() {
+        jdbcTemplate.execute("ALTER TABLE ota_package ADD CONSTRAINT fk_device_profile_ota_package FOREIGN KEY (device_profile_id) REFERENCES device_profile (id) ON DELETE CASCADE");
+        log.info("Created fk_device_profile_ota_package constraint");
     }
 
 }

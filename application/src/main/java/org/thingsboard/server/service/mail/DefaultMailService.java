@@ -48,7 +48,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.TbEmail;
 import org.thingsboard.server.cache.limits.RateLimitService;
@@ -82,7 +82,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -135,7 +134,7 @@ public class DefaultMailService implements MailService {
         this.attributesService = attributesService;
         this.blobEntityService = blobEntityService;
         this.apiUsageClient = apiUsageClient;
-        this.timeoutScheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("mail-service-watchdog"));
+        this.timeoutScheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor("mail-service-watchdog");
     }
 
     @PreDestroy
@@ -224,7 +223,6 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
-
         JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.PASSWORD_WAS_RESET);
 
@@ -235,36 +233,6 @@ public class DefaultMailService implements MailService {
         String message = body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
 
         sendMail(tenantId, email, subject, message);
-    }
-
-    @Override
-    public void sendUserActivatedEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException {
-        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
-        String subject = MailTemplates.subject(mailTemplates, MailTemplates.USER_ACTIVATED);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("userFullName", userFullName);
-        model.put("userEmail", userEmail);
-        model.put(TARGET_EMAIL, targetEmail);
-
-        String message = body(mailTemplates, MailTemplates.USER_ACTIVATED, model);
-
-        sendMail(tenantId, targetEmail, subject, message);
-    }
-
-    @Override
-    public void sendUserRegisteredEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException {
-        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
-        String subject = MailTemplates.subject(mailTemplates, MailTemplates.USER_REGISTERED);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("userFullName", userFullName);
-        model.put("userEmail", userEmail);
-        model.put(TARGET_EMAIL, targetEmail);
-
-        String message = body(mailTemplates, MailTemplates.USER_REGISTERED, model);
-
-        sendMail(tenantId, targetEmail, subject, message);
     }
 
     private void sendMail(TenantId tenantId, String email,
@@ -529,17 +497,16 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    private void sendMailWithTimeout(JavaMailSender mailSender, MimeMessage msg, long timeout) {
+    private void sendMailWithTimeout(JavaMailSender mailSender, MimeMessage msg, long timeout) throws ThingsboardException {
         var submittedMail = Futures.withTimeout(
                 mailExecutorService.submit(() -> mailSender.send(msg)),
                 timeout, TimeUnit.MILLISECONDS, timeoutScheduler);
         try {
             submittedMail.get(timeout, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
-            log.debug("Error during mail submission", e);
             throw new RuntimeException("Timeout!");
         } catch (Exception e) {
-            throw new RuntimeException(ExceptionUtils.getRootCause(e));
+            throw new ThingsboardException("Unable to send mail", ExceptionUtils.getRootCause(e), ThingsboardErrorCode.GENERAL);
         }
     }
 
@@ -630,20 +597,20 @@ public class DefaultMailService implements MailService {
         try {
             return MailTemplates.body(mailTemplates, template, model);
         } catch (Exception e) {
-            throw handleException(e);
+            log.warn("Failed to process mail template: {}", ExceptionUtils.getRootCauseMessage(e));
+            throw new ThingsboardException("Failed to process mail template: " + e.getMessage(), e, ThingsboardErrorCode.GENERAL);
         }
     }
 
-    protected ThingsboardException handleException(Exception exception) {
-        String message;
-        if (exception instanceof NestedRuntimeException) {
-            message = ((NestedRuntimeException) exception).getMostSpecificCause().getMessage();
-        } else {
-            message = exception.getMessage();
+    protected ThingsboardException handleException(Throwable exception) {
+        if (exception instanceof ThingsboardException thingsboardException) {
+            return thingsboardException;
         }
-        log.warn("Unable to send mail: {}", message);
-        return new ThingsboardException(String.format("Unable to send mail: %s", message),
-                ThingsboardErrorCode.GENERAL);
+        if (exception instanceof NestedRuntimeException) {
+            exception = ((NestedRuntimeException) exception).getMostSpecificCause();
+        }
+        log.warn("Unable to send mail: {}", exception.getMessage());
+        return new ThingsboardException("Unable to send mail: " + exception.getMessage(), ThingsboardErrorCode.GENERAL);
     }
 
 }

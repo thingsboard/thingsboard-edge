@@ -55,17 +55,15 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.widget.DeprecatedFilter;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
-import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -75,11 +73,13 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
-import org.thingsboard.server.service.install.update.ImagesUpdater;
+import org.thingsboard.server.service.install.update.ResourcesUpdater;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -122,8 +122,10 @@ public class InstallScripts {
     public static final String DASHBOARDS_DIR = "dashboards";
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
+    public static final String NOTIFICATIONS_DIR = "notifications";
     public static final String MODELS_LWM2M_DIR = "lwm2m-registry";
     public static final String SOLUTIONS_DIR = "solutions";
+    public static final String RESOURCES_DIR = "resources";
 
     public static final String JSON_EXT = ".json";
     public static final String SVG_EXT = ".svg";
@@ -160,7 +162,10 @@ public class InstallScripts {
     private ResourceService resourceService;
 
     @Autowired
-    private ImagesUpdater imagesUpdater;
+    private NotificationSettingsService notificationSettingsService;
+
+    @Autowired
+    private ResourcesUpdater resourcesUpdater;
     @Getter @Setter
     private boolean updateImages = false;
 
@@ -223,7 +228,7 @@ public class InstallScripts {
             ruleChain = ruleChainService.saveRuleChain(ruleChain, false);
 
             ruleChainMetaData.setRuleChainId(ruleChain.getId());
-            ruleChainService.saveRuleChainMetaData(TenantId.SYS_TENANT_ID, ruleChainMetaData, Function.identity(), false, true);
+            ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetaData, Function.identity(), false, true);
             return ruleChain;
         } catch (Exception e) {
             log.error("Unable to load rule chain from json: [{}]", path.toString());
@@ -231,12 +236,10 @@ public class InstallScripts {
         }
     }
 
-    List<Path> findRuleChainsFromPath(Path ruleChainsPath) throws IOException {
-        List<Path> paths = new ArrayList<>();
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(ruleChainsPath, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
-            dirStream.forEach(paths::add);
+    List<Path> findRuleChainsFromPath(Path ruleChainsPath) {
+        try (Stream<Path> files = listDir(ruleChainsPath).filter(path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
+            return files.toList();
         }
-        return paths;
     }
 
     public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) {
@@ -253,11 +256,11 @@ public class InstallScripts {
         loadAdditionalTenantRuleChains(tenantId, edgeChainsDir);
     }
 
-    public void loadSystemWidgets() throws Exception {
+    public void loadSystemWidgets() {
         log.info("Loading system widgets");
         Map<Path, JsonNode> widgetsBundlesMap = new HashMap<>();
         Path widgetBundlesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_BUNDLES_DIR);
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(widgetBundlesDir, path -> path.toString().endsWith(JSON_EXT))) {
+        try (Stream<Path> dirStream = listDir(widgetBundlesDir).filter(path -> path.toString().endsWith(JSON_EXT))) {
             dirStream.forEach(
                     path -> {
                         JsonNode widgetsBundleDescriptorJson;
@@ -289,7 +292,7 @@ public class InstallScripts {
         }
         Path widgetTypesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_TYPES_DIR);
         if (Files.exists(widgetTypesDir)) {
-            try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(widgetTypesDir, path -> path.toString().endsWith(JSON_EXT))) {
+            try (Stream<Path> dirStream = listDir(widgetTypesDir).filter(path -> path.toString().endsWith(JSON_EXT))) {
                 dirStream.forEach(
                         path -> {
                             try {
@@ -342,12 +345,12 @@ public class InstallScripts {
         }
     }
 
-    private void loadSystemScadaSymbols() throws Exception {
+    private void loadSystemScadaSymbols() {
         log.info("Loading system SCADA symbols");
         Path scadaSymbolsDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, SCADA_SYMBOLS_DIR);
         if (Files.exists(scadaSymbolsDir)) {
             WidgetTypeDetails scadaSymbolWidgetTemplate = widgetTypeService.findWidgetTypeDetailsByTenantIdAndFqn(TenantId.SYS_TENANT_ID, "scada_symbol");
-            try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(scadaSymbolsDir, path -> path.toString().endsWith(SVG_EXT))) {
+            try (Stream<Path> dirStream = listDir(scadaSymbolsDir).filter(path -> path.toString().endsWith(SVG_EXT))) {
                 dirStream.forEach(
                         path -> {
                             try {
@@ -394,7 +397,7 @@ public class InstallScripts {
     }
 
     private WidgetTypeDetails saveScadaSymbolWidget(WidgetTypeDetails template, TbResourceInfo scadaSymbol,
-                                         ImageUtils.ScadaSymbolMetadataInfo metadata) {
+                                                    ImageUtils.ScadaSymbolMetadataInfo metadata) {
         String symbolUrl = DataConstants.TB_IMAGE_PREFIX + scadaSymbol.getLink();
         WidgetTypeDetails scadaSymbolWidget = new WidgetTypeDetails();
         JsonNode descriptor = JacksonUtil.clone(template.getDescriptor());
@@ -414,73 +417,61 @@ public class InstallScripts {
         defaultConfig.put("title", metadata.getTitle());
         ObjectNode settings;
         if (defaultConfig.has("settings")) {
-            settings = (ObjectNode)defaultConfig.get("settings");
+            settings = (ObjectNode) defaultConfig.get("settings");
         } else {
             settings = JacksonUtil.newObjectNode();
             defaultConfig.set("settings", settings);
         }
         settings.put("scadaSymbolUrl", symbolUrl);
-        ((ObjectNode)descriptor).put("defaultConfig", JacksonUtil.toString(defaultConfig));
-        ((ObjectNode)descriptor).put("sizeX", metadata.getWidgetSizeX());
-        ((ObjectNode)descriptor).put("sizeY", metadata.getWidgetSizeY());
+        ((ObjectNode) descriptor).put("defaultConfig", JacksonUtil.toString(defaultConfig));
+        ((ObjectNode) descriptor).put("sizeX", metadata.getWidgetSizeX());
+        ((ObjectNode) descriptor).put("sizeY", metadata.getWidgetSizeY());
         String controllerScript = descriptor.get("controllerScript").asText();
         controllerScript = controllerScript.replaceAll("previewWidth: '\\d*px'", "previewWidth: '" + (metadata.getWidgetSizeX() * 100) + "px'");
         controllerScript = controllerScript.replaceAll("previewHeight: '\\d*px'", "previewHeight: '" + (metadata.getWidgetSizeY() * 100 + 20) + "px'");
-        ((ObjectNode)descriptor).put("controllerScript", controllerScript);
+        ((ObjectNode) descriptor).put("controllerScript", controllerScript);
         return widgetTypeService.saveWidgetType(scadaSymbolWidget);
     }
 
     private void deleteSystemWidgetBundle(String bundleAlias) {
         WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
         if (widgetsBundle != null) {
-            PageData<WidgetTypeInfo> widgetTypes;
-            var pageLink = new PageLink(1024);
-            do {
-                widgetTypes = widgetTypeService.findWidgetTypesInfosByWidgetsBundleId(TenantId.SYS_TENANT_ID, widgetsBundle.getId(), false, DeprecatedFilter.ALL, null, pageLink);
-                for (var widgetType : widgetTypes.getData()) {
-                    widgetTypeService.deleteWidgetType(TenantId.SYS_TENANT_ID, widgetType.getId());
-                }
-                pageLink.nextPageLink();
-            } while (widgetTypes.hasNext());
+            widgetTypeService.deleteWidgetTypesByBundleId(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
             widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
         }
     }
 
     public void updateImages() {
-        imagesUpdater.updateWidgetsBundlesImages();
-        imagesUpdater.updateWidgetTypesImages();
-        imagesUpdater.updateWhiteLabelingImages();
-        imagesUpdater.updateDashboardsImages();
-        imagesUpdater.updateDeviceProfilesImages();
-        imagesUpdater.updateAssetProfilesImages();
+        resourcesUpdater.updateWidgetsBundlesImages();
+        resourcesUpdater.updateWidgetTypesImages();
+        resourcesUpdater.updateWhiteLabelingImages();
+        resourcesUpdater.updateDashboardsImages();
+        resourcesUpdater.updateDeviceProfilesImages();
+        resourcesUpdater.updateAssetProfilesImages();
     }
 
-    @SneakyThrows
-    public void loadSystemImages() {
-        log.info("Loading system images...");
-        Stream<Path> dashboardsFiles = Stream.concat(Stream.concat(
-                Files.list(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
-                Files.list(Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR))),
-                Files.list(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
+    public void loadSystemImagesAndResources() {
+        log.info("Loading system images and resources...");
+        Stream<Path> dashboardsFiles = Stream.concat(Stream.concat(listDir(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
+                        listDir(Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR))),
+                listDir(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
                         .filter(file -> file.toFile().isDirectory())
-                        .flatMap(solutionDir -> {
-                            try {
-                                return Files.list(solutionDir.resolve(DASHBOARDS_DIR));
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        })
-        );
+                        .flatMap(solutionDir -> listDir(solutionDir.resolve(DASHBOARDS_DIR))));
         try (dashboardsFiles) {
             dashboardsFiles.forEach(file -> {
                 try {
                     Dashboard dashboard = JacksonUtil.OBJECT_MAPPER.readValue(file.toFile(), Dashboard.class);
-                    imagesUpdater.createSystemImages(dashboard);
+                    resourcesUpdater.createSystemImagesAndResources(dashboard);
                 } catch (Exception e) {
                     log.error("Failed to create system images for default dashboard {}", file.getFileName(), e);
                 }
             });
         }
+
+        Path resourcesDir = Path.of(getDataDir(), RESOURCES_DIR);
+        loadSystemResources(resourcesDir.resolve("images"), ResourceType.IMAGE);
+        loadSystemResources(resourcesDir.resolve("js_modules"), ResourceType.JS_MODULE);
+        loadSystemResources(resourcesDir.resolve("dashboards"), ResourceType.DASHBOARD);
     }
 
     public void loadDashboards(TenantId tenantId, CustomerId customerId) {
@@ -493,32 +484,29 @@ public class InstallScripts {
         loadDashboardsFromDir(tenantId, customerId, dashboardsDir);
     }
 
-    @SneakyThrows
     private void loadDashboardsFromDir(TenantId tenantId, CustomerId customerId, Path dashboardsDir) {
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dashboardsDir, path -> path.toString().endsWith(JSON_EXT))) {
-            dirStream.forEach(
-                    path -> {
-                        try {
-                            JsonNode dashboardJson = JacksonUtil.toJsonNode(path.toFile());
-                            Dashboard dashboard = JacksonUtil.treeToValue(dashboardJson, Dashboard.class);
-                            dashboard.setTenantId(tenantId);
-                            Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
-                            if (customerId != null && !customerId.isNullUid()) {
-                                EntityGroup dashboardGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
-                                entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), savedDashboard.getId());
-                            }
-                        } catch (Exception e) {
-                            log.error("Unable to load dashboard from json: [{}]", path.toString());
-                            throw new RuntimeException("Unable to load dashboard from json", e);
-                        }
+        try (Stream<Path> dashboards = listDir(dashboardsDir).filter(path -> path.toString().endsWith(JSON_EXT))) {
+            dashboards.forEach(path -> {
+                try {
+                    JsonNode dashboardJson = JacksonUtil.toJsonNode(path.toFile());
+                    Dashboard dashboard = JacksonUtil.treeToValue(dashboardJson, Dashboard.class);
+                    dashboard.setTenantId(tenantId);
+                    Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
+                    if (customerId != null && !customerId.isNullUid()) {
+                        EntityGroup dashboardGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
+                        entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), savedDashboard.getId());
                     }
-            );
+                } catch (Exception e) {
+                    log.error("Unable to load dashboard from json: [{}]", path.toString());
+                    throw new RuntimeException("Unable to load dashboard from json", e);
+                }
+            });
         }
     }
 
     public void loadMailTemplates() throws Exception {
         JsonNode mailTemplatesJson = readMailTemplates();
-        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, mailTemplatesJson);
+        saveMailTemplates(mailTemplatesJson);
     }
 
     public void updateMailTemplates(JsonNode oldTemplates) throws IOException {
@@ -539,7 +527,29 @@ public class InstallScripts {
             result = (ObjectNode) JacksonUtil.toJsonNode(updated.get());
         }
 
-        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, result);
+        saveMailTemplates(result);
+    }
+
+    private void saveMailTemplates(JsonNode mailTemplatesJson) {
+        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, mailTemplatesJson);
+    }
+
+    public void updateSystemNotificationTemplates() {
+        getSystemNotificationTemplates().forEach(notificationTemplate -> {
+            notificationSettingsService.updateSystemNotificationTemplate(TenantId.SYS_TENANT_ID, notificationTemplate);
+        });
+    }
+
+    public void createSystemNotificationTemplates(TenantId tenantId) {
+        getSystemNotificationTemplates().forEach(notificationTemplate -> {
+            notificationSettingsService.createSystemNotificationTemplate(tenantId, notificationTemplate);
+        });
+    }
+
+    private List<NotificationTemplate> getSystemNotificationTemplates() {
+        return listDir(Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, NOTIFICATIONS_DIR))
+                .map(templateFile -> JacksonUtil.readValue(templateFile.toFile(), NotificationTemplate.class))
+                .toList();
     }
 
     public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {
@@ -552,7 +562,7 @@ public class InstallScripts {
         }
     }
 
-    private JsonNode readMailTemplates() throws IOException {
+    private JsonNode readMailTemplates() {
         Path mailTemplatesFile = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
         return JacksonUtil.toJsonNode(mailTemplatesFile.toFile());
     }
@@ -601,9 +611,9 @@ public class InstallScripts {
         return ruleChainIdMap;
     }
 
-    public void createOAuth2Templates() throws Exception {
+    public void createOAuth2Templates() {
         Path oauth2ConfigTemplatesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, OAUTH2_CONFIG_TEMPLATES_DIR);
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(oauth2ConfigTemplatesDir, path -> path.toString().endsWith(JSON_EXT))) {
+        try (Stream<Path> dirStream = listDir(oauth2ConfigTemplatesDir).filter(path -> path.toString().endsWith(JSON_EXT))) {
             dirStream.forEach(
                     path -> {
                         try {
@@ -626,7 +636,7 @@ public class InstallScripts {
 
     public void loadSystemLwm2mResources() {
         Path resourceLwm2mPath = Paths.get(getDataDir(), MODELS_LWM2M_DIR);
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(resourceLwm2mPath, path -> path.toString().endsWith(InstallScripts.XML_EXT))) {
+        try (Stream<Path> dirStream = listDir(resourceLwm2mPath).filter(path -> path.toString().endsWith(InstallScripts.XML_EXT))) {
             dirStream.forEach(
                     path -> {
                         try {
@@ -649,6 +659,45 @@ public class InstallScripts {
         }
     }
 
+    public void updateResourcesUsage() {
+        resourcesUpdater.updateDashboardsResources();
+        resourcesUpdater.updateWidgetsResources();
+    }
+
+    private void loadSystemResources(Path dir, ResourceType resourceType) {
+        listDir(dir).forEach(resourceFile -> {
+            String resourceKey = resourceFile.getFileName().toString();
+            try {
+                byte[] data = getContent(resourceFile);
+                if (resourceType == ResourceType.IMAGE) {
+                    imageService.createOrUpdateSystemImage(resourceKey, data);
+                } else {
+                    resourceService.createOrUpdateSystemResource(resourceType, resourceKey, data);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to load system resource " + resourceFile, e);
+            }
+        });
+    }
+
+    private byte[] getContent(Path file) {
+        try {
+            return Files.readAllBytes(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private Stream<Path> listDir(Path dir) {
+        try {
+            return Files.list(dir);
+        } catch (NoSuchFileException e) {
+            return Stream.empty();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     private void doSaveLwm2mResource(TbResource resource) throws ThingsboardException {
         log.trace("Executing saveResource [{}]", resource);
         if (resource.getData() == null || resource.getData().length == 0) {
@@ -660,4 +709,5 @@ public class InstallScripts {
             resourceService.saveResource(resource);
         }
     }
+
 }

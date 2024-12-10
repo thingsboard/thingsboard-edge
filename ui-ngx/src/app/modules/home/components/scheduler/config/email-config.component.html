@@ -30,22 +30,22 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="emailConfigFormGroup" fxLayout="column">
-  <mat-form-field fxFlex class="mat-block">
+<section [formGroup]="emailConfigFormGroup" class="flex flex-col">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>report.from</mat-label>
     <textarea matInput formControlName="from" required rows="2"></textarea>
     <mat-error *ngIf="emailConfigFormGroup.get('from').hasError('required')">
       {{ 'report.from-required' | translate }}
     </mat-error>
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>report.to</mat-label>
     <textarea matInput formControlName="to" required rows="2"></textarea>
     <mat-error *ngIf="emailConfigFormGroup.get('to').hasError('required')">
       {{ 'report.to-required' | translate }}
     </mat-error>
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>report.cc</mat-label>
     <textarea matInput formControlName="cc" rows="2"></textarea>
     <mat-icon matSuffix class="mat-primary cursor-pointer"
@@ -53,7 +53,7 @@
       help
     </mat-icon>
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>report.bcc</mat-label>
     <textarea matInput formControlName="bcc" rows="2"></textarea>
     <mat-icon matSuffix class="mat-primary cursor-pointer"
@@ -61,14 +61,14 @@
       help
     </mat-icon>
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>report.subject</mat-label>
     <textarea matInput formControlName="subject" required rows="2"></textarea>
     <mat-error *ngIf="emailConfigFormGroup.get('subject').hasError('required')">
       {{ 'report.subject-required' | translate }}
     </mat-error>
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>report.body</mat-label>
     <textarea matInput formControlName="body" required rows="6"></textarea>
     <mat-error *ngIf="emailConfigFormGroup.get('body').hasError('required')">

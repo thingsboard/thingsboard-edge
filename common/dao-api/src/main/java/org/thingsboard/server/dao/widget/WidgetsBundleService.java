@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundleFilter;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface WidgetsBundleService extends EntityDaoService {
 
@@ -70,5 +71,7 @@ public interface WidgetsBundleService extends EntityDaoService {
     ListenableFuture<List<WidgetsBundle>> findAllTenantWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds);
 
     void deleteWidgetsBundlesByTenantId(TenantId tenantId);
+
+    void updateSystemWidgets(Stream<String> bundles, Stream<String> widgets);
 
 }

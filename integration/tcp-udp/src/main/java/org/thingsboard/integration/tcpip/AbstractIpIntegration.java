@@ -46,14 +46,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -65,7 +65,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -92,15 +91,15 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     protected EventLoopGroup bossGroup;
     protected EventLoopGroup workerGroup;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("ip-integration-scheduled"));
+    private final ScheduledExecutorService scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor("ip-integration-scheduled");
     protected ScheduledFuture bindFuture = null;
 
-    protected UplinkContentType uplinkContentType;
+    protected ContentType uplinkContentType;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if(downlinkConverter != null) {
+        if (downlinkConverter != null) {
             initCache(params);
         }
         this.ctx = params.getContext();
@@ -130,7 +129,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
-        logDownlink(context,"Downlink: " + msg.getType(), msg);
+        logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
             Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
             String status;
@@ -216,13 +215,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, "Uplink", uplinkContentType, toDebugMessage(uplinkContentType.name(), msg.getPayload()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", uplinkContentType, () -> toDebugMessage(uplinkContentType.name(), msg.getPayload()), status, exception);
     }
 
     protected void startServer() {

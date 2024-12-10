@@ -29,7 +29,10 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
+
 .tb-edit-custom-menu-name-panel {
+  --mdc-outlined-text-field-outline-color: rgba(0,0,0,0.12);
+
   width: 300px;
   display: flex;
   flex-direction: column;

@@ -72,7 +72,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                         if (user == null) {
                             throw new RuntimeException("[{" + tenantId + "}] userUpdateMsg {" + userUpdateMsg + "} cannot be converted to user");
                         }
-                        User userById = userService.findUserById(tenantId, userId);
+                        User userById = edgeCtx.getUserService().findUserById(tenantId, userId);
                         boolean created = userById == null;
                         if (!created) {
                             changeOwnerIfRequired(tenantId, user.getCustomerId(), userId);
@@ -80,11 +80,11 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                         if (isCustomerNotExists(tenantId, user.getCustomerId())) {
                             user.setCustomerId(null);
                         }
-                        User savedUser = userService.saveUser(tenantId, user, false);
+                        User savedUser = edgeCtx.getUserService().saveUser(tenantId, user, false);
                         if (created) {
                             createDefaultUserCredentials(savedUser.getTenantId(), savedUser.getId());
                             if (!user.getTenantId().isNullUid()) {
-                                entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
+                                edgeCtx.getEntityGroupService().addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
                             }
                         }
                         safeAddEntityToGroup(tenantId, userUpdateMsg, savedUser);
@@ -97,12 +97,12 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                         UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(),
                                 userUpdateMsg.getEntityGroupIdLSB());
                         EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
-                        return removeEntityIfInSingleAllGroup(tenantId, userId, () -> userService.deleteUser(tenantId, userId));
+                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
+                        return removeEntityIfInSingleAllGroup(tenantId, userId, () -> edgeCtx.getUserService().deleteUser(tenantId, userId));
                     } else {
-                        User userToDelete = userService.findUserById(tenantId, userId);
+                        User userToDelete = edgeCtx.getUserService().findUserById(tenantId, userId);
                         if (userToDelete != null) {
-                            userService.deleteUser(tenantId, userToDelete);
+                            edgeCtx.getUserService().deleteUser(tenantId, userToDelete);
                         }
                     }
                     return Futures.immediateFuture(null);
@@ -131,9 +131,9 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
             if (userCredentialsMsg == null) {
                 throw new RuntimeException("[{" + tenantId + "}] userCredentialsUpdateMsg {" + userCredentialsUpdateMsg + "} cannot be converted to user credentials");
             }
-            User user = userService.findUserById(tenantId, userCredentialsMsg.getUserId());
+            User user = edgeCtx.getUserService().findUserById(tenantId, userCredentialsMsg.getUserId());
             if (user != null) {
-                UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(tenantId, user.getId());
+                UserCredentials userCredentialsByUserId = edgeCtx.getUserService().findUserCredentialsByUserId(tenantId, user.getId());
                 if (userCredentialsByUserId == null) {
                     userCredentialsByUserId = createDefaultUserCredentials(tenantId, userCredentialsMsg.getUserId());
                 }
@@ -142,7 +142,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                 userCredentialsByUserId.setActivateToken(userCredentialsMsg.getActivateToken());
                 userCredentialsByUserId.setResetToken(userCredentialsMsg.getResetToken());
                 userCredentialsByUserId.setAdditionalInfo(userCredentialsMsg.getAdditionalInfo());
-                userService.saveUserCredentials(tenantId, userCredentialsByUserId);
+                edgeCtx.getUserService().saveUserCredentials(tenantId, userCredentialsByUserId);
             }
         } finally {
             cloudSynchronizationManager.getSync().remove();
@@ -156,8 +156,8 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
         userCredentials.setActivateToken(StringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
         userCredentials.setUserId(userId);
         userCredentials.setAdditionalInfo(JacksonUtil.newObjectNode());
-        // TODO: @voba - save or update user password history?
-        return userService.saveUserCredentials(tenantId, userCredentials, false);
+        // TODO: Edge-only:  save or update user password history?
+        return edgeCtx.getUserService().saveUserCredentials(tenantId, userCredentials, false);
     }
 
 }

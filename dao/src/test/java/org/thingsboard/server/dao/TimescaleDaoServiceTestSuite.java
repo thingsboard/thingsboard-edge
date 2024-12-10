@@ -34,9 +34,7 @@ import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
 import org.junit.runner.RunWith;
 
-// @voba - merge comment
-// Timescale DB is not supported on edge
-// @RunWith(ClasspathSuite.class)
+@RunWith(ClasspathSuite.class)
 @ClassnameFilters({
         "org.thingsboard.server.dao.service.*.nosql.*ServiceTimescaleTest",
 })

@@ -39,12 +39,41 @@
       integration.connection-string-required</mat-error>
   </mat-form-field>
 
+  <mat-expansion-panel class="expansion-panel-setting"
+                       [expanded]="azureEventHubIntegrationConfigForm.get('enablePersistentCheckpoints').value">
+    <mat-expansion-panel-header class="flex flex-row">
+      <mat-panel-title tb-hint-tooltip-icon="{{ 'integration.enable-persistent-checkpoints-hint' | translate }}">
+        <mat-slide-toggle class="toggle" [aria-label]="'integration.enable-persistent-checkpoints' | translate"
+                          formControlName="enablePersistentCheckpoints"
+                          (click)="$event.stopPropagation()">
+          {{ 'integration.enable-persistent-checkpoints' | translate }}
+        </mat-slide-toggle>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <mat-form-field class="mat-block">
+        <mat-label translate>integration.storage-connection-string</mat-label>
+        <input required matInput formControlName="storageConnectionString">
+        <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('storageConnectionString').hasError('required')">
+          integration.storage-connection-string-required
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field class="mat-block">
+        <mat-label translate>integration.container-name</mat-label>
+        <input matInput formControlName="containerName">
+        <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('containerName').hasError('required')">
+          integration.container-name-required
+        </mat-error>
+      </mat-form-field>
+    </ng-template>
+  </mat-expansion-panel>
+
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
   </ng-container>
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>

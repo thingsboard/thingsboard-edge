@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   checkBoxCell,
   DateEntityTableColumn,
@@ -65,7 +65,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
-export class WidgetTypesTableConfigResolver implements Resolve<EntityTableConfig<WidgetTypeInfo | WidgetTypeDetails>> {
+export class WidgetTypesTableConfigResolver  {
 
   private readonly config: EntityTableConfig<WidgetTypeInfo | WidgetTypeDetails> =
     new EntityTableConfig<WidgetTypeInfo | WidgetTypeDetails>();

@@ -53,7 +53,6 @@ public class IntegrationMsgConstructorV1 extends BaseIntegrationMsgConstructor {
                 .setDefaultConverterIdLSB(integration.getDefaultConverterId().getId().getLeastSignificantBits())
                 .setRoutingKey(integration.getRoutingKey())
                 .setType(integration.getType().name())
-                .setDebugMode(integration.isDebugMode())
                 .setEnabled(integration.isEnabled())
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())

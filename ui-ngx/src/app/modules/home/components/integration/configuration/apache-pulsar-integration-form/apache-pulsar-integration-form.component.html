@@ -42,15 +42,15 @@
     </mat-error>
   </mat-form-field>
 
-  <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.topics</mat-label>
       <input matInput required formControlName="topics">
       <mat-error translate *ngIf="apachePulsarIntegrationConfigForm.get('topics').hasError('required')">
         integration.topics-required
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.subscription-name</mat-label>
       <input matInput required formControlName="subscriptionName">
       <mat-error translate *ngIf="apachePulsarIntegrationConfigForm.get('subscriptionName').hasError('required')">
@@ -59,15 +59,15 @@
     </mat-form-field>
   </div>
 
-  <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.max-num-messages</mat-label>
       <input type="number" matInput required formControlName="maxNumMessages" step="1">
       <mat-error translate *ngIf="apachePulsarIntegrationConfigForm.get('maxNumMessages').hasError('required')">
         integration.max-num-messages-required
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.max-num-bytes</mat-label>
       <input type="number" matInput required formControlName="maxNumBytes" step="1">
       <mat-error translate *ngIf="apachePulsarIntegrationConfigForm.get('maxNumBytes').hasError('required')">
@@ -93,7 +93,7 @@
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>

@@ -33,6 +33,7 @@ import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular
 import { PageComponent } from '@shared/components/page.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import {
+  entityTypesWithoutRelatedData,
   SingleEntityVersionCreateRequest,
   VersionCreateRequestType,
   VersionCreationResult
@@ -79,6 +80,8 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
   createVersionFormGroup: UntypedFormGroup;
 
   entityTypes = EntityType;
+
+  entityTypesWithoutRelatedData = entityTypesWithoutRelatedData;
 
   resultMessage: string;
 
@@ -128,8 +131,10 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
         branch: this.createVersionFormGroup.get('branch').value,
         versionName: this.createVersionFormGroup.get('versionName').value,
         config: {
-          saveRelations: this.createVersionFormGroup.get('saveRelations').value,
-          saveAttributes: this.createVersionFormGroup.get('saveAttributes').value,
+          saveRelations: !entityTypesWithoutRelatedData.has(this.entityId.entityType)
+            ? this.createVersionFormGroup.get('saveRelations').value : false,
+          saveAttributes: !entityTypesWithoutRelatedData.has(this.entityId.entityType)
+            ? this.createVersionFormGroup.get('saveAttributes').value : false,
           saveCredentials: (this.entityId.entityType === EntityType.DEVICE || EntityType.DEVICE === this.groupType) ?
             this.createVersionFormGroup.get('saveCredentials').value : false,
           savePermissions: this.entityId.entityType === EntityType.ENTITY_GROUP && EntityType.USER === this.groupType ?

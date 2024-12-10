@@ -32,17 +32,15 @@
 -->
 <fieldset class="fields-group">
   <legend class="group-title">{{ entityGroupsTitle() }}</legend>
-  <div fxLayout="column">
+  <div class="flex flex-col">
     <div class="tb-control-list">
       <div *ngFor="let ownerEntityGroupsFormGroup of ownerEntityGroupsArray(); trackBy: trackByOwnerEntityGroups;
                    let $index = index; last as isLast;"
-           fxLayout="row" fxLayout.xs="column"
-           fxLayoutAlign.gt-xs="start center"
+           class="flex flex-row xs:flex-col gt-xs:items-center gt-xs:justify-start gt-xs:gap-4"
            [formGroup]="ownerEntityGroupsFormGroup"
-           fxLayoutGap.gt-xs="16px"
-           [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
+           [class.pb-2]="!isLast">
         <tb-owner-autocomplete
-          fxFlex
+          class="flex-1"
           required
           placeholderText="group-permission.group-owner"
           notFoundText="group-permission.no-owners-matching"
@@ -51,7 +49,7 @@
           formControlName="ownerId">
         </tb-owner-autocomplete>
         <tb-entity-group-list
-          fxFlex
+          class="flex-1"
           [groupType]="entityType"
           [ownerId]="ownerEntityGroupsFormGroup.get('ownerId').value"
           required
@@ -66,7 +64,7 @@
         </button>
       </div>
     </div>
-    <div style="padding-top: 16px;" fxLayout="row">
+    <div style="padding-top: 16px;" class="flex flex-row">
       <button mat-raised-button color="primary"
               type="button"
               [disabled]="disabled"

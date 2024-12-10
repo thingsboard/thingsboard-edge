@@ -415,7 +415,7 @@ public class DeviceClientTest extends AbstractContainerTest {
                             edgeRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId()).get();
                     DeviceCredentials deviceCredentialsOnCloud =
                             cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId()).get();
-                    // TODO: @voba - potential fix for future releases
+                    // TODO: Edge-only:  potential fix for future releases
                     deviceCredentialsOnCloud.setId(null);
                     deviceCredentialsOnEdge.setId(null);
                     deviceCredentialsOnCloud.setCreatedTime(0);

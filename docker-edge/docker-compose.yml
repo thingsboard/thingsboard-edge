@@ -72,9 +72,42 @@ services:
       LWM2M_ENABLED: "false"
       SNMP_ENABLED: "false"
       EDGES_ENABLED: "true"
+      TB_QUEUE_TYPE: "in-memory"
+      TB_KAFKA_SERVERS: "kafka:9092"
     env_file:
       - tb-node.env
     volumes:
       - ./tb-node/conf:/config
       - ./tb-node/log:/var/log/thingsboard
       - ./tb-node/data:/data
+    depends_on:
+      - zookeeper
+      - kafka
+  zookeeper:
+    restart: always
+    image: "zookeeper:3.8.0"
+    ports:
+      - "2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888;zookeeper:2181
+      ZOO_ADMINSERVER_ENABLED: "false"
+  kafka:
+    restart: always
+    image: "bitnami/kafka:3.7.0"
+    ports:
+      - "9092"
+    environment:
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_CFG_LISTENERS: "INSIDE://:9093,OUTSIDE://:9092"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "INSIDE://:9093,OUTSIDE://kafka:9092"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT"
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: "INSIDE"
+      KAFKA_CFG_LOG_RETENTION_BYTES: "1073741824"
+      KAFKA_CFG_SEGMENT_BYTES: "268435456"
+      KAFKA_CFG_LOG_RETENTION_MS: "300000"
+      KAFKA_CFG_LOG_CLEANUP_POLICY: "delete"
+    depends_on:
+      - zookeeper

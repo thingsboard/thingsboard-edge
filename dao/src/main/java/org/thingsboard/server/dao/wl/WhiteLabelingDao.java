@@ -46,7 +46,7 @@ public interface WhiteLabelingDao {
 
     WhiteLabeling findById(TenantId tenantId, WhiteLabelingCompositeKey key);
 
-    WhiteLabeling findByDomain(TenantId tenantId, String domain);
+    WhiteLabeling findByDomainAndType(TenantId tenantId, String domain, WhiteLabelingType type);
 
     void removeById(TenantId tenantId, WhiteLabelingCompositeKey key);
 

@@ -31,41 +31,40 @@
 package org.thingsboard.server.service.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.LibraryConvertersInfo;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.GitSyncService;
+import org.thingsboard.server.service.sync.vc.GitRepository.FileType;
 import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
-import org.thingsboard.server.service.sync.vc.GitRepositoryService;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.converter.ConverterType.DOWNLINK;
 import static org.thingsboard.server.common.data.converter.ConverterType.UPLINK;
 
+@TbCoreComponent
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class DefaultConverterLibraryService implements ConverterLibraryService {
 
-    private final GitRepositoryService gitRepositoryService;
+    private final GitSyncService gitSyncService;
 
     @Value("${integrations.converters.library.enabled:true}")
     private boolean enabled;
@@ -74,46 +73,16 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     @Value("${integrations.converters.library.fetch_frequency:24}")
     private int fetchFrequencyHours;
 
-    private ScheduledExecutorService executor;
     private Map<String, LibraryConvertersInfo> convertersInfo;
 
-    private static final String MAIN_BRANCH = "main";
-    private static final String MAIN_BRANCH_REF = "refs/remotes/origin/" + MAIN_BRANCH;
+    private static final String REPO_KEY = "data-converters-library";
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void init() throws Exception {
         if (!enabled) {
             return;
         }
-        executor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("data-converters-library"));
-        RepositorySettings settings = new RepositorySettings();
-        settings.setRepositoryUri(repoUrl);
-
-        executor.execute(() -> {
-            try {
-                gitRepositoryService.initRepository(TenantId.SYS_TENANT_ID, settings, true);
-                updateConvertersInfo();
-                log.info("Initialized data converters repository");
-            } catch (Throwable e) {
-                log.error("Failed to init data converters repository for settings {}", settings, e);
-            }
-        });
-        executor.scheduleWithFixedDelay(() -> {
-            try {
-                log.debug("Fetching data converters repository");
-                gitRepositoryService.fetch(TenantId.SYS_TENANT_ID);
-                updateConvertersInfo();
-            } catch (Throwable e) {
-                log.error("Failed to fetch data converters repository", e);
-            }
-        }, fetchFrequencyHours, fetchFrequencyHours, TimeUnit.HOURS);
-    }
-
-    @PreDestroy
-    public void preDestroy() {
-        if (executor != null) {
-            executor.shutdownNow();
-        }
+        gitSyncService.registerSync(REPO_KEY, repoUrl, "main", TimeUnit.HOURS.toMillis(fetchFrequencyHours), this::updateConvertersInfo);
     }
 
     @Override
@@ -128,7 +97,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
                 })
                 .map(vendorDir -> {
                     String logoFile = findFile(vendorDir.path(), 2, "logo");
-                    return new Vendor(vendorDir.name(), getGithubRawContentUrl(logoFile));
+                    return new Vendor(vendorDir.name(), gitSyncService.getGithubRawContentUrl(REPO_KEY, logoFile));
                 })
                 .toList();
     }
@@ -153,7 +122,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
                     String name = modelPath.getFileName().toString();
                     JsonNode modelInfo = JacksonUtil.toJsonNode(getFileContent(modelPath + "/info.json"));
                     String photoFile = findFile(modelPath.toString(), 3, "photo");
-                    String photo = getGithubRawContentUrl(photoFile);
+                    String photo = gitSyncService.getGithubRawContentUrl(REPO_KEY, photoFile);
                     return new Model(name, modelInfo, photo);
                 })
                 .toList();
@@ -175,19 +144,30 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     @Override
     public String getPayload(IntegrationType integrationType, String converterType, String vendorName, String model) {
         log.trace("Executing getPayload [{}][{}][{}][{}]", integrationType, converterType, vendorName, model);
-        return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/payload.json");
+        List<RepoFile> payloadFiles = listFiles(getConverterDir(integrationType, converterType, vendorName, model), -1, false).stream()
+                .filter(file -> file.name().startsWith("payload"))
+                .sorted(Comparator.comparing(RepoFile::name))
+                .toList();
+        if (payloadFiles.isEmpty()) {
+            return "{}";
+        }
+
+        RepoFile payloadFile = null;
+        for (RepoFile file : payloadFiles) {
+            if (file.name().endsWith("json")) { // preferring json payload
+                payloadFile = file;
+                break;
+            }
+        }
+        if (payloadFile == null) {
+            payloadFile = payloadFiles.get(0);
+        }
+        return getFileContent(payloadFile.path());
     }
 
     @Override
     public Map<String, LibraryConvertersInfo> getConvertersInfo() {
         return convertersInfo != null ? convertersInfo : Collections.emptyMap();
-    }
-
-    private String getGithubRawContentUrl(String path) {
-        if (path == null) {
-            return "";
-        }
-        return StringUtils.removeEnd(repoUrl, ".git") + "/blob/" + MAIN_BRANCH + "/" + path + "?raw=true";
     }
 
     private String findFile(String dir, int depth, String prefix) {
@@ -200,9 +180,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (!enabled) {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
-        return gitRepositoryService.listFiles(TenantId.SYS_TENANT_ID, MAIN_BRANCH_REF, path, depth).stream()
-                .filter(file -> file.isDirectory() == isDirectory)
-                .toList();
+        return gitSyncService.listFiles(REPO_KEY, path, depth, isDirectory ? FileType.DIRECTORY : FileType.FILE);
     }
 
     private String getFileContent(String path) {
@@ -210,7 +188,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
         try {
-            return gitRepositoryService.getFileContentAtCommit(TenantId.SYS_TENANT_ID, path, MAIN_BRANCH_REF);
+            return new String(gitSyncService.getFileContent(REPO_KEY, path), StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.warn("Failed to get file content for path {}: {}", path, e.getMessage());
             return "{}";

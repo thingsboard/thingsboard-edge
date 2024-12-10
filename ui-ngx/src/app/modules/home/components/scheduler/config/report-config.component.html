@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="reportConfigFormGroup" class="tb-form-panel no-border no-padding" fxLayout="column">
+<section [formGroup]="reportConfigFormGroup" class="tb-form-panel no-border no-padding flex flex-col">
   <div class="tb-form-panel stroked">
     <mat-expansion-panel class="tb-settings" [expanded]="true">
       <mat-expansion-panel-header>
@@ -38,8 +38,8 @@
           <div class="tb-panel-title" translate>report.general-report-settings</div>
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <div class="no-gap" fxLayout="column">
-        <mat-form-field fxFlex class="mat-block">
+      <div class="no-gap flex flex-col">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>report.name-pattern</mat-label>
           <input matInput formControlName="namePattern" required>
           <div matIconSuffix tb-help-popup="date/date-format" [tb-help-popup-style]="{width: '800px'}"></div>
@@ -47,7 +47,7 @@
             {{ 'report.name-pattern-required' | translate }}
           </mat-error>
         </mat-form-field>
-        <mat-form-field fxFlex class="mat-block">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>report.type</mat-label>
           <mat-select matInput formControlName="type" required>
             <mat-option *ngFor="let reportType of reportTypesList" [value]="reportType">
@@ -65,8 +65,8 @@
           <div class="tb-panel-title" translate>report.target-dashboard</div>
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <div class="no-gap" fxLayout="column">
-        <mat-form-field fxFlex class="mat-block">
+      <div class="no-gap flex flex-col">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>report.base-url</mat-label>
           <input matInput formControlName="baseUrl" required>
           <mat-error *ngIf="reportConfigFormGroup.get('baseUrl').hasError('required')">
@@ -74,12 +74,12 @@
           </mat-error>
         </mat-form-field>
         <tb-entity-autocomplete
-          fxFlex
+          class="flex-1"
           required
           [entityType]="entityType.DASHBOARD"
           formControlName="dashboardId">
         </tb-entity-autocomplete>
-        <mat-form-field fxFlex class="mat-block">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>report.dashboard-state-param</mat-label>
           <input matInput formControlName="state">
           <button type="button"
@@ -92,7 +92,7 @@
             <mat-icon>open_in_new</mat-icon>
           </button>
         </mat-form-field>
-        <div fxLayout="column">
+        <div class="flex flex-col">
           <tb-timezone-select
             userTimezoneByDefault
             required
@@ -103,7 +103,7 @@
             report.timezone-description
           </div>
         </div>
-        <div fxLayout="column" class="tb-form-panel no-border no-padding">
+        <div class="tb-form-panel no-border no-padding flex flex-col">
           <div class="tb-form-row space-between column-xs">
             <mat-slide-toggle class="mat-slide" formControlName="useDashboardTimewindow">
               <label (click)="$event.stopPropagation();"
@@ -119,10 +119,9 @@
               formControlName="timewindow">
             </tb-timewindow>
           </div>
-          <div [fxShow]="isTenantAdmin" class="tb-form-panel stroked"
+          <div [class.!hidden]="!isTenantAdmin" class="tb-form-panel stroked"
                [class.no-padding-bottom]="!reportConfigFormGroup.get('useCurrentUserCredentials').value">
-            <div fxFlex fxLayout="row" fxLayout.xs="column" style="width: 100%;" fxLayoutAlign="space-between center"
-                 fxLayoutAlign.xs="space-between start" fxLayoutGap="0px" fxLayoutGap.xs="12px">
+            <div class="flex w-full flex-1 flex-row items-center justify-between gap-0 xs:flex-col xs:items-start xs:gap-3">
               <div class="fixed-title-width" translate
                    tb-hint-tooltip-icon="{{ 'report.user-credentials-description' | translate }}">
                 report.credentials
@@ -137,7 +136,7 @@
               </tb-toggle-select>
             </div>
             <tb-entity-autocomplete
-              [fxShow]="!reportConfigFormGroup.get('useCurrentUserCredentials').value"
+              [class.!hidden]="reportConfigFormGroup.get('useCurrentUserCredentials').value"
               required
               [entityType]="entityType.USER"
               labelText="report.customer-user-credentials"

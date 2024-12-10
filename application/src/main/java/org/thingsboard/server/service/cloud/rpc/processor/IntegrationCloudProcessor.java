@@ -44,8 +44,7 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.service.validator.IntegrationDataValidator;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -58,10 +57,7 @@ import java.util.UUID;
 public class IntegrationCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
-    private IntegrationService integrationService;
-
-    @Autowired
-    private ConverterService converterService;
+    private IntegrationDataValidator integrationValidator;
 
     public ListenableFuture<Void> processIntegrationMsgFromCloud(TenantId tenantId, IntegrationUpdateMsg integrationUpdateMsg) {
         try {
@@ -73,7 +69,7 @@ public class IntegrationCloudProcessor extends BaseEdgeProcessor {
                     if (integration == null) {
                         throw new RuntimeException("[{" + tenantId + "}] integrationUpdateMsg {" + integrationUpdateMsg + "} cannot be converted to integration");
                     }
-                    Integration integrationById = integrationService.findIntegrationById(tenantId, integrationId);
+                    Integration integrationById = edgeCtx.getIntegrationService().findIntegrationById(tenantId, integrationId);
                     boolean created = false;
                     if (integrationById == null) {
                         created = true;
@@ -87,19 +83,19 @@ public class IntegrationCloudProcessor extends BaseEdgeProcessor {
                         integration.setId(integrationId);
                     }
 
-                    Integration savedIntegration = integrationService.saveIntegration(integration, false);
+                    Integration savedIntegration = edgeCtx.getIntegrationService().saveIntegration(integration, false);
 
-                    tbClusterService.broadcastEntityStateChangeEvent(savedIntegration.getTenantId(), savedIntegration.getId(),
+                    edgeCtx.getClusterService().broadcastEntityStateChangeEvent(savedIntegration.getTenantId(), savedIntegration.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
                     cleanUpUnusedConverters(tenantId);
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Integration integrationToDelete = integrationService.findIntegrationById(tenantId, integrationId);
+                    Integration integrationToDelete = edgeCtx.getIntegrationService().findIntegrationById(tenantId, integrationId);
                     if (integrationToDelete != null) {
-                        integrationService.deleteIntegration(tenantId, integrationId);
-                        tbClusterService.broadcastEntityStateChangeEvent(integrationToDelete.getTenantId(), integrationToDelete.getId(), ComponentLifecycleEvent.DELETED);
+                        edgeCtx.getIntegrationService().deleteIntegration(tenantId, integrationId);
+                        edgeCtx.getClusterService().broadcastEntityStateChangeEvent(integrationToDelete.getTenantId(), integrationToDelete.getId(), ComponentLifecycleEvent.DELETED);
                         cleanUpUnusedConverters(tenantId);
                     }
                     break;
@@ -119,7 +115,7 @@ public class IntegrationCloudProcessor extends BaseEdgeProcessor {
         PageData<Converter> pageData;
         PageLink pageLink = new PageLink(100);
         do {
-            pageData = converterService.findTenantConverters(tenantId, pageLink);
+            pageData = edgeCtx.getConverterService().findTenantConverters(tenantId, pageLink);
             tenantConverters.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -131,10 +127,11 @@ public class IntegrationCloudProcessor extends BaseEdgeProcessor {
     }
 
     private void cleanUpUnusedConverters(TenantId tenantId, ConverterId converterId) {
-        List<Integration> integrationsByConverterId = integrationService.findIntegrationsByConverterId(tenantId, converterId);
+        List<Integration> integrationsByConverterId = edgeCtx.getIntegrationService().findIntegrationsByConverterId(tenantId, converterId);
         if (integrationsByConverterId.isEmpty()) {
-            converterService.deleteConverter(tenantId, converterId);
-            tbClusterService.broadcastEntityStateChangeEvent(tenantId, converterId, ComponentLifecycleEvent.DELETED);
+            edgeCtx.getConverterService().deleteConverter(tenantId, converterId);
+            edgeCtx.getClusterService().broadcastEntityStateChangeEvent(tenantId, converterId, ComponentLifecycleEvent.DELETED);
         }
     }
+
 }

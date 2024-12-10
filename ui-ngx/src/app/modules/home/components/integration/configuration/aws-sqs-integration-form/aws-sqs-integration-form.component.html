@@ -42,8 +42,8 @@
       integration.url-private
     </mat-error>
   </mat-form-field>
-  <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-col gt-sm:flex-row gt-sm:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.aws-sqs-polling-period-in-seconds</mat-label>
       <input matInput type="number" min="1" required formControlName="pollingPeriodSeconds">
       <mat-error translate *ngIf="awsSqsIntegrationConfigForm.get('pollingPeriodSeconds').hasError('required')">
@@ -53,7 +53,7 @@
         integration.poll-interval-min-value
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.aws-region</mat-label>
       <input matInput required formControlName="region">
       <mat-error translate *ngIf="awsSqsIntegrationConfigForm.get('region').hasError('required')">
@@ -61,15 +61,15 @@
       </mat-error>
     </mat-form-field>
   </div>
-  <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-col gt-sm:flex-row gt-sm:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.aws-access-key-id</mat-label>
       <input matInput required formControlName="accessKeyId">
       <mat-error translate *ngIf="awsSqsIntegrationConfigForm.get('accessKeyId').hasError('required')">
         integration.aws-sqs-access-key-id-required
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.aws-secret-access-key</mat-label>
       <input matInput required formControlName="secretAccessKey">
       <mat-error translate *ngIf="awsSqsIntegrationConfigForm.get('secretAccessKey').hasError('required')">
@@ -83,7 +83,7 @@
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>

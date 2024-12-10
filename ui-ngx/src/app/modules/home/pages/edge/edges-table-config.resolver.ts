@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
@@ -79,7 +79,7 @@ import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 
 @Injectable()
-export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo>> {
+export class EdgesTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<EdgeInfo>,
               private userPermissionsService: UserPermissionsService,

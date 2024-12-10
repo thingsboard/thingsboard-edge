@@ -53,10 +53,10 @@ public class CustomTranslationCloudProcessor extends BaseEdgeProcessor {
             switch (customTranslationUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    customTranslationService.saveCustomTranslation(customTranslation);
+                    edgeCtx.getCustomTranslationService().saveCustomTranslation(customTranslation);
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    customTranslationService.deleteCustomTranslation(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode());
+                    edgeCtx.getCustomTranslationService().deleteCustomTranslation(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode());
                     break;
                 case UNRECOGNIZED:
                 default:

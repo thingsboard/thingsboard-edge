@@ -74,6 +74,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "js.evaluator=local",
         "service.integrations.supported=ALL",
+        "integrations.converters.library.enabled=true"
 })
 @DaoSqlTest
 public class IntegrationControllerTest extends AbstractControllerTest {
@@ -128,7 +129,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         deleteTenant(savedTenant.getId());
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testSaveIntegration() throws Exception {
@@ -154,7 +155,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         Assert.assertEquals(foundIntegration.getName(), savedIntegration.getName());
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testFindIntegrationById() throws Exception {
@@ -170,7 +171,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         Assert.assertEquals(savedIntegration, foundIntegration);
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testDeleteIntegration() throws Exception {
@@ -189,7 +190,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testSaveIntegrationWithEmptyType() throws Exception {
@@ -202,7 +203,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString("Integration type should be specified")));
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testSaveIntegrationWithEmptyRoutingKey() throws Exception {
@@ -216,7 +217,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString("Integration routing key should be specified")));
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testSaveIntegrationWithEmptyConverterId() throws Exception {
@@ -230,7 +231,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString("Integration default converter should be specified")));
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testFindTenantIntegrations() throws Exception {
@@ -263,7 +264,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testFindIntegrationInfos() throws Exception {
@@ -313,7 +314,7 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // integration are currently disabled on edge
     // @Test
     public void testFindTenantIntegrationsBySearchText() throws Exception {

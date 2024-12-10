@@ -30,9 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div #schedulerEventWidgetContainer class="mat-padding tb-scheduler-events tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
-  <div [fxShow]="showData" fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'tb-outlined-border': !widgetMode}">
-    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+<div #schedulerEventWidgetContainer class="mat-padding tb-scheduler-events tb-absolute-fill" [class.mat-padding]="!widgetMode">
+  <div [class.!hidden]="!showData" class="tb-scheduler-events-content flex flex-col" [class.tb-outlined-border]="!widgetMode">
+    <mat-toolbar class="mat-mdc-table-toolbar" [class.!hidden]="textSearchMode || !dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span *ngIf="widgetMode; else schedulerEventsTitle" class="tb-scheduler-events-title">{{ctx.widgetTitle}}</span>
         <ng-template #schedulerEventsTitle>
@@ -45,11 +45,9 @@
           </button>
           <span class="tb-scheduler-events-title" translate>scheduler.scheduler-events</span>
         </ng-template>
-        <div class="tb-scheduler-events-view-type-toolbar"
-             *ngIf="!widgetMode || settings?.enabledViews === 'both'"
-             fxLayout="row"
-             fxLayoutAlign="start center">
-          <div class="tb-toolbar-button" [ngClass]="{'tb-selected' : mode === 'list'}">
+        <div class="tb-scheduler-events-view-type-toolbar flex flex-row items-center justify-start"
+             *ngIf="!widgetMode || settings?.enabledViews === 'both'">
+          <div class="tb-toolbar-button" [class.tb-selected]="mode === 'list'">
             <button mat-icon-button
                     (click)="mode = 'list'; triggerResize();"
                     matTooltip="{{'scheduler.list-mode' | translate }}"
@@ -57,7 +55,7 @@
               <mat-icon>view_list</mat-icon>
             </button>
           </div>
-          <div class="tb-toolbar-button" [ngClass]="{'tb-selected' : mode === 'calendar'}">
+          <div class="tb-toolbar-button" [class.tb-selected]="mode === 'calendar'">
             <button mat-icon-button
                     (click)="dataSource.selection.clear(); mode = 'calendar'; triggerResize();"
                     matTooltip="{{'scheduler.calendar-mode' | translate }}"
@@ -66,7 +64,7 @@
             </button>
           </div>
         </div>
-        <span fxFlex></span>
+        <span class="flex-1"></span>
         <section *ngIf="!widgetMode">
           <button *ngIf="addEnabled"
                   [disabled]="isLoading$ | async"
@@ -101,14 +99,14 @@
         </section>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [class.!hidden]="!textSearchMode || !dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <button mat-icon-button
                 matTooltip="{{ 'scheduler.search-scheduler-events' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
         </button>
-        <mat-form-field fxFlex>
+        <mat-form-field class="flex-1">
           <mat-label>&nbsp;</mat-label>
           <input #searchInput matInput
                  [formControl]="textSearch"
@@ -121,12 +119,12 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [class.!hidden]="dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
                 <span>
                   {{ translate.get('scheduler.selected-scheduler-events', {count: dataSource.selection.selected.length}) | async }}
                 </span>
-        <span fxFlex></span>
+        <span class="flex-1"></span>
         <button *ngIf="deleteEnabled"
                 [disabled]="isLoading$ | async"
                 mat-icon-button
@@ -145,8 +143,8 @@
         </button>
       </div>
     </mat-toolbar>
-    <div fxFlex [fxShow]="mode === 'list'" fxLayout="column">
-      <div fxFlex class="table-container">
+    <div class="flex flex-1 flex-col" [class.!hidden]="mode !== 'list'">
+      <div class="table-container flex-1">
         <table mat-table [dataSource]="dataSource"
                    matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
           <ng-container matColumnDef="select" sticky>
@@ -191,7 +189,7 @@
             <mat-header-cell *matHeaderCellDef style="min-width: 100px; max-width: 100px; width: 100px">
             </mat-header-cell>
             <mat-cell *matCellDef="let schedulerEvent">
-              <div fxFlex fxLayout="row" fxLayoutAlign="end">
+              <div class="flex flex-1 flex-row items-stretch justify-end">
                 <button *ngIf="editEnabled"
                         mat-icon-button [disabled]="isLoading$ | async"
                         [matTooltip]="(isEnabled(schedulerEvent) ? 'scheduler.disable' : 'scheduler.enable') | translate"
@@ -232,18 +230,16 @@
               </div>
             </mat-cell>
           </ng-container>
-          <mat-header-row [ngClass]="{'mat-row-select': true}" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
-          <mat-row [fxShow]="!dataSource.dataLoading"
-                   [ngClass]="{'mat-row-select': true,
-                               'mat-selected': dataSource.selection.isSelected(schedulerEvent)}"
+          <mat-header-row class="mat-row-select" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+          <mat-row [class.!hidden]="dataSource.dataLoading"
+                   class="mat-row-select"
+                   [class.mat-selected]="dataSource.selection.isSelected(schedulerEvent)"
                    *matRowDef="let schedulerEvent; columns: displayedColumns;" (click)="dataSource.selection.toggle(schedulerEvent)"></mat-row>
         </table>
-        <span [fxShow]="(dataSource.isEmpty() | async) && !dataSource.dataLoading"
-              fxLayoutAlign="center center"
-              class="no-data-found">{{ noDataDisplayMessageText }}</span>
-        <span [fxShow]="dataSource.dataLoading"
-              fxLayoutAlign="center center"
-              class="no-data-found">{{ 'common.loading' | translate }}</span>
+        <span [class.!hidden]="(dataSource.isEmpty() | async) === false || dataSource.dataLoading"
+              class="no-data-found flex items-center justify-center">{{ noDataDisplayMessageText }}</span>
+        <span [class.!hidden]="!dataSource.dataLoading"
+              class="no-data-found flex items-center justify-center">{{ 'common.loading' | translate }}</span>
       </div>
       <mat-divider *ngIf="displayPagination"></mat-divider>
       <mat-paginator *ngIf="displayPagination"
@@ -253,12 +249,12 @@
                      [pageSizeOptions]="pageSizeOptions"
                      [hidePageSize]="hidePageSize"></mat-paginator>
     </div>
-    <div fxFlex class="mat-padding" [fxShow]="mode === 'calendar'" fxLayout="column">
-      <div fxLayout="row">
+    <div class="mat-padding flex flex-1 flex-col" [class.!hidden]="mode !== 'calendar'">
+      <div class="flex flex-row">
         <h2 class="mat-headline-5">
           {{ calendarViewTitle() }}
         </h2>
-        <mat-form-field class="mat-block" fxFlex subscriptSizing="dynamic" style="margin-left: 16px; margin-right: 16px;">
+        <mat-form-field class="mat-block flex-1" subscriptSizing="dynamic" style="margin-left: 16px; margin-right: 16px;">
           <mat-label translate>scheduler.calendar-view-type</mat-label>
           <mat-select [(ngModel)]="currentCalendarView" (ngModelChange)="changeCalendarView()">
             <mat-option *ngFor="let viewType of schedulerCalendarViews" [value]="viewType">
@@ -266,7 +262,7 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+        <div class="flex flex-row items-center justify-start gap-2">
           <button mat-button mat-raised-button [disabled]="isCalendarToday()" (click)="gotoCalendarToday()">
             {{'scheduler.today' | translate}}
           </button>
@@ -282,7 +278,7 @@
           </button>
         </div>
       </div>
-      <div #calendarContainer fxFlex class="calendar-container">
+      <div #calendarContainer class="calendar-container flex-1">
         <div #schedulerEventMenuTrigger="matMenuTrigger" style="visibility: hidden; position: absolute"
              [style.left]="schedulerEventMenuPosition.x"
              [style.top]="schedulerEventMenuPosition.y"
@@ -330,7 +326,6 @@
       </div>
     </div>
   </div>
-  <span [fxShow]="!showData" fxLayoutAlign="center center"
-        style="display: flex;"
-        class="tb-absolute-fill" translate>entity.no-data</span>
+  <span [class.!hidden]="showData"
+        class="tb-absolute-fill flex items-center justify-center" translate>entity.no-data</span>
 </div>

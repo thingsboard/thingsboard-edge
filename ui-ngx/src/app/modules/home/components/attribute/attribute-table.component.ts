@@ -367,7 +367,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     if ($event) {
       $event.stopPropagation();
     }
-    // @voba - merge comment
+    // Edge-only:  merge comment
     if (this.isClientSideTelemetryTypeMap.get(this.attributeScope) || this.readonly) {
       return;
     }

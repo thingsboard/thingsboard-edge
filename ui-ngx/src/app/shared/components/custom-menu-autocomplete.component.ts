@@ -77,7 +77,7 @@ export class CustomMenuAutocompleteComponent implements ControlValueAccessor, On
   placeholder: string;
 
   private scopeValue: CMScope;
-  @Input()
+  @Input({required: true})
   set scope(value: CMScope) {
     if (this.scopeValue !== value) {
       this.scopeValue = value;

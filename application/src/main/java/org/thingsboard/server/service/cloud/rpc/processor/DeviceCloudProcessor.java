@@ -69,6 +69,7 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.device.BaseDeviceProcessor;
+import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Optional;
@@ -81,36 +82,38 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     @Autowired
     protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
 
+    @Autowired
+    private TbCoreDeviceRpcService tbCoreDeviceRpcService;
+
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
                                                             Long queueStartTs) throws ThingsboardException {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-            switch (deviceUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
+            return switch (deviceUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                     saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, queueStartTs);
-                    return requestForAdditionalData(tenantId, deviceId, queueStartTs);
-                case ENTITY_DELETED_RPC_MESSAGE:
+                    yield requestForAdditionalData(tenantId, deviceId, queueStartTs);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
                         UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(),
                                 deviceUpdateMsg.getEntityGroupIdLSB());
                         EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
-                        return removeEntityIfInSingleAllGroup(tenantId, deviceId, () -> deviceService.deleteDevice(tenantId, deviceId));
+                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
+                        yield removeEntityIfInSingleAllGroup(tenantId, deviceId, () -> edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId));
                     } else {
-                        Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
+                        Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
                         if (deviceById != null) {
-                            deviceService.deleteDevice(tenantId, deviceId);
+                            edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId);
                             pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
                         }
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -129,7 +132,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     }
 
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
-        Device device = deviceService.findDeviceById(tenantId, deviceId);
+        Device device = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
         pushDeviceEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_CREATED);
     }
 
@@ -183,7 +186,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
                 .setToServerResponse(responseMsgBuilder.build())
                 .build();
-        tbClusterService.pushNotificationToTransport(serviceId, msg, null);
+        edgeCtx.getClusterService().pushNotificationToTransport(serviceId, msg, null);
 
         return Futures.immediateFuture(null);
     }
@@ -240,7 +243,8 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     public UplinkMsg convertRpcCallEventToUplink(CloudEvent cloudEvent) {
         log.trace("Executing convertRpcCallEventToUplink, cloudEvent [{}]", cloudEvent);
-        DeviceRpcCallMsg rpcResponseMsg = ((DeviceMsgConstructor) deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(EdgeVersion.V_LATEST)).constructDeviceRpcCallMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
+        DeviceRpcCallMsg rpcResponseMsg = ((DeviceMsgConstructor) edgeCtx.getDeviceMsgConstructorFactory().getMsgConstructorByEdgeVersion(EdgeVersion.V_LATEST))
+                .constructDeviceRpcCallMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         return UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addDeviceRpcCallMsg(rpcResponseMsg).build();
@@ -248,47 +252,42 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     public UplinkMsg convertDeviceEventToUplink(TenantId tenantId, CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
-        UplinkMsg msg = null;
+        var msgConstructor = (DeviceMsgConstructor) edgeCtx.getDeviceMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED, ADDED_TO_ENTITY_GROUP -> {
-                Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
+                Device device = edgeCtx.getDeviceService().findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    DeviceUpdateMsg deviceUpdateMsg = ((DeviceMsgConstructor)
-                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceUpdatedMsg(msgType, device, entityGroupId);
+                    DeviceUpdateMsg deviceUpdateMsg = msgConstructor.constructDeviceUpdatedMsg(msgType, device, entityGroupId);
                     UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg);
 
-                    DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
-                    DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = ((DeviceMsgConstructor)
-                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceCredentialsUpdatedMsg(deviceCredentials);
+                    DeviceCredentials deviceCredentials = edgeCtx.getDeviceCredentialsService().findDeviceCredentialsByDeviceId(tenantId, deviceId);
+                    DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = msgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
                     builder.addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg).build();
 
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
-                        DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(cloudEvent.getTenantId(), device.getDeviceProfileId());
-                        builder.addDeviceProfileUpdateMsg(((DeviceMsgConstructor) deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
-                                .constructDeviceProfileUpdatedMsg(msgType, deviceProfile));
+                        DeviceProfile deviceProfile = edgeCtx.getDeviceProfileService().findDeviceProfileById(cloudEvent.getTenantId(), device.getDeviceProfileId());
+                        builder.addDeviceProfileUpdateMsg(msgConstructor.constructDeviceProfileUpdatedMsg(msgType, deviceProfile));
                     }
-                    msg = builder.build();
+                    return builder.build();
                 } else {
                     log.info("Skipping event as device was not found [{}]", cloudEvent);
                 }
             }
             case DELETED, REMOVED_FROM_ENTITY_GROUP -> {
-                DeviceUpdateMsg deviceUpdateMsg = ((DeviceMsgConstructor)
-                        deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceDeleteMsg(deviceId, entityGroupId);
-                msg = UplinkMsg.newBuilder()
+                DeviceUpdateMsg deviceUpdateMsg = msgConstructor.constructDeviceDeleteMsg(deviceId, entityGroupId);
+                return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg).build();
             }
             case CREDENTIALS_UPDATED -> {
-                DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
+                DeviceCredentials deviceCredentials = edgeCtx.getDeviceCredentialsService().findDeviceCredentialsByDeviceId(tenantId, deviceId);
                 if (deviceCredentials != null) {
-                    DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = ((DeviceMsgConstructor)
-                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceCredentialsUpdatedMsg(deviceCredentials);
-                    msg = UplinkMsg.newBuilder()
+                    DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = msgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
+                    return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg).build();
                 } else {
@@ -296,7 +295,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 }
             }
         }
-        return msg;
+        return null;
     }
 
     protected Device constructDeviceFromUpdateMsg(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {

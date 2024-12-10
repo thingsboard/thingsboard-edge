@@ -157,7 +157,7 @@ export class OperationTypeListComponent implements ControlValueAccessor, OnInit,
           }
         }),
         filter((value) => typeof value === 'string'),
-        map((value) => value ? (typeof value === 'string' ? value : value.name) : ''),
+        map((value) => value ? value : ''),
         mergeMap(name => this.fetchOperationTypes(name) ),
         share()
       );

@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section fxLayout="column" [formGroup]="shareEntityGroupFormGroup">
+<section class="flex flex-col" [formGroup]="shareEntityGroupFormGroup">
   <tb-owner-autocomplete
     formControlName="ownerId"
     required
@@ -50,8 +50,7 @@
     requiredText="entity-group.target-user-group-required">
   </tb-entity-group-select>
   <small translate>entity-group.permissions</small>
-  <mat-radio-group color="primary" formControlName="permissionType" fxLayout="row" fxLayout.xs="column"
-                   fxLayoutGap.gt-xs="16px">
+  <mat-radio-group color="primary" formControlName="permissionType" class="flex flex-row xs:flex-col gt-xs:gap-4">
     <mat-radio-button [value]="0" color="primary">
       <span translate>permission.operation.display-type.READ</span>
     </mat-radio-button>

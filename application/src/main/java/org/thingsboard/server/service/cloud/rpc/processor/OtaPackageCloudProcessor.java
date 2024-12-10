@@ -64,15 +64,15 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
                         if (otaPackage == null) {
                             throw new RuntimeException("[{" + tenantId + "}] otaPackageUpdateMsg {" + otaPackageUpdateMsg + "} cannot be converted to ota package");
                         }
-                        otaPackageService.saveOtaPackage(otaPackage, false);
+                        edgeCtx.getOtaPackageService().saveOtaPackage(otaPackage, false);
                     } finally {
                         otaPackageCreationLock.unlock();
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
+                    OtaPackage otaPackage = edgeCtx.getOtaPackageService().findOtaPackageById(tenantId, otaPackageId);
                     if (otaPackage != null) {
-                        otaPackageService.deleteOtaPackage(tenantId, otaPackageId);
+                        edgeCtx.getOtaPackageService().deleteOtaPackage(tenantId, otaPackageId);
                     }
                     break;
                 case UNRECOGNIZED:

@@ -30,23 +30,23 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" fxLayoutGap="8px">
-  <mat-form-field fxFlex class="mat-block" subscriptSizing="dynamic">
+<div class="flex flex-row gap-2">
+  <mat-form-field class="mat-block flex-1" subscriptSizing="dynamic">
     <mat-label>{{label}}</mat-label>
     <mat-select [disabled]="disabled" matInput
                 style="font-weight: 500;"
-                [ngStyle]="paletteStyle(palette)"
+                [style]="paletteStyle(palette)"
                 [(ngModel)]="palette.type"
                 (ngModelChange)="paletteTypeChanged()">
       <mat-option [value]="null"></mat-option>
       <mat-option *ngFor="let palette of palettes"
-                  [ngStyle]="paletteStyle(palette)"
+                  [style]="paletteStyle(palette)"
                   [value]="palette.type">
-        <div [ngStyle]="paletteStyle(palette)">{{paletteName(palette)}}</div>
+        <div [style]="paletteStyle(palette)">{{paletteName(palette)}}</div>
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <div *ngIf="!disabled" fxLayout="column" fxLayoutAlign="center">
+  <div *ngIf="!disabled" class="flex flex-col items-stretch justify-center">
     <button type="button" [disabled]="!palette.type" mat-button mat-raised-button color="primary" (click)="editPalette()">
       {{ 'white-labeling.customize-palette' | translate }}
     </button>

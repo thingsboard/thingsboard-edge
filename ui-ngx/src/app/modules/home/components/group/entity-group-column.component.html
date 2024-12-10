@@ -30,11 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div [formGroup]="columnFormGroup" class="tb-entity-group-column" fxFlex fxLayout="row" fxLayoutAlign="start center"
+<div [formGroup]="columnFormGroup" class="tb-entity-group-column flex flex-1 flex-row items-center justify-start"
      style="padding: 0 0 0 10px; margin: 5px;">
-  <div fxFlex.lt-xl
-       class="tb-column-type"
-       fxLayout="column">
+  <div class="tb-column-type flex flex-col lt-xl:flex-1">
     <mat-form-field subscriptSizing="dynamic">
       <mat-select required formControlName="type">
         <mat-option *ngFor="let type of columnTypes" [value]="type">
@@ -43,9 +41,8 @@
       </mat-select>
     </mat-form-field>
   </div>
-  <div fxFlex.lt-xl style="padding-left: 5px;"
-       class="tb-column-value"
-       fxLayout="column">
+  <div style="padding-left: 5px;"
+       class="tb-column-value flex flex-col lt-xl:flex-1">
     <mat-form-field subscriptSizing="dynamic"
                     *ngIf="columnFormGroup.get('type').value === columnType.ENTITY_FIELD">
       <mat-select required formControlName="key">
@@ -60,16 +57,15 @@
              placeholder="{{ 'entity-group.column-value' | translate }}"/>
     </mat-form-field>
   </div>
-  <div fxHide.lt-xl fxFlex style="padding-left: 5px;" fxLayout="column">
+  <div class="flex flex-1 flex-col lt-xl:!hidden" style="padding-left: 5px;">
     <mat-form-field subscriptSizing="dynamic">
       <input matInput
              formControlName="title"
              placeholder="{{ 'entity-group.column-title' | translate }}"/>
     </mat-form-field>
   </div>
-  <div fxFlex.lt-xl fxHide.lt-lg style="padding-left: 5px;"
-       class="tb-column-sort-order"
-       fxLayout="column">
+  <div style="padding-left: 5px;"
+       class="tb-column-sort-order flex flex-col lt-xl:flex-1 lt-lg:!hidden">
     <mat-form-field subscriptSizing="dynamic">
       <mat-select required formControlName="sortOrder">
         <mat-option *ngFor="let sortOrder of sortOrders" [value]="sortOrder">
@@ -78,7 +74,7 @@
       </mat-select>
     </mat-form-field>
   </div>
-  <div fxHide.xs style="padding-left: 5px; min-width: 48px; max-width: 48px;" fxLayout="column" fxLayoutAlign="start center">
+  <div class="flex flex-col items-center justify-start xs:!hidden" style="padding-left: 5px; min-width: 48px; max-width: 48px;">
     <mat-checkbox formControlName="mobileHide"></mat-checkbox>
   </div>
   <span *ngIf="disabled" style="padding-left: 5px; min-width: 48px; min-height: 48px;">&nbsp;</span>

@@ -93,6 +93,8 @@ public interface UserService extends EntityDaoService {
 
     UserCredentials generateUserActivationToken(UserCredentials userCredentials);
 
+    UserCredentials checkUserActivationToken(TenantId tenantId, UserCredentials userCredentials);
+
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
     void deleteUser(TenantId tenantId, UserId userId);
@@ -145,7 +147,7 @@ public interface UserService extends EntityDaoService {
 
     int increaseFailedLoginAttempts(TenantId tenantId, UserId userId);
 
-    void setLastLoginTs(TenantId tenantId, UserId userId);
+    void updateLastLoginTs(TenantId tenantId, UserId userId);
 
     PageData<UserInfo> findUserInfosByTenantId(TenantId tenantId, PageLink pageLink);
 

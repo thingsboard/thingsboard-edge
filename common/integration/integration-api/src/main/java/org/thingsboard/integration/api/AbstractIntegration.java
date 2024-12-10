@@ -36,12 +36,13 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.ExceptionUtil;
@@ -58,7 +59,6 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -68,6 +68,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -106,8 +108,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         this.configuration = configuration;
     }
 
-    protected UplinkContentType getDefaultUplinkContentType() {
-        return UplinkContentType.JSON;
+    protected ContentType getDefaultUplinkContentType() {
+        return ContentType.JSON;
     }
 
     @Override
@@ -262,11 +264,26 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         return false;
     }
 
-    protected void persistDebug(IntegrationContext context, String type, UplinkContentType messageType, String message, String status, Throwable exception) {
-        persistDebug(context, type, messageType.name(), message, status, exception);
+    protected void persistDebug(IntegrationContext context, String type, ContentType messageType, Supplier<String> message, String status, Throwable exception) {
+        persistDebug(context, type, messageType.name(), message, null, status, exception);
     }
 
-    protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Throwable exception) {
+    protected void persistDebug(IntegrationContext context, String type, ContentType messageType, String message, String status, Throwable exception) {
+        persistDebug(context, type, messageType.name(), null, message, status, exception);
+    }
+
+    protected void persistDebug(IntegrationContext context, String type, String messageType, Supplier<String> msgSupplier, String message, String status, Throwable exception) {
+        try {
+            doPersistDebug(context, type, messageType, msgSupplier != null ? msgSupplier.get() : message, status, exception);
+        } catch (Exception e) {
+            log.warn("[{}] Failed to persist debug message", configuration, e);
+        }
+    }
+
+    private void doPersistDebug(IntegrationContext context, String type, String messageType, String message, String status, Throwable exception) {
+        if (!DebugModeUtil.isDebugAvailable(configuration, status)) {
+            return;
+        }
         IntegrationId integrationId = configuration.getId();
         if (exception instanceof TbRateLimitsException) {
             EntityType limitedEntity = ((TbRateLimitsException) exception).getEntityType();
@@ -305,6 +322,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) {
         try {
+            Optional<IntegrationRateLimitService> rateLimitService = context.getRateLimitService();
+            rateLimitService.ifPresent(s -> s.checkLimit(configuration.getTenantId(), () -> new String(data)));
             return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
         } catch (Throwable t) {
             if (log.isDebugEnabled()) {
@@ -316,26 +335,30 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     //Please, prefer async method convertToUplinkDataListAsync
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
-        Optional<IntegrationRateLimitService> rateLimitService = context.getRateLimitService();
-        rateLimitService.ifPresent(s -> s.checkLimit(configuration.getTenantId(), () -> JacksonUtil.toString(JacksonUtil.fromBytes(data))));
-        return convertToUplinkDataListAsync(context, data, md).get();
+        try {
+            return convertToUplinkDataListAsync(context, data, md).get();
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof TbRateLimitsException rateLimitsException) {
+                throw rateLimitsException;
+            } else {
+                throw e;
+            }
+        }
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
         context.onDownlinkMessageProcessed(true);
         integrationStatistics.incMessagesProcessed();
-        if (configuration.isDebugMode()) {
-            try {
-                ObjectNode json = JacksonUtil.newObjectNode();
-                if (data.getMetadata() != null && !data.getMetadata().isEmpty()) {
-                    json.set("metadata", JacksonUtil.valueToTree(data.getMetadata()));
-                }
-                json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        Supplier<String> msgSupplier = () -> {
+            ObjectNode json = JacksonUtil.newObjectNode();
+            if (data.getMetadata() != null && !data.getMetadata().isEmpty()) {
+                json.set("metadata", JacksonUtil.valueToTree(data.getMetadata()));
             }
-        }
+            json.set("payload", getDownlinkPayloadJson(data));
+            return JacksonUtil.toString(json);
+        };
+        persistDebug(context, "Downlink", ContentType.JSON, msgSupplier, status, null);
     }
 
     protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
@@ -345,17 +368,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply downlink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), msg.getData(), msg.getMetaData());
             }
-            if (configuration.isDebugMode()) {
-                try {
-                    persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(msg), status, exception);
-                } catch (Exception e) {
-                    log.warn("Failed to persist debug message", e);
-                }
-            }
+            persistDebug(context, "Downlink", ContentType.JSON, () -> JacksonUtil.toString(msg), status, exception);
         }
     }
 
-    protected JsonNode getDownlinkPayloadJson(DownlinkData data) throws IOException {
+    protected JsonNode getDownlinkPayloadJson(DownlinkData data) {
         String contentType = data.getContentType();
         if ("JSON".equals(contentType)) {
             return JacksonUtil.fromBytes(data.getData());
@@ -367,13 +384,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, updateType, "JSON", JacksonUtil.toString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        persistDebug(context, updateType, ContentType.JSON, () -> JacksonUtil.toString(msg), status, null);
     }
 
     private static class DebugEventCallback implements IntegrationCallback<Void> {

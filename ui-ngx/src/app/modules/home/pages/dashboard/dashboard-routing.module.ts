@@ -30,7 +30,7 @@
 ///
 
 import { Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, Route, RouterModule, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, Route, RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { DashboardsTableConfigResolver } from './dashboards-table-config.resolver';
 import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
@@ -58,7 +58,7 @@ import { Resource } from '@shared/models/security.models';
 import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
-export class DashboardResolver implements Resolve<Dashboard> {
+export class DashboardResolver  {
 
   constructor(private store: Store<AppState>,
               private dashboardService: DashboardService,
@@ -99,7 +99,7 @@ const dashboardRoute = (entityGroup: any, singlePageMode = false, isAllPage = fa
       } as BreadCrumbConfig<DashboardPageComponent>,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       canActivate: (userPermissionsService: UserPermissionsService): boolean =>
-        isAllPage ?
+        (isAllPage || entityGroup === 'emptyEntityGroupResolver') ?
           userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD) :
           userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
       title: 'dashboard.dashboard',

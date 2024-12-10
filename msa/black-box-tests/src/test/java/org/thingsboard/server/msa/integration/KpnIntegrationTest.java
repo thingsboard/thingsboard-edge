@@ -176,7 +176,7 @@ public class KpnIntegrationTest extends AbstractIntegrationTest {
         integration.setType(IntegrationType.KPN);
         integration.setEnabled(true);
         integration.setRemote(false);
-        integration.setDebugMode(true);
+        integration.setDebugAll(true);
         integration.setAllowCreateDevicesOrAssets(true);
         integration.setRoutingKey(ROUTING_KEY);
         integration.setSecret("secret-key-kpn-integration");

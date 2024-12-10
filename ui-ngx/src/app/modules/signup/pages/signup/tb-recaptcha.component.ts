@@ -30,15 +30,15 @@
 ///
 
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { ActivatedRoute } from '@angular/router';
 import { ReCaptcha2Component, ReCaptchaV3Service } from 'ngx-captcha';
 import { MobileService } from '@core/services/mobile.service';
 import { SelfRegistrationService } from '@app/core/http/self-register.service';
 import { from } from 'rxjs';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { ActivatedRoute } from '@angular/router';
+import { CaptchaParams, CaptchaVersion } from '@shared/models/self-register.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-recaptcha',
@@ -49,18 +49,37 @@ export class TbRecaptchaComponent extends PageComponent implements OnInit, OnDes
 
   @ViewChild('recaptcha') recaptchaComponent: ReCaptcha2Component;
 
-  signupParams = this.selfRegistrationService.signUpParams;
+  captcha: CaptchaParams;
 
   recaptchaResponse: string;
 
-  isMobileApp = this.mobileService.isMobileApp();
+  activeCaptcha = false;
 
-  constructor(protected store: Store<AppState>,
-              private activatedRoute: ActivatedRoute,
-              private selfRegistrationService: SelfRegistrationService,
+  private isMobileApp = this.mobileService.isMobileApp();
+
+  constructor(private selfRegistrationService: SelfRegistrationService,
               private reCaptchaV3Service: ReCaptchaV3Service,
-              private mobileService: MobileService) {
-    super(store);
+              private mobileService: MobileService,
+              private route: ActivatedRoute) {
+    super();
+
+    if (this.route.snapshot.queryParamMap.has('version') && this.route.snapshot.queryParamMap.get('siteKey')) {
+      let queryVersion = this.route.snapshot.queryParamMap.get('version');
+      if (queryVersion !== 'v2' && queryVersion !== 'v3') {
+        queryVersion = 'v3';
+      }
+
+      this.captcha = {
+        version: queryVersion as CaptchaVersion,
+        siteKey: this.route.snapshot.queryParamMap.get('siteKey'),
+        logActionName: this.route.snapshot.queryParamMap.get('logActionName') ?? '',
+      }
+
+      this.activeCaptcha = isDefinedAndNotNull(this.captcha?.siteKey)
+    } else {
+      this.captcha = this.selfRegistrationService.signUpParams.captcha;
+      this.activeCaptcha = this.selfRegistrationService.signUpParams.activate;
+    }
   }
 
   ngOnInit() {
@@ -76,9 +95,9 @@ export class TbRecaptchaComponent extends PageComponent implements OnInit, OnDes
         this.mobileService.onRecaptchaLoaded();
       });
     }
-    if (this.signupParams?.activate && this.signupParams?.captchaVersion === 'v3') {
-      from(this.reCaptchaV3Service.executeAsPromise(this.signupParams?.captchaSiteKey,
-        this.signupParams?.captchaAction, {useGlobalDomain: true})).subscribe(
+    if (this.activeCaptcha && this.captcha.version === 'v3') {
+      from(this.reCaptchaV3Service.executeAsPromise(this.captcha.siteKey,
+        this.captcha.logActionName, {useGlobalDomain: true})).subscribe(
         {
           next: (token) => {
             this.mobileService.handleReCaptchaResponse(token);

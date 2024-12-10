@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
@@ -84,7 +84,7 @@ export interface UsersTableRouteData {
 }
 
 @Injectable()
-export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserInfo>> {
+export class UsersTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<UserInfo>,
               private store: Store<AppState>,

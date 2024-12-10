@@ -115,6 +115,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   scriptLanguage = ScriptLanguage;
 
+  readonly converterDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).converterDebugPerTenantLimitsConfiguration;
+
   private defaultUpdateOnlyKeysByIntegrationType: DefaultUpdateOnlyKeys = {};
   private destroy$ = new Subject<void>();
 
@@ -166,7 +168,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const form = this.fb.group({
       name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-      debugMode: [isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true],
+      debugSettings: [entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true }],
       configuration: this.fb.group({
         scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
         decoder: [entity?.configuration ? entity.configuration.decoder : null],
@@ -273,7 +275,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.patchValue({
       type: entity.type,
       name: entity?.name ? entity.name : '',
-      debugMode: isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true,
+      debugSettings: entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true },
       configuration: {
         scriptLang,
         decoder: entity.configuration ? entity.configuration.decoder : null,

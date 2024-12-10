@@ -35,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.DomainId;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -45,8 +46,8 @@ public class LoginWhiteLabelingParams extends WhiteLabelingParams {
     private String pageBackgroundColor;
     @Schema(description = "Enable/Disable dark foreground")
     private boolean darkForeground;
-    @Schema(description = "Domain name of the login page", example = "iot.mycompany.com")
-    private String domainName;
+    @Schema(description = "Domain id")
+    private DomainId domainId;
     @Schema(description = "Base URL for the activation link, etc", example = "https://iot.mycompany.com")
     private String baseUrl;
     @Schema(description = "Prohibit use of other URLs. It is recommended to enable this setting", example = "true")

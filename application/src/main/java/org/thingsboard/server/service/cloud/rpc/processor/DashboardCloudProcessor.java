@@ -33,6 +33,7 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
@@ -49,6 +50,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.BaseDashboardProcessor;
 
 import java.util.UUID;
@@ -56,6 +58,9 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class DashboardCloudProcessor extends BaseDashboardProcessor {
+
+    @Autowired
+    private DashboardMsgConstructorFactory dashboardMsgConstructorFactory;
 
     public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
                                                                DashboardUpdateMsg dashboardUpdateMsg,
@@ -77,11 +82,11 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                                 dashboardUpdateMsg.getEntityGroupIdLSB());
                         EntityGroupId entityGroupId =
                                 new EntityGroupId(entityGroupUUID);
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
+                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
                     } else {
-                        Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
+                        Dashboard dashboardById = edgeCtx.getDashboardService().findDashboardById(tenantId, dashboardId);
                         if (dashboardById != null) {
-                            dashboardService.deleteDashboard(tenantId, dashboardId);
+                            edgeCtx.getDashboardService().deleteDashboard(tenantId, dashboardId);
                             pushDashboardDeletedEventToRuleEngine(tenantId, dashboardById);
                         }
                     }
@@ -96,7 +101,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     }
 
     private void pushDashboardCreatedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
-        Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+        Dashboard dashboard = edgeCtx.getDashboardService().findDashboardById(tenantId, dashboardId);
         pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_CREATED);
     }
 
@@ -115,18 +120,17 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
 
     public UplinkMsg convertDashboardEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         DashboardId dashboardId = new DashboardId(cloudEvent.getEntityId());
-        UplinkMsg msg = null;
+        var msgConstructor = (DashboardMsgConstructor) dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
         switch (cloudEvent.getAction()) {
             case ADDED:
             case UPDATED:
             case ADDED_TO_ENTITY_GROUP:
-                Dashboard dashboard = dashboardService.findDashboardById(cloudEvent.getTenantId(), dashboardId);
+                Dashboard dashboard = edgeCtx.getDashboardService().findDashboardById(cloudEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
-                            dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
-                    msg = UplinkMsg.newBuilder()
+                    DashboardUpdateMsg dashboardUpdateMsg = msgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
+                    return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDashboardUpdateMsg(dashboardUpdateMsg).build();
                 } else {
@@ -137,12 +141,11 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
             case REMOVED_FROM_ENTITY_GROUP:
                 DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
                         dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardDeleteMsg(dashboardId, entityGroupId);
-                msg = UplinkMsg.newBuilder()
+                return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg).build();
-                break;
         }
-        return msg;
+        return null;
     }
 
     @Override

@@ -1,4 +1,4 @@
-# ThingsBoard 
+# ThingsBoard
 
 The **ThingsBoard Edge** is a ThingsBoard's software product for edge computing.
 It allows bringing data analysis and management to the edge, where the data created. At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud (ThingsBoard Cloud, ThingsBoard Demo, ThingsBoard PE or ThingsBoard CE) according to your business needs.
@@ -75,4 +75,16 @@ As well ThingsBoard Edge supports major **ThingsBoard PE** features:
 
 ## Getting Started
 
-Collect and Visualize your IoT Edge data in minutes by following this [guide](https://thingsboard.io/docs/pe/edge/getting-started/).
+Start to **collect** and **visualize** your **IoT Edge data** in minutes by following this [guide](https://thingsboard.io/docs/pe/edge/getting-started/).
+
+## FAQ
+
+Check the [FAQ](https://thingsboard.io/docs/edge/faq/) section for answers to common questions about **ThingsBoard Edge** and its features.
+
+## Support 
+ - [Contact Us](https://thingsboard.io/docs/contact-us/)
+ - [Stackoverflow](http://stackoverflow.com/questions/tagged/thingsboard)
+
+## Licenses
+
+This project is released under [Apache 2.0 License](./LICENSE).

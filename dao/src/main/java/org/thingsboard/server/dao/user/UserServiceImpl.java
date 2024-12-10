@@ -32,9 +32,6 @@ package org.thingsboard.server.dao.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +63,7 @@ import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.mobile.MobileSessionInfo;
 import org.thingsboard.server.common.data.mobile.UserMobileInfo;
+import org.thingsboard.server.common.data.mobile.UserMobileSessionInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -109,15 +107,10 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
 
     public static final String USER_PASSWORD_HISTORY = "userPasswordHistory";
 
-    public static final String LAST_LOGIN_TS = "lastLoginTs";
-    public static final String FAILED_LOGIN_ATTEMPTS = "failedLoginAttempts";
-
     public static final int DEFAULT_TOKEN_LENGTH = 30;
     public static final String INCORRECT_USER_ID = "Incorrect userId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
-
-    private static final String USER_CREDENTIALS_ENABLED = "userCredentialsEnabled";
 
     @Value("${security.user_login_case_sensitive:true}")
     private boolean userLoginCaseSensitive;
@@ -373,6 +366,16 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
     }
 
     @Override
+    public UserCredentials checkUserActivationToken(TenantId tenantId, UserCredentials userCredentials) {
+        if (userCredentials.getActivationTokenTtl() < TimeUnit.MINUTES.toMillis(15)) { // renew link if less than 15 minutes before expiration
+            userCredentials = generateUserActivationToken(userCredentials);
+            userCredentials = saveUserCredentials(tenantId, userCredentials);
+            log.debug("[{}][{}] Regenerated expired user activation token", tenantId, userCredentials.getUserId());
+        }
+        return userCredentials;
+    }
+
+    @Override
     public UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
         log.trace("Executing replaceUserCredentials [{}]", userCredentials);
         userCredentialsValidator.validate(userCredentials, data -> tenantId);
@@ -515,6 +518,7 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
         customerUsersRemover.removeEntities(tenantId, customerId);
     }
 
+    @Transactional
     @Override
     public PageData<User> findUsersByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
         log.trace("Executing findUsersByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
@@ -562,34 +566,21 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
         validateId(userId, id -> INCORRECT_USER_ID + id);
         UserCredentials userCredentials = userCredentialsDao.findByUserId(tenantId, userId.getId());
         userCredentials.setEnabled(enabled);
-        saveUserCredentials(tenantId, userCredentials);
-
-        User user = findUserById(tenantId, userId);
-        user.setAdditionalInfoField(USER_CREDENTIALS_ENABLED, BooleanNode.valueOf(enabled));
         if (enabled) {
-            resetFailedLoginAttempts(user);
+            userCredentials.setFailedLoginAttempts(0);
         }
-        saveUser(tenantId, user);
+        saveUserCredentials(tenantId, userCredentials);
     }
-
 
     @Override
     public void resetFailedLoginAttempts(TenantId tenantId, UserId userId) {
-        log.trace("Executing onUserLoginSuccessful [{}]", userId);
-        User user = findUserById(tenantId, userId);
-        resetFailedLoginAttempts(user);
-        saveUser(tenantId, user);
-    }
-
-    private void resetFailedLoginAttempts(User user) {
-        user.setAdditionalInfoField(FAILED_LOGIN_ATTEMPTS, IntNode.valueOf(0));
+        log.trace("Executing resetFailedLoginAttempts [{}]", userId);
+        userCredentialsDao.setFailedLoginAttempts(tenantId, userId, 0);
     }
 
     @Override
-    public void setLastLoginTs(TenantId tenantId, UserId userId) {
-        User user = findUserById(tenantId, userId);
-        user.setAdditionalInfoField(LAST_LOGIN_TS, new LongNode(System.currentTimeMillis()));
-        saveUser(tenantId, user);
+    public void updateLastLoginTs(TenantId tenantId, UserId userId) {
+        userCredentialsDao.setLastLoginTs(tenantId, userId, System.currentTimeMillis());
     }
 
     @Override
@@ -629,8 +620,8 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
     public void saveMobileSession(TenantId tenantId, UserId userId, String mobileToken, MobileSessionInfo sessionInfo) {
         removeMobileSession(tenantId, mobileToken); // unassigning fcm token from other users, in case we didn't clean up it on log out or mobile app uninstall
 
-        UserMobileInfo mobileInfo = findMobileInfo(tenantId, userId).orElseGet(() -> {
-            UserMobileInfo newMobileInfo = new UserMobileInfo();
+        UserMobileSessionInfo mobileInfo = findMobileSessionInfo(tenantId, userId).orElseGet(() -> {
+            UserMobileSessionInfo newMobileInfo = new UserMobileSessionInfo();
             newMobileInfo.setSessions(new HashMap<>());
             return newMobileInfo;
         });
@@ -640,12 +631,12 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
 
     @Override
     public Map<String, MobileSessionInfo> findMobileSessions(TenantId tenantId, UserId userId) {
-        return findMobileInfo(tenantId, userId).map(UserMobileInfo::getSessions).orElse(Collections.emptyMap());
+        return findMobileSessionInfo(tenantId, userId).map(UserMobileSessionInfo::getSessions).orElse(Collections.emptyMap());
     }
 
     @Override
     public MobileSessionInfo findMobileSession(TenantId tenantId, UserId userId, String mobileToken) {
-        return findMobileInfo(tenantId, userId).map(mobileInfo -> mobileInfo.getSessions().get(mobileToken)).orElse(null);
+        return findMobileSessionInfo(tenantId, userId).map(mobileInfo -> mobileInfo.getSessions().get(mobileToken)).orElse(null);
     }
 
     @Override
@@ -668,25 +659,15 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
         userDao.updateUsersCustomMenuId(userIds, customMenuId);
     }
 
-    private Optional<UserMobileInfo> findMobileInfo(TenantId tenantId, UserId userId) {
+    private Optional<UserMobileSessionInfo> findMobileSessionInfo(TenantId tenantId, UserId userId) {
         return Optional.ofNullable(userSettingsService.findUserSettings(tenantId, userId, UserSettingsType.MOBILE))
-                .map(UserSettings::getSettings).map(settings -> JacksonUtil.treeToValue(settings, UserMobileInfo.class));
+                .map(UserSettings::getSettings).map(settings -> JacksonUtil.treeToValue(settings, UserMobileSessionInfo.class));
     }
 
     @Override
     public int increaseFailedLoginAttempts(TenantId tenantId, UserId userId) {
-        log.trace("Executing onUserLoginIncorrectCredentials [{}]", userId);
-        User user = findUserById(tenantId, userId);
-        int failedLoginAttempts = increaseFailedLoginAttempts(user);
-        saveUser(tenantId, user);
-        return failedLoginAttempts;
-    }
-
-    private int increaseFailedLoginAttempts(User user) {
-        int failedLoginAttempts = user.getAdditionalInfoField(FAILED_LOGIN_ATTEMPTS, JsonNode::asInt, 0);
-        failedLoginAttempts++;
-        user.setAdditionalInfoField(FAILED_LOGIN_ATTEMPTS, new IntNode(failedLoginAttempts));
-        return failedLoginAttempts;
+        log.trace("Executing increaseFailedLoginAttempts [{}]", userId);
+        return userCredentialsDao.incrementFailedLoginAttempts(tenantId, userId);
     }
 
     private void updatePasswordHistory(UserCredentials userCredentials) {

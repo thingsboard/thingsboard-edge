@@ -51,10 +51,12 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.ApiUsageStateId;
@@ -204,6 +206,57 @@ public class ProtoUtils {
                 proto.getSuccess(),
                 proto.getError()
         );
+    }
+
+    public static TransportProtos.EdgeEventMsgProto toProto(EdgeEvent edgeEvent) {
+        TransportProtos.EdgeEventMsgProto.Builder builder = TransportProtos.EdgeEventMsgProto.newBuilder();
+
+        builder.setTenantIdMSB(edgeEvent.getTenantId().getId().getMostSignificantBits());
+        builder.setTenantIdLSB(edgeEvent.getTenantId().getId().getLeastSignificantBits());
+        builder.setEntityType(edgeEvent.getType().name());
+        builder.setAction(edgeEvent.getAction().name());
+
+        if (edgeEvent.getEdgeId() != null) {
+            builder.setEdgeIdMSB(edgeEvent.getEdgeId().getId().getMostSignificantBits());
+            builder.setEdgeIdLSB(edgeEvent.getEdgeId().getId().getLeastSignificantBits());
+        }
+        if (edgeEvent.getEntityId() != null) {
+            builder.setEntityIdMSB(edgeEvent.getEntityId().getMostSignificantBits());
+            builder.setEntityIdLSB(edgeEvent.getEntityId().getLeastSignificantBits());
+        }
+        if (edgeEvent.getBody() != null) {
+            builder.setBody(JacksonUtil.toString(edgeEvent.getBody()));
+        }
+        if (edgeEvent.getEntityGroupId() != null) {
+            builder.setEntityGroupIdMSB(edgeEvent.getEntityGroupId().getMostSignificantBits());
+            builder.setEntityGroupIdLSB(edgeEvent.getEntityGroupId().getLeastSignificantBits());
+        }
+
+        return builder.build();
+    }
+
+    public static EdgeEvent fromProto(TransportProtos.EdgeEventMsgProto proto) {
+        EdgeEvent edgeEvent = new EdgeEvent();
+        TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
+        edgeEvent.setTenantId(tenantId);
+        edgeEvent.setType(EdgeEventType.valueOf(proto.getEntityType()));
+        edgeEvent.setAction(EdgeEventActionType.valueOf(proto.getAction()));
+
+        if (proto.hasEdgeIdMSB() && proto.hasEdgeIdLSB()) {
+            edgeEvent.setEdgeId(new EdgeId(new UUID(proto.getEdgeIdMSB(), proto.getEdgeIdLSB())));
+        }
+        if (proto.hasEntityIdMSB() && proto.hasEntityIdLSB()) {
+            edgeEvent.setEntityId(new UUID(proto.getEntityIdMSB(), proto.getEntityIdLSB()));
+        }
+        if (proto.hasBody()) {
+            edgeEvent.setBody(JacksonUtil.toJsonNode(proto.getBody()));
+        }
+
+        if (proto.hasEntityGroupIdMSB() && proto.hasEntityGroupIdLSB()) {
+            edgeEvent.setEntityGroupId(new UUID(proto.getEntityGroupIdMSB(), proto.getEntityGroupIdLSB()));
+        }
+
+        return edgeEvent;
     }
 
     public static TransportProtos.EdgeHighPriorityMsgProto toProto(EdgeHighPriorityMsg msg) {
@@ -1205,7 +1258,6 @@ public class ProtoUtils {
                 .setTenantIdLSB(getLsb(integration.getTenantId()))
                 .setType(integration.getType().name())
                 .setName(integration.getName())
-                .setDebugMode(integration.isDebugMode())
                 .setEnabled(integration.isEnabled())
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
@@ -1214,6 +1266,10 @@ public class ProtoUtils {
                 .setDefaultConverterIdLSB(getLsb(integration.getDefaultConverterId()))
                 .setRoutingKey(integration.getRoutingKey())
                 .setConfiguration(JacksonUtil.toString(integration.getConfiguration()));
+
+        if (isNotNull(integration.getDebugSettings())) {
+            builder.setDebugSettings(JacksonUtil.toString(integration.getDebugSettings()));
+        }
 
         if (isNotNull(integration.getSecret())) {
             builder.setSecret(integration.getSecret());
@@ -1243,7 +1299,6 @@ public class ProtoUtils {
         integration.setTenantId(getEntityId(proto.getTenantIdMSB(), proto.getTenantIdLSB(), TenantId::new));
         integration.setType(IntegrationType.valueOf(proto.getType()));
         integration.setName(proto.getName());
-        integration.setDebugMode(proto.getDebugMode());
         integration.setEnabled(proto.getEnabled());
         integration.setRemote(proto.getRemote());
         integration.setAllowCreateDevicesOrAssets(proto.getAllowCreateDevicesOrAssets());
@@ -1251,6 +1306,10 @@ public class ProtoUtils {
         integration.setDefaultConverterId(getEntityId(proto.getDefaultConverterIdMSB(), proto.getDefaultConverterIdLSB(), ConverterId::new));
         integration.setRoutingKey(proto.getRoutingKey());
         integration.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
+
+        if (proto.hasDebugSettings()) {
+            integration.setDebugSettings(JacksonUtil.fromString(proto.getDebugSettings(), DebugSettings.class));
+        }
 
         if (proto.hasSecret()) {
             integration.setSecret(proto.getSecret());
@@ -1281,9 +1340,12 @@ public class ProtoUtils {
                 .setTenantIdLSB(getLsb(converter.getTenantId()))
                 .setType(converter.getType().name())
                 .setName(converter.getName())
-                .setDebugMode(converter.isDebugMode())
                 .setIsEdgeTemplate(converter.isEdgeTemplate())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()));
+
+        if (isNotNull(converter.getDebugSettings())) {
+            builder.setDebugSettings(JacksonUtil.toString(converter.getDebugSettings()));
+        }
 
         if (isNotNull(converter.getAdditionalInfo())) {
             builder.setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
@@ -1305,10 +1367,12 @@ public class ProtoUtils {
         converter.setTenantId(getEntityId(proto.getTenantIdMSB(), proto.getTenantIdLSB(), TenantId::new));
         converter.setType(ConverterType.valueOf(proto.getType()));
         converter.setName(proto.getName());
-        converter.setDebugMode(proto.getDebugMode());
         converter.setEdgeTemplate(proto.getIsEdgeTemplate());
         converter.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
 
+        if (proto.hasDebugSettings()) {
+            converter.setDebugSettings(JacksonUtil.fromString(proto.getDebugSettings(), DebugSettings.class));
+        }
         if (proto.hasAdditionalInfo()) {
             converter.setAdditionalInfo(JacksonUtil.toJsonNode(proto.getAdditionalInfo()));
         }

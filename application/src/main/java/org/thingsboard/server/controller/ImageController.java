@@ -56,7 +56,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.thingsboard.server.common.data.ImageDescriptor;
-import org.thingsboard.server.common.data.ImageExportData;
+import org.thingsboard.server.common.data.ResourceExportData;
 import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
@@ -78,8 +78,9 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.resource.TbImageService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.util.Base64;
+import java.io.ByteArrayOutputStream;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
 
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
@@ -88,6 +89,7 @@ import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_INC
 import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.dao.util.ImageUtils.mediaTypeToFileExtension;
 
 @Slf4j
 @RestController
@@ -197,15 +199,17 @@ public class ImageController extends BaseController {
                                                            @PathVariable String type,
                                                            @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                            @PathVariable String key,
-                                                           @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
-        return downloadIfChanged(type, key, etag, false);
+                                                           @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+                                                           @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader) throws Exception {
+        return downloadIfChanged(type, key, etag, acceptEncodingHeader, false);
     }
 
     @GetMapping(value = "/api/images/public/{publicResourceKey}", produces = "image/*")
     public ResponseEntity<ByteArrayResource> downloadPublicImage(@PathVariable String publicResourceKey,
-                                                                 @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
+                                                                 @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+                                                                 @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader) throws Exception {
         ImageCacheKey cacheKey = ImageCacheKey.forPublicImage(publicResourceKey);
-        return downloadIfChanged(cacheKey, etag, () -> imageService.getPublicImageInfoByKey(publicResourceKey));
+        return downloadIfChanged(cacheKey, etag, acceptEncodingHeader, () -> imageService.getPublicImageInfoByKey(publicResourceKey));
     }
 
     @GetMapping(value = "/api/noauth/whiteLabel/loginLogo/{type}/{key}", produces = "image/*")
@@ -214,8 +218,9 @@ public class ImageController extends BaseController {
                                                                @PathVariable String type,
                                                                @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                @PathVariable String key,
-                                                               @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
-        return this.downloadLoginImage(request.getServerName(), type, key, etag, false);
+                                                               @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+                                                               @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader) throws Exception {
+        return this.downloadLoginImage(request.getServerName(), type, key, etag, acceptEncodingHeader, false);
     }
 
     @GetMapping(value = "/api/noauth/whiteLabel/loginFavicon/{type}/{key}", produces = "image/*")
@@ -224,16 +229,17 @@ public class ImageController extends BaseController {
                                                                   @PathVariable String type,
                                                                   @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                   @PathVariable String key,
-                                                                  @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
-        return this.downloadLoginImage(request.getServerName(), type, key, etag, true);
+                                                                  @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+                                                                  @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader) throws Exception {
+        return this.downloadLoginImage(request.getServerName(), type, key, etag, acceptEncodingHeader, true);
     }
 
     private ResponseEntity<ByteArrayResource> downloadLoginImage(String domainName, String type,
-                                                                 String key, String etag, boolean faviconElseLogo) throws Exception {
+                                                                 String key, String etag, String acceptEncodingHeader, boolean faviconElseLogo) throws Exception {
         var imageKey = whiteLabelingService.getLoginImageKey(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME, faviconElseLogo);
         if (imageKey != null && imageKey.getResourceKey().equals(key) &&
                 ((imageKey.getTenantId().isSysTenantId() && SYSTEM_IMAGE.equals(type)) || (!imageKey.getTenantId().isSysTenantId() && TENANT_IMAGE.equals(type)))) {
-            return downloadIfChanged(TenantId.SYS_TENANT_ID, imageKey, etag, true);
+            return downloadIfChanged(TenantId.SYS_TENANT_ID, imageKey, etag, acceptEncodingHeader, true);
         } else {
             throw new ThingsboardException("Login image not found", ThingsboardErrorCode.ITEM_NOT_FOUND);
         }
@@ -241,53 +247,19 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = IMAGE_URL + "/export")
-    public ImageExportData exportImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
-                                       @PathVariable String type,
-                                       @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
-                                       @PathVariable String key) throws Exception {
+    public ResourceExportData exportImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
+                                          @PathVariable String type,
+                                          @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                          @PathVariable String key) throws Exception {
         TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.READ);
-        ImageDescriptor descriptor = imageInfo.getDescriptor(ImageDescriptor.class);
-        byte[] data = imageService.getImageData(imageInfo.getTenantId(), imageInfo.getId());
-        return ImageExportData.builder()
-                .mediaType(descriptor.getMediaType())
-                .fileName(imageInfo.getFileName())
-                .title(imageInfo.getTitle())
-                .subType(imageInfo.getResourceSubType().name())
-                .resourceKey(imageInfo.getResourceKey())
-                .isPublic(imageInfo.isPublic())
-                .publicResourceKey(imageInfo.getPublicResourceKey())
-                .data(Base64.getEncoder().encodeToString(data))
-                .build();
+        return imageService.exportImage(imageInfo);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping("/api/image/import")
-    public TbResourceInfo importImage(@RequestBody ImageExportData imageData) throws Exception {
+    public TbResourceInfo importImage(@RequestBody ResourceExportData imageData) throws Exception {
         SecurityUser user = getCurrentUser();
-        TbResource image = new TbResource();
-        image.setTenantId(user.getTenantId());
-        image.setCustomerId(user.getCustomerId());
-
-        image.setFileName(imageData.getFileName());
-        if (StringUtils.isNotEmpty(imageData.getTitle())) {
-            image.setTitle(imageData.getTitle());
-        } else {
-            image.setTitle(imageData.getFileName());
-        }
-        if (StringUtils.isNotEmpty(imageData.getSubType())) {
-            image.setResourceSubType(ResourceSubType.valueOf(imageData.getSubType()));
-        } else {
-            image.setResourceSubType(ResourceSubType.IMAGE);
-        }
-        image.setResourceType(ResourceType.IMAGE);
-        image.setResourceKey(imageData.getResourceKey());
-        image.setPublic(imageData.isPublic());
-        image.setPublicResourceKey(imageData.getPublicResourceKey());
-        ImageDescriptor descriptor = new ImageDescriptor();
-        descriptor.setMediaType(imageData.getMediaType());
-        image.setDescriptorValue(descriptor);
-        image.setData(Base64.getDecoder().decode(imageData.getData()));
-        return tbImageService.save(image, user);
+        return tbImageService.importImage(imageData, false, user);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -296,8 +268,9 @@ public class ImageController extends BaseController {
                                                                   @PathVariable String type,
                                                                   @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                   @PathVariable String key,
-                                                                  @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
-        return downloadIfChanged(type, key, etag, true);
+                                                                  @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+                                                                  @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader) throws Exception {
+        return downloadIfChanged(type, key, etag, acceptEncodingHeader, true);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -352,17 +325,17 @@ public class ImageController extends BaseController {
         return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.badRequest()).body(result);
     }
 
-    private ResponseEntity<ByteArrayResource> downloadIfChanged(String type, String key, String etag, boolean preview) throws Exception {
+    private ResponseEntity<ByteArrayResource> downloadIfChanged(String type, String key, String etag, String acceptEncodingHeader, boolean preview) throws Exception {
         ImageCacheKey cacheKey = ImageCacheKey.forImage(getTenantId(type), key, preview);
-        return downloadIfChanged(getTenantId(), cacheKey, etag, false);
+        return downloadIfChanged(getTenantId(), cacheKey, etag, acceptEncodingHeader, false);
     }
 
     private ResponseEntity<ByteArrayResource> downloadIfChanged(TenantId tenantId, ImageCacheKey cacheKey, String etag,
-                                                                boolean skipPermissionCheck) throws Exception {
-        return downloadIfChanged(cacheKey, etag, () -> checkImageInfo(cacheKey.getTenantId(), cacheKey.getResourceKey(), Operation.READ, skipPermissionCheck));
+                                                                String acceptEncodingHeader, boolean skipPermissionCheck) throws Exception {
+        return downloadIfChanged(cacheKey, etag, acceptEncodingHeader, () -> checkImageInfo(cacheKey.getTenantId(), cacheKey.getResourceKey(), Operation.READ, skipPermissionCheck));
     }
 
-    private ResponseEntity<ByteArrayResource> downloadIfChanged(ImageCacheKey cacheKey, String etag, ThrowingSupplier<TbResourceInfo> imageInfoSupplier) throws Exception {
+    private ResponseEntity<ByteArrayResource> downloadIfChanged(ImageCacheKey cacheKey, String etag, String acceptEncodingHeader, ThrowingSupplier<TbResourceInfo> imageInfoSupplier) throws Exception {
         if (StringUtils.isNotEmpty(etag)) {
             etag = StringUtils.remove(etag, '\"'); // etag is wrapped in double quotes due to HTTP specification
             if (etag.equals(tbImageService.getETag(cacheKey))) {
@@ -383,7 +356,6 @@ public class ImageController extends BaseController {
         tbImageService.putETag(cacheKey, descriptor.getEtag());
         var result = ResponseEntity.ok()
                 .header("Content-Type", descriptor.getMediaType())
-                .contentLength(data.length)
                 .eTag(descriptor.getEtag());
         if (!cacheKey.isPublic()) {
             result
@@ -397,7 +369,19 @@ public class ImageController extends BaseController {
         } else {
             result.cacheControl(CacheControl.noCache());
         }
-        return result.body(new ByteArrayResource(data));
+        var responseData = data;
+        if (mediaTypeToFileExtension(descriptor.getMediaType()).equals("svg") &&
+                StringUtils.isNotEmpty(acceptEncodingHeader) && acceptEncodingHeader.contains("gzip")) {
+            result.header(HttpHeaders.CONTENT_ENCODING, "gzip");
+            var outputStream = new ByteArrayOutputStream();
+            try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream)) {
+                gzipOutputStream.write(data);
+                gzipOutputStream.finish();
+            }
+            responseData = outputStream.toByteArray();
+        }
+        result.contentLength(responseData.length);
+        return result.body(new ByteArrayResource(responseData));
     }
 
     private TbResourceInfo checkImageInfo(String imageType, String key, Operation operation) throws ThingsboardException {

@@ -1,0 +1,69 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div [formGroup]="moduleRowFormGroup" class="tb-form-table-row tb-js-func-module-row">
+  <mat-form-field class="tb-inline-field tb-alias-field" appearance="outline" subscriptSizing="dynamic">
+    <input required matInput formControlName="alias" placeholder="{{ 'widget-config.set' | translate }}">
+  </mat-form-field>
+  <tb-resource-autocomplete class="tb-module-link-field"
+                            #resourceAutocomplete
+                            formControlName="moduleLink"
+                            inlineField
+                            hideRequiredMarker required
+                            [subType]="ResourceSubType.MODULE"
+                            [allowAutocomplete]="true"
+                            placeholder="{{ 'widget-config.set' | translate }}">
+  </tb-resource-autocomplete>
+  <div class="tb-form-table-row-cell-buttons">
+    <div [tb-help-popup-async-content]="this.moduleRowFormGroup.get('moduleLink').value ? moduleDescription : null"
+         tb-help-popup-placement="top"
+         [tb-help-popup-style]="{marginTop: '8px'}"
+         help-icon-button-class=""
+         help-icon="info_outline"
+         help-opened-icon="info"
+         help-icon-tooltip="{{ 'js-func.show-module-info' | translate }}"></div>
+    <div [tb-help-popup-async-content]="this.moduleRowFormGroup.get('moduleLink').value ? moduleSourceCode : null"
+         tb-help-popup-placement="top"
+         [tb-help-popup-style]="{marginTop: '8px'}"
+         help-icon-button-class=""
+         help-icon="mdi:application-brackets-outline"
+         help-opened-icon="mdi:application-brackets"
+         help-icon-tooltip="{{ 'js-func.show-module-source-code' | translate }}"></div>
+    <button type="button"
+            mat-icon-button
+            (click)="moduleRemoved.emit()"
+            matTooltip="{{ 'js-func.remove-module' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</div>

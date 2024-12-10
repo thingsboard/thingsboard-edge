@@ -60,4 +60,5 @@ public interface CustomTranslationService {
     Set<String> getMergedCustomerCustomizedLocales(TenantId tenantId, CustomerId customerId);
 
     void deleteCustomTranslationByTenantId(TenantId tenantId);
+
 }
