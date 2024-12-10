@@ -50,7 +50,6 @@ import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 
 @Component({
   selector: 'tb-ota-package-autocomplete',
@@ -80,19 +79,19 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
     this.reset();
   }
 
-  private deviceProfile: string;
+  private deviceProfileIdValue: string;
 
   get deviceProfileId(): string {
-    return this.deviceProfile;
+    return this.deviceProfileIdValue;
   }
 
   @Input()
   set deviceProfileId(value: string) {
-    if (this.deviceProfile !== value) {
-      if (this.deviceProfile) {
+    if (this.deviceProfileIdValue !== value) {
+      if (this.deviceProfileIdValue) {
         this.reset();
       }
-      this.deviceProfile = value ? value : NULL_UUID;
+      this.deviceProfileIdValue = value;
     }
   }
 
@@ -297,9 +296,13 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
     if (isDefinedAndNotNull(this.deviceGroupId)) {
       fetchFirmware$ = this.otaPackageService
         .getOtaPackagesInfoByDeviceGroupId(pageLink, this.deviceGroupId, this.type, {ignoreLoading: true});
-    } else{
-      fetchFirmware$ = this.otaPackageService
-        .getOtaPackagesInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type, {ignoreLoading: true});
+    } else {
+      if (isDefinedAndNotNull(this.deviceProfileId)) {
+        fetchFirmware$ = this.otaPackageService
+          .getOtaPackagesInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type, {ignoreLoading: true});
+      } else {
+        return of([]);
+      }
     }
     return fetchFirmware$.pipe(
       catchError(() => of(emptyPageData<OtaPackageInfo>())),
