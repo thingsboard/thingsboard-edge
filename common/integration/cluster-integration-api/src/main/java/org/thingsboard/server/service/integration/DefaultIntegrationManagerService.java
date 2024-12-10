@@ -609,6 +609,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
                 state.setCurrentState(ComponentLifecycleEvent.STARTED);
                 processNotificationRule(configuration, STARTED, null);
+                state.init();
             } catch (Exception e) {
                 state.setCurrentState(ComponentLifecycleEvent.FAILED);
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
@@ -741,6 +742,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void doPersistStatistics(IntegrationState integrationState, long ts, boolean skipEmptyStatistics) {
+        if (!integrationState.isInitialized()) {
+            log.debug("[{}{}] Can't persist statistics, integration has not started yet!}", integrationState.getTenantId(), integrationState.getId());
+            return;
+        }
         IntegrationStatistics statistics = integrationState.getIntegration().popStatistics();
         if (skipEmptyStatistics && statistics.isEmpty()) {
             return;
