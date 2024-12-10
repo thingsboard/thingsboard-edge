@@ -169,6 +169,7 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
     this.debugSettingsFormGroup.patchValue(settings, {emitEvent: false});
     this.allEnabled.set(settings?.allEnabled);
     this.debugSettingsFormGroup.get('allEnabled').updateValueAndValidity({onlySelf: true});
+    this.cd.markForCheck();
   }
 
   setDisabledState(isDisabled: boolean): void {
