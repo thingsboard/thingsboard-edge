@@ -50,16 +50,16 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                     boolean isRoot = ruleChainMsg.isRoot();
                     ruleChainMsg.setRoot(false);
                     ruleChainMsg.setType(RuleChainType.CORE);
-                    ruleChainService.saveRuleChain(ruleChainMsg);
+                    edgeCtx.getRuleChainService().saveRuleChain(ruleChainMsg);
 
                     if (isRoot) {
-                        ruleChainService.setRootRuleChain(tenantId, ruleChainId);
+                        edgeCtx.getRuleChainService().setRootRuleChain(tenantId, ruleChainId);
                     }
                     return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    RuleChain ruleChainById = ruleChainService.findRuleChainById(tenantId, ruleChainId);
+                    RuleChain ruleChainById = edgeCtx.getRuleChainService().findRuleChainById(tenantId, ruleChainId);
                     if (ruleChainById != null) {
-                        ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
+                        edgeCtx.getRuleChainService().deleteRuleChainById(tenantId, ruleChainId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -85,8 +85,8 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                     if (ruleChainMetadata == null) {
                         throw new RuntimeException("[{" + tenantId + "}] ruleChainMetadataUpdateMsg {" + ruleChainMetadataUpdateMsg + "} cannot be converted to rule chain metadata");
                     }
-                    if (ruleChainMetadata.getNodes().size() > 0) {
-                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata, Function.identity(), true, false);
+                    if (!ruleChainMetadata.getNodes().isEmpty()) {
+                        edgeCtx.getRuleChainService().saveRuleChainMetaData(tenantId, ruleChainMetadata, Function.identity(), true, false);
                     }
                     break;
                 case UNRECOGNIZED:

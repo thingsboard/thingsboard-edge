@@ -24,6 +24,7 @@ public class AdminSettingsClientTest extends AbstractContainerTest {
 
     @Test
     public void testTenantAdminSettings() {
-        // TODO: voba
+
     }
+
 }

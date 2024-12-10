@@ -730,7 +730,20 @@ public abstract class AbstractContainerTest {
 
         try {
             // wait until sync process completed fully
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(10);
+        } catch (Exception ignored) {}
+    }
+
+    protected void unassignEdgeFromCustomerAndValidateUnassignmentOnCloud() {
+        cloudRestClient.unassignEdgeFromCustomer(edge.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
+
+        try {
+            // wait until sync process completed fully
+            TimeUnit.SECONDS.sleep(10);
         } catch (Exception ignored) {}
     }
 

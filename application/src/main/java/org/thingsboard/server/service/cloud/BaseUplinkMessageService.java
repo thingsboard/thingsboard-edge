@@ -350,30 +350,21 @@ public abstract class BaseUplinkMessageService {
     private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
         log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
         EdgeVersion edgeVersion = EdgeVersion.V_LATEST;
-        switch (cloudEvent.getType()) {
-            case DEVICE:
-                return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent, edgeVersion);
-            case DEVICE_PROFILE:
-                return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
-            case ALARM:
-                return alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
-            case ALARM_COMMENT:
-                return alarmProcessor.convertAlarmCommentEventToUplink(cloudEvent, edgeVersion);
-            case ASSET:
-                return assetProcessor.convertAssetEventToUplink(cloudEvent, edgeVersion);
-            case ASSET_PROFILE:
-                return assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent, edgeVersion);
-            case DASHBOARD:
-                return dashboardProcessor.convertDashboardEventToUplink(cloudEvent, edgeVersion);
-            case ENTITY_VIEW:
-                return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent, edgeVersion);
-            case RELATION:
-                return relationProcessor.convertRelationEventToUplink(cloudEvent, edgeVersion);
-            case TB_RESOURCE:
-                return resourceCloudProcessor.convertResourceEventToUplink(cloudEvent, edgeVersion);
-            default:
+        return switch (cloudEvent.getType()) {
+            case DEVICE -> deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent, edgeVersion);
+            case DEVICE_PROFILE -> deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
+            case ALARM -> alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
+            case ALARM_COMMENT -> alarmProcessor.convertAlarmCommentEventToUplink(cloudEvent, edgeVersion);
+            case ASSET -> assetProcessor.convertAssetEventToUplink(cloudEvent, edgeVersion);
+            case ASSET_PROFILE -> assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent, edgeVersion);
+            case DASHBOARD -> dashboardProcessor.convertDashboardEventToUplink(cloudEvent, edgeVersion);
+            case ENTITY_VIEW -> entityViewProcessor.convertEntityViewEventToUplink(cloudEvent, edgeVersion);
+            case RELATION -> relationProcessor.convertRelationEventToUplink(cloudEvent, edgeVersion);
+            case TB_RESOURCE -> resourceCloudProcessor.convertResourceEventToUplink(cloudEvent, edgeVersion);
+            default -> {
                 log.warn("Unsupported cloud event type [{}]", cloudEvent);
-                return null;
-        }
+                yield null;
+            }
+        };
     }
 }

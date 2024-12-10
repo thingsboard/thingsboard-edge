@@ -17,7 +17,7 @@ package org.thingsboard.server.common.data.rule;
 
 public enum RuleChainType {
     CORE,
-    // @voba - merge comment -
+    // Edge-only:  merge comment -
     // on edge EDGE type replaced by CORE to avoid updates in multiple rule chain core classes
     // EDGE type not removed for test possibility
     EDGE

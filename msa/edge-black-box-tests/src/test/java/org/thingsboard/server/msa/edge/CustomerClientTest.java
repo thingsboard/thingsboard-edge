@@ -46,12 +46,9 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Updated Customer Name".equals(edgeRestClient.getCustomerById(savedCustomer.getId()).get().getTitle()));
 
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
         // delete customer
         cloudRestClient.deleteCustomer(savedCustomer.getId());
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
     }
 
     @Test

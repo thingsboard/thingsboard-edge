@@ -96,6 +96,7 @@ public class DashboardClientTest extends AbstractContainerTest {
                     Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboard2.getId()).get();
                     return dashboard.getAssignedCustomers().isEmpty();
                 });
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
         // delete dashboard #2
