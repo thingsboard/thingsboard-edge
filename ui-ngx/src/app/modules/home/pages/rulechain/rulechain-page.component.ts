@@ -110,7 +110,7 @@ import { ComponentClusteringMode } from '@shared/models/component-descriptor.mod
 import { MatDrawer } from '@angular/material/sidenav';
 import { HttpStatusCode } from '@angular/common/http';
 import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
-import { DebugSettings } from '@shared/models/entity.models';
+import { EntityDebugSettings } from '@shared/models/entity.models';
 import Timeout = NodeJS.Timeout;
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -1471,7 +1471,7 @@ export class RuleChainPageComponent extends PageComponent
     }
   }
 
-  private isDebugSettingsActive(debugSettings: DebugSettings): boolean {
+  private isDebugSettingsActive(debugSettings: EntityDebugSettings): boolean {
     return debugSettings.allEnabled || debugSettings.failuresEnabled || debugSettings.allEnabledUntil > new Date().getTime();
   }
 
