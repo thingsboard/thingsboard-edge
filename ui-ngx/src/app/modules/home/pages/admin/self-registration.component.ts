@@ -52,6 +52,7 @@ import {
   RecipientNotificationDialogData
 } from '@home/pages/notification/recipient/recipient-notification-dialog.component';
 import { NotificationTarget } from '@shared/models/notification.models';
+import { DialogService } from '@core/services/dialog.service';
 
 @Component({
   selector: 'tb-self-registration',
@@ -91,6 +92,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   constructor(protected store: Store<AppState>,
               private dialog: MatDialog,
+              private dialogService: DialogService,
               private selfRegistrationService: SelfRegistrationService,
               private translate: TranslateService,
               private fb: UntypedFormBuilder) {
@@ -155,13 +157,18 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   }
 
   delete(form: FormGroupDirective): void {
-    this.selfRegistrationService.deleteSelfRegistrationParams().subscribe(
-      () => {
-        this.onSelfRegistrationParamsLoaded(null);
-        this.registerLink = '';
-        form.resetForm();
+    this.dialogService.confirm(
+      this.translate.instant('mobile.self-registration.reset-self-registration-title'),
+      this.translate.instant('mobile.self-registration.reset-self-registration-text'),
+    ).subscribe(res => {
+      if (res) {
+        this.selfRegistrationService.deleteSelfRegistrationParams().subscribe(() => {
+          this.onSelfRegistrationParamsLoaded(null);
+          this.registerLink = '';
+          form.resetForm();
+        });
       }
-    );
+    })
   }
 
   confirmForm(): UntypedFormGroup {
