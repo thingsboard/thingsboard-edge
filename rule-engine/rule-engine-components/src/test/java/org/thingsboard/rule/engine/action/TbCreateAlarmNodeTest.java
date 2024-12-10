@@ -134,8 +134,8 @@ class TbCreateAlarmNodeTest {
                     delete metadata.prevAlarmDetails;
                     //now metadata is the same as it comes IN this rule node
                 }
-
-
+                
+                
                 return details;""");
         assertThat(config.getAlarmDetailsBuildTbel()).isEqualTo("""
                 \
@@ -146,8 +146,8 @@ class TbCreateAlarmNodeTest {
                     metadata.remove('prevAlarmDetails');
                     //now metadata is the same as it comes IN this rule node
                 }
-
-
+                
+                
                 return details;""");
         assertThat(config.getSeverity()).isEqualTo(AlarmSeverity.CRITICAL.name());
         assertThat(config.isPropagate()).isFalse();
@@ -260,9 +260,7 @@ class TbCreateAlarmNodeTest {
         // THEN
 
         // verify alarm details script evaluation
-        then(ctxMock).should().logJsEvalRequest();
         then(alarmDetailsScriptMock).should().executeJsonAsync(incomingMsg);
-        then(ctxMock).should().logJsEvalResponse();
 
         // verify we called createAlarm() with correct AlarmCreateOrUpdateActiveRequest
         then(alarmServiceMock).should().createAlarm(expectedCreateAlarmRequest);
@@ -433,9 +431,7 @@ class TbCreateAlarmNodeTest {
         // THEN
 
         // verify alarm details script evaluation
-        then(ctxMock).should().logJsEvalRequest();
         then(alarmDetailsScriptMock).should().executeJsonAsync(incomingMsg);
-        then(ctxMock).should().logJsEvalResponse();
 
         // verify we called createAlarm() with correct AlarmCreateOrUpdateActiveRequest
         then(alarmServiceMock).should().createAlarm(expectedCreateAlarmRequest);
@@ -630,14 +626,12 @@ class TbCreateAlarmNodeTest {
         // THEN
 
         // verify alarm details script evaluation
-        then(ctxMock).should().logJsEvalRequest();
         var dummyMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         then(alarmDetailsScriptMock).should().executeJsonAsync(dummyMsgCaptor.capture());
         TbMsg actualDummyMsg = dummyMsgCaptor.getValue();
         assertThat(actualDummyMsg.getType()).isEqualTo(incomingMsg.getType());
         assertThat(actualDummyMsg.getData()).isEqualTo(incomingMsg.getData());
         assertThat(actualDummyMsg.getMetaData().getData()).containsEntry("prevAlarmDetails", JacksonUtil.toString(oldAlarmDetails));
-        then(ctxMock).should().logJsEvalResponse();
 
         // verify we called updateAlarm() with correct AlarmUpdateRequest
         then(alarmServiceMock).should().updateAlarm(expectedUpdateAlarmRequest);
@@ -806,9 +800,7 @@ class TbCreateAlarmNodeTest {
         // THEN
 
         // verify alarm details script was not evaluated
-        then(ctxMock).should(never()).logJsEvalRequest();
         then(alarmDetailsScriptMock).should(never()).executeJsonAsync(any());
-        then(ctxMock).should(never()).logJsEvalResponse();
 
         // verify we called createAlarm() with correct AlarmCreateOrUpdateActiveRequest
         then(alarmServiceMock).should().createAlarm(expectedCreateAlarmRequest);
@@ -1000,14 +992,12 @@ class TbCreateAlarmNodeTest {
         // THEN
 
         // verify alarm details script evaluation
-        then(ctxMock).should().logJsEvalRequest();
         var dummyMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         then(alarmDetailsScriptMock).should().executeJsonAsync(dummyMsgCaptor.capture());
         TbMsg actualDummyMsg = dummyMsgCaptor.getValue();
         assertThat(actualDummyMsg.getType()).isEqualTo(incomingMsg.getType());
         assertThat(actualDummyMsg.getData()).isEqualTo(incomingMsg.getData());
         assertThat(actualDummyMsg.getMetaData().getData()).containsEntry("prevAlarmDetails", JacksonUtil.toString(oldAlarmDetails));
-        then(ctxMock).should().logJsEvalResponse();
 
         // verify we called updateAlarm() with correct AlarmUpdateRequest
         then(alarmServiceMock).should().updateAlarm(expectedUpdateAlarmRequest);
@@ -1186,14 +1176,12 @@ class TbCreateAlarmNodeTest {
         // THEN
 
         // verify alarm details script evaluation
-        then(ctxMock).should().logJsEvalRequest();
         var dummyMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         then(alarmDetailsScriptMock).should().executeJsonAsync(dummyMsgCaptor.capture());
         TbMsg actualDummyMsg = dummyMsgCaptor.getValue();
         assertThat(actualDummyMsg.getType()).isEqualTo(incomingMsg.getType());
         assertThat(actualDummyMsg.getData()).isEqualTo(incomingMsg.getData());
         assertThat(actualDummyMsg.getMetaData().getData()).containsEntry("prevAlarmDetails", JacksonUtil.toString(alarmDetails));
-        then(ctxMock).should().logJsEvalResponse();
 
         // verify we called updateAlarm() with correct AlarmUpdateRequest
         then(alarmServiceMock).should().updateAlarm(expectedUpdateAlarmRequest);

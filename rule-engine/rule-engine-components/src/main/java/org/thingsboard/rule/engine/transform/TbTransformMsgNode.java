@@ -73,13 +73,11 @@ public class TbTransformMsgNode extends TbAbstractTransformNode<TbTransformMsgNo
 
     @Override
     protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
-        ctx.logJsEvalRequest();
         return scriptEngine.executeUpdateAsync(msg);
     }
 
     @Override
     protected void transformFailure(TbContext ctx, TbMsg msg, Throwable t) {
-        ctx.logJsEvalFailure();
         super.transformFailure(ctx, msg, t);
     }
 
