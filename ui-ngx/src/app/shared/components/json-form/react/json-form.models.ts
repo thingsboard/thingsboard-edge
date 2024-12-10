@@ -106,6 +106,7 @@ export interface JsonFormData {
   required: boolean;
   default?: any;
   condition?: string;
+  conditionFunction?: Function;
   style?: any;
   rows?: number;
   rowsMax?: number;

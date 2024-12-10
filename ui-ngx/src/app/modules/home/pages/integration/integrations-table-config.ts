@@ -87,11 +87,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { DestroyRef } from '@angular/core';
 import { DebugSettingsPanelComponent } from '@home/components/debug-settings/debug-settings-panel.component';
+import { MINUTE } from '@shared/models/time/time.models';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
 
   readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
-  readonly maxDebugModeDurationMinutes = getCurrentAuthState(this.store).maxDebugModeDurationMinutes;
+  readonly maxDebugModeDuration = getCurrentAuthState(this.store).maxDebugModeDurationMinutes * MINUTE;
 
   constructor(private integrationService: IntegrationService,
               private userPermissionsService: UserPermissionsService,
@@ -274,9 +275,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     if (!isDebugActive) {
       return failuresEnabled ? this.translate.instant('debug-config.failures') : this.translate.instant('common.disabled');
     } else {
-      return failuresEnabled
-        ? this.translate.instant('debug-config.all')
-        : this.durationLeft.transform(allEnabledUntil);
+      return this.durationLeft.transform(allEnabledUntil)
     }
   }
 
@@ -359,7 +358,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         viewContainerRef, DebugSettingsPanelComponent, 'bottom', true, null,
         {
           debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
-          maxDebugModeDurationMinutes: this.maxDebugModeDurationMinutes,
+          maxDebugModeDuration: this.maxDebugModeDuration,
           ...debugSettings
         },
         {},

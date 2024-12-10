@@ -202,7 +202,7 @@ export class MobilePageItemRowComponent implements ControlValueAccessor, OnInit,
       }
     } else {
       this.isCustomMenuItem = true;
-      this.mobilePageRowForm.get('label').setValidators([Validators.required]);
+      this.mobilePageRowForm.get('label').addValidators([Validators.required]);
       this.mobilePageRowForm.get('label').updateValueAndValidity({emitEvent: false});
     }
     this.updateCleanupState();
@@ -285,7 +285,7 @@ export class MobilePageItemRowComponent implements ControlValueAccessor, OnInit,
 
   private updateModel() {
     this.modelValue.visible = this.mobilePageRowForm.get('visible').value;
-    const label = this.mobilePageRowForm.get('label').value;
+    const label = this.mobilePageRowForm.get('label').value.trim();
     if (label) {
       this.modelValue.label = label;
     } else {

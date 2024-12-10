@@ -73,7 +73,7 @@ public class QrCodeSettingServiceImpl extends AbstractCachedEntityService<Tenant
         try {
             QrCodeSettings savedQrCodeSettings = qrCodeSettingsDao.save(tenantId, qrCodeSettings);
             publishEvictEvent(new QrCodeSettingsEvictEvent(tenantId));
-            return constructMobileAppSettings(savedQrCodeSettings);
+            return constructMobileAppSettings(tenantId, savedQrCodeSettings);
         } catch (Exception e) {
             handleEvictEvent(new QrCodeSettingsEvictEvent(tenantId));
             checkConstraintViolation(e, Map.of(
@@ -88,7 +88,7 @@ public class QrCodeSettingServiceImpl extends AbstractCachedEntityService<Tenant
         log.trace("Executing getMobileAppSettings for tenant [{}] ", tenantId);
         QrCodeSettings qrCodeSettings = cache.getAndPutInTransaction(tenantId,
                 () -> qrCodeSettingsDao.findByTenantId(tenantId), true);
-        return constructMobileAppSettings(qrCodeSettings);
+        return constructMobileAppSettings(tenantId, qrCodeSettings);
     }
 
     @Override
@@ -121,13 +121,15 @@ public class QrCodeSettingServiceImpl extends AbstractCachedEntityService<Tenant
         cache.evict(event.getTenantId());
     }
 
-    private QrCodeSettings constructMobileAppSettings(QrCodeSettings qrCodeSettings) {
+    private QrCodeSettings constructMobileAppSettings(TenantId tenantId, QrCodeSettings qrCodeSettings) {
         if (qrCodeSettings == null) {
             qrCodeSettings = new QrCodeSettings();
-            qrCodeSettings.setUseSystemSettings(true);
             qrCodeSettings.setUseDefaultApp(true);
             qrCodeSettings.setAndroidEnabled(true);
             qrCodeSettings.setIosEnabled(true);
+            if (!tenantId.isSysTenantId()) {
+                qrCodeSettings.setUseSystemSettings(true);
+            }
 
             QRCodeConfig qrCodeConfig = QRCodeConfig.builder()
                     .showOnHomePage(true)
@@ -141,17 +143,19 @@ public class QrCodeSettingServiceImpl extends AbstractCachedEntityService<Tenant
             qrCodeSettings.setQrCodeConfig(qrCodeConfig);
             qrCodeSettings.setMobileAppBundleId(qrCodeSettings.getMobileAppBundleId());
         }
-        if (qrCodeSettings.isUseDefaultApp()) {
-            qrCodeSettings.setGooglePlayLink(googlePlayLink);
-            qrCodeSettings.setAppStoreLink(appStoreLink);
-        } else {
-            MobileApp androidApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), ANDROID);
-            MobileApp iosApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), IOS);
-            if (androidApp != null && androidApp.getStoreInfo() != null) {
-                qrCodeSettings.setGooglePlayLink(androidApp.getStoreInfo().getStoreLink());
-            }
-            if (iosApp != null && iosApp.getStoreInfo() != null) {
-                qrCodeSettings.setAppStoreLink(iosApp.getStoreInfo().getStoreLink());
+        if (!qrCodeSettings.isUseSystemSettings()) {
+            if (qrCodeSettings.isUseDefaultApp()) {
+                qrCodeSettings.setGooglePlayLink(googlePlayLink);
+                qrCodeSettings.setAppStoreLink(appStoreLink);
+            } else {
+                MobileApp androidApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), ANDROID);
+                MobileApp iosApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), IOS);
+                if (androidApp != null && androidApp.getStoreInfo() != null) {
+                    qrCodeSettings.setGooglePlayLink(androidApp.getStoreInfo().getStoreLink());
+                }
+                if (iosApp != null && iosApp.getStoreInfo() != null) {
+                    qrCodeSettings.setAppStoreLink(iosApp.getStoreInfo().getStoreLink());
+                }
             }
         }
         return qrCodeSettings;
