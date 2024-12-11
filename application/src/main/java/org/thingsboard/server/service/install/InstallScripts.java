@@ -535,7 +535,9 @@ public class InstallScripts {
 
     public void updateSystemNotificationTemplates() {
         getSystemNotificationTemplates().forEach(notificationTemplate -> {
-            notificationSettingsService.updateSystemNotificationTemplate(TenantId.SYS_TENANT_ID, notificationTemplate);
+            if (!notificationSettingsService.isNotificationConfigured(TenantId.SYS_TENANT_ID, notificationTemplate.getNotificationType())) {
+                notificationSettingsService.createSystemNotificationTemplate(TenantId.SYS_TENANT_ID, notificationTemplate);
+            }
         });
     }
 
