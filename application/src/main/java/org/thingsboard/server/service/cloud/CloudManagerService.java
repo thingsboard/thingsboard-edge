@@ -31,7 +31,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -44,6 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -51,6 +51,8 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
@@ -69,8 +71,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-@Service
 @Slf4j
+@Service
+@TbCoreComponent
 public class CloudManagerService {
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
@@ -89,16 +92,19 @@ public class CloudManagerService {
     private long reconnectTimeoutMs;
 
     @Autowired
+    private PartitionService partitionService;
+
+    @Autowired
     private EdgeService edgeService;
+
+    @Autowired
+    private CloudEventService cloudEventService;
 
     @Autowired
     private AttributesService attributesService;
 
     @Autowired
     protected TelemetrySubscriptionService tsSubService;
-
-    @Autowired
-    protected TbClusterService tbClusterService;
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
@@ -118,27 +124,18 @@ public class CloudManagerService {
     @Autowired
     private EdgeCloudProcessor edgeCloudProcessor;
 
-
     @Autowired
     private TenantCloudProcessor tenantProcessor;
 
     @Autowired
     private CustomerCloudProcessor customerProcessor;
 
-
-
-    @Autowired
-    private CloudEventService cloudEventService;
-
     @Autowired
     private ConfigurableApplicationContext context;
-
-
 
     private EdgeSettings currentEdgeSettings;
 
     private Long queueStartTs;
-
 
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
@@ -148,22 +145,23 @@ public class CloudManagerService {
     private volatile boolean initialized;
     private volatile boolean syncInProgress = false;
 
-
     private TenantId tenantId;
     private CustomerId customerId;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        if (validateRoutingKeyAndSecret()) {
-            log.info("Starting Cloud Edge service");
-            edgeRpcClient.connect(routingKey, routingSecret,
-                    this::onUplinkResponse,
-                    this::onEdgeUpdate,
-                    this::onDownlink,
-                    this::scheduleReconnect);
-            executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-manager"));
-            reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
-            processHandleMessages();
+        if (isSystemTenantPartitionMine()) {
+            if (validateRoutingKeyAndSecret()) {
+                log.info("Starting Cloud Edge service");
+                edgeRpcClient.connect(routingKey, routingSecret,
+                        this::onUplinkResponse,
+                        this::onEdgeUpdate,
+                        this::onDownlink,
+                        this::scheduleReconnect);
+                executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-manager"));
+                reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
+                processHandleMessages();
+            }
         }
     }
 
@@ -429,6 +427,10 @@ public class CloudManagerService {
 
     private void save(String key, boolean value) {
         tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, AttributeScope.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
+    }
+
+    private boolean isSystemTenantPartitionMine() {
+        return partitionService.resolve(ServiceType.TB_CORE, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID).isMyPartition();
     }
 
     private static class AttributeSaveCallback implements FutureCallback<Void> {

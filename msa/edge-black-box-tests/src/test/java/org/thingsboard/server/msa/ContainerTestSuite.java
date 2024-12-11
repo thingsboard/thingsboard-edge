@@ -40,7 +40,7 @@ public class ContainerTestSuite {
 
     public static DockerComposeContainer<?> testContainer;
 
-    private static final String SOURCE_DIR = "./../../docker-edge/";
+    private static final String SOURCE_DIR = "./../../docker-edge/black-box-tests/";
 
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
@@ -74,9 +74,9 @@ public class ContainerTestSuite {
                 }
 
                 testContainer = new DockerComposeContainerImpl<>(
-                        new File("./../../docker-edge/docker-compose.yml"),
-                        new File("./../../docker-edge/docker-compose.postgres.yml"),
-                        new File("./../../docker-edge/docker-compose.volumes.yml"))
+                        new File("./../../docker-edge/black-box-tests/docker-compose.yml"),
+                        new File("./../../docker-edge/black-box-tests/docker-compose.postgres.yml"),
+                        new File("./../../docker-edge/black-box-tests/docker-compose.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
                         .withOptions("--compatibility")

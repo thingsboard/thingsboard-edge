@@ -35,6 +35,7 @@ import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.dashboard.DashboardMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.BaseDashboardProcessor;
@@ -42,8 +43,9 @@ import org.thingsboard.server.service.edge.rpc.processor.dashboard.BaseDashboard
 import java.util.Set;
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class DashboardCloudProcessor extends BaseDashboardProcessor {
 
     @Autowired

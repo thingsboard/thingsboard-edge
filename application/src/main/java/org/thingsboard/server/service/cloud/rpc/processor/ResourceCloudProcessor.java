@@ -34,14 +34,16 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.constructor.resource.ResourceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.resource.ResourceMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.resource.BaseResourceProcessor;
 
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class ResourceCloudProcessor extends BaseResourceProcessor {
 
     @Autowired

@@ -21,10 +21,10 @@
 
     <appender name="fileLogAppender"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/log/tb-edge/tb-edge.log</file>
+        <file>/var/log/tb-edge/${TB_SERVICE_ID}/tb-edge.log</file>
         <rollingPolicy
                 class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/tb-edge/tb-edge.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>/var/log/tb-edge/${TB_SERVICE_ID}/tb-edge.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>3GB</totalSizeCap>
@@ -43,7 +43,7 @@
     <logger name="org.thingsboard.server" level="INFO" />
 
 <!--    <logger name="org.thingsboard.server.service.cloud" level="TRACE" />-->
-
+    <logger name="org.apache.kafka.clients" level="WARN"/>
     <logger name="com.google.common.util.concurrent.AggregateFuture" level="OFF" />
 
     <root level="INFO">
