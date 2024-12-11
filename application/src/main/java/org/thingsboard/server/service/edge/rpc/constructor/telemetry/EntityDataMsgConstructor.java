@@ -38,7 +38,6 @@ import java.util.List;
 
 @Slf4j
 @Component
-@TbCoreComponent
 public class EntityDataMsgConstructor {
 
     public EntityDataProto constructEntityDataMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType actionType, JsonElement entityData) {

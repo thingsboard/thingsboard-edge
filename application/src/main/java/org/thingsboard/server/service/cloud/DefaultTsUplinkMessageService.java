@@ -23,9 +23,11 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Slf4j
 @Service
+@TbCoreComponent
 public class DefaultTsUplinkMessageService extends BaseUplinkMessageService implements TsUplinkMessageService {
 
     private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";

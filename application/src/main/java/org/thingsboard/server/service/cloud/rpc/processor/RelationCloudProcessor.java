@@ -31,12 +31,14 @@ import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationProcessor;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class RelationCloudProcessor extends BaseRelationProcessor {
 
     @Autowired
