@@ -35,12 +35,8 @@ $ ./docker-create-log-folders.sh
 Execute the following command to run installation:
 
 `
-$ ./docker-install-tb.sh --loadDemo
+$ ./docker-install-tb.sh
 `
-
-Where:
-
-- `--loadDemo` - optional argument. Whether to load additional demo data.
 
 ## Running
 
@@ -51,22 +47,15 @@ $ ./docker-start-services.sh
 `
 
 After a while when all services will be successfully started you can open `http://{your-host-ip}` in you browser (for ex. `http://localhost`).
-You should see ThingsBoard login page.
+You should see ThingsBoard Edge login page.
 
-Use the following default credentials:
-
-- **System Administrator**: sysadmin@thingsboard.org / sysadmin
-
-If you installed DataBase with demo data (using `--loadDemo` flag) you can also use the following credentials:
-
-- **Tenant Administrator**: tenant@thingsboard.org / tenant
-- **Customer User**: customer@thingsboard.org / customer
+Use the credentials from the ThingsBoard account.
 
 In case of any issues you can examine service logs for errors.
 For example to see ThingsBoard node logs execute the following command:
 
 `
-$ docker-compose logs -f tb-core1 tb-core2 tb-rule-engine1 tb-rule-engine2 tb-mqtt-transport1 tb-mqtt-transport2
+$ docker-compose logs -f tb-edge1 tb-edge2 tb-rule-engine1 tb-rule-engine2
 `
 
 Or use `docker-compose ps` to see the state of all the containers.
@@ -107,7 +96,7 @@ $ ./docker-start-services.sh
 
 Where:
 
-- `FROM_VERSION` - from which version upgrade should be started. See [Upgrade Instructions](https://thingsboard.io/docs/user-guide/install/upgrade-instructions) for valid `fromVersion` values.
+- `FROM_VERSION` - from which version upgrade should be started. See [Upgrade Instructions](https://thingsboard.io/docs/user-guide/install/edge/upgrade-instructions/) for valid `fromVersion` values.
 
 
 ## Monitoring
