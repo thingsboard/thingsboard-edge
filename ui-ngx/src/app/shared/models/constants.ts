@@ -253,7 +253,7 @@ export const HelpLinks = {
     integrationKafka:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/kafka`,
     integrationRabbitmq:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/rabbitmq`,
     integrationApachePulsar:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/apache-pulsar`,
-    integrationPubsub:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/pubsub`,
+    integrationPubsub:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations`,
     integrationCoAP:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/coap`,
     integrationKpn:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/kpn-things`,
     integrationCustom:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/custom`,
