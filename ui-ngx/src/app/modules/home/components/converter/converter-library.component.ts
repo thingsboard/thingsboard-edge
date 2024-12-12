@@ -39,7 +39,8 @@ import {
   OnChanges,
   OnDestroy,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  ViewEncapsulation
 } from '@angular/core';
 import {
   ControlValueAccessor,
@@ -52,14 +53,7 @@ import {
   Validators
 } from '@angular/forms';
 import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject } from 'rxjs';
-import {
-  catchError,
-  distinctUntilChanged,
-  map,
-  startWith,
-  switchMap,
-  takeUntil,
-} from 'rxjs/operators';
+import { catchError, distinctUntilChanged, map, startWith, switchMap, takeUntil, } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterLibraryValue, ConverterType, Model, Vendor } from '@shared/models/converter.models';
@@ -83,6 +77,7 @@ import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
       multi: true
     }
   ],
+  encapsulation: ViewEncapsulation.None
 })
 export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges, AfterViewInit, OnDestroy {
 
