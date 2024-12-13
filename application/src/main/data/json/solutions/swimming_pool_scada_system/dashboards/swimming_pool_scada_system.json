@@ -8448,6 +8448,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -8658,8 +8659,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 12,
             "sizeUnit": "px",
@@ -9938,6 +9939,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -10145,8 +10147,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -10276,6 +10278,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -10483,8 +10486,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -10619,6 +10622,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -10826,8 +10830,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -10962,6 +10966,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -11169,8 +11174,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -12943,13 +12948,13 @@
                 "lineHeight": "1"
               },
               "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+              "ticksFormat": {},
               "showTicks": true,
               "ticksColor": "rgba(0, 0, 0, 0.54)",
               "showLine": true,
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": false,
-              "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-              "ticksFormat": {}
+              "splitLinesColor": "rgba(0, 0, 0, 0.12)"
             },
             "legendLabelFont": {
               "family": "Roboto",
@@ -13144,8 +13149,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -13943,6 +13948,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -14150,8 +14156,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -14637,6 +14643,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -14844,8 +14851,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -15150,6 +15157,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -15357,8 +15365,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -15877,8 +15885,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -16130,13 +16138,13 @@
                 "lineHeight": "1"
               },
               "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+              "ticksFormat": {},
               "showTicks": true,
               "ticksColor": "rgba(0, 0, 0, 0.54)",
               "showLine": true,
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": false,
-              "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-              "ticksFormat": {}
+              "splitLinesColor": "rgba(0, 0, 0, 0.12)"
             },
             "legendLabelFont": {
               "family": "Roboto",
@@ -16331,8 +16339,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -23183,8 +23191,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -23641,8 +23649,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -24251,8 +24259,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 14,
             "sizeUnit": "px",
@@ -24705,8 +24713,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 14,
             "sizeUnit": "px",
@@ -25555,13 +25563,13 @@
                 "lineHeight": "1"
               },
               "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+              "ticksFormat": {},
               "showTicks": true,
               "ticksColor": "rgba(0, 0, 0, 0.54)",
               "showLine": true,
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": false,
-              "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-              "ticksFormat": {}
+              "splitLinesColor": "rgba(0, 0, 0, 0.12)"
             },
             "legendLabelFont": {
               "family": "Roboto",
@@ -25756,8 +25764,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 14,
             "sizeUnit": "px",
@@ -26214,8 +26222,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 14,
             "sizeUnit": "px",
@@ -26987,6 +26995,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -27194,8 +27203,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -27330,6 +27339,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -27537,8 +27547,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -28018,6 +28028,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -28225,8 +28236,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -28361,6 +28372,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -28568,8 +28580,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -28704,6 +28716,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -28911,8 +28924,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -29455,13 +29468,13 @@
                 "lineHeight": "1"
               },
               "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+              "ticksFormat": {},
               "showTicks": true,
               "ticksColor": "rgba(0, 0, 0, 0.54)",
               "showLine": true,
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": false,
-              "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-              "ticksFormat": {}
+              "splitLinesColor": "rgba(0, 0, 0, 0.12)"
             },
             "noAggregationBarWidthSettings": {
               "strategy": "group",
@@ -29586,8 +29599,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -30984,7 +30997,6 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
-              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -30996,7 +31008,7 @@
               "endSymbol": "arrow",
               "endSymbolSize": 7,
               "showLabel": true,
-              "labelPosition": "insideEndTop",
+              "labelPosition": "insideEndBottom",
               "labelFont": {
                 "family": "Roboto",
                 "size": 12,
@@ -31192,8 +31204,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -31620,13 +31632,13 @@
                 "lineHeight": "1"
               },
               "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+              "ticksFormat": {},
               "showTicks": true,
               "ticksColor": "rgba(0, 0, 0, 0.54)",
               "showLine": true,
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": false,
-              "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-              "ticksFormat": {}
+              "splitLinesColor": "rgba(0, 0, 0, 0.12)"
             },
             "legendLabelFont": {
               "family": "Roboto",
@@ -31821,8 +31833,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -32127,7 +32139,6 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
-              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -32139,7 +32150,7 @@
               "endSymbol": "arrow",
               "endSymbolSize": 7,
               "showLabel": true,
-              "labelPosition": "insideEndTop",
+              "labelPosition": "insideEndBottom",
               "labelFont": {
                 "family": "Roboto",
                 "size": 12,
@@ -32335,8 +32346,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -32647,7 +32658,6 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
-              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -32659,7 +32669,7 @@
               "endSymbol": "arrow",
               "endSymbolSize": 7,
               "showLabel": true,
-              "labelPosition": "insideEndTop",
+              "labelPosition": "insideEndBottom",
               "labelFont": {
                 "family": "Roboto",
                 "size": 12,
@@ -32855,8 +32865,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -43705,8 +43715,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -44033,8 +44043,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -44351,8 +44361,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -44669,8 +44679,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -44982,8 +44992,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -46281,8 +46291,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -46595,8 +46605,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -46914,8 +46924,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -47702,13 +47712,13 @@
           "enableFullscreen": false,
           "titleStyle": null,
           "mobileHeight": null,
-          "configMode": "advanced",
+          "configMode": "basic",
           "actions": {},
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -48021,8 +48031,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -48340,8 +48350,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -48659,8 +48669,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -48995,8 +49005,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -49658,8 +49668,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -54813,8 +54823,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -55242,7 +55252,7 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
+          "useDashboardTimewindow": true,
           "displayTimewindow": true,
           "titleFont": {
             "size": 16,
@@ -55560,8 +55570,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -55988,8 +55998,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -62345,8 +62355,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -62773,8 +62783,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -63341,8 +63351,8 @@
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -63781,13 +63791,13 @@
           "enableFullscreen": false,
           "titleStyle": null,
           "mobileHeight": null,
-          "configMode": "advanced",
+          "configMode": "basic",
           "actions": {},
           "showTitleIcon": false,
           "titleIcon": "thermostat",
           "iconColor": "#1F6BDD",
-          "useDashboardTimewindow": false,
-          "displayTimewindow": true,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": false,
           "titleFont": {
             "size": 16,
             "sizeUnit": "px",
@@ -65015,7 +65025,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "openDashboardState",
-                "targetdashboardstateid": "traditional_temperature",
+                "targetDashboardStateId": "traditional_temperature",
                 "setEntityId": true,
                 "stateEntityParamName": null,
                 "openRightLayout": false,
@@ -65898,7 +65908,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "openDashboardState",
-                "targetdashboardstateid": "traditional_temperature",
+                "targetDashboardStateId": "traditional_temperature",
                 "setEntityId": true,
                 "stateEntityParamName": null,
                 "openRightLayout": false,
@@ -83358,40 +83368,48 @@
         "id": "ae4e3998-8c04-4464-f389-846e5e0cd200",
         "alias": "Heat pump",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Heat pump"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eeb34d20-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "ac95a594-1b71-5fe3-81dd-103c726211d6": {
         "id": "ac95a594-1b71-5fe3-81dd-103c726211d6",
         "alias": "Sand filter",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Sand filter"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eead80c0-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "28e97920-47ec-d50d-2865-cd04550221b9": {
         "id": "28e97920-47ec-d50d-2865-cd04550221b9",
         "alias": "Drain valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Drain valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eec77160-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "920bd2af-f36c-1618-10af-efd0132fe3e3": {
         "id": "920bd2af-f36c-1618-10af-efd0132fe3e3",
         "alias": "Water pump",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Water pump"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eeaa2560-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "e22e926a-ad0f-b876-4f01-feaf0db08b85": {
@@ -83412,120 +83430,144 @@
         "id": "2e6ee569-84d4-180c-4298-82a6cea2f4a4",
         "alias": "Pool weir valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Pool weir valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eebf0cf0-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "c47f055d-ef45-5010-081c-bed943efb0c6": {
         "id": "c47f055d-ef45-5010-081c-bed943efb0c6",
         "alias": "Main intake valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Main intake valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eea71820-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "1e4fe375-0786-bdb8-d4fb-e2beade0f838": {
         "id": "1e4fe375-0786-bdb8-d4fb-e2beade0f838",
         "alias": "Pool drain valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Pool drain valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eec156e0-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "6f97dc0d-72d2-5831-2f17-9f645ba207c1": {
         "id": "6f97dc0d-72d2-5831-2f17-9f645ba207c1",
         "alias": "Water pump outgoing valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Water pump outgoing valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eec54e80-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "10fda5a0-f451-360d-a4df-779d2195fc49": {
         "id": "10fda5a0-f451-360d-a4df-779d2195fc49",
         "alias": "Heat pump intake valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Heat pump intake valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eeb87d40-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "127f57da-a5a9-11e5-0402-8cfb08373cad": {
         "id": "127f57da-a5a9-11e5-0402-8cfb08373cad",
         "alias": "Heat pump outgoing valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Heat pump outgoing valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eebaa020-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "a666a08f-3e87-65c5-f0a0-6306f43967c1": {
         "id": "a666a08f-3e87-65c5-f0a0-6306f43967c1",
         "alias": "Throughpass valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Throughpass valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eeb0dc20-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "42b74b63-6dbf-290c-4c05-d53d5e801f9c": {
         "id": "42b74b63-6dbf-290c-4c05-d53d5e801f9c",
         "alias": "Filter PH sensor",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Filter PH sensor"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eeb59710-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "37c8ebac-39ca-16e6-da68-a0a3b2363b2f": {
         "id": "37c8ebac-39ca-16e6-da68-a0a3b2363b2f",
         "alias": "Pool intake valve",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Pool intake valve"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eebcc300-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "b36e0d13-ed40-c471-2eae-55aa6a141404": {
         "id": "b36e0d13-ed40-c471-2eae-55aa6a141404",
         "alias": "Water level meter",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Water level meter"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eec352b0-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "3e1f2f6d-baa3-88f1-efe3-2661218cea0d": {
         "id": "3e1f2f6d-baa3-88f1-efe3-2661218cea0d",
         "alias": "Pool System Gateway",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "DEVICE",
-          "entityNameFilter": "%Pool System Gateway"
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "eea4f540-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "36053f0b-cf94-3804-067e-dc8c0e08a961": {
         "id": "36053f0b-cf94-3804-067e-dc8c0e08a961",
         "alias": "Swimming pool SCADA system",
         "filter": {
-          "type": "entityName",
+          "type": "singleEntity",
           "resolveMultiple": false,
-          "entityType": "ASSET",
-          "entityNameFilter": "%Swimming pool SCADA system"
+          "singleEntity": {
+            "entityType": "ASSET",
+            "id": "eea395b0-7c0a-11ef-baac-dd7fa92789f4"
+          }
         }
       },
       "b26d354a-0f6a-b0a6-1bfe-ad5d64a2f1e1": {
@@ -83541,15 +83583,14 @@
     },
     "filters": {},
     "timewindow": {
-      "displayValue": "",
       "hideAggregation": false,
       "hideAggInterval": false,
       "hideTimezone": false,
       "selectedTab": 0,
       "realtime": {
         "realtimeType": 0,
-        "interval": 1000,
-        "timewindowMs": 60000,
+        "interval": 5000,
+        "timewindowMs": 600000,
         "quickInterval": "CURRENT_DAY",
         "hideInterval": false,
         "hideLastInterval": false,
@@ -83572,7 +83613,8 @@
       "aggregation": {
         "type": "AVG",
         "limit": 25000
-      }
+      },
+      "timezone": null
     },
     "settings": {
       "stateControllerId": "entity",
