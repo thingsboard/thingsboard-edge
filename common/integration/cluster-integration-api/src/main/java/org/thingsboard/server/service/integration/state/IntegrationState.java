@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -53,18 +52,10 @@ public class IntegrationState {
     private final Queue<ComponentLifecycleEvent> updateQueue = new ConcurrentLinkedQueue<>();
     private final TenantId tenantId;
     private final IntegrationId id;
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     private ComponentLifecycleEvent currentState;
     private ThingsboardPlatformIntegration<?> integration;
     private IntegrationContext context;
     private Integration configuration;
 
-    public boolean isInitialized() {
-        return initialized.get();
-    }
-
-    public void init() {
-        initialized.set(true);
-    }
 }
