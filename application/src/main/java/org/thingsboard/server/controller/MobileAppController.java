@@ -181,12 +181,9 @@ public class MobileAppController extends BaseController {
 
     private SignUpSelfRegistrationParams getSignUpParams(String pkgName, PlatformType platform) {
         MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false);
-        if (mobileAppBundle == null ||
-                mobileAppBundle.getSelfRegistrationParams() == null ||
-                !mobileAppBundle.getSelfRegistrationParams().getEnabled()) {
+        if (mobileAppBundle == null || mobileAppBundle.getSelfRegistrationParams() == null || !mobileAppBundle.getSelfRegistrationParams().getEnabled()) {
             return null;
         }
-
         return mobileAppBundle.getSelfRegistrationParams().toSignUpSelfRegistrationParams(platform);
     }
 
