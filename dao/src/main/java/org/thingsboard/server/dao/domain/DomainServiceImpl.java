@@ -206,4 +206,5 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     public EntityType getEntityType() {
         return EntityType.DOMAIN;
     }
+
 }
