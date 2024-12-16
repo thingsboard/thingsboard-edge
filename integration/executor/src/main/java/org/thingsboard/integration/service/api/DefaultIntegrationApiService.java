@@ -99,7 +99,7 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
 
     @Override
     public void sendUplinkData(Integration integration, IntegrationInfoProto proto, TbMsg data, IntegrationCallback<Void> callback) {
-        sendUplinkData(integration, proto, data, (b, d) -> b.setCustomTbMsg(TbMsg.toByteString(data)).build(), callback);
+        sendUplinkData(integration, proto, data, (b, d) -> b.setCustomTbMsgProto(TbMsg.toProto(data)).build(), callback);
     }
 
     @Override

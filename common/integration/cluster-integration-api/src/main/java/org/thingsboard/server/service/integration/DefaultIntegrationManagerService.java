@@ -236,7 +236,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             try {
                 TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
                 IntegrationId integrationId = new IntegrationId(new UUID(proto.getIntegrationIdMSB(), proto.getIntegrationIdLSB()));
-                IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(null, proto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
+                IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromProto(null, proto.getDataProto(), proto.getData(), TbMsgCallback.EMPTY), null);
                 var state = integrations.get(integrationId);
                 if (state == null) {
                     callback.onFailure(new RuntimeException("Integration is missing!"));

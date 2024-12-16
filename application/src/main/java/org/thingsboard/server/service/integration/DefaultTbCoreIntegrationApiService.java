@@ -180,7 +180,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
             } else if (msg.hasEntityViewDataProto()) {
                 platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
             } else if (!msg.getCustomTbMsg().isEmpty()) {
-                platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(null, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+                platformIntegrationService.processUplinkData(info, TbMsg.fromProto(null, msg.getCustomTbMsgProto(), msg.getCustomTbMsg(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
             } else {
                 callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
             }

@@ -315,7 +315,7 @@ public class RemoteIntegrationManagerService {
         DefaultIntegrationDownlinkMsg downlinkMsg = new DefaultIntegrationDownlinkMsg(
                 integration.getConfiguration().getTenantId(),
                 integration.getConfiguration().getId(),
-                TbMsg.fromBytes(null, deviceDownlinkDataProto.getTbMsg().toByteArray(), TbMsgCallback.EMPTY),
+                TbMsg.fromProto(null, deviceDownlinkDataProto.getTbMsgProto(), deviceDownlinkDataProto.getTbMsg() , TbMsgCallback.EMPTY),
                 deviceDownlinkDataProto.getDeviceName());
 
         integration.onDownlinkMsg(downlinkMsg);
