@@ -141,8 +141,13 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         result.forEach((entityId, data) -> {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
-            TbMsg newMsg = TbMsg.newMsg(queueName, outMsgType,
-                    entityId, metaData, JacksonUtil.toString(data));
+            TbMsg newMsg = TbMsg.newMsg()
+                    .queueName(queueName)
+                    .type(outMsgType)
+                    .originator(entityId)
+                    .metaData(metaData.copy())
+                    .data(JacksonUtil.toString(data))
+                    .build();
             ctx.enqueueForTellNext(newMsg, TbNodeConnectionType.SUCCESS);
         });
         ctx.ack(msg);

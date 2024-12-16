@@ -203,6 +203,12 @@ public class TbRenameKeysNodeTest {
                 "country", "US",
                 "city", "NY"
         );
-        return TbMsg.newMsg(TbMsgType.POST_ATTRIBUTES_REQUEST, entityId, new TbMsgMetaData(mdMap), data, callback);
+        return TbMsg.newMsg()
+                .type(TbMsgType.POST_ATTRIBUTES_REQUEST)
+                .originator(entityId)
+                .metaData(new TbMsgMetaData(mdMap).copy())
+                .data(data)
+                .callback(callback)
+                .build();
     }
 }

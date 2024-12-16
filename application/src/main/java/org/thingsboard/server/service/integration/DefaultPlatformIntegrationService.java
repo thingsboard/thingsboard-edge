@@ -632,8 +632,14 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
             }
 
             JsonNode entityNode = JacksonUtil.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(queueName, TbMsgType.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
-                    JacksonUtil.toString(entityNode), ruleChainId, null);
+            TbMsg tbMsg = TbMsg.newMsg()
+                    .queueName(queueName)
+                    .type(TbMsgType.ENTITY_CREATED)
+                    .originator(device.getId())
+                    .metaData(deviceActionTbMsgMetaData(integration, device))
+                    .data(JacksonUtil.toString(entityNode))
+                    .ruleChainId(ruleChainId)
+                    .build();
 
             process(device.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
@@ -654,8 +660,16 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 queueName = assetProfile.getDefaultQueueName();
             }
             JsonNode entityNode = JacksonUtil.valueToTree(asset);
-            TbMsg tbMsg = TbMsg.newMsg(queueName, TbMsgType.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset),
-                    JacksonUtil.toString(entityNode), ruleChainId, null);
+            TbMsg tbMsg = TbMsg.newMsg()
+                    .queueName(queueName)
+                    .type(TbMsgType.ENTITY_CREATED)
+                    .originator(asset.getId())
+                    .customerId(asset.getCustomerId())
+                    .metaData(assetActionTbMsgMetaData(integration, asset).copy())
+                    .data(JacksonUtil.toString(entityNode))
+                    .ruleChainId(ruleChainId)
+                    .ruleNodeId(null)
+                    .build();
             process(integration.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
             log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), TbMsgType.ENTITY_CREATED.name(), e);
@@ -666,7 +680,12 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
     private void pushEntityGroupCreatedEventToRuleEngine(AbstractIntegration integration, EntityGroup entityGroup) {
         try {
             JsonNode entityNode = JacksonUtil.valueToTree(entityGroup);
-            TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, entityGroup.getId(), getTbMsgMetaData(integration), JacksonUtil.toString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg()
+                    .type(TbMsgType.ENTITY_CREATED)
+                    .originator(entityGroup.getId())
+                    .metaData(getTbMsgMetaData(integration).copy())
+                    .data(JacksonUtil.toString(entityNode))
+                    .build();
             process(integration.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
             log.warn("[{}] Failed to push entityGroup action to rule engine: {}", entityGroup.getId(), TbMsgType.ENTITY_CREATED.name(), e);
@@ -676,7 +695,13 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
     private void pushCustomerCreatedEventToRuleEngine(AbstractIntegration integration, Customer customer) {
         try {
             JsonNode entityNode = JacksonUtil.valueToTree(customer);
-            TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), JacksonUtil.toString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg()
+                    .type(TbMsgType.ENTITY_CREATED)
+                    .originator(customer.getId())
+                    .customerId(customer.getParentCustomerId())
+                    .metaData(getTbMsgMetaData(integration).copy())
+                    .data(JacksonUtil.toString(entityNode))
+                    .build();
             process(customer.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
             log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), TbMsgType.ENTITY_CREATED.name(), e);
@@ -750,7 +775,16 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
             queueName = deviceProfile.getDefaultQueueName();
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueName, msgType, deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg()
+                .queueName(queueName)
+                .type(msgType)
+                .originator(deviceId)
+                .customerId(getCustomerId(sessionInfo))
+                .metaData(metaData.copy())
+                .data(gson.toJson(json))
+                .ruleChainId(ruleChainId)
+                .ruleNodeId(null)
+                .build();
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
 
@@ -769,7 +803,16 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
             queueName = assetProfile.getDefaultQueueName();
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueName, msgType, assetId, customerId, metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg()
+                .queueName(queueName)
+                .type(msgType)
+                .originator(assetId)
+                .customerId(customerId)
+                .metaData(metaData.copy())
+                .data(gson.toJson(json))
+                .ruleChainId(ruleChainId)
+                .ruleNodeId(null)
+                .build();
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
 
@@ -813,6 +856,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 }
             });
         }
+
     }
 
     private class MsgPackCallback implements TbQueueCallback {
@@ -837,6 +881,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 callback.onError(t);
             }
         }
+
     }
 
     private class ApiStatsProxyCallback<T> implements IntegrationCallback<T> {
@@ -870,6 +915,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 callback.onError(e);
             }
         }
+
     }
 
 
@@ -882,4 +928,5 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
         }
         return customerId;
     }
+
 }

@@ -118,7 +118,9 @@ public class TbGenerateReportNode extends TbAbstractExternalNode {
                             attachments = reportBlobEntity.getId().toString();
                         }
                         metaData.putValue(ATTACHMENTS, attachments);
-                        TbMsg newMsg = TbMsg.transformMsgMetadata(tbMsg, metaData);
+                        TbMsg newMsg = tbMsg.transform()
+                                .metaData(metaData)
+                                .build();
                         tellSuccess(ctx, newMsg);
                     },
                     throwable -> tellFailure(ctx, tbMsg, throwable)

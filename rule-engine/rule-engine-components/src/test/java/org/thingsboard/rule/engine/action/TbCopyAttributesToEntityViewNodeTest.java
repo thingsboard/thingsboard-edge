@@ -121,9 +121,12 @@ public class TbCopyAttributesToEntityViewNodeTest {
     public void givenExistingClientAttributes_whenOnMsg_thenCopyAttributesToView() {
         EntityView entityView = getEntityView(CLIENT_TELEMETRY_ENTITY_VIEW);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_ATTRIBUTES_REQUEST, DEVICE_ID,
-                new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SERVER_SCOPE.name())),
-                "{\"clientAttribute1\": 100, \"clientAttribute2\": \"value2\"}");
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_ATTRIBUTES_REQUEST)
+                .originator(DEVICE_ID)
+                .metaData(new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SERVER_SCOPE.name())).copy())
+                .data("{\"clientAttribute1\": 100, \"clientAttribute2\": \"value2\"}")
+                .build();
 
         mockEntityViewLookup(entityView);
         when(ctxMock.getTelemetryService()).thenReturn(telemetryServiceMock);
@@ -155,9 +158,12 @@ public class TbCopyAttributesToEntityViewNodeTest {
     public void givenExistingServerAttributesAndMsgTypeAttributesDeleted_whenOnMsg_thenDeleteAttributesFromView() {
         EntityView entityView = getEntityView(SERVER_TELEMETRY_ENTITY_VIEW);
 
-        TbMsg msg = TbMsg.newMsg(
-                ATTRIBUTES_DELETED, DEVICE_ID, new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SERVER_SCOPE.name())),
-                "{\"attributes\": [\"serverAttribute1\"]}");
+        TbMsg msg = TbMsg.newMsg()
+                .type(ATTRIBUTES_DELETED)
+                .originator(DEVICE_ID)
+                .metaData(new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SERVER_SCOPE.name())).copy())
+                .data("{\"attributes\": [\"serverAttribute1\"]}")
+                .build();
 
         mockEntityViewLookup(entityView);
         when(ctxMock.getTelemetryService()).thenReturn(telemetryServiceMock);
@@ -186,9 +192,12 @@ public class TbCopyAttributesToEntityViewNodeTest {
     public void givenNonMatchedSharedAttributesAndMsgTypeIsAttributesDeleted_whenOnMsg_thenNoAttributesDeleteFromView() {
         EntityView entityView = getEntityView(SHARED_TELEMETRY_ENTITY_VIEW);
 
-        TbMsg msg = TbMsg.newMsg(
-                TbMsgType.ATTRIBUTES_DELETED, DEVICE_ID, new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SHARED_SCOPE.name())),
-                "{\"attributes\": [\"anotherAttribute\"]}");
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.ATTRIBUTES_DELETED)
+                .originator(DEVICE_ID)
+                .metaData(new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SHARED_SCOPE.name())).copy())
+                .data("{\"attributes\": [\"anotherAttribute\"]}")
+                .build();
 
         mockEntityViewLookup(entityView);
 
@@ -203,9 +212,12 @@ public class TbCopyAttributesToEntityViewNodeTest {
     public void givenNonMatchedAttributesAndMsgTypeIsPostAttributesRequest_whenOnMsg_thenCopyNoAttributesToView() {
         EntityView entityView = getEntityView(CLIENT_TELEMETRY_ENTITY_VIEW);
 
-        TbMsg msg = TbMsg.newMsg(
-                TbMsgType.POST_ATTRIBUTES_REQUEST, DEVICE_ID, new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SERVER_SCOPE.name())),
-                "{\"clientAttribute2\": \"value2\"}");
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_ATTRIBUTES_REQUEST)
+                .originator(DEVICE_ID)
+                .metaData(new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SERVER_SCOPE.name())).copy())
+                .data("{\"clientAttribute2\": \"value2\"}")
+                .build();
 
         mockEntityViewLookup(entityView);
         when(ctxMock.getTelemetryService()).thenReturn(telemetryServiceMock);
@@ -235,9 +247,12 @@ public class TbCopyAttributesToEntityViewNodeTest {
         );
         mockEntityViewLookup(entityView);
 
-        TbMsg msg = TbMsg.newMsg(
-                ATTRIBUTES_DELETED, DEVICE_ID, new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SERVER_SCOPE.name())),
-                "{\"attributes\": [\"serverAttribute1\"]}");
+        TbMsg msg = TbMsg.newMsg()
+                .type(ATTRIBUTES_DELETED)
+                .originator(DEVICE_ID)
+                .metaData(new TbMsgMetaData(Map.of(DataConstants.SCOPE, AttributeScope.SERVER_SCOPE.name())).copy())
+                .data("{\"attributes\": [\"serverAttribute1\"]}")
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(entityViewServiceMock).findEntityViewsByTenantIdAndEntityIdAsync(eq(TENANT_ID), eq(DEVICE_ID));
@@ -248,7 +263,12 @@ public class TbCopyAttributesToEntityViewNodeTest {
     @ParameterizedTest
     @EnumSource(TbMsgType.class)
     public void givenMsgTypeAndEmptyMetadata_whenOnMsg_thenVerifyFailureMsg(TbMsgType msgType) {
-        TbMsg msg = TbMsg.newMsg(msgType, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(msgType)
+                .originator(DEVICE_ID)
+                .metaData(TbMsgMetaData.EMPTY.copy())
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
 
         node.onMsg(ctxMock, msg);
 

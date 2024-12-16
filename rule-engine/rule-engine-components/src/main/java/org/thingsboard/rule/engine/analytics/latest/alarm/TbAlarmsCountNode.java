@@ -95,7 +95,13 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                TbMsg msg = TbMsg.newMsg(queueName, outMsgType, parentEntityId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
+                TbMsg msg = TbMsg.newMsg()
+                        .queueName(queueName)
+                        .type(outMsgType)
+                        .originator(parentEntityId)
+                        .metaData(TbMsgMetaData.EMPTY.copy())
+                        .data(TbMsg.EMPTY_STRING)
+                        .build();
                 ctx.enqueueForTellFailure(msg, "Failed to fetch child entities for parent entity [" + parentEntityId + "]");
             }
         }
