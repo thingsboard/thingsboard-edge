@@ -40,9 +40,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.AttributeScope;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
@@ -72,6 +76,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -93,6 +98,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.thingsboard.server.common.data.group.EntityGroup.GROUP_CUSTOMER_USERS_NAME;
 
 @DaoSqlTest
 public class EntityGroupServiceTest extends AbstractServiceTest {
@@ -107,7 +113,11 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
     @Autowired
     EntityGroupService entityGroupService;
     @Autowired
+    CustomerService customerService;
+    @Autowired
     EdgeService edgeService;
+    @Autowired
+    private PlatformTransactionManager platformTransactionManager;
 
     private MergedUserPermissions mergedUserPermissions;
 
@@ -540,6 +550,24 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
         assertThatThrownBy(() -> entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), entityGroupId))
                 .isInstanceOf(DataValidationException.class)
                 .hasMessage("Entity '" + entityGroupId.getEntityType() + "' is not a group entity!");
+    }
+
+    @Test
+    public void testShouldNotPutInCacheEntityGroupWhileCustomerCreation() {
+        Customer customer = new Customer();
+        customer.setTenantId(tenantId);
+        customer.setTitle("My test customer");
+
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = platformTransactionManager.getTransaction(def);
+        try {
+            Customer savedCustomer = customerService.saveCustomer(customer);
+            Optional<EntityGroup> customerUsers = entityGroupService.findEntityGroupByTypeAndName(tenantId, savedCustomer.getId(), EntityType.USER, GROUP_CUSTOMER_USERS_NAME);
+            assertThat(customerUsers).isPresent();
+            assertThat(customerUsers.get().getName()).isEqualTo(GROUP_CUSTOMER_USERS_NAME);
+        } finally {
+            platformTransactionManager.rollback(status);
+        }
     }
 
     private ListenableFuture<List<Long>> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
