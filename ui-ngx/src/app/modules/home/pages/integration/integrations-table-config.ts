@@ -273,7 +273,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     const isDebugActive = this.isDebugActive(allEnabledUntil);
 
     if (!isDebugActive) {
-      return failuresEnabled ? this.translate.instant('debug-config.failures') : this.translate.instant('common.disabled');
+      return failuresEnabled ? this.translate.instant('debug-settings.failures') : this.translate.instant('common.disabled');
     } else {
       return this.durationLeft.transform(allEnabledUntil)
     }
@@ -359,6 +359,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         {
           debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
           maxDebugModeDuration: this.maxDebugModeDuration,
+          entityLabel: this.translate.instant('debug-settings.integration'),
           ...debugSettings
         },
         {},
