@@ -1062,6 +1062,7 @@
         "on-failure": "Failures only (24/7)",
         "all-messages": "All messages ({{time}})",
         "failures": "Failures",
+        "entity": "entity",
         "integration": "integration",
         "converter": "converter",
         "rule-node": "rule node",
