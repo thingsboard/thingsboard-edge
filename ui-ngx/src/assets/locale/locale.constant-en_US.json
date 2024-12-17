@@ -4622,7 +4622,7 @@
         "ios-application": "iOS Application",
         "invalid-store-link": "Invalid store link",
         "enable-oauth" : "Enable OAuth 2.0",
-        "enable-self-registration": "Enable Self registration",
+        "enable-self-registration": "Enable self registration",
         "edit-bundle": "Edit bundle",
         "description": "Description",
         "basic-settings": "Basic settings",
@@ -4695,7 +4695,7 @@
             "registration-form-field": "Registration form fields",
             "remove-registration-field": "Remove registration field",
             "required": "Required",
-            "self-registration": "Self-registration",
+            "self-registration": "Self registration",
             "reset-self-registration-title": "Are you sure you want to reset the self registration settings to default?",
             "reset-self-registration-text": "Be careful, after confirmation, all settings will be lost and cannot be recovered."
         }
