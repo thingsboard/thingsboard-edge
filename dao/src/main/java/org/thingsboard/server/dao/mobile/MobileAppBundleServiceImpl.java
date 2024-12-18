@@ -164,23 +164,23 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public JsonNode getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType) {
+    public String getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType) {
         log.trace("Executing findMobilePrivacyPolicy, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
         checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
         MobileAppBundle appBundle = findMobileAppBundleByPkgNameAndPlatform(tenantId, pkgName, platformType, true);
         if (appBundle != null && appBundle.getSelfRegistrationParams() != null) {
-            return JacksonUtil.toJsonNode(appBundle.getSelfRegistrationParams().getTermsOfUse());
+            return appBundle.getSelfRegistrationParams().getPrivacyPolicy();
         }
         return null;
     }
 
     @Override
-    public JsonNode getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType) {
+    public String getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType) {
         log.trace("Executing findMobileTermsOfUse, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
         checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
         MobileAppBundle appBundle = findMobileAppBundleByPkgNameAndPlatform(tenantId, pkgName, platformType, true);
         if (appBundle != null && appBundle.getSelfRegistrationParams() != null) {
-            return JacksonUtil.toJsonNode(appBundle.getSelfRegistrationParams().getTermsOfUse());
+            return appBundle.getSelfRegistrationParams().getTermsOfUse();
         }
         return null;
     }

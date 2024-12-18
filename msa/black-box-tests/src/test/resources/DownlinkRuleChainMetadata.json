@@ -8,8 +8,11 @@
       },
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
       "name": "Save Timeseries",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "defaultTTL": 0
       }
@@ -21,8 +24,11 @@
       },
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
       "name": "Save Attributes",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "scope": "CLIENT_SCOPE",
         "notifyDevice": false
@@ -35,8 +41,11 @@
       },
       "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
       "name": "Message Type Switch",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "version": 0
       }
@@ -48,8 +57,11 @@
       },
       "type": "org.thingsboard.rule.engine.action.TbLogNode",
       "name": "Log RPC from Device",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
       }
@@ -61,8 +73,11 @@
       },
       "type": "org.thingsboard.rule.engine.action.TbLogNode",
       "name": "Log Other",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
       }
@@ -74,8 +89,11 @@
       },
       "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
       "name": "RPC Call Request",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "timeoutInSeconds": 60
       }
@@ -87,8 +105,11 @@
       },
       "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
       "name": "Is Entity Group",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "originatorTypes": [
           "ENTITY_GROUP"
@@ -102,8 +123,11 @@
       },
       "type": "org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode",
       "name": "Post attributes or RPC request",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "messageTypes": [
           "POST_ATTRIBUTES_REQUEST",
@@ -118,8 +142,11 @@
       },
       "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode",
       "name": "Duplicate To Group Entities",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configurationVersion": 1,
       "configuration": {
         "entityGroupId": null,
@@ -134,8 +161,11 @@
       },
       "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
       "name": "Device Profile Node",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "persistAlarmRulesState": false,
         "fetchAlarmRulesStateOnStart": false
@@ -149,8 +179,11 @@
       },
       "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
       "name": "Generate Report",
-      "debugFailures": false,
-      "debugAll": false,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "ruleChainId": "242ca320-59f8-11ed-b51b-0ffc9b098df8"
       }
@@ -163,8 +196,11 @@
       },
       "type": "org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode",
       "name": "Send message",
-      "debugFailures": false,
-      "debugAll": true,
+      "debugSettings": {
+        "failuresEnabled": false,
+        "allEnabled": true,
+        "allEnabledUntil": 0
+      },
       "configuration": {
         "integrationId": "d8eb67d0-550f-11ed-bb6e-8f34ea6bbc86"
       }

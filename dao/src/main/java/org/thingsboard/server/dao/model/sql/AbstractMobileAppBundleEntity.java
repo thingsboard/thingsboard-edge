@@ -76,7 +76,7 @@ public abstract class AbstractMobileAppBundleEntity<T extends MobileAppBundle> e
 
     @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.MOBILE_APP_BUNDLE_SELF_REGISTRATION_CONFIG_PROPERTY)
-    private JsonNode selfRegistrationConfig;
+    protected JsonNode selfRegistrationConfig;
 
     @Column(name = ModelConstants.MOBILE_APP_BUNDLE_OAUTH2_ENABLED_PROPERTY)
     private Boolean oauth2Enabled;

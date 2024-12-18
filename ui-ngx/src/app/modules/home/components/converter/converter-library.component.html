@@ -45,13 +45,13 @@
             (click)="clearVendor()">
       <mat-icon class="material-icons">close</mat-icon>
     </button>
-    <mat-autocomplete class="tb-autocomplete tb-model-autocomplete"
+    <mat-autocomplete class="tb-autocomplete tb-converter-library-autocomplete"
                       [displayWith]="displayVendorFn"
                       #vendorsAutocomplete="matAutocomplete">
       <div class="flex flex-row flex-wrap">
         <mat-option *ngFor="let vendor of (filteredVendors$ | async); trackBy: trackByName" [value]="vendor" class="flex-full">
-          <div class="tb-flex align-center">
-            <img [src]="vendor.logo" aria-label="logo" class="Vendor logo"/>
+          <div class="flex items-center gap-4">
+            <img [src]="vendor.logo" alt="Vendor logo" class="h-6 w-10 max-w-10"/>
             {{ vendor.name }}
           </div>
         </mat-option>
@@ -80,14 +80,14 @@
             (click)="clearModel()">
       <mat-icon class="material-icons">close</mat-icon>
     </button>
-    <mat-autocomplete class="tb-autocomplete tb-model-autocomplete"
+    <mat-autocomplete class="tb-autocomplete tb-converter-library-autocomplete"
                       [displayWith]="displayModelFn"
                       #modelsAutocomplete="matAutocomplete">
       <div class="flex flex-row flex-wrap">
         <mat-option *ngFor="let model of (filteredModels$ | async); trackBy: trackByName" [value]="model" class="flex-full">
-          <div class="library-model tb-flex align-center space-between flex flex-row">
-            <div class="tb-flex align-center">
-              <img class="device-img" [src]="model.photo" alt="Model photo"/>
+          <div class="library-model flex items-center justify-between gap-2">
+            <div class="flex flex-1 items-center gap-4">
+              <img class="size-10" [src]="model.photo" alt="Model photo"/>
               <div class="flex-1">
                 <div class="device-label">{{ model.info.label }}</div>
                 <div class="device-description">{{ model.info.description }}</div>

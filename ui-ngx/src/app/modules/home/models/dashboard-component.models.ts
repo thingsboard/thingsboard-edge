@@ -127,6 +127,9 @@ interface DashboardWidgetUpdateRecord {
   operation: DashboardWidgetUpdateOperation;
 }
 
+export const maxGridsterCol = 3000;
+export const maxGridsterRow = 3000;
+
 export class DashboardWidgets implements Iterable<DashboardWidget> {
 
   highlightedMode = false;
