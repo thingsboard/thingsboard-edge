@@ -28,89 +28,81 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.resource;
+package org.thingsboard.server.service.edge.rpc.processor.alarm.comment;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.TbResourceId;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
+import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcessor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @Component
 @TbCoreComponent
-public class ResourceEdgeProcessor extends BaseResourceProcessor implements ResourceProcessor {
+public class AlarmCommentEdgeProcessor extends BaseAlarmProcessor implements AlarmCommentProcessor {
 
     @Override
-    public ListenableFuture<Void> processResourceMsgFromEdge(TenantId tenantId, Edge edge, ResourceUpdateMsg resourceUpdateMsg) {
-        TbResourceId tbResourceId = new TbResourceId(new UUID(resourceUpdateMsg.getIdMSB(), resourceUpdateMsg.getIdLSB()));
+    public ListenableFuture<Void> processAlarmCommentMsgFromEdge(TenantId tenantId, EdgeId edgeId, AlarmCommentUpdateMsg alarmCommentUpdateMsg) {
+        log.trace("[{}] processAlarmCommentMsgFromEdge [{}]", tenantId, alarmCommentUpdateMsg);
         try {
-            edgeSynchronizationManager.getEdgeId().set(edge.getId());
-
-            switch (resourceUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    boolean resourceKeyUpdated = super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg);
-                    if (resourceKeyUpdated) {
-                        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.TB_RESOURCE, EdgeEventActionType.UPDATED, tbResourceId, null);
-                    }
-                    break;
-                case ENTITY_DELETED_RPC_MESSAGE:
-                case UNRECOGNIZED:
-                    return handleUnsupportedMsgType(resourceUpdateMsg.getMsgType());
-            }
-        } catch (DataValidationException e) {
-            if (e.getMessage().contains("exceeds the maximum")) {
-                log.warn("[{}] Resource data size has been exhausted {}", tenantId, resourceUpdateMsg, e);
-                return Futures.immediateFuture(null);
-            } else {
-                return Futures.immediateFailedFuture(e);
-            }
+            edgeSynchronizationManager.getEdgeId().set(edgeId);
+            return processAlarmCommentMsg(tenantId, alarmCommentUpdateMsg);
         } finally {
             edgeSynchronizationManager.getEdgeId().remove();
         }
-        return Futures.immediateFuture(null);
     }
 
     @Override
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
-        TbResourceId tbResourceId = new TbResourceId(edgeEvent.getEntityId());
+        UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (edgeEvent.getAction()) {
-            case ADDED, UPDATED -> {
-                TbResource tbResource = edgeCtx.getResourceService().findResourceById(edgeEvent.getTenantId(), tbResourceId);
-                if (tbResource != null) {
-                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    ResourceUpdateMsg resourceUpdateMsg = EdgeMsgConstructorUtils.constructResourceUpdatedMsg(msgType, tbResource);
+            case ADDED_COMMENT:
+            case UPDATED_COMMENT:
+            case DELETED_COMMENT:
+                AlarmComment alarmComment = JacksonUtil.convertValue(edgeEvent.getBody(), AlarmComment.class);
+                if (alarmComment != null) {
                     return DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addResourceUpdateMsg(resourceUpdateMsg)
+                            .addAlarmCommentUpdateMsg(EdgeMsgConstructorUtils.constructAlarmCommentUpdatedMsg(msgType, alarmComment))
                             .build();
                 }
-            }
-            case DELETED -> {
-                ResourceUpdateMsg resourceUpdateMsg = EdgeMsgConstructorUtils.constructResourceDeleteMsg(tbResourceId);
-                return DownlinkMsg.newBuilder()
-                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addResourceUpdateMsg(resourceUpdateMsg)
-                        .build();
-            }
+            default:
+                return null;
         }
-        return null;
+    }
+
+    @Override
+    public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
+        AlarmId alarmId = new AlarmId(new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        EdgeId originatorEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
+        AlarmComment alarmComment = JacksonUtil.fromString(edgeNotificationMsg.getBody(), AlarmComment.class);
+        if (alarmComment == null) {
+            return Futures.immediateFuture(null);
+        }
+        Alarm alarmById = edgeCtx.getAlarmService().findAlarmById(tenantId, new AlarmId(alarmComment.getAlarmId().getId()));
+        List<ListenableFuture<Void>> delFutures = pushEventToAllRelatedEdges(tenantId, alarmById.getOriginator(),
+                alarmId, actionType, JacksonUtil.valueToTree(alarmComment), originatorEdgeId, EdgeEventType.ALARM_COMMENT);
+        return Futures.transform(Futures.allAsList(delFutures), voids -> null, dbCallbackExecutorService);
     }
 
 }

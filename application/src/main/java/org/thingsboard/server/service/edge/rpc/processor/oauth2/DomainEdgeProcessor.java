@@ -28,49 +28,58 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.widget;
+package org.thingsboard.server.service.edge.rpc.processor.oauth2;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.domain.DomainInfo;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.id.WidgetsBundleId;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.common.data.id.DomainId;
+import org.thingsboard.server.common.data.oauth2.OAuth2Client;
+import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.util.List;
-
-@Component
 @Slf4j
+@Component
 @TbCoreComponent
-public class WidgetBundleEdgeProcessor extends BaseEdgeProcessor {
+public class DomainEdgeProcessor extends BaseEdgeProcessor {
+
+    @Autowired
+    private DomainService domainService;
 
     @Override
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
-        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(edgeEvent.getEntityId());
+        DomainId domainId = new DomainId(edgeEvent.getEntityId());
         switch (edgeEvent.getAction()) {
             case ADDED, UPDATED -> {
-                WidgetsBundle widgetsBundle = edgeCtx.getWidgetsBundleService().findWidgetsBundleById(edgeEvent.getTenantId(), widgetsBundleId);
-                if (widgetsBundle != null) {
-                    List<String> widgets = edgeCtx.getWidgetTypeService().findWidgetFqnsByWidgetsBundleId(edgeEvent.getTenantId(), widgetsBundleId);
+                DomainInfo domainInfo = domainService.findDomainInfoById(edgeEvent.getTenantId(), domainId);
+                if (domainInfo != null && domainInfo.isPropagateToEdge()) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg = EdgeMsgConstructorUtils.constructWidgetsBundleUpdateMsg(msgType, widgetsBundle, widgets);
-                    return DownlinkMsg.newBuilder()
+                    OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg = EdgeMsgConstructorUtils.constructOAuth2DomainUpdateMsg(msgType, domainInfo);
+                    DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addWidgetsBundleUpdateMsg(widgetsBundleUpdateMsg)
-                            .build();
+                            .addOAuth2DomainUpdateMsg(oAuth2DomainUpdateMsg);
+                    domainInfo.getOauth2ClientInfos().forEach(clientInfo -> {
+                        OAuth2Client oauth2Client = edgeCtx.getOAuth2ClientService().findOAuth2ClientById(edgeEvent.getTenantId(), clientInfo.getId());
+                        OAuth2ClientUpdateMsg oAuth2ClientUpdateMsg = EdgeMsgConstructorUtils.constructOAuth2ClientUpdateMsg(msgType, oauth2Client);
+                        builder.addOAuth2ClientUpdateMsg(oAuth2ClientUpdateMsg);
+                    });
+                    return builder.build();
                 }
             }
             case DELETED -> {
-                WidgetsBundleUpdateMsg widgetsBundleUpdateMsg = EdgeMsgConstructorUtils.constructWidgetsBundleDeleteMsg(widgetsBundleId);
+                OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg = EdgeMsgConstructorUtils.constructOAuth2DomainDeleteMsg(domainId);
                 return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addWidgetsBundleUpdateMsg(widgetsBundleUpdateMsg)
+                        .addOAuth2DomainUpdateMsg(oAuth2DomainUpdateMsg)
                         .build();
             }
         }

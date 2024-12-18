@@ -28,35 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.settings;
+package org.thingsboard.server.service.edge.rpc.processor.device.ota;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Slf4j
 @Component
 @TbCoreComponent
-public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
+public class DeviceOtaPackageEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
-        AdminSettings adminSettings = JacksonUtil.convertValue(edgeEvent.getBody(), AdminSettings.class);
-        if (adminSettings == null) {
-            return null;
+        DownlinkMsg downlinkMsg = null;
+        try {
+            DeviceGroupOtaPackage deviceGroupOtaPackage = JacksonUtil.convertValue(edgeEvent.getBody(), DeviceGroupOtaPackage.class);
+            if (deviceGroupOtaPackage == null) {
+                return null;
+            }
+            UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
+            downlinkMsg = DownlinkMsg.newBuilder()
+                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                    .addDeviceGroupOtaPackageUpdateMsg(EdgeMsgConstructorUtils.constructDeviceGroupOtaUpdateMsg(msgType, deviceGroupOtaPackage))
+                    .build();
+        } catch (Exception e) {
+            log.error("Can't process device group ota package msg [{}]", edgeEvent, e);
         }
-        AdminSettingsUpdateMsg msg = AdminSettingsUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(adminSettings)).build();
-        return DownlinkMsg.newBuilder()
-                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAdminSettingsUpdateMsg(msg)
-                .build();
+        return downlinkMsg;
     }
 
 }

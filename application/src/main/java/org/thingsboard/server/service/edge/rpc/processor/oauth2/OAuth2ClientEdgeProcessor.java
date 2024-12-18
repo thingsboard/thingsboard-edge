@@ -28,35 +28,55 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.settings;
+package org.thingsboard.server.service.edge.rpc.processor.oauth2;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
+import org.thingsboard.server.common.data.id.OAuth2ClientId;
+import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Slf4j
 @Component
 @TbCoreComponent
-public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
+public class OAuth2ClientEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
-        AdminSettings adminSettings = JacksonUtil.convertValue(edgeEvent.getBody(), AdminSettings.class);
-        if (adminSettings == null) {
-            return null;
+        OAuth2ClientId oAuth2ClientId = new OAuth2ClientId(edgeEvent.getEntityId());
+
+        switch (edgeEvent.getAction()) {
+            case ADDED, UPDATED -> {
+                boolean isPropagateToEdge = edgeCtx.getOAuth2ClientService().isPropagateOAuth2ClientToEdge(edgeEvent.getTenantId(), oAuth2ClientId);
+                if (!isPropagateToEdge) {
+                    return null;
+                }
+                OAuth2Client oAuth2Client = edgeCtx.getOAuth2ClientService().findOAuth2ClientById(edgeEvent.getTenantId(), oAuth2ClientId);
+                if (oAuth2Client != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
+                    OAuth2ClientUpdateMsg oAuth2ClientUpdateMsg = EdgeMsgConstructorUtils.constructOAuth2ClientUpdateMsg(msgType, oAuth2Client);
+                    return DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addOAuth2ClientUpdateMsg(oAuth2ClientUpdateMsg)
+                            .build();
+                }
+            }
+            case DELETED -> {
+                OAuth2ClientUpdateMsg oAuth2ClientDeleteMsg = EdgeMsgConstructorUtils.constructOAuth2ClientDeleteMsg(oAuth2ClientId);
+                return DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addOAuth2ClientUpdateMsg(oAuth2ClientDeleteMsg)
+                        .build();
+            }
         }
-        AdminSettingsUpdateMsg msg = AdminSettingsUpdateMsg.newBuilder().setEntity(JacksonUtil.toString(adminSettings)).build();
-        return DownlinkMsg.newBuilder()
-                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAdminSettingsUpdateMsg(msg)
-                .build();
+        return null;
     }
 
 }

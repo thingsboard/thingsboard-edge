@@ -40,7 +40,7 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.converter.ConverterMsgConstructor;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
@@ -48,16 +48,16 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @TbCoreComponent
 public class ConverterEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertConverterEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
-        var msgConstructor = ((ConverterMsgConstructor) edgeCtx.getConverterMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion));
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         if (msgType == UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE) {
             Converter converter = edgeCtx.getConverterService().findConverterById(edgeEvent.getTenantId(), converterId);
             if (converter != null) {
                 return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addConverterMsg(msgConstructor.constructConverterUpdateMsg(msgType, converter))
+                        .addConverterMsg(EdgeMsgConstructorUtils.constructConverterUpdateMsg(msgType, converter))
                         .build();
             }
         }

@@ -48,13 +48,11 @@ import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.menu.CustomMenuMsgConstructor;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
-import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -67,13 +65,8 @@ public class CustomMenuEdgeProcessor extends BaseEdgeProcessor {
     @Autowired
     private CustomMenuService customMenuService;
 
-    @Autowired
-    private CustomMenuMsgConstructor customMenuMsgConstructor;
-
-    public DownlinkMsg convertCustomMenuEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
-        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0)) {
-            return null;
-        }
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         CustomMenu customMenu = JacksonUtil.convertValue(edgeEvent.getBody(), CustomMenu.class);
         if (customMenu == null) {
             return null;
@@ -85,23 +78,21 @@ public class CustomMenuEdgeProcessor extends BaseEdgeProcessor {
             switch (edgeEvent.getAction()) {
                 case ADDED, UPDATED -> {
                     List<EntityId> entityIds = customMenuService.findCustomMenuAssigneeList(customMenu).stream().map(EntityInfo::getId).toList();
-                    customMenuProto = customMenuMsgConstructor.constructCustomMenuMsg(msgType, customMenu, entityIds);
+                    customMenuProto = EdgeMsgConstructorUtils.constructCustomMenuMsg(msgType, customMenu, entityIds);
                 }
                 case DELETED -> {
-                    customMenuProto = customMenuMsgConstructor.constructCustomMenuMsg(msgType, customMenu, null);
+                    customMenuProto = EdgeMsgConstructorUtils.constructCustomMenuMsg(msgType, customMenu, null);
                 }
             }
-            return DownlinkMsg.newBuilder()
-                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                    .setCustomMenuProto(customMenuProto)
-                    .build();
+            return DownlinkMsg.newBuilder().setDownlinkMsgId(EdgeUtils.nextPositiveInt()).setCustomMenuProto(customMenuProto).build();
         } catch (Exception e) {
             log.error("Error processing custom menu for edgeEvent [{}]", edgeEvent, e);
             return null;
         }
     }
 
-    public ListenableFuture<Void> processCustomMenuNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+    @Override
+    public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(EdgeEventType.valueOf(edgeNotificationMsg.getEntityType()),
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
