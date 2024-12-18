@@ -22,7 +22,7 @@ import org.thingsboard.common.util.AbstractListeningExecutor;
 @Component
 public class GrpcCallbackExecutorService extends AbstractListeningExecutor {
 
-    @Value("${edges.grpc_callback_thread_pool_size}")
+    @Value("${edges.grpc_callback_thread_pool_size:4}")
     private int grpcCallbackExecutorThreadPoolSize;
 
     @Override

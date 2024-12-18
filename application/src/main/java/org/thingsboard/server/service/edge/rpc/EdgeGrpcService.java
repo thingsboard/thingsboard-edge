@@ -117,10 +117,10 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
     private int keepAliveTimeSec;
     @Value("${edges.rpc.keep_alive_timeout_sec:5}")
     private int keepAliveTimeoutSec;
-    @Value("${edges.scheduler_pool_size}")
+    @Value("${edges.scheduler_pool_size:4}")
     private int schedulerPoolSize;
 
-    @Value("${edges.send_scheduler_pool_size}")
+    @Value("${edges.send_scheduler_pool_size:4}")
     private int sendSchedulerPoolSize;
 
     @Value("${edges.max_high_priority_queue_size_per_session:10000}")
