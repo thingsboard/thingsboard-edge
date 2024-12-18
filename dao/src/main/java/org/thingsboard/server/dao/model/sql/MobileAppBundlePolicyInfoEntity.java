@@ -63,6 +63,9 @@ public final class MobileAppBundlePolicyInfoEntity extends AbstractMobileAppBund
         if (selfRegistrationParams != null) {
             this.termsOfUse = selfRegistrationParams.getTermsOfUse();
             this.privacyPolicy = selfRegistrationParams.getPrivacyPolicy();
+            selfRegistrationParams.setPrivacyPolicy(null);
+            selfRegistrationParams.setTermsOfUse(null);
+            this.selfRegistrationConfig = toJson(mobileAppBundle.getSelfRegistrationParams());
         }
     }
 

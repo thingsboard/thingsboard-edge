@@ -52,6 +52,7 @@ import {
   RecipientNotificationDialogData
 } from '@home/pages/notification/recipient/recipient-notification-dialog.component';
 import { NotificationTarget } from '@shared/models/notification.models';
+import { EditorOptions } from 'tinymce';
 import { DialogService } from '@core/services/dialog.service';
 
 @Component({
@@ -69,19 +70,21 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   deleteDisabled = true;
 
-  tinyMceOptions: Record<string, any> = {
+  tinyMceOptions: Partial<EditorOptions> = {
     base_url: '/assets/tinymce',
     suffix: '.min',
-    plugins: ['link table image imagetools code fullscreen'],
+    plugins: ['link', 'table', 'image', 'imagetools', 'code', 'fullscreen', 'lists'],
     menubar: 'edit insert tools view format table',
-    toolbar: 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor ' +
-      '| link | table | image | alignleft aligncenter alignright alignjustify  ' +
-      '| numlist bullist outdent indent  | removeformat | code | fullscreen',
+    toolbar_mode: 'sliding',
+    toolbar: 'fontfamily fontsize | bold italic  strikethrough  forecolor backcolor ' +
+      '| link table image | alignleft aligncenter alignright alignjustify  ' +
+      '| numlist bullist outdent indent | blocks | removeformat code | fullscreen',
     height: 380,
     autofocus: false,
     branding: false,
     resize: true,
-    promotion: false
+    promotion: false,
+    relative_urls: false
   };
 
   showMainLoadingBar = false;

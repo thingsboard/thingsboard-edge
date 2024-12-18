@@ -217,16 +217,22 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  writeValue(value: string | EntityInfoData | null): void {
+  writeValue(value: string | EntityInfoData | EntityId | null): void {
     this.searchText = '';
     if (value !== null) {
-      if ((value as EntityInfoData).id) {
+      if ((value as EntityInfoData)?.id?.id) {
         const entityGroup = value as EntityInfoData;
         this.modelValue = this.useFullEntityId ? entityGroup.id : entityGroup.id.id;
         this.selectEntityGroupFormGroup.get('entityGroup').patchValue(entityGroup, {emitEvent: false});
         this.entityGroupLoaded.next(entityGroup);
       } else {
-        this.entityGroupService.getEntityGroup(value as string, {ignoreLoading: true}).subscribe({
+        let groupId: string;
+        if (typeof value === 'string') {
+          groupId = value;
+        } else {
+          groupId = (value as EntityId).id;
+        }
+        this.entityGroupService.getEntityGroup(groupId, {ignoreLoading: true}).subscribe({
           next: ({ name, id, ownerId, type }) => {
             const entityGroup = { name, id };
             this.modelValue = this.useFullEntityId ? id : id.id;

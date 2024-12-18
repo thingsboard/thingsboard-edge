@@ -93,6 +93,8 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
   @Input()
   subType = ResourceSubType.EXTENSION;
 
+  ResourceSubType = ResourceSubType;
+
   resourceFormGroup = this.fb.group({
     resource: this.fb.control<string|ResourceInfo>(null)
   });
@@ -223,6 +225,10 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
       this.modelValue = value;
       this.propagateChange(this.modelValue);
     }
+  }
+
+  textIsNotEmpty(text: string): boolean {
+    return (text && text.length > 0);
   }
 
   private fetchResources(searchText?: string): Observable<Array<ResourceInfo>> {

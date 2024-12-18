@@ -43,7 +43,7 @@
                        [expanded]="azureEventHubIntegrationConfigForm.get('enablePersistentCheckpoints').value">
     <mat-expansion-panel-header class="flex flex-row">
       <mat-panel-title tb-hint-tooltip-icon="{{ 'integration.enable-persistent-checkpoints-hint' | translate }}">
-        <mat-slide-toggle class="toggle" [aria-label]="'integration.enable-persistent-checkpoints' | translate"
+        <mat-slide-toggle [aria-label]="'integration.enable-persistent-checkpoints' | translate"
                           formControlName="enablePersistentCheckpoints"
                           (click)="$event.stopPropagation()">
           {{ 'integration.enable-persistent-checkpoints' | translate }}

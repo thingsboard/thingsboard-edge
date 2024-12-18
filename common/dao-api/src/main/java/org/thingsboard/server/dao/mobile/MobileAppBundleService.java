@@ -60,9 +60,9 @@ public interface MobileAppBundleService extends EntityDaoService {
 
     MobileSelfRegistrationParams getMobileSelfRegistrationParams(TenantId tenantId, String pkgName, PlatformType platformType);
 
-    JsonNode getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
+    String getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
 
-    JsonNode getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType);
+    String getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType);
 
     void deleteMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 

@@ -219,11 +219,11 @@ public class QrCodeSettingsController extends BaseController {
         } else {
             qrCodeSettings = qrCodeSettingService.findQrCodeSettings(TenantId.SYS_TENANT_ID);
         }
-        if (userAgent.contains("Android")) {
+        if (userAgent.contains("Android") && qrCodeSettings.isAndroidEnabled()) {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header("Location", qrCodeSettings.getGooglePlayLink())
                     .build();
-        } else if (userAgent.contains("iPhone") || userAgent.contains("iPad") && qrCodeSettings.isIosEnabled()) {
+        } else if ((userAgent.contains("iPhone") || userAgent.contains("iPad")) && qrCodeSettings.isIosEnabled()) {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header("Location", qrCodeSettings.getAppStoreLink())
                     .build();
