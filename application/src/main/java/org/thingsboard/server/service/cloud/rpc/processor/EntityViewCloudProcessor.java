@@ -18,7 +18,6 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -35,23 +34,20 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorFactory;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.entityview.BaseEntityViewProcessor;
 
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
-
-    @Autowired
-    private EntityViewMsgConstructorFactory entityViewMsgConstructorFactory;
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
                                                                 EntityViewUpdateMsg entityViewUpdateMsg,
@@ -124,15 +120,15 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         return builder.build();
     }
 
-    public UplinkMsg convertEntityViewEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
+    @Override
+    public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         EntityViewId entityViewId = new EntityViewId(cloudEvent.getEntityId());
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
                 EntityView entityView = edgeCtx.getEntityViewService().findEntityViewById(cloudEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
-                            entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewUpdatedMsg(msgType, entityView);
+                    EntityViewUpdateMsg entityViewUpdateMsg = EdgeMsgConstructorUtils.constructEntityViewUpdatedMsg(msgType, entityView);
                     return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
@@ -141,19 +137,13 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 }
             }
             case DELETED -> {
-                EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
-                        entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewDeleteMsg(entityViewId);
+                EntityViewUpdateMsg entityViewUpdateMsg = EdgeMsgConstructorUtils.constructEntityViewDeleteMsg(entityViewId);
                 return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
             }
         }
         return null;
-    }
-
-    @Override
-    protected EntityView constructEntityViewFromUpdateMsg(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) {
-        return JacksonUtil.fromString(entityViewUpdateMsg.getEntity(), EntityView.class, true);
     }
 
     @Override
