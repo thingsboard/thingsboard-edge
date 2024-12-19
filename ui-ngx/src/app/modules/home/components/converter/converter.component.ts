@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import {
+  booleanAttribute,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional
+} from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../entity/entity.component';
@@ -75,6 +84,8 @@ import { ConverterLibraryService } from '@core/http/converter-library.service';
 export class ConverterComponent extends EntityComponent<Converter> implements OnInit, OnDestroy {
 
   private _integrationType: IntegrationType;
+
+  @Input({ transform: booleanAttribute }) isWizard = false;
 
   @Input()
   hideType = false;
@@ -147,6 +158,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       this.onSetDefaultScriptBody(this.entityForm.get('type').value);
     });
     this.checkIsNewConverter(this.entity, this.entityForm);
+    if (this.isWizard) {
+      this.entityForm.get('debugSettings').patchValue({ failuresEnabled: true, allEnabled: true }, {emitEvent: false});
+    }
   }
 
   ngOnDestroy() {
@@ -168,7 +182,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const form = this.fb.group({
       name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-      debugSettings: [entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true }],
+      debugSettings: [entity?.debugSettings ?? { failuresEnabled: false, allEnabled: false }],
       configuration: this.fb.group({
         scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
         decoder: [entity?.configuration ? entity.configuration.decoder : null],
@@ -275,7 +289,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.patchValue({
       type: entity.type,
       name: entity?.name ? entity.name : '',
-      debugSettings: entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true },
+      debugSettings: entity?.debugSettings ?? { failuresEnabled: this.isWizard, allEnabled: this.isWizard },
       configuration: {
         scriptLang,
         decoder: entity.configuration ? entity.configuration.decoder : null,

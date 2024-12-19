@@ -111,6 +111,7 @@
                         [integrationType]="integrationWizardForm.get('type').value"
                         [integrationName]="integrationWizardForm.get('name').value"
                         [convertorName]="createConvertorName(converterType.UPLINK)"
+                        [isWizard]="true"
                         isEdit="true"
                         [entity]="uplinkConverter"
           ></tb-converter>
@@ -147,6 +148,7 @@
                         [integrationType]="integrationWizardForm.get('type').value"
                         [integrationName]="integrationWizardForm.get('name').value"
                         [convertorName]="createConvertorName(converterType.DOWNLINK)"
+                        [isWizard]="true"
                         hideType="true"
                         isEdit="true"
                         [entity]="downlinkConverter"
