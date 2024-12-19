@@ -145,7 +145,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
                     .queueName(queueName)
                     .type(outMsgType)
                     .originator(entityId)
-                    .metaData(metaData.copy())
+                    .copyMetaData(metaData)
                     .data(JacksonUtil.toString(data))
                     .build();
             ctx.enqueueForTellNext(newMsg, TbNodeConnectionType.SUCCESS);

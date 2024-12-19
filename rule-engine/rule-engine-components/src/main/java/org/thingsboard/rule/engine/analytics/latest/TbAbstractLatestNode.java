@@ -121,7 +121,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                                 .queueName(queueName)
                                 .type(outMsgType)
                                 .originator(originatorId)
-                                .metaData(TbMsgMetaData.EMPTY.copy())
+                                .copyMetaData(TbMsgMetaData.EMPTY)
                                 .data(TbMsg.EMPTY_STRING)
                                 .build();
                         ctx.enqueueForTellFailure(msg, e.getMessage());
@@ -136,7 +136,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                                     .queueName(queueName)
                                     .type(outMsgType)
                                     .originator(originatorId)
-                                    .metaData(metaData.copy())
+                                    .copyMetaData(metaData)
                                     .data(gson.toJson(messageData))
                                     .build();
                             ctx.enqueueForTellNext(msg, SUCCESS);

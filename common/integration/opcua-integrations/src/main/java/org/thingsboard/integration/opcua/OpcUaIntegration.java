@@ -395,7 +395,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         TbMsg tbMsg = TbMsg.newMsg()
                 .type(messageType)
                 .originator(this.configuration.getId())
-                .metaData(tbMsgMetaData.copy())
+                .copyMetaData(tbMsgMetaData)
                 .dataType(TbMsgDataType.JSON)
                 .data("{}")
                 .build();

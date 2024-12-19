@@ -291,7 +291,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 .queueName(queueName)
                 .type(config.getOutMsgType())
                 .originator(msg.getOriginator())
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(gson.toJson(result))
                 .build(), TbNodeConnectionType.SUCCESS);
         ctx.ack(msg);

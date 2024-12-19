@@ -665,10 +665,9 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                     .type(TbMsgType.ENTITY_CREATED)
                     .originator(asset.getId())
                     .customerId(asset.getCustomerId())
-                    .metaData(assetActionTbMsgMetaData(integration, asset).copy())
+                    .copyMetaData(assetActionTbMsgMetaData(integration, asset))
                     .data(JacksonUtil.toString(entityNode))
                     .ruleChainId(ruleChainId)
-                    .ruleNodeId(null)
                     .build();
             process(integration.getTenantId(), tbMsg, null);
         } catch (IllegalArgumentException e) {
@@ -683,7 +682,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
             TbMsg tbMsg = TbMsg.newMsg()
                     .type(TbMsgType.ENTITY_CREATED)
                     .originator(entityGroup.getId())
-                    .metaData(getTbMsgMetaData(integration).copy())
+                    .copyMetaData(getTbMsgMetaData(integration))
                     .data(JacksonUtil.toString(entityNode))
                     .build();
             process(integration.getTenantId(), tbMsg, null);
@@ -699,7 +698,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                     .type(TbMsgType.ENTITY_CREATED)
                     .originator(customer.getId())
                     .customerId(customer.getParentCustomerId())
-                    .metaData(getTbMsgMetaData(integration).copy())
+                    .copyMetaData(getTbMsgMetaData(integration))
                     .data(JacksonUtil.toString(entityNode))
                     .build();
             process(customer.getTenantId(), tbMsg, null);
@@ -780,10 +779,9 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 .type(msgType)
                 .originator(deviceId)
                 .customerId(getCustomerId(sessionInfo))
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(gson.toJson(json))
                 .ruleChainId(ruleChainId)
-                .ruleNodeId(null)
                 .build();
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
@@ -808,10 +806,9 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 .type(msgType)
                 .originator(assetId)
                 .customerId(customerId)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(gson.toJson(json))
                 .ruleChainId(ruleChainId)
-                .ruleNodeId(null)
                 .build();
         sendToRuleEngine(tenantId, tbMsg, callback);
     }

@@ -233,7 +233,7 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(CUSTOMER_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         TbMsg expectedMsg = msg.transform()
@@ -262,7 +262,7 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(CUSTOMER_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
 
@@ -291,7 +291,7 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(CUSTOMER_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
 

@@ -210,7 +210,7 @@ public class TbSimpleAggMsgNode implements TbNode {
                 .queueName(queueName)
                 .type(outMsgType)
                 .originator(entityId)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(interval.toValueJson(gson, config.getOutputValueKey()))
                 .build(), TbNodeConnectionType.SUCCESS);
     }

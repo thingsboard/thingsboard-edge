@@ -154,7 +154,7 @@ public abstract class AbstractEmulatorLauncher<T extends GroupEntity<?>> {
         TbMsg tbMsg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(entity.getId())
-                .metaData(md.copy())
+                .copyMetaData(md)
                 .dataType(TbMsgDataType.JSON)
                 .data(msgData)
                 .build();

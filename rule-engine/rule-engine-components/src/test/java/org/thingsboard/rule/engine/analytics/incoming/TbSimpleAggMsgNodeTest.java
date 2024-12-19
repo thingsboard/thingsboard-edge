@@ -90,7 +90,7 @@ public class TbSimpleAggMsgNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(deviceId)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(jsonObject.toString())
                 .callback(callback)
                 .build();

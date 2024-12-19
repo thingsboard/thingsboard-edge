@@ -223,7 +223,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(assetId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctx, msg);
@@ -278,7 +278,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(assetId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctx, msg);
@@ -299,7 +299,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
                 .thenReturn(TbMsg.newMsg()
                         .type(TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG)
                         .originator(null)
-                        .metaData(TbMsgMetaData.EMPTY.copy())
+                        .copyMetaData(TbMsgMetaData.EMPTY)
                         .data(null)
                         .build());
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
@@ -313,7 +313,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
             return TbMsg.newMsg()
                     .type(type)
                     .originator(originator)
-                    .metaData(metaData.copy().copy())
+                    .copyMetaData(metaData)
                     .data(data)
                     .build();
         }).when(ctx).newMsg(ArgumentMatchers.isNull(), eq(TbMsgType.TB_AGG_LATEST_SELF_MSG), ArgumentMatchers.nullable(EntityId.class),
@@ -330,7 +330,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
             TbMsg msg = TbMsg.newMsg()
                     .type(TbMsgType.POST_TELEMETRY_REQUEST)
                     .originator(assetId)
-                    .metaData(TbMsgMetaData.EMPTY.copy())
+                    .copyMetaData(TbMsgMetaData.EMPTY)
                     .data(TbMsg.EMPTY_JSON_OBJECT)
                     .build();
             node.onMsg(ctx, msg);
@@ -375,7 +375,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(assetId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctx, msg);
@@ -409,7 +409,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(assetId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctx, msg);

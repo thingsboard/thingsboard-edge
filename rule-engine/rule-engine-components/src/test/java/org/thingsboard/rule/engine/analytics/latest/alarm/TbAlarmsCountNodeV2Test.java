@@ -253,11 +253,9 @@ public class TbAlarmsCountNodeV2Test extends AbstractRuleNodeUpgradeTest {
                 TbMsg alarmMsg = TbMsg.newMsg()
                         .type(type)
                         .originator(entityId)
-                        .metaData(TbMsgMetaData.EMPTY.copy())
+                        .copyMetaData(TbMsgMetaData.EMPTY)
                         .dataType(TbMsgDataType.JSON)
                         .data(JacksonUtil.toString(alarm))
-                        .ruleChainId(null)
-                        .ruleNodeId(null)
                         .build();
                 node.onMsg(ctx, alarmMsg);
             } catch (Exception e) {
@@ -321,11 +319,9 @@ public class TbAlarmsCountNodeV2Test extends AbstractRuleNodeUpgradeTest {
                     TbMsg alarmMsg = TbMsg.newMsg()
                             .type(TbMsgType.ALARM)
                             .originator(entityId)
-                            .metaData(TbMsgMetaData.EMPTY.copy())
+                            .copyMetaData(TbMsgMetaData.EMPTY)
                             .dataType(TbMsgDataType.JSON)
                             .data(JacksonUtil.toString(alarm))
-                            .ruleChainId(null)
-                            .ruleNodeId(null)
                             .build();
                     node.onMsg(ctx, alarmMsg);
                 } catch (Exception e) {
@@ -389,11 +385,9 @@ public class TbAlarmsCountNodeV2Test extends AbstractRuleNodeUpgradeTest {
                     TbMsg alarmMsg = TbMsg.newMsg()
                             .type(TbMsgType.ALARM)
                             .originator(entityId)
-                            .metaData(TbMsgMetaData.EMPTY.copy())
+                            .copyMetaData(TbMsgMetaData.EMPTY)
                             .dataType(TbMsgDataType.JSON)
                             .data(JacksonUtil.toString(alarm))
-                            .ruleChainId(null)
-                            .ruleNodeId(null)
                             .build();
                     node.onMsg(ctx, alarmMsg);
                 } catch (Exception e) {

@@ -380,7 +380,7 @@ class TbDuplicateMsgToGroupByNameNodeTest {
                     .type(type)
                     .originator(originator)
                     .customerId(customerId)
-                    .metaData(metaData.copy().copy())
+                    .copyMetaData(metaData)
                     .data(data)
                     .build();
         }).when(ctxMock).newMsg(
@@ -478,7 +478,7 @@ class TbDuplicateMsgToGroupByNameNodeTest {
                     .type(type)
                     .originator(originator)
                     .customerId(customerId)
-                    .metaData(metaData.copy().copy())
+                    .copyMetaData(metaData)
                     .data(data)
                     .build();
         }).when(ctxMock).newMsg(
@@ -592,7 +592,7 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         return TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(originatorId)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data("{ \"temp\": 44, \"humidity\": 86, \"groupName\": \"Entity Group Name\" }")
                 .build();
     }
@@ -605,7 +605,7 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         return TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(originatorId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
     }

@@ -151,7 +151,7 @@ public class TbAlarmsCountNodeTest extends AbstractRuleNodeUpgradeTest {
             return TbMsg.newMsg()
                     .type(type)
                     .originator(originator)
-                    .metaData(metaData.copy().copy())
+                    .copyMetaData(metaData)
                     .data(data)
                     .build();
         }).when(ctx).newMsg(ArgumentMatchers.isNull(), ArgumentMatchers.any(TbMsgType.class), ArgumentMatchers.nullable(EntityId.class),

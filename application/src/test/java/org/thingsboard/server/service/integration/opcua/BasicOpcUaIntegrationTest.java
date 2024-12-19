@@ -298,7 +298,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         TbMsg tbMsg = TbMsg.newMsg()
                 .type(TbMsgType.ATTRIBUTES_UPDATED)
                 .originator(originatorId)
-                .metaData(tbMsgMetaData.copy())
+                .copyMetaData(tbMsgMetaData)
                 .data(writeValueNode.toString())
                 .build();
         return TransportProtos.IntegrationDownlinkMsgProto.newBuilder()

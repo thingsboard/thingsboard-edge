@@ -139,7 +139,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")).copy())
+                .copyMetaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")))
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -166,7 +166,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -191,7 +191,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -217,7 +217,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg createdCustomerMsg = TbMsg.newMsg()
                 .type(TbMsgType.ENTITY_CREATED)
                 .originator(newCustomerId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
 
@@ -234,7 +234,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")).copy())
+                .copyMetaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")))
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -274,7 +274,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")).copy())
+                .copyMetaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")))
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -309,7 +309,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")).copy())
+                .copyMetaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")))
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -376,7 +376,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -407,7 +407,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);

@@ -102,7 +102,7 @@ class TbRemoveFromGroupNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(new TbMsgMetaData(Map.of("groupName", "Device Group")).copy())
+                .copyMetaData(new TbMsgMetaData(Map.of("groupName", "Device Group")))
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -127,7 +127,7 @@ class TbRemoveFromGroupNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(new TbMsgMetaData(Map.of("groupName", "Device Group")).copy())
+                .copyMetaData(new TbMsgMetaData(Map.of("groupName", "Device Group")))
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
 

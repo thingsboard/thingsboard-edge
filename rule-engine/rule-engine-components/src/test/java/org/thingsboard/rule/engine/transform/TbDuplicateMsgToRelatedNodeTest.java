@@ -171,7 +171,7 @@ class TbDuplicateMsgToRelatedNodeTest {
                     .type(type)
                     .originator(entityId)
                     .customerId(customerId)
-                    .metaData(metaData.copy().copy())
+                    .copyMetaData(metaData)
                     .data(data)
                     .build();
         }).when(ctxMock).newMsg(
@@ -336,7 +336,7 @@ class TbDuplicateMsgToRelatedNodeTest {
         return TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(ORIGINATOR_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
     }
