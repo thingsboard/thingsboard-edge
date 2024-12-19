@@ -151,7 +151,7 @@ export class MobileBundleTableConfigResolver {
     if (authUser.authority !== Authority.SYS_ADMIN) {
       this.config.columns.push(
         new EntityTableColumn<MobileAppBundleInfo>('selfRegistrationParams.enabled', 'mobile.enable-self-registration', '140px',
-          entity => checkBoxCell(entity.selfRegistrationParams?.enabled)),
+          entity => checkBoxCell(entity.selfRegistrationParams?.enabled), () => ({}), false),
       )
     }
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
