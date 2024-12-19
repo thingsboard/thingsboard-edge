@@ -114,7 +114,7 @@ export class MobilePageItemRowComponent implements ControlValueAccessor, OnInit,
   mobilePageRowForm = this.fb.group({
     visible: [true, []],
     icon: ['', []],
-    label: ['', []],
+    label: ['', [Validators.pattern(/\S/)]],
     type: [MobilePageType.DEFAULT]
   });
 
@@ -285,8 +285,8 @@ export class MobilePageItemRowComponent implements ControlValueAccessor, OnInit,
 
   private updateModel() {
     this.modelValue.visible = this.mobilePageRowForm.get('visible').value;
-    const label = this.mobilePageRowForm.get('label').value.trim();
-    if (label) {
+    const label = this.mobilePageRowForm.get('label').value;
+    if (label?.trim()) {
       this.modelValue.label = label;
     } else {
       delete this.modelValue.label;

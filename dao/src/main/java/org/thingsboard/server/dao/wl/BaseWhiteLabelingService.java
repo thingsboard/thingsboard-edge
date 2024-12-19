@@ -295,9 +295,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             throw new IncorrectParameterException("Domain id could not be empty");
         }
         Domain domain = domainService.findDomainById(tenantId, loginWhiteLabelParams.getDomainId());
-        if (!isValidDomain(domain.getName())) {
-            throw new IncorrectParameterException("Domain name " + domain.getName() + " is invalid");
-        }
         if (!isUsedOnSystemLevel(domain.getName())) {
             throw new IncorrectParameterException("Current domain name " + domain.getName() + " already used in the system level");
         }

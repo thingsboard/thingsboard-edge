@@ -78,7 +78,7 @@ import {
   IntegrationWizardDialogComponent
 } from '@home/components/wizard/integration-wizard-dialog.component';
 import { EventType } from '@shared/models/event.models';
-import { DebugSettings } from '@shared/models/entity.models';
+import { EntityDebugSettings } from '@shared/models/entity.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
@@ -86,7 +86,7 @@ import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { DestroyRef } from '@angular/core';
-import { DebugSettingsPanelComponent } from '@home/components/debug-settings/debug-settings-panel.component';
+import { EntityDebugSettingsPanelComponent } from '@home/components/entity/debug/entity-debug-settings-panel.component';
 import { MINUTE } from '@shared/models/time/time.models';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
@@ -269,11 +269,11 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     return actions;
   }
 
-  private getDebugConfigLabel({ allEnabledUntil, failuresEnabled }: DebugSettings): string {
+  private getDebugConfigLabel({ allEnabledUntil, failuresEnabled }: EntityDebugSettings): string {
     const isDebugActive = this.isDebugActive(allEnabledUntil);
 
     if (!isDebugActive) {
-      return failuresEnabled ? this.translate.instant('debug-config.failures') : this.translate.instant('common.disabled');
+      return failuresEnabled ? this.translate.instant('debug-settings.failures') : this.translate.instant('common.disabled');
     } else {
       return this.durationLeft.transform(allEnabledUntil)
     }
@@ -355,23 +355,24 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       this.popoverService.hidePopover(trigger);
     } else {
       const debugStrategyPopover = this.popoverService.displayPopover(trigger, renderer,
-        viewContainerRef, DebugSettingsPanelComponent, 'bottom', true, null,
+        viewContainerRef, EntityDebugSettingsPanelComponent, 'bottom', true, null,
         {
           debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
           maxDebugModeDuration: this.maxDebugModeDuration,
+          entityLabel: this.translate.instant('debug-settings.integration'),
           ...debugSettings
         },
         {},
         {}, {}, true);
       debugStrategyPopover.tbComponentRef.instance.popover = debugStrategyPopover;
-      debugStrategyPopover.tbComponentRef.instance.onSettingsApplied.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((settings: DebugSettings) => {
+      debugStrategyPopover.tbComponentRef.instance.onSettingsApplied.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((settings: EntityDebugSettings) => {
         this.onDebugConfigChanged(id.id, settings);
         debugStrategyPopover.hide();
       });
     }
   }
 
-  private onDebugConfigChanged(id: string, debugSettings: DebugSettings): void {
+  private onDebugConfigChanged(id: string, debugSettings: EntityDebugSettings): void {
     this.integrationService.getIntegration(id).pipe(
       switchMap(integration => this.integrationService.saveIntegration({ ...integration, debugSettings })),
       catchError(() => of(null)),

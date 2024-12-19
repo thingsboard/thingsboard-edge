@@ -36,7 +36,17 @@ import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { BreakpointId, Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { deepClone, guid, isDefined, isNotEmptyStr, isNumber, isObject, isString, isUndefined } from '@core/utils';
+import {
+  deepClone,
+  guid,
+  isDefined,
+  isNotEmptyStr,
+  isNumber,
+  isObject,
+  isString,
+  isUndefined,
+  unwrapModule
+} from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -900,7 +910,8 @@ export class ImportExportService {
   }
 
   public exportXlsx(data: { [key: string]: any }[], filename: string, dateFormat: string = 'yyyy-MM-dd HH:mm:ss') {
-    import('exceljs').then((Excel) => {
+    import('exceljs').then((exceljs) => {
+      const Excel = unwrapModule(exceljs);
       const workbook: Workbook = new Excel.Workbook();
       workbook.creator = 'ThingsBoard, Inc.';
       workbook.lastModifiedBy = 'ThingsBoard, Inc.';
