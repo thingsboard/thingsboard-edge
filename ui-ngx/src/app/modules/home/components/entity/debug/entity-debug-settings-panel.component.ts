@@ -47,12 +47,12 @@ import { SECOND } from '@shared/models/time/time.models';
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
 import { of, shareReplay, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DebugSettings } from '@shared/models/entity.models';
+import { EntityDebugSettings } from '@shared/models/entity.models';
 import { distinctUntilChanged, map, startWith, switchMap, takeWhile } from 'rxjs/operators';
 
 @Component({
-  selector: 'tb-debug-settings-panel',
-  templateUrl: './debug-settings-panel.component.html',
+  selector: 'tb-entity-debug-settings-panel',
+  templateUrl: './entity-debug-settings-panel.component.html',
   standalone: true,
   imports: [
     SharedModule,
@@ -61,20 +61,21 @@ import { distinctUntilChanged, map, startWith, switchMap, takeWhile } from 'rxjs
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DebugSettingsPanelComponent extends PageComponent implements OnInit {
+export class EntityDebugSettingsPanelComponent extends PageComponent implements OnInit {
 
-  @Input() popover: TbPopoverComponent<DebugSettingsPanelComponent>;
+  @Input() popover: TbPopoverComponent<EntityDebugSettingsPanelComponent>;
   @Input({ transform: booleanAttribute }) failuresEnabled = false;
   @Input({ transform: booleanAttribute }) allEnabled = false;
+  @Input() entityLabel: string;
   @Input() allEnabledUntil = 0;
-  @Input() maxDebugModeDurationMinutes: number;
+  @Input() maxDebugModeDuration: number;
   @Input() debugLimitsConfiguration: string;
 
   onFailuresControl = this.fb.control(false);
   debugAllControl = this.fb.control(false);
 
   maxMessagesCount: string;
-  maxTimeFrameSec: string;
+  maxTimeFrameDuration: number;
   initialAllEnabled: boolean;
 
   isDebugAllActive$ = this.debugAllControl.valueChanges.pipe(
@@ -93,7 +94,7 @@ export class DebugSettingsPanelComponent extends PageComponent implements OnInit
     shareReplay(1),
   );
 
-  onSettingsApplied = new EventEmitter<DebugSettings>();
+  onSettingsApplied = new EventEmitter<EntityDebugSettings>();
 
   constructor(private fb: FormBuilder,
               private cd: ChangeDetectorRef) {
@@ -114,7 +115,7 @@ export class DebugSettingsPanelComponent extends PageComponent implements OnInit
 
   ngOnInit(): void {
     this.maxMessagesCount = this.debugLimitsConfiguration?.split(':')[0];
-    this.maxTimeFrameSec = this.debugLimitsConfiguration?.split(':')[1];
+    this.maxTimeFrameDuration = parseInt(this.debugLimitsConfiguration?.split(':')[1]) * SECOND;
     this.onFailuresControl.patchValue(this.failuresEnabled);
     this.debugAllControl.patchValue(this.allEnabled);
     this.initialAllEnabled = this.allEnabled || this.allEnabledUntil > new Date().getTime();
@@ -143,6 +144,7 @@ export class DebugSettingsPanelComponent extends PageComponent implements OnInit
 
   onReset(): void {
     this.debugAllControl.patchValue(true);
+    this.debugAllControl.markAsDirty();
     this.allEnabledUntil = 0;
     this.cd.markForCheck();
   }

@@ -79,19 +79,19 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
     this.reset();
   }
 
-  private deviceProfile: string;
+  private deviceProfileIdValue: string;
 
   get deviceProfileId(): string {
-    return this.deviceProfile;
+    return this.deviceProfileIdValue;
   }
 
   @Input()
   set deviceProfileId(value: string) {
-    if (this.deviceProfile !== value) {
-      if (this.deviceProfile) {
+    if (this.deviceProfileIdValue !== value) {
+      if (this.deviceProfileIdValue) {
         this.reset();
       }
-      this.deviceProfile = value;
+      this.deviceProfileIdValue = value;
     }
   }
 
@@ -296,9 +296,13 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
     if (isDefinedAndNotNull(this.deviceGroupId)) {
       fetchFirmware$ = this.otaPackageService
         .getOtaPackagesInfoByDeviceGroupId(pageLink, this.deviceGroupId, this.type, {ignoreLoading: true});
-    } else{
-      fetchFirmware$ = this.otaPackageService
-        .getOtaPackagesInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type, {ignoreLoading: true});
+    } else {
+      if (isDefinedAndNotNull(this.deviceProfileId)) {
+        fetchFirmware$ = this.otaPackageService
+          .getOtaPackagesInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type, {ignoreLoading: true});
+      } else {
+        return of([]);
+      }
     }
     return fetchFirmware$.pipe(
       catchError(() => of(emptyPageData<OtaPackageInfo>())),

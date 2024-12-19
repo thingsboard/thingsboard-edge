@@ -1057,16 +1057,18 @@
         "type-owner-changed": "Owner changed",
         "type-sms-sent": "SMS sent"
     },
-    "debug-config": {
-        "min": "{{number}} min",
+    "debug-settings": {
         "label": "Debug configuration",
         "on-failure": "Failures only (24/7)",
         "all-messages": "All messages ({{time}})",
         "failures": "Failures",
-        "all": "All",
+        "entity": "entity",
+        "integration": "integration",
+        "converter": "converter",
+        "rule-node": "rule node",
         "hint": {
             "main": "All node debug messages rate limited with:",
-            "main-limited": "All node debug messages will be rate-limited, with a maximum of {{msg}} messages allowed per {{sec}} seconds.",
+            "main-limited": "All {{entity}} debug messages will be rate-limited, with a maximum of {{msg}} messages allowed per {{time}}.",
             "on-failure": "Save all failure debug events without time limit.",
             "all-messages": "Save all debug events during time limit."
         }
@@ -4463,7 +4465,9 @@
         "module-no-members": "Module has no exported members",
         "module-load-error": "Module load error",
         "source-code": "Source code",
-        "source-code-load-error": "Source code load error"
+        "source-code-load-error": "Source code load error",
+        "no-js-module-text": "No JS modules found",
+        "no-js-module-matching": "No JS modules matching '{{module}}' were found."
     },
     "key-val": {
         "key": "Key",
@@ -4685,7 +4689,7 @@
         "ios-application": "iOS Application",
         "invalid-store-link": "Invalid store link",
         "enable-oauth" : "Enable OAuth 2.0",
-        "enable-self-registration": "Enable Self registration",
+        "enable-self-registration": "Enable self registration",
         "edit-bundle": "Edit bundle",
         "description": "Description",
         "basic-settings": "Basic settings",
@@ -4707,7 +4711,8 @@
         "tablet-959": "Tablet (max 959px)",
         "max-element-number": "Max elements number",
         "page-name": "Page name",
-        "page-nam-required": "Page name is required.",
+        "page-name-required": "Page name is required.",
+        "page-name-cannot-contain-only-spaces": "Page name cannot contain only spaces.",
         "page-type": "Page type",
         "pages-types": {
             "dashboard": "Dashboard",
@@ -4715,9 +4720,9 @@
             "custom": "Custom"
         },
         "url": "URL",
-        "url-pattern": "Invalid URL",
+        "invalid-url-format": "Invalid URL format",
         "path": "Path",
-        "path-pattern": "Path pattern",
+        "invalid-path-format": "Invalid path format",
         "custom-page": "Custom page",
         "edit-page": "Edit page",
         "edit-custom-page": "Edit custom page",
@@ -4758,7 +4763,9 @@
             "registration-form-field": "Registration form fields",
             "remove-registration-field": "Remove registration field",
             "required": "Required",
-            "self-registration": "Self-registration"
+            "self-registration": "Self registration",
+            "reset-self-registration-title": "Are you sure you want to reset the self registration settings to default?",
+            "reset-self-registration-text": "Be careful, after confirmation, all settings will be lost and cannot be recovered."
         }
     },
     "notification": {
@@ -5484,7 +5491,7 @@
         "output": "Output",
         "test": "Test",
         "help": "Help",
-        "reset-debug-mode": "Reset debug mode in all nodes",
+        "reset-debug-settings": "Reset debug settings in all nodes",
         "test-with-this-message": "{{test}} with this message",
         "queue-hint": "Select a queue for message forwarding to another queue.  'Main' queue is used by default.",
         "queue-singleton-hint": "Select a queue for message forwarding in multi-instance environments. 'Main' queue is used by default."
@@ -6304,6 +6311,7 @@
         "sec": "{{ sec }} sec",
         "sec-short": "{{ sec }}s",
         "short": {
+            "years": "{ years, plural, =1 {1 year } other {# years } }",
             "days": "{ days, plural, =1 {1 day } other {# days } }",
             "hours": "{ hours, plural, =1 {1 hour } other {# hours } }",
             "minutes": "{{minutes}} min ",
@@ -7405,7 +7413,11 @@
             "label": "Platform name and version position",
             "under-logo": "Under the logo",
             "bottom": "Bottom of the login form"
-        }
+        },
+        "reset-white-label-title": "Are you sure you want to reset the white labeling settings to default?",
+        "reset-white-label-text": "Be careful, after confirmation, all customized settings will be lost and cannot be recovered.",
+        "reset-login-white-label-title": "Are you sure you want to reset the login white labeling settings to default?",
+        "reset-login-white-label-text": "Be careful, after confirmation, all customized settings will be lost and cannot be recovered."
     },
     "widgets": {
         "mobile-app-qr-code": {

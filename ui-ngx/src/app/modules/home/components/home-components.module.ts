@@ -237,7 +237,7 @@ import {
 import { EntityChipsComponent } from '@home/components/entity/entity-chips.component';
 import { DashboardViewComponent } from '@home/components/dashboard-view/dashboard-view.component';
 import { ConverterLibraryComponent } from '@home/components/converter/converter-library.component';
-import { DebugSettingsButtonComponent } from '@home/components/debug-settings/debug-settings-button.component';
+import { EntityDebugSettingsButtonComponent } from '@home/components/entity/debug/entity-debug-settings-button.component';
 
 @NgModule({
   declarations:
@@ -429,7 +429,7 @@ import { DebugSettingsButtonComponent } from '@home/components/debug-settings/de
     DeviceCredentialsModule,
     DeviceProfileCommonModule,
     IntegrationComponentModule,
-    DebugSettingsButtonComponent
+    EntityDebugSettingsButtonComponent
   ],
   exports: [
     SharedHomeComponentsModule,

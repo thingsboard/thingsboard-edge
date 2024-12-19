@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.mobile.LoginMobileInfo;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
@@ -82,6 +83,13 @@ public class MobileAppControllerTest extends AbstractControllerTest {
 
         MobileApp retrievedMobileAppInfo = doGet("/api/mobile/app/{id}", MobileApp.class, savedMobileApp.getId().getId());
         assertThat(retrievedMobileAppInfo).isEqualTo(savedMobileApp);
+
+        // get mobile info
+        LoginMobileInfo loginMobileInfo = doGet("/api/noauth/mobile?pkgName={pkgName}&platform={platform}", LoginMobileInfo.class, mobileApp.getPkgName(), mobileApp.getPlatformType());
+        assertThat(loginMobileInfo.oAuth2ClientLoginInfos()).isEmpty();
+        assertThat(loginMobileInfo.storeInfo()).isNull();
+        assertThat(loginMobileInfo.versionInfo()).isNull();
+        assertThat(loginMobileInfo.selfRegistrationParams()).isNull();
 
         doDelete("/api/mobile/app/" + savedMobileApp.getId().getId());
         doGet("/api/mobile/app/{id}", savedMobileApp.getId().getId())

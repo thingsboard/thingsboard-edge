@@ -4552,8 +4552,7 @@
         "metadata-required": "Metagegevensvermeldingen mogen niet leeg zijn.",
         "output": "Uitvoer",
         "test": "Test",
-        "help": "Help",
-        "reset-debug-mode": "Foutopsporingsmodus resetten in alle rule nodes"
+        "help": "Help"
     },
     "role": {
         "role": "Rol",

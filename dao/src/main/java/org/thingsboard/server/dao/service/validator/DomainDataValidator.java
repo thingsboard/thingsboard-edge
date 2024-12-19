@@ -28,33 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../../scss/constants';
+package org.thingsboard.server.dao.service.validator;
 
-.tb-editor-panel {
-  width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  @media #{$mat-lt-md} {
-    width: 90vw;
-  }
-  .tb-editor-title {
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 24px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.87);
-  }
-  .tb-editor {
-    height: 400px;
-    overflow-y: auto;
-  }
-  .tb-editor-buttons {
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    justify-content: flex-end;
-    align-items: flex-end;
-  }
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
+
+@Component
+public class DomainDataValidator extends AbstractHasOtaPackageValidator<Domain> {
+
+    @Override
+    protected void validateDataImpl(TenantId tenantId, Domain domain) {
+        if (!isValidDomain(domain.getName())) {
+            throw new IncorrectParameterException("Domain name " + domain.getName() + " is invalid");
+        }
+    }
 }

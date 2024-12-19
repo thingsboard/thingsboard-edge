@@ -1858,8 +1858,7 @@
     "metadata-required": "Metadatu ievadi nevar būt tukši.",
     "output": "Izeja",
     "test": "Tests",
-    "help": "Palīdzība",
-    "reset-debug-mode": "Atiestatīt atkļūdošanu visās nodēs"
+    "help": "Palīdzība"
   },
   "role": {
     "role": "Loma",

@@ -56,6 +56,8 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { BaseData } from '@shared/models/base-data';
 import { DomainDialogComponent } from '@home/pages/admin/oauth2/domains/domain-dialog.component';
 import { Domain } from '@shared/models/oauth2.models';
+import { DialogService } from '@core/services/dialog.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'tb-white-labeling',
@@ -100,8 +102,10 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
               private whiteLabelingService: WhiteLabelingService,
               private uiSettingsService: UiSettingsService,
               private dialog: MatDialog,
+              private dialogService: DialogService,
               private fb: UntypedFormBuilder,
               private destroyRef: DestroyRef,
+              private translate: TranslateService,
               @Inject(WINDOW) private window: Window) {
     super();
   }
@@ -231,15 +235,16 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
   }
 
   save(): void {
-    this.whiteLabelingParams = {...this.whiteLabelingParams, ...this.wlSettings.value};
-    if (this.whiteLabelingParams.platformName === 'ThingsBoard') {
-      this.whiteLabelingParams.platformName = null;
+    const whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams = {...this.whiteLabelingParams, ...this.wlSettings.value};
+    if (whiteLabelingParams.platformName === 'ThingsBoard') {
+      whiteLabelingParams.platformName = null;
     }
-    if (this.whiteLabelingParams.platformVersion === env.tbVersion) {
-      this.whiteLabelingParams.platformVersion = null;
+    if (whiteLabelingParams.platformVersion === env.tbVersion) {
+      whiteLabelingParams.platformVersion = null;
     }
-    (this.isLoginWl ? this.whiteLabelingService.saveLoginWhiteLabelParams(this.whiteLabelingParams) :
-        this.whiteLabelingService.saveWhiteLabelParams(this.whiteLabelingParams)).subscribe(() => {
+    (this.isLoginWl ? this.whiteLabelingService.saveLoginWhiteLabelParams(whiteLabelingParams) :
+        this.whiteLabelingService.saveWhiteLabelParams(whiteLabelingParams)).subscribe(() => {
+          this.whiteLabelingParams = whiteLabelingParams;
           if (this.isLoginWl) {
             this.loadWhiteLabelingParams();
           } else {
@@ -257,19 +262,25 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
   }
 
   delete(form: FormGroupDirective) {
-    let deleteParams: Observable<LoginWhiteLabelingParams | WhiteLabelingParams>;
-    if (this.isLoginWl) {
-      deleteParams = this.whiteLabelingService.deleteCurrentLoginWhiteLabelParams().pipe(
-        mergeMap(() => this.whiteLabelingService.getCurrentLoginWhiteLabelParams())
-      );
-    } else {
-      deleteParams =  this.whiteLabelingService.deleteCurrentWhiteLabelParams().pipe(
-        mergeMap(() => this.whiteLabelingService.getCurrentWhiteLabelParams())
-      );
-    }
-    deleteParams.subscribe((value) => {
-      this.setWhiteLabelingParams(value);
-      form.resetForm(value);
+    const title = this.isLoginWl ? 'white-labeling.reset-login-white-label-title' : 'white-labeling.reset-white-label-title';
+    const text = this.isLoginWl ? 'white-labeling.reset-login-white-label-text' : 'white-labeling.reset-white-label-text';
+    this.dialogService.confirm(this.translate.instant(title), this.translate.instant(text)).subscribe((res) => {
+      if (res) {
+        let deleteParams: Observable<LoginWhiteLabelingParams | WhiteLabelingParams>;
+        if (this.isLoginWl) {
+          deleteParams = this.whiteLabelingService.deleteCurrentLoginWhiteLabelParams().pipe(
+            mergeMap(() => this.whiteLabelingService.getCurrentLoginWhiteLabelParams())
+          );
+        } else {
+          deleteParams =  this.whiteLabelingService.deleteCurrentWhiteLabelParams().pipe(
+            mergeMap(() => this.whiteLabelingService.getCurrentWhiteLabelParams())
+          );
+        }
+        deleteParams.subscribe((value) => {
+          this.setWhiteLabelingParams(value);
+          form.resetForm(value);
+        })
+      }
     })
   }
 

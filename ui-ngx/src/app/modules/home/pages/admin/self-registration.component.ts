@@ -52,6 +52,8 @@ import {
   RecipientNotificationDialogData
 } from '@home/pages/notification/recipient/recipient-notification-dialog.component';
 import { NotificationTarget } from '@shared/models/notification.models';
+import { EditorOptions } from 'tinymce';
+import { DialogService } from '@core/services/dialog.service';
 
 @Component({
   selector: 'tb-self-registration',
@@ -68,19 +70,21 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   deleteDisabled = true;
 
-  tinyMceOptions: Record<string, any> = {
+  tinyMceOptions: Partial<EditorOptions> = {
     base_url: '/assets/tinymce',
     suffix: '.min',
-    plugins: ['link table image imagetools code fullscreen'],
+    plugins: ['link', 'table', 'image', 'imagetools', 'code', 'fullscreen', 'lists'],
     menubar: 'edit insert tools view format table',
-    toolbar: 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor ' +
-      '| link | table | image | alignleft aligncenter alignright alignjustify  ' +
-      '| numlist bullist outdent indent  | removeformat | code | fullscreen',
+    toolbar_mode: 'sliding',
+    toolbar: 'fontfamily fontsize | bold italic  strikethrough  forecolor backcolor ' +
+      '| link table image | alignleft aligncenter alignright alignjustify  ' +
+      '| numlist bullist outdent indent | blocks | removeformat code | fullscreen',
     height: 380,
     autofocus: false,
     branding: false,
     resize: true,
-    promotion: false
+    promotion: false,
+    relative_urls: false
   };
 
   showMainLoadingBar = false;
@@ -91,6 +95,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   constructor(protected store: Store<AppState>,
               private dialog: MatDialog,
+              private dialogService: DialogService,
               private selfRegistrationService: SelfRegistrationService,
               private translate: TranslateService,
               private fb: UntypedFormBuilder) {
@@ -155,13 +160,18 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   }
 
   delete(form: FormGroupDirective): void {
-    this.selfRegistrationService.deleteSelfRegistrationParams().subscribe(
-      () => {
-        this.onSelfRegistrationParamsLoaded(null);
-        this.registerLink = '';
-        form.resetForm();
+    this.dialogService.confirm(
+      this.translate.instant('mobile.self-registration.reset-self-registration-title'),
+      this.translate.instant('mobile.self-registration.reset-self-registration-text'),
+    ).subscribe(res => {
+      if (res) {
+        this.selfRegistrationService.deleteSelfRegistrationParams().subscribe(() => {
+          this.onSelfRegistrationParamsLoaded(null);
+          this.registerLink = '';
+          form.resetForm();
+        });
       }
-    );
+    })
   }
 
   confirmForm(): UntypedFormGroup {
