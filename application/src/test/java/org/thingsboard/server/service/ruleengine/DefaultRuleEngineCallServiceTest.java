@@ -104,7 +104,7 @@ public class DefaultRuleEngineCallServiceTest {
                 .queueName(DataConstants.MAIN_QUEUE_NAME)
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(TENANT_ID)
-                .metaData(new TbMsgMetaData(metaData).copy())
+                .copyMetaData(new TbMsgMetaData(metaData))
                 .data("{\"key\":\"value\"}")
                 .build();
 
@@ -138,7 +138,7 @@ public class DefaultRuleEngineCallServiceTest {
                 .queueName(DataConstants.MAIN_QUEUE_NAME)
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(TENANT_ID)
-                .metaData(new TbMsgMetaData(metaData).copy())
+                .copyMetaData(new TbMsgMetaData(metaData))
                 .data("{\"key\":\"value\"}")
                 .build();
 

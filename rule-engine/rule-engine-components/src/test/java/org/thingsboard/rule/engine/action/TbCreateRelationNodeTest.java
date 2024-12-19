@@ -528,7 +528,7 @@ public class TbCreateRelationNodeTest extends AbstractRuleNodeUpgradeTest {
         var entityCreatedMsg = TbMsg.newMsg()
                 .type(TbMsgType.ENTITY_CREATED)
                 .originator(entityId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         mockMethodCallsMap.get(entityType).accept(entity, entityCreatedMsg);
@@ -754,7 +754,7 @@ public class TbCreateRelationNodeTest extends AbstractRuleNodeUpgradeTest {
         return TbMsg.newMsg()
                 .type(TbMsgType.NA)
                 .originator(originator)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
     }

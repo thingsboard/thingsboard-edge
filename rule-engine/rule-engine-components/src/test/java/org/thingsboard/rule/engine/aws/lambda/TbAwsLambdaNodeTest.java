@@ -163,7 +163,7 @@ public class TbAwsLambdaNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(data)
                 .build();
 
@@ -223,7 +223,7 @@ public class TbAwsLambdaNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_ARRAY)
                 .build();
         InvokeRequest request = createInvokeRequest(msg);
@@ -266,7 +266,7 @@ public class TbAwsLambdaNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         InvokeRequest request = createInvokeRequest(msg);
@@ -307,7 +307,7 @@ public class TbAwsLambdaNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         InvokeRequest request = createInvokeRequest(msg);
@@ -348,7 +348,7 @@ public class TbAwsLambdaNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         InvokeRequest request = createInvokeRequest(msg);

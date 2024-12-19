@@ -115,7 +115,7 @@ public class TbMsgTimeseriesNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(msgType)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_ARRAY)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -146,7 +146,7 @@ public class TbMsgTimeseriesNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(data)
                 .build();
 
@@ -188,7 +188,7 @@ public class TbMsgTimeseriesNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(new TbMsgMetaData(metadata).copy())
+                .copyMetaData(new TbMsgMetaData(metadata))
                 .data(data)
                 .build();
 
@@ -231,7 +231,7 @@ public class TbMsgTimeseriesNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(data)
                 .build();
         node.onMsg(ctxMock, msg);

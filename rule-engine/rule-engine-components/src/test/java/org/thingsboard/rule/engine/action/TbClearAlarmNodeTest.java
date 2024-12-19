@@ -109,7 +109,7 @@ class TbClearAlarmNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(msgOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data("{\"temperature\": 50}")
                 .build();
 
@@ -166,7 +166,7 @@ class TbClearAlarmNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(alarmOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data("{\"temperature\": 50}")
                 .build();
 

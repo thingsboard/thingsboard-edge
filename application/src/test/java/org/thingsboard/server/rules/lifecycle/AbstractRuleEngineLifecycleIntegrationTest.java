@@ -160,7 +160,7 @@ public abstract class AbstractRuleEngineLifecycleIntegrationTest extends Abstrac
         TbMsg tbMsg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(device.getId())
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .callback(tbMsgCallback)
                 .build();

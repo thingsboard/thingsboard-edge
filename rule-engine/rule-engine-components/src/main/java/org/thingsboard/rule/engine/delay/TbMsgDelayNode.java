@@ -85,7 +85,7 @@ public class TbMsgDelayNode implements TbNode {
                                 .type(pendingMsg.getType())
                                 .originator(pendingMsg.getOriginator())
                                 .customerId(pendingMsg.getCustomerId())
-                                .metaData(pendingMsg.getMetaData().copy())
+                                .copyMetaData(pendingMsg.getMetaData())
                                 .data(pendingMsg.getData())
                                 .build(),
                         TbNodeConnectionType.SUCCESS

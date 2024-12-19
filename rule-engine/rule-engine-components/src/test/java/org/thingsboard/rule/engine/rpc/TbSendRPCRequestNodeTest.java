@@ -125,7 +125,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(msgMetadata.copy())
+                .copyMetaData(msgMetadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -151,7 +151,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -177,7 +177,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.TO_SERVER_RPC_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -203,7 +203,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.TO_SERVER_RPC_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(data)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -223,7 +223,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -243,7 +243,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -263,7 +263,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -283,7 +283,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -303,7 +303,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -323,7 +323,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -343,7 +343,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -363,7 +363,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -381,7 +381,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(msgType)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -405,7 +405,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -434,7 +434,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg outMsg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
 
@@ -454,7 +454,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -468,7 +468,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg outMsg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
 
@@ -487,7 +487,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.RPC_CALL_FROM_SERVER_TO_DEVICE)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(MSG_DATA)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -504,7 +504,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(entityId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -522,7 +522,7 @@ public class TbSendRPCRequestNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data("{\"" + key + "\": \"value\"}")
                 .build();
 

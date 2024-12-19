@@ -235,7 +235,7 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
         msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DUMMY_DEVICE_ORIGINATOR)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_ARRAY)
                 .build();
 
@@ -259,7 +259,7 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
         msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(userId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
 
@@ -581,7 +581,7 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
         msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(originator)
-                .metaData(msgMetaData.copy())
+                .copyMetaData(msgMetaData)
                 .data(msgData)
                 .build();
     }

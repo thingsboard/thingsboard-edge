@@ -107,7 +107,7 @@ public class TbSendRestApiCallReplyNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(new TbMsgMetaData(metadata).copy())
+                .copyMetaData(new TbMsgMetaData(metadata))
                 .data(data)
                 .build();
 
@@ -132,7 +132,7 @@ public class TbSendRestApiCallReplyNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(data)
                 .build();
 

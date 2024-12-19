@@ -110,11 +110,9 @@ public class TbSendRPCReplyNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(deviceId)
-                .metaData(getDefaultMetadata().copy())
+                .copyMetaData(getDefaultMetadata())
                 .dataType(TbMsgDataType.JSON)
                 .data(DUMMY_DATA)
-                .ruleChainId(null)
-                .ruleNodeId(null)
                 .build();
 
         node.onMsg(ctx, msg);
@@ -136,11 +134,9 @@ public class TbSendRPCReplyNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(deviceId)
-                .metaData(defaultMetadata.copy())
+                .copyMetaData(defaultMetadata)
                 .dataType(TbMsgDataType.JSON)
                 .data(DUMMY_DATA)
-                .ruleChainId(null)
-                .ruleNodeId(null)
                 .build();
 
         node.onMsg(ctx, msg);
@@ -156,7 +152,7 @@ public class TbSendRPCReplyNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(entityId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
 
@@ -175,7 +171,7 @@ public class TbSendRPCReplyNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(deviceId)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(TbMsg.EMPTY_STRING)
                 .build();
 

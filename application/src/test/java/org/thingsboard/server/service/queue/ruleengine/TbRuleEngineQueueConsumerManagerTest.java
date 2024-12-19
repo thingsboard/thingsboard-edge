@@ -800,7 +800,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
             testMsg = TbMsg.newMsg()
                     .type(TbMsgType.POST_TELEMETRY_REQUEST)
                     .originator(new DeviceId(UUID.randomUUID()))
-                    .metaData(new TbMsgMetaData().copy())
+                    .copyMetaData(new TbMsgMetaData())
                     .data("{}")
                     .build();
         }

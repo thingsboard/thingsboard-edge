@@ -115,7 +115,7 @@ class TbMsgTypeFilterNodeTest {
         return TbMsg.newMsg()
                 .type(msgType)
                 .originator(entityId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
     }

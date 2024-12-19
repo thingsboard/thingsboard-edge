@@ -946,7 +946,7 @@ class DefaultTbContextTest {
         return TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(TENANT_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_STRING)
                 .callback(callback)
                 .build();
@@ -957,7 +957,7 @@ class DefaultTbContextTest {
                 .queueName(DataConstants.MAIN_QUEUE_NAME)
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(TENANT_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_STRING)
                 .build();
     }
@@ -966,7 +966,7 @@ class DefaultTbContextTest {
         return TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(TENANT_ID)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_STRING)
                 .build();
     }

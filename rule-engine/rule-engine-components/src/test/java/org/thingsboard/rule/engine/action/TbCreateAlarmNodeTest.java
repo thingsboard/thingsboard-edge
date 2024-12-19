@@ -182,7 +182,7 @@ class TbCreateAlarmNodeTest {
         var incomingMsg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(msgOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data("{\"temperature\": 50}")
                 .build();
 
@@ -344,7 +344,7 @@ class TbCreateAlarmNodeTest {
         var incomingMsg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(msgOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data("{\"temperature\": 50, \"alarmType\": \"" + alarmType + "\"}")
                 .build();
 
@@ -547,7 +547,7 @@ class TbCreateAlarmNodeTest {
         var incomingMsg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(msgOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data("{\"temperature\": 50, \"alarmSeverity\": \"" + newAlarmSeverity.name() + "\"}")
                 .build();
 
@@ -728,7 +728,7 @@ class TbCreateAlarmNodeTest {
         var incomingMsg = TbMsg.newMsg()
                 .type(TbMsgType.ALARM)
                 .originator(msgOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(JacksonUtil.toString(alarmFromIncomingMessage))
                 .build();
 
@@ -927,7 +927,7 @@ class TbCreateAlarmNodeTest {
         var incomingMsg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(msgOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(JacksonUtil.toString(alarmFromIncomingMessage))
                 .build();
 
@@ -1118,7 +1118,7 @@ class TbCreateAlarmNodeTest {
         var incomingMsg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(msgOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(JacksonUtil.toString(alarmFromIncomingMessage))
                 .build();
 
@@ -1267,7 +1267,7 @@ class TbCreateAlarmNodeTest {
         var incomingMsg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(msgOriginator)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data("{\"temperature\": 50}")
                 .build();
 

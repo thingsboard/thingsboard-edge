@@ -241,7 +241,7 @@ public class TbGetRelatedAttributeNodeTest {
         msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DUMMY_DEVICE_ORIGINATOR)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_ARRAY)
                 .build();
 
@@ -615,7 +615,7 @@ public class TbGetRelatedAttributeNodeTest {
         msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(originator)
-                .metaData(msgMetaData.copy())
+                .copyMetaData(msgMetaData)
                 .data(msgData)
                 .build();
     }

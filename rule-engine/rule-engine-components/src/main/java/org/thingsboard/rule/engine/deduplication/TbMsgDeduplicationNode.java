@@ -173,7 +173,7 @@ public class TbMsgDeduplicationNode implements TbNode {
                             .queueName(queueName)
                             .type(config.getOutMsgType())
                             .originator(deduplicationId)
-                            .metaData(getMetadata().copy())
+                            .copyMetaData(getMetadata())
                             .data(getMergedData(pack))
                             .build());
                 } else {
@@ -198,7 +198,7 @@ public class TbMsgDeduplicationNode implements TbNode {
                                 .type(resultMsg.getType())
                                 .originator(resultMsg.getOriginator())
                                 .customerId(resultMsg.getCustomerId())
-                                .metaData(resultMsg.getMetaData().copy())
+                                .copyMetaData(resultMsg.getMetaData())
                                 .data(resultMsg.getData())
                                 .build());
                     }

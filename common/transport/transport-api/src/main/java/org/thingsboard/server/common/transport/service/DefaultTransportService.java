@@ -1157,10 +1157,9 @@ public class DefaultTransportService extends TransportActivityManager implements
                 .type(tbMsgType)
                 .originator(deviceId)
                 .customerId(customerId)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(gson.toJson(json))
                 .ruleChainId(ruleChainId)
-                .ruleNodeId(null)
                 .build();
         ruleEngineProducerService.sendToRuleEngine(ruleEngineMsgProducer, tenantId, tbMsg, new StatsCallback(callback, ruleEngineProducerStats));
         ruleEngineProducerStats.incrementTotal();

@@ -272,7 +272,7 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
                     .type(type)
                     .originator(device.getId())
                     .customerId(device.getCustomerId())
-                    .metaData(createTbMsgMetaData(device).copy())
+                    .copyMetaData(createTbMsgMetaData(device))
                     .data(JacksonUtil.toString(entityNode))
                     .build();
             sendToRuleEngine(device.getTenantId(), msg, null);
@@ -288,7 +288,7 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
                     .type(TbMsgType.ENTITY_CREATED)
                     .originator(device.getId())
                     .customerId(device.getCustomerId())
-                    .metaData(createTbMsgMetaData(device).copy())
+                    .copyMetaData(createTbMsgMetaData(device))
                     .data(JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode))
                     .build();
             sendToRuleEngine(device.getTenantId(), msg, null);

@@ -438,7 +438,7 @@ public abstract class BaseEdgeProcessor {
                 .type(msgType)
                 .originator(entityId)
                 .customerId(customerId)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .dataType(TbMsgDataType.JSON)
                 .data(msgData)
                 .build();

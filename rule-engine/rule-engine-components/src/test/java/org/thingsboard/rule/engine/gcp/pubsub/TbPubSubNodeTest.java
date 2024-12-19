@@ -136,7 +136,7 @@ class TbPubSubNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(data)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -189,7 +189,7 @@ class TbPubSubNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(metadata.copy())
+                .copyMetaData(metadata)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -225,7 +225,7 @@ class TbPubSubNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);
@@ -260,7 +260,7 @@ class TbPubSubNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(DEVICE_ID)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         node.onMsg(ctxMock, msg);

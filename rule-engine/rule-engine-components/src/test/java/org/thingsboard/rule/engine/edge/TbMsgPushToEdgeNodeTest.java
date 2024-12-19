@@ -103,11 +103,9 @@ public class TbMsgPushToEdgeNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
                 .originator(deviceId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .dataType(TbMsgDataType.JSON)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
-                .ruleChainId(null)
-                .ruleNodeId(null)
                 .build();
 
         node.onMsg(ctx, msg);
@@ -131,11 +129,9 @@ public class TbMsgPushToEdgeNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.ATTRIBUTES_UPDATED)
                 .originator(userId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .dataType(TbMsgDataType.JSON)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
-                .ruleChainId(null)
-                .ruleNodeId(null)
                 .build();
 
         node.onMsg(ctx, msg);
@@ -169,11 +165,9 @@ public class TbMsgPushToEdgeNodeTest {
         TbMsg msg = TbMsg.newMsg()
                 .type(event)
                 .originator(new EdgeId(UUID.randomUUID()))
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .dataType(TbMsgDataType.JSON)
                 .data("{\"lastConnectTs\":1}")
-                .ruleChainId(null)
-                .ruleNodeId(null)
                 .build();
 
         node.onMsg(ctx, msg);

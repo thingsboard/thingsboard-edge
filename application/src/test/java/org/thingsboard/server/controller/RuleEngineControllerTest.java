@@ -80,7 +80,7 @@ public class RuleEngineControllerTest extends AbstractControllerTest {
         TbMsg responseMsg = TbMsg.newMsg()
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(currentUserId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(RESPONSE_BODY)
                 .build();
         mockRestApiCallToRuleEngine(responseMsg);
@@ -109,7 +109,7 @@ public class RuleEngineControllerTest extends AbstractControllerTest {
         TbMsg responseMsg = TbMsg.newMsg()
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(deviceId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(RESPONSE_BODY)
                 .build();
         mockRestApiCallToRuleEngine(responseMsg);
@@ -138,7 +138,7 @@ public class RuleEngineControllerTest extends AbstractControllerTest {
         TbMsg responseMsg = TbMsg.newMsg()
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(deviceId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(RESPONSE_BODY)
                 .build();
         mockRestApiCallToRuleEngine(responseMsg);
@@ -190,7 +190,7 @@ public class RuleEngineControllerTest extends AbstractControllerTest {
                 .queueName(DataConstants.HP_QUEUE_NAME)
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(deviceId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(RESPONSE_BODY)
                 .build();
         mockRestApiCallToRuleEngine(responseMsg);
@@ -235,7 +235,7 @@ public class RuleEngineControllerTest extends AbstractControllerTest {
                 .type(TbMsgType.REST_API_REQUEST)
                 .originator(deviceId)
                 .customerId(customerId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(RESPONSE_BODY)
                 .build();
         mockRestApiCallToRuleEngine(responseMsg);

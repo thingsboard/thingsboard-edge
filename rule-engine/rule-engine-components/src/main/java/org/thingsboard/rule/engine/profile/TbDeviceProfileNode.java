@@ -197,7 +197,7 @@ public class TbDeviceProfileNode implements TbNode {
                 .type(TbMsgType.DEVICE_PROFILE_PERIODIC_SELF_MSG)
                 .originator(ctx.getTenantId())
                 .customerId(customerId)
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
         ctx.tellSelf(periodicCheck, TimeUnit.MINUTES.toMillis(1));
@@ -227,7 +227,7 @@ public class TbDeviceProfileNode implements TbNode {
         ctx.tellSelf(TbMsg.newMsg()
                 .type(TbMsgType.DEVICE_PROFILE_UPDATE_SELF_MSG)
                 .originator(ctx.getTenantId())
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(profile.getId().getId().toString())
                 .build(), 0L);
     }
@@ -241,7 +241,7 @@ public class TbDeviceProfileNode implements TbNode {
         ctx.tellSelf(TbMsg.newMsg()
                 .type(TbMsgType.DEVICE_UPDATE_SELF_MSG)
                 .originator(ctx.getTenantId())
-                .metaData(TbMsgMetaData.EMPTY.copy())
+                .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(JacksonUtil.toString(msgData))
                 .build(), 0L);
     }

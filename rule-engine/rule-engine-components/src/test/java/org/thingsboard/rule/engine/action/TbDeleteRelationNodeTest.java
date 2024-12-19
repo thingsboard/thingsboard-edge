@@ -627,7 +627,7 @@ public class TbDeleteRelationNodeTest extends AbstractRuleNodeUpgradeTest {
         return TbMsg.newMsg()
                 .type(TbMsgType.NA)
                 .originator(originator)
-                .metaData(metaData.copy())
+                .copyMetaData(metaData)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
     }
