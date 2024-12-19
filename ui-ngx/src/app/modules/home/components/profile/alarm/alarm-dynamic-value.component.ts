@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -41,6 +41,7 @@ import {
   dynamicValueSourceTypeTranslationMap,
   getDynamicSourcesForAllowUser
 } from '@shared/models/query/query.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-alarm-dynamic-value',
@@ -64,7 +65,8 @@ export class AlarmDynamicValue implements ControlValueAccessor, OnInit{
   @Input()
   disabled: boolean;
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -73,7 +75,9 @@ export class AlarmDynamicValue implements ControlValueAccessor, OnInit{
       sourceAttribute: [null]
     })
 
-    this.dynamicValue.get('sourceType').valueChanges.subscribe(
+    this.dynamicValue.get('sourceType').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       (sourceType) => {
         if (!sourceType) {
           this.dynamicValue.get('sourceAttribute').patchValue(null, {emitEvent: false});
@@ -81,7 +85,9 @@ export class AlarmDynamicValue implements ControlValueAccessor, OnInit{
       }
     );
 
-    this.dynamicValue.valueChanges.subscribe(() => {
+    this.dynamicValue.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     })
   }
