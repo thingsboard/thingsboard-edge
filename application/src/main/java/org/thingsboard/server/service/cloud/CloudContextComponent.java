@@ -67,6 +67,7 @@ public class CloudContextComponent {
     @PostConstruct
     private void initProcessorMap() {
         Map<CloudEventType, EdgeProcessor> map = new HashMap<>();
+        map.put(CloudEventType.ALARM_COMMENT, alarmCommentProcessor);
         map.put(CloudEventType.ALARM, alarmProcessor);
         map.put(CloudEventType.ASSET, assetProcessor);
         map.put(CloudEventType.ASSET_PROFILE, assetProfileProcessor);
@@ -91,10 +92,10 @@ public class CloudContextComponent {
     private AdminSettingsCloudProcessor adminSettingsProcessor;
 
     @Autowired
-    private AlarmCloudProcessor alarmProcessor;
+    private AlarmCommentCloudProcessor alarmCommentProcessor;
 
     @Autowired
-    private AlarmCommentCloudProcessor alarmCommentProcessor;
+    private AlarmCloudProcessor alarmProcessor;
 
     @Autowired
     private AssetCloudProcessor assetProcessor;
