@@ -182,7 +182,9 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
     ).subscribe(() => {
       this.updateEntityTypeValidators(entityTypeControl);
     });
-    entityTypeControl.get('entityType').valueChanges.subscribe(() => {
+    entityTypeControl.get('entityType').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       entityTypeControl.get('config').get('entityIds').patchValue([], {emitEvent: false});
     });
     return entityTypeControl;
