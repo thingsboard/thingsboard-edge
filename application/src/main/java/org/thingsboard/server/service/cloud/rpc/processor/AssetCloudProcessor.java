@@ -35,16 +35,17 @@ import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructor;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProcessor;
 
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class AssetCloudProcessor extends BaseAssetProcessor {
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
@@ -105,9 +106,9 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    public UplinkMsg convertAssetEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
+    @Override
+    public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         AssetId assetId = new AssetId(cloudEvent.getEntityId());
-        var msgConstructor = (AssetMsgConstructor) edgeCtx.getAssetMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
                 Asset asset = edgeCtx.getAssetService().findAssetById(cloudEvent.getTenantId(), assetId);
@@ -116,13 +117,13 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                         log.debug("Skipping TbServiceQueue asset [{}]", cloudEvent);
                     } else {
                         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                        AssetUpdateMsg assetUpdateMsg = msgConstructor.constructAssetUpdatedMsg(msgType, asset);
+                        AssetUpdateMsg assetUpdateMsg = EdgeMsgConstructorUtils.constructAssetUpdatedMsg(msgType, asset);
                         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                                 .addAssetUpdateMsg(assetUpdateMsg);
                         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                             AssetProfile assetProfile = edgeCtx.getAssetProfileService().findAssetProfileById(cloudEvent.getTenantId(), asset.getAssetProfileId());
-                            builder.addAssetProfileUpdateMsg(msgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile));
+                            builder.addAssetProfileUpdateMsg(EdgeMsgConstructorUtils.constructAssetProfileUpdatedMsg(msgType, assetProfile));
                         }
                         return builder.build();
                     }
@@ -131,18 +132,13 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                 }
             }
             case DELETED -> {
-                AssetUpdateMsg assetUpdateMsg = msgConstructor.constructAssetDeleteMsg(assetId);
+                AssetUpdateMsg assetUpdateMsg = EdgeMsgConstructorUtils.constructAssetDeleteMsg(assetId);
                 return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetUpdateMsg(assetUpdateMsg).build();
             }
         }
         return null;
-    }
-
-    @Override
-    protected Asset constructAssetFromUpdateMsg(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
-        return JacksonUtil.fromString(assetUpdateMsg.getEntity(), Asset.class, true);
     }
 
     @Override

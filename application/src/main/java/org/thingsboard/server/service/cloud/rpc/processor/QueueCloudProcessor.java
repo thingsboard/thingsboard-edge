@@ -25,6 +25,7 @@ import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.entitiy.queue.TbQueueService;
 
@@ -32,8 +33,9 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class QueueCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired

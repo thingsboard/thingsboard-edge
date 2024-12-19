@@ -36,7 +36,7 @@ public class DefaultTsUplinkMessageService extends BaseUplinkMessageService impl
 
     @Override
     protected PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        return cloudEventService.findTsKvCloudEvents(tenantId, seqIdStart, seqIdEnd, pageLink);
+        return cloudCtx.getCloudEventService().findTsKvCloudEvents(tenantId, seqIdStart, seqIdEnd, pageLink);
     }
 
     @Override

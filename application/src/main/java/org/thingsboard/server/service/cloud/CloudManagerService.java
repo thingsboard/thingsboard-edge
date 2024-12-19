@@ -78,7 +78,6 @@ public class CloudManagerService {
     private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
     private static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
 
-
     @Value("${cloud.routingKey}")
     private String routingKey;
 

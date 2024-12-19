@@ -30,24 +30,8 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.cloud.CloudEventService;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
-import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
-import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
-import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +49,7 @@ public abstract class BaseUplinkMessageService {
 
     protected static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
     private static final String RATE_LIMIT_REACHED = "Rate limit reached";
-    private static final int MAX_UPLINK_ATTEMPTS = 10; // max number of attemps to send downlink message if edge connected
+    private static final int MAX_UPLINK_ATTEMPTS = 3; // max number of attemps to send downlink message if edge connected
 
     private static final ReentrantLock uplinkMsgsPackLock = new ReentrantLock();
     private final ConcurrentMap<Integer, UplinkMsg> pendingMsgsMap = new ConcurrentHashMap<>();
@@ -78,52 +62,10 @@ public abstract class BaseUplinkMessageService {
     private long uplinkPackTimeoutSec;
 
     @Autowired
-    protected CloudEventService cloudEventService;
-
-    @Autowired
-    private CloudEventStorageSettings cloudEventStorageSettings;
-
-    @Autowired
-    private RelationCloudProcessor relationProcessor;
-
-    @Autowired
-    private DeviceCloudProcessor deviceProcessor;
-
-    @Autowired
-    private DeviceProfileCloudProcessor deviceProfileProcessor;
-
-    @Autowired
-    private AlarmCloudProcessor alarmProcessor;
-
-    @Autowired
-    private TelemetryCloudProcessor telemetryProcessor;
-
-    @Autowired
-    private WidgetBundleCloudProcessor widgetBundleProcessor;
-
-    @Autowired
-    private EntityViewCloudProcessor entityViewProcessor;
-
-    @Autowired
-    private DashboardCloudProcessor dashboardProcessor;
-
-    @Autowired
-    private AssetCloudProcessor assetProcessor;
-
-    @Autowired
-    private AssetProfileCloudProcessor assetProfileProcessor;
-
-    @Autowired
-    private ResourceCloudProcessor resourceCloudProcessor;
-
-    @Autowired
-    private AttributesService attributesService;
+    protected CloudContextComponent cloudCtx;
 
     @Autowired
     private EdgeRpcClient edgeRpcClient;
-
-    @Autowired
-    private DbCallbackExecutorService dbCallbackExecutorService;
 
     public void processCloudEvents(TenantId tenantId, Long queueSeqIdStart, TimePageLink pageLink) throws Exception {
         PageData<CloudEvent> cloudEvents;
@@ -177,7 +119,7 @@ public abstract class BaseUplinkMessageService {
 
     protected ListenableFuture<Long> getLongAttrByKey(TenantId tenantId, String attrKey) {
         ListenableFuture<Optional<AttributeKvEntry>> future =
-                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKey);
+                cloudCtx.getAttributesService().find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKey);
         return Futures.transform(future, attributeKvEntryOpt -> {
             if (attributeKvEntryOpt != null && attributeKvEntryOpt.isPresent()) {
                 AttributeKvEntry attributeKvEntry = attributeKvEntryOpt.get();
@@ -185,14 +127,14 @@ public abstract class BaseUplinkMessageService {
             } else {
                 return 0L;
             }
-        }, dbCallbackExecutorService);
+        }, cloudCtx.getDbCallbackExecutorService());
     }
 
     public TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart) {
         try {
             long queueStartTs = getQueueStartTs(tenantId).get();
             long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
-            TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+            TimePageLink pageLink = new TimePageLink(cloudCtx.getCloudEventStorageSettings().getMaxReadRecordsCount(),
                     0, null, null, queueStartTs, queueEndTs);
             PageData<CloudEvent> cloudEvents = findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
             if (cloudEvents.getData().isEmpty()) {
@@ -206,7 +148,7 @@ public abstract class BaseUplinkMessageService {
                         log.trace("newCloudEventsAvailable: queueEndTs < System.currentTimeMillis() [{}] [{}]", queueEndTs, System.currentTimeMillis());
                         queueStartTs = queueEndTs;
                         queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
-                        pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                        pageLink = new TimePageLink(cloudCtx.getCloudEventStorageSettings().getMaxReadRecordsCount(),
                                 0, null, null, queueStartTs, queueEndTs);
                         cloudEvents = findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
                         if (!cloudEvents.getData().isEmpty()) {
@@ -225,7 +167,7 @@ public abstract class BaseUplinkMessageService {
     }
 
     protected PageData<CloudEvent> findCloudEventsFromBeginning(TenantId tenantId, TimePageLink pageLink) {
-        long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
+        long seqIdEnd = Integer.toUnsignedLong(cloudCtx.getCloudEventStorageSettings().getMaxReadRecordsCount());
         seqIdEnd = Math.max(seqIdEnd, 50L);
         return findCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
     }
@@ -237,7 +179,7 @@ public abstract class BaseUplinkMessageService {
         List<AttributeKvEntry> attributes = Arrays.asList(
                 new BaseAttributeKvEntry(new LongDataEntry(attrStartTsKey, startTs), System.currentTimeMillis()),
                 new BaseAttributeKvEntry(new LongDataEntry(attrSeqIdKey, seqIdOffset), System.currentTimeMillis()));
-        attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
+        cloudCtx.getAttributesService().save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
     }
 
     public void onUplinkResponse(UplinkResponseMsg msg) {
@@ -294,7 +236,7 @@ public abstract class BaseUplinkMessageService {
                 }
                 if (!success) {
                     try {
-                        Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
+                        Thread.sleep(cloudCtx.getCloudEventStorageSettings().getSleepIntervalBetweenBatches());
                     } catch (InterruptedException e) {
                         log.error("Error during sleep between batches", e);
                     }
@@ -327,15 +269,18 @@ public abstract class BaseUplinkMessageService {
             UplinkMsg uplinkMsg = null;
             try {
                 switch (cloudEvent.getAction()) {
-                    case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT ->
-                            uplinkMsg = convertEntityEventToUplink(tenantId, cloudEvent);
+                    case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED,
+                         ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> {
+                        log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
+                        uplinkMsg = cloudCtx.getProcessor(cloudEvent.getType()).convertCloudEventToUplink(cloudEvent);
+                    }
                     case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
-                            uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(tenantId, cloudEvent);
-                    case ATTRIBUTES_REQUEST -> uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
-                    case RELATION_REQUEST -> uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
-                    case RPC_CALL -> uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
-                    case WIDGET_BUNDLE_TYPES_REQUEST -> uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
-                    case ENTITY_VIEW_REQUEST -> uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
+                            uplinkMsg = cloudCtx.getTelemetryProcessor().convertTelemetryEventToUplink(tenantId, cloudEvent);
+                    case ATTRIBUTES_REQUEST -> uplinkMsg = cloudCtx.getTelemetryProcessor().convertAttributesRequestEventToUplink(cloudEvent);
+                    case RELATION_REQUEST -> uplinkMsg = cloudCtx.getRelationProcessor().convertRelationRequestEventToUplink(cloudEvent);
+                    case RPC_CALL -> uplinkMsg = cloudCtx.getDeviceProcessor().convertRpcCallEventToUplink(cloudEvent);
+                    case WIDGET_BUNDLE_TYPES_REQUEST -> uplinkMsg = cloudCtx.getWidgetsBundleProcessor().convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
+                    case ENTITY_VIEW_REQUEST -> uplinkMsg = cloudCtx.getEntityViewProcessor().convertEntityViewRequestEventToUplink(cloudEvent);
                 }
             } catch (Exception e) {
                 log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
@@ -347,24 +292,4 @@ public abstract class BaseUplinkMessageService {
         return result;
     }
 
-    private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
-        log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
-        EdgeVersion edgeVersion = EdgeVersion.V_LATEST;
-        return switch (cloudEvent.getType()) {
-            case DEVICE -> deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent, edgeVersion);
-            case DEVICE_PROFILE -> deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
-            case ALARM -> alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
-            case ALARM_COMMENT -> alarmProcessor.convertAlarmCommentEventToUplink(cloudEvent, edgeVersion);
-            case ASSET -> assetProcessor.convertAssetEventToUplink(cloudEvent, edgeVersion);
-            case ASSET_PROFILE -> assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent, edgeVersion);
-            case DASHBOARD -> dashboardProcessor.convertDashboardEventToUplink(cloudEvent, edgeVersion);
-            case ENTITY_VIEW -> entityViewProcessor.convertEntityViewEventToUplink(cloudEvent, edgeVersion);
-            case RELATION -> relationProcessor.convertRelationEventToUplink(cloudEvent, edgeVersion);
-            case TB_RESOURCE -> resourceCloudProcessor.convertResourceEventToUplink(cloudEvent, edgeVersion);
-            default -> {
-                log.warn("Unsupported cloud event type [{}]", cloudEvent);
-                yield null;
-            }
-        };
-    }
 }
