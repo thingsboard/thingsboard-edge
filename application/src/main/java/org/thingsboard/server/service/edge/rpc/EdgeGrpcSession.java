@@ -762,19 +762,24 @@ public abstract class EdgeGrpcSession implements Closeable {
     }
 
     protected DownlinkMsg convertEntityEventToDownlink(EdgeEvent edgeEvent) {
-        log.trace("[{}] Executing convertEntityEventToDownlink, edgeEvent [{}], action [{}]", edgeEvent.getTenantId(), edgeEvent, edgeEvent.getAction());
-        if ((EdgeEventType.OAUTH2_CLIENT.equals(edgeEvent.getType())
-                || EdgeEventType.DOMAIN.equals(edgeEvent.getType())
-                || EdgeEventType.CUSTOM_MENU.equals(edgeEvent.getType()))
-                && (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0))) {
-            return null;
-        }
+        log.trace("[{}] Executing convertEntityEventToDownlink, edgeEvent [{}], action [{}]",
+                edgeEvent.getTenantId(), edgeEvent, edgeEvent.getAction());
 
-        if (EdgeEventType.CUSTOM_TRANSLATION.equals(edgeEvent.getType()) && EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_7_0)) {
+        if (!isValidEdgeEvent(edgeEvent)) {
             return null;
         }
 
         return ctx.getProcessor(edgeEvent.getType()).convertEdgeEventToDownlink(edgeEvent);
+    }
+
+    private boolean isValidEdgeEvent(EdgeEvent edgeEvent) {
+        EdgeEventType eventType = edgeEvent.getType();
+        if ((EdgeEventType.OAUTH2_CLIENT.equals(eventType) || EdgeEventType.DOMAIN.equals(eventType)
+                || EdgeEventType.CUSTOM_MENU.equals(eventType)) && EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0)) {
+            return false;
+        }
+
+        return !EdgeEventType.CUSTOM_TRANSLATION.equals(eventType) || !EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_7_0);
     }
 
     public void addEventToHighPriorityQueue(EdgeEvent edgeEvent) {

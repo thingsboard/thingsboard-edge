@@ -352,8 +352,10 @@ public class EdgeMsgConstructorUtils {
                 .setType(edge.getType())
                 .setRoutingKey(edge.getRoutingKey())
                 .setSecret(edge.getSecret())
+                .setEdgeLicenseKey(edge.getEdgeLicenseKey())
+                .setCloudEndpoint(edge.getCloudEndpoint())
                 .setAdditionalInfo(JacksonUtil.toString(edge.getAdditionalInfo()))
-                .setCloudType("CE");
+                .setCloudType("PE");
         if (edge.getCustomerId() != null) {
             builder.setCustomerIdMSB(edge.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(edge.getCustomerId().getId().getLeastSignificantBits());
@@ -532,7 +534,11 @@ public class EdgeMsgConstructorUtils {
                 try {
                     JsonObject data = entityData.getAsJsonObject();
                     TransportProtos.PostAttributeMsg attributesUpdatedMsg = JsonConverter.convertToAttributesProto(data.getAsJsonObject("kv"));
-                    builder.setAttributesUpdatedMsg(attributesUpdatedMsg);
+                    if (data.has("isPostAttributes") && data.getAsJsonPrimitive("isPostAttributes").getAsBoolean()) {
+                        builder.setPostAttributesMsg(attributesUpdatedMsg);
+                    } else {
+                        builder.setAttributesUpdatedMsg(attributesUpdatedMsg);
+                    }
                     builder.setPostAttributeScope(getScopeOfDefault(data));
                 } catch (Exception e) {
                     log.warn("[{}][{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
