@@ -143,9 +143,11 @@ public class EdgeContextComponent {
             if (eventType != null) {
                 processorMap.put(eventType, processor);
             }
+            if (EdgeEventType.WHITE_LABELING.equals(eventType)) {
+                processorMap.put(EdgeEventType.LOGIN_WHITE_LABELING, processor);
+                processorMap.put(EdgeEventType.MAIL_TEMPLATES, processor);
+            }
         });
-        processorMap.put(EdgeEventType.LOGIN_WHITE_LABELING, whiteLabelingProcessor);
-        processorMap.put(EdgeEventType.MAIL_TEMPLATES, whiteLabelingProcessor);
     }
 
     // services
