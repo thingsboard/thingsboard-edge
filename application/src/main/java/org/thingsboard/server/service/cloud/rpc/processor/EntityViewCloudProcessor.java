@@ -156,4 +156,9 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         entityView.setCustomerId(customer != null ? customer.getId() : null);
     }
 
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.TB_RESOURCE;
+    }
+
 }

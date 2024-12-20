@@ -28,6 +28,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -185,6 +186,11 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
             dashboard = edgeCtx.getDashboardService().findDashboardInfoById(tenantId, defaultDashboardId);
         }
         assetProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.ASSET_PROFILE;
     }
 
 }

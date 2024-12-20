@@ -23,6 +23,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -79,6 +80,11 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
             }
         }
         return null;
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.ALARM;
     }
 
 }

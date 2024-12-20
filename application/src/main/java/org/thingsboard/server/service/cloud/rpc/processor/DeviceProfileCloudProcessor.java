@@ -29,6 +29,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -185,6 +186,11 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
             dashboard = edgeCtx.getDashboardService().findDashboardInfoById(tenantId, defaultDashboardId);
         }
         deviceProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.DEVICE_PROFILE;
     }
 
 }

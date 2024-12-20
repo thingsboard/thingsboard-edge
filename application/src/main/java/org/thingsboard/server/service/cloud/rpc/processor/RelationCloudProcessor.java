@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -72,6 +73,11 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
                     .addRelationUpdateMsg(relationUpdateMsg).build();
         }
         return null;
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.RELATION;
     }
 
 }

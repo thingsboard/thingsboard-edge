@@ -16,6 +16,7 @@
 package org.thingsboard.server.service.cloud;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -51,33 +52,27 @@ import org.thingsboard.server.service.cloud.rpc.processor.WidgetTypeCloudProcess
 import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
-import javax.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 @Lazy
 @Data
+@Slf4j
 @Component
 @TbCoreComponent
 public class CloudContextComponent {
 
-    private Map<CloudEventType, EdgeProcessor> processorMap;
+    private Map<CloudEventType, EdgeProcessor> processorMap = new EnumMap<>(CloudEventType.class);
 
-    @PostConstruct
-    private void initProcessorMap() {
-        Map<CloudEventType, EdgeProcessor> map = new HashMap<>();
-        map.put(CloudEventType.ALARM_COMMENT, alarmCommentProcessor);
-        map.put(CloudEventType.ALARM, alarmProcessor);
-        map.put(CloudEventType.ASSET, assetProcessor);
-        map.put(CloudEventType.ASSET_PROFILE, assetProfileProcessor);
-        map.put(CloudEventType.DASHBOARD, dashboardProcessor);
-        map.put(CloudEventType.DEVICE, deviceProcessor);
-        map.put(CloudEventType.DEVICE_PROFILE, deviceProfileProcessor);
-        map.put(CloudEventType.ENTITY_VIEW, entityViewProcessor);
-        map.put(CloudEventType.TB_RESOURCE, resourceProcessor);
-        map.put(CloudEventType.RELATION, relationProcessor);
-        this.processorMap = Collections.unmodifiableMap(map);
+    @Autowired
+    public CloudContextComponent(List<EdgeProcessor> processors) {
+        processors.forEach(processor -> {
+            CloudEventType eventType = processor.getCloudEventType();
+            if (eventType != null) {
+                processorMap.put(eventType, processor);
+            }
+        });
     }
 
     // services

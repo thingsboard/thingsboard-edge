@@ -26,6 +26,7 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
@@ -115,6 +116,11 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
             }
         }
         return null;
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.TB_RESOURCE;
     }
 
 }

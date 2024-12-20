@@ -25,6 +25,7 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -132,6 +133,11 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     private CustomerId checkCustomerOnEdge(TenantId tenantId, CustomerId customerId) {
         Customer customer = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
         return customer != null ? customer.getId() : null;
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.DASHBOARD;
     }
 
 }

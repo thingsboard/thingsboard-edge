@@ -22,6 +22,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -58,6 +60,11 @@ public class AlarmCommentCloudProcessor extends BaseAlarmProcessor {
             }
             default -> null;
         };
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.ALARM_COMMENT;
     }
 
 }

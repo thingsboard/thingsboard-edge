@@ -278,4 +278,9 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         device.setCustomerId(customer != null ? customer.getId() : null);
     }
 
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.DEVICE;
+    }
+
 }

@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.CloudUtils;
@@ -81,6 +82,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
     protected static final Lock widgetCreationLock = new ReentrantLock();
     protected static final Lock customerCreationLock = new ReentrantLock();
 
+    @Lazy
     @Autowired
     protected EdgeContextComponent edgeCtx;
 
