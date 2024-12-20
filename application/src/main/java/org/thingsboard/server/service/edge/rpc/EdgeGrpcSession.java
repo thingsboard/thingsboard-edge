@@ -109,13 +109,14 @@ import java.util.function.BiConsumer;
 public abstract class EdgeGrpcSession implements Closeable {
 
     private final ReentrantLock downlinkMsgLock = new ReentrantLock();
-    protected static final ConcurrentLinkedQueue<EdgeEvent> highPriorityQueue = new ConcurrentLinkedQueue<>();
 
-    private static final int MAX_SEND_DOWNLINK_ATTEMPTS = 10;
-
-    public static final String RATE_LIMIT_REACHED = "Rate limit reached";
-    private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
+    private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
+
+    private static final int MAX_DOWNLINK_ATTEMPTS = 3;
+    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
+
+    protected static final ConcurrentLinkedQueue<EdgeEvent> highPriorityQueue = new ConcurrentLinkedQueue<>();
 
     protected UUID sessionId;
     private BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener;
@@ -136,7 +137,7 @@ public abstract class EdgeGrpcSession implements Closeable {
     private StreamObserver<RequestMsg> inputStream;
     private StreamObserver<ResponseMsg> outputStream;
 
-    private boolean connected;
+    private volatile boolean connected;
     private volatile boolean syncCompleted;
 
     private EdgeVersion edgeVersion;
@@ -474,15 +475,15 @@ public abstract class EdgeGrpcSession implements Closeable {
                                     .build());
                         }
                     }
-                    if (attempt < MAX_SEND_DOWNLINK_ATTEMPTS) {
+                    if (attempt < MAX_DOWNLINK_ATTEMPTS) {
                         scheduleDownlinkMsgsPackSend(attempt + 1);
                     } else {
                         String failureMsg = String.format("Failed to deliver messages: %s", copy);
                         log.warn("[{}][{}] Failed to deliver the batch after {} attempts. Next messages are going to be discarded {}",
-                                tenantId, sessionId, MAX_SEND_DOWNLINK_ATTEMPTS, copy);
+                                tenantId, sessionId, MAX_DOWNLINK_ATTEMPTS, copy);
                         ctx.getNotificationRuleProcessor().process(EdgeCommunicationFailureTrigger.builder().tenantId(tenantId).edgeId(edge.getId())
                                 .customerId(edge.getCustomerId()).edgeName(edge.getName()).failureMsg(failureMsg)
-                                .error("Failed to deliver messages after " + MAX_SEND_DOWNLINK_ATTEMPTS + " attempts").build());
+                                .error("Failed to deliver messages after " + MAX_DOWNLINK_ATTEMPTS + " attempts").build());
                         stopCurrentSendDownlinkMsgsTask(false);
                     }
                 } else {
@@ -537,13 +538,15 @@ public abstract class EdgeGrpcSession implements Closeable {
 
     public void processHighPriorityEvents() {
         try {
-            List<EdgeEvent> highPriorityEvents = new ArrayList<>();
-            EdgeEvent event;
-            while ((event = highPriorityQueue.poll()) != null) {
-                highPriorityEvents.add(event);
+            if (isConnected() && isSyncCompleted()) {
+                List<EdgeEvent> highPriorityEvents = new ArrayList<>();
+                EdgeEvent event;
+                while ((event = highPriorityQueue.poll()) != null) {
+                    highPriorityEvents.add(event);
+                }
+                List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(highPriorityEvents);
+                sendDownlinkMsgsPack(downlinkMsgsPack).get();
             }
-            List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(highPriorityEvents);
-            sendDownlinkMsgsPack(downlinkMsgsPack).get();
         } catch (Exception e) {
             log.error("[{}] Failed to process high priority events", sessionId, e);
         }

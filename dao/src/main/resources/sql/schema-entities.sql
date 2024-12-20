@@ -17,6 +17,7 @@
 CREATE TABLE IF NOT EXISTS tb_schema_settings
 (
     schema_version bigint NOT NULL,
+    product varchar(2) NOT NULL,
     CONSTRAINT tb_schema_settings_pkey PRIMARY KEY (schema_version)
 );
 
@@ -181,7 +182,7 @@ CREATE TABLE IF NOT EXISTS rule_node (
     configuration varchar(10000000),
     type varchar(255),
     name varchar(255),
-    debug_mode boolean,
+    debug_settings varchar(1024),
     singleton_mode boolean,
     queue_name varchar(255),
     external_id uuid
@@ -922,7 +923,7 @@ CREATE TABLE IF NOT EXISTS queue_stats (
 );
 
 CREATE TABLE IF NOT EXISTS qr_code_settings (
-    id uuid NOT NULL CONSTRAINT mobile_app_settings_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT qr_code_settings_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
     use_default_app boolean,

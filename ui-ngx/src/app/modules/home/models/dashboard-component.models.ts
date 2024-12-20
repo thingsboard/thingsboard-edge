@@ -111,6 +111,9 @@ interface DashboardWidgetUpdateRecord {
   operation: DashboardWidgetUpdateOperation;
 }
 
+export const maxGridsterCol = 3000;
+export const maxGridsterRow = 3000;
+
 export class DashboardWidgets implements Iterable<DashboardWidget> {
 
   highlightedMode = false;
@@ -686,7 +689,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
   private filterCustomHeaderAction(action: WidgetHeaderAction, data: FormattedData[]): boolean {
     if (action.useShowWidgetHeaderActionFunction) {
       try {
-        return action.showWidgetHeaderActionFunction(this.widgetContext, data);
+        return action.showWidgetHeaderActionFunction.execute(this.widgetContext, data);
       } catch (e) {
         console.warn('Failed to execute showWidgetHeaderActionFunction', e);
         return false;
