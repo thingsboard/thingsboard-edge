@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -122,63 +123,29 @@ import org.thingsboard.server.service.edge.rpc.processor.wl.WhiteLabelingEdgePro
 import org.thingsboard.server.service.edge.rpc.sync.EdgeRequestsService;
 import org.thingsboard.server.service.executors.GrpcCallbackExecutorService;
 
-import javax.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 @Lazy
 @Data
+@Slf4j
 @Component
 @TbCoreComponent
 public class EdgeContextComponent {
 
-    private Map<EdgeEventType, EdgeProcessor> processorMap;
+    private final Map<EdgeEventType, EdgeProcessor> processorMap = new EnumMap<>(EdgeEventType.class);
 
-    @PostConstruct
-    private void initProcessorMap() {
-        Map<EdgeEventType, EdgeProcessor> map = new HashMap<>();
-        map.put(EdgeEventType.ADMIN_SETTINGS, adminSettingsProcessor);
-        map.put(EdgeEventType.ALARM, alarmProcessor);
-        map.put(EdgeEventType.ALARM_COMMENT, alarmCommentProcessor);
-        map.put(EdgeEventType.ASSET, assetProcessor);
-        map.put(EdgeEventType.ASSET_PROFILE, assetProfileProcessor);
-        map.put(EdgeEventType.CUSTOMER, customerProcessor);
-        map.put(EdgeEventType.DASHBOARD, dashboardProcessor);
-        map.put(EdgeEventType.DEVICE, deviceProcessor);
-        map.put(EdgeEventType.DEVICE_PROFILE, deviceProfileProcessor);
-        map.put(EdgeEventType.DOMAIN, domainProcessor);
-        map.put(EdgeEventType.EDGE, edgeEntityProcessor);
-        map.put(EdgeEventType.ENTITY_VIEW, entityViewProcessor);
-        map.put(EdgeEventType.NOTIFICATION_RULE, notificationRuleProcessor);
-        map.put(EdgeEventType.NOTIFICATION_TARGET, notificationTargetProcessor);
-        map.put(EdgeEventType.NOTIFICATION_TEMPLATE, notificationTemplateProcessor);
-        map.put(EdgeEventType.OAUTH2_CLIENT, oAuth2ClientProcessor);
-        map.put(EdgeEventType.OTA_PACKAGE, otaPackageProcessor);
-        map.put(EdgeEventType.QUEUE, queueProcessor);
-        map.put(EdgeEventType.RELATION, relationProcessor);
-        map.put(EdgeEventType.RULE_CHAIN, ruleChainProcessor);
-        map.put(EdgeEventType.RULE_CHAIN_METADATA, ruleChainMetadataProcessor);
-        map.put(EdgeEventType.TB_RESOURCE, resourceProcessor);
-        map.put(EdgeEventType.TENANT, tenantProcessor);
-        map.put(EdgeEventType.TENANT_PROFILE, tenantProfileProcessor);
-        map.put(EdgeEventType.USER, userProcessor);
-        map.put(EdgeEventType.WIDGETS_BUNDLE, widgetBundleProcessor);
-        map.put(EdgeEventType.WIDGET_TYPE, widgetTypeProcessor);
-        // PE processors:
-        map.put(EdgeEventType.CONVERTER, converterProcessor);
-        map.put(EdgeEventType.CUSTOM_MENU, customMenuProcessor);
-        map.put(EdgeEventType.CUSTOM_TRANSLATION, customTranslationProcessor);
-        map.put(EdgeEventType.DEVICE_GROUP_OTA, deviceOtaPackageProcessor);
-        map.put(EdgeEventType.ENTITY_GROUP, entityGroupProcessor);
-        map.put(EdgeEventType.GROUP_PERMISSION, groupPermissionsProcessor);
-        map.put(EdgeEventType.INTEGRATION, integrationProcessor);
-        map.put(EdgeEventType.LOGIN_WHITE_LABELING, whiteLabelingProcessor);
-        map.put(EdgeEventType.MAIL_TEMPLATES, whiteLabelingProcessor);
-        map.put(EdgeEventType.ROLE, roleProcessor);
-        map.put(EdgeEventType.SCHEDULER_EVENT, schedulerProcessor);
-        map.put(EdgeEventType.WHITE_LABELING, whiteLabelingProcessor);
-        this.processorMap = Collections.unmodifiableMap(map);
+    @Autowired
+    public EdgeContextComponent(List<EdgeProcessor> processors) {
+        processors.forEach(processor -> {
+            EdgeEventType eventType = processor.getEdgeEventType();
+            if (eventType != null) {
+                processorMap.put(eventType, processor);
+            }
+        });
+        processorMap.put(EdgeEventType.LOGIN_WHITE_LABELING, whiteLabelingProcessor);
+        processorMap.put(EdgeEventType.MAIL_TEMPLATES, whiteLabelingProcessor);
     }
 
     // services

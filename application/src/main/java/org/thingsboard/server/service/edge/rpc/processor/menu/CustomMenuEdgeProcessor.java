@@ -101,4 +101,9 @@ public class CustomMenuEdgeProcessor extends BaseEdgeProcessor {
         return processActionForAllEdges(tenantId, type, actionType, entityId, JacksonUtil.toJsonNode(edgeNotificationMsg.getBody()), sourceEdgeId);
     }
 
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.CUSTOM_MENU;
+    }
+
 }

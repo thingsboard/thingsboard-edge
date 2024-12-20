@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -64,6 +65,11 @@ public class DeviceOtaPackageEdgeProcessor extends BaseEdgeProcessor {
             log.error("Can't process device group ota package msg [{}]", edgeEvent, e);
         }
         return downlinkMsg;
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.DEVICE_GROUP_OTA;
     }
 
 }

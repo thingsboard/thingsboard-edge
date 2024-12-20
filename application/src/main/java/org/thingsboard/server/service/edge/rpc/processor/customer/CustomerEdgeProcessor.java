@@ -109,4 +109,9 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
         return Futures.immediateFuture(null);
     }
 
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.CUSTOMER;
+    }
+
 }

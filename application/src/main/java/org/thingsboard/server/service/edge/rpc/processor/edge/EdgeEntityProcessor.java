@@ -230,4 +230,8 @@ public class EdgeEntityProcessor extends BaseEdgeProcessor {
         edgeCtx.getEntityGroupService().assignEntityGroupToEdge(tenantId, customerUsers.getId(), edgeId, customerUsers.getType());
     }
 
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.EDGE;
+    }
+
 }

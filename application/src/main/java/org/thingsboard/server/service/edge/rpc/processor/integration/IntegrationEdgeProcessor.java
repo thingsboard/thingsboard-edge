@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -110,6 +111,11 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
             log.warn("Failed to replace attribute placeholders in configuration [{}]", originalConfiguration, e);
             return originalConfiguration;
         }
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.INTEGRATION;
     }
 
 }

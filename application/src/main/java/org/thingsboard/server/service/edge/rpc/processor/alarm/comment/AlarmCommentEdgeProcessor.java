@@ -105,4 +105,9 @@ public class AlarmCommentEdgeProcessor extends BaseAlarmProcessor implements Ala
         return Futures.transform(Futures.allAsList(delFutures), voids -> null, dbCallbackExecutorService);
     }
 
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.ALARM_COMMENT;
+    }
+
 }

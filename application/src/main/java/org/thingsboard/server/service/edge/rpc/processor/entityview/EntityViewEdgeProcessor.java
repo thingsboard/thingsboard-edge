@@ -186,4 +186,9 @@ public class EntityViewEdgeProcessor extends BaseEntityViewProcessor implements 
         entityView.setCustomerId(customerUUID);
     }
 
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.ENTITY_VIEW;
+    }
+
 }

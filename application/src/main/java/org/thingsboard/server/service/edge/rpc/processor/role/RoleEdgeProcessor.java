@@ -121,4 +121,9 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
         };
     }
 
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.ROLE;
+    }
+
 }

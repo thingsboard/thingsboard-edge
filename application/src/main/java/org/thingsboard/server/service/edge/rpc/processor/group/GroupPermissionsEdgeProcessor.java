@@ -126,4 +126,9 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
         };
     }
 
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.GROUP_PERMISSION;
+    }
+
 }
