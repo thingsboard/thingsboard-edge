@@ -39,7 +39,7 @@ import java.util.Optional;
 public class DefaultEdgeSettingsService implements EdgeSettingsService {
 
     private static final String FETCHING_EDGE_SETTINGS_ERROR_MESSAGE = "Fetching edge settings failed";
-    public final AttributesService attributesService;
+    private final AttributesService attributesService;
 
     @Override
     public EdgeSettings findEdgeSettings(TenantId tenantId) {

@@ -54,8 +54,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
     private EntityViewMsgConstructorFactory entityViewMsgConstructorFactory;
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
-                                                                EntityViewUpdateMsg entityViewUpdateMsg,
-                                                                Long queueStartTs) {
+                                                                EntityViewUpdateMsg entityViewUpdateMsg) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -63,8 +62,8 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
             switch (entityViewUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, queueStartTs);
-                    return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
+                    saveOrUpdateEntityViewFromCloud(tenantId, entityViewId, entityViewUpdateMsg);
+                    return requestForAdditionalData(tenantId, entityViewId);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     EntityView entityViewById = edgeCtx.getEntityViewService().findEntityViewById(tenantId, entityViewId);
                     if (entityViewById != null) {
@@ -81,7 +80,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
     }
 
-    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, Long queueStartTs) {
+    private void saveOrUpdateEntityViewFromCloud(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -89,7 +88,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
         Boolean entityViewNameUpdated = resultPair.getSecond();
         if (entityViewNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null, queueStartTs);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null);
         }
     }
 

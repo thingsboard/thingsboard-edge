@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.msa;
 
-public interface TsUplinkMessageService extends UplinkMessageService {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@AllArgsConstructor
+@Data
+public class TestEdgeConfiguration {
+    private String routingKey;
+    private String secret;
+    private Integer port;
+    private Integer idx;
+    private String name;
 }

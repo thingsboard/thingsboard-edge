@@ -103,18 +103,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 
-import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_SEQ_ID_ATTR_KEY;
-import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
 
 @Slf4j
 @Data
 public abstract class EdgeGrpcSession implements Closeable {
-    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
 
     private final ReentrantLock downlinkMsgLock = new ReentrantLock();
     protected static final ConcurrentLinkedQueue<EdgeEvent> highPriorityQueue = new ConcurrentLinkedQueue<>();
 
     private static final int MAX_SEND_DOWNLINK_ATTEMPTS = 10;
+
+    public static final String RATE_LIMIT_REACHED = "Rate limit reached";
+    private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
+    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
     protected UUID sessionId;
     private BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener;

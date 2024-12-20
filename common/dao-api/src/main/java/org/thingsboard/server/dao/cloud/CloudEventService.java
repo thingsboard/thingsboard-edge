@@ -33,15 +33,13 @@ public interface CloudEventService {
                         CloudEventType cloudEventType,
                         EdgeEventActionType cloudEventAction,
                         EntityId entityId,
-                        JsonNode entityBody,
-                        Long queueStartTs) throws ExecutionException, InterruptedException;
+                        JsonNode entityBody) throws ExecutionException, InterruptedException;
 
     ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId,
                                                CloudEventType cloudEventType,
                                                EdgeEventActionType cloudEventAction,
                                                EntityId entityId,
-                                               JsonNode entityBody,
-                                               Long queueStartTs);
+                                               JsonNode entityBody);
 
     ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 
@@ -50,7 +48,5 @@ public interface CloudEventService {
     PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
     PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
-
-    void cleanUp();
 
 }

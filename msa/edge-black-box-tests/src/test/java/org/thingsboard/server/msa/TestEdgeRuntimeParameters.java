@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.msa;
 
-public class QueueConstants {
-    public static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
-    public static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
-    public static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.thingsboard.rest.client.RestClient;
+import org.thingsboard.server.common.data.edge.Edge;
 
-    static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
-    static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
-
+@AllArgsConstructor
+@Data
+public class TestEdgeRuntimeParameters {
+    private RestClient restClient;
+    private Edge edge;
+    private String url;
 }
