@@ -118,13 +118,13 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
         }
     }
 
-    private void processUplinkMessages(String queueStartTsAttrKey, String queueSeqIdAttrKey, boolean isHighPriority, CloudEventFinder finder) {
+    private void processUplinkMessages(String queueStartTsAttrKey, String queueSeqIdAttrKey, boolean isGeneralMsg, CloudEventFinder finder) {
         try {
             Long queueSeqIdStart = getLongAttrByKey(tenantId, queueSeqIdAttrKey).get();
             TimePageLink pageLink = newCloudEventsAvailable(tenantId, queueSeqIdStart, queueStartTsAttrKey, finder);
             if (pageLink != null) {
                 try {
-                    if (isHighPriority) {
+                    if (isGeneralMsg) {
                         isGeneralProcessInProgress = true;
                     }
                     PageData<CloudEvent> cloudEvents;
@@ -149,12 +149,13 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
                         if (!isInterrupted) {
                             pageLink = pageLink.nextPageLink();
                         }
-                        if (!isHighPriority && isGeneralProcessInProgress) {
-                            return;
+                        if (!isGeneralMsg && isGeneralProcessInProgress) {
+                            break;
                         }
+                        log.trace("processUplinkMessages state {} {} {} {} {}", isInterrupted, cloudEvents.getTotalElements(), cloudEvents.hasNext(), isGeneralMsg, isGeneralProcessInProgress);
                     } while (isInterrupted || cloudEvents.hasNext());
                 } finally {
-                    if (isHighPriority) {
+                    if (isGeneralMsg) {
                         isGeneralProcessInProgress = false;
                     }
                 }

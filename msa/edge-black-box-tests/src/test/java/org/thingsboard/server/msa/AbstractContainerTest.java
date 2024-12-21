@@ -213,6 +213,7 @@ public abstract class AbstractContainerTest {
                         }
                         return totalElements == expectedCount;
                     } catch (Throwable e) {
+                        log.error("Failed to verify widget bundles", e);
                         return false;
                     }
                 });

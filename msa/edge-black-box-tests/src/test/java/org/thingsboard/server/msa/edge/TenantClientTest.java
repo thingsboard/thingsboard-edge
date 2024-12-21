@@ -23,6 +23,7 @@ import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -55,7 +56,7 @@ public class TenantClientTest extends AbstractContainerTest {
         tenantProfile.setName("New Tenant Profile");
         TenantProfile saveTenantProfile = cloudRestClient.saveTenantProfile(tenantProfile);
 
-        TenantProfileId originalTenantProfileId = new TenantProfileId(tenant.getTenantProfileId().getId());
+        TenantProfileId originalTenantProfileId = tenant.getTenantProfileId();
 
         // update tenant with new tenant profile
         tenant.setTenantProfileId(saveTenantProfile.getId());
@@ -71,6 +72,11 @@ public class TenantClientTest extends AbstractContainerTest {
         tenant.setTenantProfileId(originalTenantProfileId);
         cloudRestClient.saveTenant(tenant);
         cloudRestClient.deleteTenantProfile(saveTenantProfile.getId());
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> originalTenantProfileId.equals(edgeRestClient.getTenantById(tenant.getId()).get().getTenantProfileId()));
 
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
     }
