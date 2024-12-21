@@ -31,6 +31,10 @@ public class ResourceClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendResourceToEdge() {
+        performTestOnEachEdge(this::_testSendResourceToEdge);
+    }
+
+    private void _testSendResourceToEdge() {
         // create resource on cloud
         String title = "Resource on Cloud";
         TbResource resource = saveResourceOnEdge(title, "ResourceCloud.js", cloudRestClient);
@@ -62,6 +66,10 @@ public class ResourceClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendResourceToCloud() {
+        performTestOnEachEdge(this::_testSendResourceToCloud);
+    }
+
+    private void _testSendResourceToCloud() {
         // create resource on edge
         String title = "Resource on Edge";
         TbResource resource = saveResourceOnEdge(title, "ResourceEdge.js", edgeRestClient);

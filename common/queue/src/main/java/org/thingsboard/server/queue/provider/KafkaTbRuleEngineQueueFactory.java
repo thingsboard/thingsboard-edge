@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
@@ -49,6 +50,8 @@ import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaProducerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
+import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
+import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
@@ -60,7 +63,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='kafka' && '${service.type:null}'=='tb-rule-engine'")
-public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
+public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, TbCloudEventQueueFactory {
 
     private final TopicService topicService;
     private final TbKafkaSettings kafkaSettings;
@@ -72,6 +75,9 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueEdgeSettings edgeSettings;
 
+    private final TbQueueCloudEventSettings cloudEventSettings;
+    private final TbQueueCloudEventTSSettings cloudEventTSSettings;
+
     private final TbQueueAdmin coreAdmin;
     private final TbKafkaAdmin ruleEngineAdmin;
     private final TbQueueAdmin jsExecutorRequestAdmin;
@@ -81,6 +87,10 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
     private final TbQueueAdmin housekeeperAdmin;
     private final TbQueueAdmin edgeAdmin;
     private final TbQueueAdmin edgeEventAdmin;
+
+    private final TbQueueAdmin cloudEventAdmin;
+    private final TbQueueAdmin cloudEventTSAdmin;
+
     private final AtomicLong consumerCount = new AtomicLong();
 
     public KafkaTbRuleEngineQueueFactory(TopicService topicService, TbKafkaSettings kafkaSettings,
@@ -91,7 +101,9 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
                                          TbKafkaConsumerStatsService consumerStatsService,
                                          TbQueueTransportNotificationSettings transportNotificationSettings,
                                          TbQueueEdgeSettings edgeSettings,
-                                         TbKafkaTopicConfigs kafkaTopicConfigs) {
+                                         TbKafkaTopicConfigs kafkaTopicConfigs,
+                                         TbQueueCloudEventSettings cloudEventSettings,
+                                         TbQueueCloudEventTSSettings cloudEventTSSettings) {
         this.topicService = topicService;
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -101,6 +113,8 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
         this.consumerStatsService = consumerStatsService;
         this.transportNotificationSettings = transportNotificationSettings;
         this.edgeSettings = edgeSettings;
+        this.cloudEventSettings = cloudEventSettings;
+        this.cloudEventTSSettings = cloudEventTSSettings;
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
@@ -111,6 +125,8 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
         this.housekeeperAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperConfigs());
         this.edgeAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeConfigs());
         this.edgeEventAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeEventConfigs());
+        this.cloudEventAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCloudEventConfigs());
+        this.cloudEventTSAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCloudEventTSConfigs());
     }
 
     @Override
@@ -293,6 +309,60 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
                 .build();
     }
 
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName(cloudEventSettings.getTopic()));
+        consumerBuilder.clientId("tb-rule-engine-cloud-event-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("tb-rule-engine-cloud-event-consumer"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCloudEventMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(cloudEventAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-rule-engine-to-cloud-event-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(cloudEventSettings.getTopic()));
+        requestBuilder.admin(cloudEventAdmin);
+
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName(cloudEventTSSettings.getTopic()));
+        consumerBuilder.clientId("tb-rule-engine-cloud-event-ts-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("tb-rule-engine-cloud-event-ts-consumer"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCloudEventMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(cloudEventTSAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-rule-engine-to-cloud-event-ts-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(cloudEventTSSettings.getTopic()));
+        requestBuilder.admin(cloudEventTSAdmin);
+
+        return requestBuilder.build();
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -313,5 +383,12 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
         if (fwUpdatesAdmin != null) {
             fwUpdatesAdmin.destroy();
         }
+        if (cloudEventAdmin != null) {
+            cloudEventAdmin.destroy();
+        }
+        if (cloudEventTSAdmin != null) {
+            cloudEventTSAdmin.destroy();
+        }
     }
+
 }

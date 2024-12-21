@@ -33,6 +33,10 @@ public class DashboardClientTest extends AbstractContainerTest {
 
     @Test
     public void testDashboards() {
+        performTestOnEachEdge(this::_testDashboards);
+    }
+
+    private void _testDashboards() {
         // create dashboard #1 and assign to edge
         Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1");
         cloudRestClient.assignDashboardToEdge(edge.getId(), savedDashboard1.getId());
@@ -109,6 +113,10 @@ public class DashboardClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendDashboardToCloud() {
+        performTestOnEachEdge(this::_testSendDashboardToCloud);
+    }
+
+    private void _testSendDashboardToCloud() {
         // create dashboard on edge
         Dashboard savedDashboardOnEdge = saveDashboardOnEdge("Edge Dashboard 3");
         Awaitility.await()

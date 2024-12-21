@@ -36,7 +36,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.DynamicValue;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -75,7 +75,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private TenantService tenantService;
 
     @Autowired
-    private CloudEventService cloudEventService;
+    private EdgeSettingsService edgeSettingsService;
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;
@@ -270,10 +270,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 @Override
                 protected void updateEntity(Tenant tenant) {
                     try {
-                        EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
+                        EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings(tenant.getId());
                         if (edgeSettings != null) {
                             edgeSettings.setFullSyncRequired(true);
-                            cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                            edgeSettingsService.saveEdgeSettings(tenant.getId(), edgeSettings);
                         } else {
                             log.warn("Edge settings not found for tenant: {}", tenant.getId());
                         }

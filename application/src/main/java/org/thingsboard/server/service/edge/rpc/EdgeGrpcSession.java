@@ -103,15 +103,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 
+
 @Slf4j
 @Data
 public abstract class EdgeGrpcSession implements Closeable {
+
+    private final ReentrantLock downlinkMsgLock = new ReentrantLock();
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
     private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
 
     private static final int MAX_DOWNLINK_ATTEMPTS = 3;
-    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
+    public static final String RATE_LIMIT_REACHED = "Rate limit reached";
 
     protected static final ConcurrentLinkedQueue<EdgeEvent> highPriorityQueue = new ConcurrentLinkedQueue<>();
 
@@ -120,7 +123,6 @@ public abstract class EdgeGrpcSession implements Closeable {
     private BiConsumer<Edge, UUID> sessionCloseListener;
 
     private final EdgeSessionState sessionState = new EdgeSessionState();
-    private final ReentrantLock downlinkMsgLock = new ReentrantLock();
 
     protected EdgeContextComponent ctx;
     protected Edge edge;

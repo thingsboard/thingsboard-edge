@@ -40,10 +40,14 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundles_verifyInitialSetup() {
+        performTestOnEachEdge(this::_testWidgetsBundles_verifyInitialSetup);
+    }
+
+    private void _testWidgetsBundles_verifyInitialSetup() {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 28);
+                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 30);
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
@@ -68,6 +72,10 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundleAndWidgetType() {
+        performTestOnEachEdge(this::_testWidgetsBundleAndWidgetType);
+    }
+
+    private void _testWidgetsBundleAndWidgetType() {
         // create widget bundle
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("Test Widget Bundle");

@@ -90,7 +90,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -105,23 +104,43 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class AbstractContainerTest {
 
-    public static final String CLOUD_ROUTING_KEY = "280629c7-f853-ee3d-01c0-fffbb6f2ef38";
-    public static final String CLOUD_ROUTING_SECRET = "g9ta4soeylw6smqkky8g";
     public static final String TB_MONOLITH_SERVICE_NAME = "tb-monolith";
     public static final String TB_EDGE_SERVICE_NAME = "tb-edge";
-
     protected static final String CUSTOM_DEVICE_PROFILE_NAME = "Custom Device Profile";
 
-    protected static RestClient cloudRestClient = null;
+    public static final List<TestEdgeConfiguration> edgeConfigurations =
+            Arrays.asList(
+                    new TestEdgeConfiguration("280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g", 8082, 1, "Edge-in-memory"),
+                    new TestEdgeConfiguration("e29dadb1-c487-3b9e-1b5a-02193191c90e", "dmb17p71vz9svfl7tgnz", 8083, 2, "Edge-kafka"));
 
-    protected static RestClient edgeRestClient;
+    protected static List<TestEdgeRuntimeParameters> testParameters = new ArrayList<>();
+
+    protected static RestClient cloudRestClient = null;
+    protected static String tbUrl;
 
     protected static Edge edge;
-
-    protected static EdgeVersion edgeVersion;
-
-    protected static String tbUrl;
     protected static String edgeUrl;
+    protected static RestClient edgeRestClient;
+
+    protected void performTestOnEachEdge(Runnable runnable) {
+        for (TestEdgeRuntimeParameters edgeTestParameter : testParameters) {
+            edge = edgeTestParameter.getEdge();
+            edgeUrl = edgeTestParameter.getUrl();
+            edgeRestClient = edgeTestParameter.getRestClient();
+
+            long startTime = System.currentTimeMillis();
+            log.info("=================================================");
+            log.info("STARTING TEST: {} for edge {} {}", Thread.currentThread().getStackTrace()[2].getMethodName(), edge.getName(), edge.getRoutingKey());
+            log.info("=================================================");
+
+            runnable.run();
+
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            log.info("=================================================");
+            log.info("SUCCEEDED TEST: {} for edge {} {} in {} ms", Thread.currentThread().getStackTrace()[2].getMethodName(), edge.getName(), edge.getRoutingKey(), elapsedTime);
+            log.info("=================================================");
+        }
+    }
 
     @BeforeClass
     public static void before() throws Exception {
@@ -132,34 +151,34 @@ public abstract class AbstractContainerTest {
             cloudRestClient = new RestClient(tbUrl);
             cloudRestClient.login("tenant@thingsboard.org", "tenant");
 
-            String edgeHost = ContainerTestSuite.testContainer.getServiceHost(TB_EDGE_SERVICE_NAME, 8082);
-            Integer edgePort = ContainerTestSuite.testContainer.getServicePort(TB_EDGE_SERVICE_NAME, 8082);
-            edgeUrl = "http://" + edgeHost + ":" + edgePort;
-            edgeRestClient = new RestClient(edgeUrl);
-
             RuleChainId ruleChainId = updateRootRuleChain();
             RuleChainId edgeRuleChainId = updateEdgeRootRuleChain();
 
-            edge = createEdge("test", CLOUD_ROUTING_KEY, CLOUD_ROUTING_SECRET);
-
-            loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
-
-            getEdgeVersion();
-
-            Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
-            Assert.assertTrue(tenant.isPresent());
-            Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                String edgeHost = ContainerTestSuite.testContainer.getServiceHost(TB_EDGE_SERVICE_NAME + "-" + config.getIdx(), config.getPort());
+                Integer edgePort = ContainerTestSuite.testContainer.getServicePort(TB_EDGE_SERVICE_NAME + "-" + config.getIdx(), config.getPort());
+                String edgeUrl = "http://" + edgeHost + ":" + edgePort;
+                Edge edge = createEdge(config.getName(), config.getRoutingKey(), config.getSecret());
+                testParameters.add(new TestEdgeRuntimeParameters(new RestClient(edgeUrl), edge, edgeUrl));
+            }
 
             createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME, ruleChainId, edgeRuleChainId);
 
-            // This is a starting point to start other tests
-            verifyWidgetBundles();
-        }
-    }
+            for (TestEdgeRuntimeParameters testParameter : testParameters) {
+                edgeRestClient = testParameter.getRestClient();
+                edge = testParameter.getEdge();
+                edgeUrl = testParameter.getUrl();
 
-    private static void getEdgeVersion() {
-        List<AttributeKvEntry> attributes = cloudRestClient.getAttributeKvEntries(edge.getId(), List.of(DataConstants.EDGE_VERSION_ATTR_KEY));
-        edgeVersion = EdgeVersion.valueOf(attributes.get(0).getValueAsString());
+                loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
+
+                Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
+                Assert.assertTrue(tenant.isPresent());
+                Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
+
+                // This is a starting point to start other tests
+                verifyWidgetBundles();
+            }
+        }
     }
 
     protected static void loginIntoEdgeWithRetries(String userName, String password) {
@@ -184,16 +203,17 @@ public abstract class AbstractContainerTest {
     private static void verifyWidgetBundles() {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS).
+                .atMost(60, TimeUnit.SECONDS).
                 until(() -> {
                     try {
                         long totalElements = edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements();
-                        final long expectedCount = 28;
+                        final long expectedCount = 30;
                         if (totalElements != expectedCount) {
                             log.warn("Expected {} widget bundles, but got {}", expectedCount, totalElements);
                         }
                         return totalElements == expectedCount;
                     } catch (Throwable e) {
+                        log.error("Failed to verify widget bundles", e);
                         return false;
                     }
                 });
@@ -300,10 +320,6 @@ public abstract class AbstractContainerTest {
         return doCreateDeviceProfile(name, null, null, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
     }
 
-    protected static DeviceProfile createDeviceProfileOnEdge(String name, RuleChainId defaultRuleChain, RuleChainId defaultEdgeRuleChainId) {
-        return doCreateDeviceProfile(name, defaultRuleChain, defaultEdgeRuleChainId, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
-    }
-
     private static DeviceProfile doCreateDeviceProfile(String name, RuleChainId defaultRuleChain, RuleChainId defaultEdgeRuleChainId,
                                                        DeviceProfileTransportConfiguration deviceProfileTransportConfiguration, RestClient restClient) {
         DeviceProfile deviceProfile = new DeviceProfile();
@@ -358,7 +374,7 @@ public abstract class AbstractContainerTest {
 
     protected static Edge createEdge(String name, String routingKey, String secret) {
         Edge edge = new Edge();
-        edge.setName(name + StringUtils.randomAlphanumeric(7));
+        edge.setName(name);
         edge.setType("DEFAULT");
         edge.setRoutingKey(routingKey);
         edge.setSecret(secret);
@@ -827,7 +843,7 @@ public abstract class AbstractContainerTest {
         cloudRestClient.deleteDashboard(dashboardId);
     }
 
-    protected OtaPackageId createOtaPackageInfo(DeviceProfileId deviceProfileId, OtaPackageType otaPackageType) throws Exception {
+    protected OtaPackageId createOtaPackageInfo(DeviceProfileId deviceProfileId, OtaPackageType otaPackageType) {
         OtaPackageInfo otaPackageInfo = new OtaPackageInfo();
         otaPackageInfo.setDeviceProfileId(deviceProfileId);
         otaPackageInfo.setType(otaPackageType);
