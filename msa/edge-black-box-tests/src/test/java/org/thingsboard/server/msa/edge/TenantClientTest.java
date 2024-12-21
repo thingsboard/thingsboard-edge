@@ -41,20 +41,21 @@ public class TenantClientTest extends AbstractContainerTest {
         String originalCountry = tenant.getCountry();
 
         // update tenant
-        tenant.setCountry("Edge Update country: Ukraine");
+        String updatedCountry = "Edge Update country: Ukraine";
+        tenant.setCountry(updatedCountry);
         cloudRestClient.saveTenant(tenant);
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Edge Update country: Ukraine".equals(edgeRestClient.getTenantById(tenant.getId()).get().getCountry()));
+                .until(() -> updatedCountry.equals(edgeRestClient.getTenantById(tenant.getId()).get().getCountry()));
 
         // create new tenant profile
         TenantProfile tenantProfile = new TenantProfile();
         tenantProfile.setName("New Tenant Profile");
         TenantProfile saveTenantProfile = cloudRestClient.saveTenantProfile(tenantProfile);
 
-        TenantProfileId originalTenantProfileId = edgeRestClient.getTenantProfileById(tenant.getTenantProfileId()).get().getId();
+        TenantProfileId originalTenantProfileId = new TenantProfileId(tenant.getTenantProfileId().getId());
 
         // update tenant with new tenant profile
         tenant.setTenantProfileId(saveTenantProfile.getId());

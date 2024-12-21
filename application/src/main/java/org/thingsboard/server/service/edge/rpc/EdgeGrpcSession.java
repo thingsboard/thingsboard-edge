@@ -114,7 +114,7 @@ public abstract class EdgeGrpcSession implements Closeable {
     private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
 
     private static final int MAX_DOWNLINK_ATTEMPTS = 3;
-    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
+    public static final String RATE_LIMIT_REACHED = "Rate limit reached";
 
     protected static final ConcurrentLinkedQueue<EdgeEvent> highPriorityQueue = new ConcurrentLinkedQueue<>();
 

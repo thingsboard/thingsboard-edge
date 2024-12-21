@@ -362,10 +362,6 @@ public abstract class BaseController {
     @Getter
     protected boolean edgesEnabled;
 
-    @Value("${queue.type}")
-    @Getter
-    protected String queueType;
-
     @ExceptionHandler(Exception.class)
     public void handleControllerException(Exception e, HttpServletResponse response) {
         ThingsboardException thingsboardException = handleException(e);
