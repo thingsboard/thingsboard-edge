@@ -35,6 +35,7 @@ import { FcRuleEdge, LinkLabel } from '@shared/models/rule-node.models';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { TruncatePipe } from '@shared/pipe/truncate.pipe';
 import { TranslateService } from '@ngx-translate/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-rule-node-link',
@@ -87,7 +88,9 @@ export class RuleNodeLinkComponent implements ControlValueAccessor, OnInit {
     this.ruleNodeLinkFormGroup = this.fb.group({
       labels: [[], Validators.required]
     });
-    this.ruleNodeLinkFormGroup.get('labels').valueChanges.subscribe(
+    this.ruleNodeLinkFormGroup.get('labels').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe(
       (labels: string[]) => this.updateModel(labels)
     );
   }

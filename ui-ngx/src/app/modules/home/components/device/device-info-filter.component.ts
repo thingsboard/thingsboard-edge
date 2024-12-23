@@ -32,6 +32,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   forwardRef,
   Inject,
@@ -53,6 +54,7 @@ import { DeviceInfoFilter } from '@shared/models/device.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { EntityInfoData } from '@shared/models/entity.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export const DEVICE_FILTER_CONFIG_DATA = new InjectionToken<any>('DeviceFilterConfigData');
 
@@ -111,7 +113,8 @@ export class DeviceInfoFilterComponent implements OnInit, OnDestroy, ControlValu
               private nativeElement: ElementRef,
               private viewContainerRef: ViewContainerRef,
               private deviceProfileService: DeviceProfileService,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -123,7 +126,9 @@ export class DeviceInfoFilterComponent implements OnInit, OnDestroy, ControlValu
       deviceProfileId: [null, []],
       active: ['', []]
     });
-    this.deviceInfoFilterForm.valueChanges.subscribe(
+    this.deviceInfoFilterForm.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => {
         this.updateValidators();
         if (!this.buttonMode) {

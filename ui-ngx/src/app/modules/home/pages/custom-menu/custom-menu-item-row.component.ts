@@ -32,6 +32,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   EventEmitter,
   forwardRef,
   Input,
@@ -86,6 +87,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { CustomMenuItemPanelComponent } from '@home/pages/custom-menu/custom-menu-item-panel.component';
 import { Observable, Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-custom-menu-item-row',
@@ -180,7 +182,8 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
               private dialog: MatDialog,
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
-              private viewContainerRef: ViewContainerRef) {
+              private viewContainerRef: ViewContainerRef,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit() {
@@ -190,7 +193,9 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
       name: [null, []],
       pages: this.fb.array([])
     });
-    this.menuItemRowFormGroup.valueChanges.subscribe(
+    this.menuItemRowFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
     this.updateIconNameBlockWidth();

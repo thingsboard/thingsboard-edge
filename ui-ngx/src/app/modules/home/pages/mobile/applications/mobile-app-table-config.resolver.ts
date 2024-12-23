@@ -89,7 +89,7 @@ export class MobileAppTableConfigResolver  {
     this.config.columns.push(
       new DateEntityTableColumn<MobileApp>('createdTime', 'common.created-time', this.datePipe, '170px'),
       new EntityTableColumn<MobileApp>('pkgName', 'mobile.application-package', '20%', (entity) => entity.pkgName ?? '', () => ({}),
-        false, () => ({}), () => undefined, false,
+        true, () => ({}), () => undefined, false,
         {
           name: this.translate.instant('mobile.copy-application-package'),
           icon: 'content_copy',
@@ -104,7 +104,7 @@ export class MobileAppTableConfigResolver  {
         }),
       new EntityTableColumn<MobileApp>('appSecret', 'mobile.application-secret', '15%',
         (entity) => this.truncatePipe.transform(entity.appSecret, true, 10, '…'), () => ({}),
-        false, () => ({}), () => undefined, false,
+        true, () => ({}), () => undefined, false,
         {
           name: this.translate.instant('mobile.copy-application-secret'),
           icon: 'content_copy',

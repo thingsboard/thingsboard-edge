@@ -71,7 +71,6 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
 
   rateLimitsArray: Array<RateLimits>;
 
-  private valueChangeSubscription: Subscription = null;
   private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
@@ -81,7 +80,7 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
     this.rateLimitsListFormGroup = this.fb.group({
       rateLimits: this.fb.array([])
     });
-    this.valueChangeSubscription = this.rateLimitsListFormGroup.valueChanges
+    this.rateLimitsListFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
         this.updateView(value?.rateLimits);
