@@ -53,10 +53,10 @@ public class QrCodeSettingsDataValidator extends DataValidator<QrCodeSettings> {
     @Override
     protected void validateDataImpl(TenantId tenantId, QrCodeSettings qrCodeSettings) {
         MobileAppBundleId mobileAppBundleId = qrCodeSettings.getMobileAppBundleId();
-        if (!qrCodeSettings.isUseDefaultApp() && (mobileAppBundleId == null)) {
-            throw new DataValidationException("Mobile app bundle is required to use custom application!");
-        }
-        if (!qrCodeSettings.isUseDefaultApp()) {
+        if (!qrCodeSettings.isUseSystemSettings() && !qrCodeSettings.isUseDefaultApp()) {
+            if (mobileAppBundleId == null) {
+                throw new DataValidationException("Mobile app bundle is required to use custom application!");
+            }
             if (qrCodeSettings.isAndroidEnabled()) {
                 MobileApp androidApp = mobileAppDao.findByBundleIdAndPlatformType(tenantId, mobileAppBundleId, PlatformType.ANDROID);
                 if (androidApp != null && androidApp.getStatus() != MobileAppStatus.PUBLISHED) {

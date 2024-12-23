@@ -101,9 +101,7 @@ public class MobileAppController extends BaseController {
                                               @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
                                               @RequestParam PlatformType platform) {
         List<OAuth2ClientLoginInfo> oauth2Clients = oAuth2ClientService.findOAuth2ClientLoginInfosByMobilePkgNameAndPlatformType(pkgName, platform);
-        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false);
-        SignUpSelfRegistrationParams signUpParams = Optional.ofNullable(mobileAppBundle.getSelfRegistrationParams())
-                .map(srParams -> srParams.toSignUpSelfRegistrationParams(platform)).orElse(null);
+        SignUpSelfRegistrationParams signUpParams = getSignUpParams(pkgName, platform);
         MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform);
         StoreInfo storeInfo = Optional.ofNullable(mobileApp).map(MobileApp::getStoreInfo).orElse(null);
         MobileAppVersionInfo versionInfo = Optional.ofNullable(mobileApp).map(MobileApp::getVersionInfo).orElse(null);
@@ -179,6 +177,14 @@ public class MobileAppController extends BaseController {
         MobileAppId mobileAppId = new MobileAppId(id);
         MobileApp mobileApp = checkMobileAppId(mobileAppId, Operation.DELETE);
         tbMobileAppService.delete(mobileApp, getCurrentUser());
+    }
+
+    private SignUpSelfRegistrationParams getSignUpParams(String pkgName, PlatformType platform) {
+        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false);
+        if (mobileAppBundle == null || mobileAppBundle.getSelfRegistrationParams() == null || !mobileAppBundle.getSelfRegistrationParams().getEnabled()) {
+            return null;
+        }
+        return mobileAppBundle.getSelfRegistrationParams().toSignUpSelfRegistrationParams(platform);
     }
 
     private JsonNode getVisiblePages(MobileAppBundle mobileAppBundle) throws JsonProcessingException {

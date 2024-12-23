@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisClusterNode;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands;
@@ -53,6 +52,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.util.JedisClusterCRC16;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -201,37 +201,19 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
         if (!cacheEnabled) {
             return;
         }
+        Set<byte[]> keysToEvict = new HashSet<>();
         try (var connection = connectionFactory.getConnection()) {
+            ScanOptions scanOptions = ScanOptions.scanOptions().match(cacheName + prefix + "*").count(1000).build();
+            List<Cursor<byte[]>> scans = new ArrayList<>();
             if (connection instanceof RedisClusterConnection clusterConnection) {
                 clusterConnection.clusterGetNodes().forEach(node -> {
-                    if (node.isMaster()) {
-                        evictKeys(prefix, clusterConnection, node);
-                    }
+                    scans.add(clusterConnection.scan(node, scanOptions));
                 });
             } else {
-                evictKeys(prefix, connection, null);
+                scans.add(connection.keyCommands().scan(scanOptions));
             }
-        }
-    }
-
-    private void evictKeys(String prefix, RedisConnection connection, RedisClusterNode node) {
-        Set<byte[]> keysToEvict = getKeysByPrefix(prefix, connection, node);
-        if (!keysToEvict.isEmpty()) {
+            scans.forEach(scan -> scan.forEachRemaining(keysToEvict::add));
             connection.keyCommands().del(keysToEvict.toArray(new byte[keysToEvict.size()][]));
-        }
-    }
-
-    private Set<byte[]> getKeysByPrefix(String prefix, RedisConnection connection, RedisClusterNode node) {
-        ScanOptions scanOptions = ScanOptions.scanOptions().match(cacheName + prefix + "*").count(1000).build();
-        try (Cursor<byte[]> cursor = (node == null) ? connection.keyCommands().scan(scanOptions) : ((RedisClusterConnection) connection).scan(node, scanOptions)) {
-            Set<byte[]> keysToEvict = new HashSet<>();
-            while (cursor.hasNext()) {
-                keysToEvict.add(cursor.next());
-            }
-            return keysToEvict;
-        } catch (Exception e) {
-            String errorMsg = (node == null) ? "standalone/sentinel Redis" : "cluster node: " + node.getId();
-            throw new RuntimeException("Error scanning keys in " + errorMsg, e);
         }
     }
 
