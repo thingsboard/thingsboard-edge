@@ -91,7 +91,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
                 ownerId = idProvider.getInternalId(entityGroup.getOwnerId());
             }
             existingEntityGroup = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId,
-                    entityGroup.getType(), entityGroup.getName()).orElse(null);
+                    entityGroup.getType(), entityGroup.getName(), false).orElse(null);
         }
         return existingEntityGroup;
     }

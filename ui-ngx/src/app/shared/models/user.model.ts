@@ -45,7 +45,19 @@ export interface User extends BaseData<UserId> {
   firstName: string;
   lastName: string;
   customMenuId?: CustomMenuId;
-  additionalInfo: any;
+  additionalInfo: Partial<UserAdditionalInfo>;
+}
+
+export interface UserAdditionalInfo {
+  userCredentialsEnabled: boolean;
+  userActivated: boolean;
+  description: string;
+  defaultDashboardId: string;
+  defaultDashboardFullscreen: boolean;
+  homeDashboardId: string;
+  homeDashboardHideToolbar: boolean;
+  lang: string;
+  [key: string]: any;
 }
 
 export type UserInfo = User & GroupEntityInfo<UserId>;

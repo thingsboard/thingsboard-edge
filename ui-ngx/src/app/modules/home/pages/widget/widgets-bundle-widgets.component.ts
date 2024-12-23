@@ -46,6 +46,7 @@ import { WidgetService } from '@core/http/widget.service';
 import { FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { SelectWidgetTypeDialogComponent } from '@home/pages/widget/select-widget-type-dialog.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type WidgetTypeBundle = WithOptional<WidgetTypeInfo, 'widgetType'>;
 
@@ -88,7 +89,9 @@ export class WidgetsBundleWidgetsComponent extends PageComponent implements OnIn
     if (!this.isReadOnly && !this.widgets.length) {
       this.editMode = true;
     }
-    this.addWidgetFormControl.valueChanges.subscribe((newWidget) => {
+    this.addWidgetFormControl.valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe((newWidget) => {
       if (newWidget) {
         this.addWidget(newWidget);
       }

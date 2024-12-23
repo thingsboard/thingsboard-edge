@@ -269,13 +269,13 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     return actions;
   }
 
-  private getDebugConfigLabel({ allEnabledUntil, failuresEnabled }: EntityDebugSettings): string {
-    const isDebugActive = this.isDebugActive(allEnabledUntil);
+  private getDebugConfigLabel(debugSettings: EntityDebugSettings): string {
+    const isDebugActive = this.isDebugActive(debugSettings?.allEnabledUntil);
 
     if (!isDebugActive) {
-      return failuresEnabled ? this.translate.instant('debug-settings.failures') : this.translate.instant('common.disabled');
+      return debugSettings?.failuresEnabled ? this.translate.instant('debug-config.failures') : this.translate.instant('common.disabled');
     } else {
-      return this.durationLeft.transform(allEnabledUntil)
+      return this.durationLeft.transform(debugSettings?.allEnabledUntil)
     }
   }
 
