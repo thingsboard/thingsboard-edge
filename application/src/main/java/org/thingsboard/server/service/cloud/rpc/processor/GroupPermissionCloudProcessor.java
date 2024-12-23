@@ -113,4 +113,5 @@ public class GroupPermissionCloudProcessor extends BaseEdgeProcessor {
                 .addEntityGroupPermissionsRequestMsg(entityGroupPermissionsRequestMsg);
         return builder.build();
     }
+
 }

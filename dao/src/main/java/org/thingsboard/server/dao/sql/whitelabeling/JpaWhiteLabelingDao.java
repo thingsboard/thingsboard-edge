@@ -68,8 +68,8 @@ public class JpaWhiteLabelingDao extends JpaAbstractDaoListeningExecutorService 
     }
 
     @Override
-    public WhiteLabeling findByDomain(TenantId tenantId, String domain) {
-        return DaoUtil.getData(whiteLabelingRepository.findByDomain(domain));
+    public WhiteLabeling findByDomainAndType(TenantId tenantId, String domain, WhiteLabelingType type) {
+        return DaoUtil.getData(whiteLabelingRepository.findByDomainAndType(domain, type));
     }
 
     @Override
@@ -93,5 +93,6 @@ public class JpaWhiteLabelingDao extends JpaAbstractDaoListeningExecutorService 
                 new SortOrder("tenantId"), new SortOrder("customerId"), new SortOrder("type")
         ))));
     }
+
 
 }

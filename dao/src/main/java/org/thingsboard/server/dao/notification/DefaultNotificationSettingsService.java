@@ -261,8 +261,17 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
         }
     }
 
-    private boolean isNotificationConfigured(TenantId tenantId, NotificationType... notificationTypes) {
-        return notificationTemplateService.countNotificationTemplatesByTenantIdAndNotificationTypes(tenantId, List.of(notificationTypes)) > 0;
+    @Override
+    public void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template) {
+        template.setId(null);
+        template.setTenantId(tenantId);
+        log.debug("[{}] Creating {} system notification template", tenantId, template.getNotificationType());
+        notificationTemplateService.saveNotificationTemplate(tenantId, template);
+    }
+
+    @Override
+    public boolean isNotificationConfigured(TenantId tenantId, NotificationType notificationType) {
+        return notificationTemplateService.countNotificationTemplatesByTenantIdAndNotificationTypes(tenantId, List.of(notificationType)) > 0;
     }
 
     private NotificationTarget createTarget(TenantId tenantId, String name, UsersFilter filter, String description) {

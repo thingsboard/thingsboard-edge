@@ -41,6 +41,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
@@ -193,7 +194,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) throws Exception {
         LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
         edgeImitator.expectMessageAmount(1);
-        loginWhiteLabelingParams.setDomainName(updatedDomainName);
+
+        Domain domain = constructDomain(updatedDomainName);
+        Domain savedDomain = doPost("/api/domain", domain, Domain.class);
+        loginWhiteLabelingParams.setDomainId(savedDomain.getId());
         loginWhiteLabelingParams.setBaseUrl("https://" + updatedDomainName);
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
@@ -203,7 +207,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         WhiteLabeling whiteLabeling = JacksonUtil.fromString(login.getEntity(), WhiteLabeling.class, true);
         Assert.assertNotNull(whiteLabeling);
         LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
-        Assert.assertEquals(updatedDomainName.toLowerCase(), result.getDomainName());
+        Assert.assertEquals(savedDomain.getId(), result.getDomainId());
     }
 
     @Test
@@ -213,6 +217,14 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         testCustomTranslation_tenant();
         testCustomTranslation_customer();
         resetSysAdminWhiteLabelingSettings();
+    }
+
+    private Domain constructDomain(String domainName) {
+        Domain domain = new Domain();
+        domain.setName(domainName);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
+        return domain;
     }
 
     private void testCustomTranslation_sysAdmin() throws Exception {

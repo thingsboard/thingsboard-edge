@@ -105,4 +105,6 @@ public interface DashboardService extends EntityDaoService {
 
     boolean existsById(TenantId tenantId, DashboardId dashboardId);
 
+    PageData<DashboardId> findAllDashboardsIds(PageLink pageLink);
+
 }

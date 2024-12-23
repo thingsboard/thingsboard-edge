@@ -18,7 +18,8 @@
         },
         "type": "org.thingsboard.rule.engine.report.TbGenerateReportNode",
         "name": "Generate Report",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "useSystemReportsServer": true,
           "reportsServerEndpointUrl": null,
@@ -48,7 +49,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "If send email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return msg.sendEmail === true;",
@@ -62,7 +64,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Prepare email metadata",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "metadata['emailFrom'] = msg.emailConfig.from;\nmetadata['emailTo'] = msg.emailConfig.to;\nmetadata['emailCc'] = msg.emailConfig.cc || \"\";\nmetadata['emailBcc'] = msg.emailConfig.bcc || \"\";\nmetadata['emailSubject'] = msg.emailConfig.subject;\nmetadata['emailBody'] = msg.emailConfig.body;\nmetadata['emailTimezone'] = msg.reportConfig.timezone;\n\nreturn {msg: msg, metadata: metadata, msgType: msgType};",
@@ -76,7 +79,8 @@
         },
         "type": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
         "name": "To report email",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "fromTemplate": "${emailFrom}",
           "toTemplate": "${emailTo}",
@@ -93,7 +97,8 @@
         },
         "type": "org.thingsboard.rule.engine.mail.TbSendEmailNode",
         "name": "Send report",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "useSystemSmtpSettings": true,
           "smtpHost": "localhost",
@@ -113,7 +118,8 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbAckNode",
         "name": "ACK generate report",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "version": 0
         }

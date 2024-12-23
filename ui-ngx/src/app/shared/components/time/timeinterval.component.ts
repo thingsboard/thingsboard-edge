@@ -29,14 +29,23 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  forwardRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges
+} from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TimeService } from '@core/services/time.service';
 import { coerceNumberProperty } from '@angular/cdk/coercion';
 import { MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
 import { coerceBoolean } from '@shared/decorators/coercion';
-import { Interval, IntervalMath, TimeInterval } from '@shared/models/time/time.models';
-import { isDefined } from '@core/utils';
+import { Interval, IntervalMath, intervalValuesToTimeIntervals, TimeInterval } from '@shared/models/time/time.models';
+import { isDefined, isEqual } from '@core/utils';
 import { IntervalType } from '@shared/models/telemetry/telemetry.models';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -53,12 +62,10 @@ import { Subject } from 'rxjs';
     }
   ]
 })
-export class TimeintervalComponent implements OnInit, ControlValueAccessor, OnDestroy {
+export class TimeintervalComponent implements OnInit, ControlValueAccessor, OnChanges, OnDestroy {
 
   minValue: number;
   maxValue: number;
-
-  disabledAdvancedState = false;
 
   @Input()
   set min(min: number) {
@@ -82,18 +89,11 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor, OnDe
 
   @Input() predefinedName: string;
 
-  @Input()
-  @coerceBoolean()
-  isEdit = false;
+  @Input({transform : booleanAttribute})
+  disabledAdvanced = false;
 
   @Input()
-  @coerceBoolean()
-  set disabledAdvanced(disabledAdvanced: boolean) {
-    if (this.disabledAdvancedState !== disabledAdvanced) {
-      this.disabledAdvancedState = disabledAdvanced;
-      this.updateIntervalValue(true);
-    }
-  }
+  allowedIntervals: Array<Interval>;
 
   @Input()
   @coerceBoolean()
@@ -170,6 +170,13 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor, OnDe
     this.boundInterval();
   }
 
+  ngOnChanges({disabledAdvanced, allowedIntervals}: SimpleChanges): void {
+    if ((disabledAdvanced && !disabledAdvanced.firstChange && disabledAdvanced.currentValue !== disabledAdvanced.previousValue) ||
+        (allowedIntervals && !allowedIntervals.firstChange && !isEqual(allowedIntervals.currentValue, allowedIntervals.previousValue))) {
+      this.updateIntervalValue(true);
+    }
+  }
+
   registerOnChange(fn: any): void {
     this.propagateChange = fn;
     if (isDefined(this.propagateChangeValue)) {
@@ -200,9 +207,11 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor, OnDe
       const min = this.timeService.boundMinInterval(this.minValue);
       const max = this.timeService.boundMaxInterval(this.maxValue);
       if (IntervalMath.numberValue(this.modelValue) >= min && IntervalMath.numberValue(this.modelValue) <= max) {
-        const advanced = !this.timeService.matchesExistingInterval(this.minValue, this.maxValue, this.modelValue,
+        const advanced = this.allowedIntervals?.length
+          ? !this.allowedIntervals.includes(this.modelValue)
+          : !this.timeService.matchesExistingInterval(this.minValue, this.maxValue, this.modelValue,
           this.useCalendarIntervals);
-        if (advanced && this.disabledAdvancedState) {
+        if (advanced && this.disabledAdvanced) {
           this.advanced = false;
           this.boundInterval();
         } else {
@@ -240,20 +249,28 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor, OnDe
   private boundInterval(updateToPreferred = false) {
     const min = this.timeService.boundMinInterval(this.minValue);
     const max = this.timeService.boundMaxInterval(this.maxValue);
-    this.intervals = this.timeService.getIntervals(this.minValue, this.maxValue, this.useCalendarIntervals);
-    if (!this.disabledAdvancedState) {
+    this.intervals = this.allowedIntervals?.length
+      ? intervalValuesToTimeIntervals(this.allowedIntervals)
+      : this.timeService.getIntervals(this.minValue, this.maxValue, this.useCalendarIntervals);
+    if (!this.disabledAdvanced) {
       this.intervals.push(this.customTimeInterval);
     }
     if (this.rendered) {
       let newInterval = this.modelValue;
-      const newIntervalMs = IntervalMath.numberValue(newInterval);
-      if (newIntervalMs < min) {
-        newInterval = min;
-      } else if (newIntervalMs >= max && updateToPreferred) {
-        newInterval = this.timeService.boundMaxInterval(max / 7);
-      }
-      if (!this.advanced) {
-        newInterval = this.timeService.boundToPredefinedInterval(min, max, newInterval, this.useCalendarIntervals);
+      if (this.allowedIntervals?.length) {
+        if (!this.allowedIntervals.includes(newInterval) && !this.advanced) {
+          newInterval = this.allowedIntervals[0];
+        }
+      } else {
+        const newIntervalMs = IntervalMath.numberValue(newInterval);
+        if (newIntervalMs < min) {
+          newInterval = min;
+        } else if (newIntervalMs >= max && updateToPreferred) {
+          newInterval = this.timeService.boundMaxInterval(max / 7);
+        }
+        if (!this.advanced) {
+          newInterval = this.timeService.boundToPredefinedInterval(min, max, newInterval, this.useCalendarIntervals);
+        }
       }
       if (newInterval !== this.modelValue) {
         this.setInterval(newInterval);

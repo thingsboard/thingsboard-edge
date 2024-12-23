@@ -108,6 +108,12 @@ export class TemplateNotificationDialogComponent
     this.templateNotification = deepClone(this.data.template);
 
     if (this.templateNotification) {
+      if (this.isSysAdmin()) {
+        this.notificationTypes.push(
+          NotificationType.USER_REGISTERED,
+          NotificationType.USER_ACTIVATED
+        );
+      }
       if (this.data.isCopy) {
         this.templateNotification.name += ` (${this.translate.instant('action.copy')})`;
       } else {

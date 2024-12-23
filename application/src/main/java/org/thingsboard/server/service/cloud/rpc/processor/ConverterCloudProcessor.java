@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.service.validator.ConverterDataValidator;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -51,7 +51,7 @@ import java.util.UUID;
 public class ConverterCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
-    private ConverterService converterService;
+    private ConverterDataValidator converterValidator;
 
     public ListenableFuture<Void> processConverterMsgFromCloud(TenantId tenantId, ConverterUpdateMsg converterUpdateMsg) {
         try {
@@ -63,7 +63,7 @@ public class ConverterCloudProcessor extends BaseEdgeProcessor {
                     if (converter == null) {
                         throw new RuntimeException("[{" + tenantId + "}] converterUpdateMsg {" + converterUpdateMsg + "} cannot be converted to convertor");
                     }
-                    Converter converterById = converterService.findConverterById(tenantId, converterId);
+                    Converter converterById = edgeCtx.getConverterService().findConverterById(tenantId, converterId);
                     boolean created = false;
                     if (converterById == null) {
                         created = true;
@@ -77,9 +77,9 @@ public class ConverterCloudProcessor extends BaseEdgeProcessor {
                         converter.setId(converterId);
                     }
 
-                    Converter savedConverter = converterService.saveConverter(converter);
+                    Converter savedConverter = edgeCtx.getConverterService().saveConverter(converter);
 
-                    tbClusterService.broadcastEntityStateChangeEvent(savedConverter.getTenantId(), savedConverter.getId(),
+                    edgeCtx.getClusterService().broadcastEntityStateChangeEvent(savedConverter.getTenantId(), savedConverter.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
                     break;
@@ -95,4 +95,5 @@ public class ConverterCloudProcessor extends BaseEdgeProcessor {
         }
         return Futures.immediateFuture(null);
     }
+
 }

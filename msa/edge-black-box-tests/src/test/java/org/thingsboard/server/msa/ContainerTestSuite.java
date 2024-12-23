@@ -100,7 +100,9 @@ public class ContainerTestSuite {
                         .withEnv(installTb.getEnv())
                         .withEnv(env)
                         .withExposedService(TB_MONOLITH_SERVICE_NAME, 8080)
-                        .withExposedService(TB_EDGE_SERVICE_NAME + "-1", 8082);
+                        .withExposedService(TB_EDGE_SERVICE_NAME + "-1", 8082)
+                        .withExposedService("zookeeper", 2181)
+                        .withExposedService("kafka", 9092);
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 Assert.fail("Failed to create test container");

@@ -71,6 +71,8 @@ public interface EdgeService extends EntityDaoService {
 
     void deleteEdge(TenantId tenantId, EdgeId edgeId);
 
+    PageData<EdgeId> findEdgeIdsByTenantId(TenantId tenantId, PageLink pageLink);
+
     PageData<Edge> findEdgesByTenantId(TenantId tenantId, PageLink pageLink);
 
     PageData<Edge> findEdgesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);

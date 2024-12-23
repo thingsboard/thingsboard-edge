@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.9.0EDGEPE-SNAPSHOT</version>
+    <version>3.9.0EDGEPE-RC</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard Edge PE</name>
@@ -85,7 +85,7 @@
         <apache-httpcore5.version>5.2.4</apache-httpcore5.version>
         <apache-httpclient.version>4.5.14</apache-httpclient.version>
         <apache-httpcore.version>4.4.16</apache-httpcore.version>
-        <apache-pulsar.version>3.2.2</apache-pulsar.version>
+        <apache-pulsar.version>3.3.2</apache-pulsar.version>
         <joda-time.version>2.12.7</joda-time.version>
         <jackson.version>2.17.2</jackson.version>
         <jackson-databind.version>2.17.2</jackson-databind.version>
@@ -135,7 +135,8 @@
         <bucket4j.version>8.10.1</bucket4j.version>
         <antlr.version>3.5.3</antlr.version>
         <amazon-kinesis-producer>0.15.10</amazon-kinesis-producer>
-        <amazon-kinesis-client>2.6.0</amazon-kinesis-client>
+        <amazon-kinesis-client>3.0.1</amazon-kinesis-client>
+        <apache-avro.version>1.11.4</apache-avro.version> <!--vulnerability fix, related to the kinesis client-->
         <snakeyaml.version>2.2</snakeyaml.version>
         <aws.sdk.version>1.12.701</aws.sdk.version>
         <pubsub.client.version>1.128.1</pubsub.client.version>
@@ -156,6 +157,8 @@
         <antisamy.version>1.7.5</antisamy.version>
         <snmp4j.version>3.8.0</snmp4j.version>
         <json-path.version>2.9.0</json-path.version>
+        <recaptcha.enterprise.version>3.38.0</recaptcha.enterprise.version>
+        <google.oauth2-http.version>1.23.0</google.oauth2-http.version>
         <!--         TEST SCOPE         -->
         <awaitility.version>4.2.1</awaitility.version>
         <dbunit.version>2.7.3</dbunit.version>
@@ -187,6 +190,7 @@
         <slack-api.version>1.39.0</slack-api.version>
         <oshi.version>6.6.0</oshi.version>
         <azure-sdk-bom.version>1.2.22</azure-sdk-bom.version>
+        <azure-checkpointstore-blob.version>1.19.2</azure-checkpointstore-blob.version>
         <google-oauth-client.version>1.35.0</google-oauth-client.version>
         <weisj-jsvg.version>1.6.1</weisj-jsvg.version>
         <drewnoakes-metadata-extractor.version>2.19.0</drewnoakes-metadata-extractor.version>
@@ -905,6 +909,29 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>io.github.git-commit-id</groupId>
+                    <artifactId>git-commit-id-maven-plugin</artifactId>
+                    <version>5.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>get-the-git-infos</id>
+                            <goals>
+                                <goal>revision</goal>
+                            </goals>
+                            <phase>initialize</phase>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                        <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+<!--                        <includeOnlyProperties>-->
+<!--                            <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>-->
+<!--                            <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>-->
+<!--                        </includeOnlyProperties>-->
+                        <commitIdGenerationMode>full</commitIdGenerationMode>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -2223,6 +2250,11 @@
                 <version>${amazon-kinesis-client}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>${apache-avro.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
                 <version>${commons-beanutils.version}</version>
@@ -2466,6 +2498,11 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-messaging-eventhubs-checkpointstore-blob</artifactId>
+                <version>${azure-checkpointstore-blob.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.openjdk.nashorn</groupId>
                 <artifactId>nashorn-core</artifactId>
                 <version>${nashorn-core.version}</version>
@@ -2484,6 +2521,16 @@
                 <groupId>com.drewnoakes</groupId>
                 <artifactId>metadata-extractor</artifactId>
                 <version>${drewnoakes-metadata-extractor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>google-cloud-recaptchaenterprise</artifactId>
+                <version>${recaptcha.enterprise.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.auth</groupId>
+                <artifactId>google-auth-library-oauth2-http</artifactId>
+                <version>${google.oauth2-http.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

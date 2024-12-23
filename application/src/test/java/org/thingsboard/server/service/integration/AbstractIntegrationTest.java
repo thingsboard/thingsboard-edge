@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -78,7 +79,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         newConverter.setName(converterName);
         newConverter.setType(type);
         newConverter.setConfiguration(converterConfig);
-        newConverter.setDebugMode(true);
+        newConverter.setDebugSettings(DebugSettings.all());
         switch (type) {
             case UPLINK:
                 uplinkConverter = doPost("/api/converter", newConverter, Converter.class);
@@ -106,7 +107,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         integrationConfiguration.set("clientConfiguration", clientConfig);
         integrationConfiguration.set("metadata", JacksonUtil.newObjectNode());
         newIntegration.setConfiguration(integrationConfiguration);
-        newIntegration.setDebugMode(true);
+        newIntegration.setDebugSettings(DebugSettings.all());
         newIntegration.setEnabled(false);
         newIntegration.setAllowCreateDevicesOrAssets(true);
         integration = doPost("/api/integration", newIntegration, Integration.class);

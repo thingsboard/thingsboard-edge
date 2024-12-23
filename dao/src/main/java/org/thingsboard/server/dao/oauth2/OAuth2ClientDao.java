@@ -43,7 +43,7 @@ import java.util.UUID;
 
 public interface OAuth2ClientDao extends Dao<OAuth2Client> {
 
-    PageData<OAuth2Client> findByTenantId(UUID tenantId, PageLink pageLink);
+    PageData<OAuth2Client> findByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
 
     List<OAuth2Client> findEnabledByDomainName(String domainName);
 
@@ -51,9 +51,9 @@ public interface OAuth2ClientDao extends Dao<OAuth2Client> {
 
     List<OAuth2Client> findByDomainId(UUID domainId);
 
-    List<OAuth2Client> findByMobileAppId(UUID mobileAppId);
+    List<OAuth2Client> findByMobileAppBundleId(UUID mobileAppBundleId);
 
-    String findAppSecret(UUID id, String pkgName);
+    String findAppSecret(UUID id, String pkgName, PlatformType platformType);
 
     void deleteByTenantId(UUID tenantId);
 

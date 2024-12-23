@@ -147,13 +147,14 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
             if (entityGroup.isPresent()) {
                 return Optional.of(entityGroup.get().getId());
             }
-            // TODO: @voba entity groups are not created on the edge at the moment
-            // else if (createIfNotExists) {
-            //     EntityGroup newGroup = new EntityGroup();
-            //     newGroup.setName(key.getGroupName());
-            //     newGroup.setType(key.getGroupType());
-            //     return Optional.of(service.saveEntityGroup(ctx.getTenantId(), key.getOwnerId(), newGroup).getId());
-            // }
+            /* Edge-only: entity groups are not created on the edge at the moment
+             else if (createIfNotExists) {
+                 EntityGroup newGroup = new EntityGroup();
+                 newGroup.setName(key.getGroupName());
+                 newGroup.setType(key.getGroupType());
+                 return Optional.of(service.saveEntityGroup(ctx.getTenantId(), key.getOwnerId(), newGroup).getId());
+             }
+             */
             return Optional.empty();
         }
     }

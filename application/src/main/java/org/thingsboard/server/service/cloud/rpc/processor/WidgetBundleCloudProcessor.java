@@ -70,20 +70,20 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                             throw new RuntimeException("[{" + tenantId + "}] widgetsBundleUpdateMsg {" + widgetsBundleUpdateMsg + "} cannot be converted to widget bundle");
                         }
                         deleteSystemWidgetBundleIfAlreadyExists(widgetsBundle.getAlias(), widgetsBundleId);
-                        widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
+                        edgeCtx.getWidgetsBundleService().saveWidgetsBundle(widgetsBundle, false);
 
                         String[] widgetFqns = JacksonUtil.fromString(widgetsBundleUpdateMsg.getWidgets(), String[].class);
                         if (widgetFqns != null && widgetFqns.length > 0) {
-                            widgetTypeService.updateWidgetsBundleWidgetFqns(widgetsBundle.getTenantId(), widgetsBundleId, Arrays.asList(widgetFqns));
+                            edgeCtx.getWidgetTypeService().updateWidgetsBundleWidgetFqns(widgetsBundle.getTenantId(), widgetsBundleId, Arrays.asList(widgetFqns));
                         }
                     } finally {
                         widgetCreationLock.unlock();
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                    WidgetsBundle widgetsBundle = edgeCtx.getWidgetsBundleService().findWidgetsBundleById(tenantId, widgetsBundleId);
                     if (widgetsBundle != null) {
-                        widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
+                        edgeCtx.getWidgetsBundleService().deleteWidgetsBundle(tenantId, widgetsBundle.getId());
                     }
                     break;
                 case UNRECOGNIZED:
@@ -97,17 +97,17 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
 
     private void deleteSystemWidgetBundleIfAlreadyExists(String bundleAlias, WidgetsBundleId widgetsBundleId) {
         try {
-            WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
+            WidgetsBundle widgetsBundle = edgeCtx.getWidgetsBundleService().findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
             if (widgetsBundle != null && !widgetsBundleId.equals(widgetsBundle.getId())) {
-                widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
+                edgeCtx.getWidgetsBundleService().deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
             }
         } catch (IncorrectResultSizeDataAccessException e) {
             // fix for duplicate entries of system widgets
-            List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
+            List<WidgetsBundle> systemWidgetsBundles = edgeCtx.getWidgetsBundleService().findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
             for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
                 if (systemWidgetsBundle.getAlias().equals(bundleAlias) &&
                         !systemWidgetsBundle.getId().equals(widgetsBundleId)) {
-                    widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+                    edgeCtx.getWidgetsBundleService().deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
                 }
             }
             log.warn("Duplicate widgets bundle found, alias {}. Removed all duplicates!", bundleAlias);

@@ -59,6 +59,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
 import { ConverterId } from '@shared/models/id/converter-id';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 export interface IntegrationWizardData<T> extends AddEntityDialogData<T>{
   edgeTemplate: boolean;
@@ -103,6 +104,8 @@ export class IntegrationWizardDialogComponent extends
     type: ConverterType.DOWNLINK
   } as Converter;
 
+  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
+
   private checkConnectionAllow = false;
   private destroy$ = new Subject<void>();
 
@@ -126,7 +129,7 @@ export class IntegrationWizardDialogComponent extends
       name: ['', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [null, [Validators.required]],
       enabled: [true],
-      debugMode: [true],
+      debugSettings: [{ allEnabled: true, failuresEnabled: true }],
       allowCreateDevicesOrAssets: [true],
     });
 
@@ -343,7 +346,7 @@ export class IntegrationWizardDialogComponent extends
       name: this.integrationWizardForm.value.name.trim(),
       type: this.integrationWizardForm.value.type,
       enabled: this.integrationWizardForm.value.enabled,
-      debugMode: this.integrationWizardForm.value.debugMode,
+      debugSettings: this.integrationWizardForm.value.debugSettings,
       allowCreateDevicesOrAssets: this.integrationWizardForm.value.allowCreateDevicesOrAssets,
       edgeTemplate: this.data.edgeTemplate
     };

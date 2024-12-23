@@ -60,6 +60,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
     final Map<TenantId, Map<EntityId, List<EntityView>>> localCache = new ConcurrentHashMap<>();
 
     @Override
-    public EntityView save(EntityView entityView, List<EntityGroup> entityGroups, User user) throws Exception {
+    public EntityView save(EntityView entityView, List<EntityGroup> entityGroups, SecurityUser user) throws Exception {
         ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = entityView.getTenantId();
         try {

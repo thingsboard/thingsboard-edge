@@ -132,7 +132,7 @@ public class TbChangeOwnerNode implements TbNode {
             if (customerOpt.isPresent()) {
                 return Pair.of(customerOpt.get().getId(), false);
             }
-            /* Customers are not created on the edge at the moment
+            /* Edge-only: customers are not created on the edge at the moment
             if (config.isCreateOwnerIfNotExists()) {
                 try {
                     Customer newCustomer = new Customer();

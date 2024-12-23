@@ -44,6 +44,10 @@ public class AzureEventHubClientConfiguration {
 
     private int connectTimeoutSec;
 
+    private String storageConnectionString;
+    private String containerName;
+    private boolean enablePersistentCheckpoints;
+
     public String getConsumerGroup() {
         return (consumerGroup == null || consumerGroup.isEmpty())
                 ? EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME

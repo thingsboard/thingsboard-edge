@@ -153,7 +153,20 @@
           </mat-form-field>
         </div>
         <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
-          <mat-form-field class="mat-block flex-1" appearance="fill">
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
+            <mat-label translate>tenant-profile.maximum-edges</mat-label>
+            <input matInput required min="0" step="1"
+                   formControlName="maxEdges"
+                   type="number">
+            <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxEdges').hasError('required')">
+              {{ 'tenant-profile.maximum-edges-required' | translate }}
+            </mat-error>
+            <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxEdges').hasError('min')">
+              {{ 'tenant-profile.maximum-edges-range' | translate }}
+            </mat-error>
+            <mat-hint></mat-hint>
+          </mat-form-field>
+          <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
             <mat-label translate>tenant-profile.maximum-converters</mat-label>
             <input matInput required min="0" step="1"
                    formControlName="maxConverters"
@@ -165,7 +178,6 @@
               {{ 'tenant-profile.maximum-converters-range' | translate}}
             </mat-error>
           </mat-form-field>
-          <div class="flex-1"></div>
         </div>
       </ng-template>
     </mat-expansion-panel>
@@ -358,6 +370,22 @@
         <mat-hint></mat-hint>
       </mat-form-field>
     </div>
+    <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill">
+        <mat-label translate>tenant-profile.blob-entity-ttl-days</mat-label>
+        <input matInput required min="0" step="1"
+               formControlName="blobEntityTtlDays"
+               type="number">
+        <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('blobEntityTtlDays').hasError('required')">
+          {{ 'tenant-profile.blob-entity-ttl-days-required' | translate}}
+        </mat-error>
+        <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('blobEntityTtlDays').hasError('min')">
+          {{ 'tenant-profile.blob-entity-ttl-days-range' | translate}}
+        </mat-error>
+        <mat-hint></mat-hint>
+      </mat-form-field>
+      <div class="flex-1"></div>
+    </div>
   </fieldset>
 
   <fieldset class="fields-group">
@@ -407,6 +435,25 @@
         </mat-error>
         <mat-hint></mat-hint>
       </mat-form-field>
+    </div>
+  </fieldset>
+
+  <fieldset class="fields-group">
+    <legend class="group-title">
+      {{ 'tenant-profile.debug' | translate }}
+    </legend>
+    <div class="fields-element flex flex-1 flex-row xs:flex-col gt-xs:gap-4">
+      <mat-form-field class="mat-block flex-1" appearance="fill" subscriptSizing="dynamic">
+        <mat-label translate>tenant-profile.maximum-debug-duration-min</mat-label>
+        <input matInput min="0" step="1"
+               formControlName="maxDebugModeDurationMinutes"
+               type="number">
+        <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxDebugModeDurationMinutes').hasError('min')">
+          {{ 'tenant-profile.maximum-debug-duration-min-range' | translate }}
+        </mat-error>
+        <mat-hint></mat-hint>
+      </mat-form-field>
+      <div class="flex-1"></div>
     </div>
   </fieldset>
 

@@ -83,6 +83,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
@@ -158,6 +159,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Autowired
     @Lazy
     private RelatedEdgesService relatedEdgesService;
+
+    @Autowired
+    private EntityCountService countService;
 
     @Value("${edges.enabled}")
     @Getter
@@ -244,6 +248,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
                         .entityId(savedEdge.getId()).entity(savedEdge).created(edge.getId() == null).build());
             }
+            if (edge.getId() == null) {
+                countService.publishCountEntityEvictEvent(savedEdge.getTenantId(), EntityType.EDGE);
+            }
             return savedEdge;
         } catch (Exception t) {
             handleEvictEvent(evictEvent);
@@ -270,6 +277,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         edgeDao.removeById(tenantId, edgeId.getId());
 
         publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
+        countService.publishCountEntityEvictEvent(tenantId, EntityType.EDGE);
         // edge-only: event should be published on the Cloud
         if (edgesEnabled) {
             eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
@@ -280,6 +288,14 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Transactional
     public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
         deleteEdge(tenantId, (EdgeId) id);
+    }
+
+    @Override
+    public PageData<EdgeId> findEdgeIdsByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgeIdsByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -842,6 +858,11 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             array.add(missingAttributeKey);
         }
         return array;
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return edgeDao.countByTenantId(tenantId);
     }
 
     @Override

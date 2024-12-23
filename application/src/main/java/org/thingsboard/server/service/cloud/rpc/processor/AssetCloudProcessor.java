@@ -70,31 +70,29 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         try {
             cloudSynchronizationManager.getSync().set(true);
 
-            switch (assetUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
+            return switch (assetUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                     saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, queueStartTs);
-                    return requestForAdditionalData(tenantId, assetId, queueStartTs);
-                case ENTITY_DELETED_RPC_MESSAGE:
+                    yield requestForAdditionalData(tenantId, assetId, queueStartTs);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
                         UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
                                 assetUpdateMsg.getEntityGroupIdLSB());
-                        EntityGroupId entityGroupId =
-                                new EntityGroupId(entityGroupUUID);
-                        entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
-                        return removeEntityIfInSingleAllGroup(tenantId, assetId, () -> assetService.deleteAsset(tenantId, assetId));
+                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
+                        yield removeEntityIfInSingleAllGroup(tenantId, assetId, () -> edgeCtx.getAssetService().deleteAsset(tenantId, assetId));
                     } else {
-                        Asset assetById = assetService.findAssetById(tenantId, assetId);
+                        Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
                         if (assetById != null) {
-                            assetService.deleteAsset(tenantId, assetId);
+                            edgeCtx.getAssetService().deleteAsset(tenantId, assetId);
                             pushAssetDeletedEventToRuleEngine(tenantId, assetById);
                         }
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -113,7 +111,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
     }
 
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, AssetId assetId) {
-        Asset asset = assetService.findAssetById(tenantId, assetId);
+        Asset asset = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
         pushAssetEventToRuleEngine(tenantId, asset, TbMsgType.ENTITY_CREATED);
     }
 
@@ -132,41 +130,38 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
 
     public UplinkMsg convertAssetEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         AssetId assetId = new AssetId(cloudEvent.getEntityId());
-        UplinkMsg msg = null;
+        var msgConstructor = (AssetMsgConstructor) edgeCtx.getAssetMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED, ADDED_TO_ENTITY_GROUP -> {
-                Asset asset = assetService.findAssetById(cloudEvent.getTenantId(), assetId);
+                Asset asset = edgeCtx.getAssetService().findAssetById(cloudEvent.getTenantId(), assetId);
                 if (asset != null) {
                     if (BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
                         log.debug("Skipping TbServiceQueue asset [{}]", cloudEvent);
                     } else {
                         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                        AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
-                                assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetUpdatedMsg(msgType, asset, entityGroupId);
+                        AssetUpdateMsg assetUpdateMsg = msgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
                         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                                 .addAssetUpdateMsg(assetUpdateMsg);
                         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
-                            AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), asset.getAssetProfileId());
-                            builder.addAssetProfileUpdateMsg(((AssetMsgConstructor) assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
-                                    .constructAssetProfileUpdatedMsg(msgType, assetProfile));
+                            AssetProfile assetProfile = edgeCtx.getAssetProfileService().findAssetProfileById(cloudEvent.getTenantId(), asset.getAssetProfileId());
+                            builder.addAssetProfileUpdateMsg(msgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile));
                         }
-                        msg = builder.build();
+                        return builder.build();
                     }
                 } else {
                     log.debug("Skipping event as asset was not found [{}]", cloudEvent);
                 }
             }
             case DELETED, REMOVED_FROM_ENTITY_GROUP -> {
-                AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
-                        assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetDeleteMsg(assetId, entityGroupId);
-                msg = UplinkMsg.newBuilder()
+                AssetUpdateMsg assetUpdateMsg = msgConstructor.constructAssetDeleteMsg(assetId, entityGroupId);
+                return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetUpdateMsg(assetUpdateMsg).build();
             }
         }
-        return msg;
+        return null;
     }
 
     @Override

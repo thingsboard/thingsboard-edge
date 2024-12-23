@@ -328,7 +328,7 @@ public abstract class BaseUplinkMessageService {
             case RELATION -> relationProcessor.convertRelationEventToUplink(cloudEvent, edgeVersion);
             case TB_RESOURCE -> resourceCloudProcessor.convertResourceEventToUplink(cloudEvent, edgeVersion);
             default -> {
-                log.warn(UNSUPPORTED_CLOUD_EVENT_TYPE + " [{}]", cloudEvent);
+                log.warn("Unsupported cloud event type [{}]", cloudEvent);
                 yield null;
             }
         };

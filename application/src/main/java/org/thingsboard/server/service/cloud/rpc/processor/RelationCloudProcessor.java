@@ -32,6 +32,7 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -46,11 +47,15 @@ import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationProcessor;
 
 @Component
 @Slf4j
 public class RelationCloudProcessor extends BaseRelationProcessor {
+
+    @Autowired
+    private RelationMsgConstructorFactory relationMsgConstructorFactory;
 
     public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {
@@ -76,17 +81,16 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
     }
 
     public UplinkMsg convertRelationEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
-        UplinkMsg msg = null;
         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
         EntityRelation entityRelation = JacksonUtil.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
         if (entityRelation != null) {
             RelationUpdateMsg relationUpdateMsg = ((RelationMsgConstructor) relationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
                     .constructRelationUpdatedMsg(msgType, entityRelation);
-            msg = UplinkMsg.newBuilder()
+            return UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addRelationUpdateMsg(relationUpdateMsg).build();
         }
-        return msg;
+        return null;
     }
 
     @Override

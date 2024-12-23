@@ -103,6 +103,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
@@ -451,6 +452,10 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private MobileAppBundleService mobileAppBundleService;
+
+    @Autowired
+    @Getter
     private SlackService slackService;
 
     @Lazy
@@ -649,6 +654,10 @@ public class ActorSystemContext {
     @Value("${actors.rpc.submit_strategy:BURST}")
     @Getter
     private String rpcSubmitStrategy;
+
+    @Value("${actors.rpc.close_session_on_rpc_delivery_timeout:false}")
+    @Getter
+    private boolean closeTransportSessionOnRpcDeliveryTimeout;
 
     @Value("${actors.rpc.response_timeout_ms:30000}")
     @Getter

@@ -29,18 +29,22 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+interface SignupRequestFields {
+  EMAIL: string;
+  FIRST_NAME: string;
+  LAST_NAME: string;
+  PASSWORD: string;
+}
+
 export class SignupRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
+  fields = {} as SignupRequestFields;
   recaptchaResponse: string;
 
   constructor(firstName: string, lastName: string, email: string, password: string, recaptchaResponse: string) {
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.email = email;
-    this.password = password;
+    this.fields.FIRST_NAME = firstName;
+    this.fields.LAST_NAME = lastName;
+    this.fields.EMAIL = email;
+    this.fields.PASSWORD = password;
     this.recaptchaResponse = recaptchaResponse;
   }
 

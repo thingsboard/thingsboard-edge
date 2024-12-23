@@ -35,6 +35,8 @@ import jakarta.annotation.PreDestroy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
@@ -46,6 +48,7 @@ import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
@@ -122,6 +125,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
     private final TbQueueAdmin housekeeperAdmin;
     private final TbQueueAdmin housekeeperReprocessingAdmin;
     private final TbQueueAdmin edgeAdmin;
+    private final TbQueueAdmin edgeEventAdmin;
 
     private final TbQueueAdmin cloudEventAdmin;
     private final TbQueueAdmin cloudEventTSAdmin;
@@ -175,6 +179,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         this.housekeeperAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperConfigs());
         this.housekeeperReprocessingAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperReprocessingConfigs());
         this.edgeAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeConfigs());
+        this.edgeEventAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeEventConfigs());
         this.cloudEventAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCloudEventConfigs());
         this.cloudEventTSAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCloudEventTSConfigs());
     }
@@ -549,6 +554,29 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         requestBuilder.clientId("tb-core-to-edge-notifications-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
         requestBuilder.admin(notificationAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> createEdgeEventMsgConsumer(TenantId tenantId, EdgeId edgeId) {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName("tb_edge_event.notifications." + tenantId + "." + edgeId));
+        consumerBuilder.clientId("tb-core-edge-event-consumer" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("tb-core-edge-event-consumer"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToEdgeEventNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(edgeEventAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> createEdgeEventMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-core-edge-event-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName("edge-events"));
+        requestBuilder.admin(edgeEventAdmin);
         return requestBuilder.build();
     }
 

@@ -154,4 +154,5 @@ public class EdgeEventEntity extends BaseSqlEntity<EdgeEvent> implements BaseEnt
     private static long getTs(UUID uuid) {
         return (uuid.timestamp() - EPOCH_DIFF) / 10000;
     }
+
 }

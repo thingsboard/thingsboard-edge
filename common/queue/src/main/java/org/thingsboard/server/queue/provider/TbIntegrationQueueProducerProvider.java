@@ -127,6 +127,11 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     }
 
     @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToEdgeEventNotificationMsg>> getTbEdgeEventsMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> getTbIntegrationExecutorNotificationsMsgProducer() {
         throw new RuntimeException(NOT_IMPLEMENTED);
     }

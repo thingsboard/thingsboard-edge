@@ -73,7 +73,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                             createCustomerIfNotExists(tenantId, new CustomerId(ownerId.getId()));
                         }
                         boolean created = false;
-                        Customer customerById = customerService.findCustomerById(tenantId, customerId);
+                        Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
                         if (customerById == null) {
                             created = true;
                         } else {
@@ -83,7 +83,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                             }
                             changeOwnerIfRequired(tenantId, tmpCustomerOwnerId, customerId);
                         }
-                        Customer savedCustomer = customerService.saveCustomer(customer, false);
+                        Customer savedCustomer = edgeCtx.getCustomerService().saveCustomer(customer, false);
                         if (created) {
                             postCreateSteps(savedCustomer);
                         }
@@ -92,9 +92,9 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                     }
                     return requestForAdditionalData(tenantId, customerId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Customer customerById = customerService.findCustomerById(tenantId, customerId);
+                    Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
                     if (customerById != null) {
-                       customerService.deleteCustomer(tenantId, customerId);
+                        edgeCtx.getCustomerService().deleteCustomer(tenantId, customerId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -112,7 +112,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     }
 
     private void createCustomerIfNotExists(TenantId tenantId, CustomerId customerId) {
-        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        Customer customer = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
         if (customer == null && customerId != null && !customerId.isNullUid()) {
             customerCreationLock.lock();
             try {
@@ -121,7 +121,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
                 customer.setTenantId(tenantId);
                 customer.setTitle("TMP_NAME_" + StringUtils.randomAlphanumeric(10));
-                Customer savedCustomer = customerService.saveCustomer(customer, false);
+                Customer savedCustomer = edgeCtx.getCustomerService().saveCustomer(customer, false);
                 postCreateSteps(savedCustomer);
             } finally {
                 customerCreationLock.unlock();
@@ -130,14 +130,14 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     }
 
     private void postCreateSteps(Customer savedCustomer) {
-        entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
-        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.CUSTOMER);
-        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ASSET);
-        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DEVICE);
-        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ENTITY_VIEW);
-        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.EDGE);
-        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
-        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
+        edgeCtx.getEntityGroupService().addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.CUSTOMER);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ASSET);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DEVICE);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ENTITY_VIEW);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.EDGE);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
     }
 
 }

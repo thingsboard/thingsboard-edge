@@ -40,8 +40,10 @@ import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
@@ -51,6 +53,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
@@ -62,15 +65,16 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
     @After
     public void afterTest() {
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
-        if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
-            whiteLabelingDao.removeById(SYS_TENANT_ID, key);
+        if (tenantId != null) {
+            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
+            if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
+                whiteLabelingDao.removeById(SYS_TENANT_ID, key);
+            }
         }
 
-        key.setTenantId(SYS_TENANT_ID.getId());
-
-        if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
-            whiteLabelingDao.removeById(SYS_TENANT_ID, key);
+        WhiteLabelingCompositeKey sysKey = new WhiteLabelingCompositeKey(SYS_TENANT_ID, WhiteLabelingType.MAIL_TEMPLATES);
+        if (whiteLabelingDao.findById(SYS_TENANT_ID, sysKey) != null) {
+            whiteLabelingDao.removeById(SYS_TENANT_ID, sysKey);
         }
     }
 
@@ -92,21 +96,23 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         updateBaseUrlAndVerify("https://domain.com");
 
         loginTenantAdmin();
-        updateDomainNameAndVerify("domain2.com");
+        Domain savedTenantDomain = doPost("/api/domain", constructDomain("domain2.com"), Domain.class);
+        updateDomainAndVerify(savedTenantDomain);
 
         loginCustomerAdminUser();
-        LoginWhiteLabelingParams loginWhiteLabelingParams = updateDomainNameAndVerify("domain3.com");
+        Domain savedCustomerDomain = doPost("/api/domain", constructDomain("domain3.com"), Domain.class);
+        LoginWhiteLabelingParams loginWhiteLabelingParams = updateDomainAndVerify(savedCustomerDomain);
 
         //check update settings for registered domain should be prohibited
-        loginWhiteLabelingParams.setDomainName("domain2.com");
+        loginWhiteLabelingParams.setDomainId(savedTenantDomain.getId());
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams)
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
 
         loginDifferentTenant();
         LoginWhiteLabelingParams differentTenantWLParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
-        differentTenantWLParams.setDomainName("domain.com");
+        differentTenantWLParams.setDomainId(savedTenantDomain.getId());
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams)
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -251,11 +257,11 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
     @Test
     public void updateLoginWhiteLabelParamsForCustomerByTenant() throws Exception {
         loginTenantAdmin();
+        Domain savedTenantDomain = doPost("/api/domain", constructDomain("customer-domain.com"), Domain.class);
         LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams?customerId=" + customerId, LoginWhiteLabelingParams.class);
 
-        String domainName = "customer-domain.com";
-        loginWhiteLabelingParams.setDomainName(domainName);
-        loginWhiteLabelingParams.setBaseUrl("https://" + domainName);
+        loginWhiteLabelingParams.setDomainId(savedTenantDomain.getId());
+        loginWhiteLabelingParams.setBaseUrl("https://" + savedTenantDomain.getName());
 
         doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + customerId, loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
@@ -308,15 +314,53 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
         LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
 
-        String domainName = "my-domain.com";
-        loginWhiteLabelingParams.setDomainName(domainName);
-        loginWhiteLabelingParams.setBaseUrl("https://" + domainName);
+        Domain savedTenantDomain = doPost("/api/domain", constructDomain("my-domain.com"), Domain.class);
+        loginWhiteLabelingParams.setDomainId(savedTenantDomain.getId());
+        loginWhiteLabelingParams.setBaseUrl("https://" + savedTenantDomain.getName());
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
-        ObjectNode found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
+        LoginWhiteLabelingParams updatedLoginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
 
-        assertThat(found.get("domainName").asText()).isEqualTo(loginWhiteLabelingParams.getDomainName().toLowerCase());
+        assertThat(updatedLoginWhiteLabelingParams.getDomainId()).isEqualTo(savedTenantDomain.getId());
+    }
+
+    @Test
+    public void shouldDeleteLoginWhiteLabelParamsAfterTenantDeletion() throws Exception {
+        loginSysAdmin();
+        updateBaseUrlAndVerify("https://domain.com");
+
+        loginTenantAdmin();
+        Domain savedTenantDomain = doPost("/api/domain", constructDomain("domain2.com"), Domain.class);
+        updateDomainAndVerify(savedTenantDomain);
+
+        loginCustomerAdminUser();
+        Domain savedCustomerDomain = doPost("/api/domain", constructDomain("domain3.com"), Domain.class);
+        updateDomainAndVerify(savedCustomerDomain);
+
+        loginSubCustomerAdminUser();
+        Domain savedSubCustomerDomain = doPost("/api/domain", constructDomain("domain4.com"), Domain.class);
+        updateDomainAndVerify(savedSubCustomerDomain);
+
+        //delete tenant
+        loginSysAdmin();
+        deleteTenant(tenantId);
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            WhiteLabeling tenantWL = whiteLabelingDao.findById(SYS_TENANT_ID,  new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.LOGIN));
+            assertThat(tenantWL).isNull();
+        });
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            WhiteLabeling customerWL = whiteLabelingDao.findById(SYS_TENANT_ID,  new WhiteLabelingCompositeKey(tenantId, customerId, WhiteLabelingType.LOGIN));
+            assertThat(customerWL).isNull();
+        });
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            WhiteLabeling subCustomerWL = whiteLabelingDao.findById(SYS_TENANT_ID,  new WhiteLabelingCompositeKey(tenantId, subCustomerId, WhiteLabelingType.LOGIN));
+            assertThat(subCustomerWL).isNull();
+        });
+        tenantId = null;
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {
@@ -344,18 +388,26 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         return doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
     }
 
-    private LoginWhiteLabelingParams updateDomainNameAndVerify(String domainName) throws Exception {
+    private LoginWhiteLabelingParams updateDomainAndVerify(Domain domain) throws Exception {
         LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
 
-        loginWhiteLabelingParams.setDomainName(domainName);
-        loginWhiteLabelingParams.setBaseUrl("https://" + domainName);
+        loginWhiteLabelingParams.setDomainId(domain.getId());
+        loginWhiteLabelingParams.setBaseUrl("https://" + domain.getName());
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
         Awaitility.await("Waiting while login whitelabel params is updated")
                 .atMost(10, TimeUnit.SECONDS)
-                .until(() -> domainName.equals(doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class).getDomainName()));
+                .until(() -> domain.getId().equals(doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class).getDomainId()));
 
         return doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+    }
+
+    private Domain constructDomain(String domainName) {
+        Domain domain = new Domain();
+        domain.setName(domainName);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
+        return domain;
     }
 
 }

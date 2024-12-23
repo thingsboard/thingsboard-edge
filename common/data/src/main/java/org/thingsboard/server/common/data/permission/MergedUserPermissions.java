@@ -39,37 +39,34 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Getter
 @Schema
 public final class MergedUserPermissions implements Serializable {
 
-    @Getter
     @Schema(description = "Map of permissions defined using generic roles ('Customer Administrator', etc)")
     private final Map<Resource, Set<Operation>> genericPermissions;
 
-    @Getter
     @Schema(description = "Map of permissions defined using group roles ('Read' or 'Write' access to specific entity group, etc)")
     private final Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions;
 
-    @Getter
     @Schema(description = "Map of read permissions per entity type. Used on the UI to enable/disable certain components.")
     private final Map<EntityType, MergedGroupTypePermissionInfo> readGroupPermissions;
 
-    @Getter
     @Schema(description = "Map of read permissions per resource. Used on the UI to enable/disable certain components.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readEntityPermissions;
 
-    @Getter
     @Schema(description = "Map of read entity attributes permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readAttrPermissions;
-    @Getter
+
     @Schema(description = "Map of read entity time-series permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readTsPermissions;
-
 
     public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions) {
         this.genericPermissions = genericPermissions;
@@ -81,52 +78,70 @@ public final class MergedUserPermissions implements Serializable {
         for (EntityType groupType : EntityGroup.groupTypes) {
             Resource resource = Resource.groupResourceFromGroupType(groupType);
             boolean hasGenericRead = hasGenericPermission(resource, Operation.READ);
-            this.readGroupPermissions.put(groupType, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericRead));
-            this.readEntityPermissions.put(resource, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericRead));
+            this.readGroupPermissions.put(groupType, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericRead));
+            this.readEntityPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericRead));
             boolean hasGenericAttrRead = hasGenericPermission(resource, Operation.READ_ATTRIBUTES);
-            this.readAttrPermissions.put(resource, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericAttrRead));
+            this.readAttrPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericAttrRead));
             boolean hasGenericTsRead = hasGenericPermission(resource, Operation.READ_TELEMETRY);
-            this.readTsPermissions.put(resource, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericTsRead));
+            this.readTsPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericTsRead));
         }
 
         for (EntityType entityType : EntityType.values()) {
             Resource resource = Resource.resourceFromEntityType(entityType);
             if (resource != null) {
                 boolean hasGenericRead = hasGenericPermission(resource, Operation.READ);
-                this.readEntityPermissions.put(resource, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericRead));
+                this.readEntityPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericRead));
                 boolean hasGenericReadAttributes = hasGenericPermission(resource, Operation.READ_ATTRIBUTES);
-                this.readAttrPermissions.put(resource, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericReadAttributes));
+                this.readAttrPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericReadAttributes));
                 boolean hasGenericReadTelemetry = hasGenericPermission(resource, Operation.READ_TELEMETRY);
-                this.readTsPermissions.put(resource, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericReadTelemetry));
+                this.readTsPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericReadTelemetry));
             }
         }
 
-        this.groupPermissions.forEach((id, info) -> {
-            if (checkOperation(info.getOperations(), Operation.READ)) {
-                this.readGroupPermissions.get(info.getEntityType()).getEntityGroupIds().add(id);
-                Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
-                this.readEntityPermissions.get(entityResource).getEntityGroupIds().add(id);
-                Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
-                if (groupResource != null) {
-                    this.readEntityPermissions.get(groupResource).getEntityGroupIds().add(id);
+        if (!this.groupPermissions.isEmpty()) {
+            Map<EntityType, List<EntityGroupId>> readGroupPermissionIds = new HashMap<>();
+            Map<Resource, List<EntityGroupId>> readEntityPermissionIds = new HashMap<>();
+            Map<Resource, List<EntityGroupId>> readAttrPermissionIds = new HashMap<>();
+            Map<Resource, List<EntityGroupId>> readTsPermissionIds = new HashMap<>();
+            this.groupPermissions.forEach((id, info) -> {
+                if (checkOperation(info.getOperations(), Operation.READ)) {
+                    readGroupPermissionIds.computeIfAbsent(info.getEntityType(), et -> new ArrayList<>()).add(id);
+                    Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
+                    readEntityPermissionIds.computeIfAbsent(entityResource, et -> new ArrayList<>()).add(id);
+                    Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
+                    if (groupResource != null) {
+                        readEntityPermissionIds.computeIfAbsent(groupResource, et -> new ArrayList<>()).add(id);
+                    }
                 }
-            }
-            if (checkOperation(info.getOperations(), Operation.READ_ATTRIBUTES)) {
-                Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
-                this.readAttrPermissions.get(entityResource).getEntityGroupIds().add(id);
-                Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
-                if (groupResource != null) {
-                    this.readAttrPermissions.get(groupResource).getEntityGroupIds().add(id);
+                if (checkOperation(info.getOperations(), Operation.READ_ATTRIBUTES)) {
+                    Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
+                    readAttrPermissionIds.computeIfAbsent(entityResource, et -> new ArrayList<>()).add(id);
+                    Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
+                    if (groupResource != null) {
+                        readAttrPermissionIds.computeIfAbsent(groupResource, et -> new ArrayList<>()).add(id);
+                    }
                 }
-            }
-            if (checkOperation(info.getOperations(), Operation.READ_TELEMETRY)) {
-                Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
-                this.readTsPermissions.get(entityResource).getEntityGroupIds().add(id);
-                Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
-                if (groupResource != null) {
-                    this.readTsPermissions.get(groupResource).getEntityGroupIds().add(id);
+                if (checkOperation(info.getOperations(), Operation.READ_TELEMETRY)) {
+                    Resource entityResource = Resource.resourceFromEntityType(info.getEntityType());
+                    readTsPermissionIds.computeIfAbsent(entityResource, et -> new ArrayList<>()).add(id);
+                    Resource groupResource = Resource.groupResourceFromGroupType(info.getEntityType());
+                    if (groupResource != null) {
+                        readTsPermissionIds.computeIfAbsent(groupResource, et -> new ArrayList<>()).add(id);
+                    }
                 }
-            }
+            });
+            addIds(this.readGroupPermissions, readGroupPermissionIds);
+            addIds(this.readEntityPermissions, readEntityPermissionIds);
+            addIds(this.readAttrPermissions, readAttrPermissionIds);
+            addIds(this.readTsPermissions, readTsPermissionIds);
+        }
+    }
+
+    <T> void addIds(Map<T, MergedGroupTypePermissionInfo> permissions, Map<T, List<EntityGroupId>> ids) {
+        ids.forEach((key, value) -> {
+            final MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = permissions.get(key);
+            final MergedGroupTypePermissionInfo newInfo = mergedGroupTypePermissionInfo.addIds(value);
+            permissions.put(key, newInfo);
         });
     }
 

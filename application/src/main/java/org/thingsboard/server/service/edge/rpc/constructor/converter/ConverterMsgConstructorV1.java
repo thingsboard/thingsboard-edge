@@ -49,7 +49,6 @@ public class ConverterMsgConstructorV1 implements ConverterMsgConstructor {
                 .setIdLSB(converter.getId().getId().getLeastSignificantBits())
                 .setName(converter.getName())
                 .setType(converter.getType().name())
-                .setDebugMode(converter.isDebugMode())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()));
         if (converter.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));

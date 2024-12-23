@@ -33,16 +33,27 @@ import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { Router } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, FormGroupDirective, Validators } from '@angular/forms';
+import { FormGroupDirective, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { SelfRegistrationService } from '@core/http/self-register.service';
-import { SelfRegistrationParams } from '@shared/models/self-register.models';
-import { deepClone, isNotEmptyStr, randomAlphanumeric } from '@core/utils';
+import { CaptchaParams, SelfRegistrationType, WebSelfRegistrationParams } from '@shared/models/self-register.models';
+import { deepClone } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
-import { AttributeService } from '@core/http/attribute.service';
+import { DomainDialogComponent } from '@home/pages/admin/oauth2/domains/domain-dialog.component';
+import { Domain } from '@shared/models/oauth2.models';
+import { MatDialog } from '@angular/material/dialog';
+import { BaseData } from '@shared/models/base-data';
+import { EntityId } from '@shared/models/id/entity-id';
+import { Operation, Resource } from '@shared/models/security.models';
+import {
+  RecipientNotificationDialogComponent,
+  RecipientNotificationDialogData
+} from '@home/pages/notification/recipient/recipient-notification-dialog.component';
+import { NotificationTarget } from '@shared/models/notification.models';
+import { EditorOptions } from 'tinymce';
+import { DialogService } from '@core/services/dialog.service';
 
 @Component({
   selector: 'tb-self-registration',
@@ -52,35 +63,43 @@ import { AttributeService } from '@core/http/attribute.service';
 export class SelfRegistrationComponent extends PageComponent implements OnInit, HasConfirmForm {
 
   selfRegistrationFormGroup: UntypedFormGroup;
-  selfRegistrationParams: SelfRegistrationParams;
+  selfRegistrationParams: WebSelfRegistrationParams;
   registerLink: string;
-  deleteDisabled = true;
 
   entityTypes = EntityType;
 
-  tinyMceOptions: Record<string, any> = {
+  deleteDisabled = true;
+
+  tinyMceOptions: Partial<EditorOptions> = {
     base_url: '/assets/tinymce',
     suffix: '.min',
-    plugins: ['link table image imagetools code fullscreen'],
+    plugins: ['link', 'table', 'image', 'imagetools', 'code', 'fullscreen', 'lists'],
     menubar: 'edit insert tools view format table',
-    toolbar: 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor ' +
-      '| link | table | image | alignleft aligncenter alignright alignjustify  ' +
-      '| numlist bullist outdent indent  | removeformat | code | fullscreen',
+    toolbar_mode: 'sliding',
+    toolbar: 'fontfamily fontsize | bold italic  strikethrough  forecolor backcolor ' +
+      '| link table image | alignleft aligncenter alignright alignjustify  ' +
+      '| numlist bullist outdent indent | blocks | removeformat code | fullscreen',
     height: 380,
     autofocus: false,
     branding: false,
-    resize: true
+    resize: true,
+    promotion: false,
+    relative_urls: false
   };
 
   showMainLoadingBar = false;
 
+  readonly EntityType = EntityType;
+  readonly operation = Operation;
+  readonly resource = Resource;
+
   constructor(protected store: Store<AppState>,
-              private router: Router,
+              private dialog: MatDialog,
+              private dialogService: DialogService,
               private selfRegistrationService: SelfRegistrationService,
-              private attributeService: AttributeService,
               private translate: TranslateService,
-              public fb: UntypedFormBuilder) {
-    super(store);
+              private fb: UntypedFormBuilder) {
+    super();
   }
 
   ngOnInit() {
@@ -94,71 +113,45 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   buildSelfRegistrationForm() {
     this.selfRegistrationFormGroup = this.fb.group({
-      domainName: [null, [Validators.required, Validators.pattern('((?![:/]).)*$')]],
-      captchaSiteKey: [null, [Validators.required]],
-      captchaSecretKey: [null, [Validators.required]],
-      captchaVersion: ['v2', []],
-      captchaAction: ['', []],
-      notificationEmail: [null, [Validators.required, Validators.email]],
-      signUpTextMessage: [null, [Validators.maxLength(200)]],
+      domainId: [null, [Validators.required]],
+      captcha: this.fb.group({
+        version: ['v3'],
+        siteKey: ['', Validators.required],
+        secretKey: ['', Validators.required],
+        logActionName: ['']
+      }),
+      notificationRecipient: [null, Validators.required],
+      title: [null, [Validators.maxLength(200)]],
       permissions: [null],
-      defaultDashboardId: [null],
-      defaultDashboardFullscreen: [false],
+      defaultDashboard: this.fb.group({
+        id: [null],
+        fullscreen: [false]
+      }),
       privacyPolicy: [null],
       showPrivacyPolicy: [true],
       termsOfUse: [null],
-      showTermsOfUse: [true],
-      enableMobileSelfRegistration: [false],
-      pkgName: [null, [Validators.required]],
-      appSecret: [null, [Validators.required, Validators.minLength(16), Validators.maxLength(2048),
-        Validators.pattern(/^[A-Za-z0-9]+$/)]],
-      appScheme: [null, [Validators.required]],
-      appHost: [null, [Validators.required]]
+      showTermsOfUse: [true]
     });
-    this.selfRegistrationFormGroup.get('defaultDashboardId').valueChanges.subscribe(
+    this.selfRegistrationFormGroup.get('defaultDashboard.id').valueChanges.subscribe(
       () => {
         this.updateDisabledState();
-      }
-    );
-    this.selfRegistrationFormGroup.get('enableMobileSelfRegistration').valueChanges.subscribe(
-      () => {
-        this.updateMobileSelfRegistration();
       }
     );
   }
 
   private updateDisabledState() {
-    const defaultDashboardId = this.selfRegistrationFormGroup.get('defaultDashboardId').value;
+    const defaultDashboardId = this.selfRegistrationFormGroup.get('defaultDashboard.id').value;
     if (defaultDashboardId) {
-      this.selfRegistrationFormGroup.get('defaultDashboardFullscreen').enable();
+      this.selfRegistrationFormGroup.get('defaultDashboard.fullscreen').enable();
     } else {
-      this.selfRegistrationFormGroup.get('defaultDashboardFullscreen').disable();
+      this.selfRegistrationFormGroup.get('defaultDashboard.fullscreen').disable();
     }
-  }
-
-  private updateMobileSelfRegistration() {
-    const enableMobileSelfRegistration = this.selfRegistrationFormGroup.get('enableMobileSelfRegistration').value;
-    if (enableMobileSelfRegistration) {
-      this.selfRegistrationFormGroup.get('pkgName').enable();
-      this.selfRegistrationFormGroup.get('appSecret').enable();
-      this.selfRegistrationFormGroup.get('appScheme').enable();
-      this.selfRegistrationFormGroup.get('appHost').enable();
-      const appSecret = this.selfRegistrationFormGroup.get('appSecret').value;
-      if (!isNotEmptyStr(appSecret)) {
-        this.selfRegistrationFormGroup.get('appSecret').patchValue(randomAlphanumeric(24), {emitEvent: false});
-      }
-    } else {
-      this.selfRegistrationFormGroup.get('pkgName').disable();
-      this.selfRegistrationFormGroup.get('appSecret').disable();
-      this.selfRegistrationFormGroup.get('appScheme').disable();
-      this.selfRegistrationFormGroup.get('appHost').disable();
-    }
-    this.selfRegistrationFormGroup.updateValueAndValidity({emitEvent: false});
   }
 
   save(): void {
     this.selfRegistrationParams = {...this.selfRegistrationParams,
       ...this.selfRegistrationParamsFromFormValue(this.selfRegistrationFormGroup.value)};
+    this.selfRegistrationParams.type = SelfRegistrationType.WEB;
     this.selfRegistrationService.saveSelfRegistrationParams(this.selfRegistrationParams).subscribe(
       (selfRegistrationParams) => {
         this.onSelfRegistrationParamsLoaded(selfRegistrationParams);
@@ -167,12 +160,18 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   }
 
   delete(form: FormGroupDirective): void {
-    this.selfRegistrationService.deleteSelfRegistrationParams(this.selfRegistrationParams.domainName).subscribe(
-      () => {
-        this.onSelfRegistrationParamsLoaded(null);
-        form.resetForm();
+    this.dialogService.confirm(
+      this.translate.instant('mobile.self-registration.reset-self-registration-title'),
+      this.translate.instant('mobile.self-registration.reset-self-registration-text'),
+    ).subscribe(res => {
+      if (res) {
+        this.selfRegistrationService.deleteSelfRegistrationParams().subscribe(() => {
+          this.onSelfRegistrationParamsLoaded(null);
+          this.registerLink = '';
+          form.resetForm();
+        });
       }
-    );
+    })
   }
 
   confirmForm(): UntypedFormGroup {
@@ -191,16 +190,50 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       }));
   }
 
-  private onSelfRegistrationParamsLoaded(selfRegistrationParams: SelfRegistrationParams) {
-    this.selfRegistrationParams = selfRegistrationParams || {};
-    if (this.selfRegistrationParams.domainName && this.selfRegistrationParams.domainName.length) {
-      this.registerLink = this.selfRegistrationService.getRegistrationLink(this.selfRegistrationParams.domainName);
+  domainChange(domain: BaseData<EntityId>) {
+    if (domain?.name?.length) {
+      this.registerLink = this.selfRegistrationService.getRegistrationLink(domain.name);
     } else {
       this.registerLink = '';
     }
+  }
+
+  createDomain() {
+    this.dialog.open<DomainDialogComponent, any, Domain>(DomainDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+    }).afterClosed()
+      .subscribe((domain) => {
+        if (domain) {
+          this.selfRegistrationFormGroup.get('domainId').patchValue(domain.id);
+          this.selfRegistrationFormGroup.get('domainId').markAsDirty();
+        }
+      });
+  }
+
+  createTarget() {
+    this.dialog.open<RecipientNotificationDialogComponent, RecipientNotificationDialogData,
+      NotificationTarget>(RecipientNotificationDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {}
+    }).afterClosed()
+      .subscribe((res) => {
+        if (res) {
+          this.selfRegistrationFormGroup.get('notificationRecipient').setValue(res.id);
+        }
+      })
+  }
+
+  private onSelfRegistrationParamsLoaded(selfRegistrationParams: WebSelfRegistrationParams) {
+    this.selfRegistrationParams = selfRegistrationParams || {
+      type: SelfRegistrationType.WEB,
+      enabled: true
+    } as WebSelfRegistrationParams;
+    this.deleteDisabled = !this.selfRegistrationParams.domainId;
     const selfRegistrationFormValue = deepClone(this.selfRegistrationParams);
-    if (selfRegistrationFormValue.signUpTextMessage && selfRegistrationFormValue.signUpTextMessage.length) {
-      selfRegistrationFormValue.signUpTextMessage = this.convertHTMLToText(selfRegistrationFormValue.signUpTextMessage);
+    if (selfRegistrationFormValue.title?.length) {
+      selfRegistrationFormValue.title = this.convertHTMLToText(selfRegistrationFormValue.title);
     }
     if (!selfRegistrationFormValue.permissions) {
       selfRegistrationFormValue.permissions = [];
@@ -211,25 +244,18 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     if (selfRegistrationFormValue.showTermsOfUse == null) {
       selfRegistrationFormValue.showTermsOfUse = false;
     }
-    selfRegistrationFormValue.captchaVersion = selfRegistrationFormValue.captchaVersion || 'v2';
-    this.deleteDisabled = !this.selfRegistrationParams.adminSettingsId;
-    (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
+    if (!selfRegistrationFormValue.captcha) {
+      selfRegistrationFormValue.captcha = {} as CaptchaParams;
+    }
+    selfRegistrationFormValue.captcha.version = selfRegistrationFormValue.captcha.version || 'v3';
     this.selfRegistrationFormGroup.reset(selfRegistrationFormValue);
     this.updateDisabledState();
-    this.updateMobileSelfRegistration();
   }
 
-  private selfRegistrationParamsFromFormValue(selfRegistrationParams: SelfRegistrationParams): SelfRegistrationParams {
-    if (selfRegistrationParams.signUpTextMessage && selfRegistrationParams.signUpTextMessage.length) {
-      selfRegistrationParams.signUpTextMessage = this.convertTextToHTML(selfRegistrationParams.signUpTextMessage);
+  private selfRegistrationParamsFromFormValue(selfRegistrationParams: WebSelfRegistrationParams): WebSelfRegistrationParams {
+    if (selfRegistrationParams.title?.length) {
+      selfRegistrationParams.title = this.convertTextToHTML(selfRegistrationParams.title);
     }
-    if (!(selfRegistrationParams as any).enableMobileSelfRegistration) {
-      selfRegistrationParams.pkgName = null;
-      selfRegistrationParams.appSecret = null;
-      selfRegistrationParams.appScheme = null;
-      selfRegistrationParams.appHost = null;
-    }
-    delete (selfRegistrationParams as any).enableMobileSelfRegistration;
     return selfRegistrationParams;
   }
 
@@ -238,7 +264,6 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   }
 
   private convertHTMLToText(str: string): string {
-    return str.replace(/<br\s*[/]?>/gi, '\n');
+    return str.replace(/<br\s*\/?>/gi, '\n');
   }
-
 }
