@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.msa.edge;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
@@ -49,7 +50,12 @@ import java.util.concurrent.TimeUnit;
 public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
-    public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() throws Exception {
+    public void testEdge_assignToCustomer_unassignFromCustomer() {
+        performTestOnEachEdge(this::_testEdge_assignToCustomer_unassignFromCustomer);
+    }
+
+    @SneakyThrows
+    private void _testEdge_assignToCustomer_unassignFromCustomer() {
         // create customer
         Customer savedCustomer = saveCustomer("Edge Customer", null);
 

@@ -62,9 +62,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     @Autowired
     private DashboardMsgConstructorFactory dashboardMsgConstructorFactory;
 
-    public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
-                                                               DashboardUpdateMsg dashboardUpdateMsg,
-                                                               Long queueStartTs) throws ThingsboardException {
+    public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg) throws ThingsboardException {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -75,7 +73,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                     if (created) {
                         pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
                     }
-                    return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
+                    return requestForAdditionalData(tenantId, dashboardId);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
                         UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
@@ -123,9 +121,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
         var msgConstructor = (DashboardMsgConstructor) dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
-            case ADDED_TO_ENTITY_GROUP:
+            case ADDED, UPDATED, ADDED_TO_ENTITY_GROUP -> {
                 Dashboard dashboard = edgeCtx.getDashboardService().findDashboardById(cloudEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
@@ -136,14 +132,14 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                 } else {
                     log.info("Skipping event as dashboard was not found [{}]", cloudEvent);
                 }
-                break;
-            case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
+            }
+            case DELETED, REMOVED_FROM_ENTITY_GROUP -> {
                 DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
                         dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardDeleteMsg(dashboardId, entityGroupId);
                 return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg).build();
+            }
         }
         return null;
     }

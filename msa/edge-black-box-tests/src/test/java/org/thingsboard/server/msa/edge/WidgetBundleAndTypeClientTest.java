@@ -55,6 +55,10 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundles_verifyInitialSetup() {
+        performTestOnEachEdge(this::_testWidgetsBundles_verifyInitialSetup);
+    }
+
+    private void _testWidgetsBundles_verifyInitialSetup() {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(90, TimeUnit.SECONDS)
@@ -83,6 +87,10 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundleAndWidgetType() {
+        performTestOnEachEdge(this::_testWidgetsBundleAndWidgetType);
+    }
+
+    private void _testWidgetsBundleAndWidgetType() {
         // create widget bundle
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("Test Widget Bundle");

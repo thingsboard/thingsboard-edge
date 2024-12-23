@@ -34,19 +34,18 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
-import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Service
+@TbCoreComponent
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class TbCoreCloudEventProvider implements TbCloudEventProvider {
 
     private final TbCloudEventQueueFactory tbCloudEventQueueProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> toCloudEventProducer;
-    private TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> toCloudEventConsumer;
     private TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> toCloudEventTSProducer;
-    private TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> toCloudEventTSConsumer;
 
     public TbCoreCloudEventProvider(TbCloudEventQueueFactory tbCloudEventQueueProvider) {
         this.tbCloudEventQueueProvider = tbCloudEventQueueProvider;
@@ -55,9 +54,7 @@ public class TbCoreCloudEventProvider implements TbCloudEventProvider {
     @PostConstruct
     public void init() {
         toCloudEventProducer = tbCloudEventQueueProvider.createCloudEventMsgProducer();
-        toCloudEventConsumer = tbCloudEventQueueProvider.createCloudEventMsgConsumer();
         toCloudEventTSProducer = tbCloudEventQueueProvider.createCloudEventTSMsgProducer();
-        toCloudEventTSConsumer = tbCloudEventQueueProvider.createCloudEventTSMsgConsumer();
     }
 
     @Override
@@ -66,17 +63,8 @@ public class TbCoreCloudEventProvider implements TbCloudEventProvider {
     }
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventMsgConsumer() {
-        return toCloudEventConsumer;
-    }
-
-    @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventTSMsgProducer() {
         return toCloudEventTSProducer;
     }
-
-    @Override
-    public TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventTSMsgConsumer() {
-        return toCloudEventTSConsumer;
-    }
 }
+

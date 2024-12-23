@@ -49,6 +49,8 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.debug.DebugSettings;

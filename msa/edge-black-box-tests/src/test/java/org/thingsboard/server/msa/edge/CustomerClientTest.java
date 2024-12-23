@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.msa.edge;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
@@ -46,7 +47,12 @@ import java.util.concurrent.TimeUnit;
 public class CustomerClientTest extends AbstractContainerTest {
 
     @Test
-    public void testCreateUpdateDeleteCustomer() throws Exception {
+    public void testCreateUpdateDeleteCustomer() {
+        performTestOnEachEdge(this::_testCreateUpdateDeleteCustomer);
+    }
+
+    @SneakyThrows
+    private void _testCreateUpdateDeleteCustomer() {
         testPublicCustomerCreatedOnEdge(edge.getTenantId());
 
         // create customer A

@@ -57,6 +57,11 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
     public void testEntityViews() {
+        performTestOnEachEdge(this::_testEntityViews);
+    }
+
+    private void _testEntityViews() {
+        // create entity view #1 and assign to edge
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         // create entity view #1, add to group #1 and assign group #1 to edge
@@ -187,6 +192,10 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendEntityViewToCloud() {
+        performTestOnEachEdge(this::_testSendEntityViewToCloud);
+    }
+
+    private void _testSendEntityViewToCloud() {
         // create asset on edge
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
         assignEntityGroupToEdge(savedAssetEntityGroup);
@@ -240,6 +249,10 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() {
+        performTestOnEachEdge(this::_testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud);
+    }
+
+    private void _testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() {
         // create entity view on cloud and edge with the same name
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 

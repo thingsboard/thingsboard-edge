@@ -748,10 +748,6 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime) throws ThingsboardException {
-        if (queueType.equals("kafka")) {
-            throw new UnsupportedOperationException("getCloudEvents not supported for queue type - kafka");
-        }
-
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
@@ -771,9 +767,6 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime) throws ThingsboardException {
-        if (queueType.equals("kafka")) {
-            throw new UnsupportedOperationException("getTimeseriesCloudEvents not supported for queue type - kafka");
-        }
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);

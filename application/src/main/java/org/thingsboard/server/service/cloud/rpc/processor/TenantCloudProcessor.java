@@ -65,7 +65,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
+    public void createTenantIfNotExists(TenantId tenantId) throws Exception {
         try {
             cloudSynchronizationManager.getSync().set(true);
             Tenant tenant = edgeCtx.getTenantService().findTenantById(tenantId);
@@ -90,7 +90,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
             edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
 
-            requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
+            requestForAdditionalData(tenantId, tenantId).get();
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }

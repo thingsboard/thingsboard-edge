@@ -30,36 +30,12 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 
-@Slf4j
-@Service
-@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
-public class KafkaTSUplinkMessageService extends KafkaUplinkMessageService implements TsUplinkMessageService {
+public interface CloudEventMigrationService {
 
-    @Autowired
-    private GeneralUplinkMessageService generalUplinkMessageService;
+    boolean isMigrated();
 
-    @Override
-    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId) {
-        PageData<CloudEvent> cloudEvents = cloudEventService.findTsKvCloudEvents(tenantId, null, null, null);
+    void migrateUnprocessedEventToKafka(TenantId tenantId);
 
-        cloudEventService.commit(true);
-
-        return cloudEvents;
-    }
-
-    @Override
-    protected boolean newMessagesAvailableInGeneralQueue(TenantId tenantId) {
-        TimePageLink timePageLink = generalUplinkMessageService.newCloudEventsAvailable(tenantId, 0L);
-
-        return timePageLink != null;
-    }
 }
