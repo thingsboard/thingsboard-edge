@@ -44,10 +44,10 @@ import org.thingsboard.server.msa.AbstractContainerTest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class EdgeClientTest extends AbstractContainerTest {
+
     @Test
     public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() throws Exception {
         // create customer
@@ -560,17 +560,16 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<EntityGroupId> edgeEntityGroupsId = new ArrayList<>();
                     List<EntityGroupInfo> deviceEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.DEVICE);
-                    edgeEntityGroupsId.addAll(deviceEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    List<EntityGroupId> edgeEntityGroupsId = new ArrayList<>(deviceEdgeGroups.stream().map(EntityGroup::getId).toList());
                     List<EntityGroupInfo> assetEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.ASSET);
-                    edgeEntityGroupsId.addAll(assetEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    edgeEntityGroupsId.addAll(assetEdgeGroups.stream().map(EntityGroup::getId).toList());
                     List<EntityGroupInfo> entityViewEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.ENTITY_VIEW);
-                    edgeEntityGroupsId.addAll(entityViewEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    edgeEntityGroupsId.addAll(entityViewEdgeGroups.stream().map(EntityGroup::getId).toList());
                     List<EntityGroupInfo> dashboardEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.DASHBOARD);
-                    edgeEntityGroupsId.addAll(dashboardEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    edgeEntityGroupsId.addAll(dashboardEdgeGroups.stream().map(EntityGroup::getId).toList());
                     List<EntityGroupInfo> userEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.USER);
-                    edgeEntityGroupsId.addAll(userEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    edgeEntityGroupsId.addAll(userEdgeGroups.stream().map(EntityGroup::getId).toList());
                     boolean result = true;
                     for (EntityGroupId entityGroupId : entityGroupIds) {
                         result &= !edgeEntityGroupsId.contains(entityGroupId);

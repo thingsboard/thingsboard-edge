@@ -103,19 +103,11 @@ public class RabbitMQIntegration extends AbstractIntegration<RabbitMQIntegration
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
+            integrationStatistics.incErrorsOccurred();
             exception = e;
             status = "ERROR";
         }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-        }
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.getMsg()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.getMsg()), status, exception);
     }
 
     private void doProcess(IntegrationContext context, RabbitMQIntegrationMsg msg) throws Exception {
@@ -210,13 +202,7 @@ public class RabbitMQIntegration extends AbstractIntegration<RabbitMQIntegration
                         return channel.basicGet(queue, true);
                     } catch (IOException | ShutdownSignalException exception) {
                         log.error("[{}][{}] Channel was closed with the error: {}", this.configuration.getTenantId().getId(), this.configuration.getId().getId(), exception.getMessage());
-                        if (configuration.isDebugMode()) {
-                            try {
-                                persistDebug(context, "Uplink", getDefaultUplinkContentType(), "", "ERROR", exception);
-                            } catch (Exception e) {
-                                log.warn("[{}] Failed to persist debug message", this.configuration.getName(), e);
-                            }
-                        }
+                        persistDebug(context, "Uplink", getDefaultUplinkContentType(), "", "ERROR", exception);
 
                         // cooldown period
                         try {
@@ -230,30 +216,15 @@ public class RabbitMQIntegration extends AbstractIntegration<RabbitMQIntegration
     }
 
     private void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
-        String status = "OK";
-        Exception exception = null;
-        try {
-            if (doProcessDownLinkMsg(context, msg)) {
-                integrationStatistics.incMessagesProcessed();
-            }
-        } catch (Exception e) {
-            log.warn("Failed to process downLink message", e);
-            exception = e;
-            status = "ERROR";
-        }
-        reportDownlinkError(context, msg, status, exception);
-    }
-
-    private boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) {
         try {
             channel.basicPublish(
                     rabbitMQConsumerConfiguration.getExchangeName(), rabbitMQConsumerConfiguration.getDownlinkTopic(),
                     MessageProperties.MINIMAL_BASIC, JacksonUtil.writeValueAsBytes(msg.getData()));
-            return true;
-        } catch (IOException e) {
+            integrationStatistics.incMessagesProcessed();
+        } catch (Exception e) {
             log.error("Failed publish message: [{}].", msg, e);
+            reportDownlinkError(context, msg, "ERROR", e);
         }
-        return false;
     }
 
     private void createConnection() {

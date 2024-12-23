@@ -197,7 +197,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 .until(() -> cloudRestClient.getAssetById(savedAssetOnEdge.getId()).isPresent());
 
         // create entity view on edge
-        EntityGroup savedEntityViewEntityGroup = createEntityGroup(EntityType.ASSET);
+        EntityGroup savedEntityViewEntityGroup = createEntityGroup(EntityType.ENTITY_VIEW);
         assignEntityGroupToEdge(savedEntityViewEntityGroup);
         EntityView savedEntityViewOnEdge = saveEntityViewOnEdge("Edge Entity View 3", "Default", savedAssetOnEdge.getId(), savedEntityViewEntityGroup.getId());
         Awaitility.await()

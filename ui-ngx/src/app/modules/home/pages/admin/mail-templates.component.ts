@@ -44,6 +44,7 @@ import { MailTemplate, MailTemplatesSettings, mailTemplateTranslations } from '@
 import { Operation, Resource } from '@shared/models/security.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { isDefinedAndNotNull } from '@core/utils';
+import { EditorOptions } from 'tinymce';
 
 @Component({
   selector: 'tb-mail-templates',
@@ -68,7 +69,7 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
 
   isDirty = false;
 
-  tinyMceOptions: Record<string, any>;
+  tinyMceOptions: Partial<EditorOptions>;
 
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
@@ -80,7 +81,12 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
   ngOnInit() {
     this.tinyMceOptions = {
       base_url: '/assets/tinymce',
-      suffix: '.min'
+      suffix: '.min',
+      branding: false,
+      autofocus: false,
+      height: 450,
+      promotion: false,
+      relative_urls: false
     };
 
     if (this.readonly) {
@@ -88,11 +94,8 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       this.tinyMceOptions.menubar = false;
       this.tinyMceOptions.toolbar = false;
       this.tinyMceOptions.statusbar = false;
-      this.tinyMceOptions.height = 450;
-      this.tinyMceOptions.autofocus = false;
-      this.tinyMceOptions.branding = false;
       this.tinyMceOptions.resize = true;
-      this.tinyMceOptions.readonly = 1;
+      this.tinyMceOptions.readonly = true;
       this.tinyMceOptions.setup = (ed) => {
         ed.on('PreInit', () => {
           const document = $(ed.iframeElement.contentDocument);
@@ -103,14 +106,12 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
         });
       };
     } else {
-      this.tinyMceOptions.plugins = ['link table image imagetools code fullscreen'];
+      this.tinyMceOptions.plugins = ['link', 'table', 'image', 'imagetools', 'code', 'fullscreen', 'lists'];
       this.tinyMceOptions.menubar = 'edit insert tools view format table';
-      this.tinyMceOptions.toolbar = 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor ' +
-        '| link | table | image | alignleft aligncenter alignright alignjustify  ' +
-        '| numlist bullist outdent indent  | removeformat | code | fullscreen';
-      this.tinyMceOptions.height = 450;
-      this.tinyMceOptions.autofocus = false;
-      this.tinyMceOptions.branding = false;
+      this.tinyMceOptions.toolbar_mode = 'sliding';
+      this.tinyMceOptions.toolbar = 'fontfamily fontsize | bold italic strikethrough forecolor backcolor ' +
+        '| link table image | alignleft aligncenter alignright alignjustify ' +
+        '| numlist bullist outdent indent | blocks | removeformat code | fullscreen';
     }
     this.mailTemplatesSettings = this.route.snapshot.data.mailTemplatesSettings;
     this.mailTemplateTypes = Object.keys(MailTemplate).filter(type => Object.keys(this.mailTemplatesSettings).includes(type));

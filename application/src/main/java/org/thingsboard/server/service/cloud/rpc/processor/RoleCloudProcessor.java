@@ -46,7 +46,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
-import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.service.validator.RoleDataValidator;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
@@ -67,14 +67,10 @@ import java.util.stream.Collectors;
 public class RoleCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
-    private RoleService roleService;
+    private RoleDataValidator roleValidator;
 
     @Autowired
     private UserPermissionsService userPermissionsService;
-
-    private final Set<Operation> groupRoleOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
-            Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_CREDENTIALS, Operation.READ_TELEMETRY,
-            Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY, Operation.WRITE_CREDENTIALS));
 
     private final Set<Operation> genericRoleOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
             Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_CREDENTIALS, Operation.READ_TELEMETRY,
@@ -100,7 +96,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                     if (role == null) {
                         throw new RuntimeException("[{" + tenantId + "}] roleProto {" + roleProto + "} cannot be converted to rolo");
                     }
-                    Role roleById = roleService.findRoleById(tenantId, roleId);
+                    Role roleById = edgeCtx.getRoleService().findRoleById(tenantId, roleId);
                     boolean created = false;
                     if (roleById == null) {
                         created = true;
@@ -113,15 +109,15 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                         role.setId(roleId);
                     }
 
-                    Role savedRole = roleService.saveRole(tenantId, role, false);
+                    Role savedRole = edgeCtx.getRoleService().saveRole(tenantId, role, false);
 
                     userPermissionsService.onRoleUpdated(savedRole);
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Role roleToDelete = roleService.findRoleById(tenantId, roleId);
+                    Role roleToDelete = edgeCtx.getRoleService().findRoleById(tenantId, roleId);
                     if (roleToDelete != null) {
-                        roleService.deleteRole(tenantId, roleId);
+                        edgeCtx.getRoleService().deleteRole(tenantId, roleId);
                     }
                     break;
                 case UNRECOGNIZED:
@@ -137,20 +133,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
 
     Role replaceWriteOperationsToReadIfRequired(Role role) {
         if (RoleType.GROUP.equals(role.getType())) {
-            CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-            List<Operation> originOperations = JacksonUtil.fromString(JacksonUtil.toString(role.getPermissions()), collectionType);
-            if (originOperations == null) {
-                return role;
-            }
-            List<Operation> operations;
-            if (originOperations.contains(Operation.ALL)) {
-                operations = new ArrayList<>(groupRoleOperations);
-            } else {
-                operations = originOperations.stream()
-                        .filter(groupRoleOperations::contains)
-                        .collect(Collectors.toList());
-            }
-            role.setPermissions(JacksonUtil.valueToTree(operations));
+            return role;
         } else {
             CollectionType operationType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
             JavaType resourceType = JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructType(Resource.class);

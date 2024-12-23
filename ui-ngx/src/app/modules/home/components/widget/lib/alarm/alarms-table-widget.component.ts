@@ -66,9 +66,23 @@ import cssjs from '@core/css/css';
 import { sortItems } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, EMPTY, forkJoin, fromEvent, merge, Observable, Subject, Subscription } from 'rxjs';
+import {
+  BehaviorSubject,
+  EMPTY,
+  firstValueFrom,
+  forkJoin,
+  from,
+  fromEvent,
+  merge,
+  Observable,
+  of,
+  Subject,
+  Subscription,
+  switchMap
+} from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import {
+  catchError,
   concatMap,
   debounceTime,
   distinctUntilChanged,
@@ -83,6 +97,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
+  CellContentFunctionInfo,
   CellContentInfo,
   CellStyleInfo,
   checkHasActions,
@@ -95,7 +110,7 @@ import {
   findEntityKeyByColumnDef,
   fromEntityColumnDef,
   getAlarmValue,
-  getCellContentInfo,
+  getCellContentFunctionInfo,
   getCellStyleInfo,
   getColumnDefaultVisibility,
   getColumnSelectionAvailability,
@@ -248,14 +263,14 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   private defaultSortOrder = '-' + alarmFields.createdTime.value;
 
   private contentsInfo: {[key: string]: CellContentInfo} = {};
-  private stylesInfo: {[key: string]: CellStyleInfo} = {};
+  private stylesInfo: {[key: string]: Observable<CellStyleInfo>} = {};
   private columnWidth: {[key: string]: string} = {};
   private columnDefaultVisibility: {[key: string]: boolean} = {};
   private columnSelectionAvailability: {[key: string]: boolean} = {};
   private columnExportParameters: {[key: string]: columnExportOptions} = {};
   private columnsWithCellClick: Array<number> = [];
 
-  private rowStylesInfo: RowStyleInfo;
+  private rowStylesInfo: Observable<RowStyleInfo>;
 
   private widgetTimewindowChanged$: Subscription;
 
@@ -425,7 +440,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     }
     this.alarmFilterAction.show = enableFilter;
 
-    this.rowStylesInfo = getRowStyleInfo(this.settings, 'alarm, ctx');
+    this.rowStylesInfo = getRowStyleInfo(this.ctx, this.settings, 'alarm, ctx');
 
     const pageSize = this.settings.defaultPageSize;
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
@@ -474,10 +489,14 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
             keySettings.columnWidth = '120px';
           }
         }
-        this.stylesInfo[dataKey.def] = getCellStyleInfo(keySettings, 'value, alarm, ctx');
-        this.contentsInfo[dataKey.def] = getCellContentInfo(keySettings, 'value, alarm, ctx');
-        this.contentsInfo[dataKey.def].units = dataKey.units;
-        this.contentsInfo[dataKey.def].decimals = dataKey.decimals;
+        this.stylesInfo[dataKey.def] = getCellStyleInfo(this.ctx, keySettings, 'value, alarm, ctx');
+        const contentFunctionInfo = getCellContentFunctionInfo(this.ctx, keySettings, 'value, alarm, ctx');
+        const contentInfo: CellContentInfo = {
+          contentFunction: contentFunctionInfo,
+          units: dataKey.units,
+          decimals: dataKey.decimals
+        };
+        this.contentsInfo[dataKey.def] = contentInfo;
         this.columnWidth[dataKey.def] = getColumnWidth(keySettings);
         this.columnDefaultVisibility[dataKey.def] = getColumnDefaultVisibility(keySettings, this.ctx);
         this.columnSelectionAvailability[dataKey.def] = getColumnSelectionAvailability(keySettings);
@@ -756,104 +775,140 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     return widthStyle(columnWidth);
   }
 
-  public rowStyle(alarm: AlarmDataInfo, row: number): any {
+  public rowStyle(alarm: AlarmDataInfo, row: number): Observable<any> {
+    let style$: Observable<any>;
     let res = this.rowStyleCache[row];
     if (!res) {
-      res = {};
-      if (alarm && this.rowStylesInfo.useRowStyleFunction && this.rowStylesInfo.rowStyleFunction) {
-        try {
-          res = this.rowStylesInfo.rowStyleFunction(alarm, this.ctx);
-          if (!isObject(res)) {
-            throw new TypeError(`${res === null ? 'null' : typeof res} instead of style object`);
+      style$ = this.rowStylesInfo.pipe(
+        map(styleInfo => {
+          if (styleInfo.useRowStyleFunction && styleInfo.rowStyleFunction) {
+            const style = styleInfo.rowStyleFunction.execute(alarm, this.ctx);
+            if (!isObject(style)) {
+              throw new TypeError(`${style === null ? 'null' : typeof style} instead of style object`);
+            }
+            if (Array.isArray(style)) {
+              throw new TypeError(`Array instead of style object`);
+            }
+            return style;
+          } else {
+            return {};
           }
-          if (Array.isArray(res)) {
-            throw new TypeError(`Array instead of style object`);
-          }
-        } catch (e) {
-          res = {};
+        }),
+        catchError(e => {
           console.warn(`Row style function in widget '${this.ctx.widgetTitle}' ` +
             `returns '${e}'. Please check your row style function.`);
-        }
-      }
-      this.rowStyleCache[row] = res;
+          return of({});
+        })
+      );
+      style$ = style$.pipe(
+        tap((style) => {
+          this.rowStyleCache[row] = style;
+        })
+      );
+    } else {
+      style$ = of(res);
     }
-    return res;
+    return style$;
   }
 
-  public cellStyle(alarm: AlarmDataInfo, key: EntityColumn, row: number): any {
+  public cellStyle(alarm: AlarmDataInfo, key: EntityColumn, row: number): Observable<any> {
+    let style$: Observable<any>;
     const col = this.columns.indexOf(key);
     const index = row * this.columns.length + col;
     let res = this.cellStyleCache[index];
     if (!res) {
-      res = {};
       if (alarm && key) {
-        const styleInfo = this.stylesInfo[key.def];
-        const value = getAlarmValue(alarm, key);
-        if (styleInfo.useCellStyleFunction && styleInfo.cellStyleFunction) {
-          try {
-            res = styleInfo.cellStyleFunction(value, alarm, this.ctx);
-            if (!isObject(res)) {
-              throw new TypeError(`${res === null ? 'null' : typeof res} instead of style object`);
+        style$ = this.stylesInfo[key.def].pipe(
+          map(styleInfo => {
+            const value = getAlarmValue(alarm, key);
+            if (styleInfo.useCellStyleFunction && styleInfo.cellStyleFunction) {
+              const style = styleInfo.cellStyleFunction.execute(value, alarm, this.ctx);
+              if (!isObject(style)) {
+                throw new TypeError(`${style === null ? 'null' : typeof style} instead of style object`);
+              }
+              if (Array.isArray(style)) {
+                throw new TypeError(`Array instead of style object`);
+              }
+              return style;
+            } else {
+              return this.defaultStyle(key, value);
             }
-            if (Array.isArray(res)) {
-              throw new TypeError(`Array instead of style object`);
-            }
-          } catch (e) {
-            res = {};
+          }),
+          catchError(e => {
             console.warn(`Cell style function for data key '${key.label}' in widget '${this.ctx.widgetTitle}' ` +
               `returns '${e}'. Please check your cell style function.`);
-          }
-        } else {
-          res = this.defaultStyle(key, value);
-        }
+            return of({});
+          })
+        );
+      } else {
+        style$ = of({});
       }
-      this.cellStyleCache[index] = res;
+      style$ = style$.pipe(
+        map((style) => {
+          if (!style.width) {
+            const columnWidth = this.columnWidth[key.def];
+            style = Object.assign(style, widthStyle(columnWidth));
+          }
+          return style;
+        }),
+        tap((style) => {
+          this.cellStyleCache[index] = style;
+        })
+      );
+    } else {
+      style$ = of(res);
     }
-    if (!res.width) {
-      const columnWidth = this.columnWidth[key.def];
-      res = Object.assign(res, widthStyle(columnWidth));
-    }
-    return res;
+    return style$;
   }
 
-  public cellContent(alarm: AlarmDataInfo, key: EntityColumn, row: number, useSafeHtml = true, isExport = false): SafeHtml {
+  public cellContent(alarm: AlarmDataInfo, key: EntityColumn, row: number, useSafeHtml = true, isExport = false): Observable<SafeHtml> {
+    let content$: Observable<SafeHtml>;
     const col = this.columns.indexOf(key);
     const index = row * this.columns.length + col;
     let res = useSafeHtml ? this.cellContentCache[index] : undefined;
     if (isUndefined(res)) {
-      res = '';
-      if (alarm && key) {
-        const contentInfo = this.contentsInfo[key.def];
-        const value = getAlarmValue(alarm, key);
-        let content = '';
-        if (contentInfo.useCellContentFunction && contentInfo.cellContentFunction && !isExport) {
-          content = this.applyCellContentFunction(alarm, contentInfo, value);
-        } else {
-          content = contentInfo.useCellContentFunctionOnExport ? this.applyCellContentFunction(alarm, contentInfo, value)
-            : this.defaultContent(key, contentInfo, value);
-        }
-        if (isDefined(content)) {
-          content = this.utils.customTranslation(content, content);
-          switch (typeof content) {
-            case 'string':
-              res = useSafeHtml ? this.domSanitizer.bypassSecurityTrustHtml(content) : content;
-              break;
-            default:
-              res = content;
+      const contentInfo = this.contentsInfo[key.def];
+      content$ = contentInfo.contentFunction.pipe(
+        map((contentFunction) => {
+          let content: any = '';
+          if (alarm && key) {
+            const contentInfo = this.contentsInfo[key.def];
+            const value = getAlarmValue(alarm, key);
+            if (contentFunction.useCellContentFunction && contentFunction.cellContentFunction && !isExport) {
+              content = this.applyCellContentFunction(alarm, contentFunction, value);
+            } else {
+              content = contentFunction.useCellContentFunctionOnExport ? this.applyCellContentFunction(alarm, contentFunction, value)
+                : this.defaultContent(key, contentInfo, value);
+            }
+            if (isDefined(content)) {
+              content = this.utils.customTranslation(content, content);
+              switch (typeof content) {
+                case 'string':
+                  content = useSafeHtml ? this.domSanitizer.bypassSecurityTrustHtml(content) : content;
+                  break;
+              }
+            }
           }
-        }
-      }
-      if (useSafeHtml) {
-        this.cellContentCache[index] = res;
-      }
+          return content;
+        })
+      );
+      content$ = content$.pipe(
+        tap((content) => {
+          if (useSafeHtml) {
+            this.cellContentCache[index] = content;
+          }
+        })
+      );
+    } else {
+      content$ = of(res);
     }
-    return res;
+    return content$;
   }
 
-  private applyCellContentFunction(alarm: AlarmDataInfo, contentInfo: CellContentInfo, value: any) {
+  private applyCellContentFunction(alarm: AlarmDataInfo, contentFunction: CellContentFunctionInfo, value: any) {
     let content: string;
     try {
-      content = contentInfo.cellContentFunction(value, alarm, this.ctx);
+      content = contentFunction.cellContentFunction.execute(value, alarm, this.ctx);
     } catch (e) {
       content = '' + value;
     }
@@ -1153,7 +1208,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     }
   }
 
-  customDataExport(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
+  customDataExport(): Observable<{[key: string]: any}[]> {
     if (this.subscription.alarmSource && this.subscription.alarmSource.type === DatasourceType.entity &&
         this.subscription.alarmSource.entityFilter) {
       const pageLink = deepClone(this.pageLink);
@@ -1186,23 +1241,33 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
             return EMPTY;
           }
         }),
-        map(data => data.data.map((a, index) => this.alarmDataToExportedData(a, index, exportedColumns))),
+        switchMap(data => data.data.length
+          ? data.data.map((a, index) => from(this.alarmDataToExportedData(a, index, exportedColumns)))
+          : of(data.data)),
         concatMap((data) => data),
         toArray()
       );
     } else {
-      const exportedData: {[key: string]: any}[] = [];
+      const exportedData: Observable<{[key: string]: any}>[] = [];
       const alarmsToExport = this.alarmsDatasource.alarms;
       alarmsToExport.forEach((alarm, index) => {
-        const dataObj: {[key: string]: any} = {};
+        const dataObj: {[key: string]: Observable<any>} = {};
         this.columns.forEach((column) => {
           if (this.includeColumnInExport(column)) {
             dataObj[column.title] = this.cellContent(alarm, column, index, false, true);
           }
         });
-        exportedData.push(dataObj);
+        if (Object.keys(dataObj).length) {
+          exportedData.push(forkJoin(dataObj));
+        } else {
+          exportedData.push(of(dataObj));
+        }
       });
-      return exportedData;
+      if (exportedData.length) {
+        return forkJoin(exportedData);
+      } else {
+        return of(exportedData);
+      }
     }
   }
 
@@ -1217,12 +1282,12 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     }
   }
 
-  private alarmDataToExportedData(alarmData: AlarmData,
-                                  index: number,
-                                  columns: EntityColumn[]): {[key: string]: any} {
+  private async alarmDataToExportedData(alarmData: AlarmData,
+                                        index: number,
+                                        columns: EntityColumn[]): Promise<{[key: string]: any}> {
     const alarm = this.alarmsDatasource.alarmDataToInfo(alarmData);
     const dataObj: {[key: string]: any} = {};
-    columns.forEach(column => {
+    for (const column of columns) {
       if (column.name === alarmFields.assignee.value) {
         let displayName = '';
         if (alarmData.assignee) {
@@ -1231,8 +1296,8 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         dataObj[column.title] = displayName;
         return;
       }
-      dataObj[column.title] = this.cellContent(alarm, column, index, false, true);
-    });
+      dataObj[column.title] = await firstValueFrom(this.cellContent(alarm, column, index, false, true));
+    }
     return dataObj;
   }
 
@@ -1326,18 +1391,30 @@ class AlarmsDatasource implements DataSource<AlarmDataInfo> {
 
   private reserveSpaceForHiddenAction = true;
   private cellButtonActions: TableCellButtonActionDescriptor[];
-  private readonly usedShowCellActionFunction: boolean;
+  private usedShowCellActionFunction: boolean;
+  private inited = false;
 
   constructor(private subscription: IWidgetSubscription,
               private dataKeys: Array<DataKey>,
               private ngZone: NgZone,
               private widgetContext: WidgetContext,
-              actionCellDescriptors: AlarmWidgetActionDescriptor[]) {
-    this.cellButtonActions = actionCellDescriptors.concat(getTableCellButtonActions(widgetContext));
-    this.usedShowCellActionFunction = this.cellButtonActions.some(action => action.useShowActionCellButtonFunction);
+              private actionCellDescriptors: AlarmWidgetActionDescriptor[]) {
     if (this.widgetContext.settings.reserveSpaceForHiddenAction) {
       this.reserveSpaceForHiddenAction = coerceBooleanProperty(this.widgetContext.settings.reserveSpaceForHiddenAction);
     }
+  }
+
+  private init(): Observable<any> {
+    if (this.inited) {
+      return of(null);
+    }
+    return getTableCellButtonActions(this.widgetContext).pipe(
+      tap(actions => {
+        this.cellButtonActions = this.actionCellDescriptors.concat(actions);
+        this.usedShowCellActionFunction = this.cellButtonActions.some(action => action.useShowActionCellButtonFunction);
+        this.inited = true;
+      })
+    );
   }
 
   connect(collectionViewer: CollectionViewer): Observable<AlarmDataInfo[] | ReadonlyArray<AlarmDataInfo>> {
@@ -1368,48 +1445,50 @@ class AlarmsDatasource implements DataSource<AlarmDataInfo> {
   }
 
   updateAlarms() {
-    const subscriptionAlarms = this.subscription.alarms;
-    let alarms = new Array<AlarmDataInfo>();
-    let maxCellButtonAction = 0;
-    let isEmptySelection = false;
-    const dynamicWidthCellButtonActions = this.usedShowCellActionFunction && !this.reserveSpaceForHiddenAction;
-    subscriptionAlarms.data.forEach((alarmData) => {
-      const alarm = this.alarmDataToInfo(alarmData);
-      alarms.push(alarm);
-      if (dynamicWidthCellButtonActions && alarm.actionCellButtons.length > maxCellButtonAction) {
-        maxCellButtonAction = alarm.actionCellButtons.length;
+    this.init().subscribe(() => {
+      const subscriptionAlarms = this.subscription.alarms;
+      let alarms = new Array<AlarmDataInfo>();
+      let maxCellButtonAction = 0;
+      let isEmptySelection = false;
+      const dynamicWidthCellButtonActions = this.usedShowCellActionFunction && !this.reserveSpaceForHiddenAction;
+      subscriptionAlarms.data.forEach((alarmData) => {
+        const alarm = this.alarmDataToInfo(alarmData);
+        alarms.push(alarm);
+        if (dynamicWidthCellButtonActions && alarm.actionCellButtons.length > maxCellButtonAction) {
+          maxCellButtonAction = alarm.actionCellButtons.length;
+        }
+      });
+      if (!dynamicWidthCellButtonActions && this.cellButtonActions.length && alarms.length) {
+        maxCellButtonAction = alarms[0].actionCellButtons.length;
       }
-    });
-    if (!dynamicWidthCellButtonActions && this.cellButtonActions.length && alarms.length) {
-      maxCellButtonAction = alarms[0].actionCellButtons.length;
-    }
-    if (this.appliedSortOrderLabel && this.appliedSortOrderLabel.length) {
-      const asc = this.appliedPageLink.sortOrder.direction === Direction.ASC;
-      alarms = alarms.sort((a, b) => sortItems(a, b, this.appliedSortOrderLabel, asc));
-    }
-    if (this.selection.hasValue()) {
-      const alarmIds = alarms.map((alarm) => alarm.id.id);
-      const toRemove = this.selection.selected.filter(alarm => alarmIds.indexOf(alarm.id.id) === -1);
-      this.selection.deselect(...toRemove);
-      if (this.selection.isEmpty()) {
-        isEmptySelection = true;
+      if (this.appliedSortOrderLabel && this.appliedSortOrderLabel.length) {
+        const asc = this.appliedPageLink.sortOrder.direction === Direction.ASC;
+        alarms = alarms.sort((a, b) => sortItems(a, b, this.appliedSortOrderLabel, asc));
       }
-    }
-    this.alarms = alarms;
-    const alarmsPageData: PageData<AlarmDataInfo> = {
-      data: alarms,
-      totalPages: subscriptionAlarms.totalPages,
-      totalElements: subscriptionAlarms.totalElements,
-      hasNext: subscriptionAlarms.hasNext
-    };
-    this.ngZone.run(() => {
-      if (isEmptySelection) {
-        this.onSelectionModeChanged(false);
+      if (this.selection.hasValue()) {
+        const alarmIds = alarms.map((alarm) => alarm.id.id);
+        const toRemove = this.selection.selected.filter(alarm => alarmIds.indexOf(alarm.id.id) === -1);
+        this.selection.deselect(...toRemove);
+        if (this.selection.isEmpty()) {
+          isEmptySelection = true;
+        }
       }
-      this.alarmsSubject.next(alarms);
-      this.pageDataSubject.next(alarmsPageData);
-      this.countCellButtonAction = maxCellButtonAction;
-      this.dataLoading = false;
+      this.alarms = alarms;
+      const alarmsPageData: PageData<AlarmDataInfo> = {
+        data: alarms,
+        totalPages: subscriptionAlarms.totalPages,
+        totalElements: subscriptionAlarms.totalElements,
+        hasNext: subscriptionAlarms.hasNext
+      };
+      this.ngZone.run(() => {
+        if (isEmptySelection) {
+          this.onSelectionModeChanged(false);
+        }
+        this.alarmsSubject.next(alarms);
+        this.pageDataSubject.next(alarmsPageData);
+        this.countCellButtonAction = maxCellButtonAction;
+        this.dataLoading = false;
+      });
     });
   }
 

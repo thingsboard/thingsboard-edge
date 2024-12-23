@@ -41,6 +41,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -134,7 +135,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         integration.setSecret(secretKey);
         integration.setEnabled(true);
         integration.setRemote(isRemote);
-        integration.setDebugMode(true);
+        integration.setDebugSettings(DebugSettings.all());
         integration.setAllowCreateDevicesOrAssets(true);
 
         integration = testRestClient.postIntegration(integration);

@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.id.EdgeEventId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.io.Serial;
 import java.util.UUID;
 
 @Data
@@ -46,6 +47,7 @@ import java.util.UUID;
 @ToString(callSuper = true)
 public class EdgeEvent extends BaseData<EdgeEventId> {
 
+    @Serial
     private static final long serialVersionUID = 5548866356798094088L;
 
     private long seqId;
@@ -65,4 +67,5 @@ public class EdgeEvent extends BaseData<EdgeEventId> {
     public EdgeEvent(EdgeEventId id) {
         super(id);
     }
+
 }

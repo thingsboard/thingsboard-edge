@@ -3,6 +3,7 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
+  "name": "Smart Supermarket User Management",
   "configuration": {
     "description": "",
     "widgets": {
@@ -506,6 +507,5 @@
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
     }
   },
-  "externalId": null,
-  "name": "Smart Supermarket User Management"
+  "resources": []
 }

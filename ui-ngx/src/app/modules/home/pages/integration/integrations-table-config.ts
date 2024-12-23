@@ -62,9 +62,9 @@ import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.m
 import { IntegrationComponent } from '@home/pages/integration/integration.component';
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { Operation, Resource } from '@shared/models/security.models';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { isUndefined } from '@core/utils';
-import { map, mergeMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { PageData } from '@shared/models/page/page-data';
 import { Edge } from '@shared/models/edge.models';
@@ -78,8 +78,21 @@ import {
   IntegrationWizardDialogComponent
 } from '@home/components/wizard/integration-wizard-dialog.component';
 import { EventType } from '@shared/models/event.models';
+import { EntityDebugSettings } from '@shared/models/entity.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { DestroyRef } from '@angular/core';
+import { EntityDebugSettingsPanelComponent } from '@home/components/entity/debug/entity-debug-settings-panel.component';
+import { MINUTE } from '@shared/models/time/time.models';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
+
+  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
+  readonly maxDebugModeDuration = getCurrentAuthState(this.store).maxDebugModeDurationMinutes * MINUTE;
 
   constructor(private integrationService: IntegrationService,
               private userPermissionsService: UserPermissionsService,
@@ -90,6 +103,10 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
               private utils: UtilsService,
               private dialogService: DialogService,
               private dialog: MatDialog,
+              private store: Store<AppState>,
+              private durationLeft: DurationLeftPipe,
+              private popoverService: TbPopoverService,
+              private destroyRef: DestroyRef,
               private params: IntegrationParams) {
     super(params);
 
@@ -153,6 +170,9 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     defaultEntityTablePermissions(this.userPermissionsService, this);
   }
 
+  private isDebugActive(allEnabledUntil: number): boolean {
+    return allEnabledUntil > new Date().getTime();
+  }
 
   private configureEntityTableColumns(): Array<EntityColumn<IntegrationInfo>> {
     const columns: Array<EntityColumn<IntegrationInfo>> = [];
@@ -230,12 +250,11 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
   private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<IntegrationInfo>> {
     const actions: Array<CellActionDescriptor<IntegrationInfo>> = [{
       name: '',
-      nameFunction: (entity) =>
-        this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
+      nameFunction: (entity) => this.getDebugConfigLabel(entity?.debugSettings),
       icon: 'mdi:bug',
       isEnabled: () => true,
-      iconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
-      onAction: ($event, entity) => this.toggleDebugMode($event, entity)
+      iconFunction: ({ debugSettings }) => this.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
+      onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
     }];
     if (params.integrationScope === 'edge') {
       actions.push(
@@ -248,6 +267,16 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       );
     }
     return actions;
+  }
+
+  private getDebugConfigLabel({ allEnabledUntil, failuresEnabled }: EntityDebugSettings): string {
+    const isDebugActive = this.isDebugActive(allEnabledUntil);
+
+    if (!isDebugActive) {
+      return failuresEnabled ? this.translate.instant('debug-settings.failures') : this.translate.instant('common.disabled');
+    } else {
+      return this.durationLeft.transform(allEnabledUntil)
+    }
   }
 
   private saveIntegration(integration: Integration): Observable<Integration> {
@@ -314,6 +343,41 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         return true;
     }
     return false;
+  }
+
+  onOpenDebugConfig($event: Event, { debugSettings = {}, id }: IntegrationInfo): void {
+    const { renderer, viewContainerRef } = this.getTable();
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const trigger = $event.target as Element;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const debugStrategyPopover = this.popoverService.displayPopover(trigger, renderer,
+        viewContainerRef, EntityDebugSettingsPanelComponent, 'bottom', true, null,
+        {
+          debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
+          maxDebugModeDuration: this.maxDebugModeDuration,
+          entityLabel: this.translate.instant('debug-settings.integration'),
+          ...debugSettings
+        },
+        {},
+        {}, {}, true);
+      debugStrategyPopover.tbComponentRef.instance.popover = debugStrategyPopover;
+      debugStrategyPopover.tbComponentRef.instance.onSettingsApplied.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((settings: EntityDebugSettings) => {
+        this.onDebugConfigChanged(id.id, settings);
+        debugStrategyPopover.hide();
+      });
+    }
+  }
+
+  private onDebugConfigChanged(id: string, debugSettings: EntityDebugSettings): void {
+    this.integrationService.getIntegration(id).pipe(
+      switchMap(integration => this.integrationService.saveIntegration({ ...integration, debugSettings })),
+      catchError(() => of(null)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.updateData());
   }
 
   private configureEntityFunctions(integrationScope: string, edgeId: string): (pageLink) => Observable<PageData<IntegrationInfo>> {
@@ -499,21 +563,5 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       styleObj.color = '#d12730';
     }
     return styleObj;
-  }
-
-  private toggleDebugMode($event: Event, integrations: IntegrationInfo): void {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.integrationService.getIntegration(integrations.id.id, {ignoreLoading: true})
-      .pipe(
-        mergeMap(integration => {
-          integration.debugMode = !integration.debugMode;
-          return this.integrationService.saveIntegration(integration, {ignoreLoading: true});
-        }))
-      .subscribe((integrationData) => {
-        integrations.debugMode = integrationData.debugMode;
-        this.getTable().detectChanges();
-      });
   }
 }

@@ -46,7 +46,7 @@ import { ControlValueAccessor, UntypedFormControl, NG_VALIDATORS, NG_VALUE_ACCES
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { deepClone, isString } from '@app/core/utils';
+import { deepClone, isString, unwrapModule } from '@app/core/utils';
 import { JsonFormProps } from './react/json-form.models';
 import inspector from 'schema-inspector';
 import tinycolor from 'tinycolor2';
@@ -263,7 +263,7 @@ export class JsonFormComponent implements ControlValueAccessor, Validator, OnCha
 
   private onHelpClick(event: MouseEvent, helpId: string, helpVisibleFn: (visible: boolean) => void, helpReadyFn: (ready: boolean) => void) {
     const trigger = event.currentTarget as Element;
-    this.popoverService.toggleHelpPopover(trigger, this.renderer, this.viewContainerRef, helpId, '', helpVisibleFn, helpReadyFn);
+    this.popoverService.toggleHelpPopover(trigger, this.renderer, this.viewContainerRef, helpId, '', '', null, helpVisibleFn, helpReadyFn);
   }
 
   private updateAndRender() {
@@ -290,9 +290,9 @@ export class JsonFormComponent implements ControlValueAccessor, Validator, OnCha
     ];
     forkJoin(reactSchemaFormObservables).subscribe(
       (modules) => {
-        const react = modules[0];
-        const reactDomClient =  modules[2];
-        const jsonFormReact = modules[3].default;
+        const react = unwrapModule(modules[0]);
+        const reactDomClient =  unwrapModule(modules[2]);
+        const jsonFormReact = unwrapModule(modules[3]);
         this.reactRoot = reactDomClient.createRoot(this.reactRootElmRef.nativeElement);
         this.reactRoot.render(react.createElement(jsonFormReact, this.formProps));
       }

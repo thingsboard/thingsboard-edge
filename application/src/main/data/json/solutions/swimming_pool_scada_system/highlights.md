@@ -1,5 +1,6 @@
 The Swimming Pool SCADA template provides a comprehensive monitoring and control solution specifically designed for swimming pool operations. 
 With this template, you get a feature-rich dashboard, offering real-time device management and intuitive alarm configuration.
+SCADA systems are generally divided into two types: Traditional and High-Performance.
 
 Solution automatically configures the IoT gateway, creates an asset and 14 devices.
 

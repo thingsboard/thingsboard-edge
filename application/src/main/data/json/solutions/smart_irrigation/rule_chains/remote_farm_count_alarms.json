@@ -22,7 +22,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
         "name": "Count Alarms",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "alarmsCountMappings": [
             {
@@ -68,7 +69,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save as attribute",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scope": "SERVER_SCOPE",
           "notifyDevice": false

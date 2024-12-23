@@ -46,6 +46,7 @@ export interface DefaultTenantProfileConfiguration {
   maxUsers: number;
   maxDashboards: number;
   maxRuleChains: number;
+  maxEdges: number;
   maxIntegrations: number;
   maxConverters: number;
   maxSchedulerEvents: number;
@@ -59,6 +60,13 @@ export interface DefaultTenantProfileConfiguration {
   transportDeviceMsgRateLimit?: string;
   transportDeviceTelemetryMsgRateLimit?: string;
   transportDeviceTelemetryDataPointsRateLimit?: string;
+
+  transportGatewayMsgRateLimit?: string;
+  transportGatewayTelemetryMsgRateLimit?: string;
+  transportGatewayTelemetryDataPointsRateLimit?: string;
+  transportGatewayDeviceMsgRateLimit?: string;
+  transportGatewayDeviceTelemetryMsgRateLimit?: string;
+  transportGatewayDeviceTelemetryDataPointsRateLimit?: string;
 
   integrationMsgsPerTenantRateLimit?: string;
   integrationMsgsPerDeviceRateLimit?: string;
@@ -81,6 +89,8 @@ export interface DefaultTenantProfileConfiguration {
   smsEnabled: boolean;
   maxCreatedAlarms: number;
 
+  maxDebugModeDurationMinutes: number;
+
   tenantServerRestLimitsConfiguration: string;
   customerServerRestLimitsConfiguration: string;
 
@@ -97,11 +107,17 @@ export interface DefaultTenantProfileConfiguration {
 
   cassandraQueryTenantRateLimitsConfiguration: string;
 
+  edgeEventRateLimits?: string;
+  edgeEventRateLimitsPerEdge?: string;
+  edgeUplinkMessagesRateLimits?: string;
+  edgeUplinkMessagesRateLimitsPerEdge?: string;
+
   defaultStorageTtlDays: number;
   alarmsTtlDays: number;
   rpcTtlDays: number;
   queueStatsTtlDays: number;
   ruleEngineExceptionsTtlDays: number;
+  blobEntityTtlDays: number;
 }
 
 export type TenantProfileConfigurations = DefaultTenantProfileConfiguration;
@@ -122,6 +138,7 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxUsers: 0,
           maxDashboards: 0,
           maxRuleChains: 0,
+          maxEdges: 0,
           maxIntegrations: 0,
           maxConverters: 0,
           maxSchedulerEvents: 0,
@@ -139,6 +156,7 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxSms: 0,
           smsEnabled: true,
           maxCreatedAlarms: 0,
+          maxDebugModeDurationMinutes: 0,
           tenantServerRestLimitsConfiguration: '',
           customerServerRestLimitsConfiguration: '',
           maxWsSessionsPerTenant: 0,
@@ -156,7 +174,8 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           alarmsTtlDays: 0,
           rpcTtlDays: 0,
           queueStatsTtlDays: 0,
-          ruleEngineExceptionsTtlDays: 0
+          ruleEngineExceptionsTtlDays: 0,
+          blobEntityTtlDays: 0
         };
         configuration = {...defaultConfiguration, type: TenantProfileType.DEFAULT};
         break;

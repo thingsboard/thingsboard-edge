@@ -60,8 +60,8 @@ import { GridsterItemComponent } from 'angular-gridster2';
 import { UtilsService } from '@core/services/utils.service';
 import { from } from 'rxjs';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
-import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
 import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
+import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
 
 export enum WidgetComponentActionType {
   MOUSE_DOWN,
@@ -232,8 +232,8 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     });
   }
 
-  onClicked(event: MouseEvent) {
-    if (event) {
+  onClicked(event: MouseEvent): void {
+    if (event && this.isEdit) {
       event.stopPropagation();
     }
     this.widgetComponentAction.emit({
@@ -242,8 +242,8 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     });
   }
 
-  onContextMenu(event: TbContextMenuEvent) {
-    if (event) {
+  onContextMenu(event: TbContextMenuEvent): void {
+    if (event && this.isEdit) {
       event.stopPropagation();
     }
     this.widgetComponentAction.emit({

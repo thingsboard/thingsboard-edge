@@ -57,16 +57,16 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
     public void testWidgetsBundles_verifyInitialSetup() {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 30);
+                .atMost(90, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 32);
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
 
-        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).collect(Collectors.toList())) {
+        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).toList()) {
             Awaitility.await()
                     .pollInterval(500, TimeUnit.MILLISECONDS)
-                    .atMost(30, TimeUnit.SECONDS)
+                    .atMost(90, TimeUnit.SECONDS)
                     .until(() -> {
                         List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
                         List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);

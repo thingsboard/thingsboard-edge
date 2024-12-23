@@ -22,7 +22,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "defaultTTL": 0
@@ -36,7 +37,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "scope": "CLIENT_SCOPE"
@@ -51,7 +53,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "version": 0
@@ -65,7 +68,8 @@
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log RPC from Device",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "scriptLang": "TBEL",
@@ -81,7 +85,8 @@
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "scriptLang": "TBEL",
@@ -97,7 +102,8 @@
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "timeoutInSeconds": 60
@@ -112,7 +118,8 @@
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "persistAlarmRulesState": false,
@@ -128,7 +135,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
         "name": "Count alarms",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "alarmsCountMappings": [
@@ -192,7 +200,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "To Active Telemetry",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "scriptLang": "TBEL",
@@ -209,7 +218,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "scope": "SERVER_SCOPE",
@@ -226,7 +236,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Add active metadata",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "tellFailureIfAbsent": false,
@@ -249,7 +260,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Get alarms count attributes",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "tellFailureIfAbsent": false,
@@ -275,7 +287,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Get tank shape params",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "tellFailureIfAbsent": false,
@@ -307,7 +320,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Calculate fuelLevel",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "scriptLang": "TBEL",
@@ -324,7 +338,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode",
         "name": "If post telemetry",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "messageTypes": [
@@ -341,7 +356,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
         "name": "If fuelHeight exists",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "messageNames": [
@@ -360,7 +376,8 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbCheckpointNode",
         "name": "Sequential processing",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "queueName": "SequentialByOriginator"
@@ -375,7 +392,8 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbCheckpointNode",
         "name": "Sequential processing",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "singletonMode": false,
         "configuration": {
           "queueName": "SequentialByOriginator"

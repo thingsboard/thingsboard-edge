@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
-import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.service.validator.SchedulerEventDataValidator;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.scheduler.SchedulerService;
@@ -52,7 +52,7 @@ import java.util.UUID;
 public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
-    private SchedulerEventService schedulerEventService;
+    private SchedulerEventDataValidator schedulerEventValidator;
 
     @Autowired
     private SchedulerService schedulerService;
@@ -67,7 +67,7 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
                     if (schedulerEvent == null) {
                         throw new RuntimeException("[{" + tenantId + "}] schedulerEventUpdateMsg {" + schedulerEventUpdateMsg + "} cannot be converted to scheduler event");
                     }
-                    SchedulerEvent schedulerEventById = schedulerEventService.findSchedulerEventById(tenantId, schedulerEventId);
+                    SchedulerEvent schedulerEventById = edgeCtx.getSchedulerEventService().findSchedulerEventById(tenantId, schedulerEventId);
                     boolean created = false;
                     if (schedulerEventById == null) {
                         created = true;
@@ -82,7 +82,7 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
                         schedulerEvent.setCustomerId(null);
                     }
 
-                    schedulerEventService.saveSchedulerEvent(schedulerEvent, false);
+                    edgeCtx.getSchedulerEventService().saveSchedulerEvent(schedulerEvent, false);
 
                     if (created) {
                         schedulerService.onSchedulerEventAdded(schedulerEvent);
@@ -92,9 +92,9 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    SchedulerEventInfo schedulerEventInfo = schedulerEventService.findSchedulerEventInfoById(tenantId, schedulerEventId);
+                    SchedulerEventInfo schedulerEventInfo = edgeCtx.getSchedulerEventService().findSchedulerEventInfoById(tenantId, schedulerEventId);
                     if (schedulerEventInfo != null) {
-                        schedulerEventService.deleteSchedulerEvent(tenantId, schedulerEventId);
+                        edgeCtx.getSchedulerEventService().deleteSchedulerEvent(tenantId, schedulerEventId);
 
                         schedulerService.onSchedulerEventDeleted(schedulerEventInfo);
                     }
@@ -109,4 +109,5 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
         }
         return Futures.immediateFuture(null);
     }
+
 }

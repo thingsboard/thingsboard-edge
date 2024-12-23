@@ -29,14 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, HostBinding, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, ViewChild } from '@angular/core';
 import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { UntypedFormBuilder } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { SignupRequest, SignUpResult } from '@shared/models/signup.models';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { SignupService } from '@core/http/signup.service';
@@ -45,10 +45,7 @@ import { ReCaptcha2Component, ReCaptchaV3Service } from 'ngx-captcha';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  SignupDialogData,
-  SignupDialogComponent
-} from '@modules/signup/pages/signup/signup-dialog.component';
+import { SignupDialogComponent, SignupDialogData } from '@modules/signup/pages/signup/signup-dialog.component';
 import { from } from 'rxjs';
 
 @Component({
@@ -56,11 +53,14 @@ import { from } from 'rxjs';
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
-export class SignupComponent extends PageComponent implements OnInit {
+export class SignupComponent extends PageComponent {
 
   @ViewChild('recaptcha') recaptchaComponent: ReCaptcha2Component;
 
-  signup = this.fb.group(SignupRequest.create());
+  signup = this.fb.group({
+    fields: this.fb.group(SignupRequest.create().fields),
+    recaptchaResponse: [SignupRequest.create().recaptchaResponse]
+  })
   passwordCheck: string;
   acceptPrivacyPolicy: boolean;
   acceptTermsOfUse: boolean;
@@ -69,7 +69,6 @@ export class SignupComponent extends PageComponent implements OnInit {
   @HostBinding('class') class = 'tb-custom-css';
 
   constructor(protected store: Store<AppState>,
-              private route: ActivatedRoute,
               private router: Router,
               private authService: AuthService,
               private signupService: SignupService,
@@ -79,24 +78,21 @@ export class SignupComponent extends PageComponent implements OnInit {
               private translate: TranslateService,
               private reCaptchaV3Service: ReCaptchaV3Service,
               private dialog: MatDialog,
-              public fb: UntypedFormBuilder) {
+              private fb: FormBuilder) {
     super(store);
-  }
-
-  ngOnInit() {
   }
 
   signUp(): void {
     if (this.signup.valid) {
       if (this.validateSignUpRequest()) {
-        if (this.signupParams?.captchaVersion === 'v2') {
-          this.executeSignup(this.signup.value);
+        if (this.signupParams?.captcha?.version === 'v2') {
+          this.executeSignup(this.signup.value as SignupRequest);
         } else {
-          from(this.reCaptchaV3Service.executeAsPromise(this.signupParams?.captchaSiteKey,
-            this.signupParams?.captchaAction, {useGlobalDomain: true})).subscribe(
+          from(this.reCaptchaV3Service.executeAsPromise(this.signupParams?.captcha?.siteKey,
+            this.signupParams?.captcha?.logActionName, {useGlobalDomain: true})).subscribe(
             {
               next: (token) => {
-                const signupRequest: SignupRequest = this.signup.value;
+                const signupRequest = this.signup.value as SignupRequest;
                 signupRequest.recaptchaResponse = token;
                 this.executeSignup(signupRequest);
               },
@@ -109,30 +105,28 @@ export class SignupComponent extends PageComponent implements OnInit {
         }
       }
     } else {
-      Object.keys(this.signup.controls).forEach(field => {
-        const control = this.signup.get(field);
-        control.markAsTouched({onlySelf: true});
-      });
+      this.signup.markAllAsTouched();
     }
   }
 
   private executeSignup(signupRequest: SignupRequest): void {
-    this.signupService.signup(signupRequest).subscribe(
-      (signupResult) => {
+    this.signupService.signup(signupRequest).subscribe({
+      next: (signupResult) => {
         if (signupResult === SignUpResult.INACTIVE_USER_EXISTS) {
           this.promptToResendEmailVerification();
           if (this.recaptchaComponent) {
             this.recaptchaComponent.resetCaptcha();
           }
         } else {
-          this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('email').value);
+          this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('fields.EMAIL').value).then(() => {});
         }
-      }, () => {
+      },
+      error: () => {
         if (this.recaptchaComponent) {
           this.recaptchaComponent.resetCaptcha();
         }
       }
-    );
+    });
   }
 
   promptToResendEmailVerification() {
@@ -143,9 +137,9 @@ export class SignupComponent extends PageComponent implements OnInit {
       this.translate.instant('signup.resend')
     ).subscribe((result) => {
       if (result) {
-        this.authService.resendEmailActivation(this.signup.get('email').value).subscribe(
+        this.authService.resendEmailActivation(this.signup.get('fields.EMAIL').value).subscribe(
           () => {
-            this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('email').value);
+            this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('fields.EMAIL').value).then(() => {});
           }
         );
       }
@@ -153,17 +147,17 @@ export class SignupComponent extends PageComponent implements OnInit {
   }
 
   validateSignUpRequest(): boolean {
-    if (this.passwordCheck !== this.signup.get('password').value) {
+    if (this.passwordCheck !== this.signup.get('fields.PASSWORD').value) {
       this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('login.passwords-mismatch-error'),
         type: 'error' }));
       return false;
     }
-    if (this.signup.get('password').value.length < 6) {
+    if (this.signup.get('fields.PASSWORD').value.length < 6) {
       this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('signup.password-length-message'),
         type: 'error' }));
       return false;
     }
-    if (this.signupParams?.captchaVersion === 'v2' &&
+    if (this.signupParams?.captcha?.version === 'v2' &&
       (!this.signup.get('recaptchaResponse').value || this.signup.get('recaptchaResponse').value.length < 1)) {
       this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('signup.no-captcha-message'),
         type: 'error' }));

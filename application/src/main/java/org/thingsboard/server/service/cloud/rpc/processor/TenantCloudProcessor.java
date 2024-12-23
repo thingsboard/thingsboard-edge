@@ -34,6 +34,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
@@ -46,6 +47,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -56,10 +59,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TenantCloudProcessor extends BaseEdgeProcessor {
 
+    @Autowired
+    private ApiUsageStateService apiUsageStateService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
+
     public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
         try {
             cloudSynchronizationManager.getSync().set(true);
-            Tenant tenant = tenantService.findTenantById(tenantId);
+            Tenant tenant = edgeCtx.getTenantService().findTenantById(tenantId);
             if (tenant != null) {
                 return;
             }
@@ -67,19 +76,19 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             tenant.setTitle("Tenant");
             tenant.setId(tenantId);
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
-            Tenant savedTenant = tenantService.saveTenant(tenant, null, false);
+            Tenant savedTenant = edgeCtx.getTenantService().saveTenant(tenant, null, false);
             var apiUsageState = apiUsageStateService.findApiUsageStateByEntityId(savedTenant.getId());
             if (apiUsageState == null) {
                 apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
             }
 
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.EDGE);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
+            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
+            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
+            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
+            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
+            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.EDGE);
+            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
+            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
 
             requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
         } finally {
@@ -97,7 +106,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
             switch (tenantUpdateMsg.getMsgType()) {
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    tenantService.saveTenant(tenant, null, false);
+                    edgeCtx.getTenantService().saveTenant(tenant, null, false);
                     break;
                 case UNRECOGNIZED:
                     return handleUnsupportedMsgType(tenantUpdateMsg.getMsgType());
@@ -112,10 +121,10 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         try {
             cloudSynchronizationManager.getSync().set(true);
             log.debug("Starting clean up procedure");
-            PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
+            PageData<Tenant> tenants = edgeCtx.getTenantService().findTenants(new PageLink(Integer.MAX_VALUE));
             for (Tenant tenant : tenants.getData()) {
                 removeTenantAttributes(tenant.getId());
-                tenantService.deleteTenant(tenant.getId());
+                edgeCtx.getTenantService().deleteTenant(tenant.getId());
             }
 
             cleanUpSystemTenant();
@@ -126,22 +135,22 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     }
 
     private void cleanUpSystemTenant() {
-        adminSettingsService.deleteAdminSettingsByTenantId(TenantId.SYS_TENANT_ID);
-        queueService.deleteQueuesByTenantId(TenantId.SYS_TENANT_ID);
-        widgetTypeService.deleteWidgetTypesByTenantId(TenantId.SYS_TENANT_ID);
-        widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
+        edgeCtx.getAdminSettingsService().deleteAdminSettingsByTenantId(TenantId.SYS_TENANT_ID);
+        edgeCtx.getQueueService().deleteQueuesByTenantId(TenantId.SYS_TENANT_ID);
+        edgeCtx.getWidgetTypeService().deleteWidgetTypesByTenantId(TenantId.SYS_TENANT_ID);
+        edgeCtx.getWidgetsBundleService().deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
         removeTenantAttributes(TenantId.SYS_TENANT_ID);
-        roleService.deleteRolesByTenantId(TenantId.SYS_TENANT_ID);
+        edgeCtx.getRoleService().deleteRolesByTenantId(TenantId.SYS_TENANT_ID);
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
         whiteLabelingService.saveSystemWhiteLabelingParams(new WhiteLabelingParams());
-        customTranslationService.deleteCustomTranslationByTenantId(TenantId.SYS_TENANT_ID);
+        edgeCtx.getCustomTranslationService().deleteCustomTranslationByTenantId(TenantId.SYS_TENANT_ID);
     }
 
     private void removeTenantAttributes(TenantId tenantId) {
         try {
-            List<AttributeKvEntry> attributeKvEntries = attributesService.findAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE).get();
+            List<AttributeKvEntry> attributeKvEntries = edgeCtx.getAttributesService().findAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE).get();
             List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
-            attributesService.removeAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKeys);
+            edgeCtx.getAttributesService().removeAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKeys);
         } catch (Exception e) {
             log.error("Unable to remove tenant attributes", e);
         }

@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.support.NullValue;
+import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands;
@@ -51,6 +52,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.util.JedisClusterCRC16;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -199,22 +201,20 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
         if (!cacheEnabled) {
             return;
         }
-        try (var connection = connectionFactory.getConnection()) {
-            Set<byte[]> keysToEvict = getKeysByPrefix(prefix, connection);
-            if (!keysToEvict.isEmpty()) {
-                connection.keyCommands().del(keysToEvict.toArray(new byte[keysToEvict.size()][]));
-            }
-        }
-    }
-
-    private Set<byte[]> getKeysByPrefix(String prefix, RedisConnection connection) {
         Set<byte[]> keysToEvict = new HashSet<>();
-        var scanOptions = ScanOptions.scanOptions().match(cacheName + prefix + "*").count(1000).build();
-        Cursor<byte[]> cursor = connection.keyCommands().scan(scanOptions);
-        while (cursor.hasNext()) {
-            keysToEvict.add(cursor.next());
+        try (var connection = connectionFactory.getConnection()) {
+            ScanOptions scanOptions = ScanOptions.scanOptions().match(cacheName + prefix + "*").count(1000).build();
+            List<Cursor<byte[]>> scans = new ArrayList<>();
+            if (connection instanceof RedisClusterConnection clusterConnection) {
+                clusterConnection.clusterGetNodes().forEach(node -> {
+                    scans.add(clusterConnection.scan(node, scanOptions));
+                });
+            } else {
+                scans.add(connection.keyCommands().scan(scanOptions));
+            }
+            scans.forEach(scan -> scan.forEachRemaining(keysToEvict::add));
+            connection.keyCommands().del(keysToEvict.toArray(new byte[keysToEvict.size()][]));
         }
-        return keysToEvict;
     }
 
     @Override

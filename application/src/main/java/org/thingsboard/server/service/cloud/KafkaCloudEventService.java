@@ -49,6 +49,7 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
@@ -142,7 +143,7 @@ public class KafkaCloudEventService implements CloudEventService {
         TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> producer = chooseProducer(isTS);
         TopicPartitionInfo tpi = new TopicPartitionInfo(producer.getDefaultTopic(), cloudEvent.getTenantId(), 1, true);
 
-        EdgeEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
+        TransportProtos.CloudEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
         ToCloudEventMsg toCloudEventMsg = ToCloudEventMsg.newBuilder().setCloudEventMsg(cloudEventMsgProto).build();
 
         UUID entityId = cloudEvent.getEntityId() == null ? UUID.fromString(cloudEvent.getEntityBody().get("from").get("id").asText()) : cloudEvent.getEntityId();

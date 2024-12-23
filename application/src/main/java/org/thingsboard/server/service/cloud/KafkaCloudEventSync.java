@@ -236,7 +236,7 @@ public class KafkaCloudEventSync implements CloudEventSync {
         TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> producer = chooseProducer(isTS);
         TopicPartitionInfo tpi = new TopicPartitionInfo(producer.getDefaultTopic(), cloudEvent.getTenantId(), 1, true);
 
-        TransportProtos.EdgeEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
+        TransportProtos.CloudEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
         TransportProtos.ToCloudEventMsg toCloudEventMsg = TransportProtos.ToCloudEventMsg.newBuilder().setCloudEventMsg(cloudEventMsgProto).build();
 
         UUID entityId = cloudEvent.getEntityId() == null ? UUID.fromString(cloudEvent.getEntityBody().get("from").get("id").asText()) : cloudEvent.getEntityId();

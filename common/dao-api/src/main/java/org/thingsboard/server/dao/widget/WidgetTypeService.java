@@ -84,4 +84,6 @@ public interface WidgetTypeService extends EntityDaoService {
 
     void deleteWidgetTypesByBundleId(TenantId tenantId, WidgetsBundleId bundleId);
 
+    PageData<WidgetTypeId> findAllWidgetTypesIds(PageLink pageLink);
+
 }

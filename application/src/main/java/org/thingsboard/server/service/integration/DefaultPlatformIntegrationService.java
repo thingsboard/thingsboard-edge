@@ -96,7 +96,6 @@ import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -218,9 +217,6 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
     private DefaultTbDeviceProfileCache deviceProfileCache;
 
     @Autowired
-    private DeviceProfileService deviceProfileService;
-
-    @Autowired
     private DefaultTbAssetProfileCache assetProfileCache;
 
     @Value("${integrations.reinit.enabled:false}")
@@ -301,11 +297,6 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
     @Override
     public void processUplinkData(AbstractIntegration configuration, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
         Asset asset = getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
-
-        if (asset == null) {
-            // TODO: @voba assets are not created on edge at the moment
-            return;
-        }
 
         if (data.hasPostTelemetryMsg()) {
             process(asset, data.getPostTelemetryMsg(), callback);
@@ -486,14 +477,6 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
 
     private Asset getOrCreateAsset(AbstractIntegration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
-
-        if (asset == null) {
-            log.error("[{}] Asset [{}] not found! Assets are not created on the edge. Please create it on the cloud and assign to edge first.",
-                    integration.getTenantId(), assetName);
-            // TODO: @voba assets are not created on edge at the moment
-            return null;
-        }
-
         if (asset == null) {
             entityCreationLock.lock();
             try {
@@ -508,14 +491,6 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
     private EntityView getOrCreateEntityView(AbstractIntegration configuration, Device device, EntityViewDataProto proto) {
         String entityViewName = proto.getViewName();
         EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
-
-        if (entityView == null) {
-            log.error("[{}] Entity view [{}] not found! Entity views are not created on the edge. Please create it on the cloud and assign to edge first.",
-                    configuration.getTenantId(), entityViewName);
-            // TODO: @voba entity views are not created on edge at the moment
-            return null;
-        }
-
         if (entityView == null) {
             entityCreationLock.lock();
             try {
@@ -546,12 +521,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
         if (device == null && integration.isAllowCreateDevicesOrAssets()) {
             device = new Device();
             device.setName(deviceName);
-
-            // TODO: @voba device profiles are not created on edge at the moment
-            String deviceTypeOrDefault = checkDeviceTypeExistsOrDefault(integration.getTenantId(), deviceType);
-            device.setType(deviceTypeOrDefault);
-            // device.setType(deviceType);
-
+            device.setType(deviceType);
             device.setTenantId(integration.getTenantId());
             if (!StringUtils.isEmpty(deviceLabel)) {
                 device.setLabel(deviceLabel);
@@ -573,14 +543,6 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
             throw new ThingsboardRuntimeException("Creating devices is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         return device;
-    }
-
-    private String checkDeviceTypeExistsOrDefault(TenantId tenantId, String deviceType) {
-        DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceType);
-        if (deviceProfileByName != null) {
-            return deviceType;
-        }
-        return deviceProfileService.findDefaultDeviceProfile(tenantId).getName();
     }
 
     private Asset processGetOrCreateAsset(AbstractIntegration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
@@ -618,11 +580,12 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
             customer = customerOptional.get();
         } else {
             customer = new Customer();
-            // TODO: @voba customers are not created on the edge at the moment
-            // customer.setTitle(customerName);
-            // customer.setTenantId(integration.getTenantId());
-            // customer = customerService.saveCustomer(customer);
-            // pushCustomerCreatedEventToRuleEngine(integration, customer);
+            /* Edge-only: customers are not created on the edge at the moment
+            customer.setTitle(customerName);
+            customer.setTenantId(integration.getTenantId());
+            customer = customerService.saveCustomer(customer);
+            pushCustomerCreatedEventToRuleEngine(integration, customer);
+             */
         }
         return customer;
     }
@@ -639,7 +602,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 pushEntityGroupCreatedEventToRuleEngine(integration, entityGroup);
                 entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), entityId);
             } else {
-                // TODO: @voba entity groups are not created on the edge at the moment
+                // Edge-only: entity groups are not created on the edge at the moment
                 log.warn("[{}][{}] Entity group [{}] not found! Please create group on the cloud and assign it to the edge first!", tenantId, parentId, groupName);
             }
         }, throwable -> log.warn("[{}][{}] Failed to find entity group: {}:{}", tenantId, parentId, entityType, groupName, throwable), callbackExecutorService);

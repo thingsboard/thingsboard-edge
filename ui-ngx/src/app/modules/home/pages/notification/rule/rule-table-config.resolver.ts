@@ -50,6 +50,7 @@ import {
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
@@ -62,6 +63,7 @@ export class RuleTableConfigResolver  {
               private translate: TranslateService,
               private dialog: MatDialog,
               private datePipe: DatePipe,
+              private customTranslate: CustomTranslatePipe,
               private userPermissionsService: UserPermissionsService) {
 
     this.config.entityType = EntityType.NOTIFICATION_RULE;
@@ -102,7 +104,7 @@ export class RuleTableConfigResolver  {
         (rule) => this.translate.instant(TriggerTypeTranslationMap.get(rule.triggerType)) || '',
         () => ({}), true),
       new EntityTableColumn<NotificationRule>('additionalConfig.description', 'notification.description', '30%',
-        (target) => target.additionalConfig?.description || '',
+        (target) => this.customTranslate.transform(target.additionalConfig?.description || ''),
         () => ({}), false)
     );
   }

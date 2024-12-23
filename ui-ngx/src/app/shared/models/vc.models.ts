@@ -59,7 +59,7 @@ export const exportableEntityTypes: Array<EntityType> = [
   EntityType.NOTIFICATION_RULE
 ];
 
-export const entityTypesWithoutRelatedData: Set<EntityType> = new Set([
+export const entityTypesWithoutRelatedData: Set<EntityType | AliasEntityType> = new Set([
   EntityType.NOTIFICATION_TEMPLATE,
   EntityType.NOTIFICATION_TARGET,
   EntityType.NOTIFICATION_RULE,
@@ -127,8 +127,8 @@ export function createDefaultEntityTypesVersionCreate(): {[entityType: string]: 
   for (const entityType of exportableEntityTypes) {
     res[entityType] = {
       syncStrategy: null,
-      saveAttributes: true,
-      saveRelations: true,
+      saveAttributes: !entityTypesWithoutRelatedData.has(entityType),
+      saveRelations: !entityTypesWithoutRelatedData.has(entityType),
       saveCredentials: true,
       savePermissions: true,
       saveGroupEntities: true,
@@ -180,8 +180,8 @@ export function createDefaultEntityTypesVersionLoad(): {[entityType: string]: En
   const res: {[entityType: string]: EntityTypeVersionLoadConfig} = {};
   for (const entityType of exportableEntityTypes) {
     res[entityType] = {
-      loadAttributes: true,
-      loadRelations: true,
+      loadAttributes: !entityTypesWithoutRelatedData.has(entityType),
+      loadRelations: !entityTypesWithoutRelatedData.has(entityType),
       loadCredentials: true,
       loadPermissions: true,
       loadGroupEntities: true,

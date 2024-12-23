@@ -1879,8 +1879,7 @@
     "metadata-required": "Οι καταχωρίσεις μεταδεδομένων δεν μπορούν να είναι κενές.",
     "output": "Απόδοση",
     "test": "Τεστ",
-    "help": "Βοήθεια",
-    "reset-debug-mode": "Επαναφορά λειτουργίας εντοπισμού σφαλμάτων σε όλους τους κόμβους"
+    "help": "Βοήθεια"
   },
   "role": {
     "role": "Ρόλος",
@@ -2445,7 +2444,6 @@
     "self-registration-url": "Αυτόματη εγγραφή URL",
     "captcha-site-key": "reCAPTCHA κλειδί ιστότοπου",
     "captcha-secret-key": "reCAPTCHA μυστικό κλειδί",
-    "notification-email": "Εmail γνωστοποίησης",
     "privacy-policy-text": "Κείμενο πολιτικής απορρήτου",
     "text-message-page": "Μήνυμα κειμένου για τη σελίδα εγγραφής"
   },

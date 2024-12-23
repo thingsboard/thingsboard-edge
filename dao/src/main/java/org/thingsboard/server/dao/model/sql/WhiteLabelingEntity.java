@@ -42,6 +42,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
@@ -81,8 +82,8 @@ public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable 
     @Column(name = ModelConstants.WHITE_LABELING_SETTINGS)
     private JsonNode settings;
 
-    @Column(name = ModelConstants.WHITE_LABELING_DOMAIN)
-    private String domain;
+    @Column(name = ModelConstants.WHITE_LABELING_DOMAIN_ID)
+    private UUID domainId;
 
     public WhiteLabelingEntity(WhiteLabeling whiteLabeling) {
         this.tenantId = whiteLabeling.getTenantId().getId();
@@ -95,7 +96,9 @@ public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable 
         if (whiteLabeling.getSettings() != null) {
             this.settings = whiteLabeling.getSettings();
         }
-        this.domain = whiteLabeling.getDomain();
+        if (whiteLabeling.getDomainId() != null) {
+            this.domainId = whiteLabeling.getDomainId().getId();
+        }
     }
 
     @Override
@@ -109,7 +112,9 @@ public class WhiteLabelingEntity implements ToData<WhiteLabeling>, Serializable 
         if (settings != null) {
             whiteLabeling.setSettings(settings);
         }
-        whiteLabeling.setDomain(domain);
+        if (domainId != null) {
+            whiteLabeling.setDomainId(new DomainId(domainId));
+        }
         return whiteLabeling;
     }
 }

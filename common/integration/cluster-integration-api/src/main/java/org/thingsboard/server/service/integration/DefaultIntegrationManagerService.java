@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
@@ -108,7 +107,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -170,15 +168,15 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     @PostConstruct
     public void init() {
-        lifecycleExecutorService = Executors.newScheduledThreadPool(4, ThingsBoardThreadFactory.forName("ie-lifecycle"));
+        lifecycleExecutorService = ThingsBoardExecutors.newScheduledThreadPool(4, "ie-lifecycle");
         lifecycleExecutorService.scheduleWithFixedDelay(this::cleanupPendingValidationTasks, 1, 1, TimeUnit.MINUTES);
         commandExecutorService = ThingsBoardExecutors.newWorkStealingPool(4, "ie-commands");
         if (reInitEnabled) {
-            reInitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("ie-reinit"));
+            reInitExecutorService = ThingsBoardExecutors.newSingleThreadScheduledExecutor("ie-reinit");
             reInitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reInitFrequency, reInitFrequency, TimeUnit.MILLISECONDS);
         }
         if (statisticsEnabled) {
-            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("ie-stats"));
+            statisticsExecutorService = ThingsBoardExecutors.newSingleThreadScheduledExecutor("ie-stats");
             statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
         }
         supportedIntegrationTypes.addAll(serviceInfoProvider.getSupportedIntegrationTypes());
@@ -743,6 +741,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void doPersistStatistics(IntegrationState integrationState, long ts, boolean skipEmptyStatistics) {
+        if (!STARTED.equals(integrationState.getCurrentState())) {
+            log.debug("[{}{}] Can't persist statistics, integration has not started yet!}", integrationState.getTenantId(), integrationState.getId());
+            return;
+        }
         IntegrationStatistics statistics = integrationState.getIntegration().popStatistics();
         if (skipEmptyStatistics && statistics.isEmpty()) {
             return;

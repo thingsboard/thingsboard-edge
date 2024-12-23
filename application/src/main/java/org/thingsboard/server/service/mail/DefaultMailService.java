@@ -48,7 +48,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.TbEmail;
 import org.thingsboard.server.cache.limits.RateLimitService;
@@ -82,7 +82,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -135,7 +134,7 @@ public class DefaultMailService implements MailService {
         this.attributesService = attributesService;
         this.blobEntityService = blobEntityService;
         this.apiUsageClient = apiUsageClient;
-        this.timeoutScheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("mail-service-watchdog"));
+        this.timeoutScheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor("mail-service-watchdog");
     }
 
     @PreDestroy
@@ -224,7 +223,6 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
-
         JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.PASSWORD_WAS_RESET);
 
@@ -235,36 +233,6 @@ public class DefaultMailService implements MailService {
         String message = body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
 
         sendMail(tenantId, email, subject, message);
-    }
-
-    @Override
-    public void sendUserActivatedEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException {
-        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
-        String subject = MailTemplates.subject(mailTemplates, MailTemplates.USER_ACTIVATED);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("userFullName", userFullName);
-        model.put("userEmail", userEmail);
-        model.put(TARGET_EMAIL, targetEmail);
-
-        String message = body(mailTemplates, MailTemplates.USER_ACTIVATED, model);
-
-        sendMail(tenantId, targetEmail, subject, message);
-    }
-
-    @Override
-    public void sendUserRegisteredEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException {
-        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
-        String subject = MailTemplates.subject(mailTemplates, MailTemplates.USER_REGISTERED);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("userFullName", userFullName);
-        model.put("userEmail", userEmail);
-        model.put(TARGET_EMAIL, targetEmail);
-
-        String message = body(mailTemplates, MailTemplates.USER_REGISTERED, model);
-
-        sendMail(tenantId, targetEmail, subject, message);
     }
 
     private void sendMail(TenantId tenantId, String email,

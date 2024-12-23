@@ -37,7 +37,11 @@ import {
 } from '@home/models/entity/entities-table-config.models';
 import { EntityType, EntityTypeResource, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { Direction } from '@shared/models/page/sort-order';
-import { NotificationTemplate, NotificationTemplateTypeTranslateMap } from '@shared/models/notification.models';
+import {
+  NotificationTemplate,
+  NotificationTemplateTypeTranslateMap,
+  singleNotificationTypeTemplate
+} from '@shared/models/notification.models';
 import { NotificationService } from '@core/http/notification.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -52,13 +56,18 @@ import { ActivatedRouteSnapshot } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { Authority } from '@shared/models/authority.enum';
 
 @Injectable()
 export class TemplateTableConfigResolver  {
 
   private readonly config: EntityTableConfig<NotificationTemplate> = new EntityTableConfig<NotificationTemplate>();
 
-  constructor(private notificationService: NotificationService,
+  constructor(private store: Store<AppState>,
+              private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
               private datePipe: DatePipe,
@@ -85,7 +94,6 @@ export class TemplateTableConfigResolver  {
     this.config.headerComponent = TemplateTableHeaderComponent;
     this.config.onEntityAction = action => this.onTemplateAction(action);
 
-    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
     this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
@@ -104,6 +112,14 @@ export class TemplateTableConfigResolver  {
   }
 
   resolve(route: ActivatedRouteSnapshot): EntityTableConfig<NotificationTemplate> {
+    const authority = getCurrentAuthUser(this.store).authority;
+    if (authority === Authority.SYS_ADMIN) {
+      this.config.deleteEnabled = (template) =>
+        this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE) &&
+          !singleNotificationTypeTemplate(template.notificationType);
+    } else {
+      this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
+    }
     return this.config;
   }
 
@@ -112,7 +128,10 @@ export class TemplateTableConfigResolver  {
       {
         name: this.translate.instant('notification.copy-template'),
         icon: 'content_copy',
-        isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
+        isEnabled: (template) => {
+          return this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
+            && !singleNotificationTypeTemplate(template.notificationType)
+        },
         onAction: ($event, entity) => this.editTemplate($event, entity, false, true)
       }
     ];

@@ -72,9 +72,6 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
                     whiteLabelingService.saveSystemLoginWhiteLabelingParams(constructLoginWlParams(whiteLabeling.getSettings()));
                 } else {
                     LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
-                    if (customerId == null || customerId.isNullUid()) {
-                        loginWhiteLabelingParams.setDomainName(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
-                    }
                     whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
                 }
             } else if (isGeneral) {
@@ -89,9 +86,6 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
         } else {
             if (isLogin) {
                 LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
-                if (customerId != null && !customerId.isNullUid()) {
-                    loginWhiteLabelingParams.setDomainName(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
-                }
                 whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, whiteLabeling.getCustomerId(), loginWhiteLabelingParams);
             } else if (isGeneral) {
                 whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, whiteLabeling.getCustomerId(), constructWlParams(whiteLabeling.getSettings(), false));

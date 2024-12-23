@@ -169,6 +169,7 @@ public class TenantProfileController extends BaseController {
                     "      \"maxJSExecutions\": 5000000,\n" +
                     "      \"maxDPStorageDays\": 0,\n" +
                     "      \"maxRuleNodeExecutionsPerMessage\": 50,\n" +
+                    "      \"maxDebugModeDurationMinutes\": 15,\n" +
                     "      \"maxEmails\": 0,\n" +
                     "      \"maxSms\": 0,\n" +
                     "      \"maxCreatedAlarms\": 1000,\n" +
@@ -177,6 +178,7 @@ public class TenantProfileController extends BaseController {
                     "      \"rpcTtlDays\": 0,\n" +
                     "      \"queueStatsTtlDays\": 0,\n" +
                     "      \"ruleEngineExceptionsTtlDays\": 0,\n" +
+                    "      \"blobEntityTtlDays\": 0,\n" +
                     "      \"warnThreshold\": 0\n" +
                     "    }\n" +
                     "  },\n" +

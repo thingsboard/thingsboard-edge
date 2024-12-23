@@ -55,7 +55,9 @@ import org.thingsboard.server.common.data.notification.NotificationRequestConfig
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
+import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.info.GeneralNotificationInfo;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
 import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
@@ -86,6 +88,7 @@ import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.notification.channels.NotificationChannel;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import org.thingsboard.server.service.telemetry.AbstractSubscriptionService;
+import org.thingsboard.server.service.translation.TranslationService;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
 
@@ -115,6 +118,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     private final TopicService topicService;
     private final TbQueueProducerProvider producerProvider;
     private final RateLimitService rateLimitService;
+    private final TranslationService translationService;
 
     private Map<NotificationDeliveryMethod, NotificationChannel> channels;
 
@@ -162,7 +166,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                     return; // if originated by rule - just ignore delivery method
                 }
             }
-            if (ruleId == null) {
+            if (ruleId == null && !notificationTemplate.getNotificationType().isSystem()) {
                 if (targets.stream().noneMatch(target -> target.getConfiguration().getType().getSupportedDeliveryMethods().contains(deliveryMethod))) {
                     throw new IllegalArgumentException("Recipients for " + deliveryMethod.getName() + " delivery method not chosen");
                 }
@@ -196,6 +200,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                 .template(notificationTemplate)
                 .settings(settings)
                 .systemSettings(systemSettings)
+                .translationProvider(locale -> translationService.getFullTranslation(tenantId, null, locale))
                 .build();
 
         processNotificationRequestAsync(ctx, targets, callback);
@@ -230,6 +235,21 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
         } catch (Exception e) {
             log.error("Failed to process notification request for recipients {} for template '{}'", recipients, template.getName(), e);
         }
+    }
+
+    @Override
+    public void sendSystemNotification(TenantId tenantId, NotificationTargetId targetId, NotificationType type, NotificationInfo info) {
+        log.debug("[{}] Sending {} system notification to {}: {}", tenantId, type, targetId, info);
+        NotificationTemplate notificationTemplate = notificationTemplateService.findTenantOrSystemNotificationTemplate(tenantId, type)
+                .orElseThrow(() -> new IllegalArgumentException("No notification template found for type " + type));
+        NotificationRequest notificationRequest = NotificationRequest.builder()
+                .tenantId(tenantId)
+                .targets(List.of(targetId.getId()))
+                .templateId(notificationTemplate.getId())
+                .info(info)
+                .originatorEntityId(TenantId.SYS_TENANT_ID)
+                .build();
+        processNotificationRequest(tenantId, notificationRequest, null);
     }
 
     private void processNotificationRequestAsync(NotificationProcessingContext ctx, List<NotificationTarget> targets, FutureCallback<NotificationRequestStats> callback) {
@@ -286,7 +306,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                     }, 256);
                 } else {
                     recipients = new PageDataIterable<>(pageLink -> {
-                        return notificationTargetService.findRecipientsForNotificationTargetConfig(ctx.getTenantId(), targetConfig, pageLink);
+                        return notificationTargetService.findRecipientsForNotificationTargetConfig(target.getTenantId(), targetConfig, pageLink);
                     }, 256);
                 }
             }
@@ -415,7 +435,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     }
 
     @Override
-    public Set<NotificationDeliveryMethod> getAvailableDeliveryMethods(TenantId tenantId) {
+    public List<NotificationDeliveryMethod> getAvailableDeliveryMethods(TenantId tenantId) {
         return channels.values().stream()
                 .filter(channel -> {
                     try {
@@ -426,7 +446,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                     }
                 })
                 .map(NotificationChannel::getDeliveryMethod)
-                .collect(Collectors.toSet());
+                .sorted().toList();
     }
 
     @Override
