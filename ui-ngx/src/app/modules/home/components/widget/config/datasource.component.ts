@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit, Optional } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALIDATORS,
@@ -58,6 +58,7 @@ import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/wid
 import { EntityType } from '@shared/models/entity-type.models';
 import { DatasourcesComponent } from '@home/components/widget/config/datasources.component';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-datasource',
@@ -203,7 +204,8 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
   constructor(private fb: UntypedFormBuilder,
               @Optional()
               private datasourcesComponent: DatasourcesComponent,
-              private widgetConfigComponent: WidgetConfigComponent) {
+              private widgetConfigComponent: WidgetConfigComponent,
+              private destroyRef: DestroyRef) {
   }
 
   registerOnChange(fn: any): void {
@@ -253,10 +255,14 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
     if (this.hasAdditionalLatestDataKeys) {
       this.datasourceFormGroup.addControl('latestDataKeys', this.fb.control(null));
     }
-    this.datasourceFormGroup.get('type').valueChanges.subscribe(() => {
+    this.datasourceFormGroup.get('type').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
-    this.datasourceFormGroup.valueChanges.subscribe(
+    this.datasourceFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => {
         this.datasourceUpdated(this.datasourceFormGroup.value);
       }

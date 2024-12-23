@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -48,6 +48,7 @@ import { AttributeScope, DataKeyType, telemetryTypeTranslationsShort } from '@sh
 import { IAliasController } from '@core/api/widget-api.models';
 import { WidgetService } from '@core/http/widget.service';
 import { ValueType } from '@shared/models/constants';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-set-value-action-settings-panel',
@@ -104,7 +105,8 @@ export class SetValueActionSettingsPanelComponent extends PageComponent implemen
 
   constructor(private fb: UntypedFormBuilder,
               private widgetService: WidgetService,
-              protected store: Store<AppState>) {
+              protected store: Store<AppState>,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -137,7 +139,10 @@ export class SetValueActionSettingsPanelComponent extends PageComponent implemen
 
     merge(this.setValueSettingsFormGroup.get('action').valueChanges,
       this.setValueSettingsFormGroup.get('valueToData').get('type').valueChanges,
-      this.setValueSettingsFormGroup.get('executeRpc').get('requestPersistent').valueChanges).subscribe(() => {
+      this.setValueSettingsFormGroup.get('executeRpc').get('requestPersistent').valueChanges
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
     this.updateValidators();

@@ -29,11 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface RpcButtonStyle {
   isRaised: boolean;
@@ -66,7 +67,8 @@ export class RpcButtonStyleComponent extends PageComponent implements OnInit, Co
   public rpcButtonStyleFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -77,7 +79,9 @@ export class RpcButtonStyleComponent extends PageComponent implements OnInit, Co
       bgColor: [null, []],
       textColor: [null, []]
     });
-    this.rpcButtonStyleFormGroup.valueChanges.subscribe(() => {
+    this.rpcButtonStyleFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

@@ -32,6 +32,7 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   HostBinding,
   Inject,
@@ -59,6 +60,7 @@ import { ConverterService } from '@core/http/converter.service';
 import { beautifyJs } from '@shared/models/beautify.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface ConverterTestDialogData {
   isDecoder: boolean;
@@ -123,7 +125,8 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
               public dialogRef: MatDialogRef<ConverterTestDialogComponent, string>,
               public fb: UntypedFormBuilder,
               public wl: WhiteLabelingService,
-              private converterService: ConverterService) {
+              private converterService: ConverterService,
+              private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     this.isDecoder = this.data.isDecoder;
     this.init();
@@ -235,7 +238,9 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
       inputContentTriggers.push(payloadFormGroup.get('contentType').valueChanges.pipe(startWith('')));
     }
     this.updateInputContent();
-    combineLatest(inputContentTriggers).subscribe(() => {
+    combineLatest(inputContentTriggers).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateInputContent();
     });
     this.prepareStringContent(debugIn).subscribe(
