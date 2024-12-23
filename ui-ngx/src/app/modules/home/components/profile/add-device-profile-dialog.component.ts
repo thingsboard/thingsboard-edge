@@ -61,6 +61,7 @@ import { Observable } from 'rxjs';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { map } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface AddDeviceProfileDialogData {
   deviceProfileName: string;
@@ -140,7 +141,9 @@ export class AddDeviceProfileDialogComponent extends
           [Validators.required]]
       }
     );
-    this.transportConfigFormGroup.get('transportType').valueChanges.subscribe(() => {
+    this.transportConfigFormGroup.get('transportType').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe(() => {
       this.deviceProfileTransportTypeChanged();
     });
 

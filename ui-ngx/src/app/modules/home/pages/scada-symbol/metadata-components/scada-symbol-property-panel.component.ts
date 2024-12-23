@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import {
@@ -42,6 +42,7 @@ import {
 } from '@home/components/widget/lib/scada/scada-symbol.models';
 import { defaultPropertyValue } from '@home/pages/scada-symbol/metadata-components/scada-symbol-property-row.component';
 import { ValueType } from '@shared/models/constants';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-scada-symbol-property-panel',
@@ -86,7 +87,8 @@ export class ScadaSymbolPropertyPanelComponent implements OnInit {
 
   private propertyType: ScadaSymbolPropertyType;
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -113,7 +115,9 @@ export class ScadaSymbolPropertyPanelComponent implements OnInit {
     if (this.disabled) {
       this.propertyFormGroup.disable({emitEvent: false});
     } else {
-      this.propertyFormGroup.get('type').valueChanges.subscribe(() => {
+      this.propertyFormGroup.get('type').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateValidators();
       });
       this.updateValidators();
