@@ -50,6 +50,7 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
@@ -364,17 +365,22 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
         }
 
         List<TsKvEntry> statistics = KvProtoUtil.fromTsValueProtoList(data.getTsDataList());
-        telemetrySubscriptionService.saveAndNotifyInternal(tenantId, entityid, statistics, new FutureCallback<>() {
-            @Override
-            public void onSuccess(Integer result) {
-                log.trace("[{}] Persisted statistics telemetry: {}", entityid, statistics);
-            }
+        telemetrySubscriptionService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                .tenantId(tenantId)
+                .entityId(entityid)
+                .entries(statistics)
+                .callback(new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        log.trace("[{}] Persisted statistics telemetry: {}", entityid, statistics);
+                    }
 
-            @Override
-            public void onFailure(Throwable t) {
-                log.warn("[{}] Failed to persist statistics telemetry: {}", entityid, statistics, t);
-            }
-        });
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.warn("[{}] Failed to persist statistics telemetry: {}", entityid, statistics, t);
+                    }
+                })
+                .build());
     }
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
