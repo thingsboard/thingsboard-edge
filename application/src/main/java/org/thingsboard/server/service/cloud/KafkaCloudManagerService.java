@@ -19,6 +19,7 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -36,8 +37,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Service
 @Slf4j
+@Service
+@Primary
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class KafkaCloudManagerService extends BaseCloudManagerService {
 
@@ -137,7 +139,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
             cloudEvents.add(cloudEvent);
         }
         try {
-            boolean isInterrupted = sendCloudEvents(cloudEvents).get();
+            boolean isInterrupted = processCloudEvent(cloudEvents).get();
             if (isInterrupted) {
                 log.debug("[{}] Send uplink messages task was interrupted", tenantId);
             } else {
@@ -148,7 +150,4 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         }
     }
 
-
 }
-
-
