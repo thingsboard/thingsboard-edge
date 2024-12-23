@@ -161,7 +161,14 @@ class TbDuplicateMsgToGroupNodeTest {
             CustomerId customerId = (CustomerId) (invocationOnMock.getArguments())[3];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[4];
             String data = (String) (invocationOnMock.getArguments())[5];
-            return TbMsg.newMsg(queueName, type, entityId, customerId, metaData.copy(), data);
+            return TbMsg.newMsg()
+                    .queueName(queueName)
+                    .type(type)
+                    .originator(entityId)
+                    .customerId(customerId)
+                    .copyMetaData(metaData)
+                    .data(data)
+                    .build();
         }).when(ctxMock).newMsg(
                 eq(msg.getQueueName()),
                 eq(msg.getType()),
@@ -252,7 +259,9 @@ class TbDuplicateMsgToGroupNodeTest {
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
             TbMsg tbMsg = (TbMsg) (invocationOnMock.getArguments())[0];
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[1];
-            return TbMsg.transformMsgOriginator(tbMsg, originator);
+            return tbMsg.transform()
+                    .originator(originator)
+                    .build();
         }).when(ctxMock).transformMsgOriginator(
                 eq(msg),
                 eq(userId));
@@ -378,8 +387,12 @@ class TbDuplicateMsgToGroupNodeTest {
     }
 
     private static TbMsg getTbMsg(EntityId originator) {
-        return TbMsg.newMsg(
-                TbMsgType.POST_TELEMETRY_REQUEST, originator, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        return TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(originator)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
     }
 
 }

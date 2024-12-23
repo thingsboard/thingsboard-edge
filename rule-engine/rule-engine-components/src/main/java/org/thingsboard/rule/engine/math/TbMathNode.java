@@ -235,7 +235,9 @@ public class TbMathNode implements TbNode {
         } else {
             body.put(mathResultKey, toDoubleValue(mathResultDef, result));
         }
-        return TbMsg.transformMsgData(msg, JacksonUtil.toString(body));
+        return msg.transform()
+                .data(JacksonUtil.toString(body))
+                .build();
     }
 
     private TbMsg addToMeta(TbMsg msg, TbMathResult mathResultDef, String mathResultKey, double result) {
@@ -245,7 +247,9 @@ public class TbMathNode implements TbNode {
         } else {
             md.putValue(mathResultKey, Double.toString(toDoubleValue(mathResultDef, result)));
         }
-        return TbMsg.transformMsgMetadata(msg, md);
+        return msg.transform()
+                .metaData(md)
+                .build();
     }
 
     private double calculateResult(List<TbMathArgumentValue> args) {

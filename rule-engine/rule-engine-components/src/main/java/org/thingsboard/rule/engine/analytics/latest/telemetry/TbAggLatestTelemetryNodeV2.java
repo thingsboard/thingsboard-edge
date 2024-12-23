@@ -287,7 +287,13 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         }
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(queueName, config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), TbNodeConnectionType.SUCCESS);
+        ctx.enqueueForTellNext(TbMsg.newMsg()
+                .queueName(queueName)
+                .type(config.getOutMsgType())
+                .originator(msg.getOriginator())
+                .copyMetaData(metaData)
+                .data(gson.toJson(result))
+                .build(), TbNodeConnectionType.SUCCESS);
         ctx.ack(msg);
     }
 
