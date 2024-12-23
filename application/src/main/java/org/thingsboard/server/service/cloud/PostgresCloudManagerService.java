@@ -160,6 +160,7 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
                     }
                 }
             } else {
+                log.trace("no new cloud events found {}", isGeneralMsg);
                 try {
                     Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
                 } catch (InterruptedException e) {

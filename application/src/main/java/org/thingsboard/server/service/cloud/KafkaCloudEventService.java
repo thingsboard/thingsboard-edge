@@ -71,7 +71,6 @@ public class KafkaCloudEventService implements CloudEventService {
                 cloudEventType,
                 entityBody
         );
-
         return saveAsync(cloudEvent);
     }
 
@@ -87,7 +86,7 @@ public class KafkaCloudEventService implements CloudEventService {
 
     private ListenableFuture<Void> saveCloudEventToTopic(CloudEvent cloudEvent, TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> producer) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
-
+        log.trace("Save cloud event {}", cloudEvent);
         SettableFuture<Void> futureToSet = SettableFuture.create();
         saveCloudEventToTopic(cloudEvent, producer, new TbQueueCallback() {
             @Override
