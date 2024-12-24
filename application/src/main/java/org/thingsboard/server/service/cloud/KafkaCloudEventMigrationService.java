@@ -23,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -117,6 +119,10 @@ public class KafkaCloudEventMigrationService extends BaseCloudManagerService imp
         }
         return Futures.immediateFuture(Boolean.FALSE);
     }
+
+    @Override
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationEvent(ApplicationReadyEvent event) {}
 
     @Override
     protected void launchUplinkProcessing() {}
