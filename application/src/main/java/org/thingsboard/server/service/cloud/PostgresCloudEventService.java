@@ -76,7 +76,6 @@ public class PostgresCloudEventService implements CloudEventService {
                     cloudEventType,
                     entityBody
             );
-
             return saveAsync(cloudEvent);
         } else {
             return Futures.immediateFuture(null);
@@ -111,7 +110,7 @@ public class PostgresCloudEventService implements CloudEventService {
     @Override
     public ListenableFuture<Void> saveAsync(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
-
+        log.trace("Save cloud event {}", cloudEvent);
         return cloudEventDao.saveAsync(cloudEvent);
     }
 
