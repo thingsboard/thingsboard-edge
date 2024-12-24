@@ -30,12 +30,12 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import org.thingsboard.server.common.data.id.TenantId;
-
 public interface CloudEventMigrationService {
 
     boolean isMigrated();
 
-    void migrateUnprocessedEventToKafka(TenantId tenantId);
+    boolean isTsMigrated();
+
+    void migrateUnprocessedEventToKafka();
 
 }
