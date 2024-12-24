@@ -57,7 +57,7 @@ public interface CloudEventService {
                                                EdgeEventActionType cloudEventAction,
                                                EntityId entityId,
                                                JsonNode entityBody,
-                                               EntityGroupId entityGroupId)
+                                               EntityGroupId entityGroupId);
 
     ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 
