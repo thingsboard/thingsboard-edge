@@ -126,7 +126,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
             processMessages(msgs, consumer);
             isGeneralProcessInProgress = false;
         } else {
-            sleepBetweenKafkaPolls();
+            sleep();
         }
 
     }
@@ -135,11 +135,11 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         if (initialized && !isGeneralProcessInProgress) {
             processMessages(msgs, consumer);
         } else {
-            sleepBetweenKafkaPolls();
+            sleep();
         }
     }
 
-    private void sleepBetweenKafkaPolls() {
+    private void sleep() {
         try {
             Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
         } catch (InterruptedException interruptedException) {
