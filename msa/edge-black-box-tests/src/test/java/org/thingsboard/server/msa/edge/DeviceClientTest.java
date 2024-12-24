@@ -200,6 +200,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         // delete device #2
         cloudRestClient.deleteDevice(savedDevice2.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
 
         // unassign group #1 from edge
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDeviceEntityGroup1.getId(), EntityType.DEVICE);
@@ -294,9 +298,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         cloudRestClient.deleteDevice(savedDeviceOnEdgeId);
     }
 
-    private Device validateDeviceTransportConfiguration(Device device,
-                                                      RestClient sourceRestClient,
-                                                      RestClient targetRestClient) {
+    private Device validateDeviceTransportConfiguration(Device device, RestClient sourceRestClient, RestClient targetRestClient) {
         device = validateDefaultDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
         device = validateMqttDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
         device = validateCoapDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
@@ -304,18 +306,14 @@ public class DeviceClientTest extends AbstractContainerTest {
         return validateSnmpDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
     }
 
-    private Device validateDefaultDeviceTransportConfiguration(Device device,
-                                                             RestClient sourceRestClient,
-                                                             RestClient targetRestClient) {
+    private Device validateDefaultDeviceTransportConfiguration(Device device, RestClient sourceRestClient, RestClient targetRestClient) {
         return setAndValidateDeviceTransportConfiguration(device,
                 new DefaultDeviceTransportConfiguration(),
                 sourceRestClient,
                 targetRestClient);
     }
 
-    private Device validateMqttDeviceTransportConfiguration(Device device,
-                                                          RestClient sourceRestClient,
-                                                          RestClient targetRestClient) {
+    private Device validateMqttDeviceTransportConfiguration(Device device, RestClient sourceRestClient, RestClient targetRestClient) {
         MqttDeviceTransportConfiguration transportConfiguration = new MqttDeviceTransportConfiguration();
         transportConfiguration.getProperties().put("topic", "tb_rule_engine.thermostat");
         return setAndValidateDeviceTransportConfiguration(device,
@@ -324,9 +322,7 @@ public class DeviceClientTest extends AbstractContainerTest {
                 targetRestClient);
     }
 
-    private Device validateCoapDeviceTransportConfiguration(Device device,
-                                                          RestClient sourceRestClient,
-                                                          RestClient targetRestClient) {
+    private Device validateCoapDeviceTransportConfiguration(Device device, RestClient sourceRestClient, RestClient targetRestClient) {
         CoapDeviceTransportConfiguration transportConfiguration = new CoapDeviceTransportConfiguration();
         transportConfiguration.setEdrxCycle(1L);
         transportConfiguration.setPagingTransmissionWindow(2L);
@@ -338,9 +334,7 @@ public class DeviceClientTest extends AbstractContainerTest {
                 targetRestClient);
     }
 
-    private Device validateLwm2mDeviceTransportConfiguration(Device device,
-                                                           RestClient sourceRestClient,
-                                                           RestClient targetRestClient) {
+    private Device validateLwm2mDeviceTransportConfiguration(Device device, RestClient sourceRestClient, RestClient targetRestClient) {
         Lwm2mDeviceTransportConfiguration transportConfiguration = new Lwm2mDeviceTransportConfiguration();
         transportConfiguration.setEdrxCycle(1L);
         transportConfiguration.setPagingTransmissionWindow(2L);
@@ -353,8 +347,8 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     private Device validateSnmpDeviceTransportConfiguration(Device device,
-                                                          RestClient sourceRestClient,
-                                                          RestClient targetRestClient) {
+                                                            RestClient sourceRestClient,
+                                                            RestClient targetRestClient) {
         SnmpDeviceTransportConfiguration transportConfiguration = new SnmpDeviceTransportConfiguration();
         transportConfiguration.setAuthenticationProtocol(AuthenticationProtocol.SHA_256);
         transportConfiguration.setPrivacyProtocol(PrivacyProtocol.AES_256);
@@ -365,9 +359,9 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     private Device setAndValidateDeviceTransportConfiguration(Device device,
-                                                            DeviceTransportConfiguration transportConfiguration,
-                                                            RestClient sourceRestClient,
-                                                            RestClient targetRestClient) {
+                                                              DeviceTransportConfiguration transportConfiguration,
+                                                              RestClient sourceRestClient,
+                                                              RestClient targetRestClient) {
         DeviceData deviceData = new DeviceData();
         deviceData.setConfiguration(new DefaultDeviceConfiguration());
         deviceData.setTransportConfiguration(transportConfiguration);

@@ -76,7 +76,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
             cloudSynchronizationManager.getSync().set(true);
             return switch (entityViewUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
-                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg);
+                    saveOrUpdateEntityViewFromCloud(tenantId, entityViewId, entityViewUpdateMsg);
                     yield requestForAdditionalData(tenantId, entityViewId);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {

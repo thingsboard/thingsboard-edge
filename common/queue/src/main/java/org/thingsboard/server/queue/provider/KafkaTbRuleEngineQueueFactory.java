@@ -107,8 +107,10 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
     private final TbQueueAdmin edgeAdmin;
     private final TbQueueAdmin edgeEventAdmin;
 
+    // Edge-only:
     private final TbQueueAdmin cloudEventAdmin;
     private final TbQueueAdmin cloudEventTSAdmin;
+    // ... Edge
 
     private final AtomicLong consumerCount = new AtomicLong();
 

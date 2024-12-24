@@ -72,6 +72,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup1.getId()).isPresent());
+
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)

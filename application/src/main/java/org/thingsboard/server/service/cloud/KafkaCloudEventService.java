@@ -140,4 +140,5 @@ public class KafkaCloudEventService implements CloudEventService {
     public PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
         throw new RuntimeException("Not implemented!");
     }
+
 }

@@ -57,8 +57,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock userCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId,
-                                                          UserUpdateMsg userUpdateMsg) throws ThingsboardException {
+    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId, UserUpdateMsg userUpdateMsg) throws ThingsboardException {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);

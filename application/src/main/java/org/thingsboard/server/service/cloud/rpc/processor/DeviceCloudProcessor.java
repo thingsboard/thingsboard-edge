@@ -85,8 +85,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     @Autowired
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
-    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
-                                                            DeviceUpdateMsg deviceUpdateMsg) throws ThingsboardException {
+    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) throws ThingsboardException {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);

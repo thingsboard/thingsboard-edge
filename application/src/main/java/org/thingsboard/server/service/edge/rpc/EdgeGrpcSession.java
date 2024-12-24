@@ -637,8 +637,8 @@ public abstract class EdgeGrpcSession implements Closeable {
             try {
                 switch (edgeEvent.getAction()) {
                     case UPDATED, ADDED, DELETED, ASSIGNED_TO_EDGE, UNASSIGNED_FROM_EDGE, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE,
-                         CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, RPC_CALL, ADDED_TO_ENTITY_GROUP,
-                         REMOVED_FROM_ENTITY_GROUP, CHANGE_OWNER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> {
+                            CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, RPC_CALL,
+                            ADDED_TO_ENTITY_GROUP, REMOVED_FROM_ENTITY_GROUP, CHANGE_OWNER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> {
                         downlinkMsg = convertEntityEventToDownlink(edgeEvent);
                         if (downlinkMsg != null && downlinkMsg.getWidgetTypeUpdateMsgCount() > 0) {
                             log.trace("[{}][{}] widgetTypeUpdateMsg message processed, downlinkMsgId = {}", this.tenantId, this.sessionId, downlinkMsg.getDownlinkMsgId());

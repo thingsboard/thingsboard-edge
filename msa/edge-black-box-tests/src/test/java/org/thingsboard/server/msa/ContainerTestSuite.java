@@ -107,7 +107,6 @@ public class ContainerTestSuite {
                         testContainer.withExposedService("kafka-edge-" + edgeConfiguration.getIdx(), 9092);
                     }
                 }
-
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 Assert.fail("Failed to create test container");

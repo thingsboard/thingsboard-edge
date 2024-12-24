@@ -1100,8 +1100,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         body.put("error", RpcError.NO_ACTIVE_CONNECTION.name());
 
         try {
-            systemContext.getCloudEventService().saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
-                    deviceId, body, null).get();
+            systemContext.getCloudEventService().saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL, deviceId, body, null).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

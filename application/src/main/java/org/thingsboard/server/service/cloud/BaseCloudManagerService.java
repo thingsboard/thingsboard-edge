@@ -75,7 +75,9 @@ import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcesso
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
@@ -126,6 +128,12 @@ public abstract class BaseCloudManagerService {
 
     @Autowired
     private TelemetrySubscriptionService tsSubService;
+
+    @Autowired
+    private EntityGroupCloudProcessor entityGroupProcessor;
+
+    @Autowired
+    private GroupPermissionCloudProcessor groupPermissionProcessor;
 
     @Autowired
     private DownlinkMessageService downlinkMessageService;
@@ -220,6 +228,7 @@ public abstract class BaseCloudManagerService {
     }
 
     protected abstract void launchUplinkProcessing();
+
     protected abstract void resetQueueOffset();
 
     protected void destroy() throws InterruptedException {
@@ -391,8 +400,7 @@ public abstract class BaseCloudManagerService {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             this.syncInProgress = false;
         }
-        ListenableFuture<List<Void>> future =
-                downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings);
+        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
@@ -478,30 +486,29 @@ public abstract class BaseCloudManagerService {
     private record AttributeSaveCallback(String key, Object value) implements FutureCallback<Void> {
 
         @Override
-            public void onSuccess(@javax.annotation.Nullable Void result) {
-                log.trace("Successfully updated attribute [{}] with value [{}]", key, value);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
-            }
-
+        public void onSuccess(@javax.annotation.Nullable Void result) {
+            log.trace("Successfully updated attribute [{}] with value [{}]", key, value);
         }
+
+        @Override
+        public void onFailure(Throwable t) {
+            log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
+        }
+
+    }
 
     private UplinkMsg convertEventToUplink(CloudEvent cloudEvent) {
         log.trace("Converting cloud event [{}]", cloudEvent);
         try {
             return switch (cloudEvent.getAction()) {
-                // CHANGE OWNER ????
-                // GROUP_ENTITIES_REQUEST(null),
-                // GROUP_PERMISSIONS_REQUEST(null),
                 case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED,
                      RELATION_ADD_OR_UPDATE, RELATION_DELETED, ADDED_TO_ENTITY_GROUP, REMOVED_FROM_ENTITY_GROUP,
                      ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> convertEntityEventToUplink(cloudEvent);
                 case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
                         telemetryProcessor.convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
                 case ATTRIBUTES_REQUEST -> telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
+                case GROUP_ENTITIES_REQUEST -> entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
+                case GROUP_PERMISSIONS_REQUEST -> groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
                 case RELATION_REQUEST -> relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
                 case RPC_CALL -> deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
                 case WIDGET_BUNDLE_TYPES_REQUEST -> widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
@@ -630,7 +637,7 @@ public abstract class BaseCloudManagerService {
             edgeRpcClient.sendUplinkMsg(uplinkMsg);
         } else {
             log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
-                    "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}",
+                            "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}",
                     uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
             pendingMsgMap.remove(uplinkMsg.getUplinkMsgId());
             latch.countDown();

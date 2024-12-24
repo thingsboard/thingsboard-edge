@@ -56,11 +56,11 @@ public class DashboardClientTest extends AbstractContainerTest {
     }
 
     private void _testDashboards() {
-            // create dashboard #1, add to group #1 and assign group #1 to edge
-            EntityGroup savedDashboardEntityGroup1 = createEntityGroup(EntityType.DASHBOARD);
-            Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1", savedDashboardEntityGroup1.getId());
+        // create dashboard #1, add to group #1 and assign group #1 to edge
+        EntityGroup savedDashboardEntityGroup1 = createEntityGroup(EntityType.DASHBOARD);
+        Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1", savedDashboardEntityGroup1.getId());
 
-            assignEntityGroupToEdge(savedDashboardEntityGroup1);
+        assignEntityGroupToEdge(savedDashboardEntityGroup1);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)

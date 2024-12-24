@@ -91,7 +91,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         EntityGroup dashboardGroup = createEntityGroup(EntityType.DASHBOARD);
         DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Test Dashboard", dashboardGroup);
         RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Asset Profile Test RuleChain");
-        AssetProfile saveAssetProfileOnEdge = createCustomAssetProfile("Asset Profile To Cloud", dashboardId, savedRuleChainId, edgeRestClient);
+        AssetProfile saveAssetProfileOnEdge = createCustomAssetProfile("Asset Profile To Cloud" + edge.getName(), dashboardId, savedRuleChainId, edgeRestClient);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -101,7 +101,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
                 });
 
         // update asset profile
-        String updatedAssetProfileName = "Asset Profile On Edge Updated " + edge.getName();
+        String updatedAssetProfileName = "Asset Profile To Cloud Updated " + edge.getName();
         saveAssetProfileOnEdge.setName(updatedAssetProfileName);
         edgeRestClient.saveAssetProfile(saveAssetProfileOnEdge);
         Awaitility.await()
