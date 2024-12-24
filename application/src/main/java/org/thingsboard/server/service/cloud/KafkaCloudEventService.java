@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -60,10 +61,11 @@ import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 
-@Service
 @Slf4j
-@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+@Service
+@Primary
 @AllArgsConstructor
+@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class KafkaCloudEventService implements CloudEventService {
 
     private final TbCloudEventProvider tbCloudEventProvider;

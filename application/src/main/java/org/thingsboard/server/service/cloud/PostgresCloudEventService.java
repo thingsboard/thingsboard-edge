@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -59,10 +58,9 @@ import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.service.cloud.PostgresCloudManagerService.QUEUE_START_TS_ATTR_KEY;
 
-@Service
 @Slf4j
+@Service
 @AllArgsConstructor
-@ConditionalOnExpression("'${queue.type:null}'!='kafka'")
 public class PostgresCloudEventService implements CloudEventService {
 
     private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES = List.of(
