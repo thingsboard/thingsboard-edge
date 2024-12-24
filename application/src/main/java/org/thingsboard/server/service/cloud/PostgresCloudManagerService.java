@@ -77,33 +77,15 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
         while (!Thread.interrupted()) {
             try {
                 if (initialized) {
-                    if (isGeneralMsg) {
+                    if (isGeneralMsg || !isGeneralProcessInProgress) {
                         Long queueSeqIdStart = getLongAttrByKey(tenantId, queueSeqIdAttrKey).get();
                         TimePageLink pageLink = newCloudEventsAvailable(tenantId, queueSeqIdStart, queueStartTsAttrKey, finder);
+
                         if (pageLink != null) {
-                            processUplinkMessages(pageLink, queueSeqIdStart, queueStartTsAttrKey, queueSeqIdAttrKey, true, finder);
+                            processUplinkMessages(pageLink, queueSeqIdStart, queueStartTsAttrKey, queueSeqIdAttrKey, isGeneralMsg, finder);
                         } else {
-                            log.trace("no new cloud events found for general queue");
-                            try {
-                                Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
-                            } catch (InterruptedException e) {
-                                log.error("Error during sleep", e);
-                            }
-                        }
-                    } else {
-                        if (!isGeneralProcessInProgress) {
-                            Long queueSeqIdStart = getLongAttrByKey(tenantId, queueSeqIdAttrKey).get();
-                            TimePageLink pageLink = newCloudEventsAvailable(tenantId, queueSeqIdStart, queueStartTsAttrKey, finder);
-                            if (pageLink != null) {
-                                processUplinkMessages(pageLink, queueSeqIdStart, queueStartTsAttrKey, queueSeqIdAttrKey, false, finder);
-                            } else {
-                                log.trace("no new cloud events found for ts queue");
-                                try {
-                                    Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
-                                } catch (InterruptedException e) {
-                                    log.error("Error during sleep", e);
-                                }
-                            }
+                            log.trace("no new cloud events found for queue {}", isGeneralMsg);
+                            sleepWithHandling();
                         }
                     }
                 } else {
@@ -112,6 +94,14 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
             } catch (Exception e) {
                 log.warn("Failed to process messages handling!", e);
             }
+        }
+    }
+
+    private void sleepWithHandling() {
+        try {
+            Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
+        } catch (InterruptedException e) {
+            log.error("Error during sleep", e);
         }
     }
 

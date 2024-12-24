@@ -72,19 +72,24 @@ public class KafkaCloudEventMigrationService extends BaseCloudManagerService imp
 
                     processMigration();
 
-                    if (isMigrated && isTsMigrated && executor != null) {
-                        executor.shutdown();
+                    if (isMigrated && isTsMigrated) {
+                        Thread.currentThread().interrupt();
+                        break;
                     }
                 }
             } catch (Exception e) {
                 log.warn("Failed to process messages handling!", e);
+            } finally {
+                if (executor != null && !executor.isShutdown()) {
+                    executor.shutdown();
+                }
             }
         });
     }
 
     private void processMigration() throws Exception {
         if (!isMigrated) {
-            CloudEventFinder finder = (id, seqIdStart, seqIdEnd, link) -> postgresCloudEventService.findCloudEvents(id, seqIdStart, seqIdEnd, link);
+            CloudEventFinder finder = (tenantId, seqIdStart, seqIdEnd, link) -> postgresCloudEventService.findCloudEvents(tenantId, seqIdStart, seqIdEnd, link);
             isMigrated = launchCloudEventProcessing(QUEUE_SEQ_ID_OFFSET_ATTR_KEY, QUEUE_START_TS_ATTR_KEY, true, finder);
         }
 
