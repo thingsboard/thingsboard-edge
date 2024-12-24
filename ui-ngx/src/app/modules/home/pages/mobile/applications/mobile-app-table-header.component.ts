@@ -34,7 +34,6 @@ import { EntityTableHeaderComponent } from '@home/components/entity/entity-table
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { MobileApp } from '@shared/models/mobile-app.models';
-import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-mobile-app-table-header',
@@ -43,14 +42,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 })
 export class MobileAppTableHeaderComponent extends EntityTableHeaderComponent<MobileApp> {
 
-  readonly resource = Resource;
-  readonly operation = Operation;
-
   constructor(protected store: Store<AppState>) {
     super(store);
-  }
-
-  createMobile($event: Event) {
-    this.entitiesTableConfig.getTable().addEntity($event);
   }
 }
