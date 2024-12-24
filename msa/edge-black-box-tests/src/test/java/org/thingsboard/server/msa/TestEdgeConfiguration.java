@@ -28,7 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.msa;
 
-public interface TsUplinkMessageService extends UplinkMessageService {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@AllArgsConstructor
+@Data
+public class TestEdgeConfiguration {
+    private String routingKey;
+    private String secret;
+    private Integer port;
+    private Integer idx;
+    private String name;
 }

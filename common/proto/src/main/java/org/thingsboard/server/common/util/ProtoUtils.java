@@ -304,7 +304,6 @@ public class ProtoUtils {
         if (proto.hasEntityGroupIdMSB() && proto.hasEntityGroupIdLSB()) {
             cloudEvent.setEntityGroupId(new UUID(proto.getEntityGroupIdMSB(), proto.getEntityGroupIdLSB()));
         }
-
         return cloudEvent;
     }
 

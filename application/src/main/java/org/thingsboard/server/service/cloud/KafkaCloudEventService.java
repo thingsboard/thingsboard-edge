@@ -33,8 +33,8 @@ package org.thingsboard.server.service.cloud;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -49,55 +49,38 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.TbQueueConsumer;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCloudEventProvider;
-import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
-import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.server.gen.transport.TransportProtos.EdgeEventMsgProto;
 import static org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 
 @Service
 @Slf4j
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+@AllArgsConstructor
 public class KafkaCloudEventService implements CloudEventService {
-    private static final String METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE = "Method cannot be used for this service";
-    private final DataValidator<CloudEvent> cloudEventValidator;
-    private final TbQueueCloudEventSettings cloudEventSettings;
-    private final TbQueueCloudEventTSSettings cloudEventTSSettings;
-    private final TbCloudEventProvider tbCloudEventProvider;
 
-    public KafkaCloudEventService(DataValidator<CloudEvent> cloudEventValidator,
-                                  TbQueueCloudEventSettings cloudEventSettings,
-                                  TbQueueCloudEventTSSettings cloudEventTSSettings,
-                                  TbCloudEventProvider tbCloudEventProvider) {
-        this.cloudEventValidator = cloudEventValidator;
-        this.cloudEventSettings = cloudEventSettings;
-        this.cloudEventTSSettings = cloudEventTSSettings;
-        this.tbCloudEventProvider = tbCloudEventProvider;
-    }
+    private final TbCloudEventProvider tbCloudEventProvider;
+    private final DataValidator<CloudEvent> cloudEventValidator;
 
     @Override
     public void saveCloudEvent(TenantId tenantId, CloudEventType cloudEventType,
                                EdgeEventActionType cloudEventAction, EntityId entityId,
-                               JsonNode entityBody, EntityGroupId entityGroupId, Long queueStartTs) throws ExecutionException, InterruptedException {
+                               JsonNode entityBody, EntityGroupId entityGroupId) throws ExecutionException, InterruptedException {
 
-        saveCloudEventAsync(tenantId, cloudEventType, cloudEventAction, entityId, entityBody, entityGroupId, queueStartTs).get();
+        saveCloudEventAsync(tenantId, cloudEventType, cloudEventAction, entityId, entityBody, entityGroupId).get();
     }
 
     @Override
     public ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId, CloudEventType cloudEventType,
                                                       EdgeEventActionType cloudEventAction, EntityId entityId,
-                                                      JsonNode entityBody, EntityGroupId entityGroupId, Long queueStartTs) {
+                                                      JsonNode entityBody, EntityGroupId entityGroupId) {
         CloudEvent cloudEvent = new CloudEvent(
                 tenantId,
                 cloudEventAction,
@@ -106,107 +89,55 @@ public class KafkaCloudEventService implements CloudEventService {
                 entityBody,
                 entityGroupId != null ? entityGroupId.getId() : null
         );
-
         return saveAsync(cloudEvent);
     }
 
     @Override
     public ListenableFuture<Void> saveAsync(CloudEvent cloudEvent) {
-        cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
-
-        return sendCloudEventToTopicAsync(cloudEvent, false);
+        return saveCloudEventToTopic(cloudEvent, tbCloudEventProvider.getCloudEventMsgProducer());
     }
 
     @Override
     public ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent) {
-        cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
-
-        return sendCloudEventToTopicAsync(cloudEvent, true);
+        return saveCloudEventToTopic(cloudEvent, tbCloudEventProvider.getCloudEventTSMsgProducer());
     }
 
-    private ListenableFuture<Void> sendCloudEventToTopicAsync(CloudEvent cloudEvent, boolean isTS) {
+    private ListenableFuture<Void> saveCloudEventToTopic(CloudEvent cloudEvent, TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> producer) {
+        cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
+        log.trace("Save cloud event {}", cloudEvent);
         SettableFuture<Void> futureToSet = SettableFuture.create();
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                sendCloudEventToTopic(cloudEvent, isTS);
+        saveCloudEventToTopic(cloudEvent, producer, new TbQueueCallback() {
+            @Override
+            public void onSuccess(TbQueueMsgMetadata metadata) {
                 futureToSet.set(null);
-            } catch (Exception e) {
-                futureToSet.setException(e);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to send cloud event", t);
+                futureToSet.setException(t);
             }
         });
-
         return futureToSet;
     }
 
-    private void sendCloudEventToTopic(CloudEvent cloudEvent, boolean isTS) {
-        TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> producer = chooseProducer(isTS);
-        TopicPartitionInfo tpi = new TopicPartitionInfo(producer.getDefaultTopic(), cloudEvent.getTenantId(), 1, true);
+    private void saveCloudEventToTopic(CloudEvent cloudEvent, TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> producer, TbQueueCallback callback) {
+        TopicPartitionInfo tpi = TopicPartitionInfo.builder().topic(producer.getDefaultTopic()).build();
 
-        TransportProtos.CloudEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
-        ToCloudEventMsg toCloudEventMsg = ToCloudEventMsg.newBuilder().setCloudEventMsg(cloudEventMsgProto).build();
+        ToCloudEventMsg toCloudEventMsg = ToCloudEventMsg.newBuilder()
+                .setCloudEventMsg(ProtoUtils.toProto(cloudEvent))
+                .build();
 
-        UUID entityId = cloudEvent.getEntityId() == null ? UUID.fromString(cloudEvent.getEntityBody().get("from").get("id").asText()) : cloudEvent.getEntityId();
-
-        TbProtoQueueMsg<ToCloudEventMsg> cloudEventMsg = new TbProtoQueueMsg<>(entityId, toCloudEventMsg);
-
-        producer.send(tpi, cloudEventMsg, null);
-    }
-
-    private TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> chooseProducer(boolean isTS) {
-        return isTS ? tbCloudEventProvider.getCloudEventTSMsgProducer() : tbCloudEventProvider.getCloudEventMsgProducer();
+        producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), toCloudEventMsg), callback);
     }
 
     @Override
     public PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        return createPageData(tenantId, false, cloudEventSettings.getPollInterval());
+        throw new RuntimeException("Not implemented!");
     }
 
     @Override
     public PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        return createPageData(tenantId, true, cloudEventTSSettings.getPollInterval());
+        throw new RuntimeException("Not implemented!");
     }
-
-    @NotNull
-    private PageData<CloudEvent> createPageData(TenantId tenantId, boolean isTS, long pollInterval) {
-        TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> consumer = chooseConsumer(isTS);
-        TopicPartitionInfo tpi = new TopicPartitionInfo(consumer.getTopic(), tenantId, 1, true);
-
-        subscribe(consumer, tpi);
-
-        List<TbProtoQueueMsg<ToCloudEventMsg>> cloudMessages = consumer.poll(pollInterval);
-        List<CloudEvent> cloudEvents =
-                cloudMessages.stream()
-                        .map(msg -> ProtoUtils.fromProto(msg.getValue().getCloudEventMsg()))
-                        .toList();
-
-        return new PageData<>(cloudEvents, 0, cloudEvents.size(), false);
-    }
-
-    private void subscribe(TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> consumer, TopicPartitionInfo tpi) {
-        if (!consumer.getFullTopicNames().contains(tpi.getFullTopicName())) {
-            consumer.subscribe(Collections.singleton(tpi));
-        }
-    }
-
-    @Override
-    public void unsubscribeConsumers() {
-        tbCloudEventProvider.getCloudEventMsgConsumer().unsubscribe();
-        tbCloudEventProvider.getCloudEventTSMsgConsumer().unsubscribe();
-    }
-
-    @Override
-    public void commit(boolean isTS) {
-        chooseConsumer(isTS).commit();
-    }
-
-    private TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> chooseConsumer(boolean isTS) {
-        return isTS ? tbCloudEventProvider.getCloudEventTSMsgConsumer() : tbCloudEventProvider.getCloudEventMsgConsumer();
-    }
-
-    @Override
-    public void cleanupEvents(long ttl) {
-        throw new UnsupportedOperationException(METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE);
-    }
-
 }

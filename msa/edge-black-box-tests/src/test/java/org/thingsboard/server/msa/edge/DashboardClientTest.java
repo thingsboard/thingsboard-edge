@@ -51,13 +51,16 @@ import java.util.concurrent.TimeUnit;
 public class DashboardClientTest extends AbstractContainerTest {
 
     @Test
-    public void testDashboards() throws Exception {
-        // create dashboard #1, add to group #1 and assign group #1 to edge
-        EntityGroup savedDashboardEntityGroup1 = createEntityGroup(EntityType.DASHBOARD);
-        Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1", savedDashboardEntityGroup1.getId());
+    public void testDashboards() {
+        performTestOnEachEdge(this::_testDashboards);
+    }
 
-        assignEntityGroupToEdge(savedDashboardEntityGroup1);
+    private void _testDashboards() {
+            // create dashboard #1, add to group #1 and assign group #1 to edge
+            EntityGroup savedDashboardEntityGroup1 = createEntityGroup(EntityType.DASHBOARD);
+            Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1", savedDashboardEntityGroup1.getId());
 
+            assignEntityGroupToEdge(savedDashboardEntityGroup1);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -164,6 +167,10 @@ public class DashboardClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendDashboardToCloud() {
+        performTestOnEachEdge(this::_testSendDashboardToCloud);
+    }
+
+    private void _testSendDashboardToCloud() {
         // create dashboard on edge
         EntityGroup savedDashboardEntityGroup = createEntityGroup(EntityType.DASHBOARD);
         assignEntityGroupToEdge(savedDashboardEntityGroup);

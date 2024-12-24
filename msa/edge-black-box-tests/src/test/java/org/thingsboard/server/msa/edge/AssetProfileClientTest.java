@@ -52,6 +52,10 @@ public class AssetProfileClientTest extends AbstractContainerTest {
 
     @Test
     public void testAssetProfiles() {
+        performTestOnEachEdge(this::_testAssetProfiles);
+    }
+
+    private void _testAssetProfiles() {
         verifyAssetProfilesOnEdge(1);
 
         // create asset profile
@@ -78,13 +82,16 @@ public class AssetProfileClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testAssetProfileToCloud() throws Exception {
+    public void testAssetProfileToCloud() {
+        performTestOnEachEdge(this::_testAssetProfileToCloud);
+    }
+
+    private void _testAssetProfileToCloud() {
         // create asset profile on edge
         EntityGroup dashboardGroup = createEntityGroup(EntityType.DASHBOARD);
         DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Test Dashboard", dashboardGroup);
         RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Asset Profile Test RuleChain");
         AssetProfile saveAssetProfileOnEdge = createCustomAssetProfile("Asset Profile To Cloud", dashboardId, savedRuleChainId, edgeRestClient);
-
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -94,12 +101,13 @@ public class AssetProfileClientTest extends AbstractContainerTest {
                 });
 
         // update asset profile
-        saveAssetProfileOnEdge.setName("Asset Profile On Edge Updated");
+        String updatedAssetProfileName = "Asset Profile On Edge Updated " + edge.getName();
+        saveAssetProfileOnEdge.setName(updatedAssetProfileName);
         edgeRestClient.saveAssetProfile(saveAssetProfileOnEdge);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Asset Profile On Edge Updated".equals(cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).get().getName()));
+                .until(() -> (updatedAssetProfileName).equals(cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).get().getName()));
 
         // cleanup - we can delete asset profile only on Cloud
         cloudRestClient.deleteAssetProfile(saveAssetProfileOnEdge.getId());

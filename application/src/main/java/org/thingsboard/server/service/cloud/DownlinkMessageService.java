@@ -41,7 +41,6 @@ public interface DownlinkMessageService {
 
     ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
                                                     DownlinkMsg downlinkMsg,
-                                                    EdgeSettings currentEdgeSettings,
-                                                    Long queueStartTs);
+                                                    EdgeSettings currentEdgeSettings);
 
 }

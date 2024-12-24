@@ -52,6 +52,10 @@ public class QueueClientTest extends AbstractContainerTest {
 
     @Test
     public void testQueues() {
+        performTestOnEachEdge(this::_testQueues);
+    }
+
+    private void _testQueues() {
         cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
 
         // create queue

@@ -46,7 +46,11 @@ import java.util.concurrent.TimeUnit;
 public class CustomerClientTest extends AbstractContainerTest {
 
     @Test
-    public void testCreateUpdateDeleteCustomer() throws Exception {
+    public void testCreateUpdateDeleteCustomer() {
+        performTestOnEachEdge(this::_testCreateUpdateDeleteCustomer);
+    }
+
+    private void _testCreateUpdateDeleteCustomer() {
         testPublicCustomerCreatedOnEdge(edge.getTenantId());
 
         // create customer A
@@ -99,8 +103,10 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Edge Sub Customer A Updated".equals(edgeRestClient.getCustomerById(savedSubCustomerA.getId()).get().getTitle()));
 
-        // make sure that all group permissions request are processed
-        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+        try {
+            // make sure that all group permissions request are processed
+            Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+        } catch (Exception ignored) {}
 
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());

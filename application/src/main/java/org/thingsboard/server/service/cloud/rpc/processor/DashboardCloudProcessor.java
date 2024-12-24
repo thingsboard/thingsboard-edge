@@ -63,8 +63,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     private DashboardMsgConstructorFactory dashboardMsgConstructorFactory;
 
     public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
-                                                               DashboardUpdateMsg dashboardUpdateMsg,
-                                                               Long queueStartTs) throws ThingsboardException {
+                                                               DashboardUpdateMsg dashboardUpdateMsg) throws ThingsboardException {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -75,7 +74,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                     if (created) {
                         pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
                     }
-                    return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
+                    return requestForAdditionalData(tenantId, dashboardId);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
                         UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),

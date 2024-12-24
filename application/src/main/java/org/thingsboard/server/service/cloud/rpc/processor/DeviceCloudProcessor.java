@@ -86,15 +86,14 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
-                                                            DeviceUpdateMsg deviceUpdateMsg,
-                                                            Long queueStartTs) throws ThingsboardException {
+                                                            DeviceUpdateMsg deviceUpdateMsg) throws ThingsboardException {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
             return switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
-                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, queueStartTs);
-                    yield requestForAdditionalData(tenantId, deviceId, queueStartTs);
+                    saveOrUpdateDeviceFromCloud(tenantId, deviceId, deviceUpdateMsg);
+                    yield requestForAdditionalData(tenantId, deviceId);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
                     if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
@@ -119,7 +118,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, Long queueStartTs) throws ThingsboardException {
+    private void saveOrUpdateDeviceFromCloud(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) throws ThingsboardException {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -127,7 +126,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
         Boolean deviceNameUpdated = resultPair.getSecond();
         if (deviceNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null, null, queueStartTs);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null, null);
         }
     }
 
@@ -235,7 +234,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 body.put("response", response.getResponse().orElse("{}"));
             }
             cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
-                    rpcRequest.getDeviceId(), body, null, 0L);
+                    rpcRequest.getDeviceId(), body, null);
         } catch (Exception e) {
             log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response, e);
         }

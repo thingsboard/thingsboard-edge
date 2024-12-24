@@ -28,15 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.msa;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.thingsboard.rest.client.RestClient;
+import org.thingsboard.server.common.data.edge.Edge;
 
-public interface UplinkMessageService {
-
-    void processHandleMessages(TenantId tenantId) throws Exception;
-
-    void onUplinkResponse(UplinkResponseMsg msg);
-
+@AllArgsConstructor
+@Data
+public class TestEdgeRuntimeParameters {
+    private RestClient restClient;
+    private Edge edge;
+    private String url;
 }

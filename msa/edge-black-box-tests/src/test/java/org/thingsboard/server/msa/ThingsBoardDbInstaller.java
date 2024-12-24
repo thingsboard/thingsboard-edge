@@ -32,6 +32,7 @@ package org.thingsboard.server.msa;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvEntry;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
@@ -57,6 +58,8 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final String tbLogVolume;
     private final String tbEdgeLogVolume;
     private final String tbEdgeDataVolume;
+
+    @Getter
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
@@ -96,10 +99,6 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         }
     }
 
-    public Map<String, String> getEnv() {
-        return env;
-    }
-
     @Override
     protected void before() throws Throwable {
         try {
@@ -130,7 +129,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("exec -T postgres psql -U postgres -d thingsboard -f /custom-sql/thingsboard.sql");
             dockerCompose.invokeCompose();
             for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
-                dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge" + "_" + edgeEnv + " -f /custom-sql/tb_edge_" + edgeEnv + ".sql");
+                dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge" + "_" + edgeEnv + " -f /custom-sql/tb_edge.sql");
                 dockerCompose.invokeCompose();
             }
         } finally {

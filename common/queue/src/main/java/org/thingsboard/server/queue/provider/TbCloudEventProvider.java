@@ -31,7 +31,6 @@
 package org.thingsboard.server.queue.provider;
 
 import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
-import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
@@ -41,9 +40,5 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 public interface TbCloudEventProvider {
     TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventMsgProducer();
 
-    TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventMsgConsumer();
-
     TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventTSMsgProducer();
-
-    TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventTSMsgConsumer();
 }

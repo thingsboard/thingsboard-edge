@@ -77,7 +77,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.transport.snmp.AuthenticationProtocol;
 import org.thingsboard.server.common.data.transport.snmp.PrivacyProtocol;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.Collections;
@@ -94,7 +93,11 @@ import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
-    public void testDevices() throws Exception {
+    public void testDevices() {
+        performTestOnEachEdge(this::_testDevices);
+    }
+
+    private void _testDevices() {
         // create device #1, add to group #1 and assign group #1 to edge
         EntityGroup savedDeviceEntityGroup1 = createEntityGroup(EntityType.DEVICE);
         Device savedDevice1 = saveDeviceAndAssignEntityGroupToEdge("Remote Controller", savedDeviceEntityGroup1);
@@ -190,29 +193,13 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         // remove device #2 from group #2
         cloudRestClient.removeEntitiesFromEntityGroup(savedDeviceEntityGroup2.getId(), Collections.singletonList(savedDevice2.getId()));
-        if (edgeVersion.ordinal() < EdgeVersion.V_3_6_2.ordinal()) {
-            Awaitility.await()
-                    .pollInterval(500, TimeUnit.MILLISECONDS)
-                    .atMost(30, TimeUnit.SECONDS)
-                    .until(() -> {
-                        List<EntityGroupId> device2Groups = edgeRestClient.getEntityGroupsForEntity(savedDevice2.getId());
-                        return !device2Groups.contains(savedDeviceEntityGroup2.getId());
-                    });
-        } else {
-            Awaitility.await()
-                    .pollInterval(500, TimeUnit.MILLISECONDS)
-                    .atMost(30, TimeUnit.SECONDS)
-                    .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
-        }
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
 
         // delete device #2
         cloudRestClient.deleteDevice(savedDevice2.getId());
-        if (edgeVersion.ordinal() < EdgeVersion.V_3_6_2.ordinal()) {
-            Awaitility.await()
-                    .pollInterval(500, TimeUnit.MILLISECONDS)
-                    .atMost(30, TimeUnit.SECONDS)
-                    .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
-        }
 
         // unassign group #1 from edge
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDeviceEntityGroup1.getId(), EntityType.DEVICE);
@@ -246,6 +233,11 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void sendDeviceToCloud() {
+        performTestOnEachEdge(this::_sendDeviceToCloud);
+    }
+
+    private void _sendDeviceToCloud() {
+        // create device on edge
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
         DeviceId savedDeviceOnEdgeId = savedDeviceOnEdge.getId();
         Awaitility.await()
@@ -427,6 +419,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testProvisionDevice() {
+        performTestOnEachEdge(this::_testProvisionDevice);
+    }
+
+    private void _testProvisionDevice() {
         final String DEVICE_PROFILE_NAME = "Provision Device Profile";
         final String DEVICE_NAME = "Provisioned Device";
 
@@ -514,6 +510,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testOneWayRpcCall() {
+        performTestOnEachEdge(this::_testOneWayRpcCall);
+    }
+
+    private void _testOneWayRpcCall() {
         // create device on cloud and assign to edge
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
@@ -568,6 +568,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testTwoWayRpcCall() {
+        performTestOnEachEdge(this::_testTwoWayRpcCall);
+    }
+
+    private void _testTwoWayRpcCall() {
         // create device on cloud and assign to edge
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
@@ -645,6 +649,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testClientRpcCallToCloud() {
+        performTestOnEachEdge(this::_testClientRpcCallToCloud);
+    }
+
+    private void _testClientRpcCallToCloud() {
         // create device on cloud and assign to edge
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
@@ -680,6 +688,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void sendDeviceWithNameThatAlreadyExistsOnCloud() {
+        performTestOnEachEdge(this::_sendDeviceWithNameThatAlreadyExistsOnCloud);
+    }
+
+    private void _sendDeviceWithNameThatAlreadyExistsOnCloud() {
         String deviceName = StringUtils.randomAlphanumeric(15);
         Device savedDeviceOnCloud = saveDeviceOnCloud(deviceName, "default");
         Device savedDeviceOnEdge = saveDeviceOnEdge(deviceName, "default");
@@ -702,6 +714,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testClaimDevice() {
+        performTestOnEachEdge(this::_testClaimDevice);
+    }
+
+    private void _testClaimDevice() {
         // create customer, user and device
         Customer customer = new Customer();
         customer.setTitle("Claim Test Customer");
@@ -778,6 +794,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testSharedAttributeUpdates() {
+        performTestOnEachEdge(this::_testSharedAttributeUpdates);
+    }
+
+    private void _testSharedAttributeUpdates() {
         // create device on cloud and assign to edge
         Device savedDevice = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
