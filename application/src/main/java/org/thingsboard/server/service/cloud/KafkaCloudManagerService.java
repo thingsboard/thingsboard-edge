@@ -154,7 +154,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
             cloudEvents.add(cloudEvent);
         }
         try {
-            boolean isInterrupted = processCloudEvent(cloudEvents).get();
+            boolean isInterrupted = processCloudEvent(cloudEvents, false).get();
             if (isInterrupted) {
                 log.debug("[{}] Send uplink messages task was interrupted", tenantId);
             } else {

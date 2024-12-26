@@ -298,7 +298,7 @@ public abstract class BaseCloudManagerService {
                     log.info("seqId column of table started new cycle");
                     cloudEvents = findCloudEventsFromBeginning(tenantId, pageLink, finder);
                 }
-                isInterrupted = processCloudEvent(cloudEvents.getData()).get();
+                isInterrupted = processCloudEvent(cloudEvents.getData(), isGeneralMsg).get();
                 if (!isInterrupted && cloudEvents.getTotalElements() > 0) {
                     CloudEvent latestCloudEvent = cloudEvents.getData().get(cloudEvents.getData().size() - 1);
                     try {
@@ -676,7 +676,7 @@ public abstract class BaseCloudManagerService {
         };
     }
 
-    protected ListenableFuture<Boolean> processCloudEvent(List<CloudEvent> cloudEvents) {
+    protected ListenableFuture<Boolean> processCloudEvent(List<CloudEvent> cloudEvents, boolean isGeneralMsg) {
         interruptPreviousSendUplinkMsgsTask();
         sendUplinkFutureResult = SettableFuture.create();
 
