@@ -113,7 +113,8 @@ public class KafkaCloudEventMigrationService extends BaseCloudManagerService imp
         return true;
     }
 
-    protected ListenableFuture<Boolean> processCloudEvent(List<CloudEvent> cloudEvents, boolean isGeneralMsg) {
+    @Override
+    protected ListenableFuture<Boolean> processCloudEvents(List<CloudEvent> cloudEvents, boolean isGeneralMsg) {
         for (CloudEvent cloudEvent : cloudEvents) {
             if (isGeneralMsg) {
                 kafkaEventService.saveAsync(cloudEvent);
