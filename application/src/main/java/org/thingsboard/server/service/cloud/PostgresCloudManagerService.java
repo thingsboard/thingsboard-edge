@@ -99,7 +99,7 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
                         if (pageLink != null) {
                             processUplinkMessages(pageLink, queueSeqIdStart, queueStartTsAttrKey, queueSeqIdAttrKey, isGeneralMsg, finder);
                         } else {
-                            log.trace("no new cloud events found for queue {}", isGeneralMsg);
+                            log.trace("no new cloud events found for queue, isGeneralMsg = {}", isGeneralMsg);
                             sleep();
                         }
                     }

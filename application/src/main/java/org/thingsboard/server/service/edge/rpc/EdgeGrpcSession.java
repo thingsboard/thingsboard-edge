@@ -123,8 +123,6 @@ import java.util.function.BiConsumer;
 @Data
 public abstract class EdgeGrpcSession implements Closeable {
 
-    private final ReentrantLock downlinkMsgLock = new ReentrantLock();
-
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
     private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
 
@@ -138,6 +136,7 @@ public abstract class EdgeGrpcSession implements Closeable {
     private BiConsumer<Edge, UUID> sessionCloseListener;
 
     private final EdgeSessionState sessionState = new EdgeSessionState();
+    private final ReentrantLock downlinkMsgLock = new ReentrantLock();
 
     protected EdgeContextComponent ctx;
     protected Edge edge;
