@@ -1796,6 +1796,16 @@ queue:
         - key: max.poll.records
           # Amount of records to be returned in a single poll. For Housekeeper reprocessing topic, we should consume messages (tasks) one by one
           value: "${TB_QUEUE_KAFKA_HOUSEKEEPER_REPROCESSING_MAX_POLL_RECORDS:1}"
+      tb_cloud_event:
+        # Consumer properties for Kafka tb_cloud_event topic
+        - key: max.poll.records
+          # Amount of records to be returned in a single poll for cloud event topic
+          value: "${TB_QUEUE_KAFKA_CLOUD_EVENT_MAX_POLL_RECORDS:50}"
+      tb_cloud_event_ts:
+        # Consumer properties for Kafka tb_cloud_event_ts topic
+        - key: max.poll.records
+          # Amount of records to be returned in a single poll for cloud event timeseries topic
+          value: "${TB_QUEUE_KAFKA_CLOUD_EVENT_TS_MAX_POLL_RECORDS:50}"
     other-inline: "${TB_QUEUE_KAFKA_OTHER_PROPERTIES:}" # In this section you can specify custom parameters (semicolon separated) for Kafka consumer/producer/admin # Example "metrics.recording.level:INFO;metrics.sample.window.ms:30000"
     other: # DEPRECATED. In this section, you can specify custom parameters for Kafka consumer/producer and expose the env variables to configure outside
     #  - key: "request.timeout.ms" # refer to https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#producerconfigs_request.timeout.ms
@@ -1827,6 +1837,10 @@ queue:
       edge: "${TB_QUEUE_KAFKA_EDGE_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
       # Kafka properties for Edge event topic
       edge-event: "${TB_QUEUE_KAFKA_EDGE_EVENT_TOPIC_PROPERTIES:retention.ms:2592000000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      # Kafka properties for CloudEvent topic
+      cloud_event: "${TB_QUEUE_KAFKA_CLOUD_EVENT_TOPIC_PROPERTIES:retention.ms:2678400000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      # Kafka properties for TsCloudEvent topic
+      cloud_event_ts: "${TB_QUEUE_KAFKA_CLOUD_EVENT_TS_TOPIC_PROPERTIES:retention.ms:2678400000;segment.bytes:52428800;retention.bytes:10485760000;partitions:1;min.insync.replicas:1}"
     consumer-stats:
       # Prints lag between consumer group offset and last messages offset in Kafka topics
       enabled: "${TB_QUEUE_KAFKA_CONSUMER_STATS_ENABLED:true}"
@@ -2124,6 +2138,16 @@ queue:
     request_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_REQUEST_POLL_INTERVAL_MS:25}"
     # Interval in milliseconds to poll api response from integration executor microservices
     response_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_RESPONSE_POLL_INTERVAL_MS:25}"
+  cloud-event:
+    # Default topic name for Kafka, RabbitMQ, etc.
+    topic: "${TB_QUEUE_CLOUD_EVENT_TOPIC:tb_cloud_event}"
+    # Poll interval for topics related to Cloud Event services
+    poll-interval: "${TB_QUEUE_CLOUD_EVENT_POLL_INTERVAL_MS:25}"
+  cloud-event-ts:
+    # Default topic name for Kafka, RabbitMQ, etc.
+    topic: "${TB_QUEUE_CLOUD_EVENT_TS_TOPIC:tb_cloud_event_ts}"
+    # Poll interval for topics related to Cloud Event services
+    poll-interval: "${TB_QUEUE_CLOUD_EVENT_TS_POLL_INTERVAL_MS:25}"
 
 # Event configuration parameters
 event:

@@ -56,6 +56,10 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendPostTelemetryRequestToCloud_performanceTest() {
+        performTestOnEachEdge(this::_testSendPostTelemetryRequestToCloud_performanceTest);
+    }
+
+    private void _testSendPostTelemetryRequestToCloud_performanceTest() {
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
@@ -107,6 +111,10 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendPostTelemetryRequestToCloud() {
+        performTestOnEachEdge(this::_testSendPostTelemetryRequestToCloud);
+    }
+
+    private void _testSendPostTelemetryRequestToCloud() {
         List<String> keys = Arrays.asList("strTelemetryToCloud", "boolTelemetryToCloud", "doubleTelemetryToCloud", "longTelemetryToCloud");
 
         JsonObject timeseriesPayload = new JsonObject();
@@ -135,6 +143,10 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendPostTelemetryRequestToEdge() {
+        performTestOnEachEdge(this::_testSendPostTelemetryRequestToEdge);
+    }
+
+    private void _testSendPostTelemetryRequestToEdge() {
         List<String> keys = Arrays.asList("strTelemetryToEdge", "boolTelemetryToEdge", "doubleTelemetryToEdge", "longTelemetryToEdge");
 
         JsonObject timeseriesPayload = new JsonObject();
@@ -204,6 +216,10 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendPostAttributesRequestToCloud() {
+        performTestOnEachEdge(this::_testSendPostAttributesRequestToCloud);
+    }
+
+    private void _testSendPostAttributesRequestToCloud() {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
 
         JsonObject attrPayload = new JsonObject();
@@ -233,6 +249,10 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendPostAttributesRequestToEdge() {
+        performTestOnEachEdge(this::_testSendPostAttributesRequestToEdge);
+    }
+
+    private void _testSendPostAttributesRequestToEdge() {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
 
         JsonObject attrPayload = new JsonObject();
@@ -301,6 +321,10 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendAttributesUpdatedToEdge() {
+        performTestOnEachEdge(this::_testSendAttributesUpdatedToEdge);
+    }
+
+    private void _testSendAttributesUpdatedToEdge() {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
 
         JsonObject attrPayload = new JsonObject();
@@ -335,6 +359,10 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendAttributesUpdatedToCloud() {
+        performTestOnEachEdge(this::_testSendAttributesUpdatedToCloud);
+    }
+
+    private void _testSendAttributesUpdatedToCloud() {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
 
         JsonObject attrPayload = new JsonObject();

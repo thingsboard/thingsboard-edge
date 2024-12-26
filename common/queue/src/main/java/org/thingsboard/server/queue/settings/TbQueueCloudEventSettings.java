@@ -28,19 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.queue.settings;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.edge.EdgeSettings;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
+@Lazy
+@Data
+@Component
+public class TbQueueCloudEventSettings {
 
-public interface DownlinkMessageService {
-
-    ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
-                                                    DownlinkMsg downlinkMsg,
-                                                    EdgeSettings currentEdgeSettings);
+    @Value("${queue.cloud-event.topic}")
+    private String topic;
+    @Value("${queue.cloud-event.poll-interval}")
+    private Long pollInterval;
 
 }

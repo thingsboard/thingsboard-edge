@@ -28,16 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.queue.provider;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import jakarta.annotation.PostConstruct;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-public interface GeneralUplinkMessageService extends UplinkMessageService {
+@Service
+@TbCoreComponent
+@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+public class TbCoreCloudEventProvider implements TbCloudEventProvider {
 
-    TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart);
+    private final TbCloudEventQueueFactory tbCloudEventQueueProvider;
+    private TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> toCloudEventProducer;
+    private TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> toCloudEventTSProducer;
 
-    ListenableFuture<Long> getQueueStartTs(TenantId tenantId);
+    public TbCoreCloudEventProvider(TbCloudEventQueueFactory tbCloudEventQueueProvider) {
+        this.tbCloudEventQueueProvider = tbCloudEventQueueProvider;
+    }
 
+    @PostConstruct
+    public void init() {
+        toCloudEventProducer = tbCloudEventQueueProvider.createCloudEventMsgProducer();
+        toCloudEventTSProducer = tbCloudEventQueueProvider.createCloudEventTSMsgProducer();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventMsgProducer() {
+        return toCloudEventProducer;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventTSMsgProducer() {
+        return toCloudEventTSProducer;
+    }
 }
+

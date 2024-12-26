@@ -79,7 +79,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
-import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -93,7 +92,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -673,7 +671,7 @@ public class EdgeController extends BaseController {
             notes = "Activates edge license on license portal.")
     @PostMapping(value = "/license/activateInstance", params = {"licenseSecret", "releaseDate"})
     public ResponseEntity<JsonNode> activateInstance(@RequestParam String licenseSecret,
-                                                                                    @RequestParam String releaseDate) throws ThingsboardException {
+                                                     @RequestParam String releaseDate) throws ThingsboardException {
         log.debug("Activating instance [{}], [{}]", licenseSecret, releaseDate);
         try {
             return edgeLicenseService.activateInstance(licenseSecret, releaseDate);
@@ -734,7 +732,7 @@ public class EdgeController extends BaseController {
         try {
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
-            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
+            return checkNotNull(edgeSettingsService.findEdgeSettings(tenantId));
         } catch (Exception e) {
             throw handleException(e);
         }

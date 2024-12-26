@@ -49,6 +49,8 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.debug.DebugSettings;
@@ -257,6 +259,52 @@ public class ProtoUtils {
         }
 
         return edgeEvent;
+    }
+
+    public static TransportProtos.CloudEventMsgProto toProto(CloudEvent cloudEvent) {
+        TransportProtos.CloudEventMsgProto.Builder builder = TransportProtos.CloudEventMsgProto.newBuilder();
+
+        builder.setTenantIdMSB(cloudEvent.getTenantId().getId().getMostSignificantBits());
+        builder.setTenantIdLSB(cloudEvent.getTenantId().getId().getLeastSignificantBits());
+        builder.setEntityType(cloudEvent.getType().name());
+        builder.setAction(cloudEvent.getAction().name());
+
+        if (cloudEvent.getEntityId() != null) {
+            builder.setEntityIdMSB(cloudEvent.getEntityId().getMostSignificantBits());
+            builder.setEntityIdLSB(cloudEvent.getEntityId().getLeastSignificantBits());
+        }
+
+        if (cloudEvent.getEntityBody() != null) {
+            builder.setEntityBody(JacksonUtil.toString(cloudEvent.getEntityBody()));
+        }
+
+        if (cloudEvent.getEntityGroupId() != null) {
+            builder.setEntityGroupIdMSB(cloudEvent.getEntityGroupId().getMostSignificantBits());
+            builder.setEntityGroupIdLSB(cloudEvent.getEntityGroupId().getLeastSignificantBits());
+        }
+
+        return builder.build();
+    }
+
+    public static CloudEvent fromProto(TransportProtos.CloudEventMsgProto proto) {
+        CloudEvent cloudEvent = new CloudEvent();
+        TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
+        cloudEvent.setTenantId(tenantId);
+        cloudEvent.setType(CloudEventType.valueOf(proto.getEntityType()));
+        cloudEvent.setAction(EdgeEventActionType.valueOf(proto.getAction()));
+
+        if (proto.hasEntityIdMSB() && proto.hasEntityIdLSB()) {
+            cloudEvent.setEntityId(new UUID(proto.getEntityIdMSB(), proto.getEntityIdLSB()));
+        }
+
+        if (proto.hasEntityBody()) {
+            cloudEvent.setEntityBody(JacksonUtil.toJsonNode(proto.getEntityBody()));
+        }
+
+        if (proto.hasEntityGroupIdMSB() && proto.hasEntityGroupIdLSB()) {
+            cloudEvent.setEntityGroupId(new UUID(proto.getEntityGroupIdMSB(), proto.getEntityGroupIdLSB()));
+        }
+        return cloudEvent;
     }
 
     public static TransportProtos.EdgeHighPriorityMsgProto toProto(EdgeHighPriorityMsg msg) {
