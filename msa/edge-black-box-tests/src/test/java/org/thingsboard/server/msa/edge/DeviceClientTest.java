@@ -714,14 +714,14 @@ public class DeviceClientTest extends AbstractContainerTest {
     private void _testClaimDevice() {
         // create customer, user and device
         Customer customer = new Customer();
-        customer.setTitle("Claim Test Customer");
+        customer.setTitle("Claim Test Customer" + edge.getName());
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
 
         // add claim role and assign to customer admins group
         Role role = new Role();
         role.setType(RoleType.GENERIC);
         role.setPermissions(JacksonUtil.toJsonNode("{\"DEVICE\":[\"CLAIM_DEVICES\"]}"));
-        role.setName("Claiming Role");
+        role.setName("Claiming Role " + edge.getName());
         Role savedRole = cloudRestClient.saveRole(role);
         GroupPermission groupPermission = new GroupPermission();
         groupPermission.setRoleId(savedRole.getId());
@@ -739,7 +739,8 @@ public class DeviceClientTest extends AbstractContainerTest {
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setTenantId(edge.getTenantId());
         user.setCustomerId(savedCustomer.getId());
-        user.setEmail("claimUser@thingsboard.org");
+        String email = "claimUser" + edge.getName() + "@thingsboard.org";
+        user.setEmail(email);
         user.setFirstName("Claim");
         user.setLastName("User");
         User savedUser = cloudRestClient.saveUser(user, false, findCustomerAdminsGroup(savedCustomer).get().getId());
@@ -762,7 +763,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         Assert.assertTrue(claimDeviceRequest.getStatusCode().is2xxSuccessful());
 
         // login as customer user and claim device
-        loginIntoEdgeWithRetries("claimUser@thingsboard.org", "customer");
+        loginIntoEdgeWithRetries(email, "customer");
         edgeRestClient.claimDevice(savedDevice.getName(), new ClaimRequest("testKey"));
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)

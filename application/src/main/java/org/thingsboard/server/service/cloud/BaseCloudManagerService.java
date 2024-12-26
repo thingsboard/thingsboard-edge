@@ -261,7 +261,11 @@ public abstract class BaseCloudManagerService {
                 new BaseAttributeKvEntry(new LongDataEntry(attrStartTsKey, startTs), System.currentTimeMillis()),
                 new BaseAttributeKvEntry(new LongDataEntry(attrSeqIdKey, seqIdOffset), System.currentTimeMillis())
         );
-        attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
+        try {
+            attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes).get();
+        } catch (Exception e) {
+            log.error("Failed to update queueStartTsSeqIdOffset [{}][{}]", attrStartTsKey, attrSeqIdKey, e);
+        }
     }
 
     protected void destroy() throws InterruptedException {
@@ -315,7 +319,8 @@ public abstract class BaseCloudManagerService {
                 if (!isGeneralMsg && isGeneralProcessInProgress) {
                     break;
                 }
-                log.trace("processUplinkMessages state {} {} {} {} {}", isInterrupted, cloudEvents.getTotalElements(), cloudEvents.hasNext(), isGeneralMsg, isGeneralProcessInProgress);
+                log.trace("processUplinkMessages state isInterrupted={},total={},hasNext={},isGeneralMsg={},isGeneralProcessInProgress={}",
+                        isInterrupted, cloudEvents.getTotalElements(), cloudEvents.hasNext(), isGeneralMsg, isGeneralProcessInProgress);
             } while (isInterrupted || cloudEvents.hasNext());
         } catch (Exception e) {
             log.error("Failed to process cloud event messages handling!", e);
@@ -330,6 +335,8 @@ public abstract class BaseCloudManagerService {
         try {
             long queueStartTs = getLongAttrByKey(tenantId, key).get();
             long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
+            log.trace("newCloudEventsAvailable, queueSeqIdStart = {}, key = {}, queueStartTs = {}, queueEndTs = {}",
+                    queueSeqIdStart, key, queueStartTs, queueEndTs);
             TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
                     0, null, null, queueStartTs, queueEndTs);
             PageData<CloudEvent> cloudEvents = finder.find(tenantId, queueSeqIdStart, null, pageLink);
@@ -530,7 +537,8 @@ public abstract class BaseCloudManagerService {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             this.syncInProgress = false;
         }
-        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings);
+        ListenableFuture<List<Void>> future =
+                downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
@@ -616,7 +624,7 @@ public abstract class BaseCloudManagerService {
     private record AttributeSaveCallback(String key, Object value) implements FutureCallback<Void> {
 
         @Override
-        public void onSuccess(@javax.annotation.Nullable Void result) {
+        public void onSuccess(Void result) {
             log.trace("Successfully updated attribute [{}] with value [{}]", key, value);
         }
 
