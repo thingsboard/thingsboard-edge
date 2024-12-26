@@ -235,7 +235,11 @@ public abstract class BaseCloudManagerService {
                 new BaseAttributeKvEntry(new LongDataEntry(attrStartTsKey, startTs), System.currentTimeMillis()),
                 new BaseAttributeKvEntry(new LongDataEntry(attrSeqIdKey, seqIdOffset), System.currentTimeMillis())
         );
-        attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
+        try {
+            attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes).get();
+        } catch (Exception e) {
+            log.error("Failed to update queueStartTsSeqIdOffset [{}][{}]", attrStartTsKey, attrSeqIdKey, e);
+        }
     }
 
     protected void destroy() throws InterruptedException {
@@ -289,7 +293,8 @@ public abstract class BaseCloudManagerService {
                 if (!isGeneralMsg && isGeneralProcessInProgress) {
                     break;
                 }
-                log.trace("processUplinkMessages state {} {} {} {} {}", isInterrupted, cloudEvents.getTotalElements(), cloudEvents.hasNext(), isGeneralMsg, isGeneralProcessInProgress);
+                log.trace("processUplinkMessages state isInterrupted={},total={},hasNext={},isGeneralMsg={},isGeneralProcessInProgress={}",
+                        isInterrupted, cloudEvents.getTotalElements(), cloudEvents.hasNext(), isGeneralMsg, isGeneralProcessInProgress);
             } while (isInterrupted || cloudEvents.hasNext());
         } catch (Exception e) {
             log.error("Failed to process cloud event messages handling!", e);
@@ -304,6 +309,8 @@ public abstract class BaseCloudManagerService {
         try {
             long queueStartTs = getLongAttrByKey(tenantId, key).get();
             long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
+            log.trace("newCloudEventsAvailable, queueSeqIdStart = {}, key = {}, queueStartTs = {}, queueEndTs = {}",
+                    queueSeqIdStart, key, queueStartTs, queueEndTs);
             TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
                     0, null, null, queueStartTs, queueEndTs);
             PageData<CloudEvent> cloudEvents = finder.find(tenantId, queueSeqIdStart, null, pageLink);
@@ -587,16 +594,16 @@ public abstract class BaseCloudManagerService {
     private record AttributeSaveCallback(String key, Object value) implements FutureCallback<Void> {
 
         @Override
-            public void onSuccess(@javax.annotation.Nullable Void result) {
-                log.trace("Successfully updated attribute [{}] with value [{}]", key, value);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
-            }
-
+        public void onSuccess(Void result) {
+            log.trace("Successfully updated attribute [{}] with value [{}]", key, value);
         }
+
+        @Override
+        public void onFailure(Throwable t) {
+            log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
+        }
+
+    }
 
     private UplinkMsg convertEventToUplink(CloudEvent cloudEvent) {
         log.trace("Converting cloud event [{}]", cloudEvent);
@@ -736,7 +743,7 @@ public abstract class BaseCloudManagerService {
             edgeRpcClient.sendUplinkMsg(uplinkMsg);
         } else {
             log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
-                    "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}",
+                            "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}",
                     uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
             pendingMsgMap.remove(uplinkMsg.getUplinkMsgId());
             latch.countDown();

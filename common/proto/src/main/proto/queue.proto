@@ -1564,7 +1564,7 @@ message ToEdgeMsg {
   EdgeNotificationMsgProto edgeNotificationMsg = 1;
 }
 
-message ToCloudEventMsg{
+message ToCloudEventMsg {
   CloudEventMsgProto cloudEventMsg = 1;
 }
 

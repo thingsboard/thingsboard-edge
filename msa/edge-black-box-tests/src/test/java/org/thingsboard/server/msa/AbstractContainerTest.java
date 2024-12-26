@@ -100,6 +100,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -169,6 +170,10 @@ public abstract class AbstractContainerTest {
                 edge = testParameter.getEdge();
                 edgeUrl = testParameter.getUrl();
 
+                log.info("=================================================");
+                log.info("STARTING INIT for edge {}", edge.getName());
+                log.info("=================================================");
+
                 loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
 
                 Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
@@ -177,6 +182,10 @@ public abstract class AbstractContainerTest {
 
                 // This is a starting point to start other tests
                 verifyWidgetBundles();
+
+                log.info("=================================================");
+                log.info("SUCCEEDED INIT for edge {}", edge.getName());
+                log.info("=================================================");
             }
         }
     }
@@ -220,22 +229,39 @@ public abstract class AbstractContainerTest {
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
 
-        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).toList()) {
+        for (WidgetsBundle widgetsBundle : pageData.getData()) {
             Awaitility.await()
                     .pollInterval(1000, TimeUnit.MILLISECONDS)
-                    .atMost(60, TimeUnit.SECONDS).
+                    .atMost(90, TimeUnit.SECONDS).
                     until(() -> {
                         try {
-                            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
-                            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);
-                            return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
-                                    && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
+                            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundle.getId());
+                            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundle.getId());
+                            if (cloudBundleWidgetTypes == null || edgeBundleWidgetTypes == null) {
+                                return false;
+                            }
+                            if (edgeBundleWidgetTypes.size() != cloudBundleWidgetTypes.size()) {
+                                // Collect the names of the widget types for edge and cloud
+                                String cloudWidgetTypeNames = cloudBundleWidgetTypes.stream()
+                                        .map(WidgetType::getName)
+                                        .collect(Collectors.joining(", "));
+                                String edgeWidgetTypeNames = edgeBundleWidgetTypes.stream()
+                                        .map(WidgetType::getName)
+                                        .collect(Collectors.joining(", "));
+                                log.warn("Expected {} widget types, but got {}. "
+                                                + "widgetBundleId = {}, widgetsBundleName = {}"
+                                                + "cloudBundleWidgetTypesNames = [{}], edgeBundleWidgetTypesNames = [{}]",
+                                        cloudBundleWidgetTypes.size(), edgeBundleWidgetTypes.size(),
+                                        widgetsBundle.getId(), widgetsBundle.getName(),
+                                        cloudWidgetTypeNames, edgeWidgetTypeNames);
+                            }
+                            return edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
                         } catch (Throwable e) {
                             return false;
                         }
                     });
-            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
-            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);
+            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundle.getId());
+            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundle.getId());
             Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
             Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
         }

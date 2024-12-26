@@ -184,9 +184,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
         try {
             log.debug("[{}] Starting process DownlinkMsg. edgeCustomerId [{}], downlinkMsgId [{}],",
                     tenantId, edgeCustomerId, downlinkMsg.getDownlinkMsgId());
-            if (downlinkMsg.getWidgetTypeUpdateMsgCount() == 0) {
-                log.trace("DownlinkMsg Body {}", downlinkMsg);
-            }
+            logDownlinkMsg(downlinkMsg);
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, edgeCustomerId, currentEdgeSettings));
             }
@@ -364,6 +362,16 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             return Futures.immediateFailedFuture(new RuntimeException("Can't process downlink message", e));
         }
         return Futures.allAsList(result);
+    }
+
+    private void logDownlinkMsg(DownlinkMsg downlinkMsg) {
+        String msgStr = downlinkMsg != null ? downlinkMsg.toString() : "null";
+        if (msgStr.length() > 10000) {
+            String truncatedMsg = msgStr.substring(0, 10000) + "... TRUNCATED";
+            log.trace("DownlinkMsg Body (size: {}) {}", msgStr.length(), truncatedMsg);
+        } else {
+            log.trace("DownlinkMsg Body {}", msgStr);
+        }
     }
 
     private ListenableFuture<Void> updateSyncRequiredState(TenantId tenantId, CustomerId customerId, EdgeSettings currentEdgeSettings) {
