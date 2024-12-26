@@ -31,6 +31,10 @@ public class RelationClientTest extends AbstractContainerTest {
 
     @Test
     public void testRelations() {
+        performTestOnEachEdge(this::_testRelations);
+    }
+
+    private void _testRelations() {
         // create relation
         Device device = saveAndAssignDeviceToEdge();
         Asset asset = saveAndAssignAssetToEdge();
@@ -62,6 +66,10 @@ public class RelationClientTest extends AbstractContainerTest {
 
     @Test
     public void sendRelationToCloud() {
+        performTestOnEachEdge(this::_sendRelationToCloud);
+    }
+
+    private void _sendRelationToCloud() {
         Device device = saveAndAssignDeviceToEdge();
 
         Device savedDeviceOnEdge = saveDeviceOnEdge("Test Device 3", "default");

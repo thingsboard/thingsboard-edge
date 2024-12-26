@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.queue.settings;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-public interface UplinkMessageService {
+@Lazy
+@Data
+@Component
+public class TbQueueCloudEventTSSettings {
 
-    void processHandleMessages(TenantId tenantId) throws Exception;
-
-    void onUplinkResponse(UplinkResponseMsg msg);
-
+    @Value("${queue.cloud-event-ts.topic}")
+    private String topic;
+    @Value("${queue.cloud-event-ts.poll-interval}")
+    private Long pollInterval;
 }

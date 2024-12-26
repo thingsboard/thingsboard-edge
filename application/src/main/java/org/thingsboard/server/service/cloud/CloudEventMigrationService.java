@@ -15,14 +15,12 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageLink;
+public interface CloudEventMigrationService {
 
-public interface GeneralUplinkMessageService extends UplinkMessageService {
+    boolean isMigrated();
 
-    TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart);
+    boolean isTsMigrated();
 
-    ListenableFuture<Long> getQueueStartTs(TenantId tenantId);
+    void migrateUnprocessedEventToKafka();
 
 }

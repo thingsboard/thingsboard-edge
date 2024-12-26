@@ -18,7 +18,6 @@ package org.thingsboard.server.msa.edge;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -37,6 +36,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testAssets() {
+        performTestOnEachEdge(this::_testAssets);
+    }
+
+    private void _testAssets() {
         // create asset #1 and assign to edge
         Asset savedAsset1 = saveAndAssignAssetToEdge("Building");
         cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset1.getId());
@@ -115,6 +118,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendAssetToCloud() {
+        performTestOnEachEdge(this::_testSendAssetToCloud);
+    }
+
+    private void _testSendAssetToCloud() {
         // create asset on edge
         String defaultAssetProfileName = edgeRestClient.getDefaultAssetProfileInfo().getName();
         Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 2", defaultAssetProfileName);
@@ -170,6 +177,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
+        performTestOnEachEdge(this::_testSendAssetToCloudWithNameThatAlreadyExistsOnCloud);
+    }
+
+    private void _testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
         // create asset on cloud and edge with the same name
         Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "Building");
         Awaitility.await()

@@ -28,6 +28,10 @@ public class CustomerClientTest extends AbstractContainerTest {
 
     @Test
     public void testCreateUpdateDeleteCustomer() {
+        performTestOnEachEdge(this::_testCreateUpdateDeleteCustomer);
+    }
+
+    private void _testCreateUpdateDeleteCustomer() {
         // create customer
         Customer customer = new Customer();
         customer.setTitle("Test Customer");
@@ -53,6 +57,10 @@ public class CustomerClientTest extends AbstractContainerTest {
 
     @Test
     public void testPublicCustomerCreatedOnEdge() {
+        performTestOnEachEdge(this::_testPublicCustomerCreatedOnEdge);
+    }
+
+    private void _testPublicCustomerCreatedOnEdge() {
         Customer publicCustomer = findPublicCustomer();
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
