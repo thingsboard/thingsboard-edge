@@ -49,10 +49,12 @@ import org.thingsboard.server.dao.domain.DomainService;
 public class OAuth2EdgeEventFetcher extends BasePageableEdgeEventFetcher<DomainInfo> {
 
     private final DomainService domainService;
+    private final TenantId tenantId;
+    private final CustomerId customerId;
 
     @Override
     PageData<DomainInfo> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
-        return domainService.findDomainInfosByTenantIdAndCustomerId(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), pageLink);
+        return domainService.findDomainInfosByTenantIdAndCustomerId(this.tenantId, customerId, pageLink);
     }
 
     @Override

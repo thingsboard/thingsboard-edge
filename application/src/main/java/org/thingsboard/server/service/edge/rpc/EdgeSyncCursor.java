@@ -88,6 +88,11 @@ public class EdgeSyncCursor {
             fetchers.add(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
             fetchers.add(new SysAdminRolesEdgeEventFetcher(ctx.getRoleService()));
             fetchers.add(new TenantRolesEdgeEventFetcher(ctx.getRoleService()));
+            fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService(), TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID)));
+            fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService(), edge.getTenantId(), new CustomerId(CustomerId.NULL_UUID)));
+            if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+                fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService(), edge.getTenantId(), new CustomerId(edge.getOwnerId().getId())));
+            }
             fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getCustomerService()));
             fetchers.add(new SystemWidgetTypesEdgeEventFetcher(ctx.getWidgetTypeService()));
             fetchers.add(new TenantWidgetTypesEdgeEventFetcher(ctx.getWidgetTypeService()));
@@ -120,7 +125,6 @@ public class EdgeSyncCursor {
             fetchers.add(new OtaPackagesEdgeEventFetcher(ctx.getOtaPackageService()));
             fetchers.add(new TenantResourcesEdgeEventFetcher(ctx.getResourceService()));
             fetchers.add(new DeviceGroupOtaPackageEdgeEventFetcher(ctx.getDeviceGroupOtaPackageService(), ctx.getEntityGroupService()));
-            fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService()));
             fetchers.add(new CustomTranslationEdgeEventFetcher(ctx.getCustomerService(), ctx.getCustomTranslationService()));
             fetchers.add(new SystemCustomMenuEdgeEventFetcher(ctx.getCustomMenuService()));
             fetchers.add(new CustomMenuEdgeEventFetcher(ctx.getCustomMenuService()));
