@@ -95,20 +95,25 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     yield requestForAdditionalData(tenantId, deviceId);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
-                        UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(),
-                                deviceUpdateMsg.getEntityGroupIdLSB());
-                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
-                        yield removeEntityIfInSingleAllGroup(tenantId, deviceId, () -> edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId));
-                    } else {
-                        Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
-                        if (deviceById != null) {
-                            edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId);
-                            pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
+                    deviceCreationLock.lock();
+                    try {
+                        if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
+                            UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(),
+                                    deviceUpdateMsg.getEntityGroupIdLSB());
+                            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                            edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
+                            yield removeEntityIfInSingleAllGroup(tenantId, deviceId, () -> edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId));
+                        } else {
+                            Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
+                            if (deviceById != null) {
+                                edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId);
+                                pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
+                            }
                         }
+                        yield Futures.immediateFuture(null);
+                    } finally {
+                        deviceCreationLock.unlock();
                     }
-                    yield Futures.immediateFuture(null);
                 }
                 default -> handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
             };

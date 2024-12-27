@@ -99,7 +99,6 @@ public abstract class BaseAlarmProcessor extends BaseEdgeProcessor {
             }
         } catch (Exception e) {
             log.error("[{}] Failed to process alarm update msg [{}]", tenantId, alarmUpdateMsg, e);
-            return Futures.immediateFailedFuture(e);
         }
         return Futures.immediateFuture(null);
     }

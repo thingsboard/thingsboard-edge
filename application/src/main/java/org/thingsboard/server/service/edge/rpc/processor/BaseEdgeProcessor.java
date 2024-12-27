@@ -563,13 +563,16 @@ public abstract class BaseEdgeProcessor {
     }
 
     protected ListenableFuture<Void> removeEntityIfInSingleAllGroup(TenantId tenantId, EntityId entityId, Runnable provider) {
-        ListenableFuture<List<EntityGroupId>> future = edgeCtx.getEntityGroupService().findEntityGroupsForEntityAsync(tenantId, entityId);
-        return Futures.transform(future, input -> {
-            if (input.size() == 1) {
+        try {
+            List<EntityGroupId> list =
+                    edgeCtx.getEntityGroupService().findEntityGroupsForEntityAsync(tenantId, entityId).get();
+            if (list.size() == 1) {
                 provider.run();
             }
-            return null;
-        }, dbCallbackExecutorService);
+        } catch (Exception e) {
+            log.error("Failed to remove entity from group", e);
+        }
+        return Futures.immediateFuture(null);
     }
 
 }

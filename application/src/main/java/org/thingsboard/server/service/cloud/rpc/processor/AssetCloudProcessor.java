@@ -74,20 +74,25 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                     yield requestForAdditionalData(tenantId, assetId);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
-                        UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
-                                assetUpdateMsg.getEntityGroupIdLSB());
-                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
-                        yield removeEntityIfInSingleAllGroup(tenantId, assetId, () -> edgeCtx.getAssetService().deleteAsset(tenantId, assetId));
-                    } else {
-                        Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
-                        if (assetById != null) {
-                            edgeCtx.getAssetService().deleteAsset(tenantId, assetId);
-                            pushAssetDeletedEventToRuleEngine(tenantId, assetById);
+                    assetCreationLock.lock();
+                    try {
+                        if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
+                            UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
+                                    assetUpdateMsg.getEntityGroupIdLSB());
+                            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                            edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
+                            yield removeEntityIfInSingleAllGroup(tenantId, assetId, () -> edgeCtx.getAssetService().deleteAsset(tenantId, assetId));
+                        } else {
+                            Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
+                            if (assetById != null) {
+                                edgeCtx.getAssetService().deleteAsset(tenantId, assetId);
+                                pushAssetDeletedEventToRuleEngine(tenantId, assetById);
+                            }
                         }
+                        yield Futures.immediateFuture(null);
+                    } finally {
+                        assetCreationLock.unlock();
                     }
-                    yield Futures.immediateFuture(null);
                 }
                 default -> handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
             };
