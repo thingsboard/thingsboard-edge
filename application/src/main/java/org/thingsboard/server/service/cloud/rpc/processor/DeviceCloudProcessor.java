@@ -235,7 +235,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
                     DeviceCredentials deviceCredentials = edgeCtx.getDeviceCredentialsService().findDeviceCredentialsByDeviceId(tenantId, deviceId);
                     DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = msgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
-                    builder.addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg).build();
+                    builder.addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg);
 
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                         DeviceProfile deviceProfile = edgeCtx.getDeviceProfileService().findDeviceProfileById(cloudEvent.getTenantId(), device.getDeviceProfileId());
