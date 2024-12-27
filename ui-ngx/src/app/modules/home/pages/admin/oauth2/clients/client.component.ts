@@ -55,8 +55,6 @@ import { Subscription } from 'rxjs';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { PageLink } from '@shared/models/page/page-link';
 import { coerceBoolean } from '@app/shared/decorators/coercion';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-client',
@@ -116,9 +114,6 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
     this.oauth2Service.getOAuth2Template().subscribe(templates => {
       this.initTemplates(templates);
     });
-    if (getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
-      this.platformTypes = this.platformTypes.filter(item => item !== PlatformType.WEB);
-    }
   }
 
   ngOnDestroy() {
