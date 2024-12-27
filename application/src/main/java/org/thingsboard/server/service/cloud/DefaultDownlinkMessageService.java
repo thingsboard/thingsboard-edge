@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
@@ -250,7 +251,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
         try {
             log.debug("[{}] Starting process DownlinkMsg. downlinkMsgId [{}],",
                     tenantId, downlinkMsg.getDownlinkMsgId());
-            logDownlinkMsg(downlinkMsg);
+            log.trace("downlink msg body [{}]", StringUtils.truncate(downlinkMsg.toString(), 10000));
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, this.customerId, currentEdgeSettings));
             }
@@ -487,16 +488,6 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             return Futures.immediateFailedFuture(new RuntimeException("Can't process downlink message", e));
         }
         return Futures.allAsList(result);
-    }
-
-    private void logDownlinkMsg(DownlinkMsg downlinkMsg) {
-        String msgStr = downlinkMsg != null ? downlinkMsg.toString() : "null";
-        if (msgStr.length() > 10000) {
-            String truncatedMsg = msgStr.substring(0, 10000) + "... TRUNCATED";
-            log.trace("DownlinkMsg Body (size: {}) {}", msgStr.length(), truncatedMsg);
-        } else {
-            log.trace("DownlinkMsg Body {}", msgStr);
-        }
     }
 
     private ListenableFuture<Void> updateSyncRequiredState(TenantId tenantId, CustomerId customerId, EdgeSettings currentEdgeSettings) {

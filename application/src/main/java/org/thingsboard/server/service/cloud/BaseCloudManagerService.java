@@ -107,6 +107,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.thingsboard.server.service.edge.rpc.EdgeGrpcSession.RATE_LIMIT_REACHED;
 
@@ -227,6 +229,8 @@ public abstract class BaseCloudManagerService {
     private final ConcurrentMap<Integer, UplinkMsg> pendingMsgMap = new ConcurrentHashMap<>();
     private CountDownLatch latch;
     private SettableFuture<Boolean> sendUplinkFutureResult;
+
+    private Lock uplinkSendLock = new ReentrantLock();
 
     protected volatile boolean initialized;
     protected volatile boolean isGeneralProcessInProgress = false;
@@ -407,19 +411,19 @@ public abstract class BaseCloudManagerService {
             if (sendingInProgress) {
                 if (msg.getSuccess()) {
                     pendingMsgMap.remove(msg.getUplinkMsgId());
-                    log.debug("Msg has been processed successfully! {}", msg);
+                    log.debug("uplink msg has been processed successfully! {}", msg);
                 } else {
                     if (msg.getErrorMsg().contains(RATE_LIMIT_REACHED)) {
-                        log.warn("Msg processing failed! {}", RATE_LIMIT_REACHED);
+                        log.warn("uplink msg processing failed! {}", RATE_LIMIT_REACHED);
                         isRateLimitViolated = true;
                     } else {
-                        log.error("Msg processing failed! Error msg: {}", msg.getErrorMsg());
+                        log.error("uplink msg processing failed! Error msg: {}", msg.getErrorMsg());
                     }
                 }
                 latch.countDown();
             }
         } catch (Exception e) {
-            log.error("Can't process uplink response message [{}]", msg, e);
+            log.error("Can't process uplink msg response [{}]", msg, e);
         }
     }
 
@@ -685,20 +689,28 @@ public abstract class BaseCloudManagerService {
     }
 
     protected ListenableFuture<Boolean> processCloudEvents(List<CloudEvent> cloudEvents, boolean isGeneralMsg) {
-        interruptPreviousSendUplinkMsgsTask();
-        sendUplinkFutureResult = SettableFuture.create();
+        uplinkSendLock.lock();
+        try {
+            if (!isGeneralMsg && isGeneralProcessInProgress) {
+                return Futures.immediateFuture(true);
+            }
+            interruptPreviousSendUplinkMsgsTask();
+            sendUplinkFutureResult = SettableFuture.create();
 
-        log.trace("[{}] event(s) are going to be converted.", cloudEvents.size());
-        List<UplinkMsg> uplinkMsgPack = cloudEvents.stream()
-                .map(this::convertEventToUplink)
-                .filter(Objects::nonNull)
-                .toList();
+            log.trace("[{}] event(s) are going to be converted.", cloudEvents.size());
+            List<UplinkMsg> uplinkMsgPack = cloudEvents.stream()
+                    .map(this::convertEventToUplink)
+                    .filter(Objects::nonNull)
+                    .toList();
 
-        if (uplinkMsgPack.isEmpty()) {
-            return Futures.immediateFuture(true);
+            if (uplinkMsgPack.isEmpty()) {
+                return Futures.immediateFuture(true);
+            }
+
+            processMsgPack(uplinkMsgPack);
+        } finally {
+            uplinkSendLock.unlock();
         }
-
-        processMsgPack(uplinkMsgPack);
         return sendUplinkFutureResult;
     }
 
@@ -717,37 +729,42 @@ public abstract class BaseCloudManagerService {
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
         LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue = new LinkedBlockingQueue<>(pendingMsgMap.values());
         sendUplinkFuture = uplinkExecutor.schedule(() -> {
-            int attempt = 1;
-            boolean success;
-            do {
-                log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgMap.values().size());
+            try {
+                int attempt = 1;
+                boolean success;
+                do {
+                    log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgMap.values().size());
 
-                success = sendUplinkMsgPack(orderedPendingMsgQueue) && pendingMsgMap.isEmpty();
+                    success = sendUplinkMsgPack(orderedPendingMsgQueue) && pendingMsgMap.isEmpty();
 
-                if (!success) {
-                    log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
-                    try {
-                        Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
+                    if (!success) {
+                        log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
+                        try {
+                            Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
-                        if (isRateLimitViolated) {
-                            isRateLimitViolated = false;
-                            TimeUnit.SECONDS.sleep(60);
+                            if (isRateLimitViolated) {
+                                isRateLimitViolated = false;
+                                TimeUnit.SECONDS.sleep(60);
+                            }
+                        } catch (InterruptedException e) {
+                            log.error("Error during sleep between batches or on rate limit violation", e);
                         }
-                    } catch (InterruptedException e) {
-                        log.error("Error during sleep between batches or on rate limit violation", e);
                     }
-                }
 
-                attempt++;
+                    attempt++;
 
-                if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
-                    log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
-                            MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
-                    sendUplinkFutureResult.set(true);
-                    return;
-                }
-            } while (!success);
-            sendUplinkFutureResult.set(false);
+                    if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
+                        log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
+                                MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
+                        sendUplinkFutureResult.set(true);
+                        return;
+                    }
+                } while (!success);
+                sendUplinkFutureResult.set(false);
+            } catch (Exception e) {
+                sendUplinkFutureResult.set(true);
+                log.error("Error during send uplink msg", e);
+            }
         }, 0L, TimeUnit.MILLISECONDS);
     }
 

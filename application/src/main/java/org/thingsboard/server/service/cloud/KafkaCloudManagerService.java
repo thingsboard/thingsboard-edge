@@ -120,10 +120,10 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
 
 
     private void processUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
-        log.trace("[{}] starting processing edge events", tenantId);
+        log.trace("[{}] starting processing cloud events", tenantId);
         if (initialized) {
             isGeneralProcessInProgress = true;
-            processMessages(msgs, consumer);
+            processMessages(msgs, consumer, true);
             isGeneralProcessInProgress = false;
         } else {
             sleep();
@@ -133,7 +133,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
 
     private void processTsUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
         if (initialized && !isGeneralProcessInProgress) {
-            processMessages(msgs, consumer);
+            processMessages(msgs, consumer, false);
         } else {
             sleep();
         }
@@ -147,14 +147,14 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         }
     }
 
-    private void processMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
+    private void processMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer, boolean isGeneralMsg) {
         List<CloudEvent> cloudEvents = new ArrayList<>();
         for (TbProtoQueueMsg<TransportProtos.ToCloudEventMsg> msg : msgs) {
             CloudEvent cloudEvent = ProtoUtils.fromProto(msg.getValue().getCloudEventMsg());
             cloudEvents.add(cloudEvent);
         }
         try {
-            boolean isInterrupted = processCloudEvents(cloudEvents, false).get();
+            boolean isInterrupted = processCloudEvents(cloudEvents, isGeneralMsg).get();
             if (isInterrupted) {
                 log.debug("[{}] Send uplink messages task was interrupted", tenantId);
             } else {
