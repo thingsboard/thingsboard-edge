@@ -31,6 +31,7 @@
 
 import { TenantId } from './id/tenant-id';
 import { BaseData, HasId } from '@shared/models/base-data';
+import { getProviderHelpLink, OAuth2Client } from '@shared/models/oauth2.models';
 
 export enum EntityType {
   TENANT = 'TENANT',
@@ -753,7 +754,8 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
     [
       EntityType.OAUTH2_CLIENT,
       {
-        helpLinkId: 'oauth2Settings'
+        helpLinkId: 'oauth2Settings',
+        helpLinkIdForEntity: (entity: OAuth2Client) => getProviderHelpLink(entity.additionalInfo.providerName)
       }
     ],
     [

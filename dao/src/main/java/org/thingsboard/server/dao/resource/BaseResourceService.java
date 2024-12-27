@@ -615,7 +615,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
     }
 
     @Override
-    public TbResource createOrUpdateSystemResource(ResourceType resourceType, String resourceKey, byte[] data) {
+    public TbResource createOrUpdateSystemResource(ResourceType resourceType, ResourceSubType resourceSubType, String resourceKey, byte[] data) {
         if (resourceType == ResourceType.DASHBOARD) {
             Dashboard dashboard = JacksonUtil.fromBytes(data, Dashboard.class);
             dashboard.setTenantId(TenantId.SYS_TENANT_ID);
@@ -633,6 +633,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
             resource = new TbResource();
             resource.setTenantId(TenantId.SYS_TENANT_ID);
             resource.setResourceType(resourceType);
+            resource.setResourceSubType(resourceSubType);
             resource.setResourceKey(resourceKey);
             resource.setFileName(resourceKey);
             resource.setTitle(resourceKey);
