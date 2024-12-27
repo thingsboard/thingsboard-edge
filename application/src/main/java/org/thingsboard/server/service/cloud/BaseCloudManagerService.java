@@ -685,37 +685,42 @@ public abstract class BaseCloudManagerService {
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
         LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue = new LinkedBlockingQueue<>(pendingMsgMap.values());
         sendUplinkFuture = uplinkExecutor.schedule(() -> {
-            int attempt = 1;
-            boolean success;
-            do {
-                log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgMap.values().size());
+            try {
+                int attempt = 1;
+                boolean success;
+                do {
+                    log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgMap.values().size());
 
-                success = sendUplinkMsgPack(orderedPendingMsgQueue) && pendingMsgMap.isEmpty();
+                    success = sendUplinkMsgPack(orderedPendingMsgQueue) && pendingMsgMap.isEmpty();
 
-                if (!success) {
-                    log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
-                    try {
-                        Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
+                    if (!success) {
+                        log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
+                        try {
+                            Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
-                        if (isRateLimitViolated) {
-                            isRateLimitViolated = false;
-                            TimeUnit.SECONDS.sleep(60);
+                            if (isRateLimitViolated) {
+                                isRateLimitViolated = false;
+                                TimeUnit.SECONDS.sleep(60);
+                            }
+                        } catch (InterruptedException e) {
+                            log.error("Error during sleep between batches or on rate limit violation", e);
                         }
-                    } catch (InterruptedException e) {
-                        log.error("Error during sleep between batches or on rate limit violation", e);
                     }
-                }
 
-                attempt++;
+                    attempt++;
 
-                if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
-                    log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
-                            MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
-                    sendUplinkFutureResult.set(true);
-                    return;
-                }
-            } while (!success);
-            sendUplinkFutureResult.set(false);
+                    if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
+                        log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
+                                MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
+                        sendUplinkFutureResult.set(true);
+                        return;
+                    }
+                } while (!success);
+                sendUplinkFutureResult.set(false);
+            } catch (Exception e) {
+                sendUplinkFutureResult.set(true);
+                log.error("Error during send uplink msg", e);
+            }
         }, 0L, TimeUnit.MILLISECONDS);
     }
 
