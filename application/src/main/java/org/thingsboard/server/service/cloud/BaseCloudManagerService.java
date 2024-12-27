@@ -230,7 +230,7 @@ public abstract class BaseCloudManagerService {
     private CountDownLatch latch;
     private SettableFuture<Boolean> sendUplinkFutureResult;
 
-    private Lock uplinkSendLock = new ReentrantLock();
+    private final Lock uplinkSendLock = new ReentrantLock();
 
     protected volatile boolean initialized;
     protected volatile boolean isGeneralProcessInProgress = false;
