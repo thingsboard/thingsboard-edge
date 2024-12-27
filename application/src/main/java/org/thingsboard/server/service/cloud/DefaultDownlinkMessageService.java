@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
@@ -27,6 +28,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
@@ -60,7 +62,6 @@ import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
-import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.service.cloud.rpc.processor.AdminSettingsCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
@@ -182,9 +183,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                                                            EdgeSettings currentEdgeSettings) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
         try {
-            log.debug("[{}] Starting process DownlinkMsg. edgeCustomerId [{}], downlinkMsgId [{}],",
+            log.debug("[{}] Starting process downlink msg. edgeCustomerId [{}], downlinkMsgId [{}],",
                     tenantId, edgeCustomerId, downlinkMsg.getDownlinkMsgId());
-            logDownlinkMsg(downlinkMsg);
+            log.trace("downlink msg body [{}]", StringUtils.truncate(downlinkMsg.toString(), 10000));
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, edgeCustomerId, currentEdgeSettings));
             }
@@ -362,16 +363,6 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             return Futures.immediateFailedFuture(new RuntimeException("Can't process downlink message", e));
         }
         return Futures.allAsList(result);
-    }
-
-    private void logDownlinkMsg(DownlinkMsg downlinkMsg) {
-        String msgStr = downlinkMsg != null ? downlinkMsg.toString() : "null";
-        if (msgStr.length() > 10000) {
-            String truncatedMsg = msgStr.substring(0, 10000) + "... TRUNCATED";
-            log.trace("DownlinkMsg Body (size: {}) {}", msgStr.length(), truncatedMsg);
-        } else {
-            log.trace("DownlinkMsg Body {}", msgStr);
-        }
     }
 
     private ListenableFuture<Void> updateSyncRequiredState(TenantId tenantId, CustomerId customerId, EdgeSettings currentEdgeSettings) {
