@@ -113,7 +113,7 @@ export const loadModuleMarkdownDescription = (http: HttpClient, translate: Trans
         } else {
           propDescription += `<p class="!pl-4 !pr-4"><em>const</em> <strong>${propName}</strong>: <code>${type}</code>`;
           if (type !== 'object') {
-            propDescription += ` = ${prop}`;
+            propDescription += ' = ' + (type === 'string' ? `"${handleHtmlSpecialChars(prop)}"` : `${prop}`);
           }
           propDescription += '</p>';
         }
@@ -146,6 +146,10 @@ export const loadModuleMarkdownDescription = (http: HttpClient, translate: Trans
       return of(description);
     })
   );
+}
+
+const handleHtmlSpecialChars = (text: string): string => {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 export const loadModuleMarkdownSourceCode = (http: HttpClient, translate: TranslateService, resource: ResourceInfo): Observable<string> => {
