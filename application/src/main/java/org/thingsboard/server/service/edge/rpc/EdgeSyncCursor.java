@@ -91,7 +91,7 @@ public class EdgeSyncCursor {
             fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService(), TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID)));
             fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService(), edge.getTenantId(), new CustomerId(CustomerId.NULL_UUID)));
             if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-                fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService(), edge.getTenantId(), new CustomerId(edge.getOwnerId().getId())));
+                addCustomerOAuth2EdgeEventFetchers(ctx, edge.getTenantId(), new CustomerId(edge.getOwnerId().getId()));
             }
             fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getCustomerService()));
             fetchers.add(new SystemWidgetTypesEdgeEventFetcher(ctx.getWidgetTypeService()));
@@ -140,6 +140,14 @@ public class EdgeSyncCursor {
         Customer customerById = ctx.getCustomerService().findCustomerById(tenantId, customerId);
         if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
             addCustomerRolesEdgeEventFetchers(ctx, tenantId, customerById.getParentCustomerId());
+        }
+    }
+
+    private void addCustomerOAuth2EdgeEventFetchers(EdgeContextComponent ctx, TenantId tenantId, CustomerId customerId) {
+        fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService(), tenantId, customerId));
+        Customer customerById = ctx.getCustomerService().findCustomerById(tenantId, customerId);
+        if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
+            addCustomerOAuth2EdgeEventFetchers(ctx, tenantId, customerById.getParentCustomerId());
         }
     }
 
