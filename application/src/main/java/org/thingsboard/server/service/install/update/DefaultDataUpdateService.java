@@ -270,7 +270,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 @Override
                 protected void updateEntity(Tenant tenant) {
                     try {
-                        EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings(tenant.getId());
+                        EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings();
                         if (edgeSettings != null) {
                             edgeSettings.setFullSyncRequired(true);
                             edgeSettingsService.saveEdgeSettings(tenant.getId(), edgeSettings);

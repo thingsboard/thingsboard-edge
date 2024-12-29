@@ -22,12 +22,15 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,12 +41,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DefaultEdgeSettingsService implements EdgeSettingsService {
 
-    private static final String FETCHING_EDGE_SETTINGS_ERROR_MESSAGE = "Fetching edge settings failed";
     private final AttributesService attributesService;
+    private final TenantService tenantService;
 
     @Override
-    public EdgeSettings findEdgeSettings(TenantId tenantId) {
+    public EdgeSettings findEdgeSettings() {
         try {
+            List<Tenant> tenants = tenantService.findTenants(new PageLink(1)).getData();
+            if (tenants.isEmpty()) {
+                log.error("Tenant not found!");
+                throw new RuntimeException("Tenant not found");
+            }
+            TenantId tenantId = tenants.get(0).getId();
             Optional<AttributeKvEntry> attr =
                     attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
 
@@ -55,8 +64,8 @@ public class DefaultEdgeSettingsService implements EdgeSettingsService {
                 return null;
             }
         } catch (Exception e) {
-            log.error(FETCHING_EDGE_SETTINGS_ERROR_MESSAGE, e);
-            throw new RuntimeException(FETCHING_EDGE_SETTINGS_ERROR_MESSAGE, e);
+            log.error("Fetching edge settings failed", e);
+            throw new RuntimeException("Fetching edge settings failed", e);
         }
     }
 
