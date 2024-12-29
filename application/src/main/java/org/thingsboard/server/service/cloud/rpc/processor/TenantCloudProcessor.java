@@ -77,10 +77,6 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             tenant.setId(tenantId);
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
             Tenant savedTenant = edgeCtx.getTenantService().saveTenant(tenant, null, false);
-            var apiUsageState = apiUsageStateService.findApiUsageStateByEntityId(savedTenant.getId());
-            if (apiUsageState == null) {
-                apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
-            }
 
             edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
@@ -91,6 +87,13 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
 
             requestForAdditionalData(tenantId, tenantId).get();
+
+            try {
+                var apiUsageState = apiUsageStateService.findApiUsageStateByEntityId(savedTenant.getId());
+                if (apiUsageState == null) {
+                    apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+                }
+            } catch (Exception ignored) {}
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }

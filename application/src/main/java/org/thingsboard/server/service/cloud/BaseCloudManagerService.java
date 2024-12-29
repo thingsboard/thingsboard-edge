@@ -456,7 +456,7 @@ public abstract class BaseCloudManagerService {
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
         this.tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
-        this.currentEdgeSettings = edgeSettingsService.findEdgeSettings(this.tenantId);
+        this.currentEdgeSettings = edgeSettingsService.findEdgeSettings();
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
             tenantProcessor.cleanUp();

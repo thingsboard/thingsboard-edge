@@ -38,7 +38,7 @@ import java.util.List;
 
 public interface EdgeSettingsService {
 
-    EdgeSettings findEdgeSettings(TenantId tenantId);
+    EdgeSettings findEdgeSettings();
 
     ListenableFuture<List<Long>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
 }

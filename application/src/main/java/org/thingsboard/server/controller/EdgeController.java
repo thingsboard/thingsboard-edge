@@ -730,9 +730,7 @@ public class EdgeController extends BaseController {
     @GetMapping(value = "/edge/settings")
     public EdgeSettings getEdgeSettings() throws ThingsboardException {
         try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            return checkNotNull(edgeSettingsService.findEdgeSettings(tenantId));
+            return checkNotNull(edgeSettingsService.findEdgeSettings());
         } catch (Exception e) {
             throw handleException(e);
         }
