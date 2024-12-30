@@ -129,12 +129,12 @@ public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSetti
     @Override
     public String getDbSchemaVersion() {
         if (schemaVersionFromDb == null) {
-            if (StringUtils.isNotBlank(upgradeFromVersion)) {
+            if (StringUtils.isNotBlank(upgradeFromVersion) && !upgradeFromVersion.equalsIgnoreCase("ce")) {
                 /*
-                * TODO - Remove after the release of 3.9.0:
-                *  This a temporary workaround due to the issue that schema version in the
-                *  tb_schema_settings was set as 3.6.4 during the install of 3.8.1.
-                * */
+                 * TODO - Remove after the release of 3.9.0:
+                 *  This a temporary workaround due to the issue that schema version in the
+                 *  tb_schema_settings was set as 3.6.4 during the install of 3.8.1.
+                 * */
                 schemaVersionFromDb = upgradeFromVersion;
                 return schemaVersionFromDb;
             }
