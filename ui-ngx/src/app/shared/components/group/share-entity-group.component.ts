@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -37,6 +37,7 @@ import { ShareGroupRequest } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { RoleId } from '@shared/models/id/role-id';
 import { RoleType } from '@shared/models/security.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-share-entity-group',
@@ -64,7 +65,8 @@ export class ShareEntityGroupComponent implements ControlValueAccessor, OnInit {
   private propagateChangePending = false;
 
   constructor(private store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   registerOnChange(fn: any): void {
@@ -88,13 +90,19 @@ export class ShareEntityGroupComponent implements ControlValueAccessor, OnInit {
       permissionType: [null],
       roleIds: [null]
     });
-    this.shareEntityGroupFormGroup.valueChanges.subscribe(() => {
+    this.shareEntityGroupFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
-    this.shareEntityGroupFormGroup.get('allUserGroup').valueChanges.subscribe(() => {
+    this.shareEntityGroupFormGroup.get('allUserGroup').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
-    this.shareEntityGroupFormGroup.get('permissionType').valueChanges.subscribe(() => {
+    this.shareEntityGroupFormGroup.get('permissionType').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
   }

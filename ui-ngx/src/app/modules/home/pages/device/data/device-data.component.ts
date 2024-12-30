@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -48,6 +48,7 @@ import {
   deviceProfileTypeConfigurationInfoMap,
   deviceTransportTypeConfigurationInfoMap
 } from '@shared/models/device.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-device-data',
@@ -88,7 +89,8 @@ export class DeviceDataComponent implements ControlValueAccessor, OnInit, Valida
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   registerOnChange(fn: any): void {
@@ -103,7 +105,9 @@ export class DeviceDataComponent implements ControlValueAccessor, OnInit, Valida
       configuration: [null, Validators.required],
       transportConfiguration: [null, Validators.required]
     });
-    this.deviceDataFormGroup.valueChanges.subscribe(() => {
+    this.deviceDataFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

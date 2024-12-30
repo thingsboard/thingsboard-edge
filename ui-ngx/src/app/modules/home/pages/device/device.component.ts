@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -52,7 +52,7 @@ import { GroupEntityComponent } from '@home/components/group/group-entity.compon
 import { Subject } from 'rxjs';
 import { OtaUpdateType } from '@shared/models/ota-package.models';
 import { distinctUntilChanged } from 'rxjs/operators';
-import { getEntityDetailsPageURL } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
@@ -82,6 +82,7 @@ export class DeviceComponent extends GroupEntityComponent<DeviceInfo> {
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
               protected userPermissionsService: UserPermissionsService,
+              private destroyRef: DestroyRef,
               private wl: WhiteLabelingService) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
@@ -135,7 +136,8 @@ export class DeviceComponent extends GroupEntityComponent<DeviceInfo> {
       }
     );
     form.get('deviceProfileId').valueChanges.pipe(
-      distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
+      distinctUntilChanged((prev, curr) => prev?.id === curr?.id),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(profileId => {
       if (profileId && this.isEdit) {
         this.entityForm.patchValue({

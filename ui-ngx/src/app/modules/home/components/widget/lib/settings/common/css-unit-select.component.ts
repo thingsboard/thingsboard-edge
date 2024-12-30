@@ -29,10 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormControl } from '@angular/forms';
 import { cssUnit, cssUnits } from '@shared/models/widget-settings.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-css-unit-select',
@@ -66,11 +67,13 @@ export class CssUnitSelectComponent implements OnInit, ControlValueAccessor {
 
   private propagateChange = null;
 
-  constructor() {}
+  constructor(private destroyRef: DestroyRef) {}
 
   ngOnInit(): void {
     this.cssUnitFormControl = new UntypedFormControl();
-    this.cssUnitFormControl.valueChanges.subscribe((value: cssUnit) => {
+    this.cssUnitFormControl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((value: cssUnit) => {
       this.updateModel(value);
     });
   }

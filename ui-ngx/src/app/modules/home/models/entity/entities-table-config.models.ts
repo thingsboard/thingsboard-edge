@@ -219,6 +219,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   selectionEnabled = true;
   searchEnabled = true;
   addEnabled = true;
+  addAsTextButton = false;
   entitiesDeleteEnabled = true;
   detailsPanelEnabled = true;
   hideDetailsTabsOnEdit = true;

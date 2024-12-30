@@ -104,11 +104,11 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
   }
 
   isUserCredentialsEnabled(): boolean {
-      return this.entity.additionalInfo.userCredentialsEnabled === true;
+      return this.entity?.additionalInfo?.userCredentialsEnabled === true;
   }
 
-  isUserCredentialPresent(): boolean {
-    return isDefinedAndNotNull(this.entity?.additionalInfo?.userCredentialsEnabled);
+  isUserActivated(): boolean {
+    return this.entity?.additionalInfo?.userActivated === true;
   }
 
   buildForm(entity: UserInfo): UntypedFormGroup {

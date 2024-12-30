@@ -1242,7 +1242,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
           }
         }),
         switchMap(data => data.data.length
-          ? data.data.map((a, index) => from(this.alarmDataToExportedData(a, index, exportedColumns)))
+          ? forkJoin(data.data.map((a, index) => from(this.alarmDataToExportedData(a, index, exportedColumns))))
           : of(data.data)),
         concatMap((data) => data),
         toArray()
@@ -1294,9 +1294,9 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
           displayName = this.getUserDisplayName(alarmData.assignee);
         }
         dataObj[column.title] = displayName;
-        return;
+      } else {
+        dataObj[column.title] = await firstValueFrom(this.cellContent(alarm, column, index, false, true));
       }
-      dataObj[column.title] = await firstValueFrom(this.cellContent(alarm, column, index, false, true));
     }
     return dataObj;
   }

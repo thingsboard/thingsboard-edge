@@ -42,6 +42,7 @@ import { keyFilterInfosToKeyFilters, keyFiltersToKeyFilterInfos } from '@shared/
 import { AlarmCondition, AlarmConditionType, AlarmConditionTypeTranslationMap } from '@shared/models/device.models';
 import { TimeUnit, timeUnitTranslationMap } from '@shared/models/time/time.models';
 import { EntityId } from '@shared/models/id/entity-id';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface AlarmRuleConditionDialogData {
   readonly: boolean;
@@ -89,7 +90,9 @@ export class AlarmRuleConditionDialogComponent extends DialogComponent<AlarmRule
       })
     });
     this.conditionFormGroup.patchValue({spec: this.condition?.spec});
-    this.conditionFormGroup.get('spec.type').valueChanges.subscribe((type) => {
+    this.conditionFormGroup.get('spec.type').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe((type) => {
       this.updateValidators(type, true, true);
     });
     if (this.readonly) {

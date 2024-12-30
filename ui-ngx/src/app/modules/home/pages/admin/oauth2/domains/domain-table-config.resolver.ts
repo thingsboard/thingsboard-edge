@@ -40,7 +40,6 @@ import {
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
 import { DomainInfo } from '@shared/models/oauth2.models';
-import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
@@ -59,11 +58,9 @@ export class DomainTableConfigResolver  {
 
   constructor(private translate: TranslateService,
               private datePipe: DatePipe,
-              private utilsService: UtilsService,
               private domainService: DomainService,
               private userPermissionsService: UserPermissionsService,
               ) {
-    this.config.tableTitle = this.translate.instant('admin.oauth2.domains');
     this.config.selectionEnabled = false;
     this.config.entityType = EntityType.DOMAIN;
     this.config.rowPointer = true;

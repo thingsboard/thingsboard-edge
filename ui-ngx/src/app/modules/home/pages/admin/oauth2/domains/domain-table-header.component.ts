@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -41,6 +41,8 @@ import { DomainInfo } from '@shared/models/oauth2.models';
   styleUrls: []
 })
 export class DomainTableHeaderComponent extends EntityTableHeaderComponent<DomainInfo> {
+
+  @HostBinding('style.width') width = '100%';
 
   constructor(protected store: Store<AppState>) {
     super(store);
