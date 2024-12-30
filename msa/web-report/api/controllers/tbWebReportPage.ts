@@ -174,7 +174,7 @@ export class TbWebReportPage {
         this.lastReportResult = null;
         const startTime = performance.now();
         if (this.currentBaseUrl !== request.baseUrl) {
-            const dashboardLoadResponse = await this.page.goto(request.baseUrl+'?reportView=true', {waitUntil: 'networkidle'});
+            const dashboardLoadResponse = await this.page.goto(request.baseUrl+'?reportView=true', {waitUntil: 'networkidle', timeout: loadDashboardResourcesTimeout});
             if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
                 const result = await this.waitForReportResult('init page', loadDashboardResourcesTimeout);
                 if (result.success) {
