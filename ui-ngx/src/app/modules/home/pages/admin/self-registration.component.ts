@@ -85,7 +85,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     branding: false,
     resize: true,
     promotion: false,
-    relative_urls: false
+    relative_urls: false,
+    urlconverter_callback: (url) => url
   };
 
   showMainLoadingBar = false;
