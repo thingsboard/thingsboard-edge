@@ -45,8 +45,8 @@ export function genDashboardReport(req: Request, res: Response, queue: TbWebRepo
     try {
         request = parseGenerateReportRequest(req);
     } catch (e: any) {
-        res.statusMessage = e.message;
-        res.status(400).end();
+        res.statusMessage = 'Incorrect request';
+        res.status(400).send(e.message);
         return;
     }
     activeRequestsCount++;
@@ -77,8 +77,8 @@ export function genDashboardReport(req: Request, res: Response, queue: TbWebRepo
                 res.statusMessage = 'Generate report timeout!';
                 res.status(503).end();
             } else {
-                res.statusMessage = `Failed to load dashboard page: ${e.message || e}`;
-                res.status(500).end();
+                res.statusMessage = `Failed to load dashboard page`;
+                res.status(500).send(`Failed to load dashboard page: ${e.message || e}`);
             }
             activeRequestsCount--;
         }
