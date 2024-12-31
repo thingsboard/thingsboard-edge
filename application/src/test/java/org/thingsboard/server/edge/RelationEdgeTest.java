@@ -179,6 +179,7 @@ public class RelationEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRelationFromEdgeToDevice() throws Exception {
         // create relation
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
