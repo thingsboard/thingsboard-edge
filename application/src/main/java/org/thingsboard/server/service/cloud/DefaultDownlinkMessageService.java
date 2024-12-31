@@ -35,8 +35,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -83,7 +81,6 @@ import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
@@ -242,9 +239,8 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
-    private CustomerId customerId;
-
     public ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
+                                                           CustomerId edgeCustomerId,
                                                            DownlinkMsg downlinkMsg,
                                                            EdgeSettings currentEdgeSettings) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
@@ -253,7 +249,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     tenantId, downlinkMsg.getDownlinkMsgId());
             log.trace("downlink msg body [{}]", StringUtils.truncate(downlinkMsg.toString(), 10000));
             if (downlinkMsg.hasSyncCompletedMsg()) {
-                result.add(updateSyncRequiredState(tenantId, this.customerId, currentEdgeSettings));
+                result.add(updateSyncRequiredState(tenantId, edgeCustomerId, currentEdgeSettings));
             }
             if (downlinkMsg.hasEdgeConfiguration()) {
                 result.add(edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, downlinkMsg.getEdgeConfiguration()));
@@ -341,13 +337,6 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     sequenceDependencyLock.lock();
                     try {
                         result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg));
-                        Customer customer = null;
-                        if (!UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE.equals(customerUpdateMsg.getMsgType())) {
-                            customer = JacksonUtil.fromString(customerUpdateMsg.getEntity(), Customer.class, true);
-                        }
-                        if (customer != null && !customer.isPublic()) {
-                            updateCustomerId(tenantId, customerUpdateMsg);
-                        }
                     } finally {
                         sequenceDependencyLock.unlock();
                     }
@@ -395,7 +384,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 result.add(customMenuProcessor.processCustomMenuMsgFromCloud(tenantId, downlinkMsg.getCustomMenuProto()));
             }
             if (downlinkMsg.hasWhiteLabelingProto()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingMsgFromCloud(tenantId, this.customerId, downlinkMsg.getWhiteLabelingProto()));
+                result.add(whiteLabelingProcessor.processWhiteLabelingMsgFromCloud(tenantId, downlinkMsg.getWhiteLabelingProto()));
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
@@ -511,15 +500,6 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
         } else {
             return Futures.immediateFuture(null);
         }
-    }
-
-    private void updateCustomerId(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
-        switch (customerUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE ->
-                    this.customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
-            case ENTITY_DELETED_RPC_MESSAGE -> this.customerId = null;
-        }
-        whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, this.customerId);
     }
 
     private ListenableFuture<Void> processDeviceCredentialsRequestMsg(TenantId tenantId, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {

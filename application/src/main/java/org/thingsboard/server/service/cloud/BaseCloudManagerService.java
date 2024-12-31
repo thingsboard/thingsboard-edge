@@ -66,7 +66,6 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
@@ -142,9 +141,6 @@ public abstract class BaseCloudManagerService {
 
     @Autowired
     protected CloudEventStorageSettings cloudEventStorageSettings;
-
-    @Autowired
-    private WhiteLabelingService whiteLabelingService;
 
     @Autowired
     private TelemetrySubscriptionService tsSubService;
@@ -454,7 +450,7 @@ public abstract class BaseCloudManagerService {
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
-        this.tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
+        this.tenantId = TenantId.fromUUID(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
         this.currentEdgeSettings = edgeSettingsService.findEdgeSettings();
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
@@ -479,10 +475,6 @@ public abstract class BaseCloudManagerService {
         edgeSettingsService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
         saveOrUpdateEdge(tenantId, edgeConfiguration);
-
-        // TODO: voba - check this
-        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, new CustomerId(customerUUID));
 
         updateConnectivityStatus(true);
 
@@ -542,7 +534,7 @@ public abstract class BaseCloudManagerService {
             this.syncInProgress = false;
         }
         ListenableFuture<List<Void>> future =
-                downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings);
+                downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
