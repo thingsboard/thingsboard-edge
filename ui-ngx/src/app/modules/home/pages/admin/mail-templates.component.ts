@@ -86,7 +86,8 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       autofocus: false,
       height: 450,
       promotion: false,
-      relative_urls: false
+      relative_urls: false,
+      urlconverter_callback: (url) => url
     };
 
     if (this.readonly) {

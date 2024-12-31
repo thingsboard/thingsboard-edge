@@ -21670,7 +21670,7 @@
             "checkState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -21691,7 +21691,7 @@
             "uncheckState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -21864,7 +21864,7 @@
             "checkState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -21885,7 +21885,7 @@
             "uncheckState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -22058,7 +22058,7 @@
             "checkState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -22079,7 +22079,7 @@
             "uncheckState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -22252,7 +22252,7 @@
             "checkState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -22273,7 +22273,7 @@
             "uncheckState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -22446,7 +22446,7 @@
             "checkState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -22467,7 +22467,7 @@
             "uncheckState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -22640,7 +22640,7 @@
             "checkState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000
@@ -22661,7 +22661,7 @@
             "uncheckState": {
               "action": "EXECUTE_RPC",
               "executeRpc": {
-                "method": "setState",
+                "method": "setMode",
                 "requestTimeout": 5000,
                 "requestPersistent": false,
                 "persistentPollingInterval": 1000

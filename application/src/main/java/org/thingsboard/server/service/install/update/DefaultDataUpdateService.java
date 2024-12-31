@@ -175,7 +175,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             updateDataFromCe();
         } else {
             //TODO: should be cleaned after each release
-            installScripts.updateResourcesUsage();
             moveMailTemplatesToNotificationCenter(Map.of(
                     "userActivated", NotificationType.USER_ACTIVATED,
                     "userRegistered", NotificationType.USER_REGISTERED
