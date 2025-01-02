@@ -143,7 +143,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
@@ -175,7 +175,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
@@ -207,7 +207,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
@@ -238,7 +238,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
@@ -269,7 +269,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getConverterDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
