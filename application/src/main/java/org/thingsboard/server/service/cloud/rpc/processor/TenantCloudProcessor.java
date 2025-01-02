@@ -107,6 +107,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     }
 
     private void cleanUpSystemTenant() {
+        log.error("ARE WE CLEAN UP-ING???");
         edgeCtx.getAdminSettingsService().deleteAdminSettingsByTenantId(TenantId.SYS_TENANT_ID);
         edgeCtx.getQueueService().deleteQueuesByTenantId(TenantId.SYS_TENANT_ID);
         edgeCtx.getWidgetTypeService().deleteWidgetTypesByTenantId(TenantId.SYS_TENANT_ID);

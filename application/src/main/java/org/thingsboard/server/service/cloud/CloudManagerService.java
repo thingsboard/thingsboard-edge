@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -27,7 +28,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
@@ -52,6 +52,9 @@ import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
@@ -74,13 +77,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @TbCoreComponent
-public class CloudManagerService {
+public class CloudManagerService extends TbApplicationEventListener<PartitionChangeEvent> {
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
     private static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
     private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
     private static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
 
+    private final ScheduledExecutorService rpcScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-rpc-connect"));
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -138,20 +142,52 @@ public class CloudManagerService {
     private Long queueStartTs;
 
     private ExecutorService executor;
-    private ScheduledExecutorService reconnectScheduler;
     private ScheduledFuture<?> scheduledFuture;
-    private ScheduledExecutorService shutdownExecutor;
+    private ScheduledExecutorService reconnectScheduler;
+    private ScheduledExecutorService shutdownScheduler;
 
     private volatile boolean initialized;
+    private volatile boolean initInProgress;
     private volatile boolean syncInProgress = false;
+    private volatile boolean rpcTaskInProgress;
 
     private TenantId tenantId;
     private CustomerId customerId;
 
-    @EventListener(ApplicationReadyEvent.class)
+    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        if (isSystemTenantPartitionMine()) {
-            if (validateRoutingKeyAndSecret()) {
+        scheduleRpcConnection();
+    }
+
+    @Override
+    @SneakyThrows
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        if (ServiceType.TB_CORE.equals(event.getServiceType())) {
+            synchronized (this) {
+                boolean isMyPartition = isSystemTenantPartitionMine();
+                if (isMyPartition && !initialized) {
+                    scheduleRpcConnection();
+                } else if (initialized || initInProgress) {
+                    destroy();
+                }
+            }
+        }
+    }
+
+    private void scheduleRpcConnection() {
+        rpcScheduler.schedule(() -> {
+            if (rpcTaskInProgress) {
+                return;
+            }
+            rpcTaskInProgress = true;
+            establishRpcConnection();
+        }, 1, TimeUnit.MINUTES);
+    }
+
+    private void establishRpcConnection() {
+        if (isSystemTenantPartitionMine() && !initialized && !initInProgress && validateRoutingKeyAndSecret()) {
+            initInProgress = true;
+            try {
                 log.info("Starting Cloud Edge service");
                 edgeRpcClient.connect(routingKey, routingSecret,
                         this::onUplinkResponse,
@@ -161,14 +197,18 @@ public class CloudManagerService {
                 executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-manager"));
                 reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
                 processHandleMessages();
+                rpcTaskInProgress = false;
+            } catch (Exception e) {
+                rpcTaskInProgress = false;
+                scheduleRpcConnection();
             }
         }
     }
 
     private boolean validateRoutingKeyAndSecret() {
         if (StringUtils.isBlank(routingKey) || StringUtils.isBlank(routingSecret)) {
-            shutdownExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-shutdown"));
-            shutdownExecutor.scheduleAtFixedRate(() -> log.error(
+            shutdownScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-shutdown"));
+            shutdownScheduler.scheduleAtFixedRate(() -> log.error(
                     "Routing Key and Routing Secret must be provided! " +
                             "Please configure Routing Key and Routing Secret in the tb-edge.yml file " +
                             "or add CLOUD_ROUTING_KEY and CLOUD_ROUTING_SECRET variable to the tb-edge.conf file. " +
@@ -180,8 +220,9 @@ public class CloudManagerService {
 
     @PreDestroy
     public void destroy() throws InterruptedException {
-        if (shutdownExecutor != null) {
-            shutdownExecutor.shutdown();
+        initInProgress = false;
+        if (shutdownScheduler != null && !shutdownScheduler.isShutdown()) {
+            shutdownScheduler.shutdownNow();
         }
 
         updateConnectivityStatus(false);
@@ -193,12 +234,16 @@ public class CloudManagerService {
         } catch (Exception e) {
             log.error("Exception during disconnect", e);
         }
-        if (executor != null) {
+        if (executor != null && !executor.isShutdown()) {
             executor.shutdownNow();
         }
-        if (reconnectScheduler != null) {
+        if (!rpcScheduler.isShutdown()) {
+            rpcScheduler.shutdownNow();
+        }
+        if (reconnectScheduler != null && !reconnectScheduler.isShutdown()) {
             reconnectScheduler.shutdownNow();
         }
+        initialized = false;
         log.info("[{}] Destroy was successful", edgeId);
     }
 
@@ -260,11 +305,12 @@ public class CloudManagerService {
             }
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
+            scheduleRpcConnection();
         }
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
-        this.tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
+        this.tenantId = TenantId.fromUUID(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(this.tenantId);
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
@@ -295,6 +341,7 @@ public class CloudManagerService {
         updateConnectivityStatus(true);
 
         initialized = true;
+        initInProgress = false;
     }
 
     private boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration) {
@@ -434,6 +481,7 @@ public class CloudManagerService {
     }
 
     private static class AttributeSaveCallback implements FutureCallback<Void> {
+
         private final String key;
         private final Object value;
 
@@ -451,6 +499,7 @@ public class CloudManagerService {
         public void onFailure(Throwable t) {
             log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
         }
+
     }
 
 }
