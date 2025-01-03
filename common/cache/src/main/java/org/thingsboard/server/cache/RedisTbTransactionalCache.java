@@ -81,7 +81,7 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
 
     static final byte[] EVICT_BY_PREFIX_LUA_SCRIPT = StringRedisSerializer.UTF_8.serialize("""
         local prefix = ARGV[1]
-        local count = 1000
+        local count = tonumber(ARGV[2])
         local cursor = "0"
         local keysToDelete = {}
 
@@ -99,7 +99,7 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
         return #keysToDelete
         """);
 
-    static final byte[] EVICT_BY_PREFIX_SHA = StringRedisSerializer.UTF_8.serialize("cd4189b9722168b499e4cb0e19dc6c7d01c20014");
+    static final byte[] EVICT_BY_PREFIX_SHA = StringRedisSerializer.UTF_8.serialize("9199a427c8aad81b968d48fcb88692392996fcf4");
 
     public RedisTbTransactionalCache(String cacheName,
                                      CacheSpecsMap cacheSpecsMap,
@@ -226,8 +226,9 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
             return;
         }
         byte[] rawPrefix = StringRedisSerializer.UTF_8.serialize(cacheName + prefix + "*");
+        byte[] rawCount = StringRedisSerializer.UTF_8.serialize(String.valueOf(1000));
         try (var connection = getConnection(rawPrefix)) {
-            executeScript(connection, EVICT_BY_PREFIX_SHA, EVICT_BY_PREFIX_LUA_SCRIPT, ReturnType.INTEGER, 0, rawPrefix);
+            executeScript(connection, EVICT_BY_PREFIX_SHA, EVICT_BY_PREFIX_LUA_SCRIPT, ReturnType.INTEGER, 0, rawPrefix, rawCount);
         }
     }
 
