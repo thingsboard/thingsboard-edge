@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.msa.edge;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +66,10 @@ public class IntegrationClientTest extends AbstractContainerTest {
 
     @Test
     public void testIntegrations() {
+        performTestOnEachEdge(this::_testIntegrations);
+    }
+
+    private void _testIntegrations() {
         JsonNode edgeAttributes = JacksonUtil.toJsonNode("{\"valAttr\":\"val3\", \"baseUrl\":\"" + edgeUrl + "\"}");
         cloudRestClient.saveEntityAttributesV1(edge.getId(), DataConstants.SERVER_SCOPE, edgeAttributes);
 
@@ -412,6 +415,11 @@ public class IntegrationClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getIntegrations(new PageLink(100), true).getTotalElements() == 0);
+
+        PageData<Converter> converters = cloudRestClient.getConverters(new PageLink(100), true);
+        for (Converter datum : converters.getData()) {
+            cloudRestClient.deleteConverter(datum.getId());
+        }
     }
 
 }

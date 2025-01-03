@@ -1855,13 +1855,15 @@ public class RestClient implements Closeable {
         restTemplate.delete(baseURL + "/api/oauth2/client/{id}", oAuth2ClientId.getId());
     }
 
-    public PageData<DomainInfo> getTenantDomainInfos() {
+    public PageData<DomainInfo> getTenantDomainInfos(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/domain/infos",
+                baseURL + "/api/domain/infos?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<PageData<DomainInfo>>() {
-                }).getBody();
+                new ParameterizedTypeReference<PageData<DomainInfo>>() {},
+                params).getBody();
     }
 
     public Optional<DomainInfo> getDomainInfoById(DomainId domainId) {

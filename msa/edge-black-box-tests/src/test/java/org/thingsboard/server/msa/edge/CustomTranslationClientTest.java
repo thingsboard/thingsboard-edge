@@ -47,6 +47,10 @@ public class CustomTranslationClientTest extends AbstractContainerTest {
 
     @Test
     public void testCustomTranslation() {
+        performTestOnEachEdge(this::_testCustomTranslation);
+    }
+
+    private void _testCustomTranslation() {
         testCustomTranslation_sysAdmin();
         testCustomTranslation_tenant();
         testCustomTranslation_customer();

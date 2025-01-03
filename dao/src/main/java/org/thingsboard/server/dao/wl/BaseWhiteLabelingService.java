@@ -704,9 +704,15 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
         WhiteLabeling byId = whiteLabelingDao.findById(edgeById.getTenantId(), new WhiteLabelingCompositeKey(edgeById.getTenantId(), edgeById.getCustomerId(), LOGIN));
         if (byId == null) {
+            byId = whiteLabelingDao.findById(TenantId.SYS_TENANT_ID, new WhiteLabelingCompositeKey(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), LOGIN));
+            if (byId == null) {
+                return serverName;
+            }
+        }
+        if (byId.getTenantId() == null || byId.getDomainId() == null) {
             return serverName;
         }
-        Domain domainById = domainService.findDomainById(edgeById.getTenantId(), byId.getDomainId());
+        Domain domainById = domainService.findDomainById(byId.getTenantId(), byId.getDomainId());
         if (domainById == null) {
             return serverName;
         }
