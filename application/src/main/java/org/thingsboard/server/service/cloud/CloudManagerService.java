@@ -73,6 +73,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Service
@@ -84,7 +86,10 @@ public class CloudManagerService extends TbApplicationEventListener<PartitionCha
     private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
     private static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
 
-    private final ScheduledExecutorService rpcScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-rpc-connect"));
+    private final AtomicReference<ScheduledExecutorService> rpcSchedulerRef = new AtomicReference<>();
+
+    private final AtomicBoolean rpcConnectionScheduled = new AtomicBoolean(false);
+
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -149,7 +154,6 @@ public class CloudManagerService extends TbApplicationEventListener<PartitionCha
     private volatile boolean initialized;
     private volatile boolean initInProgress;
     private volatile boolean syncInProgress = false;
-    private volatile boolean rpcTaskInProgress;
 
     private TenantId tenantId;
     private CustomerId customerId;
@@ -175,13 +179,17 @@ public class CloudManagerService extends TbApplicationEventListener<PartitionCha
     }
 
     private void scheduleRpcConnection() {
-        rpcScheduler.schedule(() -> {
-            if (rpcTaskInProgress) {
-                return;
-            }
-            rpcTaskInProgress = true;
-            establishRpcConnection();
-        }, 1, TimeUnit.MINUTES);
+        ScheduledExecutorService rpcScheduler = getOrCreateRpcScheduler();
+        if (rpcConnectionScheduled.compareAndSet(false, true)) {
+            rpcScheduler.schedule(() -> {
+                try {
+                    establishRpcConnection();
+                } finally {
+                    initInProgress = false;
+                    rpcConnectionScheduled.set(false);
+                }
+            }, 60, TimeUnit.SECONDS);
+        }
     }
 
     private void establishRpcConnection() {
@@ -197,9 +205,7 @@ public class CloudManagerService extends TbApplicationEventListener<PartitionCha
                 executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-manager"));
                 reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
                 processHandleMessages();
-                rpcTaskInProgress = false;
             } catch (Exception e) {
-                rpcTaskInProgress = false;
                 scheduleRpcConnection();
             }
         }
@@ -221,6 +227,8 @@ public class CloudManagerService extends TbApplicationEventListener<PartitionCha
     @PreDestroy
     public void destroy() throws InterruptedException {
         initInProgress = false;
+        initialized = false;
+
         if (shutdownScheduler != null && !shutdownScheduler.isShutdown()) {
             shutdownScheduler.shutdownNow();
         }
@@ -237,13 +245,13 @@ public class CloudManagerService extends TbApplicationEventListener<PartitionCha
         if (executor != null && !executor.isShutdown()) {
             executor.shutdownNow();
         }
-        if (!rpcScheduler.isShutdown()) {
+        ScheduledExecutorService rpcScheduler = rpcSchedulerRef.get();
+        if (rpcScheduler != null && !rpcScheduler.isShutdown()) {
             rpcScheduler.shutdownNow();
         }
         if (reconnectScheduler != null && !reconnectScheduler.isShutdown()) {
             reconnectScheduler.shutdownNow();
         }
-        initialized = false;
         log.info("[{}] Destroy was successful", edgeId);
     }
 
@@ -478,6 +486,20 @@ public class CloudManagerService extends TbApplicationEventListener<PartitionCha
 
     private boolean isSystemTenantPartitionMine() {
         return partitionService.resolve(ServiceType.TB_CORE, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID).isMyPartition();
+    }
+
+    private ScheduledExecutorService getOrCreateRpcScheduler() {
+        ScheduledExecutorService scheduler = rpcSchedulerRef.get();
+        if (scheduler == null || scheduler.isShutdown()) {
+            ScheduledExecutorService newScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-rpc-connect"));
+            if (rpcSchedulerRef.compareAndSet(scheduler, newScheduler)) {
+                return newScheduler;
+            } else {
+                newScheduler.shutdown();
+                return rpcSchedulerRef.get();
+            }
+        }
+        return scheduler;
     }
 
     private static class AttributeSaveCallback implements FutureCallback<Void> {
