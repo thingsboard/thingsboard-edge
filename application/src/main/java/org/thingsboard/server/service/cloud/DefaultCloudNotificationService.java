@@ -74,7 +74,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     @Override
     public void pushNotificationToCloud(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback) {
         try {
-            TenantId tenantId = new TenantId(new UUID(cloudNotificationMsg.getTenantIdMSB(), cloudNotificationMsg.getTenantIdLSB()));
+            TenantId tenantId = TenantId.fromUUID(new UUID(cloudNotificationMsg.getTenantIdMSB(), cloudNotificationMsg.getTenantIdLSB()));
             CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
             ListenableFuture<Void> future;
             switch (cloudEventType) {
