@@ -226,9 +226,9 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
             return;
         }
         byte[] rawPrefix = StringRedisSerializer.UTF_8.serialize(cacheName + prefix + "*");
-        byte[] rawCount = StringRedisSerializer.UTF_8.serialize(String.valueOf(1000));
+        byte[] rawScanCount = StringRedisSerializer.UTF_8.serialize(String.valueOf(1000));
         try (var connection = getConnection(rawPrefix)) {
-            executeScript(connection, EVICT_BY_PREFIX_SHA, EVICT_BY_PREFIX_LUA_SCRIPT, ReturnType.INTEGER, 0, rawPrefix, rawCount);
+            executeScript(connection, EVICT_BY_PREFIX_SHA, EVICT_BY_PREFIX_LUA_SCRIPT, ReturnType.INTEGER, 0, rawPrefix, rawScanCount);
         }
     }
 

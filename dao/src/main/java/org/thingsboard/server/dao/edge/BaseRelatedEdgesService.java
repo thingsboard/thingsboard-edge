@@ -64,7 +64,7 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
     @Override
     public void handleEvictEvent(RelatedEdgesEvictEvent event) {
         if (event.getEntityId() == null) {
-            cache.evictByPrefix("{" + event.getTenantId().toString() + "}");
+            cache.evictByPrefix(new RelatedEdgesCacheKey(event.getTenantId(), null).toString());
         } else {
             cache.evict(new RelatedEdgesCacheKey(event.getTenantId(), event.getEntityId()));
         }
