@@ -1117,12 +1117,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         return Futures.allAsList(futures);
     }
 
-    protected static void setFieldReflectively(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
-    }
-
     protected void testEntityDaoWithRelationsOk(EntityId entityIdFrom, EntityId entityTo, String urlDelete) throws Exception {
         createEntityRelation(entityIdFrom, entityTo, "TEST_TYPE");
         assertThat(findRelationsByTo(entityTo)).hasSize(1);
