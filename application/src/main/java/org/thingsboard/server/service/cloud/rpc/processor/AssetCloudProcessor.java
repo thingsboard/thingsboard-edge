@@ -50,8 +50,7 @@ import java.util.UUID;
 public class AssetCloudProcessor extends BaseAssetProcessor {
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
-                                                           AssetUpdateMsg assetUpdateMsg,
-                                                           Long queueStartTs) {
+                                                           AssetUpdateMsg assetUpdateMsg) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -59,8 +58,8 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, queueStartTs);
-                    return requestForAdditionalData(tenantId, assetId, queueStartTs);
+                    saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
+                    return requestForAdditionalData(tenantId, assetId);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
                     if (assetById != null) {
@@ -77,7 +76,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, Long queueStartTs) {
+    private void saveOrUpdateAssetFromCloud(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -85,7 +84,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
         Boolean assetNameUpdated = resultPair.getSecond();
         if (assetNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null, queueStartTs);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null);
         }
     }
 

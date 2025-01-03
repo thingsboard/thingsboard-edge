@@ -23,12 +23,6 @@ services:
   tb-edge2:
     volumes:
       - tb-edge-log-volume:/var/log/tb-edge
-  tb-rule-engine1:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
-  tb-rule-engine2:
-    volumes:
-      - tb-edge-log-volume:/var/log/tb-edge
 
 volumes:
   tb-log-volume:

@@ -56,6 +56,10 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void testAlarms() {
+        performTestOnEachEdge(this::_testAlarms);
+    }
+
+    private void _testAlarms() {
         cloudRemoveFromSaveTimeseriesToPushToNodeSuccessConnection();
 
         // create alarm
@@ -135,6 +139,10 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void sendAlarmToCloud() {
+        performTestOnEachEdge(this::_sendAlarmToCloud);
+    }
+
+    private void _sendAlarmToCloud() {
         edgeRemoveFromSaveTimeseriesToPushToNodeSuccessConnection();
 
         // create alarm on edge
@@ -203,6 +211,10 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void testAlarmComments() {
+        performTestOnEachEdge(this::_testAlarmComments);
+    }
+
+    private void _testAlarmComments() {
         cloudRemoveFromSaveTimeseriesToPushToNodeSuccessConnection();
 
         // create alarm
@@ -273,6 +285,10 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void sendAlarmCommentToCloud() {
+        performTestOnEachEdge(this::_sendAlarmCommentToCloud);
+    }
+
+    private void _sendAlarmCommentToCloud() {
         edgeRemoveFromSaveTimeseriesToPushToNodeSuccessConnection();
 
         // create alarm

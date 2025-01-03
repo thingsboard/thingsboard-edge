@@ -1081,7 +1081,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
 
         try {
             systemContext.getCloudEventService().saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
-                    deviceId, body, 0L).get();
+                    deviceId, body).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

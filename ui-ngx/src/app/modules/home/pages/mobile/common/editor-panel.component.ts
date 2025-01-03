@@ -59,11 +59,13 @@ export class EditorPanelComponent implements OnInit {
     resize: false,
     setup: (editor) => {
       editor.on('PostRender', function() {
-        const container = editor.getContainer();
+        const container = editor.getContainer().closest('.tb-popover-content');
         const uiContainer = document.querySelector('.tox.tox-tinymce-aux');
         container.parentNode.appendChild(uiContainer);
       });
-    }
+    },
+    relative_urls: false,
+    urlconverter_callback: (url) => url
   };
 
   constructor(private fb: FormBuilder) {

@@ -753,9 +753,10 @@ export class EntityService {
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.DASHBOARD);
-        if (authState.edgesSupportEnabled) {
+        // edge-only: EDGE entity supported on edge side
+        // if (authState.edgesSupportEnabled) {
           entityTypes.push(EntityType.EDGE);
-        }
+        // }
         if (useAliasEntityTypes) {
           entityTypes.push(EntityType.QUEUE_STATS);
 
@@ -770,9 +771,10 @@ export class EntityService {
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.DASHBOARD);
-        if (authState.edgesSupportEnabled) {
+        // edge-only: EDGE entity supported on edge side
+        // if (authState.edgesSupportEnabled) {
           entityTypes.push(EntityType.EDGE);
-        }
+        // }
         if (useAliasEntityTypes) {
           entityTypes.push(AliasEntityType.CURRENT_CUSTOMER);
         }

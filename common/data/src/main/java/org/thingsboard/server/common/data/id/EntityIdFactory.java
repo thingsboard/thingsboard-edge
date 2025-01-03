@@ -171,39 +171,24 @@ public class EntityIdFactory {
     }
 
     public static EntityId getByCloudEventTypeAndUuid(CloudEventType cloudEventType, UUID uuid) {
-        switch (cloudEventType) {
-            case EDGE:
-                return new EdgeId(uuid);
-            case TENANT:
-                return new TenantId(uuid);
-            case CUSTOMER:
-                return new CustomerId(uuid);
-            case USER:
-                return new UserId(uuid);
-            case DASHBOARD:
-                return new DashboardId(uuid);
-            case DEVICE:
-                return new DeviceId(uuid);
-            case DEVICE_PROFILE:
-                return new DeviceProfileId(uuid);
-            case ASSET:
-                return new AssetId(uuid);
-            case ASSET_PROFILE:
-                return new AssetProfileId(uuid);
-            case ALARM:
-                return new AlarmId(uuid);
-            case RULE_CHAIN:
-                return new RuleChainId(uuid);
-            case ENTITY_VIEW:
-                return new EntityViewId(uuid);
-            case WIDGETS_BUNDLE:
-                return new WidgetsBundleId(uuid);
-            case WIDGET_TYPE:
-                return new WidgetTypeId(uuid);
-            case TB_RESOURCE:
-                return new TbResourceId(uuid);
-        }
-        throw new IllegalArgumentException("CloudEventType " + cloudEventType + " is not supported!");
+        return switch (cloudEventType) {
+            case EDGE -> new EdgeId(uuid);
+            case TENANT -> TenantId.fromUUID(uuid);
+            case CUSTOMER -> new CustomerId(uuid);
+            case USER -> new UserId(uuid);
+            case DASHBOARD -> new DashboardId(uuid);
+            case DEVICE -> new DeviceId(uuid);
+            case DEVICE_PROFILE -> new DeviceProfileId(uuid);
+            case ASSET -> new AssetId(uuid);
+            case ASSET_PROFILE -> new AssetProfileId(uuid);
+            case ALARM -> new AlarmId(uuid);
+            case RULE_CHAIN -> new RuleChainId(uuid);
+            case ENTITY_VIEW -> new EntityViewId(uuid);
+            case WIDGETS_BUNDLE -> new WidgetsBundleId(uuid);
+            case WIDGET_TYPE -> new WidgetTypeId(uuid);
+            case TB_RESOURCE -> new TbResourceId(uuid);
+            default -> throw new IllegalArgumentException("CloudEventType " + cloudEventType + " is not supported!");
+        };
     }
 
 }

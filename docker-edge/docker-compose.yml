@@ -29,9 +29,12 @@ services:
       ZOO_ADMINSERVER_ENABLED: "false"
   kafka:
     restart: always
-    image: "bitnami/kafka:3.7.0"
+    image: "bitnami/kafka:3.8.1"
     ports:
-      - "9092:9092"
+      - "9092"
+    environment:
+      KAFKA_CFG_ADVERTISED_LISTENERS: "INSIDE://:9094,OUTSIDE://kafka:9092"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "0@kafka:9093"
     env_file:
       - kafka.env
     depends_on:
@@ -64,8 +67,6 @@ services:
     depends_on:
       - zookeeper
       - kafka
-      - tb-rule-engine1
-      - tb-rule-engine2
   tb-edge2:
     restart: always
     image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
@@ -79,64 +80,6 @@ services:
     environment:
       TB_SERVICE_ID: tb-edge2
       TB_SERVICE_TYPE: tb-core
-      JAVA_OPTS: "${JAVA_OPTS}"
-      TB_QUEUE_TYPE: "kafka"
-      TB_KAFKA_SERVERS: "kafka:9092"
-      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
-      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
-      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
-      CLOUD_RPC_PORT: "${CLOUD_RPC_PORT}"
-    env_file:
-      - tb-edge.env
-    volumes:
-      - ./tb-edge/conf:/config
-      - ./tb-edge/log:/var/log/tb-edge
-    depends_on:
-      - zookeeper
-      - kafka
-      - tb-rule-engine1
-      - tb-rule-engine2
-  tb-rule-engine1:
-    restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
-    ports:
-      - "8080"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200m"
-        max-file: "30"
-    environment:
-      TB_SERVICE_ID: tb-rule-engine1
-      TB_SERVICE_TYPE: tb-rule-engine
-      JAVA_OPTS: "${JAVA_OPTS}"
-      TB_QUEUE_TYPE: "kafka"
-      TB_KAFKA_SERVERS: "kafka:9092"
-      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
-      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
-      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
-      CLOUD_RPC_PORT: "${CLOUD_RPC_PORT}"
-    env_file:
-      - tb-edge.env
-    volumes:
-      - ./tb-edge/conf:/config
-      - ./tb-edge/log:/var/log/tb-edge
-    depends_on:
-      - zookeeper
-      - kafka
-  tb-rule-engine2:
-    restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
-    ports:
-      - "8080"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200m"
-        max-file: "30"
-    environment:
-      TB_SERVICE_ID: tb-rule-engine2
-      TB_SERVICE_TYPE: tb-rule-engine
       JAVA_OPTS: "${JAVA_OPTS}"
       TB_QUEUE_TYPE: "kafka"
       TB_KAFKA_SERVERS: "kafka:9092"
@@ -177,5 +120,3 @@ services:
     links:
       - tb-edge1
       - tb-edge2
-      - tb-rule-engine1
-      - tb-rule-engine2

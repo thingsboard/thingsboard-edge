@@ -43,8 +43,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
     private final Lock userCreationLock = new ReentrantLock();
 
     public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId,
-                                                          UserUpdateMsg userUpdateMsg,
-                                                          Long queueStartTs) {
+                                                          UserUpdateMsg userUpdateMsg) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -66,7 +65,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     } finally {
                         userCreationLock.unlock();
                     }
-                    return requestForAdditionalData(tenantId, userId, queueStartTs);
+                    return requestForAdditionalData(tenantId, userId);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     User userToDelete = edgeCtx.getUserService().findUserById(tenantId, userId);
                     if (userToDelete != null) {

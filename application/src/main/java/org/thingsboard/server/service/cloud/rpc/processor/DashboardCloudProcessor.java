@@ -53,8 +53,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
 
     public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
                                                                DashboardUpdateMsg dashboardUpdateMsg,
-                                                               CustomerId customerId,
-                                                               Long queueStartTs) {
+                                                               CustomerId customerId) {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -65,7 +64,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                     if (created) {
                         pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
                     }
-                    return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
+                    return requestForAdditionalData(tenantId, dashboardId);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Dashboard dashboardById = edgeCtx.getDashboardService().findDashboardById(tenantId, dashboardId);
                     if (dashboardById != null) {

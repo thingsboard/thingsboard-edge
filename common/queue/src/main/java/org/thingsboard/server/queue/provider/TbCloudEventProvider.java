@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.queue.provider;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-public interface GeneralUplinkMessageService extends UplinkMessageService {
+/**
+ * Responsible for providing various Producers to other services.
+ */
+public interface TbCloudEventProvider {
+    TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventMsgProducer();
 
-    TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart);
-
-    ListenableFuture<Long> getQueueStartTs(TenantId tenantId);
-
+    TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventTSMsgProducer();
 }

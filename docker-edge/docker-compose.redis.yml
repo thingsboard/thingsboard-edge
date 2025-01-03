@@ -41,13 +41,3 @@ services:
       - cache-redis.env
     depends_on:
       - redis
-#  tb-rule-engine1:
-#    env_file:
-#      - cache-redis.env
-#    depends_on:
-#      - redis
-#  tb-rule-engine2:
-#    env_file:
-#      - cache-redis.env
-#    depends_on:
-#      - redis

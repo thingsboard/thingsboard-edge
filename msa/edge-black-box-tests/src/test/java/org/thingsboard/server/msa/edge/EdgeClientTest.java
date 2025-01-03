@@ -16,19 +16,19 @@
 package org.thingsboard.server.msa.edge;
 
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.msa.AbstractContainerTest;
-
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testEdge_assignToCustomer_unassignFromCustomer() {
+        performTestOnEachEdge(this::_testEdge_assignToCustomer_unassignFromCustomer);
+    }
+
+    private void _testEdge_assignToCustomer_unassignFromCustomer() {
         // assign edge to customer
         Customer customer = new Customer();
         customer.setTitle("Edge Test Customer");
@@ -39,6 +39,9 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // unassign edge from customer
         unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
+
+        // cleanup
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
     }
 
 }

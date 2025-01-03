@@ -37,13 +37,3 @@ services:
       - tb-edge.postgres.env
     depends_on:
       - postgres
-  tb-rule-engine1:
-    env_file:
-      - tb-edge.postgres.env
-    depends_on:
-      - postgres
-  tb-rule-engine2:
-    env_file:
-      - tb-edge.postgres.env
-    depends_on:
-      - postgres
