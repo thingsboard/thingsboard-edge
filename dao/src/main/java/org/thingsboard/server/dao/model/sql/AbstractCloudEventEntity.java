@@ -123,7 +123,7 @@ public class AbstractCloudEventEntity extends BaseSqlEntity<CloudEvent> implemen
     public CloudEvent toData() {
         CloudEvent cloudEvent = new CloudEvent(new CloudEventId(this.getUuid()));
         cloudEvent.setCreatedTime(createdTime);
-        cloudEvent.setTenantId(new TenantId(tenantId));
+        cloudEvent.setTenantId(TenantId.fromUUID(tenantId));
         if (entityId != null) {
             cloudEvent.setEntityId(entityId);
         }

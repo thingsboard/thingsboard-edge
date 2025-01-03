@@ -288,7 +288,7 @@ public class ProtoUtils {
 
     public static CloudEvent fromProto(TransportProtos.CloudEventMsgProto proto) {
         CloudEvent cloudEvent = new CloudEvent();
-        TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
+        TenantId tenantId = TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
         cloudEvent.setTenantId(tenantId);
         cloudEvent.setType(CloudEventType.valueOf(proto.getEntityType()));
         cloudEvent.setAction(EdgeEventActionType.valueOf(proto.getAction()));
