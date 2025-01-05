@@ -37,7 +37,7 @@ import static org.thingsboard.server.msa.AbstractContainerTest.edgeConfiguration
 @Slf4j
 public class ContainerTestSuite {
 
-    private static final String SOURCE_DIR = "./../../docker-edge/";
+    private static final String SOURCE_DIR = "./../../docker-edge/black-box-tests/";
 
     public static DockerComposeContainer<?> testContainer;
 
@@ -75,9 +75,9 @@ public class ContainerTestSuite {
                 }
 
                 testContainer = new DockerComposeContainerImpl<>(
-                        new File("./../../docker-edge/docker-compose.yml"),
-                        new File("./../../docker-edge/docker-compose.postgres.yml"),
-                        new File("./../../docker-edge/docker-compose.volumes.yml"))
+                        new File("./../../docker-edge/black-box-tests/docker-compose.yml"),
+                        new File("./../../docker-edge/black-box-tests/docker-compose.postgres.yml"),
+                        new File("./../../docker-edge/black-box-tests/docker-compose.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
                         .withOptions("--compatibility")
