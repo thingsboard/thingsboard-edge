@@ -270,10 +270,10 @@ database:
 
 # Cassandra driver configuration parameters
 cassandra:
-  # Thingsboard cluster name
-  cluster_name: "${CASSANDRA_CLUSTER_NAME:Thingsboard Cluster}"
-  # Thingsboard keyspace name
-  keyspace_name: "${CASSANDRA_KEYSPACE_NAME:thingsboard}"
+  # Thingsboard Edge cluster name
+  cluster_name: "${CASSANDRA_CLUSTER_NAME:Thingsboard Edge Cluster}"
+  # Thingsboard Edge keyspace name
+  keyspace_name: "${CASSANDRA_KEYSPACE_NAME:tb_edge}"
   # Specify node list
   url: "${CASSANDRA_URL:127.0.0.1:9042}"
   # Specify the local data center name
