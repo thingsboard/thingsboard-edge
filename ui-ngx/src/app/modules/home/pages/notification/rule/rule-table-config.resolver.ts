@@ -73,7 +73,7 @@ export class RuleTableConfigResolver  {
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.NOTIFICATION_RULE);
     this.config.entityResources = {} as EntityTypeResource<NotificationRule>;
 
-    this.config.addEntity = () => this.editRule(null, null, true);
+    this.config.addEntity = () => this.notificationRuleDialog(null, true);
 
     this.config.entitiesFetchFunction = pageLink => this.notificationService.getNotificationRules(pageLink);
 
@@ -90,11 +90,7 @@ export class RuleTableConfigResolver  {
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
     this.config.handleRowClick = ($event, rule) => {
-      this.editRule($event, rule).subscribe((res) => {
-        if (res) {
-          this.config.updateData();
-        }
-      });
+      this.editRule($event, rule);
       return true;
     };
 
@@ -122,7 +118,7 @@ export class RuleTableConfigResolver  {
       nameFunction: (entity) =>
         this.translate.instant(entity.enabled ? 'notification.rule-disable' : 'notification.rule-enable'),
       icon: 'mdi:toggle-switch',
-      isEnabled: () => true,
+      isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
       iconFunction: (entity) => entity.enabled ? 'mdi:toggle-switch' : 'mdi:toggle-switch-off-outline',
       onAction: ($event, entity) => this.toggleEnableMode($event, entity)
     },
@@ -130,12 +126,16 @@ export class RuleTableConfigResolver  {
       name: this.translate.instant('notification.copy-rule'),
       icon: 'content_copy',
       isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
-      onAction: ($event, entity) => this.editRule($event, entity, false, true)
+      onAction: ($event, entity) => this.editRule($event, entity, true)
     }];
   }
 
-  private editRule($event: Event, rule: NotificationRule, isAdd = false, isCopy = false): Observable<NotificationRule> {
+  private editRule($event: Event, rule: NotificationRule, isCopy = false): void{
     $event?.stopPropagation();
+    this.notificationRuleDialog(rule, false, isCopy).subscribe(res => res ? this.config.updateData() : null);
+  }
+
+  private notificationRuleDialog(rule: NotificationRule, isAdd = false, isCopy = false): Observable<NotificationRule> {
     return this.dialog.open<RuleNotificationDialogComponent, RuleNotificationDialogData,
       NotificationRule>(RuleNotificationDialogComponent, {
       disableClose: true,
