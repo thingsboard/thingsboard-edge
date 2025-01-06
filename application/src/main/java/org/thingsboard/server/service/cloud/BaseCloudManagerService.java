@@ -276,7 +276,8 @@ public abstract class BaseCloudManagerService {
             do {
                 cloudEvents = finder.find(tenantId, queueSeqIdStart, null, pageLink);
                 if (cloudEvents.getData().isEmpty()) {
-                    log.info("seqId column of table started new cycle");
+                    log.info("seqId column of table started new cycle. queueSeqIdStart={}, queueStartTsAttrKey={}, queueSeqIdAttrKey={}, isGeneralMsg={}",
+                            queueSeqIdStart, queueStartTsAttrKey, queueSeqIdAttrKey, isGeneralMsg);
                     cloudEvents = findCloudEventsFromBeginning(tenantId, pageLink, finder);
                 }
                 isInterrupted = processCloudEvents(cloudEvents.getData(), isGeneralMsg).get();
@@ -747,9 +748,12 @@ public abstract class BaseCloudManagerService {
             sendingInProgress = false;
 
             return success;
-        } catch (InterruptedException e) {
-            log.error("sendUplinkMsgPack throw InterruptedException", e);
-            throw new RuntimeException("Interrupted while waiting for latch. " + e);
+        } catch (Exception e) {
+            log.error("Interrupted while waiting for latch, isGeneralProcessInProgress={}", isGeneralProcessInProgress, e);
+            for (UplinkMsg value : pendingMsgMap.values()) {
+                log.warn("Message not send due to exception: {}", value);
+            }
+            return false;
         }
     }
 
