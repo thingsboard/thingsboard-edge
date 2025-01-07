@@ -31,7 +31,8 @@
 
 import {
   CellActionDescriptor,
-  DateEntityTableColumn, defaultEntityTablePermissions,
+  DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
