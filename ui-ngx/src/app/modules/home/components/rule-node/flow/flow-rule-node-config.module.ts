@@ -32,53 +32,27 @@
 import { NgModule, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IRuleNodeConfigurationComponent, SharedModule } from '@shared/public-api';
-import { CheckMessageConfigComponent } from './check-message-config.component';
-import { CheckRelationConfigComponent } from './check-relation-config.component';
-import { GpsGeoFilterConfigComponent } from './gps-geo-filter-config.component';
-import { MessageTypeConfigComponent } from './message-type-config.component';
-import { OriginatorTypeConfigComponent } from './originator-type-config.component';
-import { ScriptConfigComponent } from './script-config.component';
-import { SwitchConfigComponent } from './switch-config.component';
-import { CheckAlarmStatusComponent } from './check-alarm-status.component';
-import { RuleNodeConfigCommonModule } from '../common/rule-node-config-common.module';
+import { RuleChainInputComponent } from './rule-chain-input.component';
+import { RuleChainOutputComponent } from './rule-chain-output.component';
 
 @NgModule({
   declarations: [
-    CheckMessageConfigComponent,
-    CheckRelationConfigComponent,
-    GpsGeoFilterConfigComponent,
-    MessageTypeConfigComponent,
-    OriginatorTypeConfigComponent,
-    ScriptConfigComponent,
-    SwitchConfigComponent,
-    CheckAlarmStatusComponent
+    RuleChainInputComponent,
+    RuleChainOutputComponent
   ],
   imports: [
     CommonModule,
-    SharedModule,
-    RuleNodeConfigCommonModule
+    SharedModule
   ],
   exports: [
-    CheckMessageConfigComponent,
-    CheckRelationConfigComponent,
-    GpsGeoFilterConfigComponent,
-    MessageTypeConfigComponent,
-    OriginatorTypeConfigComponent,
-    ScriptConfigComponent,
-    SwitchConfigComponent,
-    CheckAlarmStatusComponent
+    RuleChainInputComponent,
+    RuleChainOutputComponent
   ]
 })
-export class RuleNodeConfigFilterModule {
+export class FlowRuleNodeConfigModule {
 }
 
-export const ruleNodeFilterConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
-  'tbFilterNodeCheckAlarmStatusConfig': CheckAlarmStatusComponent,
-  'tbFilterNodeCheckMessageConfig': CheckMessageConfigComponent,
-  'tbFilterNodeCheckRelationConfig': CheckRelationConfigComponent,
-  'tbFilterNodeGpsGeofencingConfig': GpsGeoFilterConfigComponent,
-  'tbFilterNodeMessageTypeConfig': MessageTypeConfigComponent,
-  'tbFilterNodeOriginatorTypeConfig': OriginatorTypeConfigComponent,
-  'tbFilterNodeScriptConfig': ScriptConfigComponent,
-  'tbFilterNodeSwitchConfig': SwitchConfigComponent
+export const flowRuleNodeConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
+  'tbFlowNodeRuleChainInputConfig': RuleChainInputComponent,
+  'tbFlowNodeRuleChainOutputConfig': RuleChainOutputComponent
 }

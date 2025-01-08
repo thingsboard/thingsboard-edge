@@ -37,6 +37,7 @@ import { AttributesConfigComponent } from './attributes-config.component';
 import { TimeseriesConfigComponent } from './timeseries-config.component';
 import { RpcRequestConfigComponent } from './rpc-request-config.component';
 import { LogConfigComponent } from './log-config.component';
+import { AssignCustomerConfigComponent } from './assign-customer-config.component';
 import { ClearAlarmConfigComponent } from './clear-alarm-config.component';
 import { CreateAlarmConfigComponent } from './create-alarm-config.component';
 import { CreateRelationConfigComponent } from './create-relation-config.component';
@@ -47,7 +48,8 @@ import { GpsGeoActionConfigComponent } from './gps-geo-action-config.component';
 import { MsgCountConfigComponent } from './msg-count-config.component';
 import { RpcReplyConfigComponent } from './rpc-reply-config.component';
 import { SaveToCustomTableConfigComponent } from './save-to-custom-table-config.component';
-import { RuleNodeConfigCommonModule } from '../common/rule-node-config-common.module';
+import { CommonRuleNodeConfigModule } from '../common/common-rule-node-config.module';
+import { UnassignCustomerConfigComponent } from './unassign-customer-config.component';
 import { DeviceProfileConfigComponent } from './device-profile-config.component';
 import { PushToEdgeConfigComponent } from './push-to-edge-config.component';
 import { PushToCloudConfigComponent } from './push-to-cloud-config.component';
@@ -55,7 +57,6 @@ import { DeleteAttributesConfigComponent } from './delete-attributes-config.comp
 import { MathFunctionConfigComponent } from './math-function-config.component';
 import { DeviceStateConfigComponent } from './device-state-config.component';
 import { SendRestApiCallReplyConfigComponent } from './send-rest-api-call-reply-config.component';
-import { EmptyConfigComponent } from '@home/components/rule-node/empty-config.component';
 
 @NgModule({
   declarations: [
@@ -64,6 +65,7 @@ import { EmptyConfigComponent } from '@home/components/rule-node/empty-config.co
     TimeseriesConfigComponent,
     RpcRequestConfigComponent,
     LogConfigComponent,
+    AssignCustomerConfigComponent,
     ClearAlarmConfigComponent,
     CreateAlarmConfigComponent,
     CreateRelationConfigComponent,
@@ -74,6 +76,7 @@ import { EmptyConfigComponent } from '@home/components/rule-node/empty-config.co
     MsgCountConfigComponent,
     RpcReplyConfigComponent,
     SaveToCustomTableConfigComponent,
+    UnassignCustomerConfigComponent,
     SendRestApiCallReplyConfigComponent,
     DeviceProfileConfigComponent,
     PushToEdgeConfigComponent,
@@ -85,7 +88,7 @@ import { EmptyConfigComponent } from '@home/components/rule-node/empty-config.co
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    RuleNodeConfigCommonModule
+    CommonRuleNodeConfigModule
   ],
   exports: [
     DeleteAttributesConfigComponent,
@@ -93,6 +96,7 @@ import { EmptyConfigComponent } from '@home/components/rule-node/empty-config.co
     TimeseriesConfigComponent,
     RpcRequestConfigComponent,
     LogConfigComponent,
+    AssignCustomerConfigComponent,
     ClearAlarmConfigComponent,
     CreateAlarmConfigComponent,
     CreateRelationConfigComponent,
@@ -102,6 +106,7 @@ import { EmptyConfigComponent } from '@home/components/rule-node/empty-config.co
     GpsGeoActionConfigComponent,
     MsgCountConfigComponent,
     RpcReplyConfigComponent,
+    UnassignCustomerConfigComponent,
     SaveToCustomTableConfigComponent,
     SendRestApiCallReplyConfigComponent,
     DeviceProfileConfigComponent,
@@ -111,17 +116,18 @@ import { EmptyConfigComponent } from '@home/components/rule-node/empty-config.co
     DeviceStateConfigComponent
   ]
 })
-export class RuleNodeConfigActionModule {
+export class ActionRuleNodeConfigModule {
 }
 
-export const ruleNodeActionConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
+export const actionRuleNodeConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
+  'tbActionNodeAssignToCustomerConfig': AssignCustomerConfigComponent,
   'tbActionNodeAttributesConfig': AttributesConfigComponent,
   'tbActionNodeClearAlarmConfig': ClearAlarmConfigComponent,
   'tbActionNodeCreateAlarmConfig': CreateAlarmConfigComponent,
   'tbActionNodeCreateRelationConfig': CreateRelationConfigComponent,
   'tbActionNodeDeleteAttributesConfig': DeleteAttributesConfigComponent,
   'tbActionNodeDeleteRelationConfig': DeleteRelationConfigComponent,
-  'tbDeviceProfileConfig': DeviceProfileConfigComponent,
+  'tbActionNodeDeviceProfileConfig': DeviceProfileConfigComponent,
   'tbActionNodeDeviceStateConfig': DeviceStateConfigComponent,
   'tbActionNodeGeneratorConfig': GeneratorConfigComponent,
   'tbActionNodeGpsGeofencingConfig': GpsGeoActionConfigComponent,

@@ -32,27 +32,53 @@
 import { NgModule, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IRuleNodeConfigurationComponent, SharedModule } from '@shared/public-api';
-import { RuleChainInputComponent } from './rule-chain-input.component';
-import { RuleChainOutputComponent } from './rule-chain-output.component';
+import { CheckMessageConfigComponent } from './check-message-config.component';
+import { CheckRelationConfigComponent } from './check-relation-config.component';
+import { GpsGeoFilterConfigComponent } from './gps-geo-filter-config.component';
+import { MessageTypeConfigComponent } from './message-type-config.component';
+import { OriginatorTypeConfigComponent } from './originator-type-config.component';
+import { ScriptConfigComponent } from './script-config.component';
+import { SwitchConfigComponent } from './switch-config.component';
+import { CheckAlarmStatusComponent } from './check-alarm-status.component';
+import { CommonRuleNodeConfigModule } from '../common/common-rule-node-config.module';
 
 @NgModule({
   declarations: [
-    RuleChainInputComponent,
-    RuleChainOutputComponent
+    CheckMessageConfigComponent,
+    CheckRelationConfigComponent,
+    GpsGeoFilterConfigComponent,
+    MessageTypeConfigComponent,
+    OriginatorTypeConfigComponent,
+    ScriptConfigComponent,
+    SwitchConfigComponent,
+    CheckAlarmStatusComponent
   ],
   imports: [
     CommonModule,
-    SharedModule
+    SharedModule,
+    CommonRuleNodeConfigModule
   ],
   exports: [
-    RuleChainInputComponent,
-    RuleChainOutputComponent
+    CheckMessageConfigComponent,
+    CheckRelationConfigComponent,
+    GpsGeoFilterConfigComponent,
+    MessageTypeConfigComponent,
+    OriginatorTypeConfigComponent,
+    ScriptConfigComponent,
+    SwitchConfigComponent,
+    CheckAlarmStatusComponent
   ]
 })
-export class RuleNodeConfigFlowModule {
+export class FilterRuleNodeConfigModule {
 }
 
-export const ruleNodeFlowConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
-  'tbFlowNodeRuleChainInputConfig': RuleChainInputComponent,
-  'tbFlowNodeRuleChainOutputConfig': RuleChainOutputComponent
+export const filterRuleNodeConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
+  'tbFilterNodeCheckAlarmStatusConfig': CheckAlarmStatusComponent,
+  'tbFilterNodeCheckMessageConfig': CheckMessageConfigComponent,
+  'tbFilterNodeCheckRelationConfig': CheckRelationConfigComponent,
+  'tbFilterNodeGpsGeofencingConfig': GpsGeoFilterConfigComponent,
+  'tbFilterNodeMessageTypeConfig': MessageTypeConfigComponent,
+  'tbFilterNodeOriginatorTypeConfig': OriginatorTypeConfigComponent,
+  'tbFilterNodeScriptConfig': ScriptConfigComponent,
+  'tbFilterNodeSwitchConfig': SwitchConfigComponent
 }
