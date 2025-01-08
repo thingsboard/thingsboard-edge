@@ -94,7 +94,8 @@ export class CustomerAttributesConfigComponent extends RuleNodeConfigurationComp
     return {
       dataToFetch,
       dataMapping,
-      fetchTo: isDefinedAndNotNull(configuration?.fetchTo) ? configuration.fetchTo : FetchTo.METADATA
+      fetchTo: isDefinedAndNotNull(configuration?.fetchTo) ? configuration.fetchTo : FetchTo.METADATA,
+      preserveOriginatorIfCustomer: isDefinedAndNotNull(configuration?.preserveOriginatorIfCustomer) ? configuration.preserveOriginatorIfCustomer : false
     };
   }
 
@@ -110,7 +111,8 @@ export class CustomerAttributesConfigComponent extends RuleNodeConfigurationComp
     this.customerAttributesConfigForm = this.fb.group({
       dataToFetch: [configuration.dataToFetch, []],
       dataMapping: [configuration.dataMapping, [Validators.required]],
-      fetchTo: [configuration.fetchTo]
+      fetchTo: [configuration.fetchTo],
+      preserveOriginatorIfCustomer: [configuration.preserveOriginatorIfCustomer, []]
     });
   }
 

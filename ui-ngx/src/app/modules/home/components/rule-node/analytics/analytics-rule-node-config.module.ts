@@ -32,7 +32,7 @@
 import { NgModule, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IRuleNodeConfigurationComponent, SharedModule } from '@shared/public-api';
-import { RuleNodeConfigCommonModule } from '@home/components/rule-node/common/rule-node-config-common.module';
+import { CommonRuleNodeConfigModule } from '@home/components/rule-node/common/common-rule-node-config.module';
 
 import { AggregateIncomingConfigComponent } from './aggregate-incoming-config.component';
 import { AggregateLatestConfigComponent } from './aggregate-latest-config.component';
@@ -59,7 +59,7 @@ import { AggregateLatestV2ConfigComponent } from './aggregate-latest-v2-config.c
   imports: [
     CommonModule,
     SharedModule,
-    RuleNodeConfigCommonModule
+    CommonRuleNodeConfigModule
   ],
   exports: [
     AggregateIncomingConfigComponent,

@@ -42,15 +42,9 @@ import { NodeJsonPathConfigComponent } from './node-json-path-config.component';
 import { DeleteKeysConfigComponent } from './delete-keys-config.component';
 import { DeduplicationConfigComponent } from './deduplication-config.component';
 import { ScriptConfigComponent } from '@home/components/rule-node/filter/script-config.component';
-import {
-  DuplicateToGroupConfigComponent
-} from '@home/components/rule-node/transform/duplicate-to-group-config.component';
-import {
-  DuplicateToGroupByNameConfigComponent
-} from '@home/components/rule-node/transform/duplicate-to-group-by-name-config.component';
-import {
-  DuplicateToRelatedConfigComponent
-} from '@home/components/rule-node/transform/duplicate-to-related-config.component';
+import { DuplicateToGroupConfigComponent } from './duplicate-to-group-config.component';
+import { DuplicateToGroupByNameConfigComponent } from './duplicate-to-group-by-name-config.component';
+import { DuplicateToRelatedConfigComponent } from './duplicate-to-related-config.component';
 
 @NgModule({
   declarations: [
