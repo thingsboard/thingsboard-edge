@@ -48,6 +48,7 @@ import { RelationsQueryConfigOldComponent } from './relations-query-config-old.c
 import { SelectAttributesComponent } from './select-attributes.component';
 import { AlarmStatusSelectComponent } from './alarm-status-select.component';
 import { ExampleHintComponent } from './example-hint.component';
+import { TargetEntityComponent } from '@home/components/rule-node/common/target-entity.component';
 
 @NgModule({
   declarations: [
@@ -65,7 +66,8 @@ import { ExampleHintComponent } from './example-hint.component';
     RelationsQueryConfigOldComponent,
     SelectAttributesComponent,
     AlarmStatusSelectComponent,
-    ExampleHintComponent
+    ExampleHintComponent,
+    TargetEntityComponent
   ],
   imports: [
     CommonModule,
@@ -87,7 +89,8 @@ import { ExampleHintComponent } from './example-hint.component';
     RelationsQueryConfigOldComponent,
     SelectAttributesComponent,
     AlarmStatusSelectComponent,
-    ExampleHintComponent
+    ExampleHintComponent,
+    TargetEntityComponent
   ]
 })
 

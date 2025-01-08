@@ -42,6 +42,15 @@ import { NodeJsonPathConfigComponent } from './node-json-path-config.component';
 import { DeleteKeysConfigComponent } from './delete-keys-config.component';
 import { DeduplicationConfigComponent } from './deduplication-config.component';
 import { ScriptConfigComponent } from '@home/components/rule-node/filter/script-config.component';
+import {
+  DuplicateToGroupConfigComponent
+} from '@home/components/rule-node/transform/duplicate-to-group-config.component';
+import {
+  DuplicateToGroupByNameConfigComponent
+} from '@home/components/rule-node/transform/duplicate-to-group-by-name-config.component';
+import {
+  DuplicateToRelatedConfigComponent
+} from '@home/components/rule-node/transform/duplicate-to-related-config.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +61,10 @@ import { ScriptConfigComponent } from '@home/components/rule-node/filter/script-
     RenameKeysConfigComponent,
     NodeJsonPathConfigComponent,
     DeleteKeysConfigComponent,
-    DeduplicationConfigComponent
+    DeduplicationConfigComponent,
+    DuplicateToGroupConfigComponent,
+    DuplicateToRelatedConfigComponent,
+    DuplicateToGroupByNameConfigComponent,
   ],
   imports: [
     CommonModule,
@@ -67,7 +79,10 @@ import { ScriptConfigComponent } from '@home/components/rule-node/filter/script-
     RenameKeysConfigComponent,
     NodeJsonPathConfigComponent,
     DeleteKeysConfigComponent,
-    DeduplicationConfigComponent
+    DeduplicationConfigComponent,
+    DuplicateToGroupConfigComponent,
+    DuplicateToRelatedConfigComponent,
+    DuplicateToGroupByNameConfigComponent,
   ]
 })
 export class TransformationRuleNodeConfigModule {
@@ -81,5 +96,8 @@ export const transformationRuleNodeConfigComponentsMap: Record<string, Type<IRul
   'tbTransformationNodeJsonPathConfig': NodeJsonPathConfigComponent,
   'tbTransformationNodeRenameKeysConfig': RenameKeysConfigComponent,
   'tbTransformationNodeScriptConfig': ScriptConfigComponent,
-  'tbTransformationNodeToEmailConfig': ToEmailConfigComponent
+  'tbTransformationNodeToEmailConfig': ToEmailConfigComponent,
+  'tbTransformationNodeDuplicateToGroupByNameConfig': DuplicateToGroupByNameConfigComponent,
+  'tbTransformationNodeDuplicateToGroupConfig': DuplicateToGroupConfigComponent,
+  'tbTransformationNodeDuplicateToRelatedConfig': DuplicateToRelatedConfigComponent,
 }

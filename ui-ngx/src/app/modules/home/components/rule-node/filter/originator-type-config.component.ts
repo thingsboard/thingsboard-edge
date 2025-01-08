@@ -54,7 +54,12 @@ export class OriginatorTypeConfigComponent extends RuleNodeConfigurationComponen
     EntityType.DASHBOARD,
     EntityType.RULE_CHAIN,
     EntityType.RULE_NODE,
-    EntityType.EDGE
+    EntityType.EDGE,
+    EntityType.ENTITY_GROUP,
+    EntityType.CONVERTER,
+    EntityType.INTEGRATION,
+    EntityType.SCHEDULER_EVENT,
+    EntityType.BLOB_ENTITY,
   ];
 
   constructor(private fb: UntypedFormBuilder) {

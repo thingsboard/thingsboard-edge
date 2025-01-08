@@ -45,6 +45,9 @@ export class CustomerAttributesConfigComponent extends RuleNodeConfigurationComp
 
   customerAttributesConfigForm: FormGroup;
 
+  dataToFetch = DataToFetch;
+  dataToFetchTranslations = dataToFetchTranslations
+
   public fetchToData = [];
 
   constructor(private fb: FormBuilder,

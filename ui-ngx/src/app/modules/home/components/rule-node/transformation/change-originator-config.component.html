@@ -50,6 +50,15 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+
+  <div *ngIf="changeOriginatorConfigForm.get('originatorSource').value === originatorSource.CUSTOMER"
+       tb-hint-tooltip-icon="{{ 'tb.rulenode.parse-originator-if-customer-hint' | translate }}"
+       class="tb-form-row same-padding">
+    <mat-slide-toggle class="mat-slide margin" formControlName="preserveOriginatorIfCustomer">
+      {{ 'tb.rulenode.parse-originator-if-customer' | translate }}
+    </mat-slide-toggle>
+  </div>
+
   <div class="tb-form-panel stroked no-padding-bottom"
         *ngIf="changeOriginatorConfigForm.get('originatorSource').value === originatorSource.ENTITY">
     <tb-example-hint [hintText]="'tb.rulenode.entity-name-pattern-hint'"

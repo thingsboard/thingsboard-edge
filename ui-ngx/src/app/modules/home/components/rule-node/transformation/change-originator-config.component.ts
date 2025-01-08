@@ -65,6 +65,7 @@ export class ChangeOriginatorConfigComponent extends RuleNodeConfigurationCompon
   protected onConfigurationSet(configuration: RuleNodeConfiguration) {
     this.changeOriginatorConfigForm = this.fb.group({
       originatorSource: [configuration ? configuration.originatorSource : null, [Validators.required]],
+      preserveOriginatorIfCustomer: [configuration ? configuration?.preserveOriginatorIfCustomer : false, []],
       entityType: [configuration ? configuration.entityType : null, []],
       entityNamePattern: [configuration ? configuration.entityNamePattern : null, []],
       relationsQuery: [configuration ? configuration.relationsQuery : null, []]

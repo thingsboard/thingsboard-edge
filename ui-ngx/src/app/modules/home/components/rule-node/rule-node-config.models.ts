@@ -30,8 +30,8 @@
 ///
 
 import { EntityField, entityFields } from '@shared/models/entity.models';
-import { EntitySearchDirection } from '@shared/models/relation.models';
-import { EntityTypeFilter } from '@shared/models/alias.models';
+import { CONTAINS_TYPE, EntitySearchDirection, RelationEntityTypeFilter } from '@shared/models/relation.models';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export enum OriginatorSource {
   CUSTOMER = 'CUSTOMER',
@@ -287,6 +287,98 @@ export enum HttpRequestType {
   DELETE = 'DELETE'
 }
 
+export enum OwnerType {
+  TENANT = 'TENANT',
+  CUSTOMER = 'CUSTOMER'
+}
+
+export const ownerTypeTranslations = new Map<OwnerType, string>(
+  [
+    [OwnerType.TENANT, 'tb.rulenode.originator-tenant'],
+    [OwnerType.CUSTOMER, 'tb.rulenode.originator-customer']
+  ]
+);
+
+export enum AggMathFunction {
+  MIN = 'MIN',
+  MAX = 'MAX',
+  SUM = 'SUM',
+  AVG = 'AVG',
+  COUNT = 'COUNT',
+  COUNT_UNIQUE = 'COUNT_UNIQUE'
+}
+
+export const aggMathFunctionTranslations = new Map<AggMathFunction, string>(
+  [
+    [AggMathFunction.MIN, 'tb.rulenode.func-min'],
+    [AggMathFunction.MAX, 'tb.rulenode.func-max'],
+    [AggMathFunction.SUM, 'tb.rulenode.func-sum'],
+    [AggMathFunction.AVG, 'tb.rulenode.func-avg'],
+    [AggMathFunction.COUNT, 'tb.rulenode.func-count'],
+    [AggMathFunction.COUNT_UNIQUE, 'tb.rulenode.func-count-unique']
+  ]
+);
+
+export const allowedEntityGroupTypes: Array<EntityType> = [
+  EntityType.ASSET,
+  EntityType.DEVICE,
+  EntityType.EDGE,
+  EntityType.ENTITY_VIEW,
+  EntityType.CUSTOMER,
+  EntityType.USER
+];
+
+export enum AggIntervalType {
+  HOUR = 'HOUR',
+  DAY = 'DAY',
+  WEEK = 'WEEK',
+  WEEK_SUN_SAT = 'WEEK_SUN_SAT',
+  MONTH = 'MONTH',
+  YEAR = 'YEAR',
+  CUSTOM = 'CUSTOM'
+}
+
+export const aggIntervalTypeTranslations = new Map<AggIntervalType, string>(
+  [
+    [AggIntervalType.HOUR, 'tb.rulenode.aggregate-period-hour'],
+    [AggIntervalType.DAY, 'tb.rulenode.aggregate-period-day'],
+    [AggIntervalType.WEEK, 'tb.rulenode.aggregate-period-week'],
+    [AggIntervalType.WEEK_SUN_SAT, 'tb.rulenode.aggregate-period-week-sun-sat'],
+    [AggIntervalType.MONTH, 'tb.rulenode.aggregate-period-month'],
+    [AggIntervalType.YEAR, 'tb.rulenode.aggregate-period-year'],
+    [AggIntervalType.CUSTOM, 'tb.rulenode.aggregate-period-custom']
+  ]
+);
+
+export enum IntervalPersistPolicy {
+  ON_EACH_CHECK = 'ON_EACH_CHECK',
+  ON_EACH_CHECK_AFTER_INTERVAL_END = 'ON_EACH_CHECK_AFTER_INTERVAL_END',
+  ON_EACH_MESSAGE = 'ON_EACH_MESSAGE'
+}
+
+export const intervalPersistPolicyTranslations = new Map<IntervalPersistPolicy, string>(
+  [
+    [IntervalPersistPolicy.ON_EACH_CHECK, 'tb.rulenode.interval-persist-policy-on-each-check'],
+    [IntervalPersistPolicy.ON_EACH_CHECK_AFTER_INTERVAL_END,
+      'tb.rulenode.interval-persist-policy-on-each-check-after-interval-end'],
+    [IntervalPersistPolicy.ON_EACH_MESSAGE,
+      'tb.rulenode.interval-persist-policy-on-each-message']
+  ]
+);
+
+export enum StatePersistPolicy {
+  ON_EACH_CHANGE = 'ON_EACH_CHANGE',
+  PERIODICALLY = 'PERIODICALLY'
+}
+
+export const statePersistPolicyTranslations = new Map<StatePersistPolicy, string>(
+  [
+    [StatePersistPolicy.ON_EACH_CHANGE, 'tb.rulenode.state-persist-policy-on-each-change'],
+    [StatePersistPolicy.PERIODICALLY,
+      'tb.rulenode.state-persist-policy-periodically']
+  ]
+);
+
 export const ToByteStandartCharsetTypes = [
   'US-ASCII',
   'ISO-8859-1',
@@ -311,7 +403,51 @@ export interface RelationsQuery {
   fetchLastLevelOnly: boolean;
   direction: EntitySearchDirection;
   maxLevel?: number;
-  filters?: EntityTypeFilter[];
+  filters?: RelationEntityTypeFilter[];
+}
+
+export const defaultRelationsQuery: RelationsQuery = {
+  fetchLastLevelOnly: false,
+  direction: EntitySearchDirection.FROM,
+  maxLevel: 1,
+  filters: [
+    {
+      relationType: CONTAINS_TYPE,
+      entityTypes: []
+    }
+  ]
+};
+
+export type ParentEntitiesQueryType = 'single' | 'group' | 'relationsQuery';
+
+export function prepareParentEntitiesQuery(parentEntitiesQuery: any): any {
+  if (parentEntitiesQuery && parentEntitiesQuery.type) {
+    const parentEntitiesQueryType: ParentEntitiesQueryType = parentEntitiesQuery.type;
+    const preparedParentEntitiesQuery = {
+      type: parentEntitiesQueryType
+    } as any;
+    switch (parentEntitiesQueryType) {
+      case 'single':
+        preparedParentEntitiesQuery.entityId = parentEntitiesQuery.entityId;
+        if (parentEntitiesQuery.childRelationsQuery) {
+          preparedParentEntitiesQuery.childRelationsQuery = parentEntitiesQuery.childRelationsQuery;
+        }
+        break;
+      case 'group':
+        preparedParentEntitiesQuery.entityGroupId = parentEntitiesQuery.entityGroupId;
+        break;
+      case 'relationsQuery':
+        preparedParentEntitiesQuery.rootEntityId = parentEntitiesQuery.rootEntityId;
+        preparedParentEntitiesQuery.relationsQuery = parentEntitiesQuery.relationsQuery;
+        preparedParentEntitiesQuery.includeRootEntity = parentEntitiesQuery.includeRootEntity;
+        if (parentEntitiesQuery.childRelationsQuery) {
+          preparedParentEntitiesQuery.childRelationsQuery = parentEntitiesQuery.childRelationsQuery;
+        }
+        break;
+    }
+    return preparedParentEntitiesQuery;
+  }
+  return parentEntitiesQuery;
 }
 
 export interface FunctionData {

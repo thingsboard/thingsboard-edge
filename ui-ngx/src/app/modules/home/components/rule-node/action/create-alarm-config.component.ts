@@ -94,6 +94,7 @@ export class CreateAlarmConfigComponent extends RuleNodeConfigurationComponent {
       propagate: [configuration ? configuration.propagate : false, []],
       relationTypes: [configuration ? configuration.relationTypes : null, []],
       propagateToOwner: [configuration ? configuration.propagateToOwner : false, []],
+      propagateToOwnerHierarchy: [configuration ? configuration.propagateToOwnerHierarchy : false, []],
       propagateToTenant: [configuration ? configuration.propagateToTenant : false, []],
       dynamicSeverity: false
     });

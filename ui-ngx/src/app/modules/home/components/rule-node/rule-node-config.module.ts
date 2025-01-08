@@ -58,6 +58,10 @@ import {
   FlowRuleNodeConfigModule
 } from '@home/components/rule-node/flow/flow-rule-node-config.module';
 import { IRuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import {
+  analyticsRuleNodeConfigComponentsMap,
+  AnalyticsRuleNodeConfigModule
+} from '@home/components/rule-node/analytics/analytics-rule-node-config.module';
 
 @NgModule({
   declarations: [
@@ -69,6 +73,7 @@ import { IRuleNodeConfigurationComponent } from '@shared/models/rule-node.models
   ],
   exports: [
     ActionRuleNodeConfigModule,
+    AnalyticsRuleNodeConfigModule,
     FilterRuleNodeConfigModule,
     EnrichmentRuleNodeCoreModule,
     ExternalRuleNodeConfigModule,
@@ -81,6 +86,7 @@ export class RuleNodeConfigModule {}
 
 export const ruleNodeConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
   ...actionRuleNodeConfigComponentsMap,
+  ...analyticsRuleNodeConfigComponentsMap,
   ...enrichmentRuleNodeConfigComponentsMap,
   ...externalRuleNodeConfigComponentsMap,
   ...filterRuleNodeConfigComponentsMap,

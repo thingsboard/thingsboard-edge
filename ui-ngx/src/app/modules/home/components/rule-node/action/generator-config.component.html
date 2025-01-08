@@ -58,14 +58,24 @@
   </div>
 
   <div class="tb-form-panel no-padding-bottom stroked">
-    <div class="tb-form-panel-title" translate>tb.rulenode.originator</div>
+    <div class="flex flex-row items-center justify-between">
+      <div class="tb-form-panel-title" translate>tb.rulenode.originator</div>
+      <tb-toggle-select appearance="fill" formControlName="isEntityGroup">
+        <tb-toggle-option [value]="false">{{ 'tb.rulenode.single-entity' | translate }}</tb-toggle-option>
+        <tb-toggle-option [value]="true">{{ 'tb.rulenode.entity-group' | translate }}</tb-toggle-option>
+      </tb-toggle-select>
+    </div>
     <tb-entity-select class="flex-1"
+                      *ngIf="!generatorConfigForm.get('isEntityGroup').value"
                       required="true"
                       useAliasEntityTypes="true"
                       [allowedEntityTypes]="allowedEntityTypes"
                       [additionEntityTypes]="additionEntityTypes"
                       formControlName="originator">
     </tb-entity-select>
+    <tb-target-entity *ngIf="generatorConfigForm.get('isEntityGroup').value"
+                      [allowedGroupTypes]="entityGroupTypes"
+                      formControlName="originator"></tb-target-entity>
   </div>
   <div class="tb-form-panel stroked">
     <mat-expansion-panel class="tb-settings" expanded>

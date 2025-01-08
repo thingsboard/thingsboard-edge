@@ -58,4 +58,11 @@
     ('tb.rulenode.add-mapped-latest-telemetry-to' | translate) : ('tb.rulenode.add-mapped-attribute-to' | translate)"
     formControlName="fetchTo">
   </tb-msg-metadata-chip>
+  <div tb-hint-tooltip-icon="{{ 'tb.rulenode.fetch-originators-attributes-customer-hint' | translate :
+  {mappingOfCustomers: dataToFetchTranslations.get(customerAttributesConfigForm.get('dataToFetch').value) | translate | lowercase } }}"
+       class="tb-form-row same-padding">
+    <mat-slide-toggle class="mat-slide margin" formControlName="preserveOriginatorIfCustomer">
+      {{ 'tb.rulenode.fetch-originators-attributes-customer' | translate }}
+    </mat-slide-toggle>
+  </div>
 </section>

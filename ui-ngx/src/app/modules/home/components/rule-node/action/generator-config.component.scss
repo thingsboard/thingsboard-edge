@@ -62,5 +62,27 @@
         }
       }
     }
+    .tb-owner-autocomplete {
+      flex: 1;
+      mat-form-field {
+        width: 100% !important;
+      }
+    }
+    .entity-group-select {
+      tb-entity-group-autocomplete {
+        mat-form-field {
+          width: 100% !important;
+        }
+      }
+      .tb-entity-group-select {
+        gap: 16px;
+      }
+      tb-entity-type-select {
+        padding-right: 0 !important;
+        mat-form-field {
+          width: 100% !important;
+        }
+      }
+    }
   }
 }
