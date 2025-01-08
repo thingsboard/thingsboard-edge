@@ -47,6 +47,8 @@ import { HomeComponentsModule } from '@home/components/public-api';
 import { CommonRuleNodeConfigModule } from '../common/common-rule-node-config.module';
 import { SlackConfigComponent } from './slack-config.component';
 import { LambdaConfigComponent } from './lambda-config.component';
+import { TwilioSmsConfigComponent } from '@home/components/rule-node/external/twilio-sms-config.component';
+import { TwilioVoiceConfigComponent } from '@home/components/rule-node/external/twilio-voice-config.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +64,9 @@ import { LambdaConfigComponent } from './lambda-config.component';
     SendEmailConfigComponent,
     AzureIotHubConfigComponent,
     SendSmsConfigComponent,
-    SlackConfigComponent
+    SlackConfigComponent,
+    TwilioSmsConfigComponent,
+    TwilioVoiceConfigComponent,
   ],
   imports: [
     CommonModule,
@@ -83,7 +87,9 @@ import { LambdaConfigComponent } from './lambda-config.component';
     SendEmailConfigComponent,
     AzureIotHubConfigComponent,
     SendSmsConfigComponent,
-    SlackConfigComponent
+    SlackConfigComponent,
+    TwilioSmsConfigComponent,
+    TwilioVoiceConfigComponent,
   ]
 })
 export class ExternalRuleNodeConfigModule {
@@ -102,5 +108,7 @@ export const externalRuleNodeConfigComponentsMap: Record<string, Type<IRuleNodeC
   'tbExternalNodeSendSmsConfig': SendSmsConfigComponent,
   'tbExternalNodeSlackConfig': SlackConfigComponent,
   'tbExternalNodeSnsConfig': SnsConfigComponent,
-  'tbExternalNodeSqsConfig': SqsConfigComponent
+  'tbExternalNodeSqsConfig': SqsConfigComponent,
+  'tbExternalNodeTwilioSmsConfig': TwilioSmsConfigComponent,
+  'tbExternalNodeTwilioVoiceConfig': TwilioVoiceConfigComponent
 }
