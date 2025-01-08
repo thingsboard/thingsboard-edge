@@ -171,6 +171,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.thingsboard.server.common.data.permission.Resource.ALL;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ATTRIBUTE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
 
@@ -1812,7 +1813,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntitiesByGroupNameFilterWhenUserHasGroupAccessTwoDifferentCustomerDeviceGroup() {
+    public void testFindEntitiesByGroupNameFilter() {
         EntityGroup customerGroup = new EntityGroup();
         customerGroup.setName("customers");
         customerGroup.setType(EntityType.CUSTOMER);
@@ -1834,8 +1835,8 @@ public class EntityServiceTest extends AbstractServiceTest {
         CustomerId subCustomerId2 = subCustomer2.getId();
         entityGroupService.addEntityToEntityGroup(tenantId, customerGroup.getId(), subCustomerId2);
 
-        List<Device> subCustomerDevices = new ArrayList<>();
-        List<Device> subCustomerDevices2 = new ArrayList<>();
+        List<DeviceId> subCustomerDevices = new ArrayList<>();
+        List<DeviceId> subCustomerDevices2 = new ArrayList<>();
 
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName("devices");
@@ -1852,14 +1853,14 @@ public class EntityServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 10; i++) {
             Device device = createDevice(subCustomerId1);
             Device savedDevice = deviceService.saveDevice(device);
-            subCustomerDevices.add(savedDevice);
+            subCustomerDevices.add(savedDevice.getId());
             entityGroupService.addEntityToEntityGroup(tenantId, customerDeviceGroup.getId(), savedDevice.getId());
         }
 
         for (int i = 0; i < 10; i++) {
             Device device = createDevice(subCustomerId2);
             Device savedDevice = deviceService.saveDevice(device);
-            subCustomerDevices2.add(savedDevice);
+            subCustomerDevices2.add(savedDevice.getId());
             entityGroupService.addEntityToEntityGroup(tenantId, secondCustomerDeviceGroup.getId(), savedDevice.getId());
         }
 
@@ -1871,105 +1872,35 @@ public class EntityServiceTest extends AbstractServiceTest {
         List<EntityKey> entityFields = List.of(
                 new EntityKey(EntityKeyType.ENTITY_FIELD, "name")
         );
-
-        Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
-        genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
-        genericPermissions.put(Resource.CUSTOMER_GROUP, Collections.singleton(Operation.ALL));
-
-        Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions = new HashMap<>();
-        groupPermissions.put(customerGroup.getId(), new MergedGroupPermissionInfo(EntityType.CUSTOMER, Set.of(Operation.READ)));
-        groupPermissions.put(customerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)));
-        groupPermissions.put(secondCustomerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)));
-        MergedUserPermissions mergedUserPermissions = new MergedUserPermissions(genericPermissions, groupPermissions);
-
         EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
         EntityDataQuery query = new EntityDataQuery(entitiesByGroupNameFilter, pageLink, entityFields, null, null);
-        PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, customerId, mergedUserPermissions, query);
-        List<DeviceId> resultDevices = result.getData().stream().map(entityData -> (DeviceId) entityData.getEntityId()).collect(Collectors.toList());
-        List<DeviceId> expectedDevices = subCustomerDevices2.stream().map(Device::getId).collect(Collectors.toList());
-        assertThat(resultDevices).hasSameElementsAs(expectedDevices);
+
+        // generic permission only
+        MergedUserPermissions genericPermissionOnly = new MergedUserPermissions(Map.of(ALL, Set.of(Operation.ALL)), Collections.emptyMap());
+
+        PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, subCustomerId2, genericPermissionOnly, query);
+        assertThat(getResultDeviceIds(result)).hasSameElementsAs(subCustomerDevices2);
+
+        // generic + group permission
+        MergedUserPermissions genericAndGroupPermissions = new MergedUserPermissions(Map.of(ALL, Set.of(Operation.READ)),
+                Map.of(customerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)),
+                        secondCustomerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ))));
+
+        result = entityService.findEntityDataByQuery(tenantId, customerId, genericAndGroupPermissions, query);
+        assertThat(getResultDeviceIds(result)).hasSameElementsAs(subCustomerDevices2);
+
+        // group permission
+        MergedUserPermissions groupPermissionOnly = new MergedUserPermissions(Collections.emptyMap(),
+                Map.of(customerGroup.getId(), new MergedGroupPermissionInfo(EntityType.CUSTOMER, Set.of(Operation.READ)),
+                        customerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)),
+                        secondCustomerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ))));
+
+        result = entityService.findEntityDataByQuery(tenantId, customerId, groupPermissionOnly, query);
+        assertThat(getResultDeviceIds(result)).hasSameElementsAs(subCustomerDevices2);
     }
 
-    @Test
-    public void testFindEntitiesByGroupNameFilterWhenUserHasGenericAccessAndGroupAccessTwoOtherCustomerDeviceGroup() {
-        EntityGroup customerGroup = new EntityGroup();
-        customerGroup.setName("customers");
-        customerGroup.setType(EntityType.CUSTOMER);
-        customerGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, customerGroup);
-
-        Customer subCustomer = new Customer();
-        subCustomer.setTenantId(tenantId);
-        subCustomer.setOwnerId(customerId);
-        subCustomer.setTitle("EntitiesByGroupNameFilter Customer");
-        subCustomer = customerService.saveCustomer(subCustomer);
-        CustomerId subCustomerId = subCustomer.getId();
-        entityGroupService.addEntityToEntityGroup(tenantId, customerGroup.getId(), subCustomerId);
-
-        EntityGroup otherCustomerGroup = new EntityGroup();
-        otherCustomerGroup.setName("customers");
-        otherCustomerGroup.setType(EntityType.CUSTOMER);
-        otherCustomerGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, customerGroup);
-
-        Customer otherSubCustomer = new Customer();
-        otherSubCustomer.setTenantId(tenantId);
-        otherSubCustomer.setOwnerId(otherCustomerId);
-        otherSubCustomer.setTitle("EntitiesByGroupNameFilter Other customer");
-        otherSubCustomer = customerService.saveCustomer(otherSubCustomer);
-        CustomerId otherSubCustomerId = otherSubCustomer.getId();
-        entityGroupService.addEntityToEntityGroup(tenantId, otherCustomerGroup.getId(), otherSubCustomerId);
-
-        List<Device> subCustomerDevices = new ArrayList<>();
-        List<Device> otherSubCustomerDevices = new ArrayList<>();
-
-        EntityGroup deviceGroup = new EntityGroup();
-        deviceGroup.setName("devices");
-        deviceGroup.setType(EntityType.DEVICE);
-        deviceGroup.setOwnerId(subCustomerId);
-        deviceGroup = entityGroupService.saveEntityGroup(tenantId, subCustomerId, deviceGroup);
-
-        EntityGroup otherDeviceGroup = new EntityGroup();
-        otherDeviceGroup.setName("devices");
-        otherDeviceGroup.setType(EntityType.DEVICE);
-        otherDeviceGroup.setOwnerId(otherSubCustomerId);
-        otherDeviceGroup = entityGroupService.saveEntityGroup(tenantId, otherSubCustomerId, otherDeviceGroup);
-
-        for (int i = 0; i < 10; i++) {
-            Device device = createDevice(subCustomerId);
-            Device savedDevice = deviceService.saveDevice(device);
-            subCustomerDevices.add(savedDevice);
-            entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), savedDevice.getId());
-        }
-
-        for (int i = 0; i < 10; i++) {
-            Device device = createDevice(otherSubCustomerId);
-            Device savedDevice = deviceService.saveDevice(device);
-            otherSubCustomerDevices.add(savedDevice);
-            entityGroupService.addEntityToEntityGroup(tenantId, otherDeviceGroup.getId(), savedDevice.getId());
-        }
-
-        EntitiesByGroupNameFilter entitiesByGroupNameFilter = new EntitiesByGroupNameFilter();
-        entitiesByGroupNameFilter.setGroupType(EntityType.DEVICE);
-        entitiesByGroupNameFilter.setEntityGroupNameFilter("devices");
-        entitiesByGroupNameFilter.setOwnerId(otherSubCustomerId);
-
-        List<EntityKey> entityFields = List.of(
-                new EntityKey(EntityKeyType.ENTITY_FIELD, "name")
-        );
-
-        Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
-        genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
-        genericPermissions.put(Resource.CUSTOMER_GROUP, Collections.singleton(Operation.ALL));
-
-        Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions = new HashMap<>();
-        groupPermissions.put(otherDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)));
-        MergedUserPermissions mergedUserPermissions = new MergedUserPermissions(genericPermissions, groupPermissions);
-
-        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
-        EntityDataQuery query = new EntityDataQuery(entitiesByGroupNameFilter, pageLink, entityFields, null, null);
-        PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, customerId, mergedUserPermissions, query);
-        List<DeviceId> resultDevices = result.getData().stream().map(entityData -> (DeviceId) entityData.getEntityId()).collect(Collectors.toList());
-        List<DeviceId> expectedDevices = otherSubCustomerDevices.stream().map(Device::getId).collect(Collectors.toList());
-        assertThat(resultDevices).hasSameElementsAs(expectedDevices);
+    private List<DeviceId> getResultDeviceIds(PageData<EntityData> result) {
+        return result.getData().stream().map(entityData -> (DeviceId) entityData.getEntityId()).collect(Collectors.toList());
     }
 
     @Test
@@ -3516,12 +3447,12 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(mappedDevice.getAdditionalInfo()).isEqualTo(device.getAdditionalInfo());
 
         PageData<Device> devices = entityService.findUserEntities(tenantId, device.getCustomerId(), new MergedUserPermissions(
-                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+                Map.of(ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.DEVICE, Operation.READ, null, new PageLink(100), false, false);
         assertThat(devices.getData()).contains(mappedDevice);
 
         devices = entityService.findUserEntities(tenantId, device.getCustomerId(), new MergedUserPermissions(
-                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+                Map.of(ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.DEVICE, Operation.READ, null, new PageLink(100), false, true);
         assertThat(devices.getData()).isNotEmpty().allSatisfy(deviceWithId -> {
             assertThat(deviceWithId.getId()).isEqualTo(mappedDevice.getId());
@@ -3557,7 +3488,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(mappedAsset.getAdditionalInfo()).isEqualTo(asset.getAdditionalInfo());
 
         PageData<Asset> assets = entityService.findUserEntities(tenantId, asset.getCustomerId(), new MergedUserPermissions(
-                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+                Map.of(ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.ASSET, Operation.READ, null, new PageLink(100));
         assertThat(assets.getData()).contains(mappedAsset);
     }
@@ -3594,7 +3525,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(mappedEntityView.getAdditionalInfo()).isEqualTo(entityView.getAdditionalInfo());
 
         PageData<EntityView> entityViews = entityService.findUserEntities(tenantId, entityView.getCustomerId(), new MergedUserPermissions(
-                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+                Map.of(ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.ENTITY_VIEW, Operation.READ, null, new PageLink(100));
         assertThat(entityViews.getData()).contains(mappedEntityView);
     }
@@ -3634,7 +3565,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(mappedEdge.getAdditionalInfo()).isEqualTo(edge.getAdditionalInfo());
 
         PageData<Edge> edges = entityService.findUserEntities(tenantId, edge.getCustomerId(), new MergedUserPermissions(
-                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+                Map.of(ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.EDGE, Operation.READ, null, new PageLink(100));
         assertThat(edges.getData()).contains(mappedEdge);
     }
@@ -3666,7 +3597,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(mappedDashboard.getMobileOrder()).isEqualTo(dashboard.getMobileOrder());
 
         PageData<Dashboard> dashboards = entityService.findUserEntities(tenantId, dashboard.getCustomerId(), new MergedUserPermissions(
-                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+                Map.of(ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.DASHBOARD, Operation.READ, null, new PageLink(100));
         assertThat(dashboards.getData()).contains(mappedDashboard);
     }
@@ -3709,7 +3640,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(mappedCustomer.getAdditionalInfo()).isEqualTo(customer.getAdditionalInfo());
 
         PageData<Customer> customers = entityService.findUserEntities(tenantId, customer.getParentCustomerId(), new MergedUserPermissions(
-                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+                Map.of(ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.CUSTOMER, Operation.READ, null, new PageLink(100));
         assertThat(customers.getData()).contains(mappedCustomer);
     }
@@ -3741,7 +3672,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(mappedUser.getAdditionalInfo()).isEqualTo(user.getAdditionalInfo());
 
         PageData<User> users = entityService.findUserEntities(tenantId, user.getCustomerId(), new MergedUserPermissions(
-                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+                Map.of(ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.USER, Operation.READ, null, new PageLink(100));
         assertThat(users.getData()).contains(mappedUser);
     }
