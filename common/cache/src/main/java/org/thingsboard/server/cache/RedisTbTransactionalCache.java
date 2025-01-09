@@ -81,39 +81,23 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
 
     static final byte[] EVICT_BY_PREFIX_LUA_SCRIPT = StringRedisSerializer.UTF_8.serialize("""
             local prefix = ARGV[1]
-            local count  = tonumber(ARGV[2]) or 1000
-            
-            local totalDeleted = 0
-            local pass = 1
-            local maxPasses = 3
-            
-            while pass <= maxPasses do
-                local passCursor = "0"
-                local passDeleted = 0
-            
-                repeat
-                    local scanResult = redis.call("SCAN", passCursor, "MATCH", prefix .. "*", "COUNT", count)
-                    passCursor = scanResult[1]
-                    local keys = scanResult[2]
-            
-                    if #keys > 0 then
-                        redis.call("DEL", unpack(keys))
-                        passDeleted = passDeleted + #keys
-                        totalDeleted = totalDeleted + #keys
-                    end
-                until passCursor == "0"
-
-                if passDeleted == 0 then
-                    break
+            local count = tonumber(ARGV[2]) or 1000
+            local cursor = "0"
+            local keysToDelete = {}
+            repeat
+                local result = redis.call("SCAN", cursor, "MATCH", prefix .. "*", "COUNT", count)
+                cursor = result[1]
+                for i, key in ipairs(result[2]) do
+                    table.insert(keysToDelete, key)
                 end
-            
-                pass = pass + 1
+            until cursor == "0"
+            if #keysToDelete > 0 then
+                redis.call("DEL", unpack(keysToDelete))
             end
-            
-            return totalDeleted
+            return #keysToDelete
             """);
 
-    static final byte[] EVICT_BY_PREFIX_SHA = StringRedisSerializer.UTF_8.serialize("7ecc145912da532cb9c3356be8cf4952f6138d1e");
+    static final byte[] EVICT_BY_PREFIX_SHA = StringRedisSerializer.UTF_8.serialize("837605bb2289f85b0ebf1c10fa8cbd5833bea3ac");
 
     public RedisTbTransactionalCache(String cacheName,
                                      CacheSpecsMap cacheSpecsMap,
