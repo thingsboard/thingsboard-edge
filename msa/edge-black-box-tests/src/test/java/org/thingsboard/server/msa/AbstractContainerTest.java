@@ -139,7 +139,9 @@ public abstract class AbstractContainerTest {
     public static final List<TestEdgeConfiguration> edgeConfigurations =
             Arrays.asList(
                     new TestEdgeConfiguration("280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g", 8082, 1, "Edge-in-memory"),
-                    new TestEdgeConfiguration("e29dadb1-c487-3b9e-1b5a-02193191c90e", "dmb17p71vz9svfl7tgnz", 8083, 2, "Edge-kafka"));
+                    new TestEdgeConfiguration("e29dadb1-c487-3b9e-1b5a-02193191c90e", "dmb17p71vz9svfl7tgnz", 8083, 2, "Edge-kafka"),
+                    new TestEdgeConfiguration("2cc28012-a2f3-8bff-7b1a-5e686c972e1e", "z2d2z90fqjylht011ram", 8084, 3, "Edge-version-3-8"),
+                    new TestEdgeConfiguration("774e5e4e-8ec7-9945-1c6a-4d6ba08cb5fc", "om3zzzadzlugth03nibn", 8085, 4, "Edge-version-3-7"));
 
     protected static List<TestEdgeRuntimeParameters> testParameters = new ArrayList<>();
 

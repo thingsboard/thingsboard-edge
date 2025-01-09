@@ -70,6 +70,40 @@ services:
       - tb-edge.env
     volumes:
       - ./tb-edge/conf:/config
+  tb-edge-3:
+    restart: always
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_OLD_VERSION_3_8}"
+    ports:
+      - "8084"
+      - "1885"
+    environment:
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_3}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_3}"
+      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_3}"
+      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
+      HTTP_BIND_PORT: "8084"
+      CONF_FOLDER: "/config"
+    env_file:
+      - tb-edge.env
+    volumes:
+      - ./tb-edge/conf:/config
+  tb-edge-4:
+    restart: always
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_OLD_VERSION_3_7}"
+    ports:
+      - "8085"
+      - "1886"
+    environment:
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_4}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_4}"
+      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_4}"
+      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
+      HTTP_BIND_PORT: "8085"
+      CONF_FOLDER: "/config"
+    env_file:
+      - tb-edge.env
+    volumes:
+      - ./tb-edge/conf:/config
   kafka-edge-2:
     restart: always
     image: "bitnami/kafka:3.8.1"
