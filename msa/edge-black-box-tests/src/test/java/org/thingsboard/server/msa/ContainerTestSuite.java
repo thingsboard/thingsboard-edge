@@ -22,9 +22,11 @@ import org.junit.ClassRule;
 import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -72,6 +74,7 @@ public class ContainerTestSuite {
                         super.stop();
                         tryDeleteDir(targetDir);
                     }
+
                 }
 
                 testContainer = new DockerComposeContainerImpl<>(
@@ -84,12 +87,12 @@ public class ContainerTestSuite {
                         .withTailChildContainers(true)
                         .withEnv(installTb.getEnv())
                         .withEnv(env)
-                        .withExposedService(TB_MONOLITH_SERVICE_NAME, 8080)
-                        .withExposedService("kafka", 9092);
+                        .withExposedService(TB_MONOLITH_SERVICE_NAME, 8080, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)))
+                        .withExposedService("kafka", 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
                 for (TestEdgeConfiguration edgeConfiguration : edgeConfigurations) {
-                    testContainer.withExposedService(TB_EDGE_SERVICE_NAME + "-" + edgeConfiguration.getIdx(), edgeConfiguration.getPort());
+                    testContainer.withExposedService(TB_EDGE_SERVICE_NAME + "-" + edgeConfiguration.getIdx(), edgeConfiguration.getPort(), Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
                     if (edgeConfiguration.getName().contains("kafka")) {
-                        testContainer.withExposedService("kafka-edge-" + edgeConfiguration.getIdx(), 9092);
+                        testContainer.withExposedService("kafka-edge-" + edgeConfiguration.getIdx(), 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
                     }
                 }
 
@@ -109,4 +112,5 @@ public class ContainerTestSuite {
             log.error("Can't delete temp directory " + targetDir, e);
         }
     }
+
 }
