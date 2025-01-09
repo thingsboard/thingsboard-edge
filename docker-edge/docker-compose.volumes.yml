@@ -31,6 +31,14 @@ services:
     volumes:
       - tb-edge-log-volume-2:/var/log/tb-edge
       - tb-edge-data-volume-2:/data
+  tb-edge-3:
+    volumes:
+      - tb-edge-log-volume-3:/var/log/tb-edge
+      - tb-edge-data-volume-3:/data
+  tb-edge-4:
+    volumes:
+      - tb-edge-log-volume-4:/var/log/tb-edge
+      - tb-edge-data-volume-4:/data
 volumes:
   postgres-db-volume:
     external:
@@ -50,3 +58,15 @@ volumes:
   tb-edge-data-volume-2:
     external:
       name: ${TB_EDGE_DATA_VOLUME_2}
+  tb-edge-log-volume-3:
+    external:
+      name: ${TB_EDGE_LOG_VOLUME_3}
+  tb-edge-data-volume-3:
+    external:
+      name: ${TB_EDGE_DATA_VOLUME_3}
+  tb-edge-log-volume-4:
+    external:
+      name: ${TB_EDGE_LOG_VOLUME_4}
+  tb-edge-data-volume-4:
+    external:
+      name: ${TB_EDGE_DATA_VOLUME_4}
