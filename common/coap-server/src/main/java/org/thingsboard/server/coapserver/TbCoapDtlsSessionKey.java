@@ -30,41 +30,18 @@
  */
 package org.thingsboard.server.coapserver;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import java.net.InetSocketAddress;
+import java.util.Objects;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+public record TbCoapDtlsSessionKey(InetSocketAddress peerAddress, String credentials) {
 
-@Slf4j
-@Data
-public class TbCoapDtlsSessionInMemoryStorage {
-
-    private final ConcurrentMap<TbCoapDtlsSessionKey, TbCoapDtlsSessionInfo> dtlsSessionsMap = new ConcurrentHashMap<>();
-    private long dtlsSessionInactivityTimeout;
-    private long dtlsSessionReportTimeout;
-
-
-    public TbCoapDtlsSessionInMemoryStorage(long dtlsSessionInactivityTimeout, long dtlsSessionReportTimeout) {
-        this.dtlsSessionInactivityTimeout = dtlsSessionInactivityTimeout;
-        this.dtlsSessionReportTimeout = dtlsSessionReportTimeout;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TbCoapDtlsSessionKey that = (TbCoapDtlsSessionKey) o;
+        return Objects.equals(peerAddress, that.peerAddress) &&
+                Objects.equals(credentials, that.credentials);
     }
-
-    public void put(TbCoapDtlsSessionKey tbCoapDtlsSessionKey, TbCoapDtlsSessionInfo dtlsSessionInfo) {
-        log.trace("DTLS session added to in-memory store: [{}] timestamp: [{}]", tbCoapDtlsSessionKey, dtlsSessionInfo.getLastActivityTime());
-        dtlsSessionsMap.putIfAbsent(tbCoapDtlsSessionKey, dtlsSessionInfo);
-    }
-
-    public void evictTimeoutSessions() {
-        long expTime = System.currentTimeMillis() - dtlsSessionInactivityTimeout;
-        dtlsSessionsMap.entrySet().removeIf(entry -> {
-            if (entry.getValue().getLastActivityTime() < expTime) {
-                log.trace("DTLS session was removed from in-memory store: [{}]", entry.getKey());
-                return true;
-            } else {
-                return false;
-            }
-        });
-    }
-
 }
+

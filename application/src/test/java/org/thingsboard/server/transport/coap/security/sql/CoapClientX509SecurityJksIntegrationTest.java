@@ -28,43 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.coapserver;
+package org.thingsboard.server.transport.coap.security.sql;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.coap.security.AbstractCoapSecurityIntegrationTest;
 
 @Slf4j
-@Data
-public class TbCoapDtlsSessionInMemoryStorage {
+@DaoSqlTest
+@TestPropertySource(properties = {
+        "coap.dtls.credentials.type=KEYSTORE",
+        "coap.dtls.credentials.keystore.store_file=coap/credentials/coapserverTest.jks",
+        "coap.dtls.credentials.keystore.key_password=server_ks_password",
+        "coap.dtls.credentials.keystore.key_alias=server",
+})
+public class CoapClientX509SecurityJksIntegrationTest extends AbstractCoapSecurityIntegrationTest {
 
-    private final ConcurrentMap<TbCoapDtlsSessionKey, TbCoapDtlsSessionInfo> dtlsSessionsMap = new ConcurrentHashMap<>();
-    private long dtlsSessionInactivityTimeout;
-    private long dtlsSessionReportTimeout;
-
-
-    public TbCoapDtlsSessionInMemoryStorage(long dtlsSessionInactivityTimeout, long dtlsSessionReportTimeout) {
-        this.dtlsSessionInactivityTimeout = dtlsSessionInactivityTimeout;
-        this.dtlsSessionReportTimeout = dtlsSessionReportTimeout;
+    @Before
+    public void beforeTest() throws Exception {
+        processBeforeTest();
     }
 
-    public void put(TbCoapDtlsSessionKey tbCoapDtlsSessionKey, TbCoapDtlsSessionInfo dtlsSessionInfo) {
-        log.trace("DTLS session added to in-memory store: [{}] timestamp: [{}]", tbCoapDtlsSessionKey, dtlsSessionInfo.getLastActivityTime());
-        dtlsSessionsMap.putIfAbsent(tbCoapDtlsSessionKey, dtlsSessionInfo);
+    @Test
+    public void testX509NoTrustFromJksConnectCoapSuccessUpdateAttributesSuccess() throws Exception {
+        clientX509FromJksUpdateAttributesTest();
     }
-
-    public void evictTimeoutSessions() {
-        long expTime = System.currentTimeMillis() - dtlsSessionInactivityTimeout;
-        dtlsSessionsMap.entrySet().removeIf(entry -> {
-            if (entry.getValue().getLastActivityTime() < expTime) {
-                log.trace("DTLS session was removed from in-memory store: [{}]", entry.getKey());
-                return true;
-            } else {
-                return false;
-            }
-        });
-    }
-
 }
