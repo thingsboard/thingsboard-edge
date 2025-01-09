@@ -63,11 +63,10 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
     @TransactionalEventListener(classes = RelatedEdgesEvictEvent.class)
     @Override
     public void handleEvictEvent(RelatedEdgesEvictEvent event) {
-        RelatedEdgesCacheKey cacheKey = new RelatedEdgesCacheKey(event.getTenantId(), event.getEntityId());
-        if (cacheKey.getEntityId() == null) {
-            cache.evictByPrefix(cacheKey.toString());
+        if (event.getEntityId() == null) {
+            cache.evictByPrefix("{" + event.getTenantId() + "}");
         } else {
-            cache.evict(cacheKey);
+            cache.evict(new RelatedEdgesCacheKey(event.getTenantId(), event.getEntityId()));
         }
     }
 
