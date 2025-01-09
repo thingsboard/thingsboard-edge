@@ -32,32 +32,41 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { RuleChainComponent } from '@modules/home/pages/rulechain/rulechain.component';
-import { RuleChainRoutingModule } from '@modules/home/pages/rulechain/rulechain-routing.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { RuleChainTabsComponent } from '@home/pages/rulechain/rulechain-tabs.component';
-import { RuleNodeComponent } from '@home/pages/rulechain/rulenode.component';
-import { FC_NODE_COMPONENT_CONFIG } from 'ngx-flowchart';
+import { HomeComponentsModule } from '@home/components/home-components.module';
+import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
+import {
+  EntityDebugSettingsButtonComponent
+} from '@home/components/entity/debug/entity-debug-settings-button.component';
+import { RuleNodeConfigModule } from '@home/components/rule-node/rule-node-config.module';
+import {
+  AddRuleNodeDialogComponent,
+  AddRuleNodeLinkDialogComponent,
+  CreateNestedRuleChainDialogComponent,
+  RuleChainPageComponent
+} from '@home/pages/rulechain/rulechain-page.component';
+import { RuleNodeDetailsComponent } from '@home/pages/rulechain/rule-node-details.component';
+import { RuleNodeConfigComponent } from '@home/pages/rulechain/rule-node-config.component';
+import { LinkLabelsComponent } from '@home/pages/rulechain/link-labels.component';
+import { RuleNodeLinkComponent } from '@home/pages/rulechain/rule-node-link.component';
 
 @NgModule({
   declarations: [
-    RuleChainComponent,
-    RuleChainTabsComponent,
-    RuleNodeComponent,
-  ],
-  providers: [
-    {
-      provide: FC_NODE_COMPONENT_CONFIG,
-      useValue: {
-        nodeComponentType: RuleNodeComponent
-      }
-    },
+    RuleChainPageComponent,
+    RuleNodeDetailsComponent,
+    LinkLabelsComponent,
+    RuleNodeLinkComponent,
+    RuleNodeConfigComponent,
+    AddRuleNodeLinkDialogComponent,
+    AddRuleNodeDialogComponent,
+    CreateNestedRuleChainDialogComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
+    DurationLeftPipe,
+    EntityDebugSettingsButtonComponent,
+    RuleNodeConfigModule,
     HomeComponentsModule,
-    RuleChainRoutingModule,
   ]
 })
-export class RuleChainModule { }
+export class RuleChainPageModule {}
