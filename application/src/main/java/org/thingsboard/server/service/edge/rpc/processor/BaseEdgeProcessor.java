@@ -338,15 +338,10 @@ public abstract class BaseEdgeProcessor {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
-
         futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
                 EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null));
         futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
                 EdgeEventActionType.RELATION_REQUEST, entityId, null));
-        if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
-            futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
-                    EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null));
-        }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
