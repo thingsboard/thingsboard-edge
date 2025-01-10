@@ -881,7 +881,7 @@ public class ControllerConstants {
             MARKDOWN_CODE_BLOCK_START +
             "{\n" +
             "  \"type\": \"entitiesByGroupName\",\n" +
-            "  \"ownerId\": \"e52b0020-2a7a-11ec-94eb-213c95f54093\",\n" +
+            "  \"ownerId\": {\"entityType\": \"CUSTOMER\",\"id\":\"e52b0020-2a7a-11ec-94eb-213c95f54093\"},\n" +
             "  \"groupType\": \"DEVICE\",\n" +
             "  \"entityGroupNameFilter\": \"Water Meters\"\n" +
             "}" +
