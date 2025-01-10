@@ -172,6 +172,7 @@ public class CustomMenuController extends BaseController {
             tbCustomMenuService.putETag(cacheKey, calculatedEtag);
             response.setHeader("Etag", calculatedEtag);
             response.setContentType(APPLICATION_JSON_VALUE);
+            response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());
             response.getWriter().write(customMenuView);
         }
     }
