@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.CloudUtils;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -378,6 +379,14 @@ public abstract class BaseEdgeProcessor {
                 log.warn("[{}] Failed to send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, msgData, t);
             }
         });
+    }
+
+    protected boolean isCustomerNotExists(TenantId tenantId, CustomerId customerId) {
+        if (customerId == null || EntityId.NULL_UUID.equals(customerId.getId())) {
+            return false;
+        }
+        Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
+        return customerById == null;
     }
 
 }

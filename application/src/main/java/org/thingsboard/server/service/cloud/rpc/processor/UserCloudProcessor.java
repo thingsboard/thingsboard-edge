@@ -40,8 +40,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock userCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId,
-                                                          UserUpdateMsg userUpdateMsg) {
+    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId, UserUpdateMsg userUpdateMsg) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);

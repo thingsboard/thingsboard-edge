@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -47,28 +46,25 @@ import java.util.UUID;
 @Slf4j
 public class AssetCloudProcessor extends BaseAssetProcessor {
 
-    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
-                                                           AssetUpdateMsg assetUpdateMsg) {
+    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId, AssetUpdateMsg assetUpdateMsg) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-
-            switch (assetUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
+            return switch (assetUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                     boolean created = saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
-                    return created ? requestForAdditionalData(tenantId, assetId) : Futures.immediateFuture(null);
-                case ENTITY_DELETED_RPC_MESSAGE:
+                    yield created ? requestForAdditionalData(tenantId, assetId) : Futures.immediateFuture(null);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
                     if (assetById != null) {
                         edgeCtx.getAssetService().deleteAsset(tenantId, assetId);
                         pushAssetDeletedEventToRuleEngine(tenantId, assetById);
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -141,18 +137,14 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
     }
 
     @Override
-    protected Asset constructAssetFromUpdateMsg(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
-        return JacksonUtil.fromString(assetUpdateMsg.getEntity(), Asset.class, true);
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg) {
+        if (isCustomerNotExists(tenantId, asset.getCustomerId())) {
+            asset.setCustomerId(null);
+        }
     }
 
-    @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg) {
-        CustomerId assignedCustomerId = asset.getCustomerId();
-        Customer customer = null;
-        if (assignedCustomerId != null) {
-            customer = edgeCtx.getCustomerService().findCustomerById(tenantId, assignedCustomerId);
-        }
-        asset.setCustomerId(customer != null ? customer.getId() : null);
+    protected Asset constructAssetFromUpdateMsg(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
+        return JacksonUtil.fromString(assetUpdateMsg.getEntity(), Asset.class, true);
     }
 
 }

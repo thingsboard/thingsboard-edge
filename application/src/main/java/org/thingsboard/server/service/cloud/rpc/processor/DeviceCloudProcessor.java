@@ -63,27 +63,25 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     @Autowired
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
-    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
-                                                            DeviceUpdateMsg deviceUpdateMsg) {
+    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-            switch (deviceUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
+            return switch (deviceUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                     boolean created = saveOrUpdateDeviceFromCloud(tenantId, deviceId, deviceUpdateMsg);
-                    return created ? requestForAdditionalData(tenantId, deviceId) : Futures.immediateFuture(null);
-                case ENTITY_DELETED_RPC_MESSAGE:
+                    yield created ? requestForAdditionalData(tenantId, deviceId) : Futures.immediateFuture(null);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
                     if (deviceById != null) {
                         edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId);
                         pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
@@ -275,12 +273,9 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     @Override
     protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg) {
-        CustomerId assignedCustomerId = device.getCustomerId();
-        Customer customer = null;
-        if (assignedCustomerId != null) {
-            customer = edgeCtx.getCustomerService().findCustomerById(tenantId, assignedCustomerId);
+        if (isCustomerNotExists(tenantId, device.getCustomerId())) {
+            device.setCustomerId(null);
         }
-        device.setCustomerId(customer != null ? customer.getId() : null);
     }
 
     @Override
