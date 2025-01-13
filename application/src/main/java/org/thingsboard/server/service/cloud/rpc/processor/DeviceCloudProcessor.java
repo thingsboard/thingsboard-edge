@@ -302,6 +302,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         return null;
     }
 
+    @Override
     protected Device constructDeviceFromUpdateMsg(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
         return JacksonUtil.fromString(deviceUpdateMsg.getEntity(), Device.class, true);
     }

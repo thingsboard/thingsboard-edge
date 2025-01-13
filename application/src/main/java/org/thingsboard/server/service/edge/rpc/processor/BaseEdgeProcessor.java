@@ -534,10 +534,7 @@ public abstract class BaseEdgeProcessor {
     }
 
     protected boolean isCustomerNotExists(TenantId tenantId, CustomerId customerId) {
-        if (customerId == null) {
-            return false;
-        }
-        if (EntityId.NULL_UUID.equals(customerId.getId())) {
+        if (customerId == null || EntityId.NULL_UUID.equals(customerId.getId())) {
             return false;
         }
         Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
