@@ -632,8 +632,6 @@ public abstract class BaseCloudManagerService {
                 case ATTRIBUTES_REQUEST -> telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
                 case RELATION_REQUEST -> relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
                 case RPC_CALL -> deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
-                case WIDGET_BUNDLE_TYPES_REQUEST -> widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
-                case ENTITY_VIEW_REQUEST -> entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
                 default -> {
                     log.warn("Unsupported action type [{}]", cloudEvent);
                     yield null;

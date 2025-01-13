@@ -49,7 +49,7 @@ public enum EdgeEventActionType {
     RULE_CHAIN_METADATA_REQUEST(null), // deprecated
     RELATION_REQUEST(null),
     WIDGET_BUNDLE_TYPES_REQUEST(null), // deprecated
-    ENTITY_VIEW_REQUEST(null),
+    ENTITY_VIEW_REQUEST(null), // deprecated
     ENTITY_MERGE_REQUEST(null), // deprecated
     DEVICE_PROFILE_DEVICES_REQUEST(null); // deprecated
 

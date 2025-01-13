@@ -71,8 +71,8 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
             switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateDeviceFromCloud(tenantId, deviceId, deviceUpdateMsg);
-                    return requestForAdditionalData(tenantId, deviceId);
+                    boolean created = saveOrUpdateDeviceFromCloud(tenantId, deviceId, deviceUpdateMsg);
+                    return created ? requestForAdditionalData(tenantId, deviceId) : Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
                     if (deviceById != null) {
@@ -89,7 +89,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    private void saveOrUpdateDeviceFromCloud(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
+    private boolean saveOrUpdateDeviceFromCloud(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -99,6 +99,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         if (deviceNameUpdated) {
             cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null);
         }
+        return created;
     }
 
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
