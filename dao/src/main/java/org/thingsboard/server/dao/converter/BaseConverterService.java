@@ -56,7 +56,6 @@ import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
