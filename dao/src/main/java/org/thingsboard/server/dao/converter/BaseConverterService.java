@@ -56,6 +56,7 @@ import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -89,10 +90,21 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         log.trace("Executing saveConverter [{}]", converter);
         converterValidator.validate(converter, Converter::getTenantId);
         TenantId tenantId = converter.getTenantId();
+        boolean isNew = converter.getId() == null;
+
         try {
             updateDebugSettings(tenantId, converter, System.currentTimeMillis());
+
+            if (!isNew) {
+                Converter existingConverter = findConverterById(tenantId, converter.getId());
+
+                if(!existingConverter.getType().equals(converter.getType())) {
+                    throw new DataValidationException("You cannot update the converter by changing its type ");
+                }
+            }
+
             Converter savedConverter = converterDao.save(converter.getTenantId(), converter);
-            if (converter.getId() == null) {
+            if (isNew) {
                 entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedConverter.getTenantId()).entity(savedConverter)
