@@ -72,8 +72,9 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                     boolean created = super.saveOrUpdateDashboard(tenantId, dashboardId, dashboardUpdateMsg);
                     if (created) {
                         pushDashboardCreatedEventToRuleEngine(tenantId, dashboardId);
+                        return requestForAdditionalData(tenantId, dashboardId);
                     }
-                    return requestForAdditionalData(tenantId, dashboardId);
+                    return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
                         UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),

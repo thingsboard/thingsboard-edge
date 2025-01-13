@@ -67,11 +67,10 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-
             return switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
-                    saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
-                    yield requestForAdditionalData(tenantId, assetId);
+                    boolean created = saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
+                    yield created ? requestForAdditionalData(tenantId, assetId) : Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
                     assetCreationLock.lock();
@@ -101,7 +100,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    private void saveOrUpdateAssetFromCloud(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) throws ThingsboardException {
+    private boolean saveOrUpdateAssetFromCloud(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) throws ThingsboardException {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -111,6 +110,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         if (assetNameUpdated) {
             cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null, null);
         }
+        return created;
     }
 
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, AssetId assetId) {

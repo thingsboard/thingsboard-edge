@@ -35,10 +35,8 @@ import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-/**
- * Responsible for initialization of various Producers and Consumers used by KafkaCloudEventService.
- */
 public interface TbCloudEventQueueFactory {
+
     TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventMsgConsumer();
 
     TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventMsgProducer();
@@ -46,4 +44,5 @@ public interface TbCloudEventQueueFactory {
     TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgConsumer();
 
     TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgProducer();
+
 }

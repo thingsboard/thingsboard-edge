@@ -216,7 +216,10 @@ public abstract class BaseCloudManagerService {
 
     private ScheduledExecutorService uplinkExecutor;
     private ScheduledFuture<?> sendUplinkFuture;
+
     private ScheduledExecutorService shutdownExecutor;
+    private ScheduledExecutorService reconnectExecutor;
+    private ScheduledFuture<?> reconnectFuture;
 
     private EdgeSettings currentEdgeSettings;
     protected TenantId tenantId;
@@ -244,6 +247,7 @@ public abstract class BaseCloudManagerService {
                     this::onDownlink,
                     this::scheduleReconnect);
             uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
+            reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
             launchUplinkProcessing();
         }
     }
@@ -285,6 +289,9 @@ public abstract class BaseCloudManagerService {
 
         if (uplinkExecutor != null) {
             uplinkExecutor.shutdownNow();
+        }
+        if (reconnectExecutor != null) {
+            reconnectExecutor.shutdownNow();
         }
         log.info("[{}] Destroy was successful", edgeId);
     }
@@ -430,6 +437,10 @@ public abstract class BaseCloudManagerService {
                 sendUplinkFuture.cancel(true);
                 sendUplinkFuture = null;
             }
+            if (reconnectFuture != null) {
+                reconnectFuture.cancel(true);
+                reconnectFuture = null;
+            }
 
             if ("PE".equals(edgeConfiguration.getCloudType())) {
                 initAndUpdateEdgeSettings(edgeConfiguration);
@@ -534,8 +545,7 @@ public abstract class BaseCloudManagerService {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             this.syncInProgress = false;
         }
-        ListenableFuture<List<Void>> future =
-                downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings);
+        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
@@ -589,8 +599,8 @@ public abstract class BaseCloudManagerService {
 
         updateConnectivityStatus(false);
 
-        if (sendUplinkFuture == null) {
-            sendUplinkFuture = uplinkExecutor.scheduleAtFixedRate(() -> {
+        if (reconnectFuture == null) {
+            reconnectFuture = reconnectExecutor.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
                 try {
                     edgeRpcClient.disconnect(true);
@@ -646,8 +656,6 @@ public abstract class BaseCloudManagerService {
                 case GROUP_PERMISSIONS_REQUEST -> groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
                 case RELATION_REQUEST -> relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
                 case RPC_CALL -> deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
-                case WIDGET_BUNDLE_TYPES_REQUEST -> widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
-                case ENTITY_VIEW_REQUEST -> entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
                 default -> {
                     log.warn("Unsupported action type [{}]", cloudEvent);
                     yield null;
