@@ -66,8 +66,8 @@ public class ContainerTestSuite {
         HashMap<String, String> env = new HashMap<>();
         env.put("CLOUD_RPC_HOST", TB_MONOLITH_SERVICE_NAME);
         for (TestEdgeConfiguration config : edgeConfigurations) {
-            env.put("CLOUD_ROUTING_KEY_" + config.getIdx(), config.getRoutingKey());
-            env.put("CLOUD_ROUTING_SECRET_" + config.getIdx(), config.getSecret());
+            env.put("CLOUD_ROUTING_KEY" + config.getTagWithUnderscore().toUpperCase(), config.getRoutingKey());
+            env.put("CLOUD_ROUTING_SECRET" + config.getTagWithUnderscore().toUpperCase(), config.getSecret());
         }
 
         if (testContainer == null) {
@@ -105,9 +105,9 @@ public class ContainerTestSuite {
                         .withExposedService(TB_MONOLITH_SERVICE_NAME, 8080, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)))
                         .withExposedService("kafka", 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
                 for (TestEdgeConfiguration edgeConfiguration : edgeConfigurations) {
-                    testContainer.withExposedService(TB_EDGE_SERVICE_NAME + "-" + edgeConfiguration.getIdx(), edgeConfiguration.getPort(), Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
-                    if (edgeConfiguration.getName().contains("kafka")) {
-                        testContainer.withExposedService("kafka-edge-" + edgeConfiguration.getIdx(), 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
+                    testContainer.withExposedService(TB_EDGE_SERVICE_NAME + edgeConfiguration.getTagWithDash(), edgeConfiguration.getPort(), Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
+                    if (edgeConfiguration.getTag().equals("kafka")) {
+                        testContainer.withExposedService("kafka-edge", 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
                     }
                 }
             } catch (Exception e) {

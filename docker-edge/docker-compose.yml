@@ -33,7 +33,7 @@
 version: '3.0'
 
 services:
-  tb-edge-1:
+  tb-edge:
     restart: always
     image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
     ports:
@@ -41,9 +41,9 @@ services:
       - "1883"
     environment:
       EDGE_LICENSE_INSTANCE_DATA_FILE: /data/instance-edge-license.data
-      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_1}"
-      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_1}"
-      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_1}"
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
+      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
       HTTP_BIND_PORT: "8082"
       CONF_FOLDER: "/config"
@@ -53,37 +53,37 @@ services:
       - ./tb-edge/conf:/config
     depends_on:
       - tb-monolith
-  tb-edge-2:
+  tb-edge-kafka:
     restart: always
     image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
     ports:
       - "8083"
       - "1884"
     environment:
-      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_2}"
-      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_2}"
-      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_2}"
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_KAFKA}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_KAFKA}"
+      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_KAFKA}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
       HTTP_BIND_PORT: "8083"
       CONF_FOLDER: "/config"
       TB_QUEUE_TYPE: "kafka"
-      TB_KAFKA_SERVERS: "kafka-edge-2:9092"
+      TB_KAFKA_SERVERS: "kafka-edge:9092"
     env_file:
       - tb-edge.env
     volumes:
       - ./tb-edge/conf:/config
     depends_on:
       - tb-monolith
-  tb-edge-3:
+  tb-edge-38:
     restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_OLD_VERSION_3_8}"
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:3.8.0EDGE"
     ports:
       - "8084"
       - "1885"
     environment:
-      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_3}"
-      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_3}"
-      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_3}"
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_38}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_38}"
+      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_38}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
       HTTP_BIND_PORT: "8084"
       CONF_FOLDER: "/config"
@@ -93,16 +93,16 @@ services:
       - ./tb-edge/conf:/config
     depends_on:
       - tb-monolith
-  tb-edge-4:
+  tb-edge-37:
     restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_OLD_VERSION_3_7}"
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:3.7.0EDGE"
     ports:
       - "8085"
       - "1886"
     environment:
-      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_4}"
-      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_4}"
-      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_4}"
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_37}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_37}"
+      SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_37}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
       HTTP_BIND_PORT: "8085"
       CONF_FOLDER: "/config"
@@ -112,14 +112,14 @@ services:
       - ./tb-edge/conf:/config
     depends_on:
       - tb-monolith
-  kafka-edge-2:
+  kafka-edge:
     restart: always
     image: "bitnami/kafka:3.8.1"
     ports:
       - "9092"
     environment:
-      KAFKA_CFG_ADVERTISED_LISTENERS: "INSIDE://:9094,OUTSIDE://kafka-edge-2:9092"
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "0@kafka-edge-2:9093"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "INSIDE://:9094,OUTSIDE://kafka-edge:9092"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "0@kafka-edge:9093"
     env_file:
       - kafka.env
   tb-monolith:
