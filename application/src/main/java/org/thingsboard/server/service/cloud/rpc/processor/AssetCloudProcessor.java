@@ -56,8 +56,8 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
-                    return requestForAdditionalData(tenantId, assetId);
+                    boolean created = saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
+                    return created ? requestForAdditionalData(tenantId, assetId) : Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
                     if (assetById != null) {
@@ -74,7 +74,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    private void saveOrUpdateAssetFromCloud(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
+    private boolean saveOrUpdateAssetFromCloud(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -84,6 +84,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         if (assetNameUpdated) {
             cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null);
         }
+        return created;
     }
 
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, AssetId assetId) {
