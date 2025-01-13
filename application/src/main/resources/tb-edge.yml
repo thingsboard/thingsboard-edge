@@ -273,7 +273,7 @@ cassandra:
   # Thingsboard Edge cluster name
   cluster_name: "${CASSANDRA_CLUSTER_NAME:Thingsboard Edge Cluster}"
   # Thingsboard Edge keyspace name
-  keyspace_name: "${CASSANDRA_KEYSPACE_NAME:tb_edge}"
+  keyspace_name: "${CASSANDRA_KEYSPACE_NAME:thingsboard}"
   # Specify node list
   url: "${CASSANDRA_URL:127.0.0.1:9042}"
   # Specify the local data center name
