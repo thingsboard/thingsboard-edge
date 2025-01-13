@@ -106,7 +106,7 @@ public class ThingsboardInstallService {
                     databaseSchemaVersionService.validateSchemaSettings();
                     String fromVersion = databaseSchemaVersionService.getDbSchemaVersion();
                     String toVersion = databaseSchemaVersionService.getPackageSchemaVersion();
-                    log.info("Upgrading ThingsBoard from version {} to {} ...", fromVersion, toVersion);
+                    log.info("Upgrading ThingsBoard Edge from version {} to {} ...", fromVersion, toVersion);
                     cacheCleanupService.clearCache();
                     // Apply the schema_update.sql script. The script may include DDL statements to change structure
                     // of *existing* tables and DML statements to manipulate the DB records.
