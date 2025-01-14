@@ -32,9 +32,9 @@
 -->
 <section [formGroup]="duplicateToGroupConfigForm" class="tb-form-panel stroked">
   <div class="tb-form-row no-border no-padding"
-       tb-hint-tooltip-icon="{{ 'tb.rulenode.entity-group-is-message-originator-hint' | translate }}">
+       tb-hint-tooltip-icon="{{ 'rule-node-config.entity-group-is-message-originator-hint' | translate }}">
     <mat-slide-toggle class="mat-slide" formControlName="entityGroupIsMessageOriginator">
-      {{ 'tb.rulenode.entity-group-is-message-originator' | translate }}
+      {{ 'rule-node-config.entity-group-is-message-originator' | translate }}
     </mat-slide-toggle>
   </div>
     <tb-target-entity *ngIf="!duplicateToGroupConfigForm.get('entityGroupIsMessageOriginator').value"

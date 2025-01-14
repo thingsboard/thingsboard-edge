@@ -31,7 +31,7 @@
 
 -->
 <section class="tb-alarms-count-mapping-table flex flex-col">
-  <label translate class="tb-title no-padding">tb.rulenode.mappings</label>
+  <label translate class="tb-title no-padding">rule-node-config.mappings</label>
   <div class="body">
     <div class="row mat-elevation-z1 flex flex-1 flex-row items-center justify-start"
          *ngFor="let alarmsCountMapping of mappings; let $index = index">
@@ -40,7 +40,7 @@
               [disabled]="isLoading$ | async"
               mat-icon-button color="primary" type="button"
               (click)="editAlarmsCountMapping($event, alarmsCountMapping)"
-              matTooltip="{{'tb.rulenode.edit-mapping' | translate}}"
+              matTooltip="{{'rule-node-config.edit-mapping' | translate}}"
               matTooltipPosition="above">
         <mat-icon>edit</mat-icon>
       </button>
@@ -48,7 +48,7 @@
               [disabled]="isLoading$ | async"
               mat-icon-button color="primary" type="button"
               (click)="removeAlarmsCountMapping($index)"
-              matTooltip="{{'tb.rulenode.remove-mapping' | translate}}"
+              matTooltip="{{'rule-node-config.remove-mapping' | translate}}"
               matTooltipPosition="above">
         <mat-icon>close</mat-icon>
       </button>
@@ -57,11 +57,11 @@
   <span [class.!hidden]="mappings.length"
         [class.disabled]="disabled"
         [class.required]="required"
-        class="no-data-found flex items-center justify-center" translate>tb.rulenode.add-mapping-prompt</span>
+        class="no-data-found flex items-center justify-center" translate>rule-node-config.add-mapping-prompt</span>
   <div style="padding-top: 20px;">
     <button [class.!hidden]="disabled" [disabled]="isLoading$ | async" type="button"
             mat-raised-button color="primary" (click)="addAlarmsCountMapping($event)"
-            matTooltip="{{ 'tb.rulenode.add-mapping' | translate }}"
+            matTooltip="{{ 'rule-node-config.add-mapping' | translate }}"
             matTooltipPosition="above">
       <mat-icon>add</mat-icon>
       {{ 'action.add' | translate }}

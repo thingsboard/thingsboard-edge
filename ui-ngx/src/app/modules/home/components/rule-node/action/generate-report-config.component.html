@@ -32,17 +32,17 @@
 -->
 <section [formGroup]="generateReportConfigForm" class="flex flex-col">
   <mat-checkbox class="flex-1" formControlName="useSystemReportsServer">
-    {{ 'tb.rulenode.use-system-reports-server' | translate }}
+    {{ 'rule-node-config.use-system-reports-server' | translate }}
   </mat-checkbox>
   <mat-form-field class="mat-block" *ngIf="!generateReportConfigForm.get('useSystemReportsServer').value">
-    <mat-label translate>tb.rulenode.reports-server-endpoint-url</mat-label>
+    <mat-label translate>rule-node-config.reports-server-endpoint-url</mat-label>
     <input required matInput formControlName="reportsServerEndpointUrl">
     <mat-error *ngIf="generateReportConfigForm.get('reportsServerEndpointUrl').hasError('required')">
-      {{ 'tb.rulenode.reports-server-endpoint-url-is-required' | translate }}
+      {{ 'rule-node-config.reports-server-endpoint-url-is-required' | translate }}
     </mat-error>
   </mat-form-field>
   <mat-checkbox class="flex-1" formControlName="useReportConfigFromMessage">
-    {{ 'tb.rulenode.use-report-config-from-message' | translate }}
+    {{ 'rule-node-config.use-report-config-from-message' | translate }}
   </mat-checkbox>
   <tb-report-config
     *ngIf="!generateReportConfigForm.get('useReportConfigFromMessage').value"

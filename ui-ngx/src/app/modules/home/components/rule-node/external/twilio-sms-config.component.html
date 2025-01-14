@@ -32,14 +32,14 @@
 -->
 <section [formGroup]="twilioSmsConfigForm" class="tb-form-panel no-border no-padding flex flex-col">
   <section class="tb-form-panel stroked">
-    <div class="tb-form-panel-title" translate>tb.twilio.phone-settings</div>
+    <div class="tb-form-panel-title" translate>rule-node-config.twilio.phone-settings</div>
     <mat-form-field class="mat-block" subscriptSizing="dynamic">
-      <mat-label translate>tb.twilio.number-from</mat-label>
+      <mat-label translate>rule-node-config.twilio.number-from</mat-label>
       <input required matInput formControlName="numberFrom">
       <mat-error *ngIf="twilioSmsConfigForm.get('numberFrom').hasError('required')">
-        {{ 'tb.twilio.number-from-required' | translate }}
+        {{ 'rule-node-config.twilio.number-from-required' | translate }}
       </mat-error>
-      <mat-hint align="start" class="text-hint" [innerHTML]="'tb.twilio.number-to-hint' | translate | safe: 'html'">
+      <mat-hint align="start" class="text-hint" [innerHTML]="'rule-node-config.twilio.number-to-hint' | translate | safe: 'html'">
       </mat-hint>
       <mat-hint align="end">
         <div class="input-bottom-double-hint">
@@ -49,17 +49,17 @@
                tb-help-popup-placement="right"
                trigger-style="letter-spacing:0.25px; font-size:12px;"
                [tb-help-popup-style]="{maxWidth: '820px'}"
-               trigger-text="{{ 'tb.twilio.see-examples' | translate }}"></div>
+               trigger-text="{{ 'rule-node-config.twilio.see-examples' | translate }}"></div>
         </div>
       </mat-hint>
     </mat-form-field>
     <mat-form-field class="mat-block" subscriptSizing="dynamic">
-      <mat-label translate>tb.twilio.numbers-to</mat-label>
+      <mat-label translate>rule-node-config.twilio.numbers-to</mat-label>
       <input required matInput formControlName="numbersTo">
       <mat-error *ngIf="twilioSmsConfigForm.get('numbersTo').hasError('required')">
-        {{ 'tb.twilio.numbers-to-required' | translate }}
+        {{ 'rule-node-config.twilio.numbers-to-required' | translate }}
       </mat-error>
-      <mat-hint align="start" class="text-hint" [innerHTML]="'tb.twilio.numbers-to-hint' | translate | safe: 'html'"></mat-hint>
+      <mat-hint align="start" class="text-hint" [innerHTML]="'rule-node-config.twilio.numbers-to-hint' | translate | safe: 'html'"></mat-hint>
       <mat-hint align="end">
         <div class="input-bottom-double-hint">
           <div class="see-example"
@@ -68,25 +68,25 @@
                tb-help-popup-placement="right"
                trigger-style="letter-spacing:0.25px; font-size:12px;"
                [tb-help-popup-style]="{maxWidth: '820px'}"
-               trigger-text="{{ 'tb.twilio.see-examples' | translate }}"></div>
+               trigger-text="{{ 'rule-node-config.twilio.see-examples' | translate }}"></div>
         </div>
       </mat-hint>
     </mat-form-field>
   </section>
   <section class="tb-form-panel stroked no-gap no-padding-bottom">
-    <div class="tb-form-panel-title margin-bottom" translate>tb.twilio.account-settings</div>
+    <div class="tb-form-panel-title margin-bottom" translate>rule-node-config.twilio.account-settings</div>
     <mat-form-field class="mat-block">
-      <mat-label translate>tb.twilio.account-sid</mat-label>
+      <mat-label translate>rule-node-config.twilio.account-sid</mat-label>
       <input required matInput formControlName="accountSid">
       <mat-error *ngIf="twilioSmsConfigForm.get('accountSid').hasError('required')">
-        {{ 'tb.twilio.account-sid-required' | translate }}
+        {{ 'rule-node-config.twilio.account-sid-required' | translate }}
       </mat-error>
     </mat-form-field>
     <mat-form-field class="mat-block">
-      <mat-label translate>tb.twilio.account-token</mat-label>
+      <mat-label translate>rule-node-config.twilio.account-token</mat-label>
       <input required type="password" matInput formControlName="accountToken">
       <mat-error *ngIf="twilioSmsConfigForm.get('accountToken').hasError('required')">
-        {{ 'tb.twilio.account-token-required' | translate }}
+        {{ 'rule-node-config.twilio.account-token-required' | translate }}
       </mat-error>
     </mat-form-field>
   </section>

@@ -34,10 +34,10 @@
   <tb-owner-autocomplete
     formControlName="groupOwnerId"
     [class.third-width]="isTypeSelected"
-    placeholderText="tb.rulenode.owner"
-    requiredText="tb.rulenode.owner-required"
+    placeholderText="rule-node-config.owner"
+    requiredText="rule-node-config.owner-required"
     required
-    notFoundText="tb.rulenode.no-owners-matching">
+    notFoundText="rule-node-config.no-owners-matching">
   </tb-owner-autocomplete>
   <tb-entity-group-select
     *ngIf="targetEntityControlGroup.get('groupOwnerId').value"

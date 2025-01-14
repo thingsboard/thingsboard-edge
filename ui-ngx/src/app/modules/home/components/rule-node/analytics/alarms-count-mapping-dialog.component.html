@@ -32,7 +32,7 @@
 -->
 <form [formGroup]="alarmsCountMappingFormGroup" (ngSubmit)="save()" style="width: 650px;">
   <mat-toolbar class="flex flex-row" color="primary">
-    <h2>{{ (isAdd ? 'tb.rulenode.add-mapping' : 'tb.rulenode.edit-mapping') | translate }}</h2>
+    <h2>{{ (isAdd ? 'rule-node-config.add-mapping' : 'rule-node-config.edit-mapping') | translate }}</h2>
     <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
@@ -47,14 +47,14 @@
     <fieldset [disabled]="isLoading$ | async">
       <div class="flex flex-1 flex-col">
         <mat-form-field class="mat-block flex-1">
-          <mat-label translate>tb.rulenode.target-telemetry</mat-label>
+          <mat-label translate>rule-node-config.target-telemetry</mat-label>
           <input required matInput formControlName="target">
           <mat-error *ngIf="alarmsCountMappingFormGroup.get('target').hasError('required')">
-            {{ 'tb.rulenode.target-telemetry-required' | translate }}
+            {{ 'rule-node-config.target-telemetry-required' | translate }}
           </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
-          <mat-label translate>tb.rulenode.status-filter</mat-label>
+          <mat-label translate>rule-node-config.status-filter</mat-label>
           <mat-chip-grid #alarmStatusChipList>
             <mat-chip-row
               *ngFor="let alarmStatus of alarmsCountMappingFormGroup.get('statusList').value;"
@@ -66,7 +66,7 @@
             </mat-chip-row>
             <input matInput type="text"
                    placeholder="{{(alarmsCountMappingFormGroup.get('statusList').value.length ?
-                                   'tb.rulenode.add-alarm-status' : 'tb.rulenode.all-statuses') | translate}}"
+                                   'rule-node-config.add-alarm-status' : 'rule-node-config.all-statuses') | translate}}"
                    #alarmStatusInput
                    (focusin)="onAlarmStatusInputFocus()"
                    [formControl]="statusFormControl"
@@ -86,14 +86,14 @@
             <mat-option *ngIf="(filteredAlarmStatus | async)?.length === 0" [value]="null" class="tb-not-found">
               <div class="tb-not-found-content" (click)="$event.stopPropagation()">
                 <div>
-                  <span translate>tb.rulenode.no-alarm-status-matching</span>
+                  <span translate>rule-node-config.no-alarm-status-matching</span>
                 </div>
               </div>
             </mat-option>
           </mat-autocomplete>
         </mat-form-field>
         <mat-form-field class="mat-block">
-          <mat-label translate>tb.rulenode.severity-filter</mat-label>
+          <mat-label translate>rule-node-config.severity-filter</mat-label>
           <mat-chip-grid #alarmSeverityChipList>
             <mat-chip-row
               *ngFor="let alarmSeverity of alarmsCountMappingFormGroup.get('severityList').value;"
@@ -105,7 +105,7 @@
             </mat-chip-row>
             <input matInput type="text"
                    placeholder="{{(alarmsCountMappingFormGroup.get('severityList').value.length ?
-                                   'tb.rulenode.add-alarm-severity' : 'tb.rulenode.all-severities') | translate}}"
+                                   'rule-node-config.add-alarm-severity' : 'rule-node-config.all-severities') | translate}}"
                    #alarmSeverityInput
                    (focusin)="onAlarmSeverityInputFocus()"
                    [formControl]="severityFormControl"
@@ -125,14 +125,14 @@
             <mat-option *ngIf="(filteredAlarmSeverity | async)?.length === 0" [value]="null" class="tb-not-found">
               <div class="tb-not-found-content" (click)="$event.stopPropagation()">
                 <div>
-                  <span translate>tb.rulenode.no-alarm-severity-matching</span>
+                  <span translate>rule-node-config.no-alarm-severity-matching</span>
                 </div>
               </div>
             </mat-option>
           </mat-autocomplete>
         </mat-form-field>
         <mat-form-field class="mat-block">
-          <mat-label translate>tb.rulenode.type-filter</mat-label>
+          <mat-label translate>rule-node-config.type-filter</mat-label>
           <mat-chip-grid #typesChipList>
             <mat-chip-row
               *ngFor="let key of alarmsCountMappingFormGroup.get('typesList').value;"
@@ -142,7 +142,7 @@
             </mat-chip-row>
             <input matInput type="text"
                    placeholder="{{(alarmsCountMappingFormGroup.get('typesList').value.length ?
-                                   'tb.rulenode.add-alarm-type' : 'tb.rulenode.all-types') | translate}}"
+                                   'rule-node-config.add-alarm-type' : 'rule-node-config.all-types') | translate}}"
                    [matChipInputFor]="typesChipList"
                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                    (matChipInputTokenEnd)="addKey($event, 'typesList')"
@@ -153,7 +153,7 @@
           [(ngModel)]="specifyInterval"
           [ngModelOptions]="{ standalone: true}"
           (ngModelChange)="specifyIntervalChange()" style="display: block; margin-bottom: 16px;">
-          {{ 'tb.rulenode.specify-interval' | translate }}
+          {{ 'rule-node-config.specify-interval' | translate }}
         </mat-checkbox>
         <tb-timeinterval
           *ngIf="specifyInterval"

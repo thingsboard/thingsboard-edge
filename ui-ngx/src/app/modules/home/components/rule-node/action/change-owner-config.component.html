@@ -33,7 +33,7 @@
 <section [formGroup]="changeOwnerConfigForm" class="tb-form-panel no-border no-padding">
   <div class="tb-form-panel stroked">
     <div class="flex flex-row items-center justify-between">
-      <div class="tb-form-panel-title" translate>tb.rulenode.owner-type</div>
+      <div class="tb-form-panel-title" translate>rule-node-config.owner-type</div>
       <tb-toggle-select appearance="fill" formControlName="ownerType">
         <tb-toggle-option *ngFor="let ownerType of ownerTypes" [value]="ownerType">
           {{ ownerTypeTranslationsMap.get(ownerType) | translate }}
@@ -44,26 +44,26 @@
   <section class="tb-form-panel no-border no-padding"
            *ngIf="changeOwnerConfigForm.get('ownerType').value === ownerType.CUSTOMER">
     <mat-form-field class="mat-block" subscriptSizing="dynamic">
-      <mat-label translate>tb.rulenode.owner-name-pattern</mat-label>
+      <mat-label translate>rule-node-config.owner-name-pattern</mat-label>
       <input required matInput formControlName="ownerNamePattern">
       <mat-error *ngIf="changeOwnerConfigForm.get('ownerNamePattern').hasError('required') ||
                         changeOwnerConfigForm.get('ownerNamePattern').hasError('pattern')">
-        {{ 'tb.rulenode.owner-name-pattern-required' | translate }}
+        {{ 'rule-node-config.owner-name-pattern-required' | translate }}
       </mat-error>
-      <mat-hint translate>tb.rulenode.customer-name-pattern-hint</mat-hint>
+      <mat-hint translate>rule-node-config.customer-name-pattern-hint</mat-hint>
     </mat-form-field>
     <div tb-hint-tooltip-icon="{{ changeOwnerConfigForm.get('createOwnerOnOriginatorLevel').value
-      ? ('tb.rulenode.create-new-customer-if-not-exists-hint' | translate)
-      : ('tb.rulenode.create-owner-if-not-exists-hint' | translate) }}"
+      ? ('rule-node-config.create-new-customer-if-not-exists-hint' | translate)
+      : ('rule-node-config.create-owner-if-not-exists-hint' | translate) }}"
          class="tb-form-row no-border no-padding">
       <mat-slide-toggle class="mat-slide" formControlName="createOwnerIfNotExists">
-        {{ 'tb.rulenode.create-owner-if-not-exists' | translate }}
+        {{ 'rule-node-config.create-owner-if-not-exists' | translate }}
       </mat-slide-toggle>
     </div>
-    <div tb-hint-tooltip-icon="{{ 'tb.rulenode.create-owner-on-originator-level-hint' | translate }}"
+    <div tb-hint-tooltip-icon="{{ 'rule-node-config.create-owner-on-originator-level-hint' | translate }}"
          class="tb-form-row no-border no-padding">
       <mat-slide-toggle class="mat-slide" formControlName="createOwnerOnOriginatorLevel">
-        {{ 'tb.rulenode.create-owner-on-originator-level' | translate }}
+        {{ 'rule-node-config.create-owner-on-originator-level' | translate }}
       </mat-slide-toggle>
     </div>
   </section>

@@ -33,22 +33,22 @@
 <section [formGroup]="alarmsCountConfigForm" class="flex flex-col">
   <tb-output-message-type-autocomplete required formControlName="outMsgType"></tb-output-message-type-autocomplete>
   <mat-checkbox formControlName="countAlarmsForPropagationEntities">
-    {{ 'tb.rulenode.count-alarms-for-propagation-entities' | translate }}
+    {{ 'rule-node-config.count-alarms-for-propagation-entities' | translate }}
   </mat-checkbox>
-  <div class="tb-hint" translate>tb.rulenode.count-alarms-for-propagation-entities-info</div>
+  <div class="tb-hint" translate>rule-node-config.count-alarms-for-propagation-entities-info</div>
   <div class="flex-1" *ngIf="alarmsCountConfigForm.get('countAlarmsForPropagationEntities').value">
-    <label class="tb-title no-padding">{{ 'tb.rulenode.propagation-entity-types' | translate }}</label>
+    <label class="tb-title no-padding">{{ 'rule-node-config.propagation-entity-types' | translate }}</label>
     <tb-entity-type-list class="flex-1"
                          formControlName="propagationEntityTypes"
                          [allowedEntityTypes]="propagationEntityTypes"
                          [ignoreAuthorityFilter]="true"
     >
     </tb-entity-type-list>
-    <div class="tb-hint" translate>tb.rulenode.propagation-entity-types-info</div>
+    <div class="tb-hint" translate>rule-node-config.propagation-entity-types-info</div>
   </div>
   <mat-expansion-panel [expanded]="true">
     <mat-expansion-panel-header>
-      <mat-panel-title translate>tb.rulenode.alarms-count-mappings</mat-panel-title>
+      <mat-panel-title translate>rule-node-config.alarms-count-mappings</mat-panel-title>
     </mat-expansion-panel-header>
     <tb-alarms-count-mapping-table
       required

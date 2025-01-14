@@ -61,7 +61,7 @@ export class SwitchConfigComponent extends RuleNodeConfigurationComponent {
 
   readonly hasScript = true;
 
-  readonly testScriptLabel = 'tb.rulenode.test-switch-function';
+  readonly testScriptLabel = 'rule-node-config.test-switch-function';
 
   constructor(private fb: UntypedFormBuilder,
               private nodeScriptTestService: NodeScriptTestService,
@@ -121,7 +121,7 @@ export class SwitchConfigComponent extends RuleNodeConfigurationComponent {
     this.nodeScriptTestService.testNodeScript(
       script,
       'switch',
-      this.translate.instant('tb.rulenode.switch'),
+      this.translate.instant('rule-node-config.switch'),
       'Switch',
       ['msg', 'metadata', 'msgType'],
       this.ruleNodeId,

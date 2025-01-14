@@ -49,27 +49,27 @@ export interface OriginatorValuesDescriptions {
 
 export const originatorSourceTranslations = new Map<OriginatorSource, string>(
   [
-    [OriginatorSource.CUSTOMER, 'tb.rulenode.originator-customer'],
-    [OriginatorSource.TENANT, 'tb.rulenode.originator-tenant'],
-    [OriginatorSource.RELATED, 'tb.rulenode.originator-related'],
-    [OriginatorSource.ALARM_ORIGINATOR, 'tb.rulenode.originator-alarm-originator'],
-    [OriginatorSource.ENTITY, 'tb.rulenode.originator-entity'],
+    [OriginatorSource.CUSTOMER, 'rule-node-config.originator-customer'],
+    [OriginatorSource.TENANT, 'rule-node-config.originator-tenant'],
+    [OriginatorSource.RELATED, 'rule-node-config.originator-related'],
+    [OriginatorSource.ALARM_ORIGINATOR, 'rule-node-config.originator-alarm-originator'],
+    [OriginatorSource.ENTITY, 'rule-node-config.originator-entity'],
   ]
 );
 
 export const originatorSourceDescTranslations = new Map<OriginatorSource, string>(
   [
-    [OriginatorSource.CUSTOMER, 'tb.rulenode.originator-customer-desc'],
-    [OriginatorSource.TENANT, 'tb.rulenode.originator-tenant-desc'],
-    [OriginatorSource.RELATED, 'tb.rulenode.originator-related-entity-desc'],
-    [OriginatorSource.ALARM_ORIGINATOR, 'tb.rulenode.originator-alarm-originator-desc'],
-    [OriginatorSource.ENTITY, 'tb.rulenode.originator-entity-by-name-pattern-desc'],
+    [OriginatorSource.CUSTOMER, 'rule-node-config.originator-customer-desc'],
+    [OriginatorSource.TENANT, 'rule-node-config.originator-tenant-desc'],
+    [OriginatorSource.RELATED, 'rule-node-config.originator-related-entity-desc'],
+    [OriginatorSource.ALARM_ORIGINATOR, 'rule-node-config.originator-alarm-originator-desc'],
+    [OriginatorSource.ENTITY, 'rule-node-config.originator-entity-by-name-pattern-desc'],
   ]
 );
 export const allowedOriginatorFields: EntityField[] = [
   entityFields.createdTime,
   entityFields.name,
-  {value: 'type', name: 'tb.rulenode.profile-name', keyName: 'originatorProfileName'},
+  {value: 'type', name: 'rule-node-config.profile-name', keyName: 'originatorProfileName'},
   entityFields.firstName,
   entityFields.lastName,
   entityFields.email,
@@ -82,8 +82,8 @@ export const allowedOriginatorFields: EntityField[] = [
   entityFields.zip,
   entityFields.phone,
   entityFields.label,
-  {value: 'id', name: 'tb.rulenode.id', keyName: 'id'},
-  {value: 'additionalInfo', name: 'tb.rulenode.additional-info', keyName: 'additionalInfo'}
+  {value: 'id', name: 'rule-node-config.id', keyName: 'id'},
+  {value: 'additionalInfo', name: 'rule-node-config.additional-info', keyName: 'additionalInfo'}
 ];
 
 export const OriginatorFieldsMappingValues = new Map<string, string>(
@@ -115,8 +115,8 @@ export enum PerimeterType {
 
 export const perimeterTypeTranslations = new Map<PerimeterType, string>(
   [
-    [PerimeterType.CIRCLE, 'tb.rulenode.perimeter-circle'],
-    [PerimeterType.POLYGON, 'tb.rulenode.perimeter-polygon'],
+    [PerimeterType.CIRCLE, 'rule-node-config.perimeter-circle'],
+    [PerimeterType.POLYGON, 'rule-node-config.perimeter-polygon'],
   ]
 );
 
@@ -130,11 +130,11 @@ export enum TimeUnit {
 
 export const timeUnitTranslations = new Map<TimeUnit, string>(
   [
-    [TimeUnit.MILLISECONDS, 'tb.rulenode.time-unit-milliseconds'],
-    [TimeUnit.SECONDS, 'tb.rulenode.time-unit-seconds'],
-    [TimeUnit.MINUTES, 'tb.rulenode.time-unit-minutes'],
-    [TimeUnit.HOURS, 'tb.rulenode.time-unit-hours'],
-    [TimeUnit.DAYS, 'tb.rulenode.time-unit-days']
+    [TimeUnit.MILLISECONDS, 'rule-node-config.time-unit-milliseconds'],
+    [TimeUnit.SECONDS, 'rule-node-config.time-unit-seconds'],
+    [TimeUnit.MINUTES, 'rule-node-config.time-unit-minutes'],
+    [TimeUnit.HOURS, 'rule-node-config.time-unit-hours'],
+    [TimeUnit.DAYS, 'rule-node-config.time-unit-days']
   ]
 );
 
@@ -148,11 +148,11 @@ export enum RangeUnit {
 
 export const rangeUnitTranslations = new Map<RangeUnit, string>(
   [
-    [RangeUnit.METER, 'tb.rulenode.range-unit-meter'],
-    [RangeUnit.KILOMETER, 'tb.rulenode.range-unit-kilometer'],
-    [RangeUnit.FOOT, 'tb.rulenode.range-unit-foot'],
-    [RangeUnit.MILE, 'tb.rulenode.range-unit-mile'],
-    [RangeUnit.NAUTICAL_MILE, 'tb.rulenode.range-unit-nautical-mile']
+    [RangeUnit.METER, 'rule-node-config.range-unit-meter'],
+    [RangeUnit.KILOMETER, 'rule-node-config.range-unit-kilometer'],
+    [RangeUnit.FOOT, 'rule-node-config.range-unit-foot'],
+    [RangeUnit.MILE, 'rule-node-config.range-unit-mile'],
+    [RangeUnit.NAUTICAL_MILE, 'rule-node-config.range-unit-nautical-mile']
   ]
 );
 
@@ -177,17 +177,17 @@ export interface SvMapOption {
 
 export const entityDetailsTranslations = new Map<EntityDetailsField, string>(
   [
-    [EntityDetailsField.ID, 'tb.rulenode.entity-details-id'],
-    [EntityDetailsField.TITLE, 'tb.rulenode.entity-details-title'],
-    [EntityDetailsField.COUNTRY, 'tb.rulenode.entity-details-country'],
-    [EntityDetailsField.STATE, 'tb.rulenode.entity-details-state'],
-    [EntityDetailsField.CITY, 'tb.rulenode.entity-details-city'],
-    [EntityDetailsField.ZIP, 'tb.rulenode.entity-details-zip'],
-    [EntityDetailsField.ADDRESS, 'tb.rulenode.entity-details-address'],
-    [EntityDetailsField.ADDRESS2, 'tb.rulenode.entity-details-address2'],
-    [EntityDetailsField.PHONE, 'tb.rulenode.entity-details-phone'],
-    [EntityDetailsField.EMAIL, 'tb.rulenode.entity-details-email'],
-    [EntityDetailsField.ADDITIONAL_INFO, 'tb.rulenode.entity-details-additional_info']
+    [EntityDetailsField.ID, 'rule-node-config.entity-details-id'],
+    [EntityDetailsField.TITLE, 'rule-node-config.entity-details-title'],
+    [EntityDetailsField.COUNTRY, 'rule-node-config.entity-details-country'],
+    [EntityDetailsField.STATE, 'rule-node-config.entity-details-state'],
+    [EntityDetailsField.CITY, 'rule-node-config.entity-details-city'],
+    [EntityDetailsField.ZIP, 'rule-node-config.entity-details-zip'],
+    [EntityDetailsField.ADDRESS, 'rule-node-config.entity-details-address'],
+    [EntityDetailsField.ADDRESS2, 'rule-node-config.entity-details-address2'],
+    [EntityDetailsField.PHONE, 'rule-node-config.entity-details-phone'],
+    [EntityDetailsField.EMAIL, 'rule-node-config.entity-details-email'],
+    [EntityDetailsField.ADDITIONAL_INFO, 'rule-node-config.entity-details-additional_info']
   ]
 );
 
@@ -199,17 +199,17 @@ export enum FetchMode {
 
 export const deduplicationStrategiesTranslations = new Map<FetchMode, string>(
   [
-    [FetchMode.FIRST, 'tb.rulenode.first'],
-    [FetchMode.LAST, 'tb.rulenode.last'],
-    [FetchMode.ALL, 'tb.rulenode.all']
+    [FetchMode.FIRST, 'rule-node-config.first'],
+    [FetchMode.LAST, 'rule-node-config.last'],
+    [FetchMode.ALL, 'rule-node-config.all']
   ]
 );
 
 export const deduplicationStrategiesHintTranslations = new Map<FetchMode, string>(
   [
-    [FetchMode.FIRST, 'tb.rulenode.first-mode-hint'],
-    [FetchMode.LAST, 'tb.rulenode.last-mode-hint'],
-    [FetchMode.ALL, 'tb.rulenode.all-mode-hint']
+    [FetchMode.FIRST, 'rule-node-config.first-mode-hint'],
+    [FetchMode.LAST, 'rule-node-config.last-mode-hint'],
+    [FetchMode.ALL, 'rule-node-config.all-mode-hint']
   ]
 );
 
@@ -226,24 +226,24 @@ export enum DataToFetch {
 
 export const dataToFetchTranslations = new Map<DataToFetch, string>(
   [
-    [DataToFetch.ATTRIBUTES, 'tb.rulenode.attributes'],
-    [DataToFetch.LATEST_TELEMETRY, 'tb.rulenode.latest-telemetry'],
-    [DataToFetch.FIELDS, 'tb.rulenode.fields']
+    [DataToFetch.ATTRIBUTES, 'rule-node-config.attributes'],
+    [DataToFetch.LATEST_TELEMETRY, 'rule-node-config.latest-telemetry'],
+    [DataToFetch.FIELDS, 'rule-node-config.fields']
   ]
 );
 
 export const msgMetadataLabelTranslations = new Map<DataToFetch, string>(
   [
-    [DataToFetch.ATTRIBUTES, 'tb.rulenode.add-mapped-attribute-to'],
-    [DataToFetch.LATEST_TELEMETRY, 'tb.rulenode.add-mapped-latest-telemetry-to'],
-    [DataToFetch.FIELDS, 'tb.rulenode.add-mapped-fields-to']
+    [DataToFetch.ATTRIBUTES, 'rule-node-config.add-mapped-attribute-to'],
+    [DataToFetch.LATEST_TELEMETRY, 'rule-node-config.add-mapped-latest-telemetry-to'],
+    [DataToFetch.FIELDS, 'rule-node-config.add-mapped-fields-to']
   ]
 );
 
 export const samplingOrderTranslations = new Map<SamplingOrder, string>(
   [
-    [SamplingOrder.ASC, 'tb.rulenode.ascending'],
-    [SamplingOrder.DESC, 'tb.rulenode.descending']
+    [SamplingOrder.ASC, 'rule-node-config.ascending'],
+    [SamplingOrder.DESC, 'rule-node-config.descending']
   ]
 );
 
@@ -254,8 +254,8 @@ export enum SqsQueueType {
 
 export const sqsQueueTypeTranslations = new Map<SqsQueueType, string>(
   [
-    [SqsQueueType.STANDARD, 'tb.rulenode.sqs-queue-standard'],
-    [SqsQueueType.FIFO, 'tb.rulenode.sqs-queue-fifo'],
+    [SqsQueueType.STANDARD, 'rule-node-config.sqs-queue-standard'],
+    [SqsQueueType.FIFO, 'rule-node-config.sqs-queue-fifo'],
   ]
 );
 
@@ -264,9 +264,9 @@ export const credentialsTypes: credentialsType[] = ['anonymous', 'basic', 'cert.
 
 export const credentialsTypeTranslations = new Map<credentialsType, string>(
   [
-    ['anonymous', 'tb.rulenode.credentials-anonymous'],
-    ['basic', 'tb.rulenode.credentials-basic'],
-    ['cert.PEM', 'tb.rulenode.credentials-pem']
+    ['anonymous', 'rule-node-config.credentials-anonymous'],
+    ['basic', 'rule-node-config.credentials-basic'],
+    ['cert.PEM', 'rule-node-config.credentials-pem']
   ]
 );
 
@@ -275,8 +275,8 @@ export const azureIotHubCredentialsTypes: AzureIotHubCredentialsType[] = ['sas',
 
 export const azureIotHubCredentialsTypeTranslations = new Map<AzureIotHubCredentialsType, string>(
   [
-    ['sas', 'tb.rulenode.credentials-sas'],
-    ['cert.PEM', 'tb.rulenode.credentials-pem']
+    ['sas', 'rule-node-config.credentials-sas'],
+    ['cert.PEM', 'rule-node-config.credentials-pem']
   ]
 );
 
@@ -294,8 +294,8 @@ export enum OwnerType {
 
 export const ownerTypeTranslations = new Map<OwnerType, string>(
   [
-    [OwnerType.TENANT, 'tb.rulenode.originator-tenant'],
-    [OwnerType.CUSTOMER, 'tb.rulenode.originator-customer']
+    [OwnerType.TENANT, 'rule-node-config.originator-tenant'],
+    [OwnerType.CUSTOMER, 'rule-node-config.originator-customer']
   ]
 );
 
@@ -310,12 +310,12 @@ export enum AggMathFunction {
 
 export const aggMathFunctionTranslations = new Map<AggMathFunction, string>(
   [
-    [AggMathFunction.MIN, 'tb.rulenode.func-min'],
-    [AggMathFunction.MAX, 'tb.rulenode.func-max'],
-    [AggMathFunction.SUM, 'tb.rulenode.func-sum'],
-    [AggMathFunction.AVG, 'tb.rulenode.func-avg'],
-    [AggMathFunction.COUNT, 'tb.rulenode.func-count'],
-    [AggMathFunction.COUNT_UNIQUE, 'tb.rulenode.func-count-unique']
+    [AggMathFunction.MIN, 'rule-node-config.func-min'],
+    [AggMathFunction.MAX, 'rule-node-config.func-max'],
+    [AggMathFunction.SUM, 'rule-node-config.func-sum'],
+    [AggMathFunction.AVG, 'rule-node-config.func-avg'],
+    [AggMathFunction.COUNT, 'rule-node-config.func-count'],
+    [AggMathFunction.COUNT_UNIQUE, 'rule-node-config.func-count-unique']
   ]
 );
 
@@ -340,13 +340,13 @@ export enum AggIntervalType {
 
 export const aggIntervalTypeTranslations = new Map<AggIntervalType, string>(
   [
-    [AggIntervalType.HOUR, 'tb.rulenode.aggregate-period-hour'],
-    [AggIntervalType.DAY, 'tb.rulenode.aggregate-period-day'],
-    [AggIntervalType.WEEK, 'tb.rulenode.aggregate-period-week'],
-    [AggIntervalType.WEEK_SUN_SAT, 'tb.rulenode.aggregate-period-week-sun-sat'],
-    [AggIntervalType.MONTH, 'tb.rulenode.aggregate-period-month'],
-    [AggIntervalType.YEAR, 'tb.rulenode.aggregate-period-year'],
-    [AggIntervalType.CUSTOM, 'tb.rulenode.aggregate-period-custom']
+    [AggIntervalType.HOUR, 'rule-node-config.aggregate-period-hour'],
+    [AggIntervalType.DAY, 'rule-node-config.aggregate-period-day'],
+    [AggIntervalType.WEEK, 'rule-node-config.aggregate-period-week'],
+    [AggIntervalType.WEEK_SUN_SAT, 'rule-node-config.aggregate-period-week-sun-sat'],
+    [AggIntervalType.MONTH, 'rule-node-config.aggregate-period-month'],
+    [AggIntervalType.YEAR, 'rule-node-config.aggregate-period-year'],
+    [AggIntervalType.CUSTOM, 'rule-node-config.aggregate-period-custom']
   ]
 );
 
@@ -358,11 +358,11 @@ export enum IntervalPersistPolicy {
 
 export const intervalPersistPolicyTranslations = new Map<IntervalPersistPolicy, string>(
   [
-    [IntervalPersistPolicy.ON_EACH_CHECK, 'tb.rulenode.interval-persist-policy-on-each-check'],
+    [IntervalPersistPolicy.ON_EACH_CHECK, 'rule-node-config.interval-persist-policy-on-each-check'],
     [IntervalPersistPolicy.ON_EACH_CHECK_AFTER_INTERVAL_END,
-      'tb.rulenode.interval-persist-policy-on-each-check-after-interval-end'],
+      'rule-node-config.interval-persist-policy-on-each-check-after-interval-end'],
     [IntervalPersistPolicy.ON_EACH_MESSAGE,
-      'tb.rulenode.interval-persist-policy-on-each-message']
+      'rule-node-config.interval-persist-policy-on-each-message']
   ]
 );
 
@@ -373,9 +373,9 @@ export enum StatePersistPolicy {
 
 export const statePersistPolicyTranslations = new Map<StatePersistPolicy, string>(
   [
-    [StatePersistPolicy.ON_EACH_CHANGE, 'tb.rulenode.state-persist-policy-on-each-change'],
+    [StatePersistPolicy.ON_EACH_CHANGE, 'rule-node-config.state-persist-policy-on-each-change'],
     [StatePersistPolicy.PERIODICALLY,
-      'tb.rulenode.state-persist-policy-periodically']
+      'rule-node-config.state-persist-policy-periodically']
   ]
 );
 
@@ -390,12 +390,12 @@ export const ToByteStandartCharsetTypes = [
 
 export const ToByteStandartCharsetTypeTranslations = new Map<string, string>(
   [
-    ['US-ASCII', 'tb.rulenode.charset-us-ascii'],
-    ['ISO-8859-1', 'tb.rulenode.charset-iso-8859-1'],
-    ['UTF-8', 'tb.rulenode.charset-utf-8'],
-    ['UTF-16BE', 'tb.rulenode.charset-utf-16be'],
-    ['UTF-16LE', 'tb.rulenode.charset-utf-16le'],
-    ['UTF-16', 'tb.rulenode.charset-utf-16'],
+    ['US-ASCII', 'rule-node-config.charset-us-ascii'],
+    ['ISO-8859-1', 'rule-node-config.charset-iso-8859-1'],
+    ['UTF-8', 'rule-node-config.charset-utf-8'],
+    ['UTF-16BE', 'rule-node-config.charset-utf-16be'],
+    ['UTF-16LE', 'rule-node-config.charset-utf-16le'],
+    ['UTF-16', 'rule-node-config.charset-utf-16'],
   ]
 );
 
@@ -871,23 +871,23 @@ export enum FetchTo {
 }
 
 export const FetchFromToTranslation = new Map<FetchTo, string>([
-  [FetchTo.DATA, 'tb.rulenode.message-to-metadata'],
-  [FetchTo.METADATA, 'tb.rulenode.metadata-to-message'],
+  [FetchTo.DATA, 'rule-node-config.message-to-metadata'],
+  [FetchTo.METADATA, 'rule-node-config.metadata-to-message'],
 ]);
 
 export const FetchFromTranslation = new Map<FetchTo, string>([
-  [FetchTo.DATA, 'tb.rulenode.from-message'],
-  [FetchTo.METADATA, 'tb.rulenode.from-metadata'],
+  [FetchTo.DATA, 'rule-node-config.from-message'],
+  [FetchTo.METADATA, 'rule-node-config.from-metadata'],
 ]);
 
 export const FetchToTranslation = new Map<FetchTo, string>([
-  [FetchTo.DATA, 'tb.rulenode.message'],
-  [FetchTo.METADATA, 'tb.rulenode.metadata'],
+  [FetchTo.DATA, 'rule-node-config.message'],
+  [FetchTo.METADATA, 'rule-node-config.metadata'],
 ]);
 
 export const FetchToRenameTranslation = new Map<FetchTo, string>([
-  [FetchTo.DATA, 'tb.rulenode.message'],
-  [FetchTo.METADATA, 'tb.rulenode.message-metadata'],
+  [FetchTo.DATA, 'rule-node-config.message'],
+  [FetchTo.METADATA, 'rule-node-config.message-metadata'],
 ]);
 
 export interface ArgumentTypeData {
@@ -899,36 +899,36 @@ export const ArgumentTypeMap = new Map<ArgumentType, ArgumentTypeData>([
   [
     ArgumentType.MESSAGE_BODY,
     {
-      name: 'tb.rulenode.message-body-type',
-      description: 'Fetch argument value from incoming message'
+      name: 'rule-node-config.message-body-type',
+      description: 'rule-node-config.message-body-type-description'
     }
   ],
   [
     ArgumentType.MESSAGE_METADATA,
     {
-      name: 'tb.rulenode.message-metadata-type',
-      description: 'Fetch argument value from incoming message metadata'
+      name: 'rule-node-config.message-metadata-type',
+      description: 'rule-node-config.message-metadata-type-description'
     }
   ],
   [
     ArgumentType.ATTRIBUTE,
     {
-      name: 'tb.rulenode.attribute-type',
-      description: 'Fetch attribute value from database'
+      name: 'rule-node-config.attribute-type',
+      description: 'rule-node-config.attribute-type-description'
     }
   ],
   [
     ArgumentType.TIME_SERIES,
     {
-      name: 'tb.rulenode.time-series-type',
-      description: 'Fetch latest time-series value from database'
+      name: 'rule-node-config.time-series-type',
+      description: 'rule-node-config.time-series-type-description'
     }
   ],
   [
     ArgumentType.CONSTANT,
     {
-      name: 'tb.rulenode.constant-type',
-      description: 'Define constant value'
+      name: 'rule-node-config.constant-type',
+      description: 'rule-node-config.constant-type-description'
     }
   ]
 ]);
@@ -937,29 +937,29 @@ export const ArgumentTypeResultMap = new Map<ArgumentTypeResult, ArgumentTypeDat
   [
     ArgumentTypeResult.MESSAGE_BODY,
     {
-      name: 'tb.rulenode.message-body-type',
-      description: 'Add result to the outgoing message'
+      name: 'rule-node-config.message-body-type',
+      description: 'rule-node-config.message-body-type-result-description'
     }
   ],
   [
     ArgumentTypeResult.MESSAGE_METADATA,
     {
-      name: 'tb.rulenode.message-metadata-type',
-      description: 'Add result to the outgoing message metadata'
+      name: 'rule-node-config.message-metadata-type',
+      description: 'rule-node-config.message-metadata-result-description'
     }
   ],
   [
     ArgumentTypeResult.ATTRIBUTE,
     {
-      name: 'tb.rulenode.attribute-type',
-      description: 'Store result as an entity attribute in the database'
+      name: 'rule-node-config.attribute-type',
+      description: 'rule-node-config.attribute-type-result-description'
     }
   ],
   [
     ArgumentTypeResult.TIME_SERIES,
     {
-      name: 'tb.rulenode.time-series-type',
-      description: 'Store result as an entity time-series in the database'
+      name: 'rule-node-config.time-series-type',
+      description: 'rule-node-config.time-series-type-result-description'
     }
   ]
 ]);
@@ -978,9 +978,9 @@ export enum AttributeScopeResult {
 }
 
 export const AttributeScopeMap = new Map<AttributeScope, string>([
-  [AttributeScope.SHARED_SCOPE, 'tb.rulenode.shared-scope'],
-  [AttributeScope.SERVER_SCOPE, 'tb.rulenode.server-scope'],
-  [AttributeScope.CLIENT_SCOPE, 'tb.rulenode.client-scope']
+  [AttributeScope.SHARED_SCOPE, 'rule-node-config.shared-scope'],
+  [AttributeScope.SERVER_SCOPE, 'rule-node-config.server-scope'],
+  [AttributeScope.CLIENT_SCOPE, 'rule-node-config.client-scope']
 ]);
 
 export enum PresenceMonitoringStrategy {
@@ -998,14 +998,14 @@ export const PresenceMonitoringStrategiesData = new Map<PresenceMonitoringStrate
     PresenceMonitoringStrategy.ON_EACH_MESSAGE,
     {
       value: true,
-      name: 'tb.rulenode.presence-monitoring-strategy-on-each-message'
+      name: 'rule-node-config.presence-monitoring-strategy-on-each-message'
     }
   ],
   [
     PresenceMonitoringStrategy.ON_FIRST_MESSAGE,
     {
       value: false,
-      name: 'tb.rulenode.presence-monitoring-strategy-on-first-message'
+      name: 'rule-node-config.presence-monitoring-strategy-on-first-message'
     }
   ]
 ]);

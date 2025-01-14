@@ -32,14 +32,14 @@
 -->
 <section [formGroup]="twilioVoiceConfigForm" class="tb-form-panel no-border no-padding flex flex-col">
   <section class="tb-form-panel stroked">
-    <div class="tb-form-panel-title" translate>tb.twilio.phone-settings</div>
+    <div class="tb-form-panel-title" translate>rule-node-config.twilio.phone-settings</div>
     <mat-form-field class="mat-block" subscriptSizing="dynamic">
-      <mat-label translate>tb.twilio.number-from</mat-label>
+      <mat-label translate>rule-node-config.twilio.number-from</mat-label>
       <input required matInput formControlName="numberFrom">
       <mat-error *ngIf="twilioVoiceConfigForm.get('numberFrom').hasError('required')">
-        {{ 'tb.twilio.number-from-required' | translate }}
+        {{ 'rule-node-config.twilio.number-from-required' | translate }}
       </mat-error>
-      <mat-hint align="start" class="text-hint" [innerHTML]="'tb.twilio.number-to-hint' | translate | safe: 'html'">
+      <mat-hint align="start" class="text-hint" [innerHTML]="'rule-node-config.twilio.number-to-hint' | translate | safe: 'html'">
       </mat-hint>
       <mat-hint align="end">
         <div class="input-bottom-double-hint">
@@ -49,17 +49,17 @@
                tb-help-popup-placement="right"
                trigger-style="letter-spacing:0.25px; font-size:12px;"
                [tb-help-popup-style]="{maxWidth: '820px'}"
-               trigger-text="{{ 'tb.twilio.see-examples' | translate }}"></div>
+               trigger-text="{{ 'rule-node-config.twilio.see-examples' | translate }}"></div>
         </div>
       </mat-hint>
     </mat-form-field>
     <mat-form-field class="mat-block" subscriptSizing="dynamic">
-      <mat-label translate>tb.twilio.numbers-to</mat-label>
+      <mat-label translate>rule-node-config.twilio.numbers-to</mat-label>
       <input required matInput formControlName="numbersTo">
       <mat-error *ngIf="twilioVoiceConfigForm.get('numbersTo').hasError('required')">
-        {{ 'tb.twilio.numbers-to-required' | translate }}
+        {{ 'rule-node-config.twilio.numbers-to-required' | translate }}
       </mat-error>
-      <mat-hint align="start" class="text-hint" [innerHTML]="'tb.twilio.numbers-to-hint' | translate | safe: 'html'"></mat-hint>
+      <mat-hint align="start" class="text-hint" [innerHTML]="'rule-node-config.twilio.numbers-to-hint' | translate | safe: 'html'"></mat-hint>
       <mat-hint align="end">
         <div class="input-bottom-double-hint">
           <div class="see-example"
@@ -68,79 +68,79 @@
                tb-help-popup-placement="right"
                trigger-style="letter-spacing:0.25px; font-size:12px;"
                [tb-help-popup-style]="{maxWidth: '820px'}"
-               trigger-text="{{ 'tb.twilio.see-examples' | translate }}"></div>
+               trigger-text="{{ 'rule-node-config.twilio.see-examples' | translate }}"></div>
         </div>
       </mat-hint>
     </mat-form-field>
   </section>
   <section class="tb-form-panel stroked no-gap no-padding-bottom">
-    <div class="tb-form-panel-title margin-bottom" translate>tb.twilio.account-settings</div>
+    <div class="tb-form-panel-title margin-bottom" translate>rule-node-config.twilio.account-settings</div>
     <mat-form-field class="mat-block">
-      <mat-label translate>tb.twilio.account-sid</mat-label>
+      <mat-label translate>rule-node-config.twilio.account-sid</mat-label>
       <input required matInput formControlName="accountSid">
       <mat-error *ngIf="twilioVoiceConfigForm.get('accountSid').hasError('required')">
-        {{ 'tb.twilio.account-sid-required' | translate }}
+        {{ 'rule-node-config.twilio.account-sid-required' | translate }}
       </mat-error>
     </mat-form-field>
     <mat-form-field class="mat-block">
-      <mat-label translate>tb.twilio.account-token</mat-label>
+      <mat-label translate>rule-node-config.twilio.account-token</mat-label>
       <input required type="password" autocomplete="new-password" matInput formControlName="accountToken">
       <mat-error *ngIf="twilioVoiceConfigForm.get('accountToken').hasError('required')">
-        {{ 'tb.twilio.account-token-required' | translate }}
+        {{ 'rule-node-config.twilio.account-token-required' | translate }}
       </mat-error>
     </mat-form-field>
   </section>
   <section class="tb-form-panel stroked no-gap no-padding-bottom">
-    <div class="tb-form-panel-title margin-bottom" translate>tb.twilio.voice-settings</div>
+    <div class="tb-form-panel-title margin-bottom" translate>rule-node-config.twilio.voice-settings</div>
     <div class="tb-flex row">
       <mat-form-field class="mat-block flex-1">
-        <mat-label translate>tb.twilio.provider</mat-label>
+        <mat-label translate>rule-node-config.twilio.provider</mat-label>
         <mat-select formControlName="provider">
           <mat-option *ngFor="let provider of providers | keyvalue" [value]="provider.value">
             {{ provider.value }}
           </mat-option>
         </mat-select>
         <mat-error *ngIf="twilioVoiceConfigForm.get('provider').hasError('required')">
-          {{ 'tb.twilio.provider-required' | translate }}
+          {{ 'rule-node-config.twilio.provider-required' | translate }}
         </mat-error>
       </mat-form-field>
       <mat-form-field class="mat-block flex-1" [class.!hidden]="!twilioVoiceConfigForm.get('provider').value">
-        <mat-label translate>tb.twilio.language</mat-label>
+        <mat-label translate>rule-node-config.twilio.language</mat-label>
         <mat-select required formControlName="language">
           <mat-option *ngFor="let language of languages" [value]="language.value">
             {{ language.viewValue }}
           </mat-option>
         </mat-select>
         <mat-error *ngIf="twilioVoiceConfigForm.get('language').hasError('required')">
-          {{ 'tb.twilio.language-required' | translate }}
+          {{ 'rule-node-config.twilio.language-required' | translate }}
         </mat-error>
       </mat-form-field>
       <mat-form-field class="mat-block flex-1" [class.!hidden]="!twilioVoiceConfigForm.get('language').value">
-        <mat-label translate>tb.twilio.voice</mat-label>
+        <mat-label translate>rule-node-config.twilio.voice</mat-label>
         <mat-select required formControlName="voice">
           <mat-option *ngFor="let voice of voices" [value]="voice">
             {{ voice }}
           </mat-option>
         </mat-select>
         <mat-error *ngIf="twilioVoiceConfigForm.get('voice').hasError('required')">
-          {{ 'tb.twilio.voice-required' | translate }}
+          {{ 'rule-node-config.twilio.voice-required' | translate }}
         </mat-error>
       </mat-form-field>
     </div>
   </section>
   <section class="tb-form-panel stroked">
-    <div class="tb-form-panel-title" translate>tb.twilio.audio-output-settings</div>
+    <div class="tb-form-panel-title" translate>rule-node-config.twilio.audio-output-settings</div>
     <div class="tb-form-row space-between">
-      <div class="fixed-title-width tb-required" translate>tb.twilio.pitch</div>
+      <div class="fixed-title-width tb-required" translate>rule-node-config.twilio.pitch</div>
       <mat-form-field class="flex number" appearance="outline" subscriptSizing="dynamic">
         <input required matInput type="number" formControlName="pitch" min="0">
         <div matSuffix *ngIf="!twilioVoiceConfigForm.get('pitch').hasError('required')" translate>
-          tb.twilio.percent
+          rule-node-config.twilio.percent
         </div>
         <mat-icon matSuffix
                   matTooltipPosition="above"
                   matTooltipClass="tb-error-tooltip"
-                  [matTooltip]="'tb.twilio.pitch-required' | translate"
+                  [matTooltip]="'rule-node-config.twilio.pitch-required' | translate"
                   *ngIf="twilioVoiceConfigForm.get('pitch').hasError('required')"
                   class="material-icons tb-suffix-show-always tb-error">
           warning
@@ -148,16 +148,16 @@
       </mat-form-field>
     </div>
     <div class="tb-form-row space-between">
-      <div class="fixed-title-width tb-required" translate>tb.twilio.rate</div>
+      <div class="fixed-title-width tb-required" translate>rule-node-config.twilio.rate</div>
       <mat-form-field class="flex number" appearance="outline" subscriptSizing="dynamic">
         <input required matInput type="number" formControlName="rate" min="0">
         <div matSuffix  *ngIf="!twilioVoiceConfigForm.get('rate').hasError('required')" translate>
-          tb.twilio.percent
+          rule-node-config.twilio.percent
         </div>
         <mat-icon matSuffix
                   matTooltipPosition="above"
                   matTooltipClass="tb-error-tooltip"
-                  [matTooltip]="'tb.twilio.rate-required' | translate"
+                  [matTooltip]="'rule-node-config.twilio.rate-required' | translate"
                   *ngIf="twilioVoiceConfigForm.get('rate').hasError('required')"
                   class="material-icons tb-suffix-show-always tb-error">
           warning
@@ -165,16 +165,16 @@
       </mat-form-field>
     </div>
     <div class="tb-form-row space-between">
-      <div class="fixed-title-width tb-required" translate>tb.twilio.volume</div>
+      <div class="fixed-title-width tb-required" translate>rule-node-config.twilio.volume</div>
       <mat-form-field class="flex number" appearance="outline" subscriptSizing="dynamic">
         <input required matInput type="number" formControlName="volume">
         <div matSuffix *ngIf="!twilioVoiceConfigForm.get('volume').hasError('required')" translate>
-          tb.twilio.decibel
+          rule-node-config.twilio.decibel
         </div>
         <mat-icon matSuffix
                   matTooltipPosition="above"
                   matTooltipClass="tb-error-tooltip"
-                  [matTooltip]="'tb.twilio.volume-required' | translate"
+                  [matTooltip]="'rule-node-config.twilio.volume-required' | translate"
                   *ngIf="twilioVoiceConfigForm.get('volume').hasError('required')"
                   class="material-icons tb-suffix-show-always tb-error">
           warning
@@ -182,12 +182,12 @@
       </mat-form-field>
     </div>
     <div class="tb-form-row space-between">
-      <div class="fixed-title-width tb-required" translate>tb.twilio.start-pause</div>
+      <div class="fixed-title-width tb-required" translate>rule-node-config.twilio.start-pause</div>
       <mat-form-field class="flex number" appearance="outline" subscriptSizing="dynamic">
         <input required matInput type="number" formControlName="startPause" min="0">
         <div matSuffix translate *ngIf="!twilioVoiceConfigForm.get('startPause').hasError('required') &&
                                         !twilioVoiceConfigForm.get('startPause').hasError('min')">
-          tb.twilio.seconds
+          rule-node-config.twilio.seconds
         </div>
         <mat-icon matSuffix
                   matTooltipPosition="above"

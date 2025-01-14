@@ -52,9 +52,9 @@ export class TwilioVoiceConfigComponent extends RuleNodeConfigurationComponent {
     const startPauseControl = this.twilioVoiceConfigForm.get('startPause');
 
     if (startPauseControl.hasError('required')) {
-      return this.translate.instant('tb.twilio.start-pause-required');
+      return this.translate.instant('rule-node-config.twilio.start-pause-required');
     } else if (startPauseControl.hasError('min')) {
-      return this.translate.instant('tb.twilio.start-pause-min', {min: 0});
+      return this.translate.instant('rule-node-config.twilio.start-pause-min', {min: 0});
     }
 
     return '';

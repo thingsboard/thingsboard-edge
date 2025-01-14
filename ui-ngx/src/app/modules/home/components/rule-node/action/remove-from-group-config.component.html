@@ -32,23 +32,23 @@
 -->
 <section [formGroup]="removeFromGroupConfigForm" class="flex flex-col">
   <mat-form-field class="mat-block" subscriptSizing="dynamic">
-    <mat-label translate>tb.rulenode.group-name-pattern</mat-label>
+    <mat-label translate>rule-node-config.group-name-pattern</mat-label>
     <input required matInput formControlName="groupNamePattern">
     <mat-error *ngIf="removeFromGroupConfigForm.get('groupNamePattern').hasError('required') ||
                       removeFromGroupConfigForm.get('groupNamePattern').hasError('pattern')">
-      {{ 'tb.rulenode.group-name-pattern-required' | translate }}
+      {{ 'rule-node-config.group-name-pattern-required' | translate }}
     </mat-error>
-    <mat-hint translate>tb.rulenode.general-pattern-hint</mat-hint>
+    <mat-hint translate>rule-node-config.general-pattern-hint</mat-hint>
   </mat-form-field>
   <mat-form-field class="mat-block" subscriptSizing="dynamic">
-    <mat-label translate>tb.rulenode.group-cache-expiration</mat-label>
+    <mat-label translate>rule-node-config.group-cache-expiration</mat-label>
     <input required type="number" min="0" step="1" matInput formControlName="groupCacheExpiration">
     <mat-error *ngIf="removeFromGroupConfigForm.get('groupCacheExpiration').hasError('required')">
-      {{ 'tb.rulenode.group-cache-expiration-required' | translate }}
+      {{ 'rule-node-config.group-cache-expiration-required' | translate }}
     </mat-error>
     <mat-error *ngIf="removeFromGroupConfigForm.get('groupCacheExpiration').hasError('min')">
-      {{ 'tb.rulenode.group-cache-expiration-range' | translate }}
+      {{ 'rule-node-config.group-cache-expiration-range' | translate }}
     </mat-error>
-    <mat-hint translate>tb.rulenode.group-cache-expiration-hint</mat-hint>
+    <mat-hint translate>rule-node-config.group-cache-expiration-hint</mat-hint>
   </mat-form-field>
 </section>
