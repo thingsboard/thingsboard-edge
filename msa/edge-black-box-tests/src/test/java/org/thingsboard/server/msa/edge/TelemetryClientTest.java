@@ -41,6 +41,7 @@ import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -62,6 +63,8 @@ public class TelemetryClientTest extends AbstractContainerTest {
     private void _testSendPostTelemetryRequestToCloud_performanceTest() {
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
+        int frequencyOfDeviceUpdatePerTimeSeriesRecords = 34;
+
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -76,7 +79,9 @@ public class TelemetryClientTest extends AbstractContainerTest {
         DeviceCredentials deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
         final String accessToken = deviceCredentials.getCredentialsId();
         final String telemetryKey = "index";
-        final long numberOfTimeseriesToSend = 1000L;
+        final long numberOfTimeseriesToSend = 10_000L;
+        String deviceName = null;
+        String originalDeviceName = device.getName();
         for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
             JsonObject timeseriesPayload = new JsonObject();
             timeseriesPayload.addProperty(telemetryKey, idx);
@@ -86,9 +91,20 @@ public class TelemetryClientTest extends AbstractContainerTest {
                             ResponseEntity.class,
                             accessToken);
             Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
+            if (idx % frequencyOfDeviceUpdatePerTimeSeriesRecords == 0) {
+                deviceName = originalDeviceName + StringUtils.randomAlphanumeric(10);
+                device.setName(deviceName);
+                edgeRestClient.saveDevice(device);
+            }
         }
 
         verifyDeviceIsActive(cloudRestClient, device.getId());
+
+        String finalDeviceName = deviceName;
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> finalDeviceName.equals(cloudRestClient.getDeviceById(device.getId()).get().getName()));
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
