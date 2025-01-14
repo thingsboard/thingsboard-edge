@@ -1473,7 +1473,7 @@ transport:
     dashboard:
       sync:
         # Enable/disable gateways dashboard sync with git repository
-        enabled: "${TB_GATEWAY_DASHBOARD_SYNC_ENABLED:true}"
+        enabled: "${TB_GATEWAY_DASHBOARD_SYNC_ENABLED:false}"
         # URL of gateways dashboard repository
         repository_url: "${TB_GATEWAY_DASHBOARD_SYNC_REPOSITORY_URL:https://github.com/thingsboard/gateway-management-extensions-dist.git}"
         # Branch of gateways dashboard repository to work with
