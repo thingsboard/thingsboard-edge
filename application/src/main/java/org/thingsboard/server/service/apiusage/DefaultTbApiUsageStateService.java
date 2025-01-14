@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.apiusage;
 
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import jakarta.annotation.PostConstruct;
@@ -130,7 +131,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     private final OwnersCacheService ownersCacheService;
     private final TbQueueProducerProvider producerProvider;
     private final NotificationRuleProcessor notificationRuleProcessor;
-    private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> msgProducer;
+    private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsgPack>> msgProducer;
     private final DbCallbackExecutorService dbExecutor;
     private final MailExecutorService mailExecutor;
 
@@ -153,6 +154,9 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
 
     @Value("${usage.stats.gauge_report_interval:180000}")
     private long gaugeReportInterval;
+
+    @Value("${usage.stats.report.pack_size:1024}")
+    private int packSize;
 
     private final Lock updateLock = new ReentrantLock();
 
@@ -180,21 +184,30 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     @Override
     public void process(TbProtoQueueMsg<ToUsageStatsServiceMsgPack> msgPack, TbCallback callback) {
         String serviceId = msgPack.getValue().getServiceId();
-        msgPack.getValue().getMsgsList().forEach(msg -> process(msg, serviceId));
+        Map<TopicPartitionInfo, List<ToUsageStatsServiceMsg>> toPropagateStats = new HashMap<>();
+        msgPack.getValue().getMsgsList().forEach(msg -> {
+            TenantId tenantId = TenantId.fromUUID(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
+            EntityId ownerId;
+            if (msg.getCustomerIdMSB() != 0 && msg.getCustomerIdLSB() != 0) {
+                ownerId = new CustomerId(new UUID(msg.getCustomerIdMSB(), msg.getCustomerIdLSB()));
+                propagateStatsToCustomerOwner(msg, tenantId, (CustomerId) ownerId, toPropagateStats);
+            } else {
+                ownerId = tenantId;
+            }
+
+            processEntityUsageStats(tenantId, ownerId, msg.getValuesList(), serviceId);
+        });
+
+        toPropagateStats.forEach((tpi, statsList) -> {
+            toMsgPack(statsList, serviceId).forEach(pack -> {
+                try {
+                    msgProducer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), pack), null);
+                } catch (Exception e) {
+                    log.warn("Failed to report propagated usage stats pack to TPI {}", tpi, e);
+                }
+            });
+        });
         callback.onSuccess();
-    }
-
-    private void process(ToUsageStatsServiceMsg statsMsg, String serviceId) {
-        TenantId tenantId = TenantId.fromUUID(new UUID(statsMsg.getTenantIdMSB(), statsMsg.getTenantIdLSB()));
-        EntityId ownerId;
-        if (statsMsg.getCustomerIdMSB() != 0 && statsMsg.getCustomerIdLSB() != 0) {
-            ownerId = new CustomerId(new UUID(statsMsg.getCustomerIdMSB(), statsMsg.getCustomerIdLSB()));
-            propagateStatsToCustomerOwner(statsMsg, tenantId, (CustomerId) ownerId);
-        } else {
-            ownerId = tenantId;
-        }
-
-        processEntityUsageStats(tenantId, ownerId, statsMsg.getValuesList(), serviceId);
     }
 
     private void processEntityUsageStats(TenantId tenantId, EntityId ownerId, List<UsageStatsKVProto> values, String serviceId) {
@@ -254,7 +267,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
         }
     }
 
-    private void propagateStatsToCustomerOwner(ToUsageStatsServiceMsg statsMsg, TenantId tenantId, CustomerId customerId) {
+    private void propagateStatsToCustomerOwner(ToUsageStatsServiceMsg statsMsg, TenantId tenantId, CustomerId customerId, Map<TopicPartitionInfo, List<ToUsageStatsServiceMsg>> toPropagateStats) {
         EntityId owner = ownersCacheService.getOwner(tenantId, customerId);
         if (owner == null || owner.isNullUid() || owner.getEntityType() != EntityType.CUSTOMER) return;
 
@@ -264,8 +277,19 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
                 .setCustomerIdLSB(owner.getId().getLeastSignificantBits())
                 .build();
 
-        TopicPartitionInfo partitionInfo = partitionService.resolve(ServiceType.TB_CORE, tenantId, owner).newByTopic(msgProducer.getDefaultTopic());
-        msgProducer.send(partitionInfo, new TbProtoQueueMsg<>(UUID.randomUUID(), newStatsMsg), null);
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, owner).newByTopic(msgProducer.getDefaultTopic());
+        toPropagateStats.computeIfAbsent(tpi, key -> new ArrayList<>()).add(newStatsMsg);
+    }
+
+    private List<ToUsageStatsServiceMsgPack> toMsgPack(List<ToUsageStatsServiceMsg> list, String serviceId) {
+        return Lists.partition(list, packSize)
+                .stream()
+                .map(partition ->
+                        ToUsageStatsServiceMsgPack.newBuilder()
+                                .addAllMsgs(partition)
+                                .setServiceId(serviceId)
+                                .build())
+                .toList();
     }
 
     @Override
