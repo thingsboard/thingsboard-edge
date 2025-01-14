@@ -43,7 +43,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private ApiUsageStateService apiUsageStateService;
 
-    public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
+    public void createTenantIfNotExists(TenantId tenantId) throws Exception {
         try {
             cloudSynchronizationManager.getSync().set(true);
             Tenant tenant = edgeCtx.getTenantService().findTenantById(tenantId);
@@ -55,12 +55,15 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             tenant.setId(tenantId);
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
             Tenant savedTenant = edgeCtx.getTenantService().saveTenant(tenant, null, false);
-            var apiUsageState = apiUsageStateService.findApiUsageStateByEntityId(savedTenant.getId());
-            if (apiUsageState == null) {
-                apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
-            }
 
-            requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
+            requestForAdditionalData(tenantId, tenantId).get();
+
+            try {
+                var apiUsageState = apiUsageStateService.findApiUsageStateByEntityId(savedTenant.getId());
+                if (apiUsageState == null) {
+                    apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+                }
+            } catch (Exception ignored) {}
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }

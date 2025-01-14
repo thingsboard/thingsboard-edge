@@ -1,3 +1,5 @@
+## Command to cleanup test log file
+sed -E 's|^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} \[docker-java-stream-[^]]*\] INFO org\.testcontainers\.containers\.DockerComposeContainer -- ||g; s|/[A-Za-z0-9]{12}_||g; s| STDOUT: | |g' /tmp/edge-test.log > /tmp/edge-test-clean.log
 
 ## Edge Black box tests execution
 To run the black box tests with using Docker, the local Docker images of Thingsboard's microservices should be built. <br />

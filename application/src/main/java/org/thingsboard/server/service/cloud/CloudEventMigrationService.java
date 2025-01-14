@@ -15,13 +15,12 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+public interface CloudEventMigrationService {
 
-public interface UplinkMessageService {
+    boolean isMigrated();
 
-    void processHandleMessages(TenantId tenantId) throws Exception;
+    boolean isTsMigrated();
 
-    void onUplinkResponse(UplinkResponseMsg msg);
+    void migrateUnprocessedEventToKafka();
 
 }

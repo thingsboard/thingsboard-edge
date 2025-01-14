@@ -35,8 +35,7 @@ import java.util.UUID;
 @Slf4j
 public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
-    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
-                                                              Long queueStartTs) {
+    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -54,7 +53,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                     } finally {
                         customerCreationLock.unlock();
                     }
-                    return requestForAdditionalData(tenantId, customerId, queueStartTs);
+                    return requestForAdditionalData(tenantId, customerId);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
                     if (customerById != null) {

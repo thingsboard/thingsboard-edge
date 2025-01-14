@@ -13,6 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host{
-  width: 10000px;
+package org.thingsboard.server.msa;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.thingsboard.rest.client.RestClient;
+import org.thingsboard.server.common.data.edge.Edge;
+
+@AllArgsConstructor
+@Data
+public class TestEdgeRuntimeParameters {
+    private RestClient restClient;
+    private Edge edge;
+    private String url;
 }

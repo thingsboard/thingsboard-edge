@@ -38,6 +38,10 @@ public class RuleChainClientTest extends AbstractContainerTest {
 
     @Test
     public void testRuleChains() {
+        performTestOnEachEdge(this::_testRuleChains);
+    }
+
+    private void _testRuleChains() {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -66,6 +70,10 @@ public class RuleChainClientTest extends AbstractContainerTest {
 
     @Test
     public void testUpdateRootRuleChain() {
+        performTestOnEachEdge(this::_testUpdateRootRuleChain);
+    }
+
+    private void _testUpdateRootRuleChain() {
         PageData<RuleChain> ruleChains = cloudRestClient.getEdgeRuleChains(edge.getId(), new TimePageLink(100));
         RuleChain rootRuleChain = ruleChains.getData().stream().filter(ruleChain -> ruleChain.getId().equals(edge.getRootRuleChainId())).findAny().orElse(null);
         Assert.assertNotNull(rootRuleChain);

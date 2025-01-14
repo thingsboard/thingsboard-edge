@@ -25,6 +25,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
@@ -54,6 +55,8 @@ import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaProducerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
+import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
+import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
@@ -67,7 +70,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='kafka' && '${service.type:null}'=='monolith'")
-public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngineQueueFactory, TbVersionControlQueueFactory {
+public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngineQueueFactory, TbVersionControlQueueFactory, TbCloudEventQueueFactory {
 
     private final TopicService topicService;
     private final TbKafkaSettings kafkaSettings;
@@ -80,6 +83,9 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueVersionControlSettings vcSettings;
     private final TbQueueEdgeSettings edgeSettings;
     private final TbKafkaConsumerStatsService consumerStatsService;
+
+    private final TbQueueCloudEventSettings cloudEventSettings;
+    private final TbQueueCloudEventTSSettings cloudEventTSSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbKafkaAdmin ruleEngineAdmin;
@@ -95,6 +101,9 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueAdmin edgeAdmin;
     private final TbQueueAdmin edgeEventAdmin;
 
+    private final TbQueueAdmin cloudEventAdmin;
+    private final TbQueueAdmin cloudEventTSAdmin;
+
     private final AtomicLong consumerCount = new AtomicLong();
 
     public KafkaMonolithQueueFactory(TopicService topicService, TbKafkaSettings kafkaSettings,
@@ -107,7 +116,9 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
                                      TbQueueVersionControlSettings vcSettings,
                                      TbQueueEdgeSettings edgeSettings,
                                      TbKafkaConsumerStatsService consumerStatsService,
-                                     TbKafkaTopicConfigs kafkaTopicConfigs) {
+                                     TbKafkaTopicConfigs kafkaTopicConfigs,
+                                     TbQueueCloudEventSettings cloudEventSettings,
+                                     TbQueueCloudEventTSSettings cloudEventTSSettings) {
         this.topicService = topicService;
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -119,6 +130,8 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.vcSettings = vcSettings;
         this.consumerStatsService = consumerStatsService;
         this.edgeSettings = edgeSettings;
+        this.cloudEventSettings = cloudEventSettings;
+        this.cloudEventTSSettings = cloudEventTSSettings;
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
@@ -133,6 +146,8 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.housekeeperReprocessingAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperReprocessingConfigs());
         this.edgeAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeConfigs());
         this.edgeEventAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeEventConfigs());
+        this.cloudEventAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCloudEventConfigs());
+        this.cloudEventTSAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCloudEventTSConfigs());
     }
 
     @Override
@@ -490,6 +505,60 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         return requestBuilder.build();
     }
 
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName(cloudEventSettings.getTopic()));
+        consumerBuilder.clientId("monolith-cloud-event-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("monolith-cloud-event-consumer"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCloudEventMsg.parseFrom(msg.getData())));
+        consumerBuilder.admin(cloudEventAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("monolith-to-cloud-event-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(cloudEventSettings.getTopic()));
+        requestBuilder.admin(cloudEventAdmin);
+
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName(cloudEventTSSettings.getTopic()));
+        consumerBuilder.clientId("monolith-cloud-event-ts-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("monolith-cloud-event-ts-consumer"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCloudEventMsg.parseFrom(msg.getData())));
+        consumerBuilder.admin(cloudEventTSAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("monolith-to-cloud-event-ts-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(cloudEventTSSettings.getTopic()));
+        requestBuilder.admin(cloudEventTSAdmin);
+
+        return requestBuilder.build();
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -522,5 +591,12 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         if (edgeAdmin != null) {
             edgeAdmin.destroy();
         }
+        if (cloudEventAdmin != null) {
+            cloudEventAdmin.destroy();
+        }
+        if (cloudEventTSAdmin != null) {
+            cloudEventTSAdmin.destroy();
+        }
     }
+
 }

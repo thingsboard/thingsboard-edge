@@ -13,6 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host{
-  width: 10000px;
+package org.thingsboard.server.msa;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@AllArgsConstructor
+@Data
+public class TestEdgeConfiguration {
+    private String routingKey;
+    private String secret;
+    private Integer port;
+    private Integer idx;
+    private String name;
 }

@@ -13,7 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.queue.settings;
 
-public interface TsUplinkMessageService extends UplinkMessageService {
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
+@Lazy
+@Data
+@Component
+public class TbQueueCloudEventTSSettings {
+
+    @Value("${queue.cloud-event-ts.topic}")
+    private String topic;
+    @Value("${queue.cloud-event-ts.poll-interval}")
+    private Long pollInterval;
 }

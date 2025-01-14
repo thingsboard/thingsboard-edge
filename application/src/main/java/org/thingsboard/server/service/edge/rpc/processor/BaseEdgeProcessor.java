@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.CloudUtils;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -334,19 +335,14 @@ public abstract class BaseEdgeProcessor {
         return entityDaoRegistry.getDao(entityId.getEntityType()).existsById(tenantId, entityId.getId());
     }
 
-    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, EntityId entityId, Long queueStartTs) {
+    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, EntityId entityId) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
-
         futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
-                EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null, queueStartTs));
+                EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null));
         futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
-                EdgeEventActionType.RELATION_REQUEST, entityId, null, queueStartTs));
-        if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
-            futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
-                    EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null, queueStartTs));
-        }
+                EdgeEventActionType.RELATION_REQUEST, entityId, null));
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
@@ -383,6 +379,14 @@ public abstract class BaseEdgeProcessor {
                 log.warn("[{}] Failed to send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, msgData, t);
             }
         });
+    }
+
+    protected boolean isCustomerNotExists(TenantId tenantId, CustomerId customerId) {
+        if (customerId == null || EntityId.NULL_UUID.equals(customerId.getId())) {
+            return false;
+        }
+        Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
+        return customerById == null;
     }
 
 }

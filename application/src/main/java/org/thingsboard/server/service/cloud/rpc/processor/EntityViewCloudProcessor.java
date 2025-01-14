@@ -29,15 +29,12 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructor;
@@ -54,34 +51,31 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
     private EntityViewMsgConstructorFactory entityViewMsgConstructorFactory;
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
-                                                                EntityViewUpdateMsg entityViewUpdateMsg,
-                                                                Long queueStartTs) {
+                                                                EntityViewUpdateMsg entityViewUpdateMsg) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-
-            switch (entityViewUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, queueStartTs);
-                    return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
-                case ENTITY_DELETED_RPC_MESSAGE:
+            return switch (entityViewUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
+                    boolean created = saveOrUpdateEntityViewFromCloud(tenantId, entityViewId, entityViewUpdateMsg);
+                    yield created ? requestForAdditionalData(tenantId, entityViewId) : Futures.immediateFuture(null);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     EntityView entityViewById = edgeCtx.getEntityViewService().findEntityViewById(tenantId, entityViewId);
                     if (entityViewById != null) {
                         edgeCtx.getEntityViewService().deleteEntityView(tenantId, entityViewId);
                         pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewById);
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
     }
 
-    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, Long queueStartTs) {
+    private boolean saveOrUpdateEntityViewFromCloud(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -89,8 +83,9 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
         Boolean entityViewNameUpdated = resultPair.getSecond();
         if (entityViewNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null, queueStartTs);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null);
         }
+        return created;
     }
 
     private void pushEntityViewCreatedEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId) {
@@ -111,28 +106,15 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
     }
 
-    public UplinkMsg convertEntityViewRequestEventToUplink(CloudEvent cloudEvent) {
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
-        EntityViewsRequestMsg entityViewsRequestMsg = EntityViewsRequestMsg.newBuilder()
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addEntityViewsRequestMsg(entityViewsRequestMsg);
-        return builder.build();
-    }
-
     public UplinkMsg convertEntityViewEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
         EntityViewId entityViewId = new EntityViewId(cloudEvent.getEntityId());
+        var msgConstructor = (EntityViewMsgConstructor) entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
                 EntityView entityView = edgeCtx.getEntityViewService().findEntityViewById(cloudEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
-                            entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewUpdatedMsg(msgType, entityView);
+                    EntityViewUpdateMsg entityViewUpdateMsg = msgConstructor.constructEntityViewUpdatedMsg(msgType, entityView);
                     return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
@@ -141,8 +123,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 }
             }
             case DELETED -> {
-                EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
-                        entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewDeleteMsg(entityViewId);
+                EntityViewUpdateMsg entityViewUpdateMsg = msgConstructor.constructEntityViewDeleteMsg(entityViewId);
                 return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
@@ -158,12 +139,9 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     @Override
     protected void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg) {
-        CustomerId assignedCustomerId = entityView.getCustomerId();
-        Customer customer = null;
-        if (assignedCustomerId != null) {
-            customer = edgeCtx.getCustomerService().findCustomerById(tenantId, assignedCustomerId);
+        if (isCustomerNotExists(tenantId, entityView.getCustomerId())) {
+            entityView.setCustomerId(null);
         }
-        entityView.setCustomerId(customer != null ? customer.getId() : null);
     }
 
 }
