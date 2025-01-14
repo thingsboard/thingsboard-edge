@@ -87,7 +87,13 @@ public class TbSimpleAggMsgNodeTest extends AbstractRuleNodeUpgradeTest {
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("temperature", null);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, deviceId, metaData, jsonObject.toString(), callback);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(deviceId)
+                .copyMetaData(metaData)
+                .data(jsonObject.toString())
+                .callback(callback)
+                .build();
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> node.onMsg(ctx, msg));
     }

@@ -116,7 +116,9 @@ public class ThingsboardInstallService {
                     latestMigrateService.migrate();
                 } else if (upgradeFromVersion.equals("3.9.0-resources")) {
                     installScripts.updateResourcesUsage();
-                } else {
+                } else if (upgradeFromVersion.equals("3.9.0-mail-templates")) {
+                    installScripts.migrateMailTemplates();
+                }  else {
                     // TODO DON'T FORGET to update SUPPORTED_VERSIONS_FROM in DefaultDatabaseSchemaSettingsService
                     var updateFromCE = "CE".equals(upgradeFromVersion);
                     databaseSchemaVersionService.validateSchemaSettings(updateFromCE);
@@ -139,6 +141,7 @@ public class ThingsboardInstallService {
                     // Creates missing indexes.
                     entityDatabaseSchemaService.createDatabaseIndexes();
                     // Runs upgrade scripts that are not possible in plain SQL.
+
                     // TODO: cleanup update code after each release
                     if (!getEnv("SKIP_RESOURCES_USAGE_MIGRATION", false)) {
                         installScripts.setUpdateResourcesUsage(true);
@@ -148,6 +151,15 @@ public class ThingsboardInstallService {
                     if (installScripts.isUpdateResourcesUsage()) {
                         installScripts.updateResourcesUsage();
                     }
+                    if (!getEnv("SKIP_MAIL_TEMPLATES_MIGRATION", false)) {
+                        installScripts.setMigrateMailTemplates(true);
+                    } else {
+                        log.info("Skipping migration of mail templates to notification center. Run the upgrade with fromVersion as '3.9.0-mail-templates' to migrate");
+                    }
+                    if (installScripts.isMigrateMailTemplates()) {
+                        installScripts.migrateMailTemplates();
+                    }
+
                     dataUpdateService.updateData(updateFromCE);
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();

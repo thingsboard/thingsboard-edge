@@ -158,6 +158,9 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.MOBILE_APP_BUNDLE, Resource.MOBILE_APP_BUNDLE],
     [EntityType.DOMAIN, Resource.DOMAIN],
     [EntityType.OAUTH2_CLIENT, Resource.OAUTH2_CLIENT],
+    [EntityType.NOTIFICATION_TARGET, Resource.NOTIFICATION],
+    [EntityType.NOTIFICATION_RULE, Resource.NOTIFICATION],
+    [EntityType.NOTIFICATION_TEMPLATE, Resource.NOTIFICATION],
   ]
 );
 

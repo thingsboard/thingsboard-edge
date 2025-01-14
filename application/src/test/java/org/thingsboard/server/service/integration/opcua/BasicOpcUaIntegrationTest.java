@@ -295,7 +295,12 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         dataNode.set("data", writeValuesNode);
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(new HashMap<>());
 
-        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ATTRIBUTES_UPDATED, originatorId, tbMsgMetaData, writeValueNode.toString());
+        TbMsg tbMsg = TbMsg.newMsg()
+                .type(TbMsgType.ATTRIBUTES_UPDATED)
+                .originator(originatorId)
+                .copyMetaData(tbMsgMetaData)
+                .data(writeValueNode.toString())
+                .build();
         return TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())

@@ -32,11 +32,14 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { FloatLabelType, MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
+import { MatDatetimepickerType } from '@mat-datetimepicker/core/datetimepicker/datetimepicker-type';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-datetime',
   templateUrl: './datetime.component.html',
-  styleUrls: [],
+  styleUrls: ['./datetime.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -57,16 +60,33 @@ export class DatetimeComponent implements OnInit, ControlValueAccessor {
   }
 
   @Input()
+  floatLabel: FloatLabelType = 'auto';
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
+
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
+
+  @Input()
+  type: MatDatetimepickerType = 'datetime';
+
+  @Input()
   disabled: boolean;
 
   @Input()
   dateText: string;
 
   @Input()
-  timeText: string;
+  @coerceBoolean()
+  showLabel = true;
 
   @Input()
-  showLabel = true;
+  @coerceBoolean()
+  allowClear = false;
+
+  @Input()
+  fieldClass: string;
 
   minDateValue: Date | null;
 
@@ -124,6 +144,12 @@ export class DatetimeComponent implements OnInit, ControlValueAccessor {
   onDateChange() {
     const value = this.date ? this.date.getTime() : null;
     this.updateView(value);
+  }
+
+  clear($event: Event) {
+    $event.stopPropagation();
+    this.date = null;
+    this.updateView(null);
   }
 
 }
