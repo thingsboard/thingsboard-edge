@@ -32,11 +32,13 @@ package org.thingsboard.server.msa.edge;
 
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
-import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.domain.DomainInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
@@ -46,90 +48,161 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.Palette;
+import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class WhiteLabelingClientTest extends AbstractContainerTest {
 
+    private static final String ADMIN_PRIMARY_COLOR = "red";
+    private static final String TENANT_PRIMARY_COLOR = "blue";
+    private static final String CUSTOMER_PRIMARY_COLOR = "green";
+    private static final String SUB_CUSTOMER_PRIMARY_COLOR = "yellow";
+    private static final String PALETTE_NUMBER = "50";
+
+    private static final String TENANT_CUSTOM_MENU_TITLE = "Tenant Custom Menu";
+    private static final String CUSTOMER_CUSTOM_MENU_TITLE = "Customer Custom Menu";
+    private static final String SUB_CUSTOMER_CUSTOM_MENU_TITLE = "Sub Customer Custom Menu";
+
+    private static final String SYSADMIN_APP_TITLE = "Sysadmin App Title";
+    private static final String TENANT_APP_TITLE = "Tenant App Title";
+    private static final String CUSTOMER_APP_TITLE = "Customer App Title";
+    private static final String SUB_CUSTOMER_APP_TITLE = "Sub Customer App Title";
+
+    private static final String TENANT_DOMAIN_NAME = "tenant-domain.org";
+    private static final String CUSTOMER_DOMAIN_NAME = "customer-domain.org";
+    private static final String SUB_CUSTOMER_DOMAIN_NAME = "sub-customer-domain.org";
+
+    private static final String CUSTOMER_TITLE = "Edge Customer A";
+    private static final String SUB_CUSTOMER_TITLE = "Edge Sub Customer A";
+    private static final String CUSTOMER_PASSWORD = "customer";
+    private static final String CUSTOMER_EMAIL = "edgeCustomer@thingsboard.org";
+    private static final String SUB_CUSTOMER_EMAIL = "edgeSubCustomer@thingsboard.org";
+
+    private CustomerId parentCustomerId;
+
     @Test
-    public void testWhiteLabeling() {
-        testWhiteLabeling_sysAdmin();
-        testWhiteLabeling_tenant();
-        testWhiteLabeling_customer();
+    public void testWhiteLabeling_LoginWhiteLabeling_CustomMenu() {
+        performTestOnEachEdge(this::_testWhiteLabeling_LoginWhiteLabeling_CustomMenu);
     }
 
-    private void testWhiteLabeling_sysAdmin() {
+    private void _testWhiteLabeling_LoginWhiteLabeling_CustomMenu() {
+        testSysAdmin();
+
+        testTenant();
+
+        testCustomer();
+
+        testSubCustomer();
+
+        cleanUp();
+    }
+
+    private void testSysAdmin() {
         cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
         edgeRestClient.login("tenant@thingsboard.org", "tenant");
 
+        testWhiteLabelAndLoginParams(SYSADMIN_APP_TITLE, ADMIN_PRIMARY_COLOR, true, null);
+    }
+
+    private void testTenant() {
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+        edgeRestClient.login("tenant@thingsboard.org", "tenant");
+
+        testWhiteLabelAndLoginParams(TENANT_APP_TITLE, TENANT_PRIMARY_COLOR, false, TENANT_DOMAIN_NAME);
+        updateAndVerifyCustomMenuUpdate(TENANT_CUSTOM_MENU_TITLE, CMScope.TENANT);
+    }
+
+    private void testCustomer() {
+        createCustomerAndLogin(CUSTOMER_TITLE, CUSTOMER_EMAIL, null);
+
+        testWhiteLabelAndLoginParams(CUSTOMER_APP_TITLE, CUSTOMER_PRIMARY_COLOR, false, CUSTOMER_DOMAIN_NAME);
+        updateAndVerifyCustomMenuUpdate(CUSTOMER_CUSTOM_MENU_TITLE, CMScope.CUSTOMER);
+    }
+
+    private void testSubCustomer() {
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+        Optional<Customer> parentCustomerOpt = cloudRestClient.getTenantCustomer(CUSTOMER_TITLE);
+
+        createCustomerAndLogin(SUB_CUSTOMER_TITLE, SUB_CUSTOMER_EMAIL, parentCustomerOpt.get().getId());
+
+        testWhiteLabelAndLoginParams(SUB_CUSTOMER_APP_TITLE, SUB_CUSTOMER_PRIMARY_COLOR, false, SUB_CUSTOMER_DOMAIN_NAME);
+        updateAndVerifyCustomMenuUpdate(SUB_CUSTOMER_CUSTOM_MENU_TITLE, CMScope.CUSTOMER);
+    }
+
+    private void cleanUp() {
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+        Optional<Customer> parentCustomerOpt = cloudRestClient.getTenantCustomer(CUSTOMER_TITLE);
+
+        changeOwnerToTenantAndRemoveCustomer(parentCustomerOpt.get());
+
+        cloudRestClient.saveWhiteLabelParams(new WhiteLabelingParams());
+        Optional<LoginWhiteLabelingParams> currentLoginWhiteLabelParamsOpt  = cloudRestClient.getCurrentLoginWhiteLabelParams();
+        LoginWhiteLabelingParams currentLoginWhiteLabelParams = currentLoginWhiteLabelParamsOpt.get();
+        currentLoginWhiteLabelParams.setPaletteSettings(null);
+        cloudRestClient.saveLoginWhiteLabelParams(currentLoginWhiteLabelParams);
+
+        cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
+        cloudRestClient.saveWhiteLabelParams(new WhiteLabelingParams());
+        cloudRestClient.saveLoginWhiteLabelParams(new LoginWhiteLabelingParams());
+    }
+
+    private void testWhiteLabelAndLoginParams(String appTitle, String primaryColor, boolean isSysAdmin, String domainName) {
         Optional<WhiteLabelingParams> currentWhiteLabelParamsOpt = cloudRestClient.getCurrentWhiteLabelParams();
-        Assert.assertTrue(currentWhiteLabelParamsOpt.isPresent());
-        WhiteLabelingParams whiteLabelingParams = currentWhiteLabelParamsOpt.get();
-        whiteLabelingParams.setPlatformName("SYSADMIN_PLATFORM_NAME");
+        WhiteLabelingParams whiteLabelingParams = currentWhiteLabelParamsOpt.orElse(new WhiteLabelingParams());
+        whiteLabelingParams.setAppTitle(appTitle);
+        whiteLabelingParams.setPaletteSettings(createPaletteSettings(primaryColor));
         cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
+
+        if (!isSysAdmin) {
+            Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .until(() -> {
+                        Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getCurrentWhiteLabelParams();
+                        Optional<WhiteLabelingParams> cloudWhiteLabelParams = cloudRestClient.getCurrentWhiteLabelParams();
+                        return edgeWhiteLabelParams.isPresent() &&
+                                cloudWhiteLabelParams.isPresent() &&
+                                edgeWhiteLabelParams.get().equals(cloudWhiteLabelParams.get());
+                    });
+        }
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getWhiteLabelParams(null, null);
-                    if (edgeWhiteLabelParams.isEmpty()) {
-                        return false;
-                    }
-                    return "SYSADMIN_PLATFORM_NAME".equals(edgeWhiteLabelParams.get().getPlatformName());
+                    String edgePrimaryColor = getPrimaryColor(edgeWhiteLabelParams);
+                    String edgeAppTitle = edgeWhiteLabelParams.map(WhiteLabelingParams::getAppTitle).orElse(null);
+                    return primaryColor.equals(edgePrimaryColor) && appTitle.equals(edgeAppTitle);
                 });
-    }
 
-    private void testWhiteLabeling_tenant() {
-        cloudRestClient.login("tenant@thingsboard.org", "tenant");
-        edgeRestClient.login("tenant@thingsboard.org", "tenant");
-        updateAndVerifyWhiteLabelingUpdate("Tenant TB Updated");
-    }
 
-    private void testWhiteLabeling_customer() {
-        Customer savedCustomer = createCustomerAndAssignEdgeToCustomer();
+        Domain domain;
+        if (!isSysAdmin) {
+            domain = getOrCreateDomain(domainName);
+            Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .until(() -> {
+                        Optional<DomainInfo> domainInfo = edgeRestClient.getDomainInfoById(domain.getId());
+                        return domainInfo.isPresent();
+                    });
+        } else {
+            domain = null;
+        }
 
-        updateAndVerifyWhiteLabelingUpdate("Customer TB Updated");
-
-        changeOwnerToTenantAndRemoveCustomer(savedCustomer);
-    }
-
-    private void updateAndVerifyWhiteLabelingUpdate(String updateAppTitle) {
-        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setAppTitle(updateAppTitle);
-        cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
-
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getCurrentWhiteLabelParams();
-                    Optional<WhiteLabelingParams> cloudWhiteLabelParams = cloudRestClient.getCurrentWhiteLabelParams();
-                    return edgeWhiteLabelParams.isPresent() &&
-                            cloudWhiteLabelParams.isPresent() &&
-                            edgeWhiteLabelParams.get().equals(cloudWhiteLabelParams.get());
-                });
-    }
-
-    @Test
-    public void testLoginWhiteLabeling() {
-        testLoginWhiteLabeling_sysAdmin();
-        testLoginWhiteLabeling_tenant();
-        testLoginWhiteLabeling_customer();
-    }
-
-    private void testLoginWhiteLabeling_sysAdmin() {
-        cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-        edgeRestClient.login("tenant@thingsboard.org", "tenant");
-
-        Optional<LoginWhiteLabelingParams> currentLoginWhiteLabelParamsOpt = cloudRestClient.getCurrentLoginWhiteLabelParams();
-        Assert.assertTrue(currentLoginWhiteLabelParamsOpt.isPresent());
-        LoginWhiteLabelingParams loginWhiteLabelingParams = currentLoginWhiteLabelParamsOpt.get();
-        loginWhiteLabelingParams.setShowNameBottom(Boolean.TRUE);
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        if (!isSysAdmin) {
+            loginWhiteLabelingParams.setDomainId(domain.getId());
+        }
+        loginWhiteLabelingParams.setPaletteSettings(createPaletteSettings(primaryColor));
         cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
 
         Awaitility.await()
@@ -137,91 +210,49 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getLoginWhiteLabelParams(null, null);
-                    return edgeLoginWhiteLabelParams.filter(whiteLabelingParams -> Boolean.TRUE.equals(whiteLabelingParams.getShowNameBottom())).isPresent();
-                });
-    }
-
-    private void testLoginWhiteLabeling_tenant() {
-        cloudRestClient.login("tenant@thingsboard.org", "tenant");
-        edgeRestClient.login("tenant@thingsboard.org", "tenant");
-        updateAndVerifyLoginWhiteLabelingUpdate("tenantupdated.org");
-    }
-
-    private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) {
-        Domain domain = new Domain();
-        domain.setName("tmp-" + updatedDomainName);
-        domain.setOauth2Enabled(true);
-        domain.setPropagateToEdge(true);
-        domain = cloudRestClient.saveDomain(domain);
-
-        LoginWhiteLabelingParams newLoginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        newLoginWhiteLabelingParams.setAppTitle(updatedDomainName);
-        newLoginWhiteLabelingParams.setDomainId(domain.getId());
-        cloudRestClient.saveLoginWhiteLabelParams(newLoginWhiteLabelingParams);
-
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
-                    Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
-                    if (edgeLoginWhiteLabelParams.isEmpty() || cloudLoginWhiteLabelParams.isEmpty()) {
+                    String edgePrimaryColor = getPrimaryColor(edgeLoginWhiteLabelParams);
+                    if (!primaryColor.equals(edgePrimaryColor)) {
                         return false;
                     }
-                    return edgeLoginWhiteLabelParams.get().equals(cloudLoginWhiteLabelParams.get());
+                    if (isSysAdmin) {
+                        return true;
+                    }
+                    DomainId edgeDomainId = getDomainId(edgeLoginWhiteLabelParams);
+                    return domain.getId().equals(edgeDomainId);
                 });
+
+        if (!isSysAdmin) {
+            Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .until(() -> {
+                        Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
+                        Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
+                        return edgeLoginWhiteLabelParams.isPresent() &&
+                                cloudLoginWhiteLabelParams.isPresent() &&
+                                edgeLoginWhiteLabelParams.get().equals(cloudLoginWhiteLabelParams.get());
+                    });
+        }
     }
 
-    private void testLoginWhiteLabeling_customer() {
-        Customer savedCustomer = createCustomerAndAssignEdgeToCustomer();
+    private Domain getOrCreateDomain(String domainName) {
+        PageData<DomainInfo> tenantDomains = cloudRestClient.getTenantDomainInfos(new PageLink(1024));
+        for (DomainInfo domain : tenantDomains.getData()) {
+            if (domain.getName().equals(domainName)) {
+                return domain;
+            }
+        }
 
-        updateAndVerifyLoginWhiteLabelingUpdate("customerupdated.org");
-
-        changeOwnerToTenantAndRemoveCustomer(savedCustomer);
+        Domain domain = new Domain();
+        domain.setName(domainName);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
+        return cloudRestClient.saveDomain(domain);
     }
 
-    @Test
-    public void testCustomMenu() {
-        testCustomMenu_tenant();
-        testCustomMenu_customer();
-    }
-
-    private void testCustomMenu_tenant() {
-        cloudRestClient.login("tenant@thingsboard.org", "tenant");
-        edgeRestClient.login("tenant@thingsboard.org", "tenant");
-        updateAndVerifyCustomMenuUpdate("Tenant custom menu", CMScope.TENANT);
-    }
-
-    private void testCustomMenu_customer() {
-        Customer savedCustomer = createCustomerAndAssignEdgeToCustomer();
-
-        updateAndVerifyCustomMenuUpdate("Customer custom menu", CMScope.CUSTOMER);
-
-        changeOwnerToTenantAndRemoveCustomer(savedCustomer);
-    }
-
-    private void updateAndVerifyCustomMenuUpdate(String customMenuName, CMScope scope) {
-        CustomMenu menu = new CustomMenu();
-        menu.setName(customMenuName);
-        menu.setScope(scope);
-        menu.setAssigneeType(CMAssigneeType.ALL);
-        cloudRestClient.saveCustomMenu(menu, null, false);
-        PageLink pageLink = new PageLink(1000);
-
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    PageData<CustomMenuInfo> edgeCustomMenuInfos = edgeRestClient.getCustomMenuInfos(pageLink);
-                    PageData<CustomMenuInfo> cloudCustomMenuInfos = cloudRestClient.getCustomMenuInfos(pageLink);
-                    return edgeCustomMenuInfos.getTotalElements() == cloudCustomMenuInfos.getTotalElements() &&
-                            edgeCustomMenuInfos.getData().equals(cloudCustomMenuInfos.getData());
-                });
-    }
-
-    private Customer createCustomerAndAssignEdgeToCustomer() {
+    private void createCustomerAndLogin(String customerTitle, String email, CustomerId parentCustomerId) {
         // create customer
-        Customer savedCustomer = saveCustomer("Edge Customer A", null);
+        Customer savedCustomer = saveCustomer(customerTitle, parentCustomerId);
 
         // change owner to customer
         cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
@@ -235,16 +266,68 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setTenantId(edge.getTenantId());
         user.setCustomerId(savedCustomer.getId());
-        user.setEmail("edgeCustomer@thingsboard.org");
+        user.setEmail(email);
         User savedUser = cloudRestClient.saveUser(user, false, findCustomerAdminsGroup(savedCustomer).get().getId());
-        cloudRestClient.activateUser(savedUser.getId(), "customer", false);
+        cloudRestClient.activateUser(savedUser.getId(), CUSTOMER_PASSWORD, false);
 
         verifyThatCustomerAdminGroupIsCreatedOnEdge(savedCustomer);
 
-        loginIntoEdgeWithRetries("edgeCustomer@thingsboard.org", "customer");
-        cloudRestClient.login("edgeCustomer@thingsboard.org", "customer");
+        loginIntoEdgeWithRetries(email, CUSTOMER_PASSWORD);
+        cloudRestClient.login(email, CUSTOMER_PASSWORD);
+    }
 
-        return savedCustomer;
+    private String getPrimaryColor(Optional<? extends WhiteLabelingParams> whiteLabelingParams) {
+        if (whiteLabelingParams.isEmpty() || whiteLabelingParams.get().getPaletteSettings() == null
+                || whiteLabelingParams.get().getPaletteSettings().getPrimaryPalette() == null
+                || whiteLabelingParams.get().getPaletteSettings().getPrimaryPalette().getColors() == null) {
+            return "";
+        }
+        return whiteLabelingParams.get().getPaletteSettings().getPrimaryPalette().getColors().get(PALETTE_NUMBER);
+    }
+
+    private DomainId getDomainId(Optional<LoginWhiteLabelingParams> loginWhiteLabelingParams) {
+        return loginWhiteLabelingParams.map(LoginWhiteLabelingParams::getDomainId).orElse(new DomainId(EntityId.NULL_UUID));
+    }
+
+    private PaletteSettings createPaletteSettings(String color) {
+        PaletteSettings paletteSettings = new PaletteSettings();
+        Palette primaryPalette = new Palette();
+        primaryPalette.setType("custom");
+        HashMap<String, String> colors = new HashMap<>();
+        colors.put(PALETTE_NUMBER, color);
+        primaryPalette.setColors(colors);
+        paletteSettings.setPrimaryPalette(primaryPalette);
+        return paletteSettings;
+    }
+
+    private void updateAndVerifyCustomMenuUpdate(String customMenuName, CMScope scope) {
+        if (!isCustomMenuAlreadyCreated(customMenuName, scope)) {
+            CustomMenu menu = new CustomMenu();
+            menu.setName(customMenuName);
+            menu.setScope(scope);
+            menu.setAssigneeType(CMAssigneeType.ALL);
+            cloudRestClient.saveCustomMenu(menu, null, false);
+        }
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<CustomMenuInfo> edgeCustomMenuInfos = edgeRestClient.getCustomMenuInfos(new PageLink(1024));
+                    PageData<CustomMenuInfo> cloudCustomMenuInfos = cloudRestClient.getCustomMenuInfos(new PageLink(1024));
+                    return edgeCustomMenuInfos.getTotalElements() == cloudCustomMenuInfos.getTotalElements() &&
+                            edgeCustomMenuInfos.getData().equals(cloudCustomMenuInfos.getData());
+                });
+    }
+
+    private boolean isCustomMenuAlreadyCreated(String customMenuName, CMScope scope) {
+        PageData<CustomMenuInfo> cloudCustomMenuInfos = cloudRestClient.getCustomMenuInfos(new PageLink(1024));
+        for (CustomMenuInfo datum : cloudCustomMenuInfos.getData()) {
+            if (datum.getName().equals(customMenuName)
+                    && datum.getScope().equals(scope)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void changeOwnerToTenantAndRemoveCustomer(Customer savedCustomer) {

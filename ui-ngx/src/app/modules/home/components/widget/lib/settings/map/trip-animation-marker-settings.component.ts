@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -46,6 +46,7 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { TripAnimationMarkerSettings } from '@home/components/widget/lib/maps/map-models';
 import { WidgetService } from '@core/http/widget.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-trip-animation-marker-settings',
@@ -80,7 +81,8 @@ export class TripAnimationMarkerSettingsComponent extends PageComponent implemen
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -97,16 +99,24 @@ export class TripAnimationMarkerSettingsComponent extends PageComponent implemen
       markerImageFunction: [null, []],
       markerImages: [null, []]
     });
-    this.tripAnimationMarkerSettingsFormGroup.valueChanges.subscribe(() => {
+    this.tripAnimationMarkerSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
-    this.tripAnimationMarkerSettingsFormGroup.get('showLabel').valueChanges.subscribe(() => {
+    this.tripAnimationMarkerSettingsFormGroup.get('showLabel').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.tripAnimationMarkerSettingsFormGroup.get('useLabelFunction').valueChanges.subscribe(() => {
+    this.tripAnimationMarkerSettingsFormGroup.get('useLabelFunction').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.tripAnimationMarkerSettingsFormGroup.get('useMarkerImageFunction').valueChanges.subscribe(() => {
+    this.tripAnimationMarkerSettingsFormGroup.get('useMarkerImageFunction').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
     this.updateValidators(false);

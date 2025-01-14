@@ -28,6 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host{
-  width: 10000px;
+package org.thingsboard.server.service.cloud;
+
+public interface CloudEventMigrationService {
+
+    boolean isMigrated();
+
+    boolean isTsMigrated();
+
+    void migrateUnprocessedEventToKafka();
+
 }

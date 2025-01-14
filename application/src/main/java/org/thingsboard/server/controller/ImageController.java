@@ -236,7 +236,8 @@ public class ImageController extends BaseController {
 
     private ResponseEntity<ByteArrayResource> downloadLoginImage(String domainName, String type,
                                                                  String key, String etag, String acceptEncodingHeader, boolean faviconElseLogo) throws Exception {
-        var imageKey = whiteLabelingService.getLoginImageKey(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME, faviconElseLogo);
+        // edge-only: on edge domain name hardcoded - using login white labeling of the edge owner and not by domain
+        var imageKey = whiteLabelingService.getLoginImageKey(whiteLabelingService.getEdgeDomainName(domainName), faviconElseLogo);
         if (imageKey != null && imageKey.getResourceKey().equals(key) &&
                 ((imageKey.getTenantId().isSysTenantId() && SYSTEM_IMAGE.equals(type)) || (!imageKey.getTenantId().isSysTenantId() && TENANT_IMAGE.equals(type)))) {
             return downloadIfChanged(TenantId.SYS_TENANT_ID, imageKey, etag, acceptEncodingHeader, true);

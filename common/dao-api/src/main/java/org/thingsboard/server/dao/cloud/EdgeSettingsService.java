@@ -28,16 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.dao.cloud;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageLink;
 
-public interface GeneralUplinkMessageService extends UplinkMessageService {
+import java.util.List;
 
-    TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart);
+public interface EdgeSettingsService {
 
-    ListenableFuture<Long> getQueueStartTs(TenantId tenantId);
+    EdgeSettings findEdgeSettings();
 
+    ListenableFuture<List<Long>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
 }

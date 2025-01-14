@@ -85,7 +85,7 @@
         <apache-httpcore5.version>5.2.4</apache-httpcore5.version>
         <apache-httpclient.version>4.5.14</apache-httpclient.version>
         <apache-httpcore.version>4.4.16</apache-httpcore.version>
-        <apache-pulsar.version>4.0.1</apache-pulsar.version>
+        <apache-pulsar.version>3.3.2</apache-pulsar.version>
         <joda-time.version>2.12.7</joda-time.version>
         <jackson.version>2.17.2</jackson.version>
         <jackson-databind.version>2.17.2</jackson-databind.version>
@@ -102,7 +102,7 @@
         <zookeeper.version>3.9.2</zookeeper.version>
         <protobuf.version>3.25.3</protobuf.version> <!-- A Major v4 does not support by the pubsub yet-->
         <grpc.version>1.63.0</grpc.version>
-        <tbel.version>1.2.5</tbel.version>
+        <tbel.version>1.2.4</tbel.version>
         <lombok.version>1.18.32</lombok.version>
         <paho.client.version>1.2.5</paho.client.version>
         <paho.mqttv5.client.version>1.2.5</paho.mqttv5.client.version>
@@ -909,6 +909,29 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>io.github.git-commit-id</groupId>
+                    <artifactId>git-commit-id-maven-plugin</artifactId>
+                    <version>5.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>get-the-git-infos</id>
+                            <goals>
+                                <goal>revision</goal>
+                            </goals>
+                            <phase>initialize</phase>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                        <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+<!--                        <includeOnlyProperties>-->
+<!--                            <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>-->
+<!--                            <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>-->
+<!--                        </includeOnlyProperties>-->
+                        <commitIdGenerationMode>full</commitIdGenerationMode>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

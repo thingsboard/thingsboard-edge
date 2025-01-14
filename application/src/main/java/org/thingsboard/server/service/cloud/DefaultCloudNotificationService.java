@@ -90,7 +90,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     @Override
     public void pushNotificationToCloud(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback) {
         try {
-            TenantId tenantId = new TenantId(new UUID(cloudNotificationMsg.getTenantIdMSB(), cloudNotificationMsg.getTenantIdLSB()));
+            TenantId tenantId = TenantId.fromUUID(new UUID(cloudNotificationMsg.getTenantIdMSB(), cloudNotificationMsg.getTenantIdLSB()));
             CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
             ListenableFuture<Void> future;
             switch (cloudEventType) {
@@ -142,7 +142,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                     entityGroupId = new EntityGroupId(
                             new UUID(cloudNotificationMsg.getEntityGroupIdMSB(), cloudNotificationMsg.getEntityGroupIdLSB()));
                 }
-                return cloudEventService.saveCloudEventAsync(tenantId, cloudEventType, cloudEventActionType, entityId, null, entityGroupId, 0L);
+                return cloudEventService.saveCloudEventAsync(tenantId, cloudEventType, cloudEventActionType, entityId, null, entityGroupId);
             default:
                 return Futures.immediateFuture(null);
         }
@@ -153,14 +153,14 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         if (EdgeEventActionType.DELETED.equals(actionType) || EdgeEventActionType.ALARM_DELETE.equals(actionType)) {
             Alarm deletedAlarm = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), Alarm.class);
-            return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM, actionType, alarmId, JacksonUtil.valueToTree(deletedAlarm), null, 0L);
+            return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM, actionType, alarmId, JacksonUtil.valueToTree(deletedAlarm), null);
         }
         ListenableFuture<Alarm> future = alarmService.findAlarmByIdAsync(tenantId, alarmId);
         return Futures.transformAsync(future, alarm -> {
             if (alarm != null) {
                 CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
                 if (cloudEventType != null) {
-                    return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM, EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()), alarmId, null, null, 0L);
+                    return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM, EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()), alarmId, null, null);
                 }
             }
             return Futures.immediateFuture(null);
@@ -174,12 +174,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         if (alarmComment == null) {
             return Futures.immediateFuture(null);
         }
-        return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM_COMMENT, actionType, alarmId, JacksonUtil.valueToTree(alarmComment), null, 0L);
+        return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM_COMMENT, actionType, alarmId, JacksonUtil.valueToTree(alarmComment), null);
     }
 
     private ListenableFuture<Void> processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
         EntityRelation relation = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
-        return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RELATION, EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()), null, JacksonUtil.valueToTree(relation), null, 0L);
+        return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RELATION, EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()), null, JacksonUtil.valueToTree(relation), null);
     }
 
 }

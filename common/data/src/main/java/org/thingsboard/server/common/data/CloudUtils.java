@@ -54,4 +54,5 @@ public final class CloudUtils {
     public static CloudEventType getCloudEventTypeByEntityType(EntityType entityType) {
         return entityTypeCloudEventTypeEnumMap.get(entityType);
     }
+
 }

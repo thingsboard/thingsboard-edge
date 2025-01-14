@@ -37,17 +37,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -58,7 +54,7 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    public ListenableFuture<Void> processWhiteLabelingMsgFromCloud(TenantId tenantId, CustomerId customerId, WhiteLabelingProto whiteLabelingProto) throws Exception {
+    public ListenableFuture<Void> processWhiteLabelingMsgFromCloud(TenantId tenantId, WhiteLabelingProto whiteLabelingProto) throws Exception {
         WhiteLabeling whiteLabeling = JacksonUtil.fromString(whiteLabelingProto.getEntity(), WhiteLabeling.class, true);
         if (whiteLabeling == null) {
             throw new RuntimeException("[{" + tenantId + "}] whiteLabelingProto {" + whiteLabelingProto + " } cannot be converted to white labeling");

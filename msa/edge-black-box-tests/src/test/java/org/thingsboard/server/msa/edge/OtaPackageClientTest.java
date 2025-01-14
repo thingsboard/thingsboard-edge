@@ -53,7 +53,11 @@ import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 public class OtaPackageClientTest extends AbstractContainerTest {
 
     @Test
-    public void testOtaPackages() throws Exception {
+    public void testOtaPackages() {
+        performTestOnEachEdge(this::_testOtaPackages);
+    }
+
+    private void _testOtaPackages() {
         // create ota package
         DeviceProfileInfo defaultDeviceProfileInfo = cloudRestClient.getDefaultDeviceProfileInfo();
         OtaPackageId otaPackageId = createOtaPackageInfo(new DeviceProfileId(defaultDeviceProfileInfo.getId().getId()), FIRMWARE);

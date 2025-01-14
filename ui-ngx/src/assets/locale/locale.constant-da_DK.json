@@ -3242,7 +3242,6 @@
     "type": "Widget-type",
     "resources": "Ressourcer",
     "resource-url": "JavaScript/CSS URL",
-    "resource-is-module": "Er modul",
     "remove-resource": "Fjern ressource",
     "add-resource": "Tilføj ressource",
     "html": "HTML",

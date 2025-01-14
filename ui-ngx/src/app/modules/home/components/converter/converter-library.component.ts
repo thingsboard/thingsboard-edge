@@ -175,7 +175,10 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
         ),
         catchError(() => of(null)),
         distinctUntilChanged(),
-        map((converter: Converter) => converter ?? { type: this.converterType } as Converter)
+        map((converter: Converter) => {
+          const debugSettings = { allEnabled: true, failuresEnabled: true };
+          return converter ? { ...converter, debugSettings } : { type: this.converterType, debugSettings } as Converter
+        })
     );
   }
 

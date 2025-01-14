@@ -41,13 +41,8 @@ FROM_VERSION=`cat ${upgradeversion}`
 
 echo "Starting ThingsBoard upgrade ..."
 
-fromVersion="${FROM_VERSION// }"
-
 java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication \
                 -Dspring.jpa.hibernate.ddl-auto=none \
                 -Dinstall.upgrade=true \
-                -Dinstall.upgrade.from_version=${fromVersion} \
                 -Dlogging.config=/usr/share/thingsboard/bin/install/logback.xml \
                 org.springframework.boot.loader.launch.PropertiesLauncher
-
-echo "${pkg.upgradeVersion}" > ${upgradeversion}

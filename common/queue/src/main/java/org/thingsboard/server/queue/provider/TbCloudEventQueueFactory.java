@@ -28,50 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.queue.provider;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
+import org.thingsboard.server.queue.TbQueueConsumer;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-@Slf4j
-@Service
-public class DefaultGeneralUplinkMessageService extends BaseUplinkMessageService implements GeneralUplinkMessageService {
+public interface TbCloudEventQueueFactory {
 
-    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
+    TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventMsgConsumer();
 
-    @Override
-    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        return cloudEventService.findCloudEvents(tenantId, seqIdStart, seqIdEnd, pageLink);
-    }
+    TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventMsgProducer();
 
-    @Override
-    protected String getTableName() {
-        return "cloud_event";
-    }
+    TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgConsumer();
 
-    @Override
-    protected boolean newMessagesAvailableInGeneralQueue(TenantId tenantId) {
-        return false;
-    }
-
-    @Override
-    protected void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId) {
-        updateQueueStartTsSeqIdOffset(tenantId, QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, newSeqId);
-    }
-
-    @Override
-    public ListenableFuture<Long> getQueueStartTs(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_START_TS_ATTR_KEY);
-    }
-
-    @Override
-    protected ListenableFuture<Long> getQueueSeqIdStart(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
-    }
+    TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgProducer();
 
 }

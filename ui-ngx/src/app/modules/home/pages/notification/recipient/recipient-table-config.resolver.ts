@@ -31,7 +31,7 @@
 
 import {
   CellActionDescriptor,
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -45,12 +45,11 @@ import {
   RecipientNotificationDialogData
 } from '@home/pages/notification/recipient/recipient-notification-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { EntityAction } from '@home/models/entity/entity-component.models';
-import { RecipientTableHeaderComponent } from '@home/pages/notification/recipient/recipient-table-header.component';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
+import { Observable } from 'rxjs';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
@@ -68,11 +67,13 @@ export class RecipientTableConfigResolver  {
 
     this.config.entityType = EntityType.NOTIFICATION_TARGET;
     this.config.detailsPanelEnabled = false;
-    this.config.addEnabled = false;
+    this.config.addAsTextButton = true;
     this.config.rowPointer = true;
 
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.NOTIFICATION_TARGET);
     this.config.entityResources = {} as EntityTypeResource<NotificationTarget>;
+
+    this.config.addEntity = () => this.editTarget(null, true);
 
     this.config.entitiesFetchFunction = pageLink => this.notificationService.getNotificationTargets(pageLink);
 
@@ -82,19 +83,19 @@ export class RecipientTableConfigResolver  {
     this.config.deleteEntitiesContent = () => this.translate.instant('notification.delete-recipients-text');
 
     this.config.deleteEntity = id => this.notificationService.deleteNotificationTarget(id.id);
+    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.cellActionDescriptors = this.configureCellActions();
-
-    this.config.headerComponent = RecipientTableHeaderComponent;
-    this.config.onEntityAction = action => this.onTargetAction(action);
-
-    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
-    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
     this.config.handleRowClick = ($event, target) => {
-      this.editTarget($event, target);
+      $event?.stopPropagation();
+      this.editTarget(target).subscribe((res) => {
+        if (res) {
+          this.config.updateData();
+        }
+      });
       return true;
     };
 
@@ -110,7 +111,8 @@ export class RecipientTableConfigResolver  {
     );
   }
 
-  resolve(route: ActivatedRouteSnapshot): EntityTableConfig<NotificationTarget> {
+  resolve(_route: ActivatedRouteSnapshot): EntityTableConfig<NotificationTarget> {
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 
@@ -118,11 +120,8 @@ export class RecipientTableConfigResolver  {
     return [];
   }
 
-  private editTarget($event: Event, target: NotificationTarget, isAdd = false) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialog.open<RecipientNotificationDialogComponent, RecipientNotificationDialogData,
+  private editTarget(target: NotificationTarget, isAdd = false): Observable<NotificationTarget> {
+    return this.dialog.open<RecipientNotificationDialogComponent, RecipientNotificationDialogData,
       NotificationTarget>(RecipientNotificationDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
@@ -131,20 +130,6 @@ export class RecipientTableConfigResolver  {
         target,
         readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
-    }).afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.config.updateData();
-        }
-      });
-  }
-
-  private onTargetAction(action: EntityAction<NotificationTarget>): boolean {
-    switch (action.action) {
-      case 'add':
-        this.editTarget(action.event, action.entity, true);
-        return true;
-    }
-    return false;
+    }).afterClosed();
   }
 }

@@ -72,18 +72,18 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
-    private final Set<Operation> groupRoleOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
+    private final Set<Operation> partialUpdateOrReadOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
             Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_CREDENTIALS, Operation.READ_TELEMETRY,
             Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY, Operation.WRITE_CREDENTIALS));
 
-    private final Set<Operation> genericRoleOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
-            Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_CREDENTIALS, Operation.READ_TELEMETRY,
-            Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY, Operation.WRITE_CREDENTIALS));
-
-    private final Set<Operation> profilesAndResourceOperations = new HashSet<>(Arrays.asList(
+    private final Set<Operation> fullEntityUpdateOperations = new HashSet<>(Arrays.asList(
             Operation.CHANGE_OWNER, Operation.CREATE,
-            Operation.READ, Operation.READ_ATTRIBUTES ,Operation.READ_TELEMETRY,
+            Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY,
             Operation.WRITE, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
+
+    private final Set<Operation> edgeOperations = new HashSet<>(Arrays.asList(
+            Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY,
+            Operation.WRITE));
 
     private final Set<Operation> entityGroupOperations = new HashSet<>(Arrays.asList(
             Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP,
@@ -137,20 +137,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
 
     Role replaceWriteOperationsToReadIfRequired(Role role) {
         if (RoleType.GROUP.equals(role.getType())) {
-            CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-            List<Operation> originOperations = JacksonUtil.fromString(JacksonUtil.toString(role.getPermissions()), collectionType);
-            if (originOperations == null) {
-                return role;
-            }
-            List<Operation> operations;
-            if (originOperations.contains(Operation.ALL)) {
-                operations = new ArrayList<>(groupRoleOperations);
-            } else {
-                operations = originOperations.stream()
-                        .filter(groupRoleOperations::contains)
-                        .collect(Collectors.toList());
-            }
-            role.setPermissions(JacksonUtil.valueToTree(operations));
+            return role;
         } else {
             CollectionType operationType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
             JavaType resourceType = JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructType(Resource.class);
@@ -176,13 +163,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                     case ASSET_GROUP:
                     case ENTITY_VIEW_GROUP:
                     case DASHBOARD_GROUP:
-                        if (originOperations.contains(Operation.ALL)) {
-                            newOperations = new ArrayList<>(entityGroupOperations);
-                        } else {
-                            newOperations = originOperations.stream()
-                                    .filter(entityGroupOperations::contains)
-                                    .collect(Collectors.toList());
-                        }
+                        newOperations = filterOperations(originOperations, entityGroupOperations);
                         break;
                     case PROFILE:
                     case VERSION_CONTROL:
@@ -191,13 +172,10 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                     case DEVICE_PROFILE:
                     case ASSET_PROFILE:
                     case TB_RESOURCE:
-                        if (originOperations.contains(Operation.ALL)) {
-                            newOperations = new ArrayList<>(profilesAndResourceOperations);
-                        } else {
-                            newOperations = originOperations.stream()
-                                    .filter(profilesAndResourceOperations::contains)
-                                    .collect(Collectors.toList());
-                        }
+                        newOperations = filterOperations(originOperations, fullEntityUpdateOperations);
+                        break;
+                    case EDGE:
+                        newOperations = filterOperations(originOperations, edgeOperations);
                         break;
                     case ALL:
                         if (originOperations.contains(Operation.ALL)) {
@@ -212,24 +190,19 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                             newPermissions.put(Resource.ASSET_GROUP, new ArrayList<>(entityGroupOperations));
                             newPermissions.put(Resource.ENTITY_VIEW_GROUP, new ArrayList<>(entityGroupOperations));
                             newPermissions.put(Resource.DASHBOARD_GROUP, new ArrayList<>(entityGroupOperations));
-                            newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(profilesAndResourceOperations));
-                            newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(profilesAndResourceOperations));
-                            newPermissions.put(Resource.TB_RESOURCE, new ArrayList<>(profilesAndResourceOperations));
-                            newOperations = new ArrayList<>(genericRoleOperations);
+                            newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(fullEntityUpdateOperations));
+                            newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(fullEntityUpdateOperations));
+                            newPermissions.put(Resource.TB_RESOURCE, new ArrayList<>(fullEntityUpdateOperations));
+                            newPermissions.put(Resource.EDGE, new ArrayList<>(edgeOperations));
+                            newOperations = new ArrayList<>(partialUpdateOrReadOperations);
                         } else {
                             newOperations = originOperations.stream()
-                                    .filter(genericRoleOperations::contains)
+                                    .filter(partialUpdateOrReadOperations::contains)
                                     .collect(Collectors.toList());
                         }
                         break;
                     default:
-                        if (originOperations.contains(Operation.ALL)) {
-                            newOperations = new ArrayList<>(genericRoleOperations);
-                        } else {
-                            newOperations = originOperations.stream()
-                                    .filter(genericRoleOperations::contains)
-                                    .collect(Collectors.toList());
-                        }
+                        newOperations = filterOperations(originOperations, partialUpdateOrReadOperations);
                         break;
                 }
                 newPermissions.put(entry.getKey(), newOperations);
@@ -237,6 +210,16 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
             role.setPermissions(JacksonUtil.valueToTree(newPermissions));
         }
         return role;
+    }
+
+    private List<Operation> filterOperations(List<Operation> originOperations, Set<Operation> edgeSupportedOperations) {
+        if (originOperations.contains(Operation.ALL)) {
+            return new ArrayList<>(edgeSupportedOperations);
+        } else {
+            return originOperations.stream()
+                    .filter(edgeSupportedOperations::contains)
+                    .collect(Collectors.toList());
+        }
     }
 
 }

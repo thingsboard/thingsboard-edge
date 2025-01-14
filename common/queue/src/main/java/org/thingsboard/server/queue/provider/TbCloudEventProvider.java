@@ -28,6 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host{
-  width: 10000px;
+package org.thingsboard.server.queue.provider;
+
+import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+
+/**
+ * Responsible for providing various Producers to other services.
+ */
+public interface TbCloudEventProvider {
+    TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventMsgProducer();
+
+    TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> getCloudEventTSMsgProducer();
 }

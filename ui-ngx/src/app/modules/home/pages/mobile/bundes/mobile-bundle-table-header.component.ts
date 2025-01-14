@@ -34,7 +34,6 @@ import { EntityTableHeaderComponent } from '@home/components/entity/entity-table
 import { MobileAppBundleInfo } from '@shared/models/mobile-app.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-mobile-bundle-table-header',
@@ -43,14 +42,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 })
 export class MobileBundleTableHeaderComponent extends EntityTableHeaderComponent<MobileAppBundleInfo> {
 
-  readonly resource = Resource;
-  readonly operation = Operation;
-
   constructor(protected store: Store<AppState>) {
     super(store);
-  }
-
-  createBundle($event: Event) {
-    this.entitiesTableConfig.onEntityAction({event: $event, action: 'add', entity: null});
   }
 }

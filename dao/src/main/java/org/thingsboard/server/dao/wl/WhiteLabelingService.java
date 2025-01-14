@@ -43,8 +43,6 @@ import org.thingsboard.server.dao.resource.ImageCacheKey;
 
 public interface WhiteLabelingService {
 
-    String EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME = "edge.domain.name";
-
     WhiteLabelingParams getSystemWhiteLabelingParams();
 
     LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams();
@@ -119,7 +117,6 @@ public interface WhiteLabelingService {
 
     void deleteWhiteLabeling(TenantId tenantId, CustomerId customerId, WhiteLabelingType type);
 
-    // Edge-only: methods added on edge for login whiteLabeling
-    void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, CustomerId customerId);
-
+    // edge-only: methods added on edge for login whiteLabeling
+    String getEdgeDomainName(String domainName);
 }

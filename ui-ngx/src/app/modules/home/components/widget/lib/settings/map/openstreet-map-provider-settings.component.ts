@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -49,6 +49,7 @@ import {
   OpenStreetMapProviderSettings,
   openStreetMapProviderTranslationMap
 } from '@home/components/widget/lib/maps/map-models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-openstreet-map-provider-settings',
@@ -84,7 +85,8 @@ export class OpenStreetMapProviderSettingsComponent extends PageComponent implem
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -94,10 +96,14 @@ export class OpenStreetMapProviderSettingsComponent extends PageComponent implem
       useCustomProvider: [null, []],
       customProviderTileUrl: [null, [Validators.required]]
     });
-    this.providerSettingsFormGroup.valueChanges.subscribe(() => {
+    this.providerSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
-    this.providerSettingsFormGroup.get('useCustomProvider').valueChanges.subscribe(() => {
+    this.providerSettingsFormGroup.get('useCustomProvider').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
     this.updateValidators(false);

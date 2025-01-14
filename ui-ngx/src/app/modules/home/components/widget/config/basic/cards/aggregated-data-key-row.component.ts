@@ -32,6 +32,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   EventEmitter,
   forwardRef,
   Input,
@@ -68,6 +69,7 @@ import {
   AggregatedValueCardKeySettings
 } from '@home/components/widget/lib/cards/aggregated-value-card.models';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-aggregated-data-key-row',
@@ -143,7 +145,8 @@ export class AggregatedDataKeyRowComponent implements ControlValueAccessor, OnIn
               private cd: ChangeDetectorRef,
               public translate: TranslateService,
               public truncate: TruncatePipe,
-              private widgetConfigComponent: WidgetConfigComponent) {
+              private widgetConfigComponent: WidgetConfigComponent,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit() {
@@ -155,7 +158,9 @@ export class AggregatedDataKeyRowComponent implements ControlValueAccessor, OnIn
       color: [null, []],
       showArrow: [null, []]
     });
-    this.keyRowFormGroup.valueChanges.subscribe(
+    this.keyRowFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
   }

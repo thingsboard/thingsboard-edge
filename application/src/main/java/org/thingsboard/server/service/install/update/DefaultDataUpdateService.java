@@ -75,7 +75,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.asset.AssetService;
-import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -165,7 +165,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private WidgetsBundleService widgetsBundleService;
 
     @Autowired
-    private CloudEventService cloudEventService;
+    private EdgeSettingsService edgeSettingsService;
 
     @Autowired
     private ComponentDiscoveryService componentDiscoveryService;
@@ -186,7 +186,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             updateDataFromCe();
         } else {
             //TODO: should be cleaned after each release
-            installScripts.updateResourcesUsage();
             moveMailTemplatesToNotificationCenter(Map.of(
                     "userActivated", NotificationType.USER_ACTIVATED,
                     "userRegistered", NotificationType.USER_REGISTERED
@@ -870,10 +869,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 @Override
                 protected void updateEntity(Tenant tenant) {
                     try {
-                        EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
+                        EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings();
                         if (edgeSettings != null) {
                             edgeSettings.setFullSyncRequired(true);
-                            cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                            edgeSettingsService.saveEdgeSettings(tenant.getId(), edgeSettings);
                         } else {
                             log.warn("Edge settings not found for tenant: {}", tenant.getId());
                         }

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -46,6 +46,7 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { CommonMapSettings, MapProviders } from '@home/components/widget/lib/maps/map-models';
 import { Widget } from '@shared/models/widget.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-common-map-settings',
@@ -85,7 +86,8 @@ export class CommonMapSettingsComponent extends PageComponent implements OnInit,
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -104,7 +106,9 @@ export class CommonMapSettingsComponent extends PageComponent implements OnInit,
       useDefaultCenterPosition: [null, []],
       mapPageSize: [null, [Validators.min(1), Validators.required]]
     });
-    this.commonMapSettingsFormGroup.valueChanges.subscribe(() => {
+    this.commonMapSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
     this.updateValidators(false);

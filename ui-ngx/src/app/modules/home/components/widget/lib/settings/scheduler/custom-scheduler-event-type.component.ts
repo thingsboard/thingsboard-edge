@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -44,6 +44,7 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { CustomSchedulerEventType } from '@home/components/scheduler/scheduler-events.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export function customSchedulerEventTypeValidator(control: AbstractControl) {
     const schedulerEventType: CustomSchedulerEventType = control.value;
@@ -91,7 +92,8 @@ export class CustomSchedulerEventTypeComponent extends PageComponent implements 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private domSanitizer: DomSanitizer,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -104,7 +106,9 @@ export class CustomSchedulerEventTypeComponent extends PageComponent implements 
       metadata: [null, []],
       template: [null, [Validators.required]]
     });
-    this.customSchedulerEventTypeFormGroup.valueChanges.subscribe(() => {
+    this.customSchedulerEventTypeFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
