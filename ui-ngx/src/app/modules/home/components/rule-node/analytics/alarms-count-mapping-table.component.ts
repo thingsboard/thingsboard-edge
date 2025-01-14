@@ -106,9 +106,9 @@ export class AlarmsCountMappingTableComponent extends PageComponent implements C
   }
 
   public mappingDisplayValue(alarmsCountMapping: AlarmsCountMapping): string {
-    let toDisplay = this.translate.instant('tb.rulenode.func-count') + '(' + this.filterText(alarmsCountMapping);
+    let toDisplay = this.translate.instant('rule-node-config.func-count') + '(' + this.filterText(alarmsCountMapping);
     if (alarmsCountMapping.latestInterval > 0) {
-      toDisplay += ' '  + this.translate.instant('tb.rulenode.for') +
+      toDisplay += ' '  + this.translate.instant('rule-node-config.for') +
         ' ' + this.translate.instant('timewindow.last-prefix') +
         ' ' + this.millisecondsToTimeStringPipe.transform(alarmsCountMapping.latestInterval);
     }
@@ -124,7 +124,7 @@ export class AlarmsCountMappingTableComponent extends PageComponent implements C
     filterText = this.severityFilterText(alarmsCountMapping.severityList, filterText);
     filterText = this.typeFilterText(alarmsCountMapping.typesList, filterText);
     if (!filterText.length) {
-      filterText = this.translate.instant('tb.rulenode.all-alarms') + '';
+      filterText = this.translate.instant('rule-node-config.all-alarms') + '';
     }
     return filterText;
   }
@@ -159,7 +159,7 @@ export class AlarmsCountMappingTableComponent extends PageComponent implements C
     const filterText = resultList.join(', ');
     if (filterText && filterText.length) {
       if (text.length) {
-        text += ' ' + this.translate.instant('tb.rulenode.and') + ' ';
+        text += ' ' + this.translate.instant('rule-node-config.and') + ' ';
       }
       text += filterText;
     }

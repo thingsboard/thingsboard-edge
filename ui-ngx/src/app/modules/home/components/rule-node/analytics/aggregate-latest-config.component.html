@@ -34,20 +34,20 @@
   <tb-output-message-type-autocomplete required formControlName="outMsgType"></tb-output-message-type-autocomplete>
   <div class="gt-sm:flex-row gt-sm:gap-2 flex flex-col">
     <mat-form-field class="mat-block flex-1">
-      <mat-label translate>tb.rulenode.execution-period-value</mat-label>
+      <mat-label translate>rule-node-config.execution-period-value</mat-label>
       <input type="number" step="1" min="1" max="2147483647" matInput formControlName="periodValue" required>
       <mat-error *ngIf="aggregateLatestConfigForm.get('periodValue').hasError('required')">
-        {{ 'tb.rulenode.execution-period-value-required' | translate }}
+        {{ 'rule-node-config.execution-period-value-required' | translate }}
       </mat-error>
       <mat-error *ngIf="aggregateLatestConfigForm.get('periodValue').hasError('min')">
-        {{ 'tb.rulenode.time-value-range' | translate }}
+        {{ 'rule-node-config.time-value-range' | translate }}
       </mat-error>
       <mat-error *ngIf="aggregateLatestConfigForm.get('periodValue').hasError('max')">
-        {{ 'tb.rulenode.time-value-range' | translate }}
+        {{ 'rule-node-config.time-value-range' | translate }}
       </mat-error>
     </mat-form-field>
     <mat-form-field class="mat-block flex-1">
-      <mat-label translate>tb.rulenode.execution-period-time-unit</mat-label>
+      <mat-label translate>rule-node-config.execution-period-time-unit</mat-label>
       <mat-select formControlName="periodTimeUnit" required>
         <mat-option *ngFor="let timeUnit of aggPeriodTimeUnits" [value]="timeUnit">
           {{ timeUnitsTranslationMap.get(timeUnit) | translate }}
@@ -58,31 +58,31 @@
   <div formGroupName="parentEntitiesQuery">
     <mat-expansion-panel [expanded]="true">
       <mat-expansion-panel-header>
-        <mat-panel-title translate>tb.rulenode.parent-entity</mat-panel-title>
+        <mat-panel-title translate>rule-node-config.parent-entity</mat-panel-title>
       </mat-expansion-panel-header>
         <mat-radio-group formControlName="type" class="flex flex-row gap-2"
                          style="padding-top: 16px; padding-bottom: 16px;">
           <mat-radio-button [value]="'single'" color="primary">
-            <span translate>tb.rulenode.single-entity</span>
+            <span translate>rule-node-config.single-entity</span>
           </mat-radio-button>
           <mat-radio-button [value]="'group'" color="primary">
-            <span translate>tb.rulenode.group-of-entities</span>
+            <span translate>rule-node-config.group-of-entities</span>
           </mat-radio-button>
           <mat-radio-button [value]="'relationsQuery'" color="primary">
-            <span translate>tb.rulenode.relations-query</span>
+            <span translate>rule-node-config.relations-query</span>
           </mat-radio-button>
         </mat-radio-group>
         <section *ngIf="aggregateLatestConfigForm.get('parentEntitiesQuery.type').value === 'relationsQuery'"
                  class="flex flex-col">
-          <label translate class="tb-title tb-required">tb.rulenode.root-entity</label>
+          <label translate class="tb-title tb-required">rule-node-config.root-entity</label>
           <tb-entity-select
             required
             formControlName="rootEntityId">
           </tb-entity-select>
           <mat-checkbox formControlName="includeRootEntity" style="padding-bottom: 16px;">
-            {{ 'tb.rulenode.include-root-entity-to-parent-entities' | translate }}
+            {{ 'rule-node-config.include-root-entity-to-parent-entities' | translate }}
           </mat-checkbox>
-          <label translate class="tb-title tb-required">tb.rulenode.relations-query</label>
+          <label translate class="tb-title tb-required">rule-node-config.relations-query</label>
           <tb-relations-query-config
             style="padding-bottom: 15px;"
             formControlName="relationsQuery">
@@ -106,9 +106,9 @@
                                 aggregateLatestConfigForm.get('parentEntitiesQuery.type').value === 'single'"
                          [expanded]="true">
       <mat-expansion-panel-header>
-        <mat-panel-title translate>tb.rulenode.child-entities</mat-panel-title>
+        <mat-panel-title translate>rule-node-config.child-entities</mat-panel-title>
       </mat-expansion-panel-header>
-      <label translate class="tb-title tb-required">tb.rulenode.relations-query</label>
+      <label translate class="tb-title tb-required">rule-node-config.relations-query</label>
       <tb-relations-query-config
         style="padding-bottom: 15px;"
         formControlName="childRelationsQuery">
@@ -117,7 +117,7 @@
   </div>
   <mat-expansion-panel [expanded]="true">
     <mat-expansion-panel-header>
-      <mat-panel-title translate>tb.rulenode.agg-latest-mappings</mat-panel-title>
+      <mat-panel-title translate>rule-node-config.agg-latest-mappings</mat-panel-title>
     </mat-expansion-panel-header>
     <tb-agg-latest-mapping-table
       required

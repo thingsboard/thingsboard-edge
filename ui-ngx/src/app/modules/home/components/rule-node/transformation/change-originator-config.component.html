@@ -32,7 +32,7 @@
 -->
 <section [formGroup]="changeOriginatorConfigForm" class="tb-form-panel no-border no-padding">
   <mat-form-field class="mat-block" subscriptSizing="dynamic" hideRequiredMarker>
-    <mat-label translate>tb.rulenode.new-originator</mat-label>
+    <mat-label translate>rule-node-config.new-originator</mat-label>
     <mat-select formControlName="originatorSource" required>
       <mat-select-trigger>
         <span *ngIf="originatorSourceTranslationMap.get(changeOriginatorConfigForm.get('originatorSource').value)">
@@ -52,16 +52,16 @@
   </mat-form-field>
 
   <div *ngIf="changeOriginatorConfigForm.get('originatorSource').value === originatorSource.CUSTOMER"
-       tb-hint-tooltip-icon="{{ 'tb.rulenode.parse-originator-if-customer-hint' | translate }}"
+       tb-hint-tooltip-icon="{{ 'rule-node-config.parse-originator-if-customer-hint' | translate }}"
        class="tb-form-row same-padding">
     <mat-slide-toggle class="mat-slide margin" formControlName="preserveOriginatorIfCustomer">
-      {{ 'tb.rulenode.parse-originator-if-customer' | translate }}
+      {{ 'rule-node-config.parse-originator-if-customer' | translate }}
     </mat-slide-toggle>
   </div>
 
   <div class="tb-form-panel stroked no-padding-bottom"
         *ngIf="changeOriginatorConfigForm.get('originatorSource').value === originatorSource.ENTITY">
-    <tb-example-hint [hintText]="'tb.rulenode.entity-name-pattern-hint'"
+    <tb-example-hint [hintText]="'rule-node-config.entity-name-pattern-hint'"
                       popupHelpLink="rulenode/change_originator_node_fields_templatization">
     </tb-example-hint>
     <div class="tb-form-row no-border no-padding tb-standard-fields">
@@ -73,11 +73,11 @@
         class="mat-mdc-form-field flex">
       </tb-entity-type-select>
       <mat-form-field class="flex">
-        <mat-label translate>tb.rulenode.entity-name-pattern</mat-label>
+        <mat-label translate>rule-node-config.entity-name-pattern</mat-label>
         <input required matInput formControlName="entityNamePattern">
         <mat-error *ngIf="changeOriginatorConfigForm.get('entityNamePattern').hasError('required') ||
                           changeOriginatorConfigForm.get('entityNamePattern').hasError('pattern')">
-          {{ 'tb.rulenode.entity-name-pattern-required' | translate }}
+          {{ 'rule-node-config.entity-name-pattern-required' | translate }}
         </mat-error>
       </mat-form-field>
     </div>

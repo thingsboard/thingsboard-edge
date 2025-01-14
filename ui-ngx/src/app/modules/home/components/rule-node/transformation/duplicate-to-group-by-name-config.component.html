@@ -32,15 +32,15 @@
 -->
 <section [formGroup]="duplicateToGroupByNameConfigForm" class="tb-form-panel stroked">
   <div class="tb-form-row no-border no-padding"
-       tb-hint-tooltip-icon="{{ 'tb.rulenode.search-entity-group-for-tenant-only-hint' | translate }}">
+       tb-hint-tooltip-icon="{{ 'rule-node-config.search-entity-group-for-tenant-only-hint' | translate }}">
     <mat-slide-toggle class="mat-slide" formControlName="searchEntityGroupForTenantOnly">
-      {{ 'tb.rulenode.search-entity-group-for-tenant-only' | translate }}
+      {{ 'rule-node-config.search-entity-group-for-tenant-only' | translate }}
     </mat-slide-toggle>
   </div>
   <div class="tb-form-row no-border no-padding"
-       tb-hint-tooltip-icon="{{ 'tb.rulenode.consider-message-originator-as-a-group-owner-hint' | translate }}">
+       tb-hint-tooltip-icon="{{ 'rule-node-config.consider-message-originator-as-a-group-owner-hint' | translate }}">
     <mat-slide-toggle class="mat-slide" formControlName="considerMessageOriginatorAsAGroupOwner">
-      {{ 'tb.rulenode.consider-message-originator-as-a-group-owner' | translate }}
+      {{ 'rule-node-config.consider-message-originator-as-a-group-owner' | translate }}
     </mat-slide-toggle>
   </div>
   <div class="same-width-component-row">
@@ -56,7 +56,7 @@
       <mat-error *ngIf="duplicateToGroupByNameConfigForm.get('groupName').hasError('required')">
         {{ 'entity-group.name-required' | translate }}
       </mat-error>
-      <mat-hint translate>tb.rulenode.general-pattern-hint</mat-hint>
+      <mat-hint translate>rule-node-config.general-pattern-hint</mat-hint>
     </mat-form-field>
   </div>
 </section>

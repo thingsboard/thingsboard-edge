@@ -103,7 +103,7 @@ export class AggregateLatestMappingTableComponent extends PageComponent implemen
   public mappingDisplayValue(aggMapping: AggLatestMapping): string {
     let toDisplay = '';
     if (aggMapping.filter) {
-      toDisplay += this.translate.instant('tb.rulenode.filter-entities') + ' -> ';
+      toDisplay += this.translate.instant('rule-node-config.filter-entities') + ' -> ';
     }
     toDisplay += this.translate.instant(aggMathFunctionTranslations.get(aggMapping.aggFunction));
     if (aggMapping.aggFunction !== AggMathFunction.COUNT) {

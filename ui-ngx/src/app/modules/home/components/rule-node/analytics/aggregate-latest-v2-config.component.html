@@ -44,21 +44,21 @@
     formControlName="relationType">
   </tb-relation-type-autocomplete>
   <mat-form-field class="mat-block flex-1">
-    <mat-label translate>tb.rulenode.deduplication-period-sec</mat-label>
+    <mat-label translate>rule-node-config.deduplication-period-sec</mat-label>
     <input type="number" step="1" min="10" max="2147483647" matInput formControlName="deduplicationInSec" required>
     <mat-error *ngIf="aggregateLatestV2ConfigForm.get('deduplicationInSec').hasError('required')">
-      {{ 'tb.rulenode.deduplication-period-sec-required' | translate }}
+      {{ 'rule-node-config.deduplication-period-sec-required' | translate }}
     </mat-error>
     <mat-error *ngIf="aggregateLatestV2ConfigForm.get('deduplicationInSec').hasError('min')">
-      {{ 'tb.rulenode.deduplication-period-sec-range' | translate }}
+      {{ 'rule-node-config.deduplication-period-sec-range' | translate }}
     </mat-error>
     <mat-error *ngIf="aggregateLatestV2ConfigForm.get('deduplicationInSec').hasError('max')">
-      {{ 'tb.rulenode.deduplication-period-sec-range' | translate }}
+      {{ 'rule-node-config.deduplication-period-sec-range' | translate }}
     </mat-error>
   </mat-form-field>
   <mat-expansion-panel [expanded]="true">
     <mat-expansion-panel-header>
-      <mat-panel-title translate>tb.rulenode.agg-latest-mappings</mat-panel-title>
+      <mat-panel-title translate>rule-node-config.agg-latest-mappings</mat-panel-title>
     </mat-expansion-panel-header>
     <tb-agg-latest-mapping-table
       required
