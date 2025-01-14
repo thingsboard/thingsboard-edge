@@ -18,26 +18,13 @@
 [[ -z "${CONF_FOLDER}" ]] && CONF_FOLDER="${pkg.installFolder}/conf"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
-upgradeversion=${DATA_FOLDER}/.upgradeversion
 
 source "${CONF_FOLDER}/${configfile}"
 
-FROM_VERSION=`cat ${upgradeversion}`
-
 echo "Starting ThingsBoard Edge upgrade ..."
-
-if [[ -z "${FROM_VERSION// }" ]]; then
-    echo "FROM_VERSION variable is invalid or unspecified!"
-    exit 1
-else
-    fromVersion="${FROM_VERSION// }"
-fi
 
 java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication \
                 -Dspring.jpa.hibernate.ddl-auto=none \
                 -Dinstall.upgrade=true \
-                -Dinstall.upgrade.from_version=${fromVersion} \
                 -Dlogging.config=/usr/share/tb-edge/bin/install/logback.xml \
                 org.springframework.boot.loader.launch.PropertiesLauncher
-
-echo "${pkg.upgradeVersion}" > ${upgradeversion}
