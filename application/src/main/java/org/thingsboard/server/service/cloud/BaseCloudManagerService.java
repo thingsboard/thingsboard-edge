@@ -47,6 +47,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
+import org.thingsboard.rule.engine.api.AttributesSaveRequest;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -59,6 +60,7 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -621,11 +623,25 @@ public abstract class BaseCloudManagerService {
     }
 
     private void save(String key, long value) {
-        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, AttributeScope.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
+        tsSubService.saveAttributes(AttributesSaveRequest.builder()
+                .tenantId(TenantId.SYS_TENANT_ID)
+                .entityId(tenantId)
+                .scope(AttributeScope.SERVER_SCOPE)
+                .entry(new LongDataEntry(key, value))
+                .notifyDevice(true)
+                .callback(new AttributeSaveCallback(key, value))
+                .build());
     }
 
     private void save(String key, boolean value) {
-        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, AttributeScope.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
+        tsSubService.saveAttributes(AttributesSaveRequest.builder()
+                .tenantId(TenantId.SYS_TENANT_ID)
+                .entityId(tenantId)
+                .scope(AttributeScope.SERVER_SCOPE)
+                .entry(new BooleanDataEntry(key, value))
+                .notifyDevice(true)
+                .callback(new AttributeSaveCallback(key, value))
+                .build());
     }
 
     private record AttributeSaveCallback(String key, Object value) implements FutureCallback<Void> {
