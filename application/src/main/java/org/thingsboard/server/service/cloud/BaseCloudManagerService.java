@@ -720,7 +720,6 @@ public abstract class BaseCloudManagerService {
     private void processMsgPack(List<UplinkMsg> uplinkMsgPack) {
         pendingMsgMap.clear();
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
-        LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue = new LinkedBlockingQueue<>(pendingMsgMap.values());
         sendUplinkFuture = uplinkExecutor.schedule(() -> {
             try {
                 int attempt = 1;
@@ -728,7 +727,7 @@ public abstract class BaseCloudManagerService {
                 do {
                     log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgMap.values().size());
 
-                    success = sendUplinkMsgPack(orderedPendingMsgQueue) && pendingMsgMap.isEmpty();
+                    success = sendUplinkMsgPack(new LinkedBlockingQueue<>(pendingMsgMap.values())) && pendingMsgMap.isEmpty();
 
                     if (!success) {
                         log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
@@ -749,7 +748,7 @@ public abstract class BaseCloudManagerService {
                     if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
                         log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
                                 MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
-                        sendUplinkFutureResult.set(true);
+                        sendUplinkFutureResult.set(false);
                         return;
                     }
                 } while (!success);
@@ -762,23 +761,20 @@ public abstract class BaseCloudManagerService {
     }
 
     private boolean sendUplinkMsgPack(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue) {
+        sendingInProgress = true;
         try {
-            boolean success;
-
-            sendingInProgress = true;
             latch = new CountDownLatch(pendingMsgMap.values().size());
             orderedPendingMsgQueue.forEach(this::sendUplinkMsg);
 
-            success = latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
-            sendingInProgress = false;
-
-            return success;
-        } catch (Exception e) {
+            return latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
+         } catch (Exception e) {
             log.error("Interrupted while waiting for latch, isGeneralProcessInProgress={}", isGeneralProcessInProgress, e);
             for (UplinkMsg value : pendingMsgMap.values()) {
                 log.warn("Message not send due to exception: {}", value);
             }
             return false;
+        } finally {
+            sendingInProgress = false;
         }
     }
 
