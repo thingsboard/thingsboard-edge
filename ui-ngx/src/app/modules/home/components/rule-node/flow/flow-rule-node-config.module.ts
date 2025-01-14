@@ -51,8 +51,3 @@ import { RuleChainOutputComponent } from './rule-chain-output.component';
 })
 export class FlowRuleNodeConfigModule {
 }
-
-export const flowRuleNodeConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
-  'tbFlowNodeRuleChainInputConfig': RuleChainInputComponent,
-  'tbFlowNodeRuleChainOutputConfig': RuleChainOutputComponent
-}
