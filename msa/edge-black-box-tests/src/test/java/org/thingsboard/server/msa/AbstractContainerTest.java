@@ -216,7 +216,7 @@ public abstract class AbstractContainerTest {
                 until(() -> {
                     try {
                         long totalElements = edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements();
-                        final long expectedCount = 30;
+                        final long expectedCount = 31;
                         if (totalElements != expectedCount) {
                             log.warn("Expected {} widget bundles, but got {}", expectedCount, totalElements);
                         }
