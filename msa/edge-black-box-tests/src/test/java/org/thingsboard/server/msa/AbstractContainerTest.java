@@ -117,6 +117,7 @@ public abstract class AbstractContainerTest {
                     new TestEdgeConfiguration("774e5e4e-8ec7-9945-1c6a-4d6ba08cb5fc", "om3zzzadzlugth03nibn", 8085, "37")
             );
 
+
     protected static List<TestEdgeRuntimeParameters> testParameters = new ArrayList<>();
 
     protected static RestClient cloudRestClient = null;
