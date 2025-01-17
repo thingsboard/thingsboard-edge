@@ -23,6 +23,7 @@
         "name": "Save Timeseries",
         "debugFailures": false,
         "debugAll": false,
+        "configurationVersion": 1,
         "configuration": {
           "defaultTTL": 0,
           "useServerTs": false,
