@@ -33,6 +33,7 @@ import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
 import { entityGroupTypes } from '@app/shared/models/entity-group.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-transformation-node-duplicate-to-group-by-name-config',
@@ -61,8 +62,10 @@ export class DuplicateToGroupByNameConfigComponent extends RuleNodeConfiguration
       groupName: [configuration ? configuration.groupName : null, [Validators.required]]
     });
 
-    this.duplicateToGroupByNameConfigForm.get('searchEntityGroupForTenantOnly').valueChanges.subscribe((value) => {
-      let considerMessageOriginatorAsAGroupOwner = this.duplicateToGroupByNameConfigForm.get('considerMessageOriginatorAsAGroupOwner');
+    this.duplicateToGroupByNameConfigForm.get('searchEntityGroupForTenantOnly').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((value) => {
+      const considerMessageOriginatorAsAGroupOwner = this.duplicateToGroupByNameConfigForm.get('considerMessageOriginatorAsAGroupOwner');
       if (value) {
         considerMessageOriginatorAsAGroupOwner.setValue(false);
         considerMessageOriginatorAsAGroupOwner.disable({emitEvent: false});
@@ -72,7 +75,7 @@ export class DuplicateToGroupByNameConfigComponent extends RuleNodeConfiguration
     });
   }
 
-  protected updateValidators(emitEvent: boolean) {
+  protected updateValidators() {
     if (this.duplicateToGroupByNameConfigForm.get('searchEntityGroupForTenantOnly').value === true) {
       this.duplicateToGroupByNameConfigForm.get('considerMessageOriginatorAsAGroupOwner').disable({emitEvent: false});
     }

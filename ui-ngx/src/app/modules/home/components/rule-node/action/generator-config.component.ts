@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, OnDestroy, ViewChild } from '@angular/core';
+import { Component, EventEmitter, ViewChild } from '@angular/core';
 import { getCurrentAuthState, isDefinedAndNotNull, NodeScriptTestService } from '@core/public-api';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
@@ -42,22 +42,20 @@ import type { JsFuncComponent } from '@app/shared/components/js-func.component';
 import { EntityType } from '@app/shared/models/entity-type.models';
 import { DebugRuleNodeEventBody } from '@shared/models/event.models';
 import { allowedEntityGroupTypes } from '@home/components/rule-node/rule-node-config.models';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-action-node-generator-config',
   templateUrl: './generator-config.component.html',
   styleUrls: ['generator-config.component.scss']
 })
-export class GeneratorConfigComponent extends RuleNodeConfigurationComponent implements OnDestroy {
+export class GeneratorConfigComponent extends RuleNodeConfigurationComponent {
 
   @ViewChild('jsFuncComponent', {static: false}) jsFuncComponent: JsFuncComponent;
   @ViewChild('tbelFuncComponent', {static: false}) tbelFuncComponent: JsFuncComponent;
 
   generatorConfigForm: UntypedFormGroup;
   entityGroupTypes = allowedEntityGroupTypes;
-  private destroy$ = new Subject<void>();
 
   tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
 
@@ -102,13 +100,8 @@ export class GeneratorConfigComponent extends RuleNodeConfigurationComponent imp
     });
 
     this.generatorConfigForm.get('isEntityGroup').valueChanges.pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => this.cleanKeys());
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private cleanKeys() {

@@ -34,6 +34,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Language, ProviderSource, voiceConfiguration, Voices } from './twilio-voice-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-external-node-twilio-voice-config',
@@ -92,7 +93,9 @@ export class TwilioVoiceConfigComponent extends RuleNodeConfigurationComponent {
       startPause: [configuration ? configuration.startPause : null, [Validators.required, Validators.min(0)]]
     });
 
-    this.twilioVoiceConfigForm.get('provider').valueChanges.subscribe(provider => {
+    this.twilioVoiceConfigForm.get('provider').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(provider => {
       this.languages = Array.from(this.voiceConfiguration.get(provider)?.values());
       this.voices = provider === ProviderSource.ALICE ? [Voices.ALICE] : [];
         this.twilioVoiceConfigForm.patchValue({
@@ -100,7 +103,9 @@ export class TwilioVoiceConfigComponent extends RuleNodeConfigurationComponent {
           voice: provider === ProviderSource.ALICE ? Voices.ALICE : null
         }, {emitEvent: false});
     })
-    this.twilioVoiceConfigForm.get('language').valueChanges.subscribe((language) => {
+    this.twilioVoiceConfigForm.get('language').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((language) => {
       this.voices = Array.from(this.voiceConfiguration.get(this.twilioVoiceConfigForm.get('provider').value)?.get(language).voices);
       this.twilioVoiceConfigForm.patchValue({
         voice: this.twilioVoiceConfigForm.get('provider').value === ProviderSource.ALICE ? Voices.ALICE : null
