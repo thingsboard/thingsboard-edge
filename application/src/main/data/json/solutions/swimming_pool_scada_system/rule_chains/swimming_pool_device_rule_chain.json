@@ -106,11 +106,13 @@
         "debugAll": false,
         "singletonMode": false,
         "queueName": null,
-        "configurationVersion": 0,
+        "configurationVersion": 1,
         "configuration": {
           "defaultTTL": 0,
-          "skipLatestPersistence": false,
-          "useServerTs": false
+          "useServerTs": false,
+          "persistenceSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          }
         },
         "additionalInfo": {
           "description": "",
