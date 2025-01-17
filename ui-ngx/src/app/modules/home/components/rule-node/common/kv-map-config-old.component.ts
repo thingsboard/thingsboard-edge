@@ -29,13 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Injector, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
   FormArray,
   FormBuilder,
-  FormControl,
   FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
@@ -44,11 +43,9 @@ import {
   Validators
 } from '@angular/forms';
 import { PageComponent } from '@shared/public-api';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/public-api';
-import { Subscription } from 'rxjs';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { TranslateService } from '@ngx-translate/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-kv-map-config-old',
@@ -102,13 +99,11 @@ export class KvMapConfigOldComponent extends PageComponent implements ControlVal
 
   private propagateChange = null;
 
-  private valueChangeSubscription: Subscription = null;
-
-  constructor(protected store: Store<AppState>,
-              public translate: TranslateService,
-              public injector: Injector,
-              private fb: FormBuilder) {
-    super(store);
+  constructor(public translate: TranslateService,
+              private injector: Injector,
+              private fb: FormBuilder,
+              private destroyRef: DestroyRef) {
+    super();
   }
 
   ngOnInit(): void {
@@ -116,9 +111,15 @@ export class KvMapConfigOldComponent extends PageComponent implements ControlVal
     if (this.ngControl != null) {
       this.ngControl.valueAccessor = this;
     }
-    this.kvListFormGroup = this.fb.group({});
-    this.kvListFormGroup.addControl('keyVals',
-      this.fb.array([]));
+    this.kvListFormGroup = this.fb.group({
+      keyVals: this.fb.array([])
+    });
+
+    this.kvListFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      this.updateModel();
+    });
   }
 
   keyValsFormArray(): FormArray {
@@ -129,7 +130,7 @@ export class KvMapConfigOldComponent extends PageComponent implements ControlVal
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -142,9 +143,6 @@ export class KvMapConfigOldComponent extends PageComponent implements ControlVal
   }
 
   writeValue(keyValMap: { [key: string]: string }): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
     const keyValsControls: Array<AbstractControl> = [];
     if (keyValMap) {
       for (const property of Object.keys(keyValMap)) {
@@ -156,10 +154,7 @@ export class KvMapConfigOldComponent extends PageComponent implements ControlVal
         }
       }
     }
-    this.kvListFormGroup.setControl('keyVals', this.fb.array(keyValsControls));
-    this.valueChangeSubscription = this.kvListFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
+    this.kvListFormGroup.setControl('keyVals', this.fb.array(keyValsControls), {emitEvent: false});
   }
 
   public removeKeyVal(index: number) {
@@ -174,7 +169,7 @@ export class KvMapConfigOldComponent extends PageComponent implements ControlVal
     }));
   }
 
-  public validate(c: FormControl) {
+  public validate() {
     const kvList: { key: string; value: string }[] = this.kvListFormGroup.get('keyVals').value;
     if (!kvList.length && this.required) {
       return {

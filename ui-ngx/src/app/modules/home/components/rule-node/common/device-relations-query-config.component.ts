@@ -29,12 +29,13 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { PageComponent } from '@shared/components/page.component';
 import { EntitySearchDirection, entitySearchDirectionTranslations } from '@app/shared/models/relation.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface DeviceRelationsQuery {
   fetchLastLevelOnly: boolean;
@@ -80,7 +81,8 @@ export class DeviceRelationsQueryConfigComponent extends PageComponent implement
 
   private propagateChange = null;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder,
+              private destroyRef: DestroyRef) {
     super();
   }
 
@@ -92,7 +94,9 @@ export class DeviceRelationsQueryConfigComponent extends PageComponent implement
       relationType: [null],
       deviceTypes: [null, [Validators.required]]
     });
-    this.deviceRelationsQueryFormGroup.valueChanges.subscribe((query: DeviceRelationsQuery) => {
+    this.deviceRelationsQueryFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((query: DeviceRelationsQuery) => {
       if (this.deviceRelationsQueryFormGroup.valid) {
         this.propagateChange(query);
       } else {
@@ -105,7 +109,7 @@ export class DeviceRelationsQueryConfigComponent extends PageComponent implement
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   setDisabledState(isDisabled: boolean): void {

@@ -113,7 +113,7 @@ export class MessageTypesConfigComponent extends PageComponent implements Contro
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   ngOnInit() {

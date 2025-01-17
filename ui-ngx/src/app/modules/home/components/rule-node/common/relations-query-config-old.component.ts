@@ -29,13 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { EntitySearchDirection, entitySearchDirectionTranslations, PageComponent } from '@shared/public-api';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/public-api';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { RelationsQuery } from '../rule-node-config.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-relations-query-config-old',
@@ -71,9 +70,9 @@ export class RelationsQueryConfigOldComponent extends PageComponent implements C
 
   private propagateChange = null;
 
-  constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
-    super(store);
+  constructor(private fb: FormBuilder,
+              private destroyRef: DestroyRef) {
+    super();
   }
 
   ngOnInit(): void {
@@ -83,7 +82,9 @@ export class RelationsQueryConfigOldComponent extends PageComponent implements C
       maxLevel: [null, []],
       filters: [null]
     });
-    this.relationsQueryFormGroup.valueChanges.subscribe((query: RelationsQuery) => {
+    this.relationsQueryFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((query: RelationsQuery) => {
       if (this.relationsQueryFormGroup.valid) {
         this.propagateChange(query);
       } else {
@@ -96,7 +97,7 @@ export class RelationsQueryConfigOldComponent extends PageComponent implements C
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   setDisabledState(isDisabled: boolean): void {
