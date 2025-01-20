@@ -72,11 +72,3 @@ import { AggregateLatestV2ConfigComponent } from './aggregate-latest-v2-config.c
 
 export class AnalyticsRuleNodeConfigModule {
 }
-
-export const analyticsRuleNodeConfigComponentsMap: Record<string, Type<IRuleNodeConfigurationComponent>> = {
-  'tbAnalyticsNodeAggregateIncomingConfig': AggregateIncomingConfigComponent,
-  'tbAnalyticsNodeAggregateLatestConfig': AggregateLatestConfigComponent,
-  'tbAnalyticsNodeAggregateLatestV2Config': AggregateLatestV2ConfigComponent,
-  'tbAnalyticsNodeAlarmsCountConfig': AlarmsCountConfigComponent,
-  'tbAnalyticsNodeAlarmsCountV2Config': AlarmsCountV2ConfigComponent
-}
