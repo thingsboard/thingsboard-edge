@@ -62,7 +62,7 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
 
     ConverterEntity findByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type);
 
-    boolean existsByTenantIdAndNameAndIdNot(UUID tenantId, String name, UUID id);
+    boolean existsByTenantIdAndNameAndTypeAndIdNot(UUID tenantId, String name, ConverterType type, UUID id);
 
     List<ConverterEntity> findConvertersByTenantIdAndIdIn(UUID tenantId, List<UUID> converterIds);
 

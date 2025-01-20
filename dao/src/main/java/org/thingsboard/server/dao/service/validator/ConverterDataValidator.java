@@ -72,9 +72,10 @@ public class ConverterDataValidator extends DataValidator<Converter> {
                 throw new DataValidationException("Converter type cannot be changed!");
             }
 
-            boolean nameExists = converterDao.existsByTenantIdAndNameAndIdNot(
+            boolean nameExists = converterDao.existsByTenantIdAndNameAndTypeAndIdNot(
                     converter.getTenantId().getId(),
                     converter.getName(),
+                    converter.getType(),
                     converter.getUuidId()
             );
 
