@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.cache;
 
-import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,11 +120,6 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
                 .map(CacheSpecs::getMaxSize)
                 .map(size -> size > 0)
                 .orElse(false);
-    }
-
-    @PostConstruct
-    public void init() {
-        loadLuaScript(EVICT_BY_PREFIX_SHA, EVICT_BY_PREFIX_LUA_SCRIPT);
     }
 
     @Override
