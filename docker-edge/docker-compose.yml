@@ -76,7 +76,7 @@ services:
       - tb-monolith
   tb-edge-38:
     restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:3.8.0EDGE"
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:3.8.0EDGEPE"
     ports:
       - "8084"
       - "1885"
@@ -95,7 +95,7 @@ services:
       - tb-monolith
   tb-edge-37:
     restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:3.7.0EDGE"
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:3.7.0EDGEPE"
     ports:
       - "8085"
       - "1886"
