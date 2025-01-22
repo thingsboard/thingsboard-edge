@@ -68,7 +68,6 @@ export class RuleChainService {
   private ruleNodeComponentsMap: Map<RuleChainType, Array<RuleNodeComponentDescriptor>> =
     new Map<RuleChainType, Array<RuleNodeComponentDescriptor>>();
   private ruleNodeConfigComponents: {[directive: string]: Type<IRuleNodeConfigurationComponent>} = {};
-  private ruleNodeComponentsType: string = '';
 
   constructor(
     private http: HttpClient,
@@ -122,7 +121,6 @@ export class RuleChainService {
      if (this.ruleNodeComponentsMap.get(ruleChainType)) {
        return of(this.ruleNodeComponentsMap.get(ruleChainType));
      } else {
-       this.ruleNodeComponentsType = ruleChainType;
        return this.loadRuleNodeComponents(ruleChainType, config).pipe(
         mergeMap((components) => {
           return this.resolveRuleNodeComponentsUiResources(components, modulesMap).pipe(
@@ -197,6 +195,10 @@ export class RuleChainService {
     return this.http.post<TestScriptResult>(url, inputParams, defaultHttpOptionsFromConfig(config));
   }
 
+  public registerSystemRuleNodeConfigModule(module: any) {
+    Object.assign(this.ruleNodeConfigComponents, this.resourcesService.extractComponentsFromModule<IRuleNodeConfigurationComponent>(module, true));
+  }
+
   private loadRuleNodeComponents(ruleChainType: RuleChainType, config?: RequestConfig): Observable<Array<RuleNodeComponentDescriptor>> {
     return this.componentDescriptorService.getComponentDescriptorsByTypes(ruleNodeTypeComponentTypes, ruleChainType, config).pipe(
       map((components) => {
@@ -228,7 +230,7 @@ export class RuleChainService {
     Observable<RuleNodeComponentDescriptor> {
     const nodeDefinition = component.configurationDescriptor.nodeDefinition;
     const uiResources = nodeDefinition.uiResources;
-    if (uiResources && uiResources.length) {
+    if (!this.ruleNodeConfigComponents[nodeDefinition.configDirective] && uiResources && uiResources.length) {
       const commonResources = uiResources.filter((resource) => !resource.endsWith('.js'));
       const moduleResource = uiResources.find((resource) => resource.endsWith('.js'));
       const tasks: Observable<any>[] = [];

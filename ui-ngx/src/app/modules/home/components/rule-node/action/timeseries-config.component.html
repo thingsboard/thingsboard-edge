@@ -1,0 +1,65 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="timeseriesConfigForm" class="tb-form-panel no-border no-padding">
+  <mat-form-field class="mat-block flex-1">
+    <mat-label translate>rule-node-config.default-ttl</mat-label>
+    <input type="number" min="0" step="1" matInput formControlName="defaultTTL" required>
+    <mat-icon class="help-icon margin-8 cursor-pointer"
+              aria-hidden="false"
+              aria-label="help-icon"
+              matSuffix
+              matTooltip="{{ 'rule-node-config.default-ttl-hint' | translate }}">
+      help
+    </mat-icon>
+    <mat-error *ngIf="timeseriesConfigForm.get('defaultTTL').hasError('required')">
+      {{ 'rule-node-config.default-ttl-required' | translate }}
+    </mat-error>
+    <mat-error *ngIf="timeseriesConfigForm.get('defaultTTL').hasError('min')">
+      {{ 'rule-node-config.min-default-ttl-message' | translate }}
+    </mat-error>
+  </mat-form-field>
+  <div class="tb-form-panel stroked">
+    <div tb-hint-tooltip-icon="{{ 'rule-node-config.use-server-ts-hint' | translate}}"
+         class="tb-form-row no-border no-padding">
+      <mat-slide-toggle class="mat-slide" formControlName="useServerTs">
+        {{ 'rule-node-config.use-server-ts' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <div tb-hint-tooltip-icon="{{ 'rule-node-config.skip-latest-persistence-hint' | translate}}"
+         class="tb-form-row no-border no-padding">
+      <mat-slide-toggle class="mat-slide" formControlName="skipLatestPersistence">
+        {{ 'rule-node-config.skip-latest-persistence' | translate }}
+      </mat-slide-toggle>
+    </div>
+  </div>
+</section>
