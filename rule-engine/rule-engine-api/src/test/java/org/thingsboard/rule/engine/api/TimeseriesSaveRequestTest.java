@@ -37,12 +37,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TimeseriesSaveRequestTest {
 
     @Test
-    void testBooleanFlagsDefaultToTrue() {
+    void testDefaultSaveStrategyIsSaveAll() {
         var request = TimeseriesSaveRequest.builder().build();
 
-        assertThat(request.isSaveTimeseries()).isTrue();
-        assertThat(request.isSaveLatest()).isTrue();
-        assertThat(request.isSendWsUpdate()).isTrue();
+        assertThat(request.getStrategy()).isEqualTo(TimeseriesSaveRequest.Strategy.SAVE_ALL);
+    }
+
+    @Test
+    void testSaveAllStrategy() {
+        assertThat(TimeseriesSaveRequest.Strategy.SAVE_ALL).isEqualTo(new TimeseriesSaveRequest.Strategy(true, true, true));
+    }
+
+    @Test
+    void testWsOnlyStrategy() {
+        assertThat(TimeseriesSaveRequest.Strategy.WS_ONLY).isEqualTo(new TimeseriesSaveRequest.Strategy(false, false, true));
+    }
+
+    @Test
+    void testLatestAndWsStrategy() {
+        assertThat(TimeseriesSaveRequest.Strategy.LATEST_AND_WS).isEqualTo(new TimeseriesSaveRequest.Strategy(false, true, true));
+    }
+
+    @Test
+    void testSkipAllStrategy() {
+        assertThat(TimeseriesSaveRequest.Strategy.SKIP_ALL).isEqualTo(new TimeseriesSaveRequest.Strategy(false, false, false));
     }
 
 }

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
@@ -52,6 +53,7 @@ public class TbMsgTimeseriesNodeConfiguration implements NodeConfiguration<TbMsg
 
     private long defaultTTL;
     private boolean useServerTs;
+    @NotNull
     private PersistenceSettings persistenceSettings;
 
     @Override

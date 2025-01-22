@@ -284,9 +284,7 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
                         .tenantId(entityView.getTenantId())
                         .entityId(entityId)
                         .entries(latestValues)
-                        .saveTimeseries(false)
-                        .saveLatest(true)
-                        .sendWsUpdate(true)
+                        .strategy(TimeseriesSaveRequest.Strategy.LATEST_AND_WS)
                         .callback(new FutureCallback<Void>() {
                             @Override
                             public void onSuccess(@Nullable Void tmp) {

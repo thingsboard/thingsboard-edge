@@ -64,6 +64,8 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.dao.service.ConstraintValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -137,15 +139,14 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
     }
 
     @Test
-    public void givenPersistenceSettingsAreNull_whenInit_thenThrowsException() {
+    public void givenPersistenceSettingsAreNull_whenValidatingConstraints_thenThrowsException() {
         // GIVEN
         config.setPersistenceSettings(null);
 
         // WHEN-THEN
-        assertThatThrownBy(() -> node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config))))
-                .isInstanceOf(TbNodeException.class)
-                .matches(e -> ((TbNodeException) e).isUnrecoverable())
-                .hasMessage("Persistence settings cannot be null");
+        assertThatThrownBy(() -> ConstraintValidator.validateFields(config))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessage("Validation error: persistenceSettings must not be null");
     }
 
     @ParameterizedTest
@@ -222,7 +223,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
             assertThat(request.getEntityId()).isEqualTo(DEVICE_ID);
             assertThat(request.getEntries()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("ts").containsExactlyElementsOf(expectedList);
             assertThat(request.getTtl()).isEqualTo(extractTtlAsSeconds(tenantProfile));
-            assertThat(request.isSaveLatest()).isTrue();
+            assertThat(request.getStrategy()).isEqualTo(TimeseriesSaveRequest.Strategy.SAVE_ALL);
             assertThat(request.getCallback()).isInstanceOf(TelemetryNodeCallback.class);
         }));
         verify(ctxMock).tellSuccess(msg);
@@ -279,9 +280,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
             assertThat(request.getEntityId()).isEqualTo(DEVICE_ID);
             assertThat(request.getEntries()).containsExactlyElementsOf(expectedList);
             assertThat(request.getTtl()).isEqualTo(config.getDefaultTTL());
-            assertThat(request.isSaveTimeseries()).isTrue();
-            assertThat(request.isSaveLatest()).isFalse();
-            assertThat(request.isSendWsUpdate()).isTrue();
+            assertThat(request.getStrategy()).isEqualTo(new TimeseriesSaveRequest.Strategy(true, false, true));
             assertThat(request.getCallback()).isInstanceOf(TelemetryNodeCallback.class);
         }));
         verify(ctxMock).tellSuccess(msg);
@@ -320,7 +319,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
             assertThat(request.getCustomerId()).isNull();
             assertThat(request.getEntityId()).isEqualTo(DEVICE_ID);
             assertThat(request.getTtl()).isEqualTo(expectedTtl);
-            assertThat(request.isSaveLatest()).isTrue();
+            assertThat(request.getStrategy()).isEqualTo(TimeseriesSaveRequest.Strategy.SAVE_ALL);
             assertThat(request.getCallback()).isInstanceOf(TelemetryNodeCallback.class);
         }));
     }
@@ -369,9 +368,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entityId(msg.getOriginator())
                 .entry(new BasicTsKvEntry(123L, new DoubleDataEntry("temperature", 22.3)))
                 .ttl(extractTtlAsSeconds(tenantProfile))
-                .saveTimeseries(true)
-                .saveLatest(true)
-                .sendWsUpdate(true)
+                .strategy(TimeseriesSaveRequest.Strategy.SAVE_ALL)
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -406,9 +403,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entityId(msg.getOriginator())
                 .entry(new BasicTsKvEntry(123L, new DoubleDataEntry("temperature", 22.3)))
                 .ttl(extractTtlAsSeconds(tenantProfile))
-                .saveTimeseries(true)
-                .saveLatest(true)
-                .sendWsUpdate(true)
+                .strategy(TimeseriesSaveRequest.Strategy.SAVE_ALL)
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -443,9 +438,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entityId(msg.getOriginator())
                 .entry(new BasicTsKvEntry(123L, new DoubleDataEntry("temperature", 22.3)))
                 .ttl(extractTtlAsSeconds(tenantProfile))
-                .saveTimeseries(false)
-                .saveLatest(false)
-                .sendWsUpdate(true)
+                .strategy(TimeseriesSaveRequest.Strategy.WS_ONLY)
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -484,9 +477,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entityId(msg.getOriginator())
                 .entry(new BasicTsKvEntry(123L, new DoubleDataEntry("temperature", 22.3)))
                 .ttl(extractTtlAsSeconds(tenantProfile))
-                .saveTimeseries(true)
-                .saveLatest(true)
-                .sendWsUpdate(true)
+                .strategy(TimeseriesSaveRequest.Strategy.SAVE_ALL)
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -523,11 +514,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .metaData(new TbMsgMetaData(Map.of("ts", Long.toString(ts1))))
                 .build());
         then(telemetryServiceMock).should().saveTimeseries(assertArg(
-                actualSaveRequest -> {
-                    assertThat(actualSaveRequest.isSaveTimeseries()).isTrue();
-                    assertThat(actualSaveRequest.isSaveLatest()).isTrue();
-                    assertThat(actualSaveRequest.isSendWsUpdate()).isTrue();
-                }
+                actualSaveRequest -> assertThat(actualSaveRequest.getStrategy()).isEqualTo(TimeseriesSaveRequest.Strategy.SAVE_ALL)
         ));
 
         clearInvocations(telemetryServiceMock);
@@ -539,11 +526,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .metaData(new TbMsgMetaData(Map.of("ts", Long.toString(ts2))))
                 .build());
         then(telemetryServiceMock).should().saveTimeseries(assertArg(
-                actualSaveRequest -> {
-                    assertThat(actualSaveRequest.isSaveTimeseries()).isTrue();
-                    assertThat(actualSaveRequest.isSaveLatest()).isFalse();
-                    assertThat(actualSaveRequest.isSendWsUpdate()).isFalse();
-                }
+                actualSaveRequest -> assertThat(actualSaveRequest.getStrategy()).isEqualTo(new TimeseriesSaveRequest.Strategy(true, false, false))
         ));
 
         clearInvocations(telemetryServiceMock);
@@ -555,11 +538,7 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .metaData(new TbMsgMetaData(Map.of("ts", Long.toString(ts3))))
                 .build());
         then(telemetryServiceMock).should().saveTimeseries(assertArg(
-                actualSaveRequest -> {
-                    assertThat(actualSaveRequest.isSaveTimeseries()).isTrue();
-                    assertThat(actualSaveRequest.isSaveLatest()).isTrue();
-                    assertThat(actualSaveRequest.isSendWsUpdate()).isFalse();
-                }
+                actualSaveRequest -> assertThat(actualSaveRequest.getStrategy()).isEqualTo(new TimeseriesSaveRequest.Strategy(true, true, false))
         ));
     }
 

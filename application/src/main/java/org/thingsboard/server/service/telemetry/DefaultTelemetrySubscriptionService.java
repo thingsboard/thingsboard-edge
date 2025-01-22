@@ -133,10 +133,10 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         EntityId entityId = request.getEntityId();
         checkInternalEntity(entityId);
         boolean sysTenant = TenantId.SYS_TENANT_ID.equals(tenantId) || tenantId == null;
-        if (sysTenant || !request.isSaveTimeseries() || apiUsageStateService.getApiUsageState(tenantId).isDbStorageEnabled()) {
+        if (sysTenant || !request.getStrategy().saveTimeseries() || apiUsageStateService.getApiUsageState(tenantId).isDbStorageEnabled()) {
             KvUtils.validate(request.getEntries(), valueNoXssValidation);
             ListenableFuture<Integer> future = saveTimeseriesInternal(request);
-            if (request.isSaveTimeseries()) {
+            if (request.getStrategy().saveTimeseries()) {
                 FutureCallback<Integer> callback = getApiUsageCallback(tenantId, request.getCustomerId(), sysTenant, request.getCallback());
                 Futures.addCallback(future, callback, tsCallBackExecutor);
             }
@@ -149,22 +149,23 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     public ListenableFuture<Integer> saveTimeseriesInternal(TimeseriesSaveRequest request) {
         TenantId tenantId = request.getTenantId();
         EntityId entityId = request.getEntityId();
+        TimeseriesSaveRequest.Strategy strategy = request.getStrategy();
         ListenableFuture<Integer> saveFuture;
-        if (request.isSaveTimeseries() && request.isSaveLatest()) {
+        if (strategy.saveTimeseries() && strategy.saveLatest()) {
             saveFuture = tsService.save(tenantId, entityId, request.getEntries(), request.getTtl(), request.isOverwriteValue());
-        } else if (request.isSaveLatest()) {
+        } else if (strategy.saveLatest()) {
             saveFuture = Futures.transform(tsService.saveLatest(tenantId, entityId, request.getEntries()), result -> 0, MoreExecutors.directExecutor());
-        } else if (request.isSaveTimeseries()) {
+        } else if (strategy.saveTimeseries()) {
             saveFuture = tsService.saveWithoutLatest(tenantId, entityId, request.getEntries(), request.getTtl(), request.isOverwriteValue());
         } else {
             saveFuture = Futures.immediateFuture(0);
         }
 
         addMainCallback(saveFuture, request.getCallback());
-        if (request.isSendWsUpdate()) {
+        if (strategy.sendWsUpdate()) {
             addWsCallback(saveFuture, success -> onTimeSeriesUpdate(tenantId, entityId, request.getEntries()));
         }
-        if (request.isSaveLatest()) {
+        if (strategy.saveLatest()) {
             copyLatestToEntityViews(tenantId, entityId, request.getEntries());
         }
         return saveFuture;
@@ -251,9 +252,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
                                                 .tenantId(tenantId)
                                                 .entityId(entityView.getId())
                                                 .entries(entityViewLatest)
-                                                .saveTimeseries(false)
-                                                .saveLatest(true)
-                                                .sendWsUpdate(true)
+                                                .strategy(TimeseriesSaveRequest.Strategy.LATEST_AND_WS)
                                                 .callback(new FutureCallback<>() {
                                                     @Override
                                                     public void onSuccess(@Nullable Void tmp) {}

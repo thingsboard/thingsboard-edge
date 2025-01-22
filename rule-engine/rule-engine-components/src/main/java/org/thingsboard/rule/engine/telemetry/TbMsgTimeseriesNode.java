@@ -72,18 +72,49 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_RE
         type = ComponentType.ACTION,
         name = "save time series",
         configClazz = TbMsgTimeseriesNodeConfiguration.class,
-        nodeDescription = "Saves time series data",
-        nodeDetails = "Saves time series telemetry data based on configurable TTL parameter. Expects messages with 'POST_TELEMETRY_REQUEST' message type. " +
-                "Timestamp in milliseconds will be taken from metadata.ts, otherwise 'now' message timestamp will be applied. " +
-                "Allows stopping updating values for incoming keys in the latest ts_kv table if 'skipLatestPersistence' is set to true.\n " +
-                "<br/>" +
-                "Enable 'useServerTs' param to use the timestamp of the message processing instead of the timestamp from the message. " +
-                "Useful for all sorts of sequential processing if you merge messages from multiple sources (devices, assets, etc).\n" +
-                "<br/>" +
-                "In the case of sequential processing, the platform guarantees that the messages are processed in the order of their submission to the queue. " +
-                "However, the timestamp of the messages originated by multiple devices/servers may be unsynchronized long before they are pushed to the queue. " +
-                "The DB layer has certain optimizations to ignore the updates of the \"attributes\" and \"latest values\" tables if the new record has a timestamp that is older than the previous record. " +
-                "So, to make sure that all the messages will be processed correctly, one should enable this parameter for sequential message processing scenarios.",
+        nodeDescription = """
+                Saves time series data with a configurable TTL and according to configured persistence strategies.
+                """,
+        nodeDetails = """
+                Node performs three <strong>actions:</strong>
+                <ul>
+                  <li><strong>Time series:</strong> save time series data to a <code>ts_kv</code> table in a DB.</li>
+                  <li><strong>Latest values:</strong> save time series data to a <code>ts_kv_latest</code> table in a DB.</li>
+                  <li><strong>WebSockets:</strong> notify WebSockets subscriptions about time series data updates.</li>
+                </ul>
+                
+                For each <em>action</em>, three <strong>persistence strategies</strong> are available:
+                <ul>
+                  <li><strong>On every message:</strong> perform the action for every message.</li>
+                  <li><strong>Deduplicate:</strong> perform the action only for the first message from a particular originator within a configurable interval.</li>
+                  <li><strong>Skip:</strong> never perform the action.</li>
+                </ul>
+                
+                <strong>Persistence strategies</strong> are configured using <em>persistence settings</em>, which support two modes:
+                <ul>
+                  <li><strong>Basic</strong>
+                    <ul>
+                      <li><strong>On every message:</strong> applies the "On every message" strategy to all actions.</li>
+                      <li><strong>Deduplicate:</strong> applies the "Deduplicate" strategy (with a specified interval) to all actions.</li>
+                      <li><strong>WebSockets only:</strong> applies the "Skip" strategy to Time series and Latest values, and the "On every message" strategy to WebSockets.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Advanced:</strong> configure each action’s strategy independently.</li>
+                </ul>
+                
+                By default, the timestamp is taken from <code>metadata.ts</code>. You can enable
+                <em>Use server timestamp</em> to always use the current server time instead. This is particularly
+                useful in sequential processing scenarios where messages may arrive with out-of-order timestamps from
+                multiple sources. Note that the DB layer may ignore older records for attributes and latest values,
+                so enabling <em>Use server timestamp</em> can ensure correct ordering.
+                <br><br>
+                The TTL is taken first from <code>metadata.TTL</code>. If absent, the node configuration’s default
+                TTL is used. If neither is set, the tenant profile default applies.
+                <br><br>
+                This node expects messages of type <code>POST_TELEMETRY_REQUEST</code>.
+                <br><br>
+                Output connections: <code>Success</code>, <code>Failure</code>.
+                """,
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeTimeseriesConfig",
         icon = "file_upload",
@@ -104,9 +135,6 @@ public class TbMsgTimeseriesNode implements TbNode {
         ctx.addTenantProfileListener(this::onTenantProfileUpdate);
         onTenantProfileUpdate(ctx.getTenantProfile());
         persistenceSettings = config.getPersistenceSettings();
-        if (persistenceSettings == null) {
-            throw new TbNodeException("Persistence settings cannot be null", true);
-        }
     }
 
     private void onTenantProfileUpdate(TenantProfile tenantProfile) {
@@ -122,13 +150,10 @@ public class TbMsgTimeseriesNode implements TbNode {
         }
         long ts = computeTs(msg, config.isUseServerTs());
 
-        PersistenceDecision persistenceDecision = makePersistenceDecision(ts, msg.getOriginator().getId());
-        boolean saveTimeseries = persistenceDecision.saveTimeseries();
-        boolean saveLatest = persistenceDecision.saveLatest();
-        boolean sendWsUpdate = persistenceDecision.sendWsUpdate();
+        TimeseriesSaveRequest.Strategy strategy = determineSaveStrategy(ts, msg.getOriginator().getId());
 
         // short-circuit
-        if (!saveTimeseries && !saveLatest && !sendWsUpdate) {
+        if (!strategy.saveTimeseries() && !strategy.saveLatest() && !strategy.sendWsUpdate()) {
             ctx.tellSuccess(msg);
             return;
         }
@@ -158,9 +183,7 @@ public class TbMsgTimeseriesNode implements TbNode {
                 .entityId(msg.getOriginator())
                 .entries(tsKvEntryList)
                 .ttl(ttl)
-                .saveTimeseries(saveTimeseries)
-                .saveLatest(saveLatest)
-                .sendWsUpdate(sendWsUpdate)
+                .strategy(strategy)
                 .overwriteValue(overwriteValue)
                 .callback(new TelemetryNodeCallback(ctx, msg))
                 .build());
@@ -170,35 +193,26 @@ public class TbMsgTimeseriesNode implements TbNode {
         return ignoreMetadataTs ? System.currentTimeMillis() : msg.getMetaDataTs();
     }
 
-    private record PersistenceDecision(boolean saveTimeseries, boolean saveLatest, boolean sendWsUpdate) {}
-
-    private PersistenceDecision makePersistenceDecision(long ts, UUID originatorUuid) {
-        boolean saveTimeseries;
-        boolean saveLatest;
-        boolean sendWsUpdate;
-
+    private TimeseriesSaveRequest.Strategy determineSaveStrategy(long ts, UUID originatorUuid) {
         if (persistenceSettings instanceof OnEveryMessage) {
-            saveTimeseries = true;
-            saveLatest = true;
-            sendWsUpdate = true;
-        } else if (persistenceSettings instanceof WebSocketsOnly) {
-            saveTimeseries = false;
-            saveLatest = false;
-            sendWsUpdate = true;
-        } else if (persistenceSettings instanceof Deduplicate deduplicate) {
-            boolean isFirstMsgInInterval = deduplicate.getDeduplicateStrategy().shouldPersist(ts, originatorUuid);
-            saveTimeseries = isFirstMsgInInterval;
-            saveLatest = isFirstMsgInInterval;
-            sendWsUpdate = isFirstMsgInInterval;
-        } else if (persistenceSettings instanceof Advanced advanced) {
-            saveTimeseries = advanced.timeseries().shouldPersist(ts, originatorUuid);
-            saveLatest = advanced.latest().shouldPersist(ts, originatorUuid);
-            sendWsUpdate = advanced.webSockets().shouldPersist(ts, originatorUuid);
-        } else { // should not happen
-            throw new IllegalArgumentException("Unknown persistence settings type: " + persistenceSettings.getClass().getSimpleName());
+            return TimeseriesSaveRequest.Strategy.SAVE_ALL;
         }
-
-        return new PersistenceDecision(saveTimeseries, saveLatest, sendWsUpdate);
+        if (persistenceSettings instanceof WebSocketsOnly) {
+            return TimeseriesSaveRequest.Strategy.WS_ONLY;
+        }
+        if (persistenceSettings instanceof Deduplicate deduplicate) {
+            boolean isFirstMsgInInterval = deduplicate.getDeduplicateStrategy().shouldPersist(ts, originatorUuid);
+            return isFirstMsgInInterval ? TimeseriesSaveRequest.Strategy.SAVE_ALL : TimeseriesSaveRequest.Strategy.SKIP_ALL;
+        }
+        if (persistenceSettings instanceof Advanced advanced) {
+            return new TimeseriesSaveRequest.Strategy(
+                    advanced.timeseries().shouldPersist(ts, originatorUuid),
+                    advanced.latest().shouldPersist(ts, originatorUuid),
+                    advanced.webSockets().shouldPersist(ts, originatorUuid)
+            );
+        }
+        // should not happen
+        throw new IllegalArgumentException("Unknown persistence settings type: " + persistenceSettings.getClass().getSimpleName());
     }
 
     @Override
@@ -211,9 +225,6 @@ public class TbMsgTimeseriesNode implements TbNode {
         boolean hasChanges = false;
         switch (fromVersion) {
             case 0:
-                if (oldConfiguration.has("persistenceSettings") && !oldConfiguration.has("skipLatestPersistence")) {
-                    break;
-                }
                 hasChanges = true;
                 JsonNode skipLatestPersistence = oldConfiguration.get("skipLatestPersistence");
                 if (skipLatestPersistence != null && "true".equals(skipLatestPersistence.asText())) {
