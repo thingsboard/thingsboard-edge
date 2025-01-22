@@ -29,9 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule, Type } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IRuleNodeConfigurationComponent, SharedModule } from '@shared/public-api';
+import { SharedModule } from '@shared/public-api';
 import { CheckMessageConfigComponent } from './check-message-config.component';
 import { CheckRelationConfigComponent } from './check-relation-config.component';
 import { GpsGeoFilterConfigComponent } from './gps-geo-filter-config.component';

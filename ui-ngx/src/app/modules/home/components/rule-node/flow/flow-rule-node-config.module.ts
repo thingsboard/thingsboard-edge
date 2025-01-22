@@ -29,9 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule, Type } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IRuleNodeConfigurationComponent, SharedModule } from '@shared/public-api';
+import { SharedModule } from '@shared/public-api';
 import { RuleChainInputComponent } from './rule-chain-input.component';
 import { RuleChainOutputComponent } from './rule-chain-output.component';
 

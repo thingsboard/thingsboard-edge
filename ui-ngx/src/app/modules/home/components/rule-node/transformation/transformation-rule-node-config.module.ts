@@ -29,9 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule, Type } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IRuleNodeConfigurationComponent, SharedModule } from '@shared/public-api';
+import { SharedModule } from '@shared/public-api';
 import { ChangeOriginatorConfigComponent } from './change-originator-config.component';
 import { CommonRuleNodeConfigModule } from '../common/common-rule-node-config.module';
 import { TransformScriptConfigComponent } from './script-config.component';
@@ -41,7 +41,6 @@ import { RenameKeysConfigComponent } from './rename-keys-config.component';
 import { NodeJsonPathConfigComponent } from './node-json-path-config.component';
 import { DeleteKeysConfigComponent } from './delete-keys-config.component';
 import { DeduplicationConfigComponent } from './deduplication-config.component';
-import { ScriptConfigComponent } from '@home/components/rule-node/filter/script-config.component';
 import { DuplicateToGroupConfigComponent } from './duplicate-to-group-config.component';
 import { DuplicateToGroupByNameConfigComponent } from './duplicate-to-group-by-name-config.component';
 import { DuplicateToRelatedConfigComponent } from './duplicate-to-related-config.component';
