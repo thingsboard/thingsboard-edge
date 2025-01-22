@@ -58,7 +58,6 @@ import java.util.UUID;
         configClazz = TbGenerateReportNodeConfiguration.class,
         nodeDescription = "Generates report",
         nodeDetails = "Generates dashboard based reports.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeGenerateReportConfig",
         icon = "description"
 )

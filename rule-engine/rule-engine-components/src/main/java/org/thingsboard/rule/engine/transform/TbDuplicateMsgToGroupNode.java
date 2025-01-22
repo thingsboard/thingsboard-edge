@@ -61,7 +61,6 @@ import java.util.List;
                 "For each entity from group new message is created with entity as originator " +
                 "and message parameters copied from original message.<br><br>" +
                 "Output connections: <code>Success</code>, <code>Failure</code>.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToGroupConfig",
         icon = "call_split"
 )
