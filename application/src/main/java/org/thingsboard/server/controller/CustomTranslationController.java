@@ -63,6 +63,7 @@ import org.thingsboard.server.service.translation.TbCustomTranslationService;
 
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+import static org.thingsboard.server.service.translation.DefaultTranslationService.DEFAULT_LOCALE_KEYS;
 
 @RestController
 @TbCoreComponent
@@ -138,6 +139,7 @@ public class CustomTranslationController extends BaseController {
                                                    @RequestBody JsonNode customTranslationValue) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
+        DataValidator.validateCustomTranslationKeys(DEFAULT_LOCALE_KEYS, customTranslationValue);
         CustomTranslation customTranslation = CustomTranslation.builder()
                 .tenantId(getCurrentUser().getTenantId())
                 .customerId(getCurrentUser().getCustomerId())
@@ -160,7 +162,7 @@ public class CustomTranslationController extends BaseController {
                                                     @RequestBody JsonNode newCustomTranslation) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
-        DataValidator.validateCustomTranslation(newCustomTranslation);
+        DataValidator.validateCustomTranslationPatch(newCustomTranslation);
         SecurityUser currentUser = getCurrentUser();
         tbCustomTranslationService.patchCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, newCustomTranslation);
