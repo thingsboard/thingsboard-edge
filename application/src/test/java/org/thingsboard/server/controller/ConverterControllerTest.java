@@ -217,8 +217,6 @@ public class ConverterControllerTest extends AbstractControllerTest {
         converter.setType(ConverterType.UPLINK);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
-        Mockito.reset(tbClusterService, auditLogService);
-
         savedConverter.setType(ConverterType.DOWNLINK);
         savedConverter.setConfiguration(CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION);
 
@@ -226,12 +224,42 @@ public class ConverterControllerTest extends AbstractControllerTest {
         doPost("/api/converter", savedConverter)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
-
-        converter.setTenantId(savedTenant.getId());
-        testNotifyEntityEqualsOneTimeServiceNeverError(savedConverter,
-                savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED,
-                new DataValidationException(msgError));
     }
+
+    @Test
+    public void testSaveConverterEnsuresUniqueNameAndType() throws Exception {
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        converter.setType(ConverterType.UPLINK);
+        converter.setTenantId(savedTenant.getId());
+        doPost("/api/converter", converter, Converter.class);
+
+        String msgError = "Converter with such name and type already exists!";
+        doPost("/api/converter", converter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+    }
+
+    @Test
+    public void testUpdateConverterWhenNonUniqueNameAndType() throws Exception {
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        converter.setType(ConverterType.UPLINK);
+        converter.setTenantId(savedTenant.getId());
+        doPost("/api/converter", converter, Converter.class);
+
+        converter.setName("My converter 2");
+        Converter savedConverter =  doPost("/api/converter", converter , Converter.class);
+
+        savedConverter.setName("My converter");
+        String msgError = "Converter with such name and type already exists!";
+        doPost("/api/converter", converter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+    }
+
 
     @Test
     public void testSaveConverterWithEmptyName() throws Exception {

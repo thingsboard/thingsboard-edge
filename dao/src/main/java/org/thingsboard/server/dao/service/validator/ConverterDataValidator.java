@@ -51,6 +51,8 @@ public class ConverterDataValidator extends DataValidator<Converter> {
     @Autowired
     private ConverterDao converterDao;
 
+    private static final String DUPLICATE_CONVERTER_ERROR_MESSAGE = "Converter with such name and type already exists!";
+
     @Override
     protected void validateCreate(TenantId tenantId, Converter converter) {
         if (!converter.isEdgeTemplate()) {
@@ -58,7 +60,7 @@ public class ConverterDataValidator extends DataValidator<Converter> {
         }
         converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType()).ifPresent(
                 d -> {
-                    throw new DataValidationException("Converter with such name already exists!");
+                    throw new DataValidationException(DUPLICATE_CONVERTER_ERROR_MESSAGE);
                 }
         );
     }
@@ -80,7 +82,7 @@ public class ConverterDataValidator extends DataValidator<Converter> {
             );
 
             if (nameExists) {
-                throw new DataValidationException("Converter with such name already exists!");
+                throw new DataValidationException(DUPLICATE_CONVERTER_ERROR_MESSAGE);
             }
         }
 
