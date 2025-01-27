@@ -34,6 +34,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -43,6 +44,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.dashboard.DashboardDao;
@@ -87,7 +89,7 @@ public class JpaDashboardInfoDaoTest extends AbstractJpaDaoTest {
     public void testFindDashboardsByTenantIdAndCustomerIdIncludingSubCustomers() {
         UUID tenantId1 = Uuids.timeBased();
         Customer customer1 = createCustomer(tenantId1, null, 0);
-        Customer subCustomer2 = createCustomer(tenantId1, customer1.getUuidId(),1);
+        Customer subCustomer2 = createCustomer(tenantId1, customer1.getUuidId(), 1);
 
         for (int i = 0; i < 20; i++) {
             createDashboard(tenantId1, customer1.getUuidId(), i);

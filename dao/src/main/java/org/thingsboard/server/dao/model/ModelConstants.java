@@ -374,6 +374,8 @@ public class ModelConstants {
     public static final String ALARM_COMMENT_TYPE = "type";
     public static final String ALARM_COMMENT_COMMENT = "comment";
 
+    public static final String ALARM_TYPES_TABLE_NAME = "alarm_types";
+
     /**
      * Entity relation constants.
      */
@@ -959,4 +961,5 @@ public class ModelConstants {
             "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
             "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
             "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
+
 }

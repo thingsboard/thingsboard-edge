@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.sql.whitelabeling;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -94,5 +95,14 @@ public class JpaWhiteLabelingDao extends JpaAbstractDaoListeningExecutorService 
         ))));
     }
 
+    @Override
+    public PageData<WhiteLabeling> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(whiteLabelingRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink, "tenantId", "customerId", "type")));
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.WHITE_LABELING;
+    }
 
 }

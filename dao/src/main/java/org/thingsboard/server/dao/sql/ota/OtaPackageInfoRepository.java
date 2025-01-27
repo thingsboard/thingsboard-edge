@@ -106,4 +106,5 @@ public interface OtaPackageInfoRepository extends JpaRepository<OtaPackageInfoEn
                                                                                 @Param("type") OtaPackageType type,
                                                                                 @Param("searchText") String searchText,
                                                                                 Pageable pageable);
+
 }

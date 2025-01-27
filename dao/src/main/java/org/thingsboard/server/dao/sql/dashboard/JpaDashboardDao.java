@@ -36,6 +36,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.edqs.fields.DashboardFields;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -104,7 +106,7 @@ public class JpaDashboardDao extends JpaAbstractDao<DashboardEntity, Dashboard> 
     @Override
     public PageData<DashboardId> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
         Page<UUID> page;
-        if(customerId == null){
+        if (customerId == null) {
             page = dashboardRepository.findIdsByTenantIdAndNullCustomerId(tenantId, DaoUtil.toPageable(pageLink));
         } else {
             page = dashboardRepository.findIdsByTenantIdAndCustomerId(tenantId, customerId, DaoUtil.toPageable(pageLink));
@@ -123,8 +125,23 @@ public class JpaDashboardDao extends JpaAbstractDao<DashboardEntity, Dashboard> 
     }
 
     @Override
+    public PageData<Dashboard> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<DashboardFields> findAllFields(PageLink pageLink) {
+        return DaoUtil.pageToPageData(dashboardRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.DASHBOARD;
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.DASHBOARD;
     }
 
 }

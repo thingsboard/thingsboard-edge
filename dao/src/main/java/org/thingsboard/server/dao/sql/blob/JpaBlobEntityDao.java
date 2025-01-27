@@ -37,7 +37,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.edqs.fields.BlobEntityFields;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
@@ -121,8 +127,23 @@ public class JpaBlobEntityDao extends JpaPartitionedAbstractDao<BlobEntityEntity
     }
 
     @Override
+    public PageData<BlobEntity> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(blobEntityRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<BlobEntityFields> findAllFields(PageLink pageLink) {
+        return DaoUtil.pageToPageData(blobEntityRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.BLOB_ENTITY;
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.BLOB_ENTITY;
     }
 
 }

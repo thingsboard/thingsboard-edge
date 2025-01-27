@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.edqs.fields.UserFields;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 
@@ -170,5 +171,10 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     @Transactional
     @Query("UPDATE UserEntity u SET u.customMenuId = NULL WHERE u.id IN :ids")
     void updateCustomMenuIdToNull(@Param("ids") List<UUID> ids);
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.UserFields(u.id, u.createdTime, u.tenantId," +
+            "u.customerId, u.version, u.firstName, u.lastName, u.email, u.phone, u.additionalInfo) " +
+            "FROM UserEntity u")
+    Page<UserFields> findAllFields(Pageable pageable);
 
 }

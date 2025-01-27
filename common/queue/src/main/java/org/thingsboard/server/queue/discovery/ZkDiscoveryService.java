@@ -34,6 +34,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.ProtocolStringList;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -83,6 +84,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     private Integer zkConnectionTimeout;
     @Value("${zk.session_timeout_ms}")
     private Integer zkSessionTimeout;
+    @Getter
     @Value("${zk.zk_dir}")
     private String zkDir;
     @Value("${zk.recalculate_delay:0}")
@@ -95,6 +97,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     private final PartitionService partitionService;
 
     private ScheduledExecutorService zkExecutorService;
+    @Getter
     private CuratorFramework client;
     private PathChildrenCache cache;
     private String nodePath;

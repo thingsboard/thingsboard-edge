@@ -34,8 +34,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
@@ -127,8 +129,18 @@ public class JpaGroupPermissionDao extends JpaAbstractDao<GroupPermissionEntity,
     }
 
     @Override
+    public PageData<GroupPermission> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findGroupPermissionsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.GROUP_PERMISSION;
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.GROUP_PERMISSION;
     }
 
 }

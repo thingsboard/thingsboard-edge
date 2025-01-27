@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.edqs.fields.QueueStatsFields;
 import org.thingsboard.server.dao.model.sql.QueueStatsEntity;
 
 import java.util.List;
@@ -59,5 +60,9 @@ public interface QueueStatsRepository extends JpaRepository<QueueStatsEntity, UU
     void deleteByTenantId(@Param("tenantId") UUID tenantId);
 
     List<QueueStatsEntity> findByTenantIdAndIdIn(UUID tenantId, List<UUID> queueStatsIds);
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.QueueStatsFields(q.id, q.createdTime," +
+            "q.tenantId, q.queueName, q.serviceId) FROM QueueStatsEntity q")
+    Page<QueueStatsFields> findAllFields(Pageable pageable);
 
 }

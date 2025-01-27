@@ -35,6 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.edqs.fields.RuleChainFields;
+import org.thingsboard.server.common.data.edqs.fields.SchedulerEventFields;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -82,8 +85,23 @@ public class JpaSchedulerEventDao extends JpaAbstractDao<SchedulerEventEntity, S
     }
 
     @Override
+    public PageData<SchedulerEvent> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(schedulerEventRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<SchedulerEventFields> findAllFields(PageLink pageLink) {
+        return DaoUtil.pageToPageData(schedulerEventRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.SCHEDULER_EVENT;
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.SCHEDULER_EVENT;
     }
 
 }

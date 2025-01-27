@@ -35,8 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.edqs.fields.RoleFields;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
@@ -145,8 +148,23 @@ public class JpaRoleDao extends JpaAbstractDao<RoleEntity, Role> implements Role
     }
 
     @Override
+    public PageData<Role> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<RoleFields> findAllFields(PageLink pageLink) {
+        return DaoUtil.pageToPageData(roleRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ROLE;
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.ROLE;
     }
 
 }

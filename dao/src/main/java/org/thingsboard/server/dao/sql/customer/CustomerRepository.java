@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.edqs.fields.CustomerFields;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
 
@@ -123,5 +124,10 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
     @Transactional
     @Query("UPDATE CustomerEntity u SET u.customMenuId = NULL WHERE u.id IN :ids")
     void updateCustomMenuIdToNull(@Param("ids") List<UUID> ids);
+
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.CustomerFields(c.id, c.createdTime, c.tenantId, " +
+            "c.title, c.version, c.additionalInfo, c.country, c.state, c.city, c.address, c.address2, c.zip, c.phone, c.email) FROM CustomerEntity c")
+    Page<CustomerFields> findAllFields(Pageable pageable);
 
 }

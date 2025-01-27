@@ -45,7 +45,7 @@ import java.util.UUID;
 /**
  * The Interface DashboardDao.
  */
-public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao, ExportableCustomerEntityDao<Dashboard, DashboardId> {
+public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao<Dashboard>, ExportableCustomerEntityDao<Dashboard, DashboardId> {
 
     /**
      * Save or update dashboard object

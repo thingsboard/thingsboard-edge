@@ -32,12 +32,13 @@ package org.thingsboard.server.dao.blob;
 
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 /**
  * The Interface BlobEntityDao.
  *
  */
-public interface BlobEntityDao extends Dao<BlobEntity> {
+public interface BlobEntityDao extends Dao<BlobEntity>, TenantEntityDao<BlobEntity> {
 
     void cleanUpBlobEntities(long expTime);
 

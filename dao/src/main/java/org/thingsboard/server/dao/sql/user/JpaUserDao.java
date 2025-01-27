@@ -36,7 +36,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.edqs.fields.UserFields;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -116,13 +118,13 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     @Override
     public PageData<User> findCustomerUsers(UUID tenantId, UUID customerId, PageLink pageLink) {
         return DaoUtil.toPageData(
-            userRepository
-                    .findUsersByAuthority(
-                            tenantId,
-                            customerId,
-                            pageLink.getTextSearch(),
-                            Authority.CUSTOMER_USER,
-                            DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
+                userRepository
+                        .findUsersByAuthority(
+                                tenantId,
+                                customerId,
+                                pageLink.getTextSearch(),
+                                Authority.CUSTOMER_USER,
+                                DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
 
     }
 
@@ -238,8 +240,23 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     }
 
     @Override
+    public PageData<User> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<UserFields> findAllFields(PageLink pageLink) {
+        return DaoUtil.pageToPageData(userRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.USER;
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.USER;
     }
 
 }

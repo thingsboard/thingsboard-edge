@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.QueryContext;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
@@ -151,7 +152,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
         }
         return transactionTemplate.execute(trStatus -> {
             AlarmDataPageLink pageLink = query.getPageLink();
-            QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, null, EntityType.ALARM, mergedUserPermissions, null));
+            SqlQueryContext ctx = new SqlQueryContext(new QueryContext(tenantId, null, EntityType.ALARM, mergedUserPermissions, null));
             ctx.addUuidListParameter("entity_ids", orderedEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()));
             StringBuilder selectPart = new StringBuilder(FIELDS_SELECTION);
             StringBuilder fromPart = new StringBuilder(" from alarm_info a ");
@@ -338,7 +339,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
 
     @Override
     public long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query) {
-        QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, EntityType.ALARM, mergedUserPermissions, null));
+        SqlQueryContext ctx = new SqlQueryContext(new QueryContext(tenantId, customerId, EntityType.ALARM, mergedUserPermissions, null));
 
         if (query.isSearchPropagatedAlarms()) {
             ctx.append("select count(distinct(a.id)) from alarm_info a ");
@@ -425,7 +426,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
         });
     }
 
-    private String buildTextSearchQuery(QueryContext ctx, List<EntityKey> selectionMapping, String searchText) {
+    private String buildTextSearchQuery(SqlQueryContext ctx, List<EntityKey> selectionMapping, String searchText) {
         if (!StringUtils.isEmpty(searchText) && selectionMapping != null && !selectionMapping.isEmpty()) {
             String lowerSearchText = searchText.toLowerCase() + "%";
             List<String> searchPredicates = selectionMapping.stream()
@@ -443,7 +444,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
         }
     }
 
-    private String buildPermissionsQuery(TenantId tenantId, QueryContext ctx, MergedUserPermissions mergedUserPermissions) {
+    private String buildPermissionsQuery(TenantId tenantId, SqlQueryContext ctx, MergedUserPermissions mergedUserPermissions) {
         StringBuilder permissionsQuery = new StringBuilder();
         ctx.addUuidParameter("permissions_tenant_id", tenantId.getId());
         permissionsQuery.append(" a.tenant_id = :permissions_tenant_id and ea.tenant_id = :permissions_tenant_id ");

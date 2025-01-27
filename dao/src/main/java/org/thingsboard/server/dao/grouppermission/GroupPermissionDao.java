@@ -37,10 +37,11 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.UUID;
 
-public interface GroupPermissionDao extends Dao<GroupPermission> {
+public interface GroupPermissionDao extends Dao<GroupPermission>, TenantEntityDao<GroupPermission> {
 
     GroupPermission save(TenantId tenantId, GroupPermission groupPermission);
 

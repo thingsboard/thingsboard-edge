@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,6 +44,7 @@ import org.thingsboard.server.common.data.notification.rule.trigger.config.Notif
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.TenantEntityDao;
 import org.thingsboard.server.dao.model.sql.NotificationRuleEntity;
 import org.thingsboard.server.dao.model.sql.NotificationRuleInfoEntity;
 import org.thingsboard.server.dao.notification.NotificationRuleDao;
@@ -56,7 +58,7 @@ import java.util.UUID;
 @Component
 @SqlDao
 @RequiredArgsConstructor
-public class JpaNotificationRuleDao extends JpaAbstractDao<NotificationRuleEntity, NotificationRule> implements NotificationRuleDao {
+public class JpaNotificationRuleDao extends JpaAbstractDao<NotificationRuleEntity, NotificationRule> implements NotificationRuleDao, TenantEntityDao<NotificationRule> {
 
     private final NotificationRuleRepository notificationRuleRepository;
 
@@ -117,6 +119,11 @@ public class JpaNotificationRuleDao extends JpaAbstractDao<NotificationRuleEntit
     }
 
     @Override
+    public PageData<NotificationRule> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
     protected Class<NotificationRuleEntity> getEntityClass() {
         return NotificationRuleEntity.class;
     }
@@ -129,6 +136,11 @@ public class JpaNotificationRuleDao extends JpaAbstractDao<NotificationRuleEntit
     @Override
     public EntityType getEntityType() {
         return EntityType.NOTIFICATION_RULE;
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.NOTIFICATION_RULE;
     }
 
 }

@@ -43,4 +43,5 @@ public class SaveEntityEvent<T> {
     private final T oldEntity;
     private final EntityId entityId;
     private final Boolean created;
+    private final Boolean broadcastEvent;
 }

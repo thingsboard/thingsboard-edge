@@ -36,6 +36,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.edqs.fields.EntityGroupFields;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -108,7 +110,7 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
         return DaoUtil.toPageData(entityGroupRepository.findAllEntityGroups(
                 parentEntityId,
                 parentEntityType,
-               pageLink.getTextSearch(),
+                pageLink.getTextSearch(),
                 DaoUtil.toPageable(pageLink)));
     }
 
@@ -186,8 +188,23 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
+    public PageData<EntityGroup> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityGroupFields> findAllFields(PageLink pageLink) {
+        return DaoUtil.pageToPageData(entityGroupRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.ENTITY_GROUP;
     }
 
 }

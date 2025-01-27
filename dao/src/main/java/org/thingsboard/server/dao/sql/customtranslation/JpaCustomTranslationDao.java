@@ -33,11 +33,15 @@ package org.thingsboard.server.dao.sql.customtranslation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.TenantEntityDao;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import org.thingsboard.server.dao.model.sql.CustomTranslationEntity;
 import org.thingsboard.server.dao.translation.CustomTranslationDao;
@@ -51,7 +55,7 @@ import java.util.UUID;
 @Component
 @Slf4j
 @SqlDao
-public class JpaCustomTranslationDao implements CustomTranslationDao {
+public class JpaCustomTranslationDao implements CustomTranslationDao, TenantEntityDao<CustomTranslation> {
 
     @Autowired
     private CustomTranslationRepository customTranslationRepository;
@@ -79,6 +83,16 @@ public class JpaCustomTranslationDao implements CustomTranslationDao {
     @Override
     public List<CustomTranslationCompositeKey> findCustomTranslationByTenantId(UUID tenantId) {
         return customTranslationRepository.findByTenantId(tenantId);
+    }
+
+    @Override
+    public PageData<CustomTranslation> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(customTranslationRepository.findAllByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink, "tenantId", "customerId", "localeCode")));
+    }
+
+    @Override
+    public ObjectType getType() {
+        return ObjectType.CUSTOM_TRANSLATION;
     }
 
 }

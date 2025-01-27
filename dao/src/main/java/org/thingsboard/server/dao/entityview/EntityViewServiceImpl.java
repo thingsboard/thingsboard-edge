@@ -141,7 +141,7 @@ public class EntityViewServiceImpl extends CachedVersionedEntityService<EntityVi
                 entityGroupService.addEntityToEntityGroupAll(saved.getTenantId(), saved.getOwnerId(), saved.getId());
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(saved.getTenantId())
-                    .entityId(saved.getId()).created(entityView.getId() == null).build());
+                    .entityId(saved.getId()).entity(saved).created(entityView.getId() == null).build());
             return saved;
         } catch (Exception t) {
             checkConstraintViolation(t,

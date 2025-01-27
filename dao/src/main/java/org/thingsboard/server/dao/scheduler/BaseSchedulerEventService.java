@@ -182,7 +182,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
             entityCountService.publishCountEntityEvictEvent(schedulerEvent.getTenantId(), EntityType.SCHEDULER_EVENT);
         }
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(schedulerEvent.getTenantId())
-                .entityId(savedSchedulerEvent.getId()).created(schedulerEvent.getId() == null).build());
+                .entityId(savedSchedulerEvent.getId()).entity(savedSchedulerEvent).created(schedulerEvent.getId() == null).build());
         return savedSchedulerEvent;
     }
 

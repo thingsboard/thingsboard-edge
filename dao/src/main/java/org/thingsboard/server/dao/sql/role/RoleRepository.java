@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.edqs.fields.RoleFields;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.RoleEntity;
@@ -69,5 +70,9 @@ public interface RoleRepository extends JpaRepository<RoleEntity, UUID>, Exporta
 
     @Query("SELECT externalId FROM RoleEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.RoleFields(r.id, r.createdTime, " +
+            "r.tenantId, r.customerId, r.name, r.version, r.type, r.additionalInfo) FROM RoleEntity r")
+    Page<RoleFields> findAllFields(Pageable pageable);
 
 }

@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +49,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.edqs.ToCoreEdqsMsg;
 import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.queue.QueueConfig;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
@@ -101,6 +102,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceM
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.common.consumer.MainQueueConsumerManager;
 import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.QueueKey;
@@ -118,7 +120,6 @@ import org.thingsboard.server.service.notification.NotificationSchedulerService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.service.queue.consumer.MainQueueConsumerManager;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
 import org.thingsboard.server.service.queue.processing.IdMsgPair;
 import org.thingsboard.server.service.resource.TbImageService;
@@ -183,9 +184,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbImageService imageService;
     private final TbCustomTranslationService translationService;
     private final TbCustomMenuService customMenuService;
+    private final EdqsService edqsService;
     private final TbCoreConsumerStats stats;
 
-    private MainQueueConsumerManager<TbProtoQueueMsg<ToCoreMsg>, CoreQueueConfig> mainConsumer;
+    private MainQueueConsumerManager<TbProtoQueueMsg<ToCoreMsg>, QueueConfig> mainConsumer;
     private QueueConsumerManager<TbProtoQueueMsg<ToUsageStatsServiceMsg>> usageStatsConsumer;
     private QueueConsumerManager<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> firmwareStatesConsumer;
     private QueueConsumerManager<TbProtoQueueMsg<ToCoreIntegrationMsg>> integrationApiConsumer;
@@ -211,7 +213,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         NotificationRuleProcessor notificationRuleProcessor,
                                         TbImageService imageService,
                                         TbCustomTranslationService translationService,
-                                        TbCustomMenuService customMenuService) {
+                                        TbCustomMenuService customMenuService,
+                                        EdqsService edqsService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, apiUsageStateService, partitionService,
                 eventPublisher, jwtSettingsService);
         this.stateService = stateService;
@@ -232,6 +235,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.translationService = translationService;
         this.customMenuService = customMenuService;
         this.queueFactory = tbCoreQueueFactory;
+        this.edqsService = edqsService;
     }
 
     @PostConstruct
@@ -239,9 +243,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         super.init("tb-core");
         this.deviceActivityEventsExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("tb-core-device-activity-events-executor")));
 
-        this.mainConsumer = MainQueueConsumerManager.<TbProtoQueueMsg<ToCoreMsg>, CoreQueueConfig>builder()
+        this.mainConsumer = MainQueueConsumerManager.<TbProtoQueueMsg<ToCoreMsg>, QueueConfig>builder()
                 .queueKey(new QueueKey(ServiceType.TB_CORE))
-                .config(CoreQueueConfig.of(consumerPerPartition, (int) pollInterval))
+                .config(QueueConfig.of(consumerPerPartition, pollInterval))
                 .msgPackProcessor(this::processMsgs)
                 .consumerCreator((config, partitionId) -> queueFactory.createToCoreMsgConsumer())
                 .consumerExecutor(consumersExecutor)
@@ -304,7 +308,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                 .collect(Collectors.toSet()));
     }
 
-    private void processMsgs(List<TbProtoQueueMsg<ToCoreMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> consumer, CoreQueueConfig config) throws Exception {
+    private void processMsgs(List<TbProtoQueueMsg<ToCoreMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> consumer, QueueConfig config) throws Exception {
         List<IdMsgPair<ToCoreMsg>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).toList();
         ConcurrentMap<UUID, TbProtoQueueMsg<ToCoreMsg>> pendingMap = orderedMsgList.stream().collect(
                 Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));
@@ -464,6 +468,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             forwardToTranslationService(toCoreNotification.getTranslationCacheInvalidateMsg(), callback);
         } else if (toCoreNotification.hasCustomMenuCacheInvalidateMsg()) {
             forwardToCustomMenuService(toCoreNotification.getCustomMenuCacheInvalidateMsg(), callback);
+        } else if (toCoreNotification.hasToEdqsCoreServiceMsg()) {
+            edqsService.processSystemMsg(JacksonUtil.fromBytes(toCoreNotification.getToEdqsCoreServiceMsg().getValue().toByteArray(), ToCoreEdqsMsg.class));
+            callback.onSuccess();
         }
         if (statsEnabled) {
             stats.log(toCoreNotification);
@@ -839,12 +846,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         usageStatsConsumer.stop();
         firmwareStatesConsumer.stop();
         integrationApiConsumer.stop();
-    }
-
-    @Data(staticConstructor = "of")
-    public static class CoreQueueConfig implements QueueConfig {
-        private final boolean consumerPerPartition;
-        private final int pollInterval;
     }
 
 }
