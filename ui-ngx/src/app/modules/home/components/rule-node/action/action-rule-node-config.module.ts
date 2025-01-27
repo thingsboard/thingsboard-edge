@@ -64,6 +64,12 @@ import {
   IntegrationDownlinkConfigComponent
 } from '@home/components/rule-node/action/integration-downlink-config.component';
 import { RemoveFromGroupConfigComponent } from '@home/components/rule-node/action/remove-from-group-config.component';
+import {
+  AdvancedPersistenceSettingComponent
+} from '@home/components/rule-node/action/advanced-persistence-setting.component';
+import {
+  AdvancedPersistenceSettingRowComponent
+} from '@home/components/rule-node/action/advanced-persistence-setting-row.component';
 
 @NgModule({
   declarations: [
@@ -90,6 +96,8 @@ import { RemoveFromGroupConfigComponent } from '@home/components/rule-node/actio
     PushToCloudConfigComponent,
     MathFunctionConfigComponent,
     DeviceStateConfigComponent,
+    AdvancedPersistenceSettingComponent,
+    AdvancedPersistenceSettingRowComponent,
     AddToGroupConfigComponent,
     ChangeOwnerConfigComponent,
     GenerateReportConfigComponent,
