@@ -201,6 +201,12 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     }
 
     @Override
+    public Optional<OtaPackageInfo> findOtaPackageInfoByTenantIdAndTitle(TenantId tenantId, String title) {
+        return Optional.ofNullable(otaPackageInfoDao.findOtaPackageInfoByTenantIdAndTitle(tenantId, title));
+    }
+
+
+    @Override
     public PageData<OtaPackageInfo> findTenantOtaPackagesByTenantIdAndDeviceProfileIdAndTypeAndHasData(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType otaPackageType, PageLink pageLink) {
         log.trace("Executing findTenantOtaPackagesByTenantIdAndHasData, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);

@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -67,6 +68,15 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
             setDefaultEdgeRuleChainId(deviceProfile, ruleChainId, deviceProfileUpdateMsg);
             setDefaultDashboardId(tenantId, created ? null : deviceProfileById.getDefaultDashboardId(), deviceProfile, deviceProfileUpdateMsg);
 
+            // edge-only: fixed issue where assigned firmware in device profile is not found in DB during reconnect
+            if (deviceProfile.getFirmwareId() != null) {
+                OtaPackageInfo otaPackageInfo = edgeCtx.getOtaPackageService().findOtaPackageInfoById(tenantId, deviceProfile.getFirmwareId());
+                if (otaPackageInfo == null) {
+                    log.warn("Firmware with ID {} not found in DB, removed from device profile", deviceProfile.getFirmwareId());
+                    deviceProfile.setFirmwareId(null);
+                }
+            }
+            //
             deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
             if (created) {
                 deviceProfile.setId(deviceProfileId);
@@ -80,6 +90,7 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
         }
         return Pair.of(created, deviceProfileNameUpdated);
     }
+
     protected abstract DeviceProfile constructDeviceProfileFromUpdateMsg(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg);
 
     protected abstract void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, RuleChainId ruleChainId);

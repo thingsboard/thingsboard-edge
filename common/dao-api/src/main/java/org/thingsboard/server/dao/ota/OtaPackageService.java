@@ -28,6 +28,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 public interface OtaPackageService extends EntityDaoService {
 
@@ -49,6 +50,8 @@ public interface OtaPackageService extends EntityDaoService {
 
     PageData<OtaPackageInfo> findTenantOtaPackagesByTenantId(TenantId tenantId, PageLink pageLink);
 
+    Optional<OtaPackageInfo> findOtaPackageInfoByTenantIdAndTitle(TenantId tenantId, String title);
+
     PageData<OtaPackageInfo> findTenantOtaPackagesByTenantIdAndDeviceProfileIdAndTypeAndHasData(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType otaPackageType, PageLink pageLink);
 
     void deleteOtaPackage(TenantId tenantId, OtaPackageId otaPackageId);
@@ -56,4 +59,5 @@ public interface OtaPackageService extends EntityDaoService {
     void deleteOtaPackagesByTenantId(TenantId tenantId);
 
     long sumDataSizeByTenantId(TenantId tenantId);
+
 }

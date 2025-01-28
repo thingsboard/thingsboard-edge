@@ -33,6 +33,8 @@ public interface OtaPackageInfoRepository extends JpaRepository<OtaPackageInfoEn
                                                  @Param("searchText") String searchText,
                                                  Pageable pageable);
 
+    OtaPackageInfoEntity findByTenantIdAndTitle(UUID tenantId, String title);
+
     @Query("SELECT new OtaPackageInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.tag, f.url, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, true) FROM OtaPackageEntity f WHERE " +
             "f.tenantId = :tenantId " +
             "AND f.deviceProfileId = :deviceProfileId " +

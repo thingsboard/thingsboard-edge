@@ -20,12 +20,17 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -49,6 +54,9 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
                         if (otaPackage == null) {
                             throw new RuntimeException("[{" + tenantId + "}] otaPackageUpdateMsg {" + otaPackageUpdateMsg + "} cannot be converted to ota package");
                         }
+                        // edge-only: fixed issue where assigned firmware in device profile is not found in DB during reconnect
+                        removeOldOtaPackage(tenantId, otaPackage);
+
                         edgeCtx.getOtaPackageService().saveOtaPackage(otaPackage, false);
                     } finally {
                         otaPackageCreationLock.unlock();
@@ -67,6 +75,26 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
             cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void removeOldOtaPackage(TenantId tenantId, OtaPackage newOtaPackage) {
+        OtaPackageService otaPackageService = edgeCtx.getOtaPackageService();
+        DeviceProfileService deviceProfileService = edgeCtx.getDeviceProfileService();
+        Optional<OtaPackageInfo> oldOtaPackage = otaPackageService.findOtaPackageInfoByTenantIdAndTitle(tenantId, newOtaPackage.getTitle());
+
+        oldOtaPackage
+                .filter(otaPackageInfo -> !newOtaPackage.getId().equals(otaPackageInfo.getId()))
+                .ifPresent(otaPackageInfo -> {
+                    DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, otaPackageInfo.getDeviceProfileId());
+
+                    if (deviceProfile != null) {
+                        log.trace("Deleting device profile with ID {} for tenant {}", deviceProfile.getId(), tenantId);
+                        deviceProfileService.deleteDeviceProfile(tenantId, otaPackageInfo.getDeviceProfileId());
+                    }
+
+                    log.trace("Deleting OTA package with ID {} for tenant {}", otaPackageInfo.getId(), tenantId);
+                    otaPackageService.deleteOtaPackage(tenantId, otaPackageInfo.getId());
+                });
     }
 
 }
