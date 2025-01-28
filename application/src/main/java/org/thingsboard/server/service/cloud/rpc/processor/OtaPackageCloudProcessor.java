@@ -54,7 +54,7 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
                         if (otaPackage == null) {
                             throw new RuntimeException("[{" + tenantId + "}] otaPackageUpdateMsg {" + otaPackageUpdateMsg + "} cannot be converted to ota package");
                         }
-                        // edge-only: fixed issue where assigned firmware in device profile is not found in DB during reconnect
+
                         removeOldOtaPackage(tenantId, otaPackage);
 
                         edgeCtx.getOtaPackageService().saveOtaPackage(otaPackage, false);
