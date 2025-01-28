@@ -27,11 +27,13 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.gen.edge.v1.NotificationRuleUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.NotificationTargetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.NotificationTemplateUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -90,7 +92,11 @@ public class NotificationCloudProcessor extends BaseEdgeProcessor {
                 if (notificationTemplate == null) {
                     throw new RuntimeException("[{" + tenantId + "}] notificationTemplateUpdateMsg {" + notificationTemplateUpdateMsg + "} cannot be converted to notification template");
                 }
-                edgeCtx.getNotificationTemplateService().saveNotificationTemplate(tenantId, notificationTemplate);
+                NotificationTemplateService notificationTemplateService = edgeCtx.getNotificationTemplateService();
+                Optional<NotificationTemplate> edgeNotificationTemplate = notificationTemplateService.findNotificationTemplateByTenantIdAndName(tenantId, notificationTemplate.getName());
+                edgeNotificationTemplate.ifPresent(template -> notificationTemplateService.deleteNotificationTemplateById(tenantId, template.getId()));
+
+                notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);
                 return Futures.immediateFuture(null);
             case ENTITY_DELETED_RPC_MESSAGE:
                 NotificationTemplateId notificationTemplateId = new NotificationTemplateId(new UUID(notificationTemplateUpdateMsg.getIdMSB(), notificationTemplateUpdateMsg.getIdLSB()));
