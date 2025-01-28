@@ -68,7 +68,6 @@ public abstract class BaseResourceProcessor extends BaseEdgeProcessor {
                 }
             }
             resource.setResourceKey(resourceKey);
-            // edge-only : skip duplicate validation for cloud message
             if (doValidate) {
                 resourceValidator.validate(resource, TbResourceInfo::getTenantId);
             }
