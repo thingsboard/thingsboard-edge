@@ -104,19 +104,6 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
     }
 
-    public UplinkMsg convertEntityViewRequestEventToUplink(CloudEvent cloudEvent) {
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
-        EntityViewsRequestMsg entityViewsRequestMsg = EntityViewsRequestMsg.newBuilder()
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addEntityViewsRequestMsg(entityViewsRequestMsg);
-        return builder.build();
-    }
-
     @Override
     public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         EntityViewId entityViewId = new EntityViewId(cloudEvent.getEntityId());
