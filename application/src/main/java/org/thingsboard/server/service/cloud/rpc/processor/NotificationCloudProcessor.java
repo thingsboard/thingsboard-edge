@@ -27,6 +27,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.gen.edge.v1.NotificationRuleUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.NotificationTargetUpdateMsg;
@@ -48,7 +50,12 @@ public class NotificationCloudProcessor extends BaseEdgeProcessor {
                 if (notificationRule == null) {
                     throw new RuntimeException("[{" + tenantId + "}] notificationRuleUpdateMsg {" + notificationRuleUpdateMsg + "} cannot be converted to notification rule");
                 }
-                edgeCtx.getNotificationRuleService().saveNotificationRule(tenantId, notificationRule);
+                NotificationRuleService notificationRuleService = edgeCtx.getNotificationRuleService();
+                Optional<NotificationRule> edgeNotificationRule = notificationRuleService.findNotificationRuleByTenantIdAndName(tenantId, notificationRule.getName());
+                edgeNotificationRule.filter(rule -> !rule.getId().equals(notificationRule.getId()))
+                        .ifPresent(rule -> notificationRuleService.deleteNotificationRuleById(tenantId, rule.getId()));
+
+                notificationRuleService.saveNotificationRule(tenantId, notificationRule);
                 return Futures.immediateFuture(null);
             case ENTITY_DELETED_RPC_MESSAGE:
                 NotificationRuleId notificationRuleId = new NotificationRuleId(new UUID(notificationRuleUpdateMsg.getIdMSB(), notificationRuleUpdateMsg.getIdLSB()));
@@ -70,7 +77,12 @@ public class NotificationCloudProcessor extends BaseEdgeProcessor {
                 if (notificationTarget == null) {
                     throw new RuntimeException("[{" + tenantId + "}] notificationTargetUpdateMsg {" + notificationTargetUpdateMsg + "} cannot be converted to notification target");
                 }
-                edgeCtx.getNotificationTargetService().saveNotificationTarget(tenantId, notificationTarget);
+                NotificationTargetService notificationTargetService = edgeCtx.getNotificationTargetService();
+                Optional<NotificationTarget> edgeNotificationTarget = notificationTargetService.findNotificationTargetByTenantIdAndName(tenantId, notificationTarget.getName());
+                edgeNotificationTarget.filter(target -> !target.getId().equals(notificationTarget.getId()))
+                        .ifPresent(target -> notificationTargetService.deleteNotificationTargetById(tenantId, target.getId()));
+
+                notificationTargetService.saveNotificationTarget(tenantId, notificationTarget);
                 return Futures.immediateFuture(null);
             case ENTITY_DELETED_RPC_MESSAGE:
                 NotificationTargetId notificationTargetId = new NotificationTargetId(new UUID(notificationTargetUpdateMsg.getIdMSB(), notificationTargetUpdateMsg.getIdLSB()));
@@ -94,7 +106,8 @@ public class NotificationCloudProcessor extends BaseEdgeProcessor {
                 }
                 NotificationTemplateService notificationTemplateService = edgeCtx.getNotificationTemplateService();
                 Optional<NotificationTemplate> edgeNotificationTemplate = notificationTemplateService.findNotificationTemplateByTenantIdAndName(tenantId, notificationTemplate.getName());
-                edgeNotificationTemplate.ifPresent(template -> notificationTemplateService.deleteNotificationTemplateById(tenantId, template.getId()));
+                edgeNotificationTemplate.filter(template -> !template.getId().equals(notificationTemplate.getId()))
+                        .ifPresent(template -> notificationTemplateService.deleteNotificationTemplateById(tenantId, template.getId()));
 
                 notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);
                 return Futures.immediateFuture(null);
