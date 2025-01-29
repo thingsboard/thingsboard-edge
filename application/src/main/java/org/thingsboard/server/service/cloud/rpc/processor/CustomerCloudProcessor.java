@@ -43,10 +43,12 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -72,7 +74,8 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                             createCustomerIfNotExists(tenantId, new CustomerId(ownerId.getId()));
                         }
                         boolean created = false;
-                        Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
+                        CustomerService customerService = edgeCtx.getCustomerService();
+                        Customer customerById = customerService.findCustomerById(tenantId, customerId);
                         if (customerById == null) {
                             created = true;
                         } else {
@@ -82,7 +85,12 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                             }
                             changeOwnerIfRequired(tenantId, tmpCustomerOwnerId, customerId);
                         }
-                        Customer savedCustomer = edgeCtx.getCustomerService().saveCustomer(customer, false);
+                        Optional<Customer> edgeCustomer = customerService.findCustomerByTenantIdAndTitle(customer.getTenantId(), customer.getTitle());
+                        edgeCustomer.filter(oldCustomer -> !oldCustomer.getId().equals(customer.getId()))
+                                .ifPresent(value -> customerService.deleteCustomer(value.getTenantId(), value.getId()));
+
+
+                        Customer savedCustomer = customerService.saveCustomer(customer, false);
                         if (created) {
                             postCreateSteps(savedCustomer);
                         }
