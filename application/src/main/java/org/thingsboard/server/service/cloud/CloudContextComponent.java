@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.processor.AdminSettingsCloudProcessor;
@@ -156,6 +157,9 @@ public class CloudContextComponent {
     private WidgetTypeCloudProcessor widgetTypeProcessor;
 
     // config
+    @Autowired
+    private EdgeSettingsService edgeSettingsService;
+
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
 

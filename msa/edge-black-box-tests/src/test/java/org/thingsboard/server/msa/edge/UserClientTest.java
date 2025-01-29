@@ -31,6 +31,10 @@ public class UserClientTest extends AbstractContainerTest {
 
     @Test
     public void testCreateUpdateDeleteTenantUser() {
+        performTestOnEachEdge(this::_testCreateUpdateDeleteTenantUser);
+    }
+
+    private void _testCreateUpdateDeleteTenantUser() {
         // create user
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
@@ -69,6 +73,10 @@ public class UserClientTest extends AbstractContainerTest {
 
     @Test
     public void testCreateUpdateDeleteCustomerUser() {
+        performTestOnEachEdge(this::_testCreateUpdateDeleteCustomerUser);
+    }
+
+    private void _testCreateUpdateDeleteCustomerUser() {
         // create customer
         Customer customer = new Customer();
         customer.setTitle("User Test Customer");

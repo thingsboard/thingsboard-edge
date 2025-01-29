@@ -72,7 +72,11 @@ import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
-    public void testDevices() throws Exception {
+    public void testDevices() {
+        performTestOnEachEdge(this::_testDevices);
+    }
+
+    private void _testDevices() {
         String deviceProfileName = "Remote Controller";
         // create device #1 and assign to edge
         Device savedDevice1 = saveAndAssignDeviceToEdge(deviceProfileName);
@@ -186,6 +190,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void sendDeviceToCloud() {
+        performTestOnEachEdge(this::_sendDeviceToCloud);
+    }
+
+    private void _sendDeviceToCloud() {
         // create device on edge
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
         DeviceId savedDeviceOnEdgeId = savedDeviceOnEdge.getId();
@@ -389,6 +397,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testProvisionDevice() {
+        performTestOnEachEdge(this::_testProvisionDevice);
+    }
+
+    private void _testProvisionDevice() {
         final String DEVICE_PROFILE_NAME = "Provision Device Profile";
         final String DEVICE_NAME = "Provisioned Device";
 
@@ -476,6 +488,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testOneWayRpcCall() {
+        performTestOnEachEdge(this::_testOneWayRpcCall);
+    }
+
+    private void _testOneWayRpcCall() {
         // create device on cloud and assign to edge
         Device device = saveAndAssignDeviceToEdge();
 
@@ -530,6 +546,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testTwoWayRpcCall() {
+        performTestOnEachEdge(this::_testTwoWayRpcCall);
+    }
+
+    private void _testTwoWayRpcCall() {
         // create device on cloud and assign to edge
         Device device = saveAndAssignDeviceToEdge();
 
@@ -607,6 +627,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testClientRpcCallToCloud() {
+        performTestOnEachEdge(this::_testClientRpcCallToCloud);
+    }
+
+    private void _testClientRpcCallToCloud() {
         // create device on cloud and assign to edge
         Device device = saveAndAssignDeviceToEdge();
 
@@ -642,6 +666,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void sendDeviceWithNameThatAlreadyExistsOnCloud() {
+        performTestOnEachEdge(this::_sendDeviceWithNameThatAlreadyExistsOnCloud);
+    }
+
+    private void _sendDeviceWithNameThatAlreadyExistsOnCloud() {
         String deviceName = StringUtils.randomAlphanumeric(15);
         Device savedDeviceOnCloud = saveDeviceOnCloud(deviceName, "default");
         Device savedDeviceOnEdge = saveDeviceOnEdge(deviceName, "default");
@@ -664,6 +692,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testClaimDevice() {
+        performTestOnEachEdge(this::_testClaimDevice);
+    }
+
+    private void _testClaimDevice() {
         // create customer, user and device
         Customer customer = new Customer();
         customer.setTitle("Claim Test Customer");
@@ -714,6 +746,10 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testSharedAttributeUpdates() {
+        performTestOnEachEdge(this::_testSharedAttributeUpdates);
+    }
+
+    private void _testSharedAttributeUpdates() {
         // create device on cloud and assign to edge
         Device savedDevice = saveAndAssignDeviceToEdge();
 

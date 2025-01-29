@@ -48,35 +48,31 @@ import java.util.UUID;
 @TbCoreComponent
 public class AssetCloudProcessor extends BaseAssetProcessor {
 
-    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
-                                                           AssetUpdateMsg assetUpdateMsg,
-                                                           Long queueStartTs) {
+    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId, AssetUpdateMsg assetUpdateMsg) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-
-            switch (assetUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, queueStartTs);
-                    return requestForAdditionalData(tenantId, assetId, queueStartTs);
-                case ENTITY_DELETED_RPC_MESSAGE:
+            return switch (assetUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
+                    boolean created = saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
+                    yield created ? requestForAdditionalData(tenantId, assetId) : Futures.immediateFuture(null);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
                     if (assetById != null) {
                         edgeCtx.getAssetService().deleteAsset(tenantId, assetId);
                         pushAssetDeletedEventToRuleEngine(tenantId, assetById);
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
     }
 
-    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, Long queueStartTs) {
+    private boolean saveOrUpdateAssetFromCloud(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -84,8 +80,9 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
         Boolean assetNameUpdated = resultPair.getSecond();
         if (assetNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null, queueStartTs);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null);
         }
+        return created;
     }
 
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, AssetId assetId) {

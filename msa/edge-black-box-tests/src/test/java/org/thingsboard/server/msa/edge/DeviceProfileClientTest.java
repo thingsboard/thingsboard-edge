@@ -143,7 +143,11 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
                     "  }";
 
     @Test
-    public void testDeviceProfiles() throws Exception {
+    public void testDeviceProfiles() {
+        performTestOnEachEdge(this::_testDeviceProfiles);
+    }
+
+    private void _testDeviceProfiles() {
         verifyDeviceProfilesOnEdge(3);
 
         // create device profile
@@ -207,20 +211,25 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
 
     @Test
     public void testDeviceProfileToCloud() {
+        performTestOnEachEdge(this::_testDeviceProfileToCloud);
+    }
+
+    private void _testDeviceProfileToCloud() {
         // create device profile on edge
-        DeviceProfile saveDeviceProfileOnEdge = createDeviceProfileOnEdge("Device Profile On Edge");
+        DeviceProfile saveDeviceProfileOnEdge = createDeviceProfileOnEdge("Device Profile On Edge " + edge.getName());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).isPresent());
 
         // update asset profile
-        saveDeviceProfileOnEdge.setName("Device Profile On Edge Updated");
+        String updatedDeviceProfileName = "Device Profile On Edge Updated " + edge.getName();
+        saveDeviceProfileOnEdge.setName(updatedDeviceProfileName);
         edgeRestClient.saveDeviceProfile(saveDeviceProfileOnEdge);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Device Profile On Edge Updated".equals(cloudRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).get().getName()));
+                .until(() -> updatedDeviceProfileName.equals(cloudRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).get().getName()));
 
         // cleanup - we can delete asset profile only on Cloud
         cloudRestClient.deleteDeviceProfile(saveDeviceProfileOnEdge.getId());

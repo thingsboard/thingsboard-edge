@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -50,34 +49,31 @@ import java.util.UUID;
 public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
-                                                                EntityViewUpdateMsg entityViewUpdateMsg,
-                                                                Long queueStartTs) {
+                                                                EntityViewUpdateMsg entityViewUpdateMsg) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-
-            switch (entityViewUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg, queueStartTs);
-                    return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
-                case ENTITY_DELETED_RPC_MESSAGE:
+            return switch (entityViewUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
+                    boolean created = saveOrUpdateEntityViewFromCloud(tenantId, entityViewId, entityViewUpdateMsg);
+                    yield created ? requestForAdditionalData(tenantId, entityViewId) : Futures.immediateFuture(null);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     EntityView entityViewById = edgeCtx.getEntityViewService().findEntityViewById(tenantId, entityViewId);
                     if (entityViewById != null) {
                         edgeCtx.getEntityViewService().deleteEntityView(tenantId, entityViewId);
                         pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewById);
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
     }
 
-    private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, Long queueStartTs) {
+    private boolean saveOrUpdateEntityViewFromCloud(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -85,8 +81,9 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
         Boolean entityViewNameUpdated = resultPair.getSecond();
         if (entityViewNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null, queueStartTs);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_VIEW, EdgeEventActionType.UPDATED, entityViewId, null);
         }
+        return created;
     }
 
     private void pushEntityViewCreatedEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId) {
@@ -148,12 +145,9 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     @Override
     protected void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg) {
-        CustomerId assignedCustomerId = entityView.getCustomerId();
-        Customer customer = null;
-        if (assignedCustomerId != null) {
-            customer = edgeCtx.getCustomerService().findCustomerById(tenantId, assignedCustomerId);
+        if (isCustomerNotExists(tenantId, entityView.getCustomerId())) {
+            entityView.setCustomerId(null);
         }
-        entityView.setCustomerId(customer != null ? customer.getId() : null);
     }
 
     @Override

@@ -40,7 +40,6 @@ fi
 [[ -z "${CONF_FOLDER}" ]] && CONF_FOLDER="${pkg.installFolder}/conf"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
-upgradeversion=${DATA_FOLDER}/.upgradeversion
 
 source "${CONF_FOLDER}/${configfile}"
 
@@ -53,4 +52,3 @@ java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstal
                     -Dlogging.config=/usr/share/tb-edge/bin/install/logback.xml \
                     org.springframework.boot.loader.launch.PropertiesLauncher
 
-echo "${pkg.upgradeVersion}" > ${upgradeversion}

@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -64,34 +63,31 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     @Autowired
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
-    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
-                                                            DeviceUpdateMsg deviceUpdateMsg,
-                                                            Long queueStartTs) {
+    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-            switch (deviceUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, queueStartTs);
-                    return requestForAdditionalData(tenantId, deviceId, queueStartTs);
-                case ENTITY_DELETED_RPC_MESSAGE:
+            return switch (deviceUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
+                    boolean created = saveOrUpdateDeviceFromCloud(tenantId, deviceId, deviceUpdateMsg);
+                    yield created ? requestForAdditionalData(tenantId, deviceId) : Futures.immediateFuture(null);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
                     if (deviceById != null) {
                         edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId);
                         pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
                     }
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
     }
 
-    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, Long queueStartTs) {
+    private boolean saveOrUpdateDeviceFromCloud(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -99,8 +95,9 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
         Boolean deviceNameUpdated = resultPair.getSecond();
         if (deviceNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null, queueStartTs);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null);
         }
+        return created;
     }
 
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
@@ -207,7 +204,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 body.put("response", response.getResponse().orElse("{}"));
             }
             cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
-                    rpcRequest.getDeviceId(), body, 0L);
+                    rpcRequest.getDeviceId(), body);
         } catch (Exception e) {
             log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response, e);
         }
@@ -270,12 +267,9 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     @Override
     protected void setCustomerId(TenantId tenantId, CustomerId customerId, Device device, DeviceUpdateMsg deviceUpdateMsg) {
-        CustomerId assignedCustomerId = device.getCustomerId();
-        Customer customer = null;
-        if (assignedCustomerId != null) {
-            customer = edgeCtx.getCustomerService().findCustomerById(tenantId, assignedCustomerId);
+        if (isCustomerNotExists(tenantId, device.getCustomerId())) {
+            device.setCustomerId(null);
         }
-        device.setCustomerId(customer != null ? customer.getId() : null);
     }
 
     @Override

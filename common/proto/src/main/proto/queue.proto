@@ -1157,6 +1157,16 @@ message EdgeNotificationMsgProto {
   int64 originatorEdgeIdLSB = 14;
 }
 
+message CloudEventMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  string entityType = 3;
+  string action = 4;
+  optional int64 entityIdMSB = 5;
+  optional int64 entityIdLSB = 6;
+  optional string entityBody = 7;
+}
+
 message EdgeHighPriorityMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1552,6 +1562,10 @@ message ToCoreNotificationMsg {
 /* Messages to Edge queue that are handled by ThingsBoard Core Service */
 message ToEdgeMsg {
   EdgeNotificationMsgProto edgeNotificationMsg = 1;
+}
+
+message ToCloudEventMsg {
+  CloudEventMsgProto cloudEventMsg = 1;
 }
 
 message ToEdgeNotificationMsg {
