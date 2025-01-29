@@ -52,10 +52,11 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                             throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
                         }
                         CustomerService customerService = edgeCtx.getCustomerService();
-                        // edge: CE only, in PE we delete edge during customer deletion
+
                         Optional<Customer> edgeCustomer = customerService.findCustomerByTenantIdAndTitle(customer.getTenantId(), customer.getTitle());
-                        edgeCustomer.ifPresent(value -> customerService.deleteCustomer(value.getTenantId(), value.getId()));
-                        //
+                        edgeCustomer.filter(oldCustomer -> !oldCustomer.getId().equals(customer.getId()))
+                                .ifPresent(value -> customerService.deleteCustomer(value.getTenantId(), value.getId()));
+
                         customerService.saveCustomer(customer, false);
                     } finally {
                         customerCreationLock.unlock();
