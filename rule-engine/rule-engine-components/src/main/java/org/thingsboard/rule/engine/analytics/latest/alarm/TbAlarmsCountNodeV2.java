@@ -76,7 +76,6 @@ import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
                 "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
                 "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountV2Config",
         icon = "functions"
 )

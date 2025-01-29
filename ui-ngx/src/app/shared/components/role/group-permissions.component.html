@@ -142,25 +142,25 @@
         <ng-container *ngIf="isUserGroup" matColumnDef="entityGroupName">
           <mat-header-cell *matHeaderCellDef mat-sort-header [style.width]="columnsWidth.entityGroupName"> {{ 'group-permission.group-name' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
-            {{ groupPermission.entityGroupName }}
+            {{ groupPermission.entityGroupName | customTranslate }}
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="isUserGroup" matColumnDef="entityGroupOwnerFullName">
           <mat-header-cell *matHeaderCellDef mat-sort-header [style.width]="columnsWidth.entityGroupOwnerFullName"> {{ 'group-permission.group-owner' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
-            {{ groupPermission.entityGroupOwnerFullName }}
+            {{ groupPermission.entityGroupOwnerFullName | customTranslate }}
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="!isUserGroup" matColumnDef="userGroupName">
           <mat-header-cell *matHeaderCellDef mat-sort-header [style.width]="columnsWidth.userGroupName"> {{ 'group-permission.user-group-name' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
-            {{ groupPermission.userGroupName }}
+            {{ groupPermission.userGroupName | customTranslate }}
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="!isUserGroup" matColumnDef="userGroupOwnerFullName">
           <mat-header-cell *matHeaderCellDef mat-sort-header [style.width]="columnsWidth.userGroupOwnerFullName"> {{ 'group-permission.user-group-owner' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
-            {{ groupPermission.userGroupOwnerFullName }}
+            {{ groupPermission.userGroupOwnerFullName | customTranslate }}
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="actions" stickyEnd>
