@@ -49,6 +49,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -82,6 +83,10 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         integration.setConfiguration(integrationConfiguration);
         integration.setEdgeTemplate(true);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
+
+        // wait 1 sec to make sure that save event of integration will go over EdgeEventSourcingListener
+        // before integration will be assigned to edge to avoid duplicate edge events
+        TimeUnit.SECONDS.sleep(1);
 
         // 1
         savedIntegration = validateIntegrationAssignToEdge(savedIntegration, savedConverter);

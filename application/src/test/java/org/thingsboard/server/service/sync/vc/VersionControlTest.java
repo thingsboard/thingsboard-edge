@@ -248,6 +248,18 @@ public class VersionControlTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testCustomerAndUsersVc_betweenTenants() throws Exception {
+        Customer customer = createCustomer("Customer v1.0");
+        String versionId = createVersion("customers", EntityType.ROLE, EntityType.CUSTOMER, EntityType.USER);
+
+        loginTenant2();
+        loadVersion(versionId, EntityType.ROLE, EntityType.CUSTOMER, EntityType.USER);
+        Customer importedCustomer = findCustomer(customer.getName());
+        checkImportedEntity(tenantId1, customer, tenantId2, importedCustomer);
+        checkImportedCustomerData(customer, importedCustomer);
+    }
+
+    @Test
     public void testCustomerVc_betweenTenants() throws Exception {
         Customer customer = createCustomer("Customer of tenant 1");
         String versionId = createVersion("customers", EntityType.CUSTOMER);
@@ -851,7 +863,7 @@ public class VersionControlTest extends AbstractControllerTest {
         request.setEntityTypes(Arrays.stream(entityTypes).collect(Collectors.toMap(t -> t, entityType -> {
             EntityTypeVersionCreateConfig config = new EntityTypeVersionCreateConfig();
             config.setAllEntities(true);
-
+            config.setSaveGroupEntities(true);
             config.setSaveRelations(true);
             config.setSaveAttributes(true);
             config.setSaveCredentials(true);

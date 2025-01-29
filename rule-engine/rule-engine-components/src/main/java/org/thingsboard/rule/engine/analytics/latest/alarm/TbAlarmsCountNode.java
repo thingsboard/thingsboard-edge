@@ -68,7 +68,6 @@ import java.util.Optional;
                 "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
                 "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         inEnabled = false,
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountConfig",
         icon = "functions"
 )
@@ -95,7 +94,13 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                TbMsg msg = TbMsg.newMsg(queueName, outMsgType, parentEntityId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
+                TbMsg msg = TbMsg.newMsg()
+                        .queueName(queueName)
+                        .type(outMsgType)
+                        .originator(parentEntityId)
+                        .copyMetaData(TbMsgMetaData.EMPTY)
+                        .data(TbMsg.EMPTY_STRING)
+                        .build();
                 ctx.enqueueForTellFailure(msg, "Failed to fetch child entities for parent entity [" + parentEntityId + "]");
             }
         }

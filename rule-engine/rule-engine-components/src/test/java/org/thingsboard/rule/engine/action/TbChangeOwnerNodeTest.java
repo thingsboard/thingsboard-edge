@@ -136,8 +136,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         when(ctxMock.getPeContext()).thenReturn(peContextMock);
         when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
-                new TbMsgMetaData(Map.of("ownerName", "Test Customer")), TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")))
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(ctxMock).tellSuccess(msg);
@@ -159,7 +163,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         when(peContextMock.getOwner(any(), any()))
                 .thenReturn(new CustomerId(UUID.fromString("5f59a446-37d2-42b5-8e1e-5ea39363353b")));
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(ctxMock).tellSuccess(msg);
@@ -179,7 +188,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         when(ctxMock.getPeContext()).thenReturn(peContextMock);
         when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(ctxMock).tellSuccess(msg);
@@ -200,7 +214,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, configuration);
 
-        TbMsg createdCustomerMsg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, newCustomerId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg createdCustomerMsg = TbMsg.newMsg()
+                .type(TbMsgType.ENTITY_CREATED)
+                .originator(newCustomerId)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
 
         when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
         when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
@@ -212,8 +231,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         when(ctxMock.getSelfId()).thenReturn(new RuleNodeId(UUID.fromString("af291c37-47d9-4cfa-89a7-27bfdd6aea6c")));
         when(ctxMock.customerCreatedMsg(any(), any())).thenReturn(createdCustomerMsg);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
-                new TbMsgMetaData(Map.of("ownerName", "Test Customer")), TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")))
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(ctxMock).tellSuccess(msg);
@@ -248,8 +271,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         }).when(customerServiceMock).saveCustomer(any());
         when(customerServiceMock.findCustomerByTenantIdAndTitle(any(), any())).thenReturn(Optional.empty());
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
-                new TbMsgMetaData(Map.of("ownerName", "Test Customer")), TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")))
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
@@ -279,8 +306,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
         when(customerServiceMock.findCustomerByTenantIdAndTitleAsync(any(), any())).thenReturn(Futures.immediateFuture(Optional.empty()));
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
-                new TbMsgMetaData(Map.of("ownerName", "Test Customer")), TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(new TbMsgMetaData(Map.of("ownerName", "Test Customer")))
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
@@ -342,7 +373,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         when(customerServiceMock.findCustomerByTenantIdAndTitleAsync(any(), any()))
                 .thenReturn(Futures.immediateFuture(Optional.empty()));
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(customerServiceMock, never()).saveCustomer(any());
@@ -368,7 +404,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         when(ctxMock.getPeContext()).thenReturn(peContextMock);
         when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(ctxMock).tellSuccess(msg);

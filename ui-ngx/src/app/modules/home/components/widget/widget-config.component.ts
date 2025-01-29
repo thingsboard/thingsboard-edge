@@ -33,6 +33,7 @@ import {
   ChangeDetectorRef,
   Component,
   ComponentRef,
+  DestroyRef,
   forwardRef,
   Input,
   OnDestroy,
@@ -48,9 +49,7 @@ import {
   DataKey,
   datasourcesHasAggregation,
   datasourcesHasOnlyComparisonAggregation,
-  GroupInfo,
-  JsonSchema,
-  JsonSettingsSchema,
+  DynamicFormData,
   TargetDevice,
   targetDeviceValid,
   Widget,
@@ -90,7 +89,6 @@ import {
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityService } from '@core/http/entity.service';
-import { JsonFormComponentData } from '@shared/components/json-form/json-form-component.models';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { entityFields } from '@shared/models/entity.models';
 import { Filter, singleEntityFilterFromDeviceId } from '@shared/models/query/query.models';
@@ -100,16 +98,9 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 import { basicWidgetConfigComponentsMap } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { TimewindowConfigData } from '@home/components/widget/config/timewindow-config-panel.component';
 import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { defaultFormProperties, FormProperty } from '@shared/models/dynamic-form.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import Timeout = NodeJS.Timeout;
-
-const emptySettingsSchema: JsonSchema = {
-  type: 'object',
-  properties: {}
-};
-const emptySettingsGroupInfoes: GroupInfo[] = [];
-const defaultSettingsForm = [
-  '*'
-];
 
 @Component({
   selector: 'tb-widget-config',
@@ -233,7 +224,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
               private dialog: MatDialog,
               public translate: TranslateService,
               private fb: UntypedFormBuilder,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -269,7 +261,10 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
     });
 
     merge(this.widgetSettings.get('showTitle').valueChanges,
-          this.widgetSettings.get('showTitleIcon').valueChanges).subscribe(() => {
+          this.widgetSettings.get('showTitleIcon').valueChanges
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateWidgetSettingsEnabledState();
     });
 
@@ -282,7 +277,9 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
       desktopHide: [false]
     });
 
-    this.layoutSettings.get('resizable').valueChanges.subscribe(() => {
+    this.layoutSettings.get('resizable').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateLayoutEnabledState();
     });
 
@@ -588,7 +585,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
         }
       }
 
-      this.updateSchemaForm(config.settings);
+      this.updateAdvancedForm(config.settings);
 
       if (layout) {
         this.layoutSettings.patchValue(
@@ -658,21 +655,16 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
     }
   }
 
-  private updateSchemaForm(settings?: any) {
-    const widgetSettingsFormData: JsonFormComponentData = {};
-    if (this.modelValue.settingsSchema && this.modelValue.settingsSchema.schema) {
-      widgetSettingsFormData.schema = this.modelValue.settingsSchema.schema;
-      widgetSettingsFormData.form = this.modelValue.settingsSchema.form || deepClone(defaultSettingsForm);
-      widgetSettingsFormData.groupInfoes = this.modelValue.settingsSchema.groupInfoes;
-      widgetSettingsFormData.model = settings;
+  private updateAdvancedForm(settings?: any) {
+    const dynamicFormData: DynamicFormData = {};
+    dynamicFormData.model = settings || {};
+    if (this.modelValue.settingsForm?.length) {
+      dynamicFormData.settingsForm = this.modelValue.settingsForm;
     } else {
-      widgetSettingsFormData.schema = deepClone(emptySettingsSchema);
-      widgetSettingsFormData.form = deepClone(defaultSettingsForm);
-      widgetSettingsFormData.groupInfoes = deepClone(emptySettingsGroupInfoes);
-      widgetSettingsFormData.model = settings || {};
+      dynamicFormData.settingsForm = [];
     }
-    widgetSettingsFormData.settingsDirective = this.modelValue.settingsDirective;
-    this.advancedSettings.patchValue({ settings: widgetSettingsFormData }, {emitEvent: false});
+    dynamicFormData.settingsDirective = this.modelValue.settingsDirective;
+    this.advancedSettings.patchValue({ settings: dynamicFormData }, {emitEvent: false});
   }
 
   private updateDataSettings() {
@@ -748,7 +740,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
   }
 
   public get displayAdvancedAppearance(): boolean {
-    return !!this.modelValue && (!!this.modelValue.settingsSchema && !!this.modelValue.settingsSchema.schema ||
+    return !!this.modelValue && (!!this.modelValue.settingsForm && !!this.modelValue.settingsForm.length ||
         !!this.modelValue.settingsDirective && !!this.modelValue.settingsDirective.length);
   }
 
@@ -787,7 +779,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
     }
   }
 
-  public generateDataKey(chip: any, type: DataKeyType, datakeySettingsSchema: JsonSettingsSchema,
+  public generateDataKey(chip: any, type: DataKeyType, dataKeySettingsForm: FormProperty[],
                          isLatestDataKey: boolean, dataKeySettingsFunction: DataKeySettingsFunction): DataKey {
     if (isObject(chip)) {
       (chip as DataKey)._hash = Math.random();
@@ -819,8 +811,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
       } else if (type === DataKeyType.count) {
         result.name = 'count';
       }
-      if (datakeySettingsSchema && isDefined(datakeySettingsSchema.schema)) {
-        result.settings = this.utils.generateObjectFromJsonSchema(datakeySettingsSchema.schema);
+      if (dataKeySettingsForm?.length) {
+        result.settings = defaultFormProperties(dataKeySettingsForm);
       } else if (dataKeySettingsFunction) {
         const settings = dataKeySettingsFunction(result, isLatestDataKey);
         if (settings) {

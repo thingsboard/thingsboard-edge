@@ -70,6 +70,8 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.domain.DomainInfo;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -156,6 +158,12 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
     public static final String EDGE_HOST = "localhost";
     public static final int EDGE_PORT = 7070;
+    private static final String SYSADMIN_EDGE_DOMAIN = "sysadmin.edge.domain";
+    private static final String TENANT_EDGE_DOMAIN = "tenant.edge.domain";
+    private static final String CUSTOMER_EDGE_DOMAIN = "customer.edge.domain";
+
+    private Domain sysAdminDomain;
+    private Domain tenantDomain;
 
     private final IdComparator<Edge> idComparator = new IdComparator<>();
 
@@ -1277,6 +1285,23 @@ public class EdgeControllerTest extends AbstractControllerTest {
         return false;
     }
 
+    private boolean popDomainMsg(List<AbstractMessage> messages, UpdateMsgType msgType, String name, TenantId tenantId, CustomerId customerId) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg) {
+                DomainInfo domainInfo = JacksonUtil.fromString(oAuth2DomainUpdateMsg.getEntity(), DomainInfo.class, true);
+                Assert.assertNotNull(domainInfo);
+                if (msgType.equals(oAuth2DomainUpdateMsg.getMsgType())
+                        && name.equals(domainInfo.getName())
+                        && tenantId.equals(domainInfo.getTenantId())
+                        && customerId.equals(domainInfo.getCustomerId())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private boolean popSyncCompletedMsg(List<AbstractMessage> messages) {
         for (AbstractMessage message : messages) {
             if (message instanceof SyncCompletedMsg) {
@@ -1378,6 +1403,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     @Ignore("Edge entities support available for CE/PE only")
     public void testSyncEdge_tenantLevel() throws Exception {
         createAdminSettings();
+        createSysAdminAndTenantDomains();
         resetSysAdminWhiteLabelingSettings();
         loginTenantAdmin();
 
@@ -1415,10 +1441,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(33);
+        edgeImitator.expectMessageAmount(35);
         edgeImitator.connect();
         waitForMessages(edgeImitator);
 
@@ -1429,7 +1453,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "AssetGroup", EntityType.ASSET, EntityType.TENANT));
         Assert.assertTrue("There are some messages: " + edgeImitator.getDownlinkMsgs(), edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(30);
+        edgeImitator.expectMessageAmount(32);
         doPost("/api/edge/sync/" + edge.getId());
         waitForMessages(edgeImitator);
 
@@ -1448,6 +1472,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
         doDelete("/api/edge/" + edge.getId().getId().toString())
                 .andExpect(status().isOk());
+
+        cleanupDomains();
     }
 
     private void createAdminSettings() throws Exception {
@@ -1468,10 +1494,53 @@ public class EdgeControllerTest extends AbstractControllerTest {
         // create sysadmin custom translation
         String localeCode = "en_US";
         createCustomTranslation(localeCode);
+
         // create tenant custom translation
         loginTenantAdmin();
         localeCode = "es_ES";
         createCustomTranslation(localeCode);
+    }
+
+    private void createSysAdminAndTenantDomains() throws Exception {
+        loginSysAdmin();
+        sysAdminDomain = doPost("/api/domain", constructDomain(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), SYSADMIN_EDGE_DOMAIN), Domain.class);
+
+        loginTenantAdmin();
+        tenantDomain = doPost("/api/domain", constructDomain(tenantId, new CustomerId(CustomerId.NULL_UUID), TENANT_EDGE_DOMAIN), Domain.class);
+    }
+
+    private void createCustomerDomain(Customer customer) throws Exception {
+        User customerAUser = new User();
+        customerAUser.setAuthority(Authority.CUSTOMER_USER);
+        customerAUser.setTenantId(tenantId);
+        customerAUser.setCustomerId(customer.getId());
+        customerAUser.setEmail("edgetestcustomeradmin@thingsboard.org");
+        EntityGroupInfo customerAdminsGroup = findCustomerAdminsGroup(customerId);
+        createUser(customerAUser, "customer", customerAdminsGroup.getId()).getId();
+
+        login("edgetestcustomeradmin@thingsboard.org", "customer");
+
+        doPost("/api/domain", constructDomain(tenantId, customer.getId(), CUSTOMER_EDGE_DOMAIN), Domain.class);
+
+        loginTenantAdmin();
+    }
+
+    private void cleanupDomains() throws Exception {
+        loginSysAdmin();
+        doDelete("/api/domain/" + sysAdminDomain.getId().getId());
+
+        loginTenantAdmin();
+        doDelete("/api/domain/" + tenantDomain.getId().getId());
+    }
+
+    private Domain constructDomain(TenantId tenantId, CustomerId customerId, String name) {
+        Domain domain = new Domain();
+        domain.setTenantId(tenantId);
+        domain.setCustomerId(customerId);
+        domain.setName(name);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
+        return domain;
     }
 
     private void verifyFetchersMsgs_tenantLevel(EdgeImitator edgeImitator) {
@@ -1502,6 +1571,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
         Assert.assertTrue(popCustomerMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public", "TENANT", tenantId.getId()));
         Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public User", RoleType.GENERIC));
+        Assert.assertTrue(popDomainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, SYSADMIN_EDGE_DOMAIN, TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID)));
+        Assert.assertTrue(popDomainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, TENANT_EDGE_DOMAIN, tenantId, new CustomerId(CustomerId.NULL_UUID)));
         Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public Users", EntityType.USER, EntityType.CUSTOMER));
         Assert.assertTrue(popTenantMsg(edgeImitator.getDownlinkMsgs(), tenantId));
         Assert.assertTrue(popTenantProfileMsg(edgeImitator.getDownlinkMsgs(), tenantProfileId));
@@ -1515,6 +1586,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     @Ignore("Edge entities support available for CE/PE only")
     public void testSyncEdge_customerLevel() throws Exception {
         createAdminSettings();
+        createSysAdminAndTenantDomains();
         resetSysAdminWhiteLabelingSettings();
         loginTenantAdmin();
 
@@ -1522,6 +1594,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Customer customer = new Customer();
         customer.setTitle("Edge Customer");
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+
+        createCustomerDomain(savedCustomer);
 
         EntityGroup savedCustomerDeviceGroup = new EntityGroup();
         savedCustomerDeviceGroup.setType(EntityType.DEVICE);
@@ -1565,10 +1639,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(43);
+        edgeImitator.expectMessageAmount(46);
         edgeImitator.connect();
         waitForMessages(edgeImitator);
 
@@ -1583,7 +1655,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
         Assert.assertTrue("There are some messages: " + edgeImitator.getDownlinkMsgs(), edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(36);
+        edgeImitator.expectMessageAmount(39);
         doPost("/api/edge/sync/" + edge.getId());
         waitForMessages(edgeImitator);
 
@@ -1602,6 +1674,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
         doDelete("/api/edge/" + edge.getId().getId().toString())
                 .andExpect(status().isOk());
+        doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
+                .andExpect(status().isOk());
+
+        cleanupDomains();
     }
 
     private void verifyEdgeUserGroups(Edge edge, int expectedGroupNumber) {
@@ -1619,6 +1695,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
     private void verifyFetchersMsgs_customerLevel(EdgeImitator edgeImitator, CustomerId edgeCustomerId) {
         verifyFetchersMsgs_bothLevels(edgeImitator);
+        Assert.assertTrue(popDomainMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, CUSTOMER_EDGE_DOMAIN, tenantId, edgeCustomerId));
         Assert.assertTrue(popCustomerMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Edge Customer", "TENANT", tenantId.getId()));
         Assert.assertTrue(popCustomerMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "[Edge Customer] " + PUBLIC_CUSTOMER_SUFFIX, "CUSTOMER", edgeCustomerId.getId()));
         Assert.assertTrue(popRoleMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "Public User", RoleType.GENERIC));

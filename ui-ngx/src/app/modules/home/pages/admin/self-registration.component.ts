@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
@@ -54,6 +54,7 @@ import {
 import { NotificationTarget } from '@shared/models/notification.models';
 import { EditorOptions } from 'tinymce';
 import { DialogService } from '@core/services/dialog.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-self-registration',
@@ -84,7 +85,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     branding: false,
     resize: true,
     promotion: false,
-    relative_urls: false
+    relative_urls: false,
+    urlconverter_callback: (url) => url
   };
 
   showMainLoadingBar = false;
@@ -98,7 +100,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
               private dialogService: DialogService,
               private selfRegistrationService: SelfRegistrationService,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super();
   }
 
@@ -132,11 +135,11 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       termsOfUse: [null],
       showTermsOfUse: [true]
     });
-    this.selfRegistrationFormGroup.get('defaultDashboard.id').valueChanges.subscribe(
-      () => {
-        this.updateDisabledState();
-      }
-    );
+    this.selfRegistrationFormGroup.get('defaultDashboard.id').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      this.updateDisabledState();
+    });
   }
 
   private updateDisabledState() {
