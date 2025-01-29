@@ -43,6 +43,10 @@ public class AdminSettingsClientTest extends AbstractContainerTest {
 
     @Test
     public void testTenantAdminSettings() {
+        performTestOnEachEdge(this::_testTenantAdminSettings);
+    }
+
+    private void _testTenantAdminSettings() {
         verifyTenantAdminSettingsByKey("general");
         verifyTenantAdminSettingsByKey("mail");
 

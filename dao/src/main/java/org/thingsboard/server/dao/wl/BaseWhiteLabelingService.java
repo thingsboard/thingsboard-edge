@@ -44,10 +44,13 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
@@ -55,8 +58,10 @@ import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.domain.DomainService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractCachedService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -68,15 +73,13 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.net.URI;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.UUID;
 
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.LOGIN;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.PRIVACY_POLICY;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGISTRATION;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.TERMS_OF_USE;
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
-import static org.thingsboard.server.dao.service.DataValidator.isValidDomain;
 import static org.thingsboard.server.dao.service.DataValidator.isValidUrl;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forTypeAndDomain;
@@ -95,8 +98,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private final TenantService tenantService;
     private final CustomerService customerService;
     private final ImageService imageService;
+    private final EdgeService edgeService;
+    private final EdgeSettingsService edgeSettingsService;
     private final ApplicationEventPublisher eventPublisher;
-
 
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams() {
@@ -687,43 +691,31 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         cache.evict(event.getKey());
     }
 
-    private final Lock edgeLoginWhiteLabelSettingsLock = new ReentrantLock();
-
+    // edge-only
     @Override
-    public void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, CustomerId customerId) {
-        edgeLoginWhiteLabelSettingsLock.lock();
-        try {
-            boolean doReset = checkAndRemoveIfDomainAlreadyUsedByOtherEntity(tenantId, customerId);
-            if (doReset) {
-                WhiteLabeling whiteLabeling = findByEntityId(tenantId, customerId, WhiteLabelingType.LOGIN);
-                if (whiteLabeling == null) {
-                    whiteLabeling = new WhiteLabeling();
-                }
-                whiteLabeling.setTenantId(tenantId);
-                whiteLabeling.setCustomerId(customerId);
-                whiteLabeling.setType(WhiteLabelingType.LOGIN);
-                if (whiteLabeling.getSettings() == null) {
-                    whiteLabeling.setSettings(JacksonUtil.valueToTree(new LoginWhiteLabelingParams()));
-                }
-                doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
-            }
-        } finally {
-            edgeLoginWhiteLabelSettingsLock.unlock();
+    public String getEdgeDomainName(String serverName) {
+        EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings();
+        if (edgeSettings == null) {
+            return serverName;
         }
-    }
-
-    private boolean checkAndRemoveIfDomainAlreadyUsedByOtherEntity(TenantId tenantId, CustomerId customerId) {
-        WhiteLabeling whiteLabeling = whiteLabelingDao.findByDomainAndType(tenantId, EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME, LOGIN);
-        if (whiteLabeling != null) {
-            if (whiteLabeling.getCustomerId() != null && whiteLabeling.getCustomerId().equals(customerId)) {
-                return false;
-            }
-            if (whiteLabeling.getCustomerId() != null && !whiteLabeling.getCustomerId().equals(customerId)) {
-                deleteWhiteLabeling(tenantId, whiteLabeling.getCustomerId(), LOGIN);
-            } else {
-                deleteWhiteLabeling(tenantId, null, LOGIN);
+        Edge edgeById = edgeService.findEdgeById(TenantId.fromUUID(UUID.fromString(edgeSettings.getTenantId())), EdgeId.fromString(edgeSettings.getEdgeId()));
+        if (edgeById == null) {
+            return serverName;
+        }
+        WhiteLabeling byId = whiteLabelingDao.findById(edgeById.getTenantId(), new WhiteLabelingCompositeKey(edgeById.getTenantId(), edgeById.getCustomerId(), LOGIN));
+        if (byId == null) {
+            byId = whiteLabelingDao.findById(TenantId.SYS_TENANT_ID, new WhiteLabelingCompositeKey(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), LOGIN));
+            if (byId == null) {
+                return serverName;
             }
         }
-        return true;
+        if (byId.getTenantId() == null || byId.getDomainId() == null) {
+            return serverName;
+        }
+        Domain domainById = domainService.findDomainById(byId.getTenantId(), byId.getDomainId());
+        if (domainById == null) {
+            return serverName;
+        }
+        return domainById.getName();
     }
 }

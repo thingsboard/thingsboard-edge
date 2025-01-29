@@ -1017,9 +1017,10 @@ export class EntityService {
         entityTypes.push(EntityType.SCHEDULER_EVENT);
         entityTypes.push(EntityType.BLOB_ENTITY);
         entityTypes.push(EntityType.ROLE);
-        if (authState.edgesSupportEnabled) {
+        // edge-only: EDGE entity supported on edge side
+        // if (authState.edgesSupportEnabled) {
           entityTypes.push(EntityType.EDGE);
-        }
+        // }
         if (useAliasEntityTypes) {
           entityTypes.push(EntityType.QUEUE_STATS);
 
@@ -1036,9 +1037,10 @@ export class EntityService {
         entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.SCHEDULER_EVENT);
         entityTypes.push(EntityType.BLOB_ENTITY);
-        if (authState.edgesSupportEnabled) {
+        // edge-only: EDGE entity supported on edge side
+        // if (authState.edgesSupportEnabled) {
           entityTypes.push(EntityType.EDGE);
-        }
+        // }
         if (useAliasEntityTypes) {
           entityTypes.push(AliasEntityType.CURRENT_CUSTOMER);
         }

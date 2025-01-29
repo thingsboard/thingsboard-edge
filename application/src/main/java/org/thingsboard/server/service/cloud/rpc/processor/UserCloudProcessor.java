@@ -57,9 +57,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock userCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId,
-                                                          UserUpdateMsg userUpdateMsg,
-                                                          Long queueStartTs) throws ThingsboardException {
+    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId, UserUpdateMsg userUpdateMsg) throws ThingsboardException {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -91,21 +89,26 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     } finally {
                         userCreationLock.unlock();
                     }
-                    return requestForAdditionalData(tenantId, userId, queueStartTs);
+                    return requestForAdditionalData(tenantId, userId);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
-                        UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(),
-                                userUpdateMsg.getEntityGroupIdLSB());
-                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
-                        return removeEntityIfInSingleAllGroup(tenantId, userId, () -> edgeCtx.getUserService().deleteUser(tenantId, userId));
-                    } else {
-                        User userToDelete = edgeCtx.getUserService().findUserById(tenantId, userId);
-                        if (userToDelete != null) {
-                            edgeCtx.getUserService().deleteUser(tenantId, userToDelete);
+                    userCreationLock.lock();
+                    try {
+                        if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
+                            UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(),
+                                    userUpdateMsg.getEntityGroupIdLSB());
+                            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                            edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
+                            return removeEntityIfInSingleAllGroup(tenantId, userId, () -> edgeCtx.getUserService().deleteUser(tenantId, userId));
+                        } else {
+                            User userToDelete = edgeCtx.getUserService().findUserById(tenantId, userId);
+                            if (userToDelete != null) {
+                                edgeCtx.getUserService().deleteUser(tenantId, userToDelete);
+                            }
                         }
+                        return Futures.immediateFuture(null);
+                    } finally {
+                        userCreationLock.unlock();
                     }
-                    return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
                 default:
                     return handleUnsupportedMsgType(userUpdateMsg.getMsgType());

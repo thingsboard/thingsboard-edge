@@ -39,7 +39,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -57,7 +56,6 @@ import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.config.annotations.ApiOperation;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.mail.MailTemplates;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -101,8 +99,8 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(HttpServletRequest request) throws Exception {
-        // TODO: Edge-only:  on edge domain name hardcoded - using login white labeling of the edge owner and not by domain
-        return whiteLabelingService.getMergedLoginWhiteLabelingParams(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+        // edge-only: on edge domain name hardcoded - using login white labeling of the edge owner and not by domain
+        return whiteLabelingService.getMergedLoginWhiteLabelingParams(whiteLabelingService.getEdgeDomainName(request.getServerName()));
         //return whiteLabelingService.getMergedLoginWhiteLabelingParams(request.getServerName());
     }
 

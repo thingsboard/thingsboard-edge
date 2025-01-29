@@ -123,11 +123,11 @@ public class ThingsboardInstallService {
                     var updateFromCE = "CE".equals(upgradeFromVersion);
                     databaseSchemaVersionService.validateSchemaSettings(updateFromCE);
                     if (updateFromCE) {
-                        log.info("Upgrading ThingsBoard from version CE to PE ...");
+                        log.info("Upgrading ThingsBoard Edge from version CE to PE ...");
                     } else {
                         String fromVersion = databaseSchemaVersionService.getDbSchemaVersion();
                         String toVersion = databaseSchemaVersionService.getPackageSchemaVersion();
-                        log.info("Upgrading ThingsBoard from version {} to {} ...", fromVersion, toVersion);
+                        log.info("Upgrading ThingsBoard Edge from version {} to {} ...", fromVersion, toVersion);
                     }
                     cacheCleanupService.clearCache();
                     // Apply the schema_update.sql script. The script may include DDL statements to change structure

@@ -420,6 +420,17 @@ public abstract class BaseEdgeProcessor {
         return entityDaoRegistry.getDao(entityId.getEntityType()).existsById(tenantId, entityId.getId());
     }
 
+    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, EntityId entityId) {
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
+        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+        log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
+        futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null, null));
+        futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                EdgeEventActionType.RELATION_REQUEST, entityId, null, null));
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
     protected void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(edgeId);
@@ -530,10 +541,7 @@ public abstract class BaseEdgeProcessor {
     }
 
     protected boolean isCustomerNotExists(TenantId tenantId, CustomerId customerId) {
-        if (customerId == null) {
-            return false;
-        }
-        if (EntityId.NULL_UUID.equals(customerId.getId())) {
+        if (customerId == null || EntityId.NULL_UUID.equals(customerId.getId())) {
             return false;
         }
         Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
@@ -553,30 +561,17 @@ public abstract class BaseEdgeProcessor {
         }
     }
 
-    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, EntityId entityId, Long queueStartTs) {
-        List<ListenableFuture<Void>> futures = new ArrayList<>();
-        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
-        log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
-
-        futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
-                EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null, null, queueStartTs));
-        futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
-                EdgeEventActionType.RELATION_REQUEST, entityId, null, null, queueStartTs));
-        if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
-            futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
-                    EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null, null, queueStartTs));
-        }
-        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
-    }
-
     protected ListenableFuture<Void> removeEntityIfInSingleAllGroup(TenantId tenantId, EntityId entityId, Runnable provider) {
-        ListenableFuture<List<EntityGroupId>> future = edgeCtx.getEntityGroupService().findEntityGroupsForEntityAsync(tenantId, entityId);
-        return Futures.transform(future, input -> {
-            if (input.size() == 1) {
+        try {
+            List<EntityGroupId> list =
+                    edgeCtx.getEntityGroupService().findEntityGroupsForEntityAsync(tenantId, entityId).get();
+            if (list.size() == 1) {
                 provider.run();
             }
-            return null;
-        }, dbCallbackExecutorService);
+        } catch (Exception e) {
+            log.error("Failed to remove entity from group", e);
+        }
+        return Futures.immediateFuture(null);
     }
 
 }

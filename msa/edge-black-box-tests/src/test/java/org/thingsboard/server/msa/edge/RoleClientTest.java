@@ -54,6 +54,10 @@ public class RoleClientTest extends AbstractContainerTest {
 
     @Test
     public void testRoles() {
+        performTestOnEachEdge(this::_testRoles);
+    }
+
+    private void _testRoles() {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -75,6 +79,10 @@ public class RoleClientTest extends AbstractContainerTest {
 
     @Test
     public void testTenantRole() {
+        performTestOnEachEdge(this::_testTenantRole);
+    }
+
+    private void _testTenantRole() {
         // create role
         Role role = new Role();
         role.setType(RoleType.GENERIC);
@@ -105,7 +113,11 @@ public class RoleClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testCustomerRole() throws Exception {
+    public void testCustomerRole() {
+        performTestOnEachEdge(this::_testCustomerRole);
+    }
+
+    private void _testCustomerRole() {
         // create customer
         Customer savedCustomer = saveCustomer("Edge Customer A", null);
 
@@ -120,8 +132,10 @@ public class RoleClientTest extends AbstractContainerTest {
         // change owner to customer
         cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
 
-        // make sure that all group permissions request are processed
-        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+        try {
+            // make sure that all group permissions request are processed
+            Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+        } catch (Exception ignored) {}
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)

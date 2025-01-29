@@ -36,15 +36,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -112,18 +106,6 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
             }
             log.warn("Duplicate widgets bundle found, alias {}. Removed all duplicates!", bundleAlias);
         }
-    }
-
-    public UplinkMsg convertWidgetBundleTypesRequestEventToUplink(CloudEvent cloudEvent) {
-        EntityId widgetBundleId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
-        WidgetBundleTypesRequestMsg widgetBundleTypesRequestMsg = WidgetBundleTypesRequestMsg.newBuilder()
-                .setWidgetBundleIdMSB(widgetBundleId.getId().getMostSignificantBits())
-                .setWidgetBundleIdLSB(widgetBundleId.getId().getLeastSignificantBits())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addWidgetBundleTypesRequestMsg(widgetBundleTypesRequestMsg);
-        return builder.build();
     }
 
 }

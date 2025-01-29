@@ -63,33 +63,35 @@ import java.util.UUID;
 @Slf4j
 public class AssetCloudProcessor extends BaseAssetProcessor {
 
-    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
-                                                           AssetUpdateMsg assetUpdateMsg,
-                                                           Long queueStartTs) throws ThingsboardException {
+    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId, AssetUpdateMsg assetUpdateMsg) throws ThingsboardException {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-
             return switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
-                    saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, queueStartTs);
-                    yield requestForAdditionalData(tenantId, assetId, queueStartTs);
+                    boolean created = saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
+                    yield created ? requestForAdditionalData(tenantId, assetId) : Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
-                        UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
-                                assetUpdateMsg.getEntityGroupIdLSB());
-                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
-                        yield removeEntityIfInSingleAllGroup(tenantId, assetId, () -> edgeCtx.getAssetService().deleteAsset(tenantId, assetId));
-                    } else {
-                        Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
-                        if (assetById != null) {
-                            edgeCtx.getAssetService().deleteAsset(tenantId, assetId);
-                            pushAssetDeletedEventToRuleEngine(tenantId, assetById);
+                    assetCreationLock.lock();
+                    try {
+                        if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
+                            UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
+                                    assetUpdateMsg.getEntityGroupIdLSB());
+                            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                            edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
+                            yield removeEntityIfInSingleAllGroup(tenantId, assetId, () -> edgeCtx.getAssetService().deleteAsset(tenantId, assetId));
+                        } else {
+                            Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
+                            if (assetById != null) {
+                                edgeCtx.getAssetService().deleteAsset(tenantId, assetId);
+                                pushAssetDeletedEventToRuleEngine(tenantId, assetById);
+                            }
                         }
+                        yield Futures.immediateFuture(null);
+                    } finally {
+                        assetCreationLock.unlock();
                     }
-                    yield Futures.immediateFuture(null);
                 }
                 default -> handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
             };
@@ -98,7 +100,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
     }
 
-    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, Long queueStartTs) throws ThingsboardException {
+    private boolean saveOrUpdateAssetFromCloud(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) throws ThingsboardException {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg);
         Boolean created = resultPair.getFirst();
         if (created) {
@@ -106,8 +108,9 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
         Boolean assetNameUpdated = resultPair.getSecond();
         if (assetNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null, null, queueStartTs);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ASSET, EdgeEventActionType.UPDATED, assetId, null, null);
         }
+        return created;
     }
 
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, AssetId assetId) {

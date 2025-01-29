@@ -54,6 +54,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testAssets() {
+        performTestOnEachEdge(this::_testAssets);
+    }
+
+    private void _testAssets() {
         // create asset #1, add to group #1 and assign group #1 to edge
         EntityGroup savedAssetEntityGroup1 = createEntityGroup(EntityType.ASSET);
         Asset savedAsset1 = saveAssetAndAssignEntityGroupToEdge("Building", savedAssetEntityGroup1);
@@ -170,6 +174,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendAssetToCloud() {
+        performTestOnEachEdge(this::_testSendAssetToCloud);
+    }
+
+    private void _testSendAssetToCloud() {
         // create asset on edge
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
         assignEntityGroupToEdge(savedAssetEntityGroup);
@@ -211,6 +219,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
+        performTestOnEachEdge(this::_testSendAssetToCloudWithNameThatAlreadyExistsOnCloud);
+    }
+
+    private void _testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
         // create asset on cloud and edge with the same name
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
         assignEntityGroupToEdge(savedAssetEntityGroup);

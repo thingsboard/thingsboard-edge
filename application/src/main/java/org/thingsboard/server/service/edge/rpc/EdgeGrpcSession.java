@@ -128,7 +128,7 @@ public abstract class EdgeGrpcSession implements Closeable {
     private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
 
     private static final int MAX_DOWNLINK_ATTEMPTS = 3;
-    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
+    public static final String RATE_LIMIT_REACHED = "Rate limit reached";
 
     protected static final ConcurrentLinkedQueue<EdgeEvent> highPriorityQueue = new ConcurrentLinkedQueue<>();
 
@@ -648,8 +648,8 @@ public abstract class EdgeGrpcSession implements Closeable {
             try {
                 switch (edgeEvent.getAction()) {
                     case UPDATED, ADDED, DELETED, ASSIGNED_TO_EDGE, UNASSIGNED_FROM_EDGE, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE,
-                         CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, RPC_CALL,
-                         ADDED_TO_ENTITY_GROUP, REMOVED_FROM_ENTITY_GROUP, CHANGE_OWNER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> {
+                            CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, RPC_CALL,
+                            ADDED_TO_ENTITY_GROUP, REMOVED_FROM_ENTITY_GROUP, CHANGE_OWNER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> {
                         downlinkMsg = convertEntityEventToDownlink(edgeEvent);
                         if (downlinkMsg != null && downlinkMsg.getWidgetTypeUpdateMsgCount() > 0) {
                             log.trace("[{}][{}] widgetTypeUpdateMsg message processed, downlinkMsgId = {}", tenantId, sessionId, downlinkMsg.getDownlinkMsgId());
