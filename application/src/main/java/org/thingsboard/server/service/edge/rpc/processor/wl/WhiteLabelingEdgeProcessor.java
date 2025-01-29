@@ -139,7 +139,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
     public EdgeEventType getEdgeEventType() {
-        return EdgeEventType.WIDGETS_BUNDLE;
+        return EdgeEventType.WHITE_LABELING;
     }
 
 }
