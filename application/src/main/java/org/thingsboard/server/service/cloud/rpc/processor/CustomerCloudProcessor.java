@@ -89,7 +89,6 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                         edgeCustomer.filter(oldCustomer -> !oldCustomer.getId().equals(customer.getId()))
                                 .ifPresent(value -> customerService.deleteCustomer(value.getTenantId(), value.getId()));
 
-
                         Customer savedCustomer = customerService.saveCustomer(customer, false);
                         if (created) {
                             postCreateSteps(savedCustomer);
