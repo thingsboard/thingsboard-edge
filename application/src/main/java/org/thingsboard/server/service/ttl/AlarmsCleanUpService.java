@@ -32,6 +32,7 @@ package org.thingsboard.server.service.ttl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -81,7 +82,7 @@ public class AlarmsCleanUpService {
             try {
                 cleanUp(tenantId);
             } catch (Exception e) {
-                log.warn("Failed to clean up alarms by ttl for tenant {}", tenantId, e);
+                getLogger().warn("Failed to clean up alarms by ttl for tenant {}", tenantId, e);
             }
         }
     }
@@ -120,8 +121,13 @@ public class AlarmsCleanUpService {
         alarmService.delAlarmTypes(tenantId, typesToRemove);
 
         if (totalRemoved > 0) {
-            log.info("Removed {} outdated alarm(s) for tenant {} older than {}", totalRemoved, tenantId, new Date(expirationTime));
+            getLogger().info("Removed {} outdated alarm(s) for tenant {} older than {}", totalRemoved, tenantId, new Date(expirationTime));
         }
+    }
+
+    // wrapper for tests to spy on static logger
+    Logger getLogger() {
+        return log;
     }
 
 }

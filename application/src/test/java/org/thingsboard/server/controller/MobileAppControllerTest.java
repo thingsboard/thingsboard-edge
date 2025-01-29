@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,8 +88,8 @@ public class MobileAppControllerTest extends AbstractControllerTest {
         // get mobile info
         LoginMobileInfo loginMobileInfo = doGet("/api/noauth/mobile?pkgName={pkgName}&platform={platform}", LoginMobileInfo.class, mobileApp.getPkgName(), mobileApp.getPlatformType());
         assertThat(loginMobileInfo.oAuth2ClientLoginInfos()).isEmpty();
-        assertThat(loginMobileInfo.storeInfo()).isNull();
-        assertThat(loginMobileInfo.versionInfo()).isNull();
+        assertThat(loginMobileInfo.storeInfo()).isEqualTo(ModelConstants.MOBILE_APP_STORE_INFO_EMPTY_OBJECT);
+        assertThat(loginMobileInfo.versionInfo()).isEqualTo(ModelConstants.MOBILE_APP_VERSION_INFO_EMPTY_OBJECT);
         assertThat(loginMobileInfo.selfRegistrationParams()).isNull();
 
         doDelete("/api/mobile/app/" + savedMobileApp.getId().getId());
@@ -98,7 +99,7 @@ public class MobileAppControllerTest extends AbstractControllerTest {
 
     @Test
     public void testSaveMobileAppWithShortAppSecret() throws Exception {
-        MobileApp mobileApp = validMobileApp( "mobileApp.ce", PlatformType.ANDROID);
+        MobileApp mobileApp = validMobileApp("mobileApp.ce", PlatformType.ANDROID);
         mobileApp.setAppSecret("short");
         doPost("/api/mobile/app", mobileApp)
                 .andExpect(status().isBadRequest())

@@ -29,13 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { merge } from 'rxjs';
 import {
   StatusWidgetLayout,
   StatusWidgetStateSettings
 } from '@home/components/widget/lib/indicator/status-widget.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-status-widget-state-settings',
@@ -65,7 +66,8 @@ export class StatusWidgetStateSettingsComponent implements OnInit, OnChanges, Co
 
   public stateSettingsFormGroup: UntypedFormGroup;
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -86,12 +88,16 @@ export class StatusWidgetStateSettingsComponent implements OnInit, OnChanges, Co
       secondaryColorDisabled: [null, []],
       backgroundDisabled: [null, []]
     });
-    this.stateSettingsFormGroup.valueChanges.subscribe(() => {
+    this.stateSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
     merge(this.stateSettingsFormGroup.get('showLabel').valueChanges,
-      this.stateSettingsFormGroup.get('showStatus').valueChanges)
-    .subscribe(() => {
+      this.stateSettingsFormGroup.get('showStatus').valueChanges
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
   }

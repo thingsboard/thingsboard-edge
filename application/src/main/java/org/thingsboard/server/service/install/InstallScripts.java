@@ -55,8 +55,13 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.notification.template.EmailDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplateConfig;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
@@ -64,10 +69,12 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.util.ImageUtils;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -83,11 +90,14 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -165,9 +175,21 @@ public class InstallScripts {
     private NotificationSettingsService notificationSettingsService;
 
     @Autowired
+    private NotificationTemplateService notificationTemplateService;
+
+    @Autowired
+    private TenantService tenantService;
+
+    @Autowired
     private ResourcesUpdater resourcesUpdater;
     @Getter @Setter
     private boolean updateImages = false;
+
+    @Getter @Setter
+    private boolean updateResourcesUsage = false;
+
+    @Getter @Setter
+    private boolean migrateMailTemplates = false;
 
     @Autowired
     private ImageService imageService;
@@ -468,9 +490,9 @@ public class InstallScripts {
         }
 
         Path resourcesDir = Path.of(getDataDir(), RESOURCES_DIR);
-        loadSystemResources(resourcesDir.resolve("images"), ResourceType.IMAGE);
-        loadSystemResources(resourcesDir.resolve("js_modules"), ResourceType.JS_MODULE);
-        loadSystemResources(resourcesDir.resolve("dashboards"), ResourceType.DASHBOARD);
+        loadSystemResources(resourcesDir.resolve("images"), ResourceType.IMAGE, null);
+        loadSystemResources(resourcesDir.resolve("js_modules"), ResourceType.JS_MODULE, ResourceSubType.EXTENSION);
+        loadSystemResources(resourcesDir.resolve("dashboards"), ResourceType.DASHBOARD, null);
     }
 
     public void loadDashboards(TenantId tenantId, CustomerId customerId) {
@@ -665,7 +687,7 @@ public class InstallScripts {
         resourcesUpdater.updateWidgetsResources();
     }
 
-    private void loadSystemResources(Path dir, ResourceType resourceType) {
+    private void loadSystemResources(Path dir, ResourceType resourceType, ResourceSubType resourceSubType) {
         listDir(dir).forEach(resourceFile -> {
             String resourceKey = resourceFile.getFileName().toString();
             try {
@@ -673,7 +695,7 @@ public class InstallScripts {
                 if (resourceType == ResourceType.IMAGE) {
                     imageService.createOrUpdateSystemImage(resourceKey, data);
                 } else {
-                    resourceService.createOrUpdateSystemResource(resourceType, resourceKey, data);
+                    resourceService.createOrUpdateSystemResource(resourceType, resourceSubType, resourceKey, data);
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Unable to load system resource " + resourceFile, e);
@@ -709,6 +731,111 @@ public class InstallScripts {
         if (foundResource == null) {
             resourceService.saveResource(resource);
         }
+    }
+
+    public void migrateMailTemplates() {
+        migrateMailTemplatesToNotificationCenter(Map.of(
+                "userActivated", NotificationType.USER_ACTIVATED,
+                "userRegistered", NotificationType.USER_REGISTERED
+        ));
+    }
+
+    private void migrateMailTemplatesToNotificationCenter(Map<String, NotificationType> mailTemplatesNames) {
+        log.info("Migrating mail templates to notification center");
+        if (!hasNotificationTemplates(TenantId.SYS_TENANT_ID, mailTemplatesNames.values())) {
+            JsonNode systemMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+            migrateMailTemplatesToNotificationCenter(TenantId.SYS_TENANT_ID, systemMailTemplates, mailTemplatesNames);
+            boolean updated = removeMailTemplates(systemMailTemplates, mailTemplatesNames.keySet());
+            if (updated) {
+                whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, systemMailTemplates);
+            }
+        }
+        Map<NotificationType, NotificationTemplate> systemNotificationTemplates = new EnumMap<>(NotificationType.class);
+        mailTemplatesNames.values().forEach(notificationType -> {
+            systemNotificationTemplates.put(notificationType, notificationTemplateService.findNotificationTemplateByTenantIdAndType(TenantId.SYS_TENANT_ID, notificationType).get());
+        });
+
+        var tenants = new PageDataIterable<>(tenantService::findTenantsIds, 512);
+        for (TenantId tenantId : tenants) {
+            if (hasNotificationTemplates(tenantId, mailTemplatesNames.values())) {
+                continue;
+            }
+
+            JsonNode tenantMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(tenantId, tenantId);
+            if (tenantMailTemplates == null || tenantMailTemplates.isEmpty() ||
+                    Optional.ofNullable(tenantMailTemplates.get("useSystemMailSettings"))
+                            .map(JsonNode::asBoolean).orElse(true)) {
+                systemNotificationTemplates.values().forEach(notificationTemplate -> {
+                    notificationTemplate.setId(null);
+                    notificationTemplate.setTenantId(tenantId);
+                    log.debug("[{}] Creating {} template from system", tenantId, notificationTemplate.getNotificationType());
+                    notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);
+                });
+            } else {
+                migrateMailTemplatesToNotificationCenter(tenantId, tenantMailTemplates, mailTemplatesNames);
+            }
+            boolean updated = removeMailTemplates(tenantMailTemplates, mailTemplatesNames.keySet());
+            if (updated) {
+                whiteLabelingService.saveMailTemplates(tenantId, tenantMailTemplates);
+            }
+        }
+    }
+
+    private void migrateMailTemplatesToNotificationCenter(TenantId tenantId, JsonNode mailTemplates, Map<String, NotificationType> mailTemplatesNames) {
+        mailTemplatesNames.forEach((mailTemplateName, notificationType) -> {
+            JsonNode mailTemplate = mailTemplates.get(mailTemplateName);
+            if (mailTemplate == null || mailTemplate.isNull() || !mailTemplate.has("subject") || !mailTemplate.has("body")) {
+                return;
+            }
+
+            String subject = mailTemplate.get("subject").asText();
+            String body = mailTemplate.get("body").asText();
+            body = body.replace("targetEmail", "recipientEmail");
+
+            NotificationTemplate notificationTemplate = null;
+            if (tenantId.isSysTenantId()) {
+                // updating system notification template, not touching tenants' templates
+                notificationTemplate = notificationTemplateService.findNotificationTemplateByTenantIdAndType(tenantId, notificationType).orElse(null);
+            }
+            if (notificationTemplate == null) {
+                log.debug("[{}] Creating {} template", tenantId, notificationType);
+                notificationTemplate = new NotificationTemplate();
+            } else {
+                log.debug("[{}] Updating {} template", tenantId, notificationType);
+            }
+            String name = StringUtils.capitalize(notificationType.name().toLowerCase().replaceAll("_", " ")) + " notification";
+            notificationTemplate.setName(name);
+            notificationTemplate.setTenantId(tenantId);
+            notificationTemplate.setNotificationType(notificationType);
+            NotificationTemplateConfig notificationTemplateConfig = new NotificationTemplateConfig();
+
+            EmailDeliveryMethodNotificationTemplate emailNotificationTemplate = new EmailDeliveryMethodNotificationTemplate();
+            emailNotificationTemplate.setEnabled(true);
+            emailNotificationTemplate.setSubject(subject);
+            emailNotificationTemplate.setBody(body);
+
+            notificationTemplateConfig.setDeliveryMethodsTemplates(Map.of(NotificationDeliveryMethod.EMAIL, emailNotificationTemplate));
+            notificationTemplate.setConfiguration(notificationTemplateConfig);
+            notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);
+        });
+    }
+
+    private boolean removeMailTemplates(JsonNode mailTemplates, Set<String> names) {
+        boolean updated = false;
+        if (mailTemplates != null) {
+            for (String name : names) {
+                updated |= ((ObjectNode) mailTemplates).remove(name) != null;
+            }
+        }
+        return updated;
+    }
+
+    private boolean hasNotificationTemplates(TenantId tenantId, Collection<NotificationType> types) {
+        int existingTemplates = notificationTemplateService.countNotificationTemplatesByTenantIdAndNotificationTypes(tenantId, types);
+        if (existingTemplates > 0) {
+            log.debug("[{}] Already has {} templates", tenantId, types);
+        }
+        return existingTemplates > 0;
     }
 
 }

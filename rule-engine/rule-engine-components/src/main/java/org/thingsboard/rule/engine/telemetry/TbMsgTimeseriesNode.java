@@ -37,6 +37,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.StringUtils;
@@ -72,7 +73,6 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_RE
                 "However, the timestamp of the messages originated by multiple devices/servers may be unsynchronized long before they are pushed to the queue. " +
                 "The DB layer has certain optimizations to ignore the updates of the \"attributes\" and \"latest values\" tables if the new record has a timestamp that is older than the previous record. " +
                 "So, to make sure that all the messages will be processed correctly, one should enable this parameter for sequential message processing scenarios.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeTimeseriesConfig",
         icon = "file_upload"
 )
@@ -121,11 +121,16 @@ public class TbMsgTimeseriesNode implements TbNode {
         }
         String overwriteValueStr = msg.getMetaData().getValue("overwriteValue");
         boolean overwriteValue = Boolean.parseBoolean(overwriteValueStr);
-        if (config.isSkipLatestPersistence()) {
-            ctx.getTelemetryService().saveWithoutLatestAndNotify(ctx.getTenantId(), msg.getCustomerId(), msg.getOriginator(), tsKvEntryList, ttl, new TelemetryNodeCallback(ctx, msg), overwriteValue);
-        } else {
-            ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getCustomerId(), msg.getOriginator(), tsKvEntryList, ttl, new TelemetryNodeCallback(ctx, msg), overwriteValue);
-        }
+        ctx.getTelemetryService().saveTimeseries(TimeseriesSaveRequest.builder()
+                .tenantId(ctx.getTenantId())
+                .customerId(msg.getCustomerId())
+                .entityId(msg.getOriginator())
+                .entries(tsKvEntryList)
+                .ttl(ttl)
+                .saveLatest(!config.isSkipLatestPersistence())
+                .overwriteValue(overwriteValue)
+                .callback(new TelemetryNodeCallback(ctx, msg))
+                .build());
     }
 
     public static long computeTs(TbMsg msg, boolean ignoreMetadataTs) {

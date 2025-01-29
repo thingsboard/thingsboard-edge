@@ -58,7 +58,6 @@ import java.util.UUID;
         configClazz = TbGenerateReportNodeConfiguration.class,
         nodeDescription = "Generates report",
         nodeDetails = "Generates dashboard based reports.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeGenerateReportConfig",
         icon = "description"
 )
@@ -118,7 +117,9 @@ public class TbGenerateReportNode extends TbAbstractExternalNode {
                             attachments = reportBlobEntity.getId().toString();
                         }
                         metaData.putValue(ATTACHMENTS, attachments);
-                        TbMsg newMsg = TbMsg.transformMsgMetadata(tbMsg, metaData);
+                        TbMsg newMsg = tbMsg.transform()
+                                .metaData(metaData)
+                                .build();
                         tellSuccess(ctx, newMsg);
                     },
                     throwable -> tellFailure(ctx, tbMsg, throwable)

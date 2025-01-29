@@ -97,11 +97,13 @@ export class IntegrationWizardDialogComponent extends
   integrationInfo$: Observable<IntegrationConvertersInfo>;
 
   uplinkConverter = {
-    type: ConverterType.UPLINK
+    type: ConverterType.UPLINK,
+    debugSettings: { allEnabled: true, failuresEnabled: true },
   } as Converter;
 
   downlinkConverter = {
-    type: ConverterType.DOWNLINK
+    type: ConverterType.DOWNLINK,
+    debugSettings: { allEnabled: true, failuresEnabled: true },
   } as Converter;
 
   readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;

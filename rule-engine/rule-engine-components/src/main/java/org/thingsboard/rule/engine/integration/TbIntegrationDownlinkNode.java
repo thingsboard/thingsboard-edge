@@ -52,7 +52,6 @@ import org.thingsboard.server.common.msg.TbMsg;
         configClazz = TbIntegrationDownlinkConfiguration.class,
         nodeDescription = "Pushes downlink message to selected integration",
         nodeDetails = "Will push downlink message to the selected integration queue.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeIntegrationDownlinkConfig",
         icon = "input"
 )

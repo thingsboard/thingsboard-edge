@@ -139,7 +139,7 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
             "  OR e.label ILIKE CONCAT('%', :searchText, '%') " +
             "  OR e.type ILIKE CONCAT('%', :searchText, '%') " +
             "  OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
-            countQuery = "SELECT count(es.id) FROM asset e " +
+            countQuery = "SELECT count(e.id) FROM asset e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND e.asset_profile_id = :assetProfileId " +

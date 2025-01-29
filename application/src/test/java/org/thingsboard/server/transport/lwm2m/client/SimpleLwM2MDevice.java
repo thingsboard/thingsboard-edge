@@ -108,6 +108,7 @@ public class SimpleLwM2MDevice extends BaseInstanceEnabler implements Destroyabl
         try {
             executorService.scheduleWithFixedDelay(() -> {
                         fireResourceChange(9);
+                        fireResourceChange(20);
                     }
                     , 1, 1, TimeUnit.SECONDS); // 2 sec
 //                    , 1800000, 1800000, TimeUnit.MILLISECONDS); // 30 MIN

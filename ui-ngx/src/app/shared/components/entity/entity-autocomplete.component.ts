@@ -307,6 +307,12 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           this.entityRequiredText = 'mobile.bundle-required';
           this.notFoundEntities = 'mobile.no-bundle-text';
           break;
+        case EntityType.NOTIFICATION_TARGET:
+          this.entityText = 'notification.notification-recipient';
+          this.noEntitiesMatchingText = 'notification.no-recipients-matching';
+          this.entityRequiredText = 'notification.notification-recipient-required';
+          this.notFoundEntities = 'notification.no-recipients-text';
+          break;
         case EntityType.DOMAIN:
           this.entityText = 'entity.type-domain';
           this.noEntitiesMatchingText = 'admin.oauth2.no-domain-matching';
