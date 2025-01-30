@@ -143,6 +143,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entityview.EntityViewDao;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
@@ -349,26 +350,22 @@ public class EntityServiceTest extends AbstractControllerTest {
         groupPermission.put(deviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)));
         MergedUserPermissions mergedGroupPermission = new MergedUserPermissions(Collections.emptyMap(), groupPermission);
 
-        long count = entityService.countEntitiesByQuery(tenantId, customerId, mergedGroupPermission, countQuery);
-        Assert.assertEquals(10, count);
+        long count = countByQueryAndCheck(customerId, mergedGroupPermission, countQuery, 10);
 
         //count entities by customer user with generic permission
         Map<Resource, Set<Operation>> genericDevicePermission = Map.of(Resource.DEVICE, Set.of(Operation.READ),
                 Resource.DEVICE_GROUP, Set.of(Operation.READ));
         MergedUserPermissions mergedGenericPermission = new MergedUserPermissions(genericDevicePermission, Collections.emptyMap());
 
-        long count2 = entityService.countEntitiesByQuery(tenantId, customerId, mergedGenericPermission, countQuery);
-        Assert.assertEquals(20, count2);
+        countByQueryAndCheck(customerId, mergedGenericPermission, countQuery, 20);
 
         // count entities by customer user with no permission
         MergedUserPermissions mergedPermission = new MergedUserPermissions(Collections.emptyMap(), Collections.emptyMap());
-        long count3 = entityService.countEntitiesByQuery(tenantId, customerId, mergedPermission, countQuery);
-        Assert.assertEquals(0, count3);
+        countByQueryAndCheck(customerId, mergedPermission, countQuery, 0);
 
         // count entities by other customer user with generic and group permission
         MergedUserPermissions otherCustomerUserPermission = new MergedUserPermissions(genericDevicePermission, groupPermission);
-        long count4 = entityService.countEntitiesByQuery(tenantId, otherCustomerId, otherCustomerUserPermission, countQuery);
-        Assert.assertEquals(10, count4);
+        countByQueryAndCheck(otherCustomerId, otherCustomerUserPermission, countQuery, 10);
     }
 
     @Test
@@ -708,6 +705,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         deviceService.deleteDevicesByTenantId(tenantId);
     }
 
+    // fails for sql implementation until we fix the issue with the relation query
     @Test
     public void testCountHierarchicalEntitiesByMultiRootQuery() throws InterruptedException {
         List<Asset> buildings = new ArrayList<>();
@@ -1622,17 +1620,15 @@ public class EntityServiceTest extends AbstractControllerTest {
 
         // find by customer user with generic permission
         MergedUserPermissions mergedGenericPermission = new MergedUserPermissions(Map.of(Resource.DEVICE, Set.of(Operation.READ)), Collections.emptyMap());
-        PageData<EntityData> customerResults = entityService.findEntityDataByQuery(tenantId, customerId, mergedGenericPermission, query);
+        PageData<EntityData> customerResults = findByQueryAndCheck(customerId, mergedGenericPermission, query, 1);
 
-        assertEquals(1, customerResults.getTotalElements());
         String cutomerDeviceName = customerResults.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
         assertThat(cutomerDeviceName).isEqualTo(customerDevices.get(0).getName());
 
         // find by customer user with group permission
         MergedUserPermissions mergedGroupOnlyPermission = new MergedUserPermissions(Collections.emptyMap(), Map.of(customerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ))));
-        PageData<EntityData> result2 = entityService.findEntityDataByQuery(tenantId, customerId, mergedGroupOnlyPermission, query);
+        PageData<EntityData> result2 = findByQueryAndCheck(customerId, mergedGroupOnlyPermission, query, 1);
 
-        assertEquals(1, result2.getTotalElements());
         String resultDeviceName2 = result2.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
         assertThat(resultDeviceName2).isEqualTo(customerDevices.get(0).getName());
 
@@ -1640,14 +1636,11 @@ public class EntityServiceTest extends AbstractControllerTest {
         SingleEntityFilter tenantDeviceFilter = new SingleEntityFilter();
         tenantDeviceFilter.setSingleEntity(tenantDevices.get(0).getId());
         EntityDataQuery customerQuery2 = new EntityDataQuery(tenantDeviceFilter, pageLink, entityFields, null, null);
-        PageData<EntityData> customerResults2 = entityService.findEntityDataByQuery(tenantId, customerId, mergedGenericPermission, customerQuery2);
-
-        assertEquals(0, customerResults2.getTotalElements());
+        findByQueryAndCheck(customerId, mergedGenericPermission, customerQuery2, 0);
 
         // find by tenant user with group permission
-        PageData<EntityData> results3 = entityService.findEntityDataByQuery(tenantId, new CustomerId(EntityId.NULL_UUID), mergedGroupOnlyPermission, query);
+        PageData<EntityData> results3 = findByQueryAndCheck(new CustomerId(EntityId.NULL_UUID), mergedGroupOnlyPermission, query, 1);
 
-        assertEquals(1, results3.getTotalElements());
         String deviceName3 = results3.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
         assertThat(deviceName3).isEqualTo(customerDevices.get(0).getName());
     }
@@ -1713,15 +1706,13 @@ public class EntityServiceTest extends AbstractControllerTest {
         EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
         EntityDataQuery query = new EntityDataQuery(entityGroupListFilter, pageLink, entityFields, null, null);
 
-        PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, customerId, mergedGenericPermission, query);
-        assertEquals(2, result.getTotalElements());
+        PageData<EntityData> result = findByQueryAndCheck(customerId, mergedGenericPermission, query, 2);
         List<String> loadedNames = result.getData().stream().map(entityData ->
                 entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).collect(Collectors.toList());
         assertThat(loadedNames).containsExactlyInAnyOrder(groups.get(0).getName(), groups.get(1).getName());
 
         entityGroupListFilter.setEntityGroupList(List.of(UUID.randomUUID().toString()));
-        result = searchEntities(query);
-        assertEquals(0, result.getTotalElements());
+        findByQueryAndCheck(query, 0);
 
         // get groups by customer user with group only permission
         entityGroupListFilter.setEntityGroupList(List.of(groups.get(0).getId().getId().toString(), groups.get(1).getId().getId().toString()));
@@ -1730,18 +1721,16 @@ public class EntityServiceTest extends AbstractControllerTest {
         groupPermission.put(groups.get(0).getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)));
         MergedUserPermissions mergedGroupPermission = new MergedUserPermissions(new HashMap<>(), groupPermission);
 
-        PageData<EntityData> result2 = entityService.findEntityDataByQuery(tenantId, customerId, mergedGroupPermission, query);
+        PageData<EntityData> result2 = findByQueryAndCheck(customerId, mergedGroupPermission, query, 1);
 
-        assertEquals(1, result2.getTotalElements());
         List<String> loadedNames2 = result2.getData().stream().map(entityData ->
                 entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).toList();
         assertThat(loadedNames2).containsOnly(groups.get(0).getName());
 
         // get groups by customer user with generic and group permission
         MergedUserPermissions mergedGenericAndGroupPermission = new MergedUserPermissions(genericPermission, groupPermission);
-        PageData<EntityData> result3 = entityService.findEntityDataByQuery(tenantId, customerId, mergedGenericAndGroupPermission, query);
+        PageData<EntityData> result3 = findByQueryAndCheck(customerId, mergedGenericAndGroupPermission, query, 2);
 
-        assertEquals(2, result3.getTotalElements());
         List<String> loadedNames3 = result3.getData().stream().map(entityData ->
                 entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).toList();
         assertThat(loadedNames3).containsExactlyInAnyOrder(groups.get(0).getName(), groups.get(1).getName());
@@ -1853,7 +1842,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         // generic permission only
         MergedUserPermissions genericPermissionOnly = new MergedUserPermissions(Map.of(ALL, Set.of(Operation.ALL)), Collections.emptyMap());
 
-        PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, subCustomerId2, genericPermissionOnly, query);
+        PageData<EntityData> result = findByQueryAndCheck(subCustomerId2, genericPermissionOnly, query, subCustomerDevices2.size());
         assertThat(getResultDeviceIds(result)).hasSameElementsAs(subCustomerDevices2);
 
         // generic + group permission
@@ -1861,7 +1850,7 @@ public class EntityServiceTest extends AbstractControllerTest {
                 Map.of(customerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)),
                         secondCustomerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ))));
 
-        result = entityService.findEntityDataByQuery(tenantId, customerId, genericAndGroupPermissions, query);
+        result = findByQueryAndCheck(customerId, genericAndGroupPermissions, query, subCustomerDevices2.size());
         assertThat(getResultDeviceIds(result)).hasSameElementsAs(subCustomerDevices2);
 
         // group permission
@@ -1870,7 +1859,7 @@ public class EntityServiceTest extends AbstractControllerTest {
                         customerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)),
                         secondCustomerDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ))));
 
-        result = entityService.findEntityDataByQuery(tenantId, customerId, groupPermissionOnly, query);
+        result = findByQueryAndCheck(customerId, groupPermissionOnly, query, subCustomerDevices2.size());
         assertThat(getResultDeviceIds(result)).hasSameElementsAs(subCustomerDevices2);
     }
 
@@ -2019,16 +2008,14 @@ public class EntityServiceTest extends AbstractControllerTest {
         // find by customer user with generic permissions
         apiUsageStateService.createDefaultApiUsageState(tenantId, customerId);
         MergedUserPermissions userPermissions = new MergedUserPermissions(Map.of(Resource.API_USAGE_STATE, Set.of(Operation.ALL)), Collections.emptyMap());
-        PageData<EntityData> customerResult = entityService.findEntityDataByQuery(tenantId, customerId, userPermissions, query);
+        PageData<EntityData> customerResult = findByQueryAndCheck(customerId, userPermissions, query, 1);
 
-        assertEquals(1, customerResult.getTotalElements());
         String customerResultName = customerResult.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
         assertThat(customerResultName).isEqualTo(TEST_CUSTOMER_NAME);
 
         // find by tenant user with customerId filter
         apiUsageStateFilter.setCustomerId(customerId);
-        PageData<EntityData> tenantResult = searchEntities(query);
-        assertEquals(1, tenantResult.getTotalElements());
+        PageData<EntityData> tenantResult = findByQueryAndCheck(query, 1);
         String tenantResultName = tenantResult.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
         assertThat(tenantResultName).isEqualTo(TEST_CUSTOMER_NAME);
     }
@@ -2142,8 +2129,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         //check that tenant entity is not accessible to customer user
         stateEntityOwnerFilter.setSingleEntity(tenantEntityIds.get(0));
         EntityCountQuery countQuery = new EntityDataQuery(stateEntityOwnerFilter, pageLink, null, null, null);
-        long countResult = entityService.countEntitiesByQuery(tenantId, customerId, mergedUserPermissionsPE, countQuery);
-        assertEquals(0, countResult);
+        countByQueryAndCheck(customerId, mergedUserPermissionsPE, countQuery, 0);
     }
 
     @Test
@@ -2170,21 +2156,18 @@ public class EntityServiceTest extends AbstractControllerTest {
         EntityDataQuery query = new EntityDataQuery(schedulerEventFilter, pageLink, entityFields, null, null);
 
         //find entities by tenant user
-        PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query);
-        assertEquals(1, result.getTotalElements());
+        PageData<EntityData> result = findByQueryAndCheck(new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query, 1);
         String entityName = result.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
         assertThat(entityName).isEqualTo(schedulerEvent.getName());
 
         //find entities by non existing type filter
         schedulerEventFilter.setEventType("non-existing-type");
-        PageData<EntityData> result2 = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query);
-        assertEquals(0, result2.getTotalElements());
+        findByQueryAndCheck(new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query, 0);
 
         //find entities by other customer id filter
         schedulerEventFilter.setEventType("report");
         schedulerEventFilter.setOriginator(otherCustomerId);
-        PageData<EntityData> result3 = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query);
-        assertEquals(0, result3.getTotalElements());
+        findByQueryAndCheck(new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query, 0);
     }
 
     private EntityDataQuery createDeviceSearchQuery(String deviceField, StringOperation operation, String searchQuery) {
@@ -2508,29 +2491,23 @@ public class EntityServiceTest extends AbstractControllerTest {
             filter.setRootEntity(asset.getId());
 
             //check by user with generic permission
-            PageData<EntityData> relationsResult = entityService.findEntityDataByQuery(tenantId, customer.getId(), mergedGenericOnlyPermission, query);
-            long relationsResultCnt = entityService.countEntitiesByQuery(tenantId, customer.getId(), mergedGenericOnlyPermission, query);
-
-            Assert.assertEquals(relationsCnt, relationsResult.getData().size());
-            Assert.assertEquals(relationsCnt, relationsResultCnt);
+            PageData<EntityData> relationsResult = findByQueryAndCheck(customer.getId(), mergedGenericOnlyPermission, query, relationsCnt);
+            countByQueryAndCheck(customer.getId(), mergedGenericOnlyPermission, query, relationsCnt);
 
             //check by user with generic and group permission
-            PageData<EntityData> relationsResult1 = entityService.findEntityDataByQuery(tenantId, customer.getId(), mergedGenericAndGroupPermission, query);
-            long relationsResultCnt1 = entityService.countEntitiesByQuery(tenantId, customer.getId(), mergedGenericAndGroupPermission, query);
-
-            Assert.assertEquals(relationsCnt, relationsResult1.getData().size());
-            Assert.assertEquals(relationsCnt, relationsResultCnt1);
+            PageData<EntityData> relationsResult1 = findByQueryAndCheck(customer.getId(), mergedGenericAndGroupPermission, query, relationsCnt);
+            countByQueryAndCheck(customer.getId(), mergedGenericAndGroupPermission, query, relationsCnt);
 
             //check by other customer user with group only permission
-            PageData<EntityData> relationsResult2 = entityService.findEntityDataByQuery(tenantId, otherCustomerId, mergedGroupOnlyPermission, query);
-            long relationsResultCnt2 = entityService.countEntitiesByQuery(tenantId, otherCustomerId, mergedGroupOnlyPermission, query);
+            PageData<EntityData> relationsResult2 = findByQueryAndCheck(otherCustomerId, mergedGroupOnlyPermission, query, relationsCnt / 2);
+            long relationsResultCnt2 = countByQueryAndCheck(otherCustomerId, mergedGroupOnlyPermission, query, relationsCnt / 2);
 
             Assert.assertEquals(relationsCnt / 2, relationsResult2.getData().size());
             Assert.assertEquals(relationsCnt / 2, relationsResultCnt2);
 
             //check by other customer user with generic and group only permission
-            PageData<EntityData> relationsResult3 = entityService.findEntityDataByQuery(tenantId, otherCustomerId, mergedGenericAndGroupPermission, query);
-            long relationsResultCnt3 = entityService.countEntitiesByQuery(tenantId, otherCustomerId, mergedGenericAndGroupPermission, query);
+            PageData<EntityData> relationsResult3 = findByQueryAndCheck(otherCustomerId, mergedGenericAndGroupPermission, query, relationsCnt / 2);
+            long relationsResultCnt3 = countByQueryAndCheck(otherCustomerId, mergedGenericAndGroupPermission, query, relationsCnt / 2);
 
             Assert.assertEquals(relationsCnt / 2, relationsResult3.getData().size());
             Assert.assertEquals(relationsCnt / 2, relationsResultCnt3);
@@ -3338,7 +3315,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         return timeseriesService.save(tenantId, entityId, timeseries);
     }
 
-    private void createMultiRootHierarchy(List<Asset> buildings, List<Asset> apartments,
+    protected void createMultiRootHierarchy(List<Asset> buildings, List<Asset> apartments,
                                           Map<String, Map<UUID, String>> entityNameByTypeMap,
                                           Map<UUID, UUID> childParentRelationMap) throws InterruptedException {
         for (int k = 0; k < 3; k++) {
@@ -3729,7 +3706,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         entityView.setEndTimeMs(256);
         entityView.setExternalId(new EntityViewId(UUID.randomUUID()));
         entityView.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
-        entityView = entityViewDao.save(tenantId, entityView);
+        entityView = entityViewService.saveEntityView(entityView);
 
         EntityViewTypeFilter entityViewTypeFilter = new EntityViewTypeFilter();
         entityViewTypeFilter.setEntityViewNameFilter("test");
@@ -3740,21 +3717,18 @@ public class EntityServiceTest extends AbstractControllerTest {
         );
         EntityDataQuery query = new EntityDataQuery(entityViewTypeFilter, pageLink, entityFields, Collections.emptyList(), null);
 
-        PageData<EntityData> relationsResult = entityService.findEntityDataByQuery(tenantId, new CustomerId(EntityId.NULL_UUID), mergedUserPermissionsPE, query);
-        assertThat(relationsResult.getData()).hasSize(1);
+        PageData<EntityData> relationsResult = findByQueryAndCheck(new CustomerId(EntityId.NULL_UUID), mergedUserPermissionsPE, query, 1);
         assertThat(relationsResult.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).isEqualTo(entityView.getName());
 
         // find with non existing name
         entityViewTypeFilter.setEntityViewNameFilter("non-existing");
-        PageData<EntityData> relationsResult2 = entityService.findEntityDataByQuery(tenantId, new CustomerId(EntityId.NULL_UUID), mergedUserPermissionsPE, query);
-        assertThat(relationsResult2.getData()).hasSize(0);
+        findByQueryAndCheck(new CustomerId(EntityId.NULL_UUID), mergedUserPermissionsPE, query, 0);
 
         // find with non existing type
         entityViewTypeFilter.setEntityViewNameFilter(null);
         entityViewTypeFilter.setEntityViewTypes(Collections.singletonList("non-existing"));
 
-        PageData<EntityData> relationsResult3 = entityService.findEntityDataByQuery(tenantId, new CustomerId(EntityId.NULL_UUID), mergedUserPermissionsPE, query);
-        assertThat(relationsResult3.getData()).hasSize(0);
+        findByQueryAndCheck(new CustomerId(EntityId.NULL_UUID), mergedUserPermissionsPE, query, 0);
     }
 
     @Test

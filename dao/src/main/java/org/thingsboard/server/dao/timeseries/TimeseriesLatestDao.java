@@ -69,5 +69,4 @@ public interface TimeseriesLatestDao {
 
     List<String> findAllKeysByEntityIds(TenantId tenantId, List<EntityId> entityIds);
 
-    PageData<TsKvLatestEntity> findAllLatest(PageLink pageLink);
 }

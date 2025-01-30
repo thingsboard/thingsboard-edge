@@ -186,9 +186,5 @@ public class CachedRedisSqlTimeseriesLatestDao extends BaseAbstractSqlTimeseries
         return sqlDao.findAllKeysByEntityIds(tenantId, entityIds);
     }
 
-    @Override
-    public PageData<TsKvLatestEntity> findAllLatest(PageLink pageLink) {
-        return null;
-    }
 
 }

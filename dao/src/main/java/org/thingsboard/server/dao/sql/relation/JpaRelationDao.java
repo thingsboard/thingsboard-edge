@@ -39,8 +39,6 @@ import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChainType;
@@ -144,10 +142,6 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
                         typeGroup.name()));
     }
 
-    @Override
-    public PageData<EntityRelation> findAll(PageLink pageLink) {
-        return DaoUtil.toPageData(relationRepository.findAll(DaoUtil.toPageable(pageLink)));
-    }
 
     @Override
     public ListenableFuture<Boolean> checkRelationAsync(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {

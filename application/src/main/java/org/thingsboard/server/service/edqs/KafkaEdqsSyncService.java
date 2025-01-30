@@ -55,7 +55,7 @@ public class KafkaEdqsSyncService extends EdqsSyncService {
 
     @Override
     public boolean isSyncNeeded() {
-        return kafkaAdmin.isTopicEmpty(EdqsQueue.STATE.getTopic());
+        return kafkaAdmin.isTopicEmpty(EdqsQueue.EVENTS.getTopic());
     }
 
 
