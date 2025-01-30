@@ -23,8 +23,10 @@ import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -68,14 +70,9 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
             setDefaultEdgeRuleChainId(deviceProfile, ruleChainId, deviceProfileUpdateMsg);
             setDefaultDashboardId(tenantId, created ? null : deviceProfileById.getDefaultDashboardId(), deviceProfile, deviceProfileUpdateMsg);
 
-            // edge-only: fixed issue where assigned firmware in device profile is not found in DB during reconnect
-            if (deviceProfile.getFirmwareId() != null) {
-                OtaPackageInfo otaPackageInfo = edgeCtx.getOtaPackageService().findOtaPackageInfoById(tenantId, deviceProfile.getFirmwareId());
-                if (otaPackageInfo == null) {
-                    log.warn("Firmware with ID {} not found in DB, removed from device profile", deviceProfile.getFirmwareId());
-                    deviceProfile.setFirmwareId(null);
-                }
-            }
+            // edge-only: fixed issue where assigned ota packages in device profile is not found in DB during reconnect
+            unassignOtaPackageIfNotExist(tenantId, deviceProfile, OtaPackageType.FIRMWARE);
+            unassignOtaPackageIfNotExist(tenantId, deviceProfile, OtaPackageType.SOFTWARE);
             //
             deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
             if (created) {
@@ -89,6 +86,17 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
             deviceCreationLock.unlock();
         }
         return Pair.of(created, deviceProfileNameUpdated);
+    }
+
+    private void unassignOtaPackageIfNotExist(TenantId tenantId, DeviceProfile deviceProfile, OtaPackageType otaPackageType) {
+        OtaPackageId otaPackageId = (OtaPackageType.FIRMWARE == otaPackageType) ? deviceProfile.getFirmwareId() : deviceProfile.getSoftwareId();
+
+        if (otaPackageId != null) {
+            OtaPackageInfo otaPackageInfo = edgeCtx.getOtaPackageService().findOtaPackageInfoById(tenantId, otaPackageId);
+            if (otaPackageInfo == null) {
+                unassignOtaPackage(deviceProfile, otaPackageType, otaPackageId);
+            }
+        }
     }
 
     protected abstract DeviceProfile constructDeviceProfileFromUpdateMsg(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg);

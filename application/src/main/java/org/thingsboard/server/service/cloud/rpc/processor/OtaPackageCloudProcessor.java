@@ -25,7 +25,6 @@ import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -54,10 +53,13 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
                         if (otaPackage == null) {
                             throw new RuntimeException("[{" + tenantId + "}] otaPackageUpdateMsg {" + otaPackageUpdateMsg + "} cannot be converted to ota package");
                         }
+                        OtaPackageService otaPackageService = edgeCtx.getOtaPackageService();
+                        Optional<OtaPackageInfo> oldOtaPackage = otaPackageService.findOtaPackageInfoByTenantIdAndTitle(tenantId, otaPackage.getTitle());
+                        oldOtaPackage
+                                .filter(otaPackageInfo -> !otaPackage.getId().equals(otaPackageInfo.getId()))
+                                .ifPresent(otaPackageInfo -> removeOtaPackageIfExist(tenantId, otaPackageInfo));
 
-                        removeOldOtaPackage(tenantId, otaPackage);
-
-                        edgeCtx.getOtaPackageService().saveOtaPackage(otaPackage, false);
+                        otaPackageService.saveOtaPackage(otaPackage, false);
                     } finally {
                         otaPackageCreationLock.unlock();
                     }
@@ -77,24 +79,16 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private void removeOldOtaPackage(TenantId tenantId, OtaPackage newOtaPackage) {
-        OtaPackageService otaPackageService = edgeCtx.getOtaPackageService();
-        DeviceProfileService deviceProfileService = edgeCtx.getDeviceProfileService();
-        Optional<OtaPackageInfo> oldOtaPackage = otaPackageService.findOtaPackageInfoByTenantIdAndTitle(tenantId, newOtaPackage.getTitle());
+    private void removeOtaPackageIfExist(TenantId tenantId, OtaPackageInfo otaPackageInfo) {
+        DeviceProfile deviceProfile = edgeCtx.getDeviceProfileService().findDeviceProfileById(tenantId, otaPackageInfo.getDeviceProfileId());
 
-        oldOtaPackage
-                .filter(otaPackageInfo -> !newOtaPackage.getId().equals(otaPackageInfo.getId()))
-                .ifPresent(otaPackageInfo -> {
-                    DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, otaPackageInfo.getDeviceProfileId());
+        if (deviceProfile != null) {
+            unassignOtaPackage(deviceProfile, otaPackageInfo.getType(), otaPackageInfo.getId());
+            edgeCtx.getDeviceProfileService().saveDeviceProfile(deviceProfile);
+        }
 
-                    if (deviceProfile != null) {
-                        log.trace("Deleting device profile with ID {} for tenant {}", deviceProfile.getId(), tenantId);
-                        deviceProfileService.deleteDeviceProfile(tenantId, otaPackageInfo.getDeviceProfileId());
-                    }
-
-                    log.trace("Deleting OTA package with ID {} for tenant {}", otaPackageInfo.getId(), tenantId);
-                    otaPackageService.deleteOtaPackage(tenantId, otaPackageInfo.getId());
-                });
+        log.trace("Deleting OTA package with ID {} for tenant {}", otaPackageInfo.getId(), tenantId);
+        edgeCtx.getOtaPackageService().deleteOtaPackage(tenantId, otaPackageInfo.getId());
     }
 
 }

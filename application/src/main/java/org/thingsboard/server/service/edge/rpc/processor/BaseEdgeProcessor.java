@@ -24,6 +24,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -39,11 +40,13 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageDataIterableByTenantIdEntityId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -387,6 +390,15 @@ public abstract class BaseEdgeProcessor {
         }
         Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
         return customerById == null;
+    }
+
+    protected void unassignOtaPackage(DeviceProfile deviceProfile, OtaPackageType otaPackageType, OtaPackageId otaPackageId) {
+        if (OtaPackageType.FIRMWARE == otaPackageType) {
+            deviceProfile.setFirmwareId(null);
+        } else {
+            deviceProfile.setSoftwareId(null);
+        }
+        log.warn("OtaPackage with ID {} not found in DB, unassigned from device profile with id {}", otaPackageId, deviceProfile.getId());
     }
 
 }
