@@ -24,6 +24,13 @@ public class TestEdgeConfiguration {
     private String routingKey;
     private String secret;
     private Integer port;
-    private Integer idx;
-    private String name;
+    private String tag;
+
+    public String getTagWithDash(){
+        return tag.isEmpty() ? "" : "-" + tag;
+    }
+
+    public String getTagWithUnderscore(){
+        return tag.isEmpty() ? "" : "_" + tag;
+    }
 }
