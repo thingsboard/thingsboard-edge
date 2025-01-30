@@ -2206,7 +2206,7 @@
     "sas-key-name-required": "SAS-nøglenavn er påkrævet.",
     "sas-key": "SAS-nøgle",
     "sas-key-required": "SAS-nøgle er påkrævet.",
-    "iot-hub-name": "IoT-hubnavn (påkrævet for downlink)",
+    "iot-hub-name": "IoT-hubnavn",
     "hostname": "Værtsnavn",
     "hostname-required": "Værtsnavn er påkrævet",
     "integration-clazz": "Integrationsklasse",

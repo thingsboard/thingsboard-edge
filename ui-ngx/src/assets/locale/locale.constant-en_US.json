@@ -3900,7 +3900,7 @@
         "sas-key-name-required": "SAS Key Name is required.",
         "sas-key": "SAS Key",
         "sas-key-required": "SAS Key is required.",
-        "iot-hub-name": "IoT Hub Name (required for downlink)",
+        "iot-hub-name": "IoT Hub Name",
         "hostname": "Hostname",
         "hostname-required": "Hostname is required",
         "integration-clazz": "Integration class",

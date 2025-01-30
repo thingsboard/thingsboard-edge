@@ -3132,7 +3132,7 @@
         "sas-key-name-required": "Nombre de Clave SAS es requerido.",
         "sas-key": "Clave SAS",
         "sas-key-required": "Clave SAS es requerida.",
-        "iot-hub-name": "Nombre del Concentrador IoT (requerido para enlace descendente)",
+        "iot-hub-name": "Nombre del Concentrador IoT",
         "metadata": "Metadatos",
         "type": "Tipo",
         "type-required": "Tipo es requerido.",
