@@ -60,7 +60,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                     }
                     deleteSystemResourceIfAlreadyExists(tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
                     Pair<Boolean, TbResourceId> resultPair = renamePreviousResource(tenantId, tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
-                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg, false);
+                    super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg);
                     if (resultPair.getFirst()) {
                         edgeCtx.getResourceService().deleteResource(tenantId, resultPair.getSecond());
                     }
