@@ -139,7 +139,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     @Override
     public CloudEventType getCloudEventType() {
-        return CloudEventType.TB_RESOURCE;
+        return CloudEventType.ENTITY_VIEW;
     }
 
 }
