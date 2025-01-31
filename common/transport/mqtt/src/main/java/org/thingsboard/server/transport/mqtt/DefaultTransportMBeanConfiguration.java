@@ -28,27 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.session;
+package org.thingsboard.server.transport.mqtt;
 
-import lombok.ToString;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.transport.TransportService;
-import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jmx.export.MBeanExporter;
+import org.thingsboard.server.common.transport.service.DefaultTransportService;
+import org.thingsboard.server.queue.util.TbTransportComponent;
 
-import java.util.concurrent.ConcurrentMap;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Created by nickAS21 on 26.12.22
- */
-@ToString(callSuper = true)
-public class GatewayDeviceSessionContext extends AbstractGatewayDeviceSessionContext<GatewaySessionHandler> {
+@Configuration
+@TbTransportComponent
+@RequiredArgsConstructor
+public class DefaultTransportMBeanConfiguration {
 
-    public GatewayDeviceSessionContext(GatewaySessionHandler parent,
-                                       TransportDeviceInfo deviceInfo,
-                                       DeviceProfile deviceProfile,
-                                       ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap,
-                                       TransportService transportService) {
-        super(parent, deviceInfo, deviceProfile, mqttQoSMap, transportService);
+    private final DefaultTransportService transportService;
+
+    @Bean
+    public HashMapObserver hashMapObserver() {
+        return new HashMapObserver(transportService.sessions);
+    }
+
+    @Bean
+    public MBeanExporter mBeanExporter() {
+        MBeanExporter exporter = new MBeanExporter();
+        Map<String, Object> beans = new HashMap<>();
+        beans.put("org.thingsboard:type=TransportSessionMapObserver", hashMapObserver());
+        exporter.setBeans(beans);
+        return exporter;
     }
 
 }
