@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.thingsboard.server.msa.AbstractContainerTest.edgeConfigurations;
+
 @Slf4j
 public class ThingsBoardDbInstaller extends ExternalResource {
 
@@ -86,10 +88,13 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             }
             env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
             env.put("TB_LOG_VOLUME", tbLogVolume);
-            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
-                env.put("SPRING_DATASOURCE_URL_" + edgeEnv, "jdbc:postgresql://postgres:5432/tb_edge_" + edgeEnv);
-                env.put("TB_EDGE_LOG_VOLUME_" + edgeEnv, tbEdgeLogVolume + "-" + edgeEnv);
-                env.put("TB_EDGE_DATA_VOLUME_" + edgeEnv, tbEdgeDataVolume + "-" + edgeEnv);
+
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                env.put("SPRING_DATASOURCE_URL" + config.getTagWithUnderscore().toUpperCase(), "jdbc:postgresql://postgres:5432/tb_edge" + config.getTagWithUnderscore());
+                env.put("TB_EDGE_LOG_VOLUME" + config.getTagWithUnderscore().toUpperCase(), tbEdgeLogVolume + config.getTagWithDash());
+                env.put("TB_EDGE_DATA_VOLUME" + config.getTagWithUnderscore().toUpperCase(), tbEdgeDataVolume + config.getTagWithDash());
+                env.put("CLOUD_ROUTING_KEY" + config.getTagWithUnderscore().toUpperCase(), config.getRoutingKey());
+                env.put("CLOUD_ROUTING_SECRET" + config.getTagWithUnderscore().toUpperCase(), config.getSecret());
             }
 
             dockerCompose.withEnv(env);
@@ -108,11 +113,11 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
             dockerCompose.withCommand("volume create " + tbLogVolume);
             dockerCompose.invokeDocker();
-            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
-                dockerCompose.withCommand("volume create " + tbEdgeLogVolume + "-" + edgeEnv);
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                dockerCompose.withCommand("volume create " + tbEdgeLogVolume + config.getTagWithDash());
                 dockerCompose.invokeDocker();
 
-                dockerCompose.withCommand("volume create " + tbEdgeDataVolume + "-" + edgeEnv);
+                dockerCompose.withCommand("volume create " + tbEdgeDataVolume  + config.getTagWithDash());
                 dockerCompose.invokeDocker();
             }
 
@@ -122,14 +127,14 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB=true -e LOAD_DEMO=true tb-monolith");
             dockerCompose.invokeCompose();
 
-            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
-                dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB_EDGE=true -e LOAD_DEMO=true tb-edge" + "-" + edgeEnv);
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB_EDGE=true -e LOAD_DEMO=true tb-edge" + config.getTagWithDash());
                 dockerCompose.invokeCompose();
             }
             dockerCompose.withCommand("exec -T postgres psql -U postgres -d thingsboard -f /custom-sql/thingsboard.sql");
             dockerCompose.invokeCompose();
-            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
-                dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge" + "_" + edgeEnv + " -f /custom-sql/tb_edge.sql");
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge" + config.getTagWithUnderscore() + " -f /custom-sql/tb_edge.sql");
                 dockerCompose.invokeCompose();
             }
         } finally {
@@ -145,11 +150,11 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     @Override
     protected void after() {
         try {
-            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
+            for (TestEdgeConfiguration config : edgeConfigurations) {
                 copyLogs(tbLogVolume, "./target/tb-logs/");
-                copyLogs(tbEdgeLogVolume + "-" + edgeEnv, "./target/tb-edge-logs/");
+                copyLogs(tbEdgeLogVolume + config.getTagWithDash(), "./target/tb-edge-logs/");
 
-                dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume + "-" + edgeEnv);
+                dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume + config.getTagWithDash());
                 dockerCompose.invokeDocker();
             }
         } catch (Exception e) {

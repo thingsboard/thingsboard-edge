@@ -38,7 +38,7 @@ services:
     ports:
       - "5432"
     environment:
-      POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb_edge_1","tb_edge_2"'
+      POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb_edge","tb_edge_kafka","tb_edge_38","tb_edge_37"'
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./tb-node/postgres:/var/lib/postgresql/data
@@ -49,12 +49,22 @@ services:
       - tb-node.env
     depends_on:
       - postgres
-  tb-edge-1:
+  tb-edge:
     env_file:
       - tb-edge.env
     depends_on:
       - postgres
-  tb-edge-2:
+  tb-edge-kafka:
+    env_file:
+      - tb-edge.env
+    depends_on:
+      - postgres
+  tb-edge-38:
+    env_file:
+      - tb-edge.env
+    depends_on:
+      - postgres
+  tb-edge-37:
     env_file:
       - tb-edge.env
     depends_on:
