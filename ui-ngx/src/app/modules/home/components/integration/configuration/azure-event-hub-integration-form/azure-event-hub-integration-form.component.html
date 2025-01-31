@@ -38,6 +38,13 @@
     <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('connectionString').hasError('required')">
       integration.connection-string-required</mat-error>
   </mat-form-field>
+  <mat-form-field class="mat-block">
+    <mat-label translate>integration.iot-hub-name</mat-label>
+    <input matInput [required]="isSetDownLink" formControlName="iotHubName">
+    <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('iotHubName').hasError('required')">
+      integration.event-iot-hub-name-required
+    </mat-error>
+  </mat-form-field>
 
   <mat-expansion-panel class="expansion-panel-setting"
                        [expanded]="azureEventHubIntegrationConfigForm.get('enablePersistentCheckpoints').value">
@@ -94,13 +101,6 @@
       <mat-form-field class="mat-block">
         <mat-label translate>integration.consumer-group</mat-label>
         <input matInput formControlName="consumerGroup">
-      </mat-form-field>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.iot-hub-name</mat-label>
-        <input matInput [required]="isSetDownLink" formControlName="iotHubName">
-        <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('iotHubName').hasError('required')">
-          integration.event-iot-hub-name-required
-        </mat-error>
       </mat-form-field>
       <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
       </ng-container>

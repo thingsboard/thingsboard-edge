@@ -1586,7 +1586,7 @@
     "sas-key-name-required": "Απαιτείται όνομα SAS Key.",
     "sas-key": "SAS Key",
     "sas-key-required": "Απαιτείται SAS Key.",
-    "iot-hub-name": "IoT Hub Name (απαιτείται για downlink)",
+    "iot-hub-name": "IoT Hub Name",
     "metadata": "Μεταδεδομένα",
     "type": "Τύπος",
     "type-required": "Απαιτείται τύπος.",

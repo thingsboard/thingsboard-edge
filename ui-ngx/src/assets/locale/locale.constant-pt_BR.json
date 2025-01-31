@@ -1807,7 +1807,7 @@
     "sas-key-name-required": "O nome da chave de SAS é obrigatório.",
     "sas-key": "Chave de SAS",
     "sas-key-required": "A chave de SAS é obrigatória.",
-    "iot-hub-name": "Nome do hub de IoT (obrigatório para downlink)",
+    "iot-hub-name": "Nome do hub de IoT",
     "hostname": "Nome do host",
     "hostname-required": "O nome do host é obrigatório.",
     "integration-clazz": "Classe de integração",

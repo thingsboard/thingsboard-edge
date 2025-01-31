@@ -2215,7 +2215,7 @@
         "integration-details": "Détails d'intégration",
         "integration-required": "L'intégration est requise",
         "integrations": "Intégrations",
-        "iot-hub-name": "Nom du hub IoT (requis pour la liaison descendante)",
+        "iot-hub-name": "Nom du hub IoT",
         "key": "Clé",
         "management": "Gestion des intégrations",
         "max-time-diff-in-seconds": "Différence de temps maximale (secondes)",

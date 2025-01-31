@@ -3447,7 +3447,7 @@
         "sas-key-name-required": "SAS-sleutelnaam is vereist.",
         "sas-key": "SAS-toets",
         "sas-key-required": "SAS-sleutel is vereist.",
-        "iot-hub-name": "IoT Hub-naam (vereist voor downlink)",
+        "iot-hub-name": "IoT Hub-naam",
         "hostname": "Hostnaam",
         "hostname-required": "Hostnaam is vereist",
         "integration-clazz": "Integratie klasse",
