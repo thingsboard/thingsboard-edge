@@ -37,6 +37,8 @@ import { HasTenantId } from '@shared/models/entity.models';
 import { deepClone, isNotEmptyStr } from '@core/utils';
 import { MobileSelfRegistrationParams } from '@shared/models/self-register.models';
 
+export const WEB_URL_REGEX = /^(https?:\/\/)?(localhost|([\p{L}\p{M}\w-]+\.)+[\p{L}\p{M}\w-]+)(:\d+)?(\/[\w\-._~:/?#[\]@!$&'()*+,;=%\p{L}\p{N}]*)?$/u;
+
 export interface QrCodeSettings extends HasTenantId {
   useSystemSettings: boolean;
   useDefaultApp: boolean;
