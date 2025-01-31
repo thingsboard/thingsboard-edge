@@ -145,10 +145,10 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           if (this.libraryFormGroup.get('vendor').value?.name) {
             return this.converterLibraryService.getModels(this.integrationType, this.libraryFormGroup.get('vendor').value.name, this.converterType);
           }
-          return of([]);
+          return of(null);
         }
       ),
-      map((models: Model[]) => models.map(model => ({ ...model, searchText: (model.name + model.info.description).toLowerCase() }))),
+      map((models: Model[]) => models?.map(model => ({ ...model, searchText: (model.name + model.info.description).toLowerCase() }))),
       shareReplay(1)
     );
 
@@ -270,14 +270,11 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   clearVendor(): void {
     this.libraryFormGroup.get('vendor').patchValue('');
+    this.modelInputSubject.next();
     setTimeout(() => {
       this.vendorInput.nativeElement.blur();
       this.vendorInput.nativeElement.focus();
     }, 0);
-  }
-
-  trackByName(_, item: Vendor | Model): string {
-    return item.name;
   }
 
   private updateScriptLangEnable(): void {
