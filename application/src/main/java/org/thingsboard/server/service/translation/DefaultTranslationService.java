@@ -75,7 +75,7 @@ public class DefaultTranslationService implements TranslationService {
     public static final String LOCALE_FILES_DIRECTORY_PATH = "public/assets/locale";
     public static final Pattern LOCALE_FILE_PATTERN = Pattern.compile("locale\\.constant-(.*?)\\.json");
     public static final String DEFAULT_LOCALE_CODE = "en_US";
-    private static final Set<String> DEFAULT_LOCALE_KEYS;
+    public static final Set<String> DEFAULT_LOCALE_KEYS;
     private static final Map<String, JsonNode> TRANSLATION_VALUE_MAP = new HashMap<>();
     private static final Map<String, TranslationInfo> TRANSLATION_INFO_MAP = new HashMap<>();
 
