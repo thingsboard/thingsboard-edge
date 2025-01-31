@@ -95,11 +95,11 @@ import { Filter, singleEntityFilterFromDeviceId } from '@shared/models/query/que
 import { FilterDialogComponent, FilterDialogData } from '@home/components/filter/filter-dialog.component';
 import { ToggleHeaderOption } from '@shared/components/toggle-header.component';
 import { coerceBoolean } from '@shared/decorators/coercion';
-import { basicWidgetConfigComponentsMap } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { TimewindowConfigData } from '@home/components/widget/config/timewindow-config-panel.component';
 import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
 import { defaultFormProperties, FormProperty } from '@shared/models/dynamic-form.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { WidgetService } from '@core/http/widget.service';
 import Timeout = NodeJS.Timeout;
 
 @Component({
@@ -225,6 +225,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
               public translate: TranslateService,
               private fb: UntypedFormBuilder,
               private cd: ChangeDetectorRef,
+              private widgetService: WidgetService,
               private destroyRef: DestroyRef) {
     super(store);
   }
@@ -459,7 +460,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
   }
 
   private setupBasicModeConfig(isAdd = false) {
-    const componentType = basicWidgetConfigComponentsMap[this.modelValue.basicModeDirective];
+    const componentType = this.widgetService.getBasicWidgetSettingsComponentBySelector(this.modelValue.basicModeDirective);
     if (!componentType) {
       this.basicModeDirectiveError = this.translate.instant('widget-config.settings-component-not-found',
         {selector: this.modelValue.basicModeDirective});
