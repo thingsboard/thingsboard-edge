@@ -1343,10 +1343,12 @@ public class ProtoUtils {
                 .setIsEdgeTemplate(converter.isEdgeTemplate())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()));
 
+        if (isNotNull(converter.getIntegrationType())) {
+            builder.setIntegrationType(converter.getIntegrationType().name());
+        }
         if (isNotNull(converter.getDebugSettings())) {
             builder.setDebugSettings(JacksonUtil.toString(converter.getDebugSettings()));
         }
-
         if (isNotNull(converter.getAdditionalInfo())) {
             builder.setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
         }
@@ -1370,6 +1372,9 @@ public class ProtoUtils {
         converter.setEdgeTemplate(proto.getIsEdgeTemplate());
         converter.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
 
+        if (proto.hasIntegrationType()) {
+            converter.setIntegrationType(IntegrationType.valueOf(proto.getIntegrationType()));
+        }
         if (proto.hasDebugSettings()) {
             converter.setDebugSettings(JacksonUtil.fromString(proto.getDebugSettings(), DebugSettings.class));
         }

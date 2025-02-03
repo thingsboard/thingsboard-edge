@@ -98,7 +98,10 @@ public class ConverterDataValidator extends DataValidator<Converter> {
             throw new DataValidationException("Converter configuration should be specified!");
         } else {
             if (converter.getType() == ConverterType.UPLINK) {
-                if (!converter.getConfiguration().has("decoder")) {
+                if (converter.isDedicated() && !converter.getConfiguration().has("function")) {
+                    throw new DataValidationException("Converter 'function' field should be specified in configuration!");
+                }
+                if (!converter.isDedicated() && !converter.getConfiguration().has("decoder")) {
                     throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
                 }
             } else {

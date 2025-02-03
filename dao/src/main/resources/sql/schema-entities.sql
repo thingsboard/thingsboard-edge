@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS converter (
     name varchar(255),
     tenant_id uuid,
     type varchar(255),
+    integration_type varchar(255),
     external_id uuid,
     is_edge_template boolean DEFAULT false,
     version BIGINT DEFAULT 1,

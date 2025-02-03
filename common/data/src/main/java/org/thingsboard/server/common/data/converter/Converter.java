@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
@@ -64,6 +65,8 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     @Length(fieldName = "name")
     private String name;
     private ConverterType type;
+    @Setter
+    private IntegrationType integrationType;
     @Deprecated
     private boolean debugMode;
     private DebugSettings debugSettings;
@@ -92,6 +95,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.tenantId = converter.getTenantId();
         this.name = converter.getName();
         this.type = converter.getType();
+        this.integrationType = converter.getIntegrationType();
         this.debugSettings = converter.getDebugSettings();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
@@ -141,6 +145,11 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
 
     public void setType(ConverterType type) {
         this.type = type;
+    }
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The type of the integration to which the converter is dedicated")
+    public IntegrationType getIntegrationType() {
+        return integrationType;
     }
 
     @Schema(description = "Enable/disable debug. ", example = "false", deprecated = true)
@@ -199,6 +208,11 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.CONVERTER;
+    }
+
+    @JsonIgnore
+    public boolean isDedicated() {
+        return integrationType != null;
     }
 
 }

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.converter;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.converter.DedicatedScriptUplinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDataConverter;
@@ -96,9 +97,15 @@ public class DefaultDataConverterService implements DataConverterService {
         if (rpcService != null) {
             rpcService.updateConverter(configuration);
         }
+
         TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
-            converter.update(configuration);
+            if (converter instanceof DedicatedScriptUplinkDataConverter ^ configuration.isDedicated()) {
+                deleteConverter(configuration.getId());
+                return createConverter(configuration);
+            } else {
+                converter.update(configuration);
+            }
             eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
             return converter;
         } else {
@@ -137,17 +144,17 @@ public class DefaultDataConverterService implements DataConverterService {
     }
 
     private TBDataConverter initConverter(Converter converter) {
-        switch (converter.getType()) {
-            case UPLINK:
-                ScriptUplinkDataConverter uplink = new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
-                uplink.init(converter);
-                return uplink;
-            case DOWNLINK:
-                ScriptDownlinkDataConverter downlink = new ScriptDownlinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
-                downlink.init(converter);
-                return downlink;
-            default:
-                throw new RuntimeException("Not Implemented!");
-        }
+        var dataConverter = switch (converter.getType()) {
+            case UPLINK -> {
+                if (converter.isDedicated()) {
+                    yield new DedicatedScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
+                } else {
+                    yield new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
+                }
+            }
+            case DOWNLINK -> new ScriptDownlinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
+        };
+        dataConverter.init(converter);
+        return dataConverter;
     }
 }

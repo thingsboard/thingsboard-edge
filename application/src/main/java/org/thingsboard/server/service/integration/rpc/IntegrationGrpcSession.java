@@ -452,6 +452,9 @@ public final class IntegrationGrpcSession implements Closeable {
         if (converter.getDebugSettings() != null) {
             builder.setDebugSettings(JacksonUtil.toString(converter.getDebugSettings()));
         }
+        if (converter.getIntegrationType() != null) {
+            builder.setIntegrationType(converter.getIntegrationType().toString());
+        }
         return builder.build();
     }
 

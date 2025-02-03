@@ -45,12 +45,14 @@ import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_INTEGRATION_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TABLE_NAME;
@@ -73,6 +75,10 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
     @Enumerated(EnumType.STRING)
     @Column(name = CONVERTER_TYPE_PROPERTY)
     private ConverterType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = CONVERTER_INTEGRATION_TYPE_PROPERTY)
+    private IntegrationType integrationType;
 
     @Column(name = ModelConstants.DEBUG_SETTINGS)
     private String debugSettings;
@@ -102,6 +108,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
         }
         this.name = converter.getName();
         this.type = converter.getType();
+        this.integrationType = converter.getIntegrationType();
         this.debugSettings = JacksonUtil.toString(converter.getDebugSettings());
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
@@ -121,6 +128,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
         }
         converter.setName(name);
         converter.setType(type);
+        converter.setIntegrationType(integrationType);
         converter.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);

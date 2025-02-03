@@ -30,51 +30,30 @@
  */
 package org.thingsboard.integration.api.converter;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.integration.api.util.LogSettingsComponent;
-import org.thingsboard.script.api.ScriptInvokeService;
-import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.tbel.TbelInvokeService;
-import org.thingsboard.server.common.data.converter.Converter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 
-/**
- * Created by ashvayka on 02.12.17.
- */
-public class ScriptUplinkDataConverter extends AbstractUplinkDataConverter {
+import java.util.Set;
 
-    private ScriptUplinkEvaluator evaluator;
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class DedicatedConverterConfig {
+    private boolean isDevice;
+    private String name;
+    private String label;
+    private String profile;
+    private String customer;
+    private String group;
+    private Set<String> attributes;
+    private Set<String> telemetry;
+    private ScriptLanguage scriptLang;
+    private String function;
+    private String tbelFunction;
+    private Set<String> updateOnlyKeys;
+    private Set<String> keys;
 
-    public ScriptUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
-        super(jsInvokeService, tbelInvokeService, logSettings);
+    public void setIsDevice(boolean isDevice) {
+        this.isDevice = isDevice;
     }
-
-    @Override
-    public void init(Converter configuration) {
-        super.init(configuration);
-        ScriptInvokeService scriptInvokeService = getScriptInvokeService(configuration);
-        String decoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "decoder" : "tbelDecoder";
-        String decoder = configuration.getConfiguration().get(decoderField).asText();
-        this.evaluator = new ScriptUplinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), decoder);
-    }
-
-    @Override
-    public void update(Converter configuration) {
-        destroy();
-        init(configuration);
-    }
-
-    @Override
-    public void destroy() {
-        if (this.evaluator != null) {
-            this.evaluator.destroy();
-        }
-    }
-
-    @Override
-    public ListenableFuture<String> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        return evaluator.execute(data, metadata);
-    }
-
 }
