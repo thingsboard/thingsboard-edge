@@ -103,7 +103,7 @@ public class ResourceClientTest extends AbstractContainerTest {
         TbResource tbResource = new TbResource();
         tbResource.setTitle(title);
         tbResource.setResourceKey(resourceKey);
-        tbResource.setResourceType(ResourceType.JS_MODULE);
+        tbResource.setResourceType(ResourceType.JKS);
         tbResource.setFileName(resourceKey);
         tbResource.setData("Data".getBytes());
         return restClient.saveResource(tbResource);
