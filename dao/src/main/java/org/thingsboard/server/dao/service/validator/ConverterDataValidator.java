@@ -51,6 +51,8 @@ public class ConverterDataValidator extends DataValidator<Converter> {
     @Autowired
     private ConverterDao converterDao;
 
+    private static final String DUPLICATE_CONVERTER_ERROR_MESSAGE = "Converter with such name and type already exists!";
+
     @Override
     protected void validateCreate(TenantId tenantId, Converter converter) {
         if (!converter.isEdgeTemplate()) {
@@ -58,25 +60,33 @@ public class ConverterDataValidator extends DataValidator<Converter> {
         }
         converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType()).ifPresent(
                 d -> {
-                    throw new DataValidationException("Converter with such name already exists!");
+                    throw new DataValidationException(DUPLICATE_CONVERTER_ERROR_MESSAGE);
                 }
         );
     }
 
     @Override
     protected Converter validateUpdate(TenantId tenantId, Converter converter) {
-        var oldConverter = converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType());
-        oldConverter.ifPresent(
-                d -> {
-                    if (!d.getId().equals(converter.getId())) {
-                        throw new DataValidationException("Converter with such name already exists!");
-                    }
-                    if (!d.getType().equals(converter.getType())) {
-                        throw new DataValidationException("Converter type can not be changed!");
-                    }
-                }
-        );
-        return oldConverter.orElse(null);
+        Converter existingConverter = converterDao.findById(converter.getTenantId(), converter.getUuidId());
+
+        if (existingConverter != null) {
+            if (!existingConverter.getType().equals(converter.getType())) {
+                throw new DataValidationException("Converter type cannot be changed!");
+            }
+
+            boolean nameExists = converterDao.existsByTenantIdAndNameAndTypeAndIdNot(
+                    converter.getTenantId().getId(),
+                    converter.getName(),
+                    converter.getType(),
+                    converter.getUuidId()
+            );
+
+            if (nameExists) {
+                throw new DataValidationException(DUPLICATE_CONVERTER_ERROR_MESSAGE);
+            }
+        }
+
+        return existingConverter;
     }
 
     @Override

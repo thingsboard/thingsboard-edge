@@ -89,8 +89,10 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         log.trace("Executing saveConverter [{}]", converter);
         converterValidator.validate(converter, Converter::getTenantId);
         TenantId tenantId = converter.getTenantId();
+
         try {
             updateDebugSettings(tenantId, converter, System.currentTimeMillis());
+
             Converter savedConverter = converterDao.save(converter.getTenantId(), converter);
             if (converter.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);
