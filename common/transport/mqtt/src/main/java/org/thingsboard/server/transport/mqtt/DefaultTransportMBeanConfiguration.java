@@ -28,36 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.transport.mqtt;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.integration.IntegrationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jmx.export.MBeanExporter;
+import org.thingsboard.server.common.transport.service.DefaultTransportService;
+import org.thingsboard.server.queue.util.TbTransportComponent;
 
-@AllArgsConstructor
-@Slf4j
-public class IntegrationEventsEdgeEventFetcher extends BasePageableEdgeEventFetcher<Integration> {
+import java.util.HashMap;
+import java.util.Map;
 
-    private final IntegrationService integrationService;
+@Configuration
+@TbTransportComponent
+@RequiredArgsConstructor
+public class DefaultTransportMBeanConfiguration {
 
-    @Override
-    PageData<Integration> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
-        return integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
+    private final DefaultTransportService transportService;
+
+    @Bean
+    public HashMapObserver hashMapObserver() {
+        return new HashMapObserver(transportService.sessions);
     }
 
-    @Override
-    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, Integration integration) {
-        return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.INTEGRATION,
-                EdgeEventActionType.ADDED, integration.getId(), null);
+    @Bean
+    public MBeanExporter mBeanExporter() {
+        MBeanExporter exporter = new MBeanExporter();
+        Map<String, Object> beans = new HashMap<>();
+        beans.put("org.thingsboard:type=TransportSessionMapObserver", hashMapObserver());
+        exporter.setBeans(beans);
+        return exporter;
     }
 
 }

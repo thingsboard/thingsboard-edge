@@ -28,27 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.session;
+package org.thingsboard.server.transport.mqtt;
 
-import lombok.ToString;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.transport.TransportService;
-import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
+public interface HashMapObserverMBean {
+    int getSize();
 
-import java.util.concurrent.ConcurrentMap;
+    long getGatewayCount(String unused);
 
-/**
- * Created by nickAS21 on 26.12.22
- */
-@ToString(callSuper = true)
-public class GatewayDeviceSessionContext extends AbstractGatewayDeviceSessionContext<GatewaySessionHandler> {
+    long getNonGatewayCount(String unused);
 
-    public GatewayDeviceSessionContext(GatewaySessionHandler parent,
-                                       TransportDeviceInfo deviceInfo,
-                                       DeviceProfile deviceProfile,
-                                       ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap,
-                                       TransportService transportService) {
-        super(parent, deviceInfo, deviceProfile, mqttQoSMap, transportService);
-    }
+    String getSessionByUUID(String key);
 
+    String getAllSessions(String key);
+
+    String getSubscribedSessions(String unused);
+
+    String getNonActiveSessions(String unused);
+
+    String getActiveSessions(String unused);
+
+    String getGatewayDeviceSessionContextConnectedSessions(String unused);
+
+    String getDeviceAwareSessionContextNotConnectedSessions(String unused);
 }

@@ -48,7 +48,7 @@ import org.thingsboard.server.service.edge.rpc.fetch.DeviceGroupOtaPackageEdgeEv
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.IntegrationEventsEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.IntegrationsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.NotificationRuleEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.NotificationTargetEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.NotificationTemplateEdgeEventFetcher;
@@ -121,7 +121,7 @@ public class EdgeSyncCursor {
             fetchers.add(new NotificationTemplateEdgeEventFetcher(ctx.getNotificationTemplateService()));
             fetchers.add(new NotificationTargetEdgeEventFetcher(ctx.getNotificationTargetService()));
             fetchers.add(new NotificationRuleEdgeEventFetcher(ctx.getNotificationRuleService()));
-            fetchers.add(new IntegrationEventsEdgeEventFetcher(ctx.getIntegrationService()));
+            fetchers.add(new IntegrationsEdgeEventFetcher(ctx.getIntegrationService()));
             fetchers.add(new OtaPackagesEdgeEventFetcher(ctx.getOtaPackageService()));
             fetchers.add(new TenantResourcesEdgeEventFetcher(ctx.getResourceService()));
             fetchers.add(new DeviceGroupOtaPackageEdgeEventFetcher(ctx.getDeviceGroupOtaPackageService(), ctx.getEntityGroupService()));

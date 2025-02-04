@@ -31,6 +31,7 @@
 package org.thingsboard.server.transport.mqtt.session;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
+import lombok.ToString;
 import org.thingsboard.server.common.transport.session.DeviceAwareSessionContext;
 
 import java.util.List;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 /**
  * Created by ashvayka on 30.08.18.
  */
+@ToString(callSuper = true)
 public abstract class MqttDeviceAwareSessionContext extends DeviceAwareSessionContext {
 
     private final ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap;

@@ -139,6 +139,16 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void shouldNotSaveCustomTranslationWithKeyThatOverlapsWithDefault() throws Exception {
+        loginSysAdmin();
+        JsonNode wrongCustomTranslation = JacksonUtil.toJsonNode("{\"admin.home.customKey\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
+        doPost("/api/translation/custom/" + ES_ES, wrongCustomTranslation).andExpect(status().isBadRequest());
+
+        JsonNode correctCustomTranslation = JacksonUtil.toJsonNode("{\"admin.home\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
+        doPost("/api/translation/custom/" + ES_ES, correctCustomTranslation).andExpect(status().isOk());
+    }
+
+    @Test
     public void shouldGetCorrectMergedCustomTranslation() throws Exception {
         loginSysAdmin();
         JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"system\", \"update\" : \"system\" ," +
