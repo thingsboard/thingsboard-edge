@@ -94,8 +94,8 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     }
 
     @Override
-    public boolean existsByTenantIdAndNameAndTypeAndIdNot(UUID tenantId, String name, ConverterType type, UUID converterId) {
-        return converterRepository.existsByTenantIdAndNameAndTypeAndIdNot(tenantId, name,  type, converterId);
+    public boolean existsByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type, UUID skippedId) {
+        return converterRepository.existsByTenantIdAndNameAndTypeAndIdNot(tenantId, name,  type, skippedId);
     }
 
     @Override

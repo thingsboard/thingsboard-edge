@@ -114,5 +114,5 @@ public interface ConverterDao extends Dao<Converter>, TenantEntityDao, Exportabl
      */
     boolean hasConverterOfType(UUID tenantId, ConverterType type);
 
-    boolean existsByTenantIdAndNameAndTypeAndIdNot(UUID tenantId, String name, ConverterType type, UUID converterId);
+    boolean existsByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type, UUID skippedId);
 }

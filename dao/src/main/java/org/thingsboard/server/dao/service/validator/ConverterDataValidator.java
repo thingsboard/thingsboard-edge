@@ -51,41 +51,21 @@ public class ConverterDataValidator extends DataValidator<Converter> {
     @Autowired
     private ConverterDao converterDao;
 
-    private static final String DUPLICATE_CONVERTER_ERROR_MESSAGE = "Converter with such name and type already exists!";
-
     @Override
     protected void validateCreate(TenantId tenantId, Converter converter) {
         if (!converter.isEdgeTemplate()) {
             validateNumberOfEntitiesPerTenant(tenantId, EntityType.CONVERTER);
         }
-        converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType()).ifPresent(
-                d -> {
-                    throw new DataValidationException(DUPLICATE_CONVERTER_ERROR_MESSAGE);
-                }
-        );
     }
 
     @Override
     protected Converter validateUpdate(TenantId tenantId, Converter converter) {
         Converter existingConverter = converterDao.findById(converter.getTenantId(), converter.getUuidId());
-
         if (existingConverter != null) {
-            if (!existingConverter.getType().equals(converter.getType())) {
+            if (!converter.getType().equals(existingConverter.getType())) {
                 throw new DataValidationException("Converter type cannot be changed!");
             }
-
-            boolean nameExists = converterDao.existsByTenantIdAndNameAndTypeAndIdNot(
-                    converter.getTenantId().getId(),
-                    converter.getName(),
-                    converter.getType(),
-                    converter.getUuidId()
-            );
-
-            if (nameExists) {
-                throw new DataValidationException(DUPLICATE_CONVERTER_ERROR_MESSAGE);
-            }
         }
-
         return existingConverter;
     }
 
@@ -117,5 +97,9 @@ public class ConverterDataValidator extends DataValidator<Converter> {
                 }
             }
         }
+        if (converterDao.existsByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType(), converter.getUuidId())) {
+            throw new DataValidationException("Converter with such name and type already exists!");
+        }
     }
+
 }
