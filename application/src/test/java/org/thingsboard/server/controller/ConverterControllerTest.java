@@ -93,8 +93,10 @@ public class ConverterControllerTest extends AbstractControllerTest {
     private Tenant savedTenant;
     private User tenantAdmin;
 
-    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
+    private static final JsonNode CUSTOM_UPLINK_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
             .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+    private static final JsonNode CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
+            .put("encoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
 
     @Before
     public void beforeTest() throws Exception {
@@ -126,7 +128,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -158,7 +160,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
         Converter foundConverter = doGet("/api/converter/" + savedConverter.getId().getId().toString(), Converter.class);
         Assert.assertNotNull(foundConverter);
@@ -170,7 +172,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -205,6 +207,105 @@ public class ConverterControllerTest extends AbstractControllerTest {
         testNotifyEntityEqualsOneTimeServiceNeverError(converter,
                 savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED,
                 new DataValidationException(msgError));
+    }
+
+    @Test
+    public void testUpdateConverterType() throws Exception {
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        converter.setType(ConverterType.UPLINK);
+        Converter savedConverter = doPost("/api/converter", converter, Converter.class);
+
+        savedConverter.setType(ConverterType.DOWNLINK);
+        savedConverter.setConfiguration(CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION);
+
+        String msgError = "Converter type cannot be changed!";
+        doPost("/api/converter", savedConverter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+    }
+
+    @Test
+    public void testSaveConverterEnsuresUniqueNameAndType() throws Exception {
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        converter.setType(ConverterType.UPLINK);
+        converter.setTenantId(savedTenant.getId());
+        doPost("/api/converter", converter, Converter.class);
+
+        String msgError = "Converter with such name and type already exists!";
+        doPost("/api/converter", converter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+    }
+
+    @Test
+    public void testUpdateConverterEnsuresUniqueNameAndType() throws Exception {
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        converter.setType(ConverterType.UPLINK);
+        converter.setTenantId(savedTenant.getId());
+        doPost("/api/converter", converter, Converter.class);
+
+        converter.setName("My converter 2");
+        Converter savedConverter =  doPost("/api/converter", converter , Converter.class);
+
+        savedConverter.setName("My converter");
+        String msgError = "Converter with such name and type already exists!";
+        doPost("/api/converter", converter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+    }
+
+    @Test
+    public void testSaveConvertersWithSameNameDifferentType() {
+        Converter uplinkConverter = new Converter();
+        uplinkConverter.setName("My converter");
+        uplinkConverter.setType(ConverterType.UPLINK);
+        uplinkConverter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        uplinkConverter.setTenantId(savedTenant.getId());
+        Converter savedUplinkConverter = doPost("/api/converter", uplinkConverter, Converter.class);
+        Assert.assertNotNull(savedUplinkConverter);
+        Assert.assertNotNull(savedUplinkConverter.getId());
+
+        Converter downlinkConverter = new Converter();
+        downlinkConverter.setName("My converter");
+        downlinkConverter.setType(ConverterType.DOWNLINK);
+        downlinkConverter.setConfiguration(CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION);
+        downlinkConverter.setTenantId(savedTenant.getId());
+        Converter savedDownlinkConverter = doPost("/api/converter", downlinkConverter, Converter.class);
+        Assert.assertNotNull(savedDownlinkConverter);
+        Assert.assertNotNull(savedDownlinkConverter.getId());
+    }
+
+    @Test
+    public void testUpdateConverterWithSameNameDifferentType() {
+        Converter uplinkConverter = new Converter();
+        uplinkConverter.setName("My converter");
+        uplinkConverter.setType(ConverterType.UPLINK);
+        uplinkConverter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        uplinkConverter.setTenantId(savedTenant.getId());
+        Converter savedUplinkConverter = doPost("/api/converter", uplinkConverter, Converter.class);
+        Assert.assertNotNull(savedUplinkConverter);
+        Assert.assertNotNull(savedUplinkConverter.getId());
+
+        Converter downlinkConverter = new Converter();
+        downlinkConverter.setName("Another converter");
+        downlinkConverter.setType(ConverterType.DOWNLINK);
+        downlinkConverter.setConfiguration(CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION);
+        downlinkConverter.setTenantId(savedTenant.getId());
+        Converter savedDownlinkConverter = doPost("/api/converter", downlinkConverter, Converter.class);
+        Assert.assertNotNull(savedDownlinkConverter);
+        Assert.assertNotNull(savedDownlinkConverter.getId());
+
+        savedDownlinkConverter.setName("My converter");
+        Converter updatedDownlinkConverter = doPost("/api/converter", savedDownlinkConverter, Converter.class);
+        Assert.assertNotNull(updatedDownlinkConverter);
+        Assert.assertEquals("My converter", updatedDownlinkConverter.getName());
+        Assert.assertEquals(ConverterType.DOWNLINK, updatedDownlinkConverter.getType());
     }
 
     @Test
@@ -256,7 +357,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
             Converter converter = new Converter();
             converter.setName("Converter" + i);
             converter.setType(ConverterType.UPLINK);
-            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
 
@@ -294,7 +395,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
             converter.setType(ConverterType.UPLINK);
-            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
         String title2 = "Converter title 2";
@@ -306,7 +407,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
             converter.setType(ConverterType.UPLINK);
-            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
             converters1.add(doPost("/api/converter", converter, Converter.class));
         }
 
@@ -381,7 +482,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter uplinkConverter = new Converter();
         uplinkConverter.setName("UP");
         uplinkConverter.setType(ConverterType.UPLINK);
-        uplinkConverter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        uplinkConverter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
         uplinkConverter = doPost("/api/converter", uplinkConverter, Converter.class);
 
         Converter downlinkConverter = new Converter();
@@ -593,7 +694,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         converter.setName(name);
         converter.setType(ConverterType.UPLINK);
         converter.setEdgeTemplate(edgeTemplate);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
         return converter;
     }
 
