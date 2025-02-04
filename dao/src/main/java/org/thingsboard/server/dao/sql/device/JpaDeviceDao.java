@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.sql.device;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -322,8 +323,8 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
     }
 
     @Override
-    public PageData<DeviceFields> findAllFields(PageLink pageLink) {
-        return DaoUtil.pageToPageData(deviceRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    public List<DeviceFields> findNextBatch(UUID id, int batchSize) {
+        return deviceRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

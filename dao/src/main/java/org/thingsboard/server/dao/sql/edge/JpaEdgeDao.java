@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.sql.edge;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -264,8 +265,8 @@ public class JpaEdgeDao extends JpaAbstractDao<EdgeEntity, Edge> implements Edge
     }
 
     @Override
-    public PageData<EdgeFields> findAllFields(PageLink pageLink) {
-        return DaoUtil.pageToPageData(edgeRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    public List<EdgeFields> findNextBatch(UUID id, int batchSize) {
+        return edgeRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

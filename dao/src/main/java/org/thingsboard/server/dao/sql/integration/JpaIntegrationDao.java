@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.sql.integration;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
@@ -159,8 +160,8 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
     }
 
     @Override
-    public PageData<IntegrationFields> findAllFields(PageLink pageLink) {
-        return DaoUtil.pageToPageData(integrationRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    public List<IntegrationFields> findNextBatch(UUID id, int batchSize) {
+        return integrationRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.role;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
@@ -153,8 +154,8 @@ public class JpaRoleDao extends JpaAbstractDao<RoleEntity, Role> implements Role
     }
 
     @Override
-    public PageData<RoleFields> findAllFields(PageLink pageLink) {
-        return DaoUtil.pageToPageData(roleRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    public List<RoleFields> findNextBatch(UUID id, int batchSize) {
+        return roleRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

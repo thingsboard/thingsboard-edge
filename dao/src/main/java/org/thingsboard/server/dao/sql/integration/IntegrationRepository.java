@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -87,7 +88,6 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
     UUID getExternalIdById(@Param("id") UUID id);
 
     @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.IntegrationFields(i.id, i.createdTime," +
-            "i.tenantId, i.name, i.version, i.type, i.additionalInfo) FROM IntegrationEntity i")
-    Page<IntegrationFields> findAllFields(Pageable pageable);
-
+            "i.tenantId, i.name, i.version, i.type, i.additionalInfo) FROM IntegrationEntity i WHERE i.id > :id ORDER BY i.id")
+    List<IntegrationFields> findNextBatch(@Param("id") UUID id, Limit limit);
 }

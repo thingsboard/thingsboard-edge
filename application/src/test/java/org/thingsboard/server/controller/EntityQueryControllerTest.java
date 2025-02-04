@@ -224,7 +224,7 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         EntityTypeFilter allDeviceFilter = new EntityTypeFilter();
         allDeviceFilter.setEntityType(EntityType.DEVICE);
         EntityCountQuery query = new EntityCountQuery(allDeviceFilter);
-        Long initialCount = countByQuery(query);
+        countByQueryAndCheck(query, 0);
 
         loginTenantAdmin();
 
@@ -245,7 +245,7 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         loginSysAdmin();
 
         EntityCountQuery countQuery = new EntityCountQuery(filter);
-        countByQueryAndCheck(countQuery, initialCount + 97);
+        countByQueryAndCheck(countQuery, 97);
 
         filter.setDeviceType("unknown");
         countByQueryAndCheck(countQuery, 0);
@@ -261,7 +261,7 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         countQuery = new EntityCountQuery(entityListFilter);
         countByQueryAndCheck(countQuery, 97);
 
-        countByQueryAndCheck(query, initialCount + 97);
+        countByQueryAndCheck(query, 97);
     }
 
     @Test

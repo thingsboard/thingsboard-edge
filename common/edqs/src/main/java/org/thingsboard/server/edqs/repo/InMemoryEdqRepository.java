@@ -33,7 +33,9 @@ package org.thingsboard.server.edqs.repo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.EdqsEvent;
+import org.thingsboard.server.common.data.edqs.EdqsEventType;
 import org.thingsboard.server.common.data.edqs.query.QueryResult;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -64,7 +66,12 @@ public class InMemoryEdqRepository implements EdqRepository {
 
     @Override
     public void processEvent(EdqsEvent event) {
-        get(event.getTenantId()).processEvent(event);
+        if (event.getEventType() == EdqsEventType.DELETED && event.getObjectType() == ObjectType.TENANT) {
+            log.info("Deleting tenant repo: {}", event);
+            repos.remove(event.getTenantId());
+        } else {
+            get(event.getTenantId()).processEvent(event);
+        }
     }
 
     @Override

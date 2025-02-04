@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -193,8 +194,8 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
-    public PageData<EntityGroupFields> findAllFields(PageLink pageLink) {
-        return DaoUtil.pageToPageData(entityGroupRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    public List<EntityGroupFields> findNextBatch(UUID id, int batchSize) {
+        return entityGroupRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

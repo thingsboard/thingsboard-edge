@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.customer;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -127,7 +128,7 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
 
 
     @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.CustomerFields(c.id, c.createdTime, c.tenantId, " +
-            "c.title, c.version, c.additionalInfo, c.country, c.state, c.city, c.address, c.address2, c.zip, c.phone, c.email) FROM CustomerEntity c")
-    Page<CustomerFields> findAllFields(Pageable pageable);
-
+            "c.title, c.version, c.additionalInfo, c.country, c.state, c.city, c.address, c.address2, c.zip, c.phone, c.email) " +
+            "FROM CustomerEntity c WHERE c.id > :id ORDER BY c.id")
+    List<CustomerFields> findNextBatch(@Param("id") UUID id, Limit limit);
 }
