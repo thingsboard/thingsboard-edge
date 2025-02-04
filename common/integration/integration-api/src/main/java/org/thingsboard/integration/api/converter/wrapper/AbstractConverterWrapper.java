@@ -30,16 +30,54 @@
  */
 package org.thingsboard.integration.api.converter.wrapper;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.util.TbPair;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public interface ConverterWrapper {
+public abstract class AbstractConverterWrapper implements ConverterWrapper {
 
-    TbPair<byte[], UplinkMetaData> wrap(DedicatedConverterConfig config, byte[] payload, UplinkMetaData metadata);
+    @Override
+    public TbPair<byte[], UplinkMetaData> wrap(DedicatedConverterConfig config, byte[] payload, UplinkMetaData metadata) {
+        JsonNode payloadJson = JacksonUtil.fromBytes(payload);
+        Map<String, String> payloadKvMap = readPayloadFields((ObjectNode) payloadJson, new HashMap<>());
 
-    Map<String, String> getKeys();
+        Map<String, String> kvMap = getKeys().entrySet().stream()
+                .filter(e -> payloadKvMap.containsKey(e.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> payloadKvMap.get(e.getValue())));
 
+        kvMap.putAll(metadata.getKvMap());
+        UplinkMetaData mergedMetadata = new UplinkMetaData(getContentType(), kvMap);
+
+        return TbPair.of(getPayload(payloadJson), mergedMetadata);
+    }
+
+    private Map<String, String> readPayloadFields(ObjectNode payload, Map<String, String> kvMap) {
+        payload.properties().forEach(e -> {
+            JsonNode node = e.getValue();
+            if (node.isObject()) {
+                readPayloadFields((ObjectNode) node, kvMap);
+            } else {
+                kvMap.put(e.getKey(), node.toString());
+            }
+        });
+        return kvMap;
+    }
+
+    protected byte[] getPayload(JsonNode payloadJson) {
+        var data = payloadJson.get("data").textValue();
+        return data.getBytes(StandardCharsets.UTF_8);
+    }
+
+    protected ContentType getContentType() {
+        return ContentType.TEXT;
+    }
 }

@@ -42,6 +42,8 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
+import java.util.Objects;
+
 @Component
 public class ConverterDataValidator extends DataValidator<Converter> {
 
@@ -74,6 +76,9 @@ public class ConverterDataValidator extends DataValidator<Converter> {
                     if (!d.getType().equals(converter.getType())) {
                         throw new DataValidationException("Converter type can not be changed!");
                     }
+                    if (!Objects.equals(converter.getIntegrationType(), converter.getIntegrationType())) {
+                        throw new DataValidationException("Integration type can not be changed!");
+                    }
                 }
         );
         return oldConverter.orElse(null);
@@ -98,10 +103,11 @@ public class ConverterDataValidator extends DataValidator<Converter> {
             throw new DataValidationException("Converter configuration should be specified!");
         } else {
             if (converter.getType() == ConverterType.UPLINK) {
-                if (converter.isDedicated() && !converter.getConfiguration().has("function")) {
-                    throw new DataValidationException("Converter 'function' field should be specified in configuration!");
-                }
-                if (!converter.isDedicated() && !converter.getConfiguration().has("decoder")) {
+                if (converter.isDedicated()) {
+                    if (!converter.getConfiguration().has("function")) {
+                        throw new DataValidationException("Converter 'function' field should be specified in configuration!");
+                    }
+                } else if (!converter.getConfiguration().has("decoder")) {
                     throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
                 }
             } else {

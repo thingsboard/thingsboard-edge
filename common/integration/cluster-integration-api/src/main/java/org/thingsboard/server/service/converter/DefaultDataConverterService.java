@@ -97,15 +97,9 @@ public class DefaultDataConverterService implements DataConverterService {
         if (rpcService != null) {
             rpcService.updateConverter(configuration);
         }
-
         TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
-            if (converter instanceof DedicatedScriptUplinkDataConverter ^ configuration.isDedicated()) {
-                deleteConverter(configuration.getId());
-                return createConverter(configuration);
-            } else {
-                converter.update(configuration);
-            }
+            converter.update(configuration);
             eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
             return converter;
         } else {
