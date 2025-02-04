@@ -45,7 +45,7 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 
 @AllArgsConstructor
 @Slf4j
-public class IntegrationEventsEdgeEventFetcher extends BasePageableEdgeEventFetcher<Integration> {
+public class IntegrationsEdgeEventFetcher extends BasePageableEdgeEventFetcher<Integration> {
 
     private final IntegrationService integrationService;
 
