@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NotificationTargetService {
 
@@ -57,6 +58,8 @@ public interface NotificationTargetService {
     List<NotificationTarget> findNotificationTargetsByTenantIdAndIds(TenantId tenantId, List<NotificationTargetId> ids);
 
     List<NotificationTarget> findNotificationTargetsByTenantIdAndUsersFilterType(TenantId tenantId, UsersFilterType filterType);
+
+    Optional<NotificationTarget> findNotificationTargetByTenantIdAndName(TenantId tenantId, String name);
 
     PageData<User> findRecipientsForNotificationTarget(TenantId tenantId, CustomerId customerId, NotificationTargetId targetId, PageLink pageLink);
 

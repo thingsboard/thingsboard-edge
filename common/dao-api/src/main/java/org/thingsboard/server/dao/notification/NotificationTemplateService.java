@@ -53,6 +53,8 @@ public interface NotificationTemplateService {
 
     Optional<NotificationTemplate> findNotificationTemplateByTenantIdAndType(TenantId tenantId, NotificationType notificationType);
 
+    Optional<NotificationTemplate> findNotificationTemplateByTenantIdAndName(TenantId tenantId, String name);
+
     int countNotificationTemplatesByTenantIdAndNotificationTypes(TenantId tenantId, Collection<NotificationType> notificationTypes);
 
     void deleteNotificationTemplateById(TenantId tenantId, NotificationTemplateId id);

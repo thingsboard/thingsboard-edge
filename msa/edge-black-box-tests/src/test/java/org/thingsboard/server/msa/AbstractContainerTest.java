@@ -141,7 +141,8 @@ public abstract class AbstractContainerTest {
                     new TestEdgeConfiguration("280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g", 8082, ""),
                     new TestEdgeConfiguration("e29dadb1-c487-3b9e-1b5a-02193191c90e", "dmb17p71vz9svfl7tgnz", 8083, "kafka"),
                     new TestEdgeConfiguration("2cc28012-a2f3-8bff-7b1a-5e686c972e1e", "z2d2z90fqjylht011ram", 8084, "38"),
-                    new TestEdgeConfiguration("774e5e4e-8ec7-9945-1c6a-4d6ba08cb5fc", "om3zzzadzlugth03nibn", 8085, "37"));
+                    new TestEdgeConfiguration("774e5e4e-8ec7-9945-1c6a-4d6ba08cb5fc", "om3zzzadzlugth03nibn", 8085, "37")
+            );
 
     protected static List<TestEdgeRuntimeParameters> testParameters = new ArrayList<>();
 

@@ -104,6 +104,11 @@ public class DefaultNotificationRuleService extends AbstractEntityService implem
     }
 
     @Override
+    public Optional<NotificationRule> findNotificationRuleByTenantIdAndName(TenantId tenantId, String name) {
+        return Optional.ofNullable(notificationRuleDao.findByTenantIdAndName(tenantId.getId(), name));
+    }
+
+    @Override
     public void deleteNotificationRuleById(TenantId tenantId, NotificationRuleId id) {
         notificationRuleDao.removeById(tenantId, id.getId());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(id).build());
