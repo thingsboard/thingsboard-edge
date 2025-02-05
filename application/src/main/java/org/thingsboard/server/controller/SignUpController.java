@@ -673,13 +673,13 @@ public class SignUpController extends BaseController {
 
         Optional.ofNullable(selfRegistrationParams.getDefaultDashboard())
                 .ifPresent(dashboardParams -> {
-                    objectNode.put(DEFAULT_DASHBOARD_ID, dashboardParams.getId());
-                    objectNode.put(DEFAULT_DASHBOARD_FULLSCREEN, dashboardParams.isFullscreen());
+                    objectNode.put(ControllerConstants.DEFAULT_DASHBOARD, dashboardParams.getId());
+                    objectNode.put(ControllerConstants.DEFAULT_DASHBOARD_FULLSCREEN, dashboardParams.isFullscreen());
                 });
         Optional.ofNullable(selfRegistrationParams.getHomeDashboard())
-                .ifPresent(dashboardParams -> {
-                    objectNode.put(HOME_DASHBOARD_ID, dashboardParams.getId());
-                    objectNode.put(HOME_DASHBOARD_HIDE_TOOLBAR, selfRegistrationParams.getHomeDashboard().isHideToolbar());
+                .ifPresent(homeDashboardParams -> {
+                    objectNode.put(HOME_DASHBOARD_ID, homeDashboardParams.getId());
+                    objectNode.put(HOME_DASHBOARD_HIDE_TOOLBAR, homeDashboardParams.isHideToolbar());
                 });
         user.setAdditionalInfo(objectNode);
 

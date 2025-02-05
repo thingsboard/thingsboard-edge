@@ -279,8 +279,6 @@ public abstract class BaseController {
     protected static final String DASHBOARD_ID = "dashboardId";
     protected static final String HOME_DASHBOARD_ID = "homeDashboardId";
     protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
-    protected static final String DEFAULT_DASHBOARD_ID = "defaultDashboardId";
-    protected static final String DEFAULT_DASHBOARD_FULLSCREEN = "defaultDashboardFullscreen";
 
     protected final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());
 
