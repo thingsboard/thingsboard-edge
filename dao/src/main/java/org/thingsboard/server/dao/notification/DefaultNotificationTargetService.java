@@ -128,6 +128,11 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     }
 
     @Override
+    public Optional<NotificationTarget> findNotificationTargetByTenantIdAndName(TenantId tenantId, String name) {
+        return Optional.ofNullable(notificationTargetDao.findByTenantIdAndName(tenantId.getId(), name));
+    }
+
+    @Override
     public PageData<User> findRecipientsForNotificationTarget(TenantId tenantId, CustomerId customerId, NotificationTargetId targetId, PageLink pageLink) {
         NotificationTarget notificationTarget = findNotificationTargetById(tenantId, targetId);
         Objects.requireNonNull(notificationTarget, "Notification target [" + targetId + "] not found");
