@@ -16,6 +16,7 @@
 package org.thingsboard.server.edge;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Sets;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -178,7 +179,11 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     @Test
     @Ignore
     public void testSendDashboardToCloud() throws Exception {
-        Dashboard dashboard = buildDashboardForUplinkMsg();
+        Customer customer = new Customer();
+        customer.setTitle("Edge Customer");
+        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+
+        Dashboard dashboard = buildDashboardForUplinkMsg(savedCustomer);
 
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         DashboardUpdateMsg.Builder dashboardUpdateMsgBuilder = DashboardUpdateMsg.newBuilder();
@@ -199,6 +204,11 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         Dashboard foundDashboard = doGet("/api/dashboard/" + dashboard.getUuidId(), Dashboard.class);
         Assert.assertNotNull(foundDashboard);
         Assert.assertEquals("Edge Test Dashboard", foundDashboard.getName());
+
+        PageData<DashboardInfo> pageData = doGetTypedWithPageLink("/api/customer/" + savedCustomer.getId().toString() + "/dashboards?",
+                new TypeReference<>() {}, new PageLink(100));
+        Assert.assertEquals(1, pageData.getData().size());
+        Assert.assertEquals("Edge Test Dashboard", pageData.getData().get(0).getTitle());
     }
 
     @Test
@@ -246,11 +256,12 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         return savedDashboard;
     }
 
-    private Dashboard buildDashboardForUplinkMsg() {
+    private Dashboard buildDashboardForUplinkMsg(Customer savedCustomer) {
         Dashboard dashboard = new Dashboard();
         dashboard.setId(new DashboardId(UUID.randomUUID()));
         dashboard.setTenantId(tenantId);
         dashboard.setTitle("Edge Test Dashboard");
+        dashboard.setAssignedCustomers(Sets.newHashSet(new ShortCustomerInfo(savedCustomer.getId(), savedCustomer.getTitle(), savedCustomer.isPublic())));
         return dashboard;
     }
 
