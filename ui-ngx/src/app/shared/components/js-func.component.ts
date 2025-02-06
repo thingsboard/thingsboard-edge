@@ -95,6 +95,8 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
 
   toastTargetId = `jsFuncEditor-${guid()}`;
 
+  @Input() label: string;
+
   @Input() functionTitle: string;
 
   @Input() functionName: string;
@@ -117,7 +119,9 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
 
   @Input() globalVariables: Array<string>;
 
-  @Input() disableUndefinedCheck = false;
+  @Input()
+  @coerceBoolean()
+  disableUndefinedCheck = false;
 
   @Input() helpId: string;
 
@@ -189,7 +193,7 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   ngOnInit(): void {
-    if (this.functionTitle) {
+    if (this.functionTitle || this.label) {
       this.hideBrackets = true;
     }
     if (!this.resultType || this.resultType.length === 0) {
@@ -205,6 +209,8 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
     }
     if (this.functionTitle) {
       this.functionLabel = `${this.functionTitle}: f(${this.functionArgsString})`;
+    } else if (this.label) {
+      this.functionLabel = this.label;
     } else {
       this.functionLabel =
         `function ${this.functionName ? this.functionName : ''}(${this.functionArgsString})${this.hideBrackets ? '' : ' {'}`;

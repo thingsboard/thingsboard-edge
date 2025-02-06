@@ -65,7 +65,7 @@ import { MatAutocomplete, MatAutocompleteTrigger } from '@angular/material/autoc
 import { MatChipGrid, MatChipInputEvent, MatChipRow } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { DataKey, DatasourceType, JsonSettingsSchema, Widget, widgetType } from '@shared/models/widget.models';
+import { DataKey, DatasourceType, Widget, widgetType } from '@shared/models/widget.models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { DataKeySettingsFunction } from './data-keys.component.models';
 import { alarmFields } from '@shared/models/alarm.models';
@@ -87,6 +87,7 @@ import { ColorPickerPanelComponent } from '@shared/components/color-picker/color
 import { TbPopoverService } from '@shared/components/popover.service';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormProperty } from '@shared/models/dynamic-form.models';
 
 @Component({
   selector: 'tb-data-keys',
@@ -166,7 +167,7 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChange
   aliasController: IAliasController;
 
   @Input()
-  datakeySettingsSchema: JsonSettingsSchema;
+  dataKeySettingsForm: FormProperty[];
 
   @Input()
   datakeySettingsFunction: DataKeySettingsFunction;
@@ -390,7 +391,7 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChange
     if (this.widgetType === widgetType.alarm) {
       this.keys = this.utils.getDefaultAlarmDataKeys();
     } else if (this.isCountDatasource) {
-      this.keys = [this.callbacks.generateDataKey('count', DataKeyType.count, this.datakeySettingsSchema,
+      this.keys = [this.callbacks.generateDataKey('count', DataKeyType.count, this.dataKeySettingsForm,
         this.latestDataKeys, this.datakeySettingsFunction)];
     } else {
       this.keys = [];
@@ -477,7 +478,7 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChange
   }
 
   private addFromChipValue(chip: DataKey) {
-    const key = this.callbacks.generateDataKey(chip.name, chip.type, this.datakeySettingsSchema, this.latestDataKeys,
+    const key = this.callbacks.generateDataKey(chip.name, chip.type, this.dataKeySettingsForm, this.latestDataKeys,
       this.datakeySettingsFunction);
     this.addKey(key);
   }
@@ -578,7 +579,7 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChange
         panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
         data: {
           dataKey: deepClone(key),
-          dataKeySettingsSchema: this.datakeySettingsSchema,
+          dataKeySettingsForm: this.dataKeySettingsForm,
           dataKeySettingsDirective: this.dataKeySettingsDirective,
           dashboard: this.dashboard,
           aliasController: this.aliasController,

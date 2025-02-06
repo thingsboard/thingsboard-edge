@@ -220,7 +220,12 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
     public void testSimpleAggregationWithoutFilter() throws TbNodeException, ExecutionException, InterruptedException {
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(getConfigNode())));
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, assetId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(assetId)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
@@ -270,7 +275,12 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
 
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, assetId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(assetId)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
@@ -286,7 +296,12 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
         TbAggLatestTelemetryNodeV2Configuration config = getConfigNode();
         config.setDeduplicationInSec(deduplicationInSec); //delay 60 sec
         when(ctx.newMsg(any(), eq(TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG), any(), any(), any(), any()))
-                .thenReturn(TbMsg.newMsg(TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG, null, TbMsgMetaData.EMPTY, null));
+                .thenReturn(TbMsg.newMsg()
+                        .type(TbMsgType.TB_AGG_LATEST_CLEAR_INACTIVE_ENTITIES_SELF_MSG)
+                        .originator(null)
+                        .copyMetaData(TbMsgMetaData.EMPTY)
+                        .data(null)
+                        .build());
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         //Mock for tellSelf
@@ -295,7 +310,12 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[2];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[4];
             String data = (String) (invocationOnMock.getArguments())[5];
-            return TbMsg.newMsg(type, originator, metaData.copy(), data);
+            return TbMsg.newMsg()
+                    .type(type)
+                    .originator(originator)
+                    .copyMetaData(metaData)
+                    .data(data)
+                    .build();
         }).when(ctx).newMsg(ArgumentMatchers.isNull(), eq(TbMsgType.TB_AGG_LATEST_SELF_MSG), ArgumentMatchers.nullable(EntityId.class),
                 any(), ArgumentMatchers.any(TbMsgMetaData.class), anyString());
 
@@ -307,7 +327,12 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
 
         //create Msg
         for (int count = 0; count < countMsg; count++) {
-            TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, assetId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+            TbMsg msg = TbMsg.newMsg()
+                    .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                    .originator(assetId)
+                    .copyMetaData(TbMsgMetaData.EMPTY)
+                    .data(TbMsg.EMPTY_JSON_OBJECT)
+                    .build();
             node.onMsg(ctx, msg);
         }
 
@@ -347,7 +372,12 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
         TbNodeConfiguration config = new TbNodeConfiguration(JacksonUtil.valueToTree(getConfigNode()));
         node.init(ctx, config);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, assetId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(assetId)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> out = ArgumentCaptor.forClass(TbMsg.class);
@@ -376,7 +406,12 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
 
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, assetId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(assetId)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> out = ArgumentCaptor.forClass(TbMsg.class);

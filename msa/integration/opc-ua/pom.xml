@@ -36,7 +36,7 @@
 
     <parent>
         <groupId>org.thingsboard.msa</groupId>
-        <version>3.9.0PE-RC</version>
+        <version>4.0.0PE-SNAPSHOT</version>
         <artifactId>integration</artifactId>
     </parent>
 

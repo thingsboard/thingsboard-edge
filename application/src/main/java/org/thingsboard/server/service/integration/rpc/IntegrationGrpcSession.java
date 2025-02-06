@@ -44,6 +44,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -440,7 +441,7 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     private ConverterConfigurationProto constructConverterConfigProto(Converter converter) throws JsonProcessingException {
-        var builder =  ConverterConfigurationProto.newBuilder()
+        var builder = ConverterConfigurationProto.newBuilder()
                 .setTenantIdMSB(converter.getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(converter.getTenantId().getId().getLeastSignificantBits())
                 .setConverterIdMSB(converter.getId().getId().getMostSignificantBits())
@@ -543,16 +544,21 @@ public final class IntegrationGrpcSession implements Closeable {
                 }
             }
         }
-        ctx.getTelemetrySubscriptionService().saveAndNotifyInternal(configuration.getTenantId(), configuration.getId(), statsTs, new FutureCallback<Integer>() {
-            @Override
-            public void onSuccess(@Nullable Integer result) {
-                log.trace("[{}] Persisted statistics telemetry!", configuration.getId());
-            }
+        ctx.getTelemetrySubscriptionService().saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                .tenantId(configuration.getTenantId())
+                .entityId(configuration.getId())
+                .entries(statsTs)
+                .callback(new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(@Nullable Void result) {
+                        log.trace("[{}] Persisted statistics telemetry!", configuration.getId());
+                    }
 
-            @Override
-            public void onFailure(Throwable t) {
-                log.warn("[{}] Failed to persist statistics telemetry!", configuration.getId(), t);
-            }
-        });
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.warn("[{}] Failed to persist statistics telemetry!", configuration.getId(), t);
+                    }
+                })
+                .build());
     }
 }

@@ -54,8 +54,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
-import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.ContentType;
+import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
@@ -107,9 +107,11 @@ import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGF
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_GATEWAY_INFO;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_NAME;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_NAME_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.IS_GATEWAY_INFO_INCLUDED;
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -122,8 +124,6 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHO
 import static org.thingsboard.server.controller.ControllerConstants.TEST_DOWNLINK_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.TEST_UPLINK_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
-import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_GATEWAY_INFO;
-import static org.thingsboard.server.controller.ControllerConstants.IS_GATEWAY_INFO_INCLUDED;
 
 @RestController
 @TbCoreComponent
@@ -160,7 +160,7 @@ public class ConverterController extends AutoCommitController {
             notes = "Fetch the Converter object based on the provided Converter Id. " +
                     "The server checks that the converter is owned by the same tenant. "
                     + NEW_LINE + RBAC_READ_CHECK
-            )
+    )
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}", method = RequestMethod.GET)
     @ResponseBody
@@ -278,7 +278,7 @@ public class ConverterController extends AutoCommitController {
         }
 
         IntegrationType targetIntegrationType = targetIntegrationInfo.getFirst();
-        if (StringUtils.isBlank(integrationName)){
+        if (StringUtils.isBlank(integrationName)) {
             integrationName = targetIntegrationInfo.getSecond();
         }
 
@@ -372,7 +372,7 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Test converter function (testUpLinkConverter)",
             notes = "Returns a JSON object representing the result of the processed incoming message. " + NEW_LINE +
                     TEST_UPLINK_CONVERTER_DEFINITION
-            )
+    )
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testUpLink", method = RequestMethod.POST)
     @ResponseBody
@@ -413,7 +413,7 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Test converter function (testDownLinkConverter)",
             notes = "Returns a JSON object representing the result of the processed incoming message. " + NEW_LINE +
                     TEST_DOWNLINK_CONVERTER_DEFINITION
-            )
+    )
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testDownLink", method = RequestMethod.POST)
     @ResponseBody
@@ -439,7 +439,11 @@ public class ConverterController extends AutoCommitController {
         String errorText = "";
         ScriptDownlinkEvaluator scriptDownlinkEvaluator = null;
         try {
-            TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadataMap), data);
+            TbMsg inMsg = TbMsg.newMsg()
+                    .type(msgType)
+                    .metaData(new TbMsgMetaData(metadataMap))
+                    .data(data)
+                    .build();
             scriptDownlinkEvaluator = new ScriptDownlinkEvaluator(getTenantId(), getScriptInvokeService(scriptLang), getCurrentUser().getId(), encoder);
             output = scriptDownlinkEvaluator.execute(inMsg, integrationMetaData);
             validateDownLinkOutput(output);
@@ -525,4 +529,5 @@ public class ConverterController extends AutoCommitController {
             }
         }).collect(Collectors.toList());
     }
+
 }

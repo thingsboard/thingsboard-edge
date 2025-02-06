@@ -52,9 +52,14 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-azure-event";
     private static final String SECRET_KEY = "secret-key-azure-event";
     private static final String CONNECTION_STRING = System.getProperty("blackBoxTests.azureEventHubConnectionString", "");
+    private static final String STORAGE_CONNECTION_STRING = System.getProperty("blackBoxTests.azureEventHubStorageConnectionString", "");
+    private static final String CONTAINER_NAME = System.getProperty("blackBoxTests.azureEventHubContainerName", "");
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"connectTimeoutSec\":10," +
             "\"connectionString\":\"" + CONNECTION_STRING + "\"," +
+            "\"storageConnectionString\":\"" + STORAGE_CONNECTION_STRING + "\"," +
+            "\"containerName\":\"" + CONTAINER_NAME + "\"," +
+            "\"enablePersistentCheckpoints\": true," +
             "\"consumerGroup\":\"\"," +
             "\"iotHubName\":\"\"}," +
             "\"metadata\":{}}";

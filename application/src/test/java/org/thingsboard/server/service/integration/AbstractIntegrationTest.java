@@ -188,7 +188,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         Awaitility
                 .await()
                 .alias("Get integration events")
-                .atMost(20, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     PageData<EventInfo> events = getEvents(tenantId, integrationId);
                     if (events.getData().isEmpty()) {

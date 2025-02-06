@@ -238,11 +238,6 @@ public class CachedAttributesService implements AttributesService {
     }
 
     @Override
-    public ListenableFuture<List<Long>> save(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes) {
-        return save(tenantId, entityId, AttributeScope.valueOf(scope), attributes);
-    }
-
-    @Override
     public ListenableFuture<List<Long>> save(TenantId tenantId, EntityId entityId, AttributeScope scope, List<AttributeKvEntry> attributes) {
         validate(entityId, scope);
         AttributeUtils.validate(attributes, valueNoXssValidation);
@@ -268,11 +263,6 @@ public class CachedAttributesService implements AttributesService {
         log.trace("[{}][{}][{}] Before cache put: {}", entityId, scope, key, attribute);
         cache.put(new AttributeCacheKey(scope, entityId, key), attribute);
         log.trace("[{}][{}][{}] after cache put.", entityId, scope, key);
-    }
-
-    @Override
-    public ListenableFuture<List<String>> removeAll(TenantId tenantId, EntityId entityId, String scope, List<String> attributeKeys) {
-        return removeAll(tenantId, entityId, AttributeScope.valueOf(scope), attributeKeys);
     }
 
     @Override

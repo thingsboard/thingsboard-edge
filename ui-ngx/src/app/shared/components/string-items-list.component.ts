@@ -124,6 +124,9 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
   subscriptSizing: SubscriptSizing = 'fixed';
 
   @Input()
+  fieldClass: string;
+
+  @Input()
   @coerceArray()
   predefinedValues: StringItemsOption[];
 
