@@ -216,7 +216,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       const routerQueryParams: PageQueryParam = this.route.snapshot.queryParams;
       const sortOrder: SortOrder = {
         property: routerQueryParams?.property || this.defaultSortOrder,
-        direction: routerQueryParams?.direction || Direction.ASC
+        direction: routerQueryParams?.direction || Direction.DESC
       };
       this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
