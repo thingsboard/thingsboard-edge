@@ -299,7 +299,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(AdminSettingsUpdateMsg.class, 4);
         validateAdminSettings(4);
 
-        // 3 messages
+        // 5 messages
         // - 1 from default profile fetcher
         // - 4 from device profile fetcher (2 * (default and thermostat) before and after ota packages fetcher
         validateMsgsCnt(DeviceProfileUpdateMsg.class, 5);
