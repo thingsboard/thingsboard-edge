@@ -572,6 +572,7 @@ export enum NotificationType {
   EDGE_CONNECTION = 'EDGE_CONNECTION',
   EDGE_COMMUNICATION_FAILURE = 'EDGE_COMMUNICATION_FAILURE',
   TASK_PROCESSING_FAILURE = 'TASK_PROCESSING_FAILURE',
+  RESOURCES_SHORTAGE = 'RESOURCES_SHORTAGE',
   USER_ACTIVATED = 'USER_ACTIVATED',
   USER_REGISTERED = 'USER_REGISTERED'
 }
@@ -586,7 +587,8 @@ export const NotificationTypeIcons = new Map<NotificationType, string | null>([
   [NotificationType.ENTITIES_LIMIT, 'data_thresholding'],
   [NotificationType.API_USAGE_LIMIT, 'insert_chart'],
   [NotificationType.INTEGRATION_LIFECYCLE_EVENT, 'integration_instructions'],
-  [NotificationType.TASK_PROCESSING_FAILURE, 'warning']
+  [NotificationType.TASK_PROCESSING_FAILURE, 'warning'],
+  [NotificationType.RESOURCES_SHORTAGE, 'warning']
 ]);
 
 export const AlarmSeverityNotificationColors = new Map<AlarmSeverity, string>(
@@ -722,6 +724,12 @@ export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, No
       name: 'notification.template-type.user-registered',
       helpId: 'notification/user_registered'
     }
+  ],
+  [NotificationType.RESOURCES_SHORTAGE,
+    {
+      name: 'notification.template-type.resources-shortage',
+      helpId: 'notification/resources_shortage'
+    }
   ]
 ]);
 
@@ -740,6 +748,7 @@ export enum TriggerType {
   EDGE_CONNECTION = 'EDGE_CONNECTION',
   EDGE_COMMUNICATION_FAILURE = 'EDGE_COMMUNICATION_FAILURE',
   TASK_PROCESSING_FAILURE = 'TASK_PROCESSING_FAILURE',
+  RESOURCES_SHORTAGE = 'RESOURCES_SHORTAGE'
 }
 
 export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
@@ -756,7 +765,8 @@ export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
   [TriggerType.RATE_LIMITS, 'notification.trigger.rate-limits'],
   [TriggerType.EDGE_CONNECTION, 'notification.trigger.edge-connection'],
   [TriggerType.EDGE_COMMUNICATION_FAILURE, 'notification.trigger.edge-communication-failure'],
-  [TriggerType.TASK_PROCESSING_FAILURE, 'notification.trigger.task-processing-failure']
+  [TriggerType.TASK_PROCESSING_FAILURE, 'notification.trigger.task-processing-failure'],
+  [TriggerType.RESOURCES_SHORTAGE, 'notification.trigger.resources-shortage']
 ]);
 
 export interface NotificationUserSettings {
