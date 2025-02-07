@@ -59,6 +59,9 @@ public class TopicService {
     @Value("${queue.edge.notifications-topic:tb_edge.notifications}")
     private String tbEdgeNotificationsTopic;
 
+    @Value("${queue.edge.event-notifications-topic:tb_edge_event.notifications}")
+    private String tbEdgeEventNotificationsTopic;
+
     @Value("${queue.integration.notifications-topic:tb_integration_executor.notifications}")
     private String tbIntegrationExecutorNotificationsTopic;
 
@@ -109,7 +112,7 @@ public class TopicService {
     }
 
     public TopicPartitionInfo buildEdgeEventNotificationsTopicPartitionInfo(TenantId tenantId, EdgeId edgeId) {
-        return buildTopicPartitionInfo("tb_edge_event.notifications." + tenantId + "." + edgeId, null, null, false);
+        return buildTopicPartitionInfo(tbEdgeEventNotificationsTopic + "." + tenantId + "." + edgeId, null, null, false);
     }
 
     public String buildTopicName(String topic) {
