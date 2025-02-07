@@ -66,7 +66,7 @@
           [class.!hidden]="isEdit">
     {{ 'device.connectivity.check-connectivity' | translate }}
   </button>
-  <button mat-raised-button color="primary" class="xs:flex-1"
+  <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
           *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.DEVICE: operation.DELETE"
