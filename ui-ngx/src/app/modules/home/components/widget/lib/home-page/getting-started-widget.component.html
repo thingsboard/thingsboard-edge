@@ -107,7 +107,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 5">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.sys-admin.step7.title</div>
               <a *ngIf="matStepper.selectedIndex === 6" mat-button color="primary" routerLink="/settings/notifications">{{ 'admin.settings' | translate }}</a>
             </div>
