@@ -30,24 +30,35 @@
  */
 package org.thingsboard.rule.engine.telemetry.strategy;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.UUID;
 
-final class OnEveryMessagePersistenceStrategy implements PersistenceStrategy {
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = OnEveryMessageProcessingStrategy.class, name = "ON_EVERY_MESSAGE"),
+        @JsonSubTypes.Type(value = DeduplicateProcessingStrategy.class, name = "DEDUPLICATE"),
+        @JsonSubTypes.Type(value = SkipProcessingStrategy.class, name = "SKIP")
+})
+public sealed interface ProcessingStrategy permits OnEveryMessageProcessingStrategy, DeduplicateProcessingStrategy, SkipProcessingStrategy {
 
-    private static final OnEveryMessagePersistenceStrategy INSTANCE = new OnEveryMessagePersistenceStrategy();
-
-    private OnEveryMessagePersistenceStrategy() {}
-
-    @JsonCreator
-    public static OnEveryMessagePersistenceStrategy getInstance() {
-        return INSTANCE;
+    static ProcessingStrategy onEveryMessage() {
+        return OnEveryMessageProcessingStrategy.getInstance();
     }
 
-    @Override
-    public boolean shouldPersist(long ts, UUID originatorUuid) {
-        return true;
+    static ProcessingStrategy deduplicate(int deduplicationIntervalSecs) {
+        return new DeduplicateProcessingStrategy(deduplicationIntervalSecs);
     }
+
+    static ProcessingStrategy skip() {
+        return SkipProcessingStrategy.getInstance();
+    }
+
+    boolean shouldProcess(long ts, UUID originatorUuid);
 
 }
