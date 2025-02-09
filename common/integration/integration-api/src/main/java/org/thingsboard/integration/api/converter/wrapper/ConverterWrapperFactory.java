@@ -43,6 +43,7 @@ public final class ConverterWrapperFactory {
     public static ConverterWrapper getWrapper(IntegrationType integrationType) {
         return wrappers.computeIfAbsent(integrationType, key -> switch (integrationType) {
             case LORIOT -> new LoriotConverterWrapper();
+            case CHIRPSTACK -> new ChirpStackConverterWrapper();
             default -> throw new IllegalArgumentException("Unsupported integrationType: " + integrationType);
         });
     }
