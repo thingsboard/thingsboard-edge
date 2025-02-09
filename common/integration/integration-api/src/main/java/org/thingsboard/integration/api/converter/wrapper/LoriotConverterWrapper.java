@@ -30,8 +30,13 @@
  */
 package org.thingsboard.integration.api.converter.wrapper;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.data.ContentType;
+import org.thingsboard.server.common.data.util.TbPair;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class LoriotConverterWrapper extends AbstractConverterWrapper {
@@ -56,8 +61,21 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
                 Map.entry("snr", "snr"),
                 Map.entry("toa", "toa"),
                 Map.entry("data", "data"),
+                Map.entry("decoded", "decoded"),
                 Map.entry("gws", "gws")
         );
     }
 
+    @Override
+    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
+        if (payloadJson.has("data")) {
+            var data = payloadJson.get("data").textValue();
+            return TbPair.of(data.getBytes(StandardCharsets.UTF_8), ContentType.TEXT);
+        } else if (payloadJson.has("decoded")) {
+            var decoded = payloadJson.get("decoded");
+            return TbPair.of(JacksonUtil.writeValueAsBytes(decoded), ContentType.JSON);
+        } else {
+            return TbPair.of(EMPTY_BYTE_ARRAY, ContentType.BINARY);
+        }
+    }
 }

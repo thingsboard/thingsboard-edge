@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractConverterWrapper implements ConverterWrapper {
 
+    protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+
     @Override
     public TbPair<byte[], UplinkMetaData> wrap(DedicatedConverterConfig config, byte[] payload, UplinkMetaData metadata) {
         JsonNode payloadJson = JacksonUtil.fromBytes(payload);
@@ -55,15 +57,16 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> payloadKvMap.get(e.getValue())));
 
         kvMap.putAll(metadata.getKvMap());
-        UplinkMetaData mergedMetadata = new UplinkMetaData(getContentType(), kvMap);
+        TbPair<byte[], ContentType> payloadPair = getPayload(payloadJson);
+        UplinkMetaData mergedMetadata = new UplinkMetaData(payloadPair.getSecond(), kvMap);
 
-        return TbPair.of(getPayload(payloadJson), mergedMetadata);
+        return TbPair.of(payloadPair.getFirst(), mergedMetadata);
     }
 
     private Map<String, String> readPayloadFields(ObjectNode payload, Map<String, String> kvMap) {
         payload.properties().forEach(e -> {
             JsonNode node = e.getValue();
-            if (node.isObject()) {
+            if (node.isObject() && !getKeys().containsValue(e.getKey())) {
                 readPayloadFields((ObjectNode) node, kvMap);
             } else {
                 kvMap.put(e.getKey(), node.toString());
@@ -72,12 +75,9 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
         return kvMap;
     }
 
-    protected byte[] getPayload(JsonNode payloadJson) {
+    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
         var data = payloadJson.get("data").textValue();
-        return data.getBytes(StandardCharsets.UTF_8);
+        return TbPair.of(data.getBytes(StandardCharsets.UTF_8), ContentType.TEXT);
     }
 
-    protected ContentType getContentType() {
-        return ContentType.TEXT;
-    }
 }
