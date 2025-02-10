@@ -44,6 +44,19 @@
     "imageUrls": ["https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-1.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-2.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-3.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-4.png"]
   },
   {
+    "id": "scada_drilling_system",
+    "title": "SCADA Drilling system",
+    "level": "MAKER",
+    "installTimeoutMs": 0,
+    "previewImageUrl": "https://img.thingsboard.io/solutions/scada_drilling_system/-1.png",
+    "videoPreviewImageUrl": "https://img.thingsboard.io/solutions/scada_drilling_system/1.png",
+    "previewMp4Url": "https://video.thingsboard.io/usecases/system.mp4",
+    "previewWebmUrl": "https://video.thingsboard.io/usecases/system.webm",
+    "imageUrls": ["https://img.thingsboard.io/solutions/scada_drilling_system/1.png", "https://img.thingsboard.io/solutions/scada_drilling_system/1.png", "https://img.thingsboard.io/solutions/scada_drilling_system/2.png", "https://img.thingsboard.io/solutions/scada_drilling_system/2.png", "https://img.thingsboard.io/solutions/scada_drilling_system/3.png", "https://img.thingsboard.io/solutions/scada_drilling_system/3.png", "https://img.thingsboard.io/solutions/scada_drilling_system/4.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
+  },
+  {
     "id": "swimming_pool_scada_system",
     "title": "Swimming Pool SCADA system",
     "level": "MAKER",
