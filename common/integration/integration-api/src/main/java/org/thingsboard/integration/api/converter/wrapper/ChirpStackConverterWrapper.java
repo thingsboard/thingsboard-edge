@@ -41,9 +41,9 @@ import java.util.Map;
 public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
 
     @Getter
-    private static final Map<String, String> keys;
+    private final Map<String, String> keys;
 
-    static {
+    {
         keys = Map.ofEntries(
                 Map.entry("deduplicationId", "deduplicationId"),
                 Map.entry("time", "time"),
