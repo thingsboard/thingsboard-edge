@@ -31,6 +31,8 @@
 
 -- UPDATE SAVE TIME SERIES NODES START
 
+ALTER TABLE converter ADD COLUMN IF NOT EXISTS integration_type varchar(255);
+
 DO $$
     BEGIN
         -- Check if the rule_node table exists
