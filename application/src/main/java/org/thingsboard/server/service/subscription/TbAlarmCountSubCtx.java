@@ -34,19 +34,32 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
+import org.thingsboard.server.common.data.query.EntityData;
+import org.thingsboard.server.common.data.query.EntityDataPageLink;
+import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+import org.thingsboard.server.common.data.query.EntityKey;
+import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.service.ws.WebSocketService;
 import org.thingsboard.server.service.ws.WebSocketSessionRef;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmCountUpdate;
+
+import java.util.List;
 
 @Slf4j
 @ToString(callSuper = true)
 public class TbAlarmCountSubCtx extends TbAbstractEntityQuerySubCtx<AlarmCountQuery> {
 
     private final AlarmService alarmService;
+
+    private final int maxEntitiesPerAlarmSubscription;
 
     @Getter
     @Setter
@@ -55,20 +68,21 @@ public class TbAlarmCountSubCtx extends TbAbstractEntityQuerySubCtx<AlarmCountQu
     public TbAlarmCountSubCtx(String serviceId, WebSocketService wsService,
                               EntityService entityService, TbLocalSubscriptionService localSubscriptionService,
                               AttributesService attributesService, SubscriptionServiceStatistics stats, AlarmService alarmService,
-                              WebSocketSessionRef sessionRef, int cmdId) {
+                              WebSocketSessionRef sessionRef, int cmdId, int maxEntitiesPerAlarmSubscription) {
         super(serviceId, wsService, entityService, localSubscriptionService, attributesService, stats, sessionRef, cmdId);
         this.alarmService = alarmService;
+        this.maxEntitiesPerAlarmSubscription = maxEntitiesPerAlarmSubscription;
     }
 
     @Override
     public void fetchData() {
-        result = (int) alarmService.countAlarmsByQuery(getTenantId(), getCustomerId(), getMergedUserPermissions(), query);
+        result = countAlarms();
         sendWsMsg(new AlarmCountUpdate(cmdId, result));
     }
 
     @Override
     protected void update() {
-        int newCount = (int) alarmService.countAlarmsByQuery(getTenantId(), getCustomerId(), getMergedUserPermissions(), query);
+        int newCount = countAlarms();
         if (newCount != result) {
             result = newCount;
             sendWsMsg(new AlarmCountUpdate(cmdId, result));
@@ -78,5 +92,23 @@ public class TbAlarmCountSubCtx extends TbAbstractEntityQuerySubCtx<AlarmCountQu
     @Override
     public boolean isDynamic() {
         return true;
+    }
+
+    private int countAlarms() {
+        List<EntityId> entityIds = null;
+        if (query.getEntityFilter() != null) {
+            PageData<EntityData> data = entityService.findEntityDataByQuery(getTenantId(), getCustomerId(), getMergedUserPermissions(), buildEntityDataQuery());
+            if (data.getData().isEmpty()) {
+                return 0;
+            }
+            entityIds = data.getData().stream().map(EntityData::getEntityId).toList();
+        }
+        return (int) alarmService.countAlarmsByQuery(getTenantId(), getCustomerId(), getMergedUserPermissions(), query, entityIds);
+    }
+
+    private EntityDataQuery buildEntityDataQuery() {
+        EntityDataPageLink edpl = new EntityDataPageLink(maxEntitiesPerAlarmSubscription, 0, null,
+                new EntityDataSortOrder(new EntityKey(EntityKeyType.ENTITY_FIELD, ModelConstants.CREATED_TIME_PROPERTY)));
+        return new EntityDataQuery(query.getEntityFilter(), edpl, null, null, null);
     }
 }
