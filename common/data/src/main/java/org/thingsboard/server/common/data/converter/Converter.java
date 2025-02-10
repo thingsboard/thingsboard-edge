@@ -147,7 +147,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.type = type;
     }
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The type of the integration to which the converter is dedicated")
+    @Schema(description = "The type of the integration to which the converter is dedicated")
     public IntegrationType getIntegrationType() {
         return integrationType;
     }
