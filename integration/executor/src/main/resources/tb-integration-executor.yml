@@ -312,6 +312,9 @@ queue:
     notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_integration_executor.notifications}"
     # Default downlink topic name used by queue
     downlink_topic: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPIC:tb_ie.downlink}"
+    # Downlink topic names for integration type (semicolor separated). Example: "MQTT:tb_ie.downlink.mqtt,HTTP:tb_ie.downlink.http"
+    # If not specified, the default topic will construct as before - 'downlink_topic' + IntegrationType.name()
+    downlink_topics: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPICS:}"
     # Default uplink topic name used by queue
     uplink_topic: "${TB_QUEUE_INTEGRATION_UPLINK_TOPIC:tb_ie.uplink}"
     # Interval in milliseconds to poll messages by integrations

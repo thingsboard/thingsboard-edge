@@ -35,6 +35,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.queue.util.PropertyUtils;
+
+import javax.annotation.PostConstruct;
+import java.util.Map;
 
 @Lazy
 @Data
@@ -53,10 +57,22 @@ public class TbQueueIntegrationExecutorSettings {
     @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
     private String downlinkTopic;
 
+    @Value("${queue.integration.downlink_topics:}")
+    private String downlinkTopicProperties;
+
     @Value("${queue.integration.uplink_topic:tb_ie.uplink}")
     private String uplinkTopic;
 
-    public  String getIntegrationDownlinkTopic(IntegrationType it) {
-        return downlinkTopic + "." + it.name().toLowerCase();
+    private Map<String, String> downlinkTopics;
+
+    @PostConstruct
+    private void init() {
+        downlinkTopics = PropertyUtils.getProps(downlinkTopicProperties);
     }
+
+    public String getIntegrationDownlinkTopic(IntegrationType it) {
+        String defaultTopic = downlinkTopic + "." + it.name().toLowerCase();
+        return downlinkTopics.getOrDefault(it.name(), defaultTopic);
+    }
+
 }
