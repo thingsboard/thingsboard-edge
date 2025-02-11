@@ -43,10 +43,12 @@ import org.springframework.data.util.Pair;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -96,6 +98,9 @@ import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEntitiesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupPermissionsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.GeneralEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.asset.AssetProcessor;
@@ -281,6 +286,28 @@ public abstract class EdgeGrpcSession implements Closeable {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable Pair<Long, Long> result) {
+                    try {
+                        if (next instanceof EntityGroupEdgeEventFetcher entityGroupFetcher) {
+                            PageLink pageLink = new PageLink(1024);
+                            PageData<EdgeEvent> pageData;
+                            do {
+                                pageData = next.fetchEdgeEvents(tenantId, edge, pageLink);
+                                for (EdgeEvent edgeEvent : pageData.getData()) {
+                                    EntityGroupId entityGroupId = new EntityGroupId(edgeEvent.getEntityId());
+                                    EntityType groupType = entityGroupFetcher.getGroupType();
+                                    EntityGroupPermissionsEdgeEventFetcher groupPermissionsFetcher =
+                                            new EntityGroupPermissionsEdgeEventFetcher(ctx.getGroupPermissionService(), groupType, entityGroupId);
+                                    cursor.getFetchers().add(groupPermissionsFetcher);
+                                    EntityGroupEntitiesEdgeEventFetcher entitiesFetcher =
+                                            new EntityGroupEntitiesEdgeEventFetcher(ctx.getEntityGroupService(), groupType, entityGroupId);
+                                    cursor.getFetchers().add(entitiesFetcher);
+                                }
+                                pageLink = pageLink.nextPageLink();
+                            } while (pageData.hasNext());
+                        }
+                    } catch (Exception e) {
+                        log.error("Failed to fetch edge events", e);
+                    }
                     doSync(cursor);
                 }
 

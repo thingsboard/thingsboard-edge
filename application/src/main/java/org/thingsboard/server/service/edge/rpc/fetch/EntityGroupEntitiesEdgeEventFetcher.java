@@ -37,7 +37,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -53,6 +53,7 @@ public class EntityGroupEntitiesEdgeEventFetcher implements EdgeEventFetcher {
 
     private final EntityGroupService entityGroupService;
     private final EntityType groupType;
+    private final EntityGroupId entityGroupId;
 
     @Override
     public PageLink getPageLink(int pageSize) {
@@ -61,21 +62,13 @@ public class EntityGroupEntitiesEdgeEventFetcher implements EdgeEventFetcher {
 
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
-        log.trace("[{}] start fetching edge events [{}], groupType {}, pageLink {}", tenantId, edge.getId(), groupType, pageLink);
-        PageData<EntityGroup> pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, edge.getId(), groupType, pageLink);
+        log.trace("[{}] start fetching edge events [{}], groupType {}, entityGroupId {}, pageLink {}", tenantId, edge.getId(), groupType, entityGroupId, pageLink);
+        PageData<EntityId> pageData = entityGroupService.findEntityIds(tenantId, groupType, entityGroupId, pageLink);
         List<EdgeEvent> result = new ArrayList<>();
         if (!pageData.getData().isEmpty()) {
-            for (EntityGroup entityGroup : pageData.getData()) {
-                PageLink tmpPageLink = new PageLink(1024);
-                PageData<EntityId> tmpPageData;
-                do {
-                    tmpPageData = entityGroupService.findEntityIds(tenantId, groupType, entityGroup.getId(), tmpPageLink);
-                    for (EntityId entityId : tmpPageData.getData()) {
-                        result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeUtils.getEdgeEventTypeByEntityType(groupType),
-                                EdgeEventActionType.ADDED, entityId, null, entityGroup.getId()));
-                    }
-                    tmpPageLink = tmpPageLink.nextPageLink();
-                } while (tmpPageData.hasNext());
+            for (EntityId entityId : pageData.getData()) {
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeUtils.getEdgeEventTypeByEntityType(groupType),
+                        EdgeEventActionType.ADDED, entityId, null, entityGroupId));
             }
         }
         return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
