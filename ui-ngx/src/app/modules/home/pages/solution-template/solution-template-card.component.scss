@@ -41,7 +41,6 @@
     .mat-mdc-card-image {
       width: 100%;
       padding: 0 16px;
-      margin: 0 0 auto;
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -53,10 +52,7 @@
       }
     }
     .mat-mdc-card-actions {
-      padding: 16px;
-      & > div {
-        margin-left: auto;
-      }
+      grid-template-columns: min-content 1fr;
     }
   }
   span.level {

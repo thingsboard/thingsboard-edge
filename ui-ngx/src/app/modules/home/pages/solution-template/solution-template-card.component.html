@@ -32,7 +32,7 @@
 -->
 <mat-card appearance="outlined" class="flex flex-col">
   <mat-card-header>
-    <mat-card-title class="flex flex-row items-center justify-between">
+    <mat-card-title class="flex items-center justify-between gap-2">
       <span>{{solutionTemplate.title}}</span>
       <span class="level">{{solutionTemplate.level}}</span>
     </mat-card-title>
@@ -40,12 +40,12 @@
   <div mat-card-image>
     <img (click)="openSolutionTemplateDetails()" [src]="solutionTemplate.previewImageUrl">
   </div>
-  <mat-card-actions class="flex flex-row flex-wrap">
-    <button *ngIf="solutionTemplate.installed" (click)="openInstructions()" [disabled]="isLoading$ | async" mat-button mat-stroked-button color="primary">
+  <mat-card-actions class="grid flex-1 items-end gap-4 p-4">
+    <button *ngIf="solutionTemplate.installed" class="self-start" (click)="openInstructions()" [disabled]="isLoading$ | async" mat-button mat-stroked-button color="primary">
       <mat-icon>info_outline</mat-icon>
       <span>{{ 'solution-template.instructions' | translate }}</span>
     </button>
-    <div class="flex flex-row gap-4">
+    <div class="col-start-2 flex flex-wrap justify-end gap-4">
       <button (click)="openSolutionTemplateDetails()" [disabled]="isLoading$ | async" mat-button>{{ 'solution-template.details' | translate }}</button>
       <button *ngIf="!solutionTemplate.installed" (click)="installSolutionTemplate()" [disabled]="isLoading$ | async" mat-button mat-raised-button color="primary">{{ 'solution-template.install' | translate }}</button>
       <button *ngIf="solutionTemplate.installed" (click)="deleteSolutionTemplate()" [disabled]="isLoading$ | async" mat-button mat-raised-button color="warn">{{ 'solution-template.delete' | translate }}</button>
