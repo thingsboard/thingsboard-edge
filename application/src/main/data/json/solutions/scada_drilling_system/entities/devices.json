@@ -18,7 +18,7 @@
           "master": {
             "slaves": [
               {
-                "host": "0.0.0.0",
+                "host": "host.docker.internal",
                 "port": 5035,
                 "type": "tcp",
                 "method": "socket",
@@ -119,7 +119,7 @@
                 ]
               },
               {
-                "host": "0.0.0.0",
+                "host": "host.docker.internal",
                 "port": 5036,
                 "type": "tcp",
                 "method": "socket",
@@ -223,7 +223,7 @@
                 ]
               },
               {
-                "host": "0.0.0.0",
+                "host": "host.docker.internal",
                 "port": 5037,
                 "type": "tcp",
                 "method": "socket",
@@ -295,7 +295,7 @@
                 ]
               },
               {
-                "host": "0.0.0.0",
+                "host": "host.docker.internal",
                 "port": 5038,
                 "type": "tcp",
                 "method": "socket",
@@ -388,7 +388,7 @@
                 ]
               },
               {
-                "host": "0.0.0.0",
+                "host": "host.docker.internal",
                 "port": 5039,
                 "type": "tcp",
                 "method": "socket",
@@ -500,8 +500,7 @@
             ]
           }
         },
-        "configVersion": "3.6.3",
-        "ts": 1738579519771
+        "configVersion": "3.6.3"
       }
     },
     "relations": [],
@@ -510,7 +509,7 @@
   {
     "name": "Drilling Bit",
     "type": "Drilling Bit",
-    "group": "Drilling Bits",
+    "group": "Drilling System Devices",
     "attributes": {},
     "relations": [
       {
@@ -525,7 +524,7 @@
   {
   "name": "Drilling Mud",
   "type": "Drilling Mud",
-  "group": "Drilling Muds",
+  "group": "Drilling System Devices",
   "attributes": {},
   "relations": [
     {
@@ -540,7 +539,7 @@
   {
     "name": "Drilling Rig",
     "type": "Drilling Rig",
-    "group": "Drilling Rigs",
+    "group": "Drilling System Devices",
     "attributes": {},
     "relations": [
       {
@@ -555,7 +554,7 @@
   {
     "name": "Preventer",
     "type": "Preventer",
-    "group": "Preventers",
+    "group": "Drilling System Devices",
     "attributes": {},
     "relations": [
       {
@@ -570,7 +569,7 @@
   {
     "name": "Drawwork",
     "type": "Drawwork",
-    "group": "Drawworks",
+    "group": "Drilling System Devices",
     "attributes": {},
     "relations": [
       {
