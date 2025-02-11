@@ -46,7 +46,7 @@
       <span>{{ 'solution-template.instructions' | translate }}</span>
     </button>
     <div class="col-start-2 flex flex-wrap justify-end gap-4">
-      <button (click)="openSolutionTemplateDetails()" [disabled]="isLoading$ | async" mat-button>{{ 'solution-template.details' | translate }}</button>
+      <button (click)="openSolutionTemplateDetails()" [disabled]="isLoading$ | async" mat-button mat-stroked-button color="primary">{{ 'solution-template.details' | translate }}</button>
       <button *ngIf="!solutionTemplate.installed" (click)="installSolutionTemplate()" [disabled]="isLoading$ | async" mat-button mat-raised-button color="primary">{{ 'solution-template.install' | translate }}</button>
       <button *ngIf="solutionTemplate.installed" (click)="deleteSolutionTemplate()" [disabled]="isLoading$ | async" mat-button mat-raised-button color="warn">{{ 'solution-template.delete' | translate }}</button>
     </div>
