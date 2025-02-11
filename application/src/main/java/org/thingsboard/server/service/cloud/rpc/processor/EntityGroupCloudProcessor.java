@@ -132,17 +132,6 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                     return handleUnsupportedMsgType(entityGroupUpdateMsg.getMsgType());
             }
         }
-
-        if (entityGroup != null) {
-            ObjectNode body = JacksonUtil.newObjectNode();
-            body.put("type", entityGroup.getType().name());
-            futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST,
-                    entityGroupId, body, null));
-            if (!edgeGroupAll) {
-                futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_PERMISSIONS_REQUEST,
-                        entityGroupId, body, null));
-            }
-        }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
