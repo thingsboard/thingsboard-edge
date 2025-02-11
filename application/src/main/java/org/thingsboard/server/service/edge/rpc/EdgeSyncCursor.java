@@ -48,6 +48,8 @@ import org.thingsboard.server.service.edge.rpc.fetch.DeviceGroupOtaPackageEdgeEv
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEntitiesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupPermissionsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.IntegrationsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.NotificationRuleEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.NotificationTargetEdgeEventFetcher;
@@ -112,11 +114,21 @@ public class EdgeSyncCursor {
         fetchers.add(new DefaultProfilesEdgeEventFetcher(ctx.getDeviceProfileService(), ctx.getAssetProfileService()));
         fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
         fetchers.add(new AssetProfilesEdgeEventFetcher(ctx.getAssetProfileService()));
-        fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DEVICE));
-        fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ASSET));
-        fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ENTITY_VIEW));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.USER));
+        fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ASSET));
+        fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DEVICE));
+        fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ENTITY_VIEW));
         fetchers.add(new SchedulerEventsEdgeEventFetcher(ctx.getSchedulerEventService()));
+        fetchers.add(new EntityGroupPermissionsEdgeEventFetcher(ctx.getEntityGroupService(), ctx.getGroupPermissionService(), EntityType.USER));
+        fetchers.add(new EntityGroupPermissionsEdgeEventFetcher(ctx.getEntityGroupService(), ctx.getGroupPermissionService(), EntityType.ASSET));
+        fetchers.add(new EntityGroupPermissionsEdgeEventFetcher(ctx.getEntityGroupService(), ctx.getGroupPermissionService(), EntityType.DEVICE));
+        fetchers.add(new EntityGroupPermissionsEdgeEventFetcher(ctx.getEntityGroupService(), ctx.getGroupPermissionService(), EntityType.DASHBOARD));
+        fetchers.add(new EntityGroupPermissionsEdgeEventFetcher(ctx.getEntityGroupService(), ctx.getGroupPermissionService(), EntityType.ENTITY_VIEW));
+        fetchers.add(new EntityGroupEntitiesEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.USER));
+        fetchers.add(new EntityGroupEntitiesEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ASSET));
+        fetchers.add(new EntityGroupEntitiesEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DEVICE));
+        fetchers.add(new EntityGroupEntitiesEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DASHBOARD));
+        fetchers.add(new EntityGroupEntitiesEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ENTITY_VIEW));
         if (fullSync) {
             fetchers.add(new NotificationTemplateEdgeEventFetcher(ctx.getNotificationTemplateService()));
             fetchers.add(new NotificationTargetEdgeEventFetcher(ctx.getNotificationTargetService()));
