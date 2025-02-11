@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
@@ -148,8 +149,8 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     }
 
     @Override
-    public PageData<ConverterFields> findAllFields(PageLink pageLink) {
-        return DaoUtil.pageToPageData(converterRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    public List<ConverterFields> findNextBatch(UUID id, int batchSize) {
+        return converterRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

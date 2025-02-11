@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.sql.blob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -51,6 +52,7 @@ import org.thingsboard.server.dao.sql.JpaPartitionedAbstractDao;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 import org.thingsboard.server.dao.util.SqlDao;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -132,8 +134,8 @@ public class JpaBlobEntityDao extends JpaPartitionedAbstractDao<BlobEntityEntity
     }
 
     @Override
-    public PageData<BlobEntityFields> findAllFields(PageLink pageLink) {
-        return DaoUtil.pageToPageData(blobEntityRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    public List<BlobEntityFields> findNextBatch(UUID id, int batchSize) {
+        return blobEntityRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

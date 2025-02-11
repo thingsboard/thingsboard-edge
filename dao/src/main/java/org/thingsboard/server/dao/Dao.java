@@ -66,7 +66,7 @@ public interface Dao<T> {
 
     List<TbPair<UUID, UUID>> findIdsByTenantProfileIdAndIdOffsetAndExpired(UUID tenantProfileId, UUID idOffset, int limit, long ttl);
 
-    default PageData<? extends EntityFields> findAllFields(PageLink pageLink) {
+    default List<? extends EntityFields> findNextBatch(UUID id, int batchSize) {
         throw new UnsupportedOperationException();
     }
 

@@ -90,7 +90,7 @@ public enum ObjectType {
     LATEST_TS_KV;
 
     public static final Set<ObjectType> edqsTenantTypes = EnumSet.of(
-            TENANT_PROFILE, CUSTOMER, DEVICE_PROFILE, DEVICE, ASSET_PROFILE, ASSET, EDGE, ENTITY_VIEW, USER, DASHBOARD,
+            TENANT, TENANT_PROFILE, CUSTOMER, DEVICE_PROFILE, DEVICE, ASSET_PROFILE, ASSET, EDGE, ENTITY_VIEW, USER, DASHBOARD,
             RULE_CHAIN, WIDGET_TYPE, WIDGETS_BUNDLE, CONVERTER, INTEGRATION, SCHEDULER_EVENT, ROLE,
             BLOB_ENTITY, API_USAGE_STATE, QUEUE_STATS
     );
@@ -99,7 +99,7 @@ public enum ObjectType {
             API_USAGE_STATE, ATTRIBUTE_KV, LATEST_TS_KV);
 
     static {
-        edqsTypes.addAll(Arrays.asList(TENANT, ENTITY_GROUP, RELATION, ATTRIBUTE_KV, LATEST_TS_KV));
+        edqsTypes.addAll(Arrays.asList(ENTITY_GROUP, RELATION, ATTRIBUTE_KV, LATEST_TS_KV));
     }
 
     public EntityType toEntityType() {

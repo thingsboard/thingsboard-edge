@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.role;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -72,7 +73,7 @@ public interface RoleRepository extends JpaRepository<RoleEntity, UUID>, Exporta
     UUID getExternalIdById(@Param("id") UUID id);
 
     @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.RoleFields(r.id, r.createdTime, " +
-            "r.tenantId, r.customerId, r.name, r.version, r.type, r.additionalInfo) FROM RoleEntity r")
-    Page<RoleFields> findAllFields(Pageable pageable);
+            "r.tenantId, r.customerId, r.name, r.version, r.type, r.additionalInfo) FROM RoleEntity r WHERE r.id > :id ORDER BY r.id")
+    List<RoleFields> findNextBatch(@Param("id") UUID id, Limit limit);
 
 }

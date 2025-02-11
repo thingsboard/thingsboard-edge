@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.user;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -174,7 +175,6 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.UserFields(u.id, u.createdTime, u.tenantId," +
             "u.customerId, u.version, u.firstName, u.lastName, u.email, u.phone, u.additionalInfo) " +
-            "FROM UserEntity u")
-    Page<UserFields> findAllFields(Pageable pageable);
-
+            "FROM UserEntity u WHERE u.id > :id ORDER BY u.id")
+    List<UserFields> findNextBatch(@Param("id") UUID id, Limit limit);
 }

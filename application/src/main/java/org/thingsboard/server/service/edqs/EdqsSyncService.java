@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edqs;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
@@ -42,7 +43,6 @@ import org.thingsboard.server.common.data.edqs.EdqsObject;
 import org.thingsboard.server.common.data.edqs.Entity;
 import org.thingsboard.server.common.data.edqs.LatestTsKv;
 import org.thingsboard.server.common.data.edqs.fields.EntityFields;
-import org.thingsboard.server.common.data.edqs.fields.TenantFields;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -59,7 +59,6 @@ import org.thingsboard.server.dao.model.sqlts.dictionary.KeyDictionaryEntry;
 import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
 import org.thingsboard.server.dao.sql.relation.RelationRepository;
 import org.thingsboard.server.dao.sqlts.latest.TsKvLatestRepository;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -89,7 +88,6 @@ import static org.thingsboard.server.common.data.ObjectType.RELATION;
 import static org.thingsboard.server.common.data.ObjectType.ROLE;
 import static org.thingsboard.server.common.data.ObjectType.RULE_CHAIN;
 import static org.thingsboard.server.common.data.ObjectType.SCHEDULER_EVENT;
-import static org.thingsboard.server.common.data.ObjectType.TENANT;
 import static org.thingsboard.server.common.data.ObjectType.TENANT_PROFILE;
 import static org.thingsboard.server.common.data.ObjectType.USER;
 import static org.thingsboard.server.common.data.ObjectType.WIDGETS_BUNDLE;
@@ -98,10 +96,12 @@ import static org.thingsboard.server.common.data.ObjectType.WIDGET_TYPE;
 @Slf4j
 public abstract class EdqsSyncService {
 
+    @Value("${queue.edqs.sync.entity_batch_size:10000}")
+    private int entityBatchSize;
+    @Value("${queue.edqs.sync.ts_batch_size:10000}")
+    private int tsBatchSize;
     @Autowired
     private EntityDaoRegistry entityDaoRegistry;
-    @Autowired
-    private TenantDao tenantDao;
     @Autowired
     private AttributesDao attributesDao;
     @Autowired
@@ -134,7 +134,6 @@ public abstract class EdqsSyncService {
         long startTs = System.currentTimeMillis();
         counters.clear();
 
-        syncTenants();
         syncTenantEntities();
         syncEntityGroups();
         syncRelations();
@@ -154,47 +153,50 @@ public abstract class EdqsSyncService {
         edqsService.processEvent(tenantId, type, EdqsEventType.UPDATED, object);
     }
 
-    private void syncTenants() {
-        log.info("Synchronizing tenants to EDQS");
-        long ts = System.currentTimeMillis();
-        var tenants = new PageDataIterable<>(tenantDao::findAllFields, 10000);
-        for (EntityFields entityFields : tenants) {
-            TenantId tenantId = TenantId.fromUUID(entityFields.getId());
-            entityInfoMap.put(entityFields.getId(), new EntityIdInfo(EntityType.TENANT, tenantId));
-            process(tenantId, TENANT, new Entity(EntityType.TENANT, entityFields));
-        }
-        process(TenantId.SYS_TENANT_ID, TENANT, new Entity(EntityType.TENANT, new TenantFields(TenantId.SYS_TENANT_ID.getId(), Long.MAX_VALUE)));
-        log.info("Finished synchronizing tenants to EDQS in {} ms", (System.currentTimeMillis() - ts));
-    }
-
     private void syncTenantEntities() {
         for (ObjectType type : edqsTenantTypes) {
-            log.info("Synchronizing tenant {} entities to EDQS", type);
+            log.info("Synchronizing {} entities to EDQS", type);
             long ts = System.currentTimeMillis();
             EntityType entityType = type.toEntityType();
             Dao<?> dao = entityDaoRegistry.getDao(entityType);
-            var entities = new PageDataIterable<>(dao::findAllFields, 10000);
-            for (EntityFields entityFields : entities) {
-                TenantId tenantId = TenantId.fromUUID(entityFields.getTenantId());
-                entityInfoMap.put(entityFields.getId(), new EntityIdInfo(entityType, tenantId));
-                process(tenantId, type, new Entity(type.toEntityType(), entityFields));
+            UUID lastId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+            while (true) {
+                var batch = dao.findNextBatch(lastId, entityBatchSize);
+                if (batch.isEmpty()) {
+                    break;
+                }
+                for (EntityFields entityFields : batch) {
+                    TenantId tenantId = TenantId.fromUUID(entityFields.getTenantId());
+                    entityInfoMap.put(entityFields.getId(), new EntityIdInfo(entityType, tenantId));
+                    process(tenantId, type, new Entity(entityType, entityFields));
+                }
+                EntityFields lastRecord = batch.get(batch.size() - 1);
+                lastId = lastRecord.getId();
             }
-            log.info("Finished synchronizing tenant {} entities to EDQS in {} ms", type, (System.currentTimeMillis() - ts));
+            log.info("Finished synchronizing {} entities to EDQS in {} ms", type, (System.currentTimeMillis() - ts));
         }
     }
-
     private void syncEntityGroups() {
         log.info("Synchronizing entity groups to EDQS");
         long ts = System.currentTimeMillis();
-        var entityGroups = new PageDataIterable<>(entityGroupDao::findAllFields, 30000);
-        for (EntityFields groupFields : entityGroups) {
-            EntityIdInfo entityIdInfo = entityInfoMap.get(groupFields.getOwnerId());
-            if (entityIdInfo != null) {
-                entityInfoMap.put(groupFields.getId(), new EntityIdInfo(EntityType.ENTITY_GROUP, entityIdInfo.tenantId()));
-                process(entityIdInfo.tenantId(), ENTITY_GROUP, new Entity(EntityType.ENTITY_GROUP, groupFields));
-            } else {
-                log.info("Entity group owner not found: " + groupFields.getOwnerId());
+
+        UUID lastId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        while (true) {
+            var batch = entityGroupDao.findNextBatch(lastId, 10000);
+            if (batch.isEmpty()) {
+                break;
             }
+            for (EntityFields groupFields : batch) {
+                EntityIdInfo entityIdInfo = entityInfoMap.get(groupFields.getOwnerId());
+                if (entityIdInfo != null) {
+                    entityInfoMap.put(groupFields.getId(), new EntityIdInfo(EntityType.ENTITY_GROUP, entityIdInfo.tenantId()));
+                    process(entityIdInfo.tenantId(), ENTITY_GROUP, new Entity(EntityType.ENTITY_GROUP, groupFields));
+                } else {
+                    log.info("Entity group owner not found: " + groupFields.getOwnerId());
+                }
+            }
+            EntityFields lastRecord = batch.get(batch.size() - 1);
+            lastId = lastRecord.getId();
         }
         log.info("Finished synchronizing entity groups to EDQS in {} ms", (System.currentTimeMillis() - ts));
     }
@@ -211,7 +213,7 @@ public abstract class EdqsSyncService {
 
         while (true) {
             List<RelationEntity> batch = relationRepository.findNextBatch(lastFromEntityId, lastFromEntityType, lastRelationTypeGroup,
-                    lastRelationType, lastToEntityId, lastToEntityType, 10000);
+                    lastRelationType, lastToEntityId, lastToEntityType, entityBatchSize);
             if (batch.isEmpty()) {
                 break;
             }
@@ -260,7 +262,7 @@ public abstract class EdqsSyncService {
         int lastAttributeKey = Integer.MIN_VALUE;
 
         while (true) {
-            List<AttributeKvEntity> batch = attributesDao.findNextBatch(lastEntityId, lastAttributeType, lastAttributeKey, 10000);
+            List<AttributeKvEntity> batch = attributesDao.findNextBatch(lastEntityId, lastAttributeType, lastAttributeKey, tsBatchSize);
             if (batch.isEmpty()) {
                 break;
             }
@@ -299,7 +301,7 @@ public abstract class EdqsSyncService {
         int lastKey = Integer.MIN_VALUE;
 
         while (true) {
-            List<TsKvLatestEntity> batch = tsKvLatestRepository.findNextBatch(lastEntityId, lastKey,  10000);
+            List<TsKvLatestEntity> batch = tsKvLatestRepository.findNextBatch(lastEntityId, lastKey, tsBatchSize);
             if (batch.isEmpty()) {
                 break;
             }

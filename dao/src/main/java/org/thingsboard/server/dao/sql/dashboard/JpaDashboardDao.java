@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.dashboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -130,8 +131,8 @@ public class JpaDashboardDao extends JpaAbstractDao<DashboardEntity, Dashboard> 
     }
 
     @Override
-    public PageData<DashboardFields> findAllFields(PageLink pageLink) {
-        return DaoUtil.pageToPageData(dashboardRepository.findAllFields(DaoUtil.toPageable(pageLink)));
+    public List<DashboardFields> findNextBatch(UUID id, int batchSize) {
+        return dashboardRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override
