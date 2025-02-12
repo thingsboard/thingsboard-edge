@@ -49,7 +49,11 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
                         if (otaPackage == null) {
                             throw new RuntimeException("[{" + tenantId + "}] otaPackageUpdateMsg {" + otaPackageUpdateMsg + "} cannot be converted to ota package");
                         }
-                        edgeCtx.getOtaPackageService().saveOtaPackage(otaPackage, false);
+                        if (otaPackage.getData() == null) {
+                            edgeCtx.getOtaPackageService().saveOtaPackageInfo(new OtaPackageInfo(otaPackage), otaPackage.hasUrl(), false);
+                        } else {
+                            edgeCtx.getOtaPackageService().saveOtaPackage(otaPackage, false);
+                        }
                     } finally {
                         otaPackageCreationLock.unlock();
                     }
