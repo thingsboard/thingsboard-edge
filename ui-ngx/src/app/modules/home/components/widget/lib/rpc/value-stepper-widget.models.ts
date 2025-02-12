@@ -45,7 +45,7 @@ import { BackgroundSettings, BackgroundType, cssUnit, Font } from '@shared/model
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 
 
-const defaultMainColor = '#305680';
+const defaultMainColor = '#00695C';
 
 export enum ValueStepperType {
   simplified = 'simplified',
@@ -148,7 +148,7 @@ export const valueStepperButtonDefaultAppearance: ValueStepperButtonAppearance =
   iconSize: 24,
   iconSizeUnit: 'px',
 
-  mainColorOn: '#3F52DD',
+  mainColorOn: '#00695C',
   backgroundColorOn: '#FFFFFF',
   mainColorOff: '#A2A2A2',
   backgroundColorOff: '#FFFFFF',
