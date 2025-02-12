@@ -50,7 +50,10 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             tenant.setId(tenantId);
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
             Tenant savedTenant = tenantService.saveTenant(tenant, null, false);
-            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+            var apiUsageState = apiUsageStateService.findApiUsageStateByEntityId(savedTenant.getId());
+            if (apiUsageState == null) {
+                apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+            }
 
             requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
         } finally {
