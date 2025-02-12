@@ -43,7 +43,6 @@ public interface DownlinkMessageService {
     ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
                                                     CustomerId edgeCustomerId,
                                                     DownlinkMsg downlinkMsg,
-                                                    EdgeSettings currentEdgeSettings,
-                                                    boolean syncInProgress);
+                                                    EdgeSettings currentEdgeSettings);
 
 }

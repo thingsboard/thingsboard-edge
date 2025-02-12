@@ -242,8 +242,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
     public ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
                                                            CustomerId edgeCustomerId,
                                                            DownlinkMsg downlinkMsg,
-                                                           EdgeSettings currentEdgeSettings,
-                                                           boolean syncInProgress) {
+                                                           EdgeSettings currentEdgeSettings) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
         try {
             log.debug("[{}] Starting process DownlinkMsg. downlinkMsgId [{}],",
@@ -375,7 +374,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getEntityGroupUpdateMsgCount() > 0) {
                 for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
-                    result.add(entityGroupProcessor.processEntityGroupMsgFromCloud(tenantId, entityGroupUpdateMsg, syncInProgress));
+                    result.add(entityGroupProcessor.processEntityGroupMsgFromCloud(tenantId, entityGroupUpdateMsg));
                 }
             }
             if (downlinkMsg.hasCustomTranslationUpdateMsg()) {

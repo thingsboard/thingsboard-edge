@@ -545,7 +545,7 @@ public abstract class BaseCloudManagerService {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             this.syncInProgress = false;
         }
-        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings, this.syncInProgress);
+        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
