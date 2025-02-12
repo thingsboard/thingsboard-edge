@@ -121,6 +121,11 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
     return this.widgetConfigComponent.modelValue?.typeParameters?.datasourcesOptional;
   }
 
+  public get entityAliasOptional(): boolean {
+    const type: DatasourceType = this.datasourceFormGroup.get('type').value;
+    return this.datasourcesOptional || type === DatasourceType.alarmCount
+  }
+
   public get maxDataKeys(): number {
     return this.widgetConfigComponent.modelValue?.typeParameters?.maxDataKeys;
   }
@@ -183,6 +188,10 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
 
   public get hideLatestDataKeys(): boolean {
     return this.datasourcesComponent?.hideLatestDataKeys;
+  }
+
+  public get hideAlarmFilter(): boolean {
+    return this.datasourcesComponent?.hideAlarmFilter;
   }
 
   @Input()
