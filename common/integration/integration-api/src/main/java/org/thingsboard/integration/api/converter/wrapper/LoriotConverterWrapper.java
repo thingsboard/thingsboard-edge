@@ -67,12 +67,12 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
 
     @Override
     protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
-        if (payloadJson.has("data")) {
-            var data = payloadJson.get("data").textValue();
-            return TbPair.of(data.getBytes(StandardCharsets.UTF_8), ContentType.TEXT);
-        } else if (payloadJson.has("decoded")) {
+        if (payloadJson.has("decoded")) {
             var decoded = payloadJson.get("decoded");
             return TbPair.of(JacksonUtil.writeValueAsBytes(decoded), ContentType.JSON);
+        } else if (payloadJson.has("data")) {
+            var data = payloadJson.get("data").textValue();
+            return TbPair.of(data.getBytes(StandardCharsets.UTF_8), ContentType.TEXT);
         } else {
             return TbPair.of(EMPTY_BYTE_ARRAY, ContentType.BINARY);
         }

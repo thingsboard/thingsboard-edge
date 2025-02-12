@@ -73,7 +73,7 @@ public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
     @Override
     protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
         var data = payloadJson.get("data").textValue();
-        return TbPair.of(Base64.getDecoder().decode(data), ContentType.JSON);
+        return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
     }
 
     @Override

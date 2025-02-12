@@ -50,7 +50,7 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
     protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     @Override
-    public TbPair<byte[], UplinkMetaData> wrap(DedicatedConverterConfig config, byte[] payload, UplinkMetaData metadata) {
+    public TbPair<byte[], UplinkMetaData> wrap(byte[] payload, UplinkMetaData metadata) {
         JsonNode payloadJson = JacksonUtil.fromBytes(payload);
         Map<String, String> payloadKvMap = readPayloadFieldsRecursively((ObjectNode) payloadJson, new HashMap<>());
 

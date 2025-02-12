@@ -38,7 +38,7 @@ import java.util.Set;
 
 public interface ConverterWrapper {
 
-    TbPair<byte[], UplinkMetaData> wrap(DedicatedConverterConfig config, byte[] payload, UplinkMetaData metadata);
+    TbPair<byte[], UplinkMetaData> wrap(byte[] payload, UplinkMetaData metadata);
 
     Set<String> getKeys();
 
