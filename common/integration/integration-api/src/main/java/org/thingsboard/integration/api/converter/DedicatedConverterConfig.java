@@ -32,6 +32,7 @@ package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 
 import java.util.Set;
@@ -39,7 +40,7 @@ import java.util.Set;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DedicatedConverterConfig {
-    private boolean isDevice;
+    private EntityType type;
     private String name;
     private String label;
     private String profile;
@@ -52,8 +53,4 @@ public class DedicatedConverterConfig {
     private String tbelFunction;
     private Set<String> updateOnlyKeys;
     private Set<String> keys;
-
-    public void setIsDevice(boolean isDevice) {
-        this.isDevice = isDevice;
-    }
 }

@@ -43,6 +43,7 @@ import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.data.util.CollectionsUtil;
@@ -142,25 +143,27 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
             });
         }
 
+        boolean isAsset = config.getType() == EntityType.ASSET;
+
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
-        builder.isAsset(!config.isDevice());
+        builder.isAsset(isAsset);
         String entityName = processTemplate(config.getName(), kvMap);
         String profile = processTemplate(config.getProfile(), kvMap);
         String label = processTemplate(config.getLabel(), kvMap);
         String customer = processTemplate(config.getCustomer(), kvMap);
         String group = processTemplate(config.getGroup(), kvMap);
 
-        if (config.isDevice()) {
-            builder.deviceName(entityName);
-            builder.deviceType(profile);
-            if (label != null) {
-                builder.deviceLabel(label);
-            }
-        } else {
+        if (isAsset) {
             builder.assetName(entityName);
             builder.assetType(profile);
             if (label != null) {
                 builder.assetLabel(label);
+            }
+        } else {
+            builder.deviceName(entityName);
+            builder.deviceType(profile);
+            if (label != null) {
+                builder.deviceLabel(label);
             }
         }
 

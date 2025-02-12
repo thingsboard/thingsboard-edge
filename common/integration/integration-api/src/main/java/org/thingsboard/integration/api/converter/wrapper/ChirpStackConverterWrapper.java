@@ -31,48 +31,53 @@
 package org.thingsboard.integration.api.converter.wrapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Base64;
-import java.util.Map;
 
 public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
 
-    @Getter
-    private final Map<String, String> keys;
+    private static final BiMap<String, String> KEYS_MAPPING;
 
-    {
-        keys = Map.ofEntries(
-                Map.entry("deduplicationId", "deduplicationId"),
-                Map.entry("time", "time"),
-                Map.entry("tenantId", "tenantId"),
-                Map.entry("tenantName", "tenantName"),
-                Map.entry("applicationId", "applicationId"),
-                Map.entry("applicationName", "applicationName"),
-                Map.entry("deviceProfileId", "deviceProfileId"),
-                Map.entry("deviceProfileName", "deviceProfileName"),
-                Map.entry("deviceName", "deviceName"),
-                Map.entry("eui", "devEui"),
-                Map.entry("tags", "tags"),
-                Map.entry("devAddr", "devAddr"),
-                Map.entry("adr", "adr"),
-                Map.entry("dr", "dr"),
-                Map.entry("fCnt", "fCnt"),
-                Map.entry("fPort", "fPort"),
-                Map.entry("confirmed", "confirmed"),
-                Map.entry("data", "data"),
-                Map.entry("rxInfo", "rxInfo"),
-                Map.entry("frequency", "frequency"),
-                Map.entry("bandwidth", "bandwidth"),
-                Map.entry("spreadingFactor", "spreadingFactor"),
-                Map.entry("codeRate", "codeRate")
-        );
+    static {
+        KEYS_MAPPING = new ImmutableBiMap.Builder<String, String>()
+                .put("deduplicationId", "deduplicationId")
+                .put("time", "time")
+                .put("tenantId", "tenantId")
+                .put("tenantName", "tenantName")
+                .put("applicationId", "applicationId")
+                .put("applicationName", "applicationName")
+                .put("deviceProfileId", "deviceProfileId")
+                .put("deviceProfileName", "deviceProfileName")
+                .put("deviceName", "deviceName")
+                .put("eui", "devEui")
+                .put("tags", "tags")
+                .put("devAddr", "devAddr")
+                .put("adr", "adr")
+                .put("dr", "dr")
+                .put("fCnt", "fCnt")
+                .put("fPort", "fPort")
+                .put("confirmed", "confirmed")
+                .put("data", "data")
+                .put("rxInfo", "rxInfo")
+                .put("frequency", "frequency")
+                .put("bandwidth", "bandwidth")
+                .put("spreadingFactor", "spreadingFactor")
+                .put("codeRate", "codeRate")
+                .build();
     }
 
+    @Override
     protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
         var data = payloadJson.get("data").textValue();
         return TbPair.of(Base64.getDecoder().decode(data), ContentType.JSON);
+    }
+
+    @Override
+    protected BiMap<String, String> getKeysMapping() {
+        return KEYS_MAPPING;
     }
 }
