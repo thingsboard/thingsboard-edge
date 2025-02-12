@@ -302,7 +302,16 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == expectedDeviceProfilesCnt);
+                .until(() ->  {
+                    PageData<DeviceProfile> deviceProfiles = edgeRestClient.getDeviceProfiles(new PageLink(100));
+                    if (deviceProfiles.getTotalElements() != expectedDeviceProfilesCnt) {
+                        log.warn("Incorrect number of device profiles on the edge, expected {}, found {}", expectedDeviceProfilesCnt, deviceProfiles.getTotalElements());
+                        for (DeviceProfile datum : deviceProfiles.getData()) {
+                            log.warn("Device profile: {}", datum);
+                        }
+                    }
+                    return deviceProfiles.getTotalElements() == expectedDeviceProfilesCnt;
+                });
 
         PageData<DeviceProfile> pageData = edgeRestClient.getDeviceProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.DEVICE_PROFILE);
