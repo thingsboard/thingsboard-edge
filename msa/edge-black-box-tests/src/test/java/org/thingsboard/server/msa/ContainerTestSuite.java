@@ -45,6 +45,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static org.thingsboard.server.msa.AbstractContainerTest.TAG_KAFKA;
 import static org.thingsboard.server.msa.AbstractContainerTest.TB_EDGE_SERVICE_NAME;
 import static org.thingsboard.server.msa.AbstractContainerTest.TB_MONOLITH_SERVICE_NAME;
 import static org.thingsboard.server.msa.AbstractContainerTest.edgeConfigurations;
@@ -106,7 +107,7 @@ public class ContainerTestSuite {
                         .withExposedService("kafka", 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
                 for (TestEdgeConfiguration edgeConfiguration : edgeConfigurations) {
                     testContainer.withExposedService(TB_EDGE_SERVICE_NAME + edgeConfiguration.getTagWithDash(), edgeConfiguration.getPort(), Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
-                    if (edgeConfiguration.getTag().equals("kafka")) {
+                    if (edgeConfiguration.getTag().equals(TAG_KAFKA)) {
                         testContainer.withExposedService("kafka-edge", 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
                     }
                 }
