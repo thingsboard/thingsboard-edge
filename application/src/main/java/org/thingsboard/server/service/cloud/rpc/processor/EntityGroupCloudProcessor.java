@@ -74,7 +74,7 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock entityGroupCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> processEntityGroupMsgFromCloud(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg) {
+    public ListenableFuture<Void> processEntityGroupMsgFromCloud(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg, boolean syncInProgress) {
         EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB()));
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         EntityGroup entityGroup = null;
@@ -130,6 +130,16 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                     break;
                 case UNRECOGNIZED:
                     return handleUnsupportedMsgType(entityGroupUpdateMsg.getMsgType());
+            }
+        }
+        if (!syncInProgress && entityGroup != null) {
+            ObjectNode body = JacksonUtil.newObjectNode();
+            body.put("type", entityGroup.getType().name());
+            futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST,
+                    entityGroupId, body, null));
+            if (!edgeGroupAll) {
+                futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_PERMISSIONS_REQUEST,
+                        entityGroupId, body, null));
             }
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
