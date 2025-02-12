@@ -60,6 +60,7 @@ services:
       - "8083"
       - "1884"
     environment:
+      EDGE_LICENSE_INSTANCE_DATA_FILE: /data/instance-edge-license.data
       CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_KAFKA}"
       CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_KAFKA}"
       SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_KAFKA}"
@@ -81,6 +82,7 @@ services:
       - "8084"
       - "1885"
     environment:
+      EDGE_LICENSE_INSTANCE_DATA_FILE: /data/instance-edge-license.data
       CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_38}"
       CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_38}"
       SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_38}"
@@ -100,6 +102,7 @@ services:
       - "8085"
       - "1886"
     environment:
+      EDGE_LICENSE_INSTANCE_DATA_FILE: /data/instance-edge-license.data
       CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY_37}"
       CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET_37}"
       SPRING_DATASOURCE_URL: "${SPRING_DATASOURCE_URL_37}"
