@@ -48,6 +48,9 @@ public abstract class BaseResourceProcessor extends BaseEdgeProcessor {
             }
             String resourceKey = resource.getResourceKey();
             ResourceType resourceType = resource.getResourceType();
+            if (!created && !resourceType.isUpdatable()) {
+                resource.setData(null);
+            }
             PageDataIterable<TbResource> resourcesIterable = new PageDataIterable<>(
                     link -> resourceService.findTenantResourcesByResourceTypeAndPageLink(tenantId, resourceType, link), 1024);
             for (TbResource tbResource : resourcesIterable) {
