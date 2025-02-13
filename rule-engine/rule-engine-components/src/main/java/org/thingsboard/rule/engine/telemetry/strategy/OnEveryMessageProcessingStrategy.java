@@ -28,19 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .space-between {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
+package org.thingsboard.rule.engine.telemetry.strategy;
 
-    .see-example {
-      display: flex;
-      flex-shrink: 0;
+import com.fasterxml.jackson.annotation.JsonCreator;
+
+import java.util.UUID;
+
+final class OnEveryMessageProcessingStrategy implements ProcessingStrategy {
+
+    private static final OnEveryMessageProcessingStrategy INSTANCE = new OnEveryMessageProcessingStrategy();
+
+    private OnEveryMessageProcessingStrategy() {}
+
+    @JsonCreator
+    public static OnEveryMessageProcessingStrategy getInstance() {
+        return INSTANCE;
     }
-  }
 
-  .hint-text {
-    width: 100%;
-  }
+    @Override
+    public boolean shouldProcess(long ts, UUID originatorUuid) {
+        return true;
+    }
+
 }

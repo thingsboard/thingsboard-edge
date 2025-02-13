@@ -41,7 +41,7 @@ import java.time.Duration;
 import java.util.Set;
 import java.util.UUID;
 
-final class DeduplicatePersistenceStrategy implements PersistenceStrategy {
+final class DeduplicateProcessingStrategy implements ProcessingStrategy {
 
     private static final int MIN_DEDUPLICATION_INTERVAL_SECS = 1;
     private static final int MAX_DEDUPLICATION_INTERVAL_SECS = (int) Duration.ofDays(1L).toSeconds();
@@ -57,7 +57,7 @@ final class DeduplicatePersistenceStrategy implements PersistenceStrategy {
     private final LoadingCache<Long, Set<UUID>> deduplicationCache;
 
     @JsonCreator
-    public DeduplicatePersistenceStrategy(@JsonProperty("deduplicationIntervalSecs") int deduplicationIntervalSecs) {
+    public DeduplicateProcessingStrategy(@JsonProperty("deduplicationIntervalSecs") int deduplicationIntervalSecs) {
         if (deduplicationIntervalSecs < MIN_DEDUPLICATION_INTERVAL_SECS || deduplicationIntervalSecs > MAX_DEDUPLICATION_INTERVAL_SECS) {
             throw new IllegalArgumentException("Deduplication interval must be at least " + MIN_DEDUPLICATION_INTERVAL_SECS + " second(s) " +
                     "and at most " + MAX_DEDUPLICATION_INTERVAL_SECS + " second(s), was " + deduplicationIntervalSecs + " second(s)");
@@ -96,7 +96,7 @@ final class DeduplicatePersistenceStrategy implements PersistenceStrategy {
     }
 
     @Override
-    public boolean shouldPersist(long ts, UUID originatorUuid) {
+    public boolean shouldProcess(long ts, UUID originatorUuid) {
         long intervalNumber = ts / deduplicationIntervalMillis;
         return deduplicationCache.get(intervalNumber).add(originatorUuid);
     }

@@ -39,7 +39,7 @@ import {
 } from '@angular/forms';
 import { Component, forwardRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AdvancedPersistenceStrategy } from '@home/components/rule-node/action/timeseries-config.models';
+import { AdvancedProcessingStrategy } from '@home/components/rule-node/action/timeseries-config.models';
 
 @Component({
   selector: 'tb-advanced-persistence-settings',
@@ -91,8 +91,7 @@ export class AdvancedPersistenceSettingComponent implements ControlValueAccessor
     };
   }
 
-  writeValue(value: AdvancedPersistenceStrategy) {
+  writeValue(value: AdvancedProcessingStrategy) {
     this.persistenceForm.patchValue(value, {emitEvent: false});
   }
-
 }

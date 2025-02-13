@@ -30,24 +30,34 @@
  */
 package org.thingsboard.rule.engine.telemetry.strategy;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
-final class SkipPersistenceStrategy implements PersistenceStrategy {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private static final SkipPersistenceStrategy INSTANCE = new SkipPersistenceStrategy();
+class OnEveryMessageProcessingStrategyTest {
 
-    private SkipPersistenceStrategy() {}
-
-    @JsonCreator
-    public static SkipPersistenceStrategy getInstance() {
-        return INSTANCE;
+    @ParameterizedTest
+    @MethodSource("edgeCaseProvider")
+    void shouldAlwaysReturnTrueForAnyInput(long timestamp, UUID originator) {
+        var onEveryMessage = OnEveryMessageProcessingStrategy.getInstance();
+        assertThat(onEveryMessage.shouldProcess(timestamp, originator)).isTrue();
     }
 
-    @Override
-    public boolean shouldPersist(long ts, UUID originatorUuid) {
-        return false;
+    private static Stream<Arguments> edgeCaseProvider() {
+        return Stream.of(
+                Arguments.of(Long.MIN_VALUE, new UUID(0L, 0L)),
+                Arguments.of(Long.MAX_VALUE, new UUID(Long.MAX_VALUE, Long.MAX_VALUE)),
+                Arguments.of(0L, new UUID(0L, 0L)),
+                Arguments.of(-1L, new UUID(-1L, -1L)),
+                Arguments.of(1L, new UUID(1L, 1L)),
+                Arguments.of(42L, UUID.randomUUID()),
+                Arguments.of(1000L, null)
+        );
     }
 
 }
