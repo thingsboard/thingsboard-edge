@@ -31,8 +31,7 @@
 package org.thingsboard.integration.api.converter.wrapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableMap;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
@@ -41,27 +40,27 @@ import java.nio.charset.StandardCharsets;
 
 public class LoriotConverterWrapper extends AbstractConverterWrapper {
 
-    private static final BiMap<String, String> KEYS_MAPPING;
+    private static final ImmutableMap<String, String> KEYS_MAPPING;
 
     static {
-        KEYS_MAPPING = new ImmutableBiMap.Builder<String, String>()
-                .put("cmd", "cmd")
-                .put("seqno", "seqno")
-                .put("eui", "EUI")
-                .put("ts", "ts")
-                .put("ack", "ack")
-                .put("bat", "bat")
-                .put("fСnt", "fcnt")
-                .put("fPort", "port")
-                .put("offline", "offline")
-                .put("frequency", "freq")
-                .put("dr", "dr")
-                .put("rssi", "rssi")
-                .put("snr", "snr")
-                .put("toa", "toa")
-                .put("data", "data")
-                .put("decoded", "decoded")
-                .put("gws", "gws")
+        KEYS_MAPPING = new ImmutableMap.Builder<String, String>()
+                .put("cmd", "/cmd")
+                .put("seqno", "/seqno")
+                .put("eui", "/EUI")
+                .put("ts", "/ts")
+                .put("ack", "/ack")
+                .put("bat", "/bat")
+                .put("fСnt", "/fcnt")
+                .put("fPort", "/port")
+                .put("offline", "/offline")
+                .put("frequency", "/freq")
+                .put("dr", "/dr")
+                .put("rssi", "/rssi")
+                .put("snr", "/snr")
+                .put("toa", "/toa")
+                .put("data", "/data")
+                .put("decoded", "/decoded")
+                .put("gws", "/gws")
                 .build();
     }
 
@@ -79,7 +78,7 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
     }
 
     @Override
-    protected BiMap<String, String> getKeysMapping() {
+    protected ImmutableMap<String, String> getKeysMapping() {
         return KEYS_MAPPING;
     }
 }

@@ -31,10 +31,8 @@
 package org.thingsboard.integration.api.converter.wrapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableMap;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.util.TbPair;
@@ -43,7 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public abstract class AbstractConverterWrapper implements ConverterWrapper {
 
@@ -52,11 +49,15 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
     @Override
     public TbPair<byte[], UplinkMetaData> wrap(byte[] payload, UplinkMetaData metadata) {
         JsonNode payloadJson = JacksonUtil.fromBytes(payload);
-        Map<String, String> payloadKvMap = readPayloadFieldsRecursively((ObjectNode) payloadJson, new HashMap<>());
 
-        Map<String, String> kvMap = getKeysMapping().entrySet().stream()
-                .filter(e -> payloadKvMap.containsKey(e.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> payloadKvMap.get(e.getValue())));
+        Map<String, String> kvMap = new HashMap<>(metadata.getKvMap());
+
+        getKeysMapping().forEach((name, path) -> {
+            JsonNode value = payloadJson.at(path);
+            if (!value.isMissingNode()) {
+                kvMap.put(name, value.toString());
+            }
+        });
 
         kvMap.putAll(metadata.getKvMap());
         TbPair<byte[], ContentType> payloadPair = getPayload(payloadJson);
@@ -65,25 +66,13 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
         return TbPair.of(payloadPair.getFirst(), mergedMetadata);
     }
 
-    private Map<String, String> readPayloadFieldsRecursively(ObjectNode payload, Map<String, String> kvMap) {
-        payload.properties().forEach(e -> {
-            JsonNode node = e.getValue();
-            if (node.isObject() && !getKeysMapping().containsValue(e.getKey())) {
-                readPayloadFieldsRecursively((ObjectNode) node, kvMap);
-            } else {
-                kvMap.put(e.getKey(), node.toString());
-            }
-        });
-        return kvMap;
-    }
-
     protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
         var data = payloadJson.get("data").textValue();
         return TbPair.of(data.getBytes(StandardCharsets.UTF_8), ContentType.TEXT);
     }
 
-    // Key is a name in metadata, Value is a field name in JSON message.
-    protected abstract BiMap<String, String> getKeysMapping();
+    // Key is a name in metadata, Value is a JSON path to value in payload.
+    protected abstract ImmutableMap<String, String> getKeysMapping();
 
     @Override
     public Set<String> getKeys() {

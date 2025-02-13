@@ -31,8 +31,7 @@
 package org.thingsboard.integration.api.converter.wrapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableMap;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
@@ -40,33 +39,33 @@ import java.util.Base64;
 
 public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
 
-    private static final BiMap<String, String> KEYS_MAPPING;
+    private static final ImmutableMap<String, String> KEYS_MAPPING;
 
     static {
-        KEYS_MAPPING = new ImmutableBiMap.Builder<String, String>()
-                .put("deduplicationId", "deduplicationId")
-                .put("time", "time")
-                .put("tenantId", "tenantId")
-                .put("tenantName", "tenantName")
-                .put("applicationId", "applicationId")
-                .put("applicationName", "applicationName")
-                .put("deviceProfileId", "deviceProfileId")
-                .put("deviceProfileName", "deviceProfileName")
-                .put("deviceName", "deviceName")
-                .put("eui", "devEui")
-                .put("tags", "tags")
-                .put("devAddr", "devAddr")
-                .put("adr", "adr")
-                .put("dr", "dr")
-                .put("fCnt", "fCnt")
-                .put("fPort", "fPort")
-                .put("confirmed", "confirmed")
-                .put("data", "data")
-                .put("rxInfo", "rxInfo")
-                .put("frequency", "frequency")
-                .put("bandwidth", "bandwidth")
-                .put("spreadingFactor", "spreadingFactor")
-                .put("codeRate", "codeRate")
+        KEYS_MAPPING = new ImmutableMap.Builder<String, String>()
+                .put("deduplicationId", "/deduplicationId")
+                .put("time", "/time")
+                .put("tenantId", "/deviceInfo/tenantId")
+                .put("tenantName", "/deviceInfo/tenantName")
+                .put("applicationId", "/deviceInfo/applicationId")
+                .put("applicationName", "/deviceInfo/applicationName")
+                .put("deviceProfileId", "/deviceInfo/deviceProfileId")
+                .put("deviceProfileName", "/deviceInfo/deviceProfileName")
+                .put("deviceName", "/deviceInfo/deviceName")
+                .put("eui", "/deviceInfo/devEui")
+                .put("tags", "/deviceInfo/tags")
+                .put("devAddr", "/devAddr")
+                .put("adr", "/adr")
+                .put("dr", "/dr")
+                .put("fCnt", "/fCnt")
+                .put("fPort", "/fPort")
+                .put("confirmed", "/confirmed")
+                .put("data", "/data")
+                .put("rxInfo", "/rxInfo")
+                .put("frequency", "/frequency")
+                .put("bandwidth", "/bandwidth")
+                .put("spreadingFactor", "/spreadingFactor")
+                .put("codeRate", "/codeRate")
                 .build();
     }
 
@@ -77,7 +76,7 @@ public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
     }
 
     @Override
-    protected BiMap<String, String> getKeysMapping() {
+    protected ImmutableMap<String, String> getKeysMapping() {
         return KEYS_MAPPING;
     }
 }
