@@ -38,7 +38,7 @@
     <parent>
         <artifactId>thingsboard</artifactId>
         <groupId>org.thingsboard</groupId>
-        <version>3.9.0PE-RC</version>
+        <version>3.9.1-RC</version>
     </parent>
 
     <artifactId>migrator</artifactId>

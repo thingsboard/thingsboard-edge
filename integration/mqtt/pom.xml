@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.9.0PE-RC</version>
+        <version>3.9.1-RC</version>
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.integration</groupId>
