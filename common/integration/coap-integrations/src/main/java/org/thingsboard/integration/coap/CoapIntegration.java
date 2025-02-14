@@ -96,7 +96,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         CoapExchange exchange = msg.getExchange();
         Request request = exchange.advanced().getRequest();
         var dtlsSessionId = request.getSourceContext().get(KEY_SESSION_ID);
-        if (integrationResource == null && dtlsSessionId != null && !dtlsSessionId.isEmpty()) {
+        if (this.dtlsIntegrationResource == null && dtlsSessionId != null && !dtlsSessionId.isEmpty()) {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "No secure connection is not allowed");
             return;
         }
