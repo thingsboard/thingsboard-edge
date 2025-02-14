@@ -64,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
@@ -319,7 +320,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     }
 
     private String metadataToJson(UplinkMetaData metaData) throws JsonProcessingException {
-        return JacksonUtil.toString(metaData.getKvMap());
+        return JacksonUtil.toString(new TreeMap<>(metaData.getKvMap()));
     }
 
     private String getTypeUplink(byte[] inMessage) throws JsonProcessingException {
