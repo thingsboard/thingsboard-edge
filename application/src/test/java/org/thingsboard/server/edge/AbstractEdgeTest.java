@@ -191,7 +191,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
-        edgeImitator.expectMessageAmount(34);
+        edgeImitator.expectMessageAmount(36);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -303,11 +303,11 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(AdminSettingsUpdateMsg.class, 4);
         validateAdminSettings(4);
 
-        // 3 messages
+        // 5 messages
         // - 1 from default profile fetcher
-        // - 2 from device profile fetcher (default and thermostat)
-        validateMsgsCnt(DeviceProfileUpdateMsg.class, 3);
-        validateDeviceProfiles(3);
+        // - 4 from device profile fetcher (2 * (default and thermostat) before and after ota packages fetcher
+        validateMsgsCnt(DeviceProfileUpdateMsg.class, 5);
+        validateDeviceProfiles(5);
 
         // 2 messages
         // - 1 from default profile fetcher
@@ -777,7 +777,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected RuleChainId createEdgeRuleChainAndAssignToEdge(String ruleChainName) throws Exception {
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName(ruleChainName);
         ruleChain.setType(RuleChainType.EDGE);
