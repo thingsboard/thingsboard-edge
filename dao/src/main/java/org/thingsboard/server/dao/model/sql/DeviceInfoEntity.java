@@ -43,7 +43,7 @@ import org.hibernate.dialect.PostgreSQLJsonPGObjectJsonType;
 import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.EntityInfosConverter;
+import org.thingsboard.server.dao.util.mapping.GroupEntityInfosConverter;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class DeviceInfoEntity extends AbstractDeviceEntity<DeviceInfo> {
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
-    @Convert(converter = EntityInfosConverter.class)
+    @Convert(converter = GroupEntityInfosConverter.class)
     @JdbcType(PostgreSQLJsonPGObjectJsonType.class)
     @Column(name = ModelConstants.GROUPS_COLUMN)
     private List<EntityInfo> groups;

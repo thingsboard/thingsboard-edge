@@ -41,7 +41,7 @@ import org.hibernate.annotations.Immutable;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.EntityInfosConverter;
+import org.thingsboard.server.dao.util.mapping.GroupEntityInfosConverter;
 
 import java.util.List;
 
@@ -56,7 +56,7 @@ public class AssetInfoEntity extends AbstractAssetEntity<AssetInfo> {
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
-    @Convert(converter = EntityInfosConverter.class)
+    @Convert(converter = GroupEntityInfosConverter.class)
     @Column(name = ModelConstants.GROUPS_COLUMN)
     private List<EntityInfo> groups;
 

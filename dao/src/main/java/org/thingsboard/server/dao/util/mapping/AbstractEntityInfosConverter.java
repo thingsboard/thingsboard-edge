@@ -44,7 +44,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Converter
-public class EntityInfosConverter implements AttributeConverter<List<EntityInfo>, String> {
+public abstract class AbstractEntityInfosConverter implements AttributeConverter<List<EntityInfo>, String> {
+
+    protected abstract EntityType getEntityType();
 
     @Override
     public String convertToDatabaseColumn(List<EntityInfo> attribute) {
@@ -56,7 +58,7 @@ public class EntityInfosConverter implements AttributeConverter<List<EntityInfo>
         try {
             JsonNode node = JacksonUtil.fromBytes(s.getBytes(StandardCharsets.UTF_8));
             if (node.isArray()) {
-                List<EntityInfo> groups = new ArrayList<>();
+                List<EntityInfo> entities = new ArrayList<>();
                 for (int i = 0; i < node.size(); i++) {
                     JsonNode row = node.get(i);
                     UUID id = null;
@@ -66,20 +68,21 @@ public class EntityInfosConverter implements AttributeConverter<List<EntityInfo>
                     if (idNode != null && nameNode != null) {
                         try {
                             id = UUID.fromString(idNode.asText());
-                        } catch (Exception ignored) {
-                        }
+                        } catch (Exception ignored) {}
                         name = nameNode.asText();
                     }
                     if (id != null && name != null) {
-                        groups.add(new EntityInfo(id, EntityType.ENTITY_GROUP.name(), name));
+                        entities.add(new EntityInfo(id, getEntityType().name(), name));
                     }
                 }
-                return groups;
+                return entities;
             } else {
                 return Collections.emptyList();
             }
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to convert String to Groups list: " + ex.getMessage(), ex);
+            String exception = String.format("Failed to convert String to %s list: %s", getEntityType(), ex.getMessage());
+            throw new RuntimeException(exception, ex);
         }
     }
+
 }

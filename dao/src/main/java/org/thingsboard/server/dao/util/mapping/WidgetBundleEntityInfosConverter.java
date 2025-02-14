@@ -28,43 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.dao.util.mapping;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Immutable;
-import org.thingsboard.server.common.data.EntityInfo;
-import org.thingsboard.server.common.data.UserInfo;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.GroupEntityInfosConverter;
+import jakarta.persistence.Converter;
+import org.thingsboard.server.common.data.EntityType;
 
-import java.util.List;
-
-@Data
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Immutable
-@Table(name = ModelConstants.USER_INFO_VIEW_TABLE_NAME)
-public class UserInfoEntity extends AbstractUserEntity<UserInfo> {
-
-    @Column(name = ModelConstants.OWNER_NAME_COLUMN)
-    private String ownerName;
-
-    @Convert(converter = GroupEntityInfosConverter.class)
-    @Column(name = ModelConstants.GROUPS_COLUMN)
-    private List<EntityInfo> groups;
-
-    public UserInfoEntity() {
-        super();
-    }
+@Converter
+public class WidgetBundleEntityInfosConverter extends AbstractEntityInfosConverter {
 
     @Override
-    public UserInfo toData() {
-        return new UserInfo(super.toUser(), this.ownerName, this.groups);
+    protected EntityType getEntityType() {
+        return EntityType.WIDGETS_BUNDLE;
     }
 
 }
