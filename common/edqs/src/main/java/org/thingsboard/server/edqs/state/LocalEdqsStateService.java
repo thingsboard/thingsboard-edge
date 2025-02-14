@@ -58,13 +58,11 @@ public class LocalEdqsStateService implements EdqsStateService {
     @Autowired
     private EdqsRocksDb db;
 
-    private Set<TopicPartitionInfo> partitions;
+    private boolean restoreDone;
 
     @Override
     public void restore(Set<TopicPartitionInfo> partitions) {
-        if (this.partitions == null) {
-            this.partitions = partitions;
-        } else {
+        if (restoreDone) {
             return;
         }
 
@@ -77,6 +75,7 @@ public class LocalEdqsStateService implements EdqsStateService {
                 log.error("[{}] Failed to restore value", key, e);
             }
         });
+        restoreDone = true;
     }
 
     @Override
@@ -91,6 +90,11 @@ public class LocalEdqsStateService implements EdqsStateService {
         } catch (Exception e) {
             log.error("[{}] Failed to save event {}", key, msg, e);
         }
+    }
+
+    @Override
+    public boolean isReady() {
+        return restoreDone;
     }
 
 }

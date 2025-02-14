@@ -36,10 +36,12 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -87,6 +89,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @EdqsComponent
@@ -100,6 +103,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
     private final EdqRepository repository;
     private final EdqsConfig config;
     private final EdqsPartitionService partitionService;
+    private final ConfigurableApplicationContext applicationContext;
     @Autowired @Lazy
     private EdqsStateService stateService;
 
@@ -110,10 +114,14 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
     private ExecutorService mgmtExecutor;
     private ScheduledExecutorService scheduler;
     private ListeningExecutorService requestExecutor;
+    private ExecutorService repartitionExecutor;
 
     private final VersionsStore versionsStore = new VersionsStore();
 
     private final AtomicInteger counter = new AtomicInteger(); // FIXME: TMP
+
+    @Getter
+    private Consumer<Throwable> errorHandler;
 
     @PostConstruct
     private void init() {
@@ -121,6 +129,15 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
         mgmtExecutor = ThingsBoardExecutors.newWorkStealingPool(4, "edqs-consumer-mgmt");
         scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor("edqs-scheduler");
         requestExecutor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(12, "edqs-requests"));
+        repartitionExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("edqs-repartition"));
+        errorHandler = error -> {
+            if (error instanceof OutOfMemoryError) {
+                log.error("OOM detected, shutting down");
+                repository.clear();
+                Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("edqs-shutdown"))
+                        .execute(applicationContext::close);
+            }
+        };
 
         eventsConsumer = MainQueueConsumerManager.<TbProtoQueueMsg<ToEdqsMsg>, QueueConfig>builder()
                 .queueKey(new QueueKey(ServiceType.EDQS, EdqsQueue.EVENTS.getTopic()))
@@ -131,7 +148,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
                             ToEdqsMsg msg = queueMsg.getValue();
                             log.trace("Processing message: {}", msg);
                             process(msg, EdqsQueue.EVENTS);
-                        } catch (Throwable t) {
+                        } catch (Exception t) {
                             log.error("Failed to process message: {}", queueMsg, t);
                         }
                     }
@@ -141,6 +158,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
                 .consumerExecutor(consumersExecutor)
                 .taskExecutor(mgmtExecutor)
                 .scheduler(scheduler)
+                .uncaughtErrorHandler(errorHandler)
                 .build();
         responseTemplate = queueFactory.createEdqsResponseTemplate();
     }
@@ -155,7 +173,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
         if (event.getServiceType() != ServiceType.EDQS) {
             return;
         }
-        consumersExecutor.submit(() -> {
+        repartitionExecutor.submit(() -> { // todo: maybe cancel the task if new event comes
             try {
                 Set<TopicPartitionInfo> newPartitions = event.getNewPartitions().get(new QueueKey(ServiceType.EDQS));
                 Set<TopicPartitionInfo> partitions = newPartitions.stream()
@@ -234,8 +252,8 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
                 if (!versionsStore.isNew(key, version)) {
                     return;
                 }
-            } else {
-                log.warn("[{}] {} doesn't have version: {}", tenantId, objectType, edqsMsg);
+            } else if (!ObjectType.unversionedTypes.contains(objectType)) {
+                log.warn("[{}] {} {} doesn't have version", tenantId, objectType, key);
             }
             if (queue != EdqsQueue.STATE) {
                 stateService.save(tenantId, objectType, key, eventType, edqsMsg);
@@ -286,6 +304,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
         mgmtExecutor.shutdownNow();
         scheduler.shutdownNow();
         requestExecutor.shutdownNow();
+        repartitionExecutor.shutdownNow();
     }
 
 }

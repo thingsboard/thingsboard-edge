@@ -59,7 +59,7 @@ public class EdqsEntityQueryControllerTest extends EntityQueryControllerTest {
     @Autowired
     private EdqsService edqsService;
 
-    @MockBean
+    @MockBean // so that we don't do backup for tests
     private EdqsRocksDb edqsRocksDb;
 
     @Before

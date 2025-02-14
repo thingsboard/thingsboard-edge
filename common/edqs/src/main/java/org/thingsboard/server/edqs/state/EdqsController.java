@@ -30,20 +30,26 @@
  */
 package org.thingsboard.server.edqs.state;
 
-import org.thingsboard.server.common.data.ObjectType;
-import org.thingsboard.server.common.data.edqs.EdqsEventType;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/edqs")
+public class EdqsController {
 
-public interface EdqsStateService {
+    private final EdqsStateService edqsStateService;
 
-    void restore(Set<TopicPartitionInfo> partitions);
-
-    void save(TenantId tenantId, ObjectType type, String key, EdqsEventType eventType, ToEdqsMsg msg);
-
-    boolean isReady();
+    @GetMapping("/ready")
+    public ResponseEntity<Void> isReady() {
+        if (edqsStateService.isReady()) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
 }

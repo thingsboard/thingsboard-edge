@@ -180,7 +180,7 @@ public class TenantRepo {
                 EntityData<?> to = getOrCreate(entity.getTo());
                 boolean added = repo.add(from, to, TbStringPool.intern(entity.getType()));
                 if (added) {
-                    edqsStatsService.ifPresent(statService -> statService.reportTenantEdqsObject(tenantId, ObjectType.RELATION, EdqsEventType.UPDATED));
+                    edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.RELATION, EdqsEventType.UPDATED));
                 }
             } else if (RelationTypeGroup.FROM_ENTITY_GROUP.equals(entity.getTypeGroup())) {
                 var eg = getEntityGroup(entity.getFrom().getId());
@@ -199,7 +199,7 @@ public class TenantRepo {
             if (relationsRepo != null) {
                 boolean removed = relationsRepo.remove(entityRelation.getFrom().getId(), entityRelation.getTo().getId(), entityRelation.getType());
                 if (removed) {
-                    edqsStatsService.ifPresent(statService -> statService.reportTenantEdqsObject(tenantId, ObjectType.RELATION, EdqsEventType.DELETED));
+                    edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.RELATION, EdqsEventType.DELETED));
                 }
             }
         } else if (RelationTypeGroup.FROM_ENTITY_GROUP.equals(entityRelation.getTypeGroup())) {
@@ -277,7 +277,7 @@ public class TenantRepo {
             EntityData<?> removed = getEntityMap(entityType).remove(entityId);
             if (removed != null) {
                 getEntitySet(entityType).remove(removed);
-                edqsStatsService.ifPresent(statService -> statService.reportTenantEdqsObject(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.DELETED));
+                edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.DELETED));
             }
             switch (entityType) {
                 case ENTITY_GROUP -> {
@@ -299,7 +299,7 @@ public class TenantRepo {
             Integer keyId = KeyDictionary.get(attributeKv.getKey());
             boolean added = entityData.putAttr(keyId, attributeKv.getScope(), toDataPoint(attributeKv.getLastUpdateTs(), value));
             if (added) {
-                edqsStatsService.ifPresent(statService -> statService.reportTenantEdqsObject(tenantId, ObjectType.ATTRIBUTE_KV, EdqsEventType.UPDATED));
+                edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.ATTRIBUTE_KV, EdqsEventType.UPDATED));
             }
         }
     }
@@ -309,7 +309,7 @@ public class TenantRepo {
         if (entityData != null) {
             boolean removed = entityData.removeAttr(KeyDictionary.get(attributeKv.getKey()), attributeKv.getScope());
             if (removed) {
-                edqsStatsService.ifPresent(statService -> statService.reportTenantEdqsObject(tenantId, ObjectType.ATTRIBUTE_KV, EdqsEventType.DELETED));
+                edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.ATTRIBUTE_KV, EdqsEventType.DELETED));
             }
         }
     }
@@ -321,7 +321,7 @@ public class TenantRepo {
             Integer keyId = KeyDictionary.get(latestTsKv.getKey());
             boolean added = entityData.putTs(keyId, toDataPoint(latestTsKv.getTs(), value));
             if (added) {
-                edqsStatsService.ifPresent(statService -> statService.reportTenantEdqsObject(tenantId, ObjectType.LATEST_TS_KV, EdqsEventType.UPDATED));
+                edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.LATEST_TS_KV, EdqsEventType.UPDATED));
             }
         }
     }
@@ -331,7 +331,7 @@ public class TenantRepo {
         if (entityData != null) {
             boolean removed = entityData.removeTs(KeyDictionary.get(latestTsKv.getKey()));
             if (removed) {
-                edqsStatsService.ifPresent(statService -> statService.reportTenantEdqsObject(tenantId, ObjectType.LATEST_TS_KV, EdqsEventType.DELETED));
+                edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.LATEST_TS_KV, EdqsEventType.DELETED));
             }
         }
     }
@@ -386,7 +386,7 @@ public class TenantRepo {
             log.debug("[{}] Adding {} {}", tenantId, entityType, id);
             EntityData<?> entityData = constructEntityData(entityType, entityId);
             getEntitySet(entityType).add(entityData);
-            edqsStatsService.ifPresent(statService -> statService.reportTenantEdqsObject(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.UPDATED));
+            edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.UPDATED));
             return entityData;
         });
     }
