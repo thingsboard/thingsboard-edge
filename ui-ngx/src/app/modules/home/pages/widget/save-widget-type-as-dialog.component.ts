@@ -68,7 +68,6 @@ export class SaveWidgetTypeAsDialogComponent extends
   showSelectWidgetBundle = true;
 
   constructor(protected store: Store<AppState>,
-
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) private data: SaveWidgetTypeAsDialogData,
               public dialogRef: MatDialogRef<SaveWidgetTypeAsDialogComponent, SaveWidgetTypeAsDialogResult>,
