@@ -162,6 +162,8 @@ export class ScadaSymbolComponent extends PageComponent
 
   showHiddenElements = false;
 
+  showCreateWidgetButton = true;
+
   get isDirty(): boolean {
     return (this.scadaSymbolFormGroup.dirty || this.symbolEditorDirty) && !this.forcePristine;
   }
@@ -181,6 +183,11 @@ export class ScadaSymbolComponent extends PageComponent
               private widgetService: WidgetService,
               private dialog: MatDialog) {
     super(store);
+
+    const authUser = getCurrentAuthUser(store);
+    if (authUser.authority === Authority.CUSTOMER_USER) {
+      this.showCreateWidgetButton = false;
+    }
   }
 
   ngOnInit(): void {
