@@ -48,9 +48,4 @@ public class DedicatedConverterConfig {
     private String group;
     private Set<String> attributes;
     private Set<String> telemetry;
-    private ScriptLanguage scriptLang;
-    private String function;
-    private String tbelFunction;
-    private Set<String> updateOnlyKeys;
-    private Set<String> keys;
 }

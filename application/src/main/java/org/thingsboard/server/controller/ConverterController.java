@@ -539,8 +539,7 @@ public class ConverterController extends AutoCommitController {
     @ResponseBody
     public Set<String> getConverterKeysByIntegrationType(
             @Parameter(description = "A string value representing an integration type. For example, 'LORIOT'.", required = true)
-            @PathVariable("integrationType") String strIntegrationType) throws Exception {
-        IntegrationType integrationType = checkEnumParameter("integrationType", strIntegrationType, IntegrationType::valueOf);
+            @PathVariable("integrationType") IntegrationType integrationType) {
         return ConverterWrapperFactory.getWrapper(integrationType).getKeys();
     }
 
