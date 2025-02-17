@@ -142,6 +142,7 @@
               label="{{ 'dashboard.home-dashboard' | translate }}"
               formControlName="homeDashboardId"
               [selectFirstDashboard]="false"
+              [customerId]="entity.id.id"
             ></tb-dashboard-autocomplete>
             <mat-checkbox class="flex-1" formControlName="homeDashboardHideToolbar">
               {{ 'dashboard.home-dashboard-hide-toolbar' | translate }}
