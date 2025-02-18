@@ -191,7 +191,7 @@ export class ScadaSymbolComponent extends PageComponent
     if (authUser.authority === Authority.CUSTOMER_USER) {
       this.showCreateWidgetButton = false;
     } else {
-      this.showCreateWidgetButton = this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.WRITE);
+      this.showCreateWidgetButton = this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.CREATE);
     }
   }
 
