@@ -355,6 +355,7 @@ public class RemoteIntegrationManagerService {
         if (converterProto.hasIntegrationType()) {
             converter.setIntegrationType(IntegrationType.valueOf(converterProto.getIntegrationType()));
         }
+        converter.setConverterVersion(converterProto.getConverterVersion());
         converter.setConfiguration(JacksonUtil.toJsonNode(converterProto.getConfiguration()));
         converter.setAdditionalInfo(JacksonUtil.toJsonNode(converterProto.getAdditionalInfo()));
         return converter;

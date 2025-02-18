@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
@@ -62,20 +63,22 @@ public interface ConverterDao extends Dao<Converter>, TenantEntityDao, Exportabl
     /**
      * Find core converters by tenantId and page link.
      *
-     * @param tenantId the tenantId
-     * @param pageLink the page link
+     * @param tenantId        the tenantId
+     * @param integrationType
+     * @param pageLink        the page link
      * @return the list of converter objects
      */
-    PageData<Converter> findCoreConvertersByTenantId(UUID tenantId, PageLink pageLink);
+    PageData<Converter> findCoreConvertersByTenantId(UUID tenantId, IntegrationType integrationType, PageLink pageLink);
 
     /**
      * Find edge template converters by tenantId and page link.
      *
-     * @param tenantId the tenantId
-     * @param pageLink the page link
+     * @param tenantId        the tenantId
+     * @param integrationType
+     * @param pageLink        the page link
      * @return the list of converter objects
      */
-    PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, PageLink pageLink);
+    PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, IntegrationType integrationType, PageLink pageLink);
 
     /**
      * Find converter by tenantId and converter name.

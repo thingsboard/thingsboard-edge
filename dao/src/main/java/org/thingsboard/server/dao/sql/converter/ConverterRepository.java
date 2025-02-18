@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.ConverterEntity;
 
@@ -52,10 +53,12 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
 
     @Query("SELECT a FROM ConverterEntity a WHERE a.tenantId = :tenantId " +
             "AND a.edgeTemplate = :isEdgeTemplate " +
-            "AND (:searchText IS NULL OR ilike(a.name, CONCAT('%', :searchText, '%')) = true)")
+            "AND (:searchText IS NULL OR ilike(a.name, CONCAT('%', :searchText, '%')) = true) " +
+            "AND (a.integrationType IS NULL OR :integrationType IS NULL OR a.integrationType = :integrationType)")
     Page<ConverterEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
                                                           @Param("searchText") String searchText,
                                                           @Param("isEdgeTemplate") boolean isEdgeTemplate,
+                                                          @Param("integrationType") IntegrationType integrationType,
                                                           Pageable pageable);
 
     ConverterEntity findByTenantIdAndName(UUID tenantId, String name);

@@ -58,6 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PRO
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_VERSION_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 
 @Data
@@ -97,6 +98,9 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
     @Column(name = CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY)
     private boolean edgeTemplate;
 
+    @Column(name = CONVERTER_VERSION_PROPERTY)
+    private Integer converterVersion;
+
     public ConverterEntity() {
         super();
     }
@@ -116,6 +120,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
             this.externalId = converter.getExternalId().getId();
         }
         this.edgeTemplate = converter.isEdgeTemplate();
+        this.converterVersion = converter.getConverterVersion();
     }
 
     @Override
@@ -136,6 +141,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
             converter.setExternalId(new ConverterId(externalId));
         }
         converter.setEdgeTemplate(edgeTemplate);
+        converter.setConverterVersion(converterVersion);
         return converter;
     }
 

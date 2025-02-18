@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -68,22 +69,24 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     }
 
     @Override
-    public PageData<Converter> findCoreConvertersByTenantId(UUID tenantId, PageLink pageLink) {
+    public PageData<Converter> findCoreConvertersByTenantId(UUID tenantId, IntegrationType integrationType, PageLink pageLink) {
         return DaoUtil.toPageData(
                 converterRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
                         pageLink.getTextSearch(),
                         false,
+                        integrationType,
                         DaoUtil.toPageable(pageLink)));
     }
 
     @Override
-    public PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, PageLink pageLink) {
+    public PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, IntegrationType integrationType, PageLink pageLink) {
         return DaoUtil.toPageData(
                 converterRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
                         pageLink.getTextSearch(),
                         true,
+                        integrationType,
                         DaoUtil.toPageable(pageLink)));
     }
 

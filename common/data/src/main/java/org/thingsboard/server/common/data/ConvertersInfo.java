@@ -30,4 +30,6 @@
  */
 package org.thingsboard.server.common.data;
 
-public record ConvertersInfo(boolean library, boolean existing) {}
+import java.util.Set;
+
+public record ConvertersInfo(boolean library, boolean existing, Set<String> keys) {}

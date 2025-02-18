@@ -50,7 +50,7 @@ public class ConverterWrapperTest {
 
     @Test
     public void loriotConverterWrapperTest() {
-        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.LORIOT);
+        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.LORIOT).get();
 
         ObjectNode payloadMsg = JacksonUtil.newObjectNode();
         payloadMsg.put("data", "2A3F");
@@ -92,7 +92,7 @@ public class ConverterWrapperTest {
 
     @Test
     public void chirpStackConverterWrapperTest() {
-        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.CHIRPSTACK);
+        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.CHIRPSTACK).get();
 
         ObjectNode payloadMsg = JacksonUtil.newObjectNode();
         payloadMsg.put("data", "MkEzRg==");

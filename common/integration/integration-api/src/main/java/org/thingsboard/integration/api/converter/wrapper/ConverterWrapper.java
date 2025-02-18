@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.api.converter.wrapper;
 
-import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.util.TbPair;
 

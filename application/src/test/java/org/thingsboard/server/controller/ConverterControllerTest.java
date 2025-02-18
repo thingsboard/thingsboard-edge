@@ -385,6 +385,72 @@ public class ConverterControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testFindTenantConvertersByIntegrationType() throws Exception {
+        int mqttCntEntity = 27;
+        for (int i = 0; i < mqttCntEntity; i++) {
+            Converter converter = new Converter();
+            converter.setName("Mqtt converter" + i);
+            converter.setType(ConverterType.UPLINK);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+            converter.setIntegrationType(IntegrationType.MQTT);
+            doPost("/api/converter", converter, Converter.class);
+        }
+
+        int httpCntEntity = 35;
+        for (int i = 0; i < httpCntEntity; i++) {
+            Converter converter = new Converter();
+            converter.setName("Http converter" + i);
+            converter.setType(ConverterType.UPLINK);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+            converter.setIntegrationType(IntegrationType.HTTP);
+            doPost("/api/converter", converter, Converter.class);
+        }
+
+        List<Converter> loadedConverters = new ArrayList<>();
+        PageLink pageLink = new PageLink(23);
+        PageData<Converter> pageData;
+        do {
+            pageData = doGetTypedWithPageLink("/api/converters?",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Assert.assertEquals(mqttCntEntity + httpCntEntity, loadedConverters.size());
+
+        List<Converter> loadedMqttConverters = new ArrayList<>();
+        pageLink = new PageLink(23);
+        do {
+            pageData = doGetTypedWithPageLink("/api/converters?integrationType=MQTT&",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedMqttConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Assert.assertEquals(mqttCntEntity, loadedMqttConverters.size());
+
+        List<Converter> loadedHttpConverters = new ArrayList<>();
+        pageLink = new PageLink(23);
+        do {
+            pageData = doGetTypedWithPageLink("/api/converters?integrationType=HTTP&",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedHttpConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Assert.assertEquals(httpCntEntity, loadedHttpConverters.size());
+    }
+
+    @Test
     public void testFindTenantConvertersBySearchText() throws Exception {
         String title1 = "Converter title 1";
         List<Converter> converters = new ArrayList<>();

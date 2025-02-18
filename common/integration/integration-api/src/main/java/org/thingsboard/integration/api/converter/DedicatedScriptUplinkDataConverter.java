@@ -45,6 +45,7 @@ import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.data.util.CollectionsUtil;
 import org.thingsboard.server.common.data.util.TbPair;
@@ -76,7 +77,10 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
         String functionField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "function" : "tbelFunction";
         String function = configuration.getConfiguration().get(functionField).asText();
         this.evaluator = new ScriptUplinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), function);
-        this.converterWrapper = ConverterWrapperFactory.getWrapper(configuration.getIntegrationType());
+        IntegrationType integrationType = configuration.getIntegrationType();
+        this.converterWrapper = ConverterWrapperFactory
+                .getWrapper(integrationType)
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
     }
 
     @Override

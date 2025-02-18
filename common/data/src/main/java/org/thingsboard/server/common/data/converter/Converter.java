@@ -77,6 +77,10 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
 
     @Getter
     @Setter
+    private Integer converterVersion;
+
+    @Getter
+    @Setter
     private ConverterId externalId;
     @Getter
     @Setter
@@ -212,7 +216,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
 
     @JsonIgnore
     public boolean isDedicated() {
-        return integrationType != null;
+        return integrationType != null && converterVersion == 2;
     }
 
 }

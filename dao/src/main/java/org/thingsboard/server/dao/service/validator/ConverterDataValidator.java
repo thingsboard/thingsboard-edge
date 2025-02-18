@@ -67,8 +67,11 @@ public class ConverterDataValidator extends DataValidator<Converter> {
             if (!converter.getType().equals(existingConverter.getType())) {
                 throw new DataValidationException("Converter type cannot be changed!");
             }
-            if (!Objects.equals(converter.getIntegrationType(), converter.getIntegrationType())) {
+            if (!Objects.equals(converter.getIntegrationType(), existingConverter.getIntegrationType())) {
                 throw new DataValidationException("Integration type cannot be changed!");
+            }
+            if (!Objects.equals(converter.getConverterVersion(), existingConverter.getConverterVersion())) {
+                throw new DataValidationException("Converter version cannot be changed!");
             }
         }
         return existingConverter;
@@ -93,12 +96,22 @@ public class ConverterDataValidator extends DataValidator<Converter> {
             throw new DataValidationException("Converter configuration should be specified!");
         } else {
             if (converter.getType() == ConverterType.UPLINK) {
-                if (converter.isDedicated()) {
-                    if (!converter.getConfiguration().has("function")) {
-                        throw new DataValidationException("Converter 'function' field should be specified in configuration!");
+                switch (converter.getConverterVersion()) {
+                    case 1 -> {
+                        if (!converter.getConfiguration().has("decoder")) {
+                            throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
+                        }
                     }
-                } else if (!converter.getConfiguration().has("decoder")) {
-                    throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
+                    case 2 -> {
+                        if (converter.getIntegrationType() == null) {
+                            throw new DataValidationException("Converter 'integrationType' should be specified!");
+                        }
+                        if (!converter.getConfiguration().has("function")) {
+                            throw new DataValidationException("Converter 'function' field should be specified in configuration!");
+                        }
+                    }
+                    default ->
+                            throw new DataValidationException("Unknown converter version: " + converter.getConverterVersion());
                 }
             } else {
                 if (!converter.getConfiguration().has("encoder")) {

@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS converter (
     external_id uuid,
     is_edge_template boolean DEFAULT false,
     version BIGINT DEFAULT 1,
+    converter_version INT DEFAULT 1,
     CONSTRAINT converter_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 

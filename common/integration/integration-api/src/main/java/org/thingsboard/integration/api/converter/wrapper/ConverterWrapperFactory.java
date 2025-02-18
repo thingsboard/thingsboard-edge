@@ -32,19 +32,21 @@ package org.thingsboard.integration.api.converter.wrapper;
 
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class ConverterWrapperFactory {
 
-    private static final ConcurrentHashMap<IntegrationType, ConverterWrapper> wrappers = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<IntegrationType, Optional<ConverterWrapper>> wrappers = new ConcurrentHashMap<>();
 
     private ConverterWrapperFactory() {}
 
-    public static ConverterWrapper getWrapper(IntegrationType integrationType) {
-        return wrappers.computeIfAbsent(integrationType, key -> switch (integrationType) {
-            case LORIOT -> new LoriotConverterWrapper();
-            case CHIRPSTACK -> new ChirpStackConverterWrapper();
-            default -> throw new IllegalArgumentException("Unsupported integrationType: " + integrationType);
-        });
+    public static Optional<ConverterWrapper> getWrapper(IntegrationType integrationType) {
+        return wrappers.computeIfAbsent(integrationType, key ->
+                Optional.ofNullable(switch (integrationType) {
+                    case LORIOT -> new LoriotConverterWrapper();
+                    case CHIRPSTACK -> new ChirpStackConverterWrapper();
+                    default -> null;
+                }));
     }
 }

@@ -313,6 +313,7 @@ public class ModelConstants {
     public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
+    public static final String CONVERTER_VERSION_PROPERTY = "converter_version";
 
     /**
      * Integration constants.

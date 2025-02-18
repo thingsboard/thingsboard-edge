@@ -196,7 +196,7 @@ public class ConverterServiceTest extends AbstractServiceTest {
         PageLink pageLink = new PageLink(23);
         PageData<Converter> pageData;
         do {
-            pageData = converterService.findTenantConverters(tenantId, pageLink);
+            pageData = converterService.findTenantConverters(tenantId, null, pageLink);
             loadedConverters.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -212,7 +212,7 @@ public class ConverterServiceTest extends AbstractServiceTest {
         converterService.deleteConvertersByTenantId(tenantId);
 
         pageLink = new PageLink(33);
-        pageData = converterService.findTenantConverters(tenantId, pageLink);
+        pageData = converterService.findTenantConverters(tenantId, null, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
 

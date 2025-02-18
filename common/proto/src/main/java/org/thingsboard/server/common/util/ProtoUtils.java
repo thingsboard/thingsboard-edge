@@ -1359,7 +1359,7 @@ public class ProtoUtils {
         if (isNotNull(converter.getVersion())) {
             builder.setVersion(converter.getVersion());
         }
-
+        builder.setConverterVersion(converter.getConverterVersion());
         return builder.build();
     }
 
@@ -1387,7 +1387,7 @@ public class ProtoUtils {
         if (proto.hasVersion()) {
             converter.setVersion(proto.getVersion());
         }
-
+        converter.setConverterVersion(proto.getConverterVersion());
         return converter;
     }
 

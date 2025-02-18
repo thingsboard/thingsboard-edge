@@ -181,6 +181,7 @@ message ConverterConfigurationProto {
   string additionalInfo = 8;
   optional string debugSettings = 9;
   optional string integrationType = 10;
+  int32 converterVersion = 11;
 }
 
 /**
@@ -262,6 +263,7 @@ message ConverterProto {
   optional int64 version = 14;
   optional string debugSettings = 15;
   optional string integrationType = 16;
+  int32 converterVersion = 17;
 }
 
 message IntegrationInfoListRequestProto {
