@@ -182,7 +182,7 @@ public abstract class EdqsSyncService {
 
         UUID lastId = UUID.fromString("00000000-0000-0000-0000-000000000000");
         while (true) {
-            var batch = entityGroupDao.findNextBatch(lastId, 10000);
+            var batch = entityGroupDao.findNextBatch(lastId, entityBatchSize);
             if (batch.isEmpty()) {
                 break;
             }
@@ -237,7 +237,7 @@ public abstract class EdqsSyncService {
                 if (entityIdInfo != null) {
                     process(entityIdInfo.tenantId(), RELATION, relation.toData());
                 } else {
-                    log.info("Relation from entity not found: " + relation.getFromId());
+                    log.info("Relation from entity not found: " + relation.getFromType() + " " + relation.getFromId());
                 }
             }
         }
