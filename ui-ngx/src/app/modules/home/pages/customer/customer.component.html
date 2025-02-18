@@ -135,7 +135,7 @@
         </mat-checkbox>
         <section [class.!hidden]="!allowCustomerWhiteLabeling"
                  class="tb-default-dashboard flex flex-1 flex-col"
-                 *ngIf="entity?.id && whiteLabelingAllowed && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)">
+                 *ngIf="entity?.id?.id && whiteLabelingAllowed && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)">
           <section class="flex flex-1 flex-col gt-sm:flex-row">
             <tb-dashboard-autocomplete
               class="flex-1"
