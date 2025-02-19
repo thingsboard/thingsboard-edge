@@ -54,10 +54,17 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConverter {
+
+    public static final String TELEMETRY = "telemetry";
+    public static final String VALUES = "values";
+    public static final String TS = "ts";
+    public static final String ATTRIBUTES = "attributes";
+    public static final String DEFAULT_PROFILE = "default";
 
     private ScriptUplinkEvaluator evaluator;
     private DedicatedConverterConfig config;
@@ -113,7 +120,7 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
 
         JsonObject telemetry = new JsonObject();
         JsonObject tsValues = new JsonObject();
-        telemetry.add("values", tsValues);
+        telemetry.add(VALUES, tsValues);
 
         if (CollectionsUtil.isNotEmpty(config.getTelemetry())) {
             kvMap.entrySet().stream()
@@ -129,20 +136,20 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
                     .forEach(e -> attributes.add(e.getKey(), gson.fromJson(e.getValue(), JsonElement.class)));
         }
 
-        if (src.has("telemetry")) {
-            JsonObject srcTelemetry = src.get("telemetry").getAsJsonObject();
-            if (srcTelemetry.has("values")) {
-                srcTelemetry.get("values").getAsJsonObject().entrySet().forEach(e -> {
+        if (src.has(TELEMETRY)) {
+            JsonObject srcTelemetry = src.get(TELEMETRY).getAsJsonObject();
+            if (srcTelemetry.has(VALUES)) {
+                srcTelemetry.get(VALUES).getAsJsonObject().entrySet().forEach(e -> {
                     tsValues.add(e.getKey(), e.getValue());
                 });
             }
-            if (srcTelemetry.has("ts")) {
-                telemetry.add("ts", srcTelemetry.get("ts"));
+            if (srcTelemetry.has(TS)) {
+                telemetry.add(TS, srcTelemetry.get(TS));
             }
         }
 
-        if (src.has("attributes")) {
-            src.get("attributes").getAsJsonObject().entrySet().forEach(e -> {
+        if (src.has(ATTRIBUTES)) {
+            src.get(ATTRIBUTES).getAsJsonObject().entrySet().forEach(e -> {
                 attributes.add(e.getKey(), e.getValue());
             });
         }
@@ -152,7 +159,7 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.isAsset(isAsset);
         String entityName = processTemplate(config.getName(), kvMap);
-        String profile = processTemplate(config.getProfile(), kvMap);
+        String profile = Optional.ofNullable(processTemplate(config.getProfile(), kvMap)).orElse(DEFAULT_PROFILE);
         String label = processTemplate(config.getLabel(), kvMap);
         String customer = processTemplate(config.getCustomer(), kvMap);
         String group = processTemplate(config.getGroup(), kvMap);
