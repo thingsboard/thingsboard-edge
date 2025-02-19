@@ -155,7 +155,7 @@ public abstract class EdqsSyncService {
 
         UUID lastId = UUID.fromString("00000000-0000-0000-0000-000000000000");
         while (true) {
-            var batch = entityGroupDao.findNextBatch(lastId, 10000);
+            var batch = entityGroupDao.findNextBatch(lastId, entityBatchSize);
             if (batch.isEmpty()) {
                 break;
             }
