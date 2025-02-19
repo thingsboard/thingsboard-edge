@@ -40,6 +40,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.HasVersion;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.EdqsObject;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -141,6 +142,11 @@ public class EntityRelation implements HasVersion, Serializable, EdqsObject {
     @Override
     public Long version() {
         return version;
+    }
+
+    @Override
+    public ObjectType type() {
+        return ObjectType.RELATION;
     }
 
 }

@@ -79,7 +79,7 @@ import org.thingsboard.server.common.data.query.StringFilterPredicate;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
-import org.thingsboard.server.edqs.processor.EdqsConverter;
+import org.thingsboard.server.edqs.util.EdqsConverter;
 
 import java.util.Collections;
 import java.util.List;
@@ -87,7 +87,7 @@ import java.util.UUID;
 
 @RunWith(SpringRunner.class)
 @Configuration
-@ComponentScan({"org.thingsboard.server.edqs.repo"})
+@ComponentScan({"org.thingsboard.server.edqs.repo", "org.thingsboard.server.edqs.util"})
 @EntityScan("org.thingsboard.server.edqs")
 @TestPropertySource(locations = {"classpath:edq-test.properties"})
 @TestExecutionListeners({
@@ -97,6 +97,8 @@ public abstract class AbstractEDQTest {
 
     @Autowired
     protected InMemoryEdqRepository repository;
+    @Autowired
+    protected EdqsConverter edqsConverter;
 
     protected final TenantId tenantId = TenantId.fromUUID(UUID.randomUUID());
     protected final CustomerId customerId = new CustomerId(UUID.randomUUID());
@@ -280,7 +282,7 @@ public abstract class AbstractEDQTest {
     }
 
     protected void createRelation(EntityType fromType, UUID fromId, EntityType toType, UUID toId, RelationTypeGroup group, String type) {
-        repository.get(tenantId).addOrUpdate(new EntityRelation(EntityIdFactory.getByTypeAndUuid(fromType, fromId), EntityIdFactory.getByTypeAndUuid(toType, toId), type, group));
+        addOrUpdate(new EntityRelation(EntityIdFactory.getByTypeAndUuid(fromType, fromId), EntityIdFactory.getByTypeAndUuid(toType, toId), type, group));
     }
 
 
@@ -305,6 +307,8 @@ public abstract class AbstractEDQTest {
     }
 
     protected void addOrUpdate(EdqsObject edqsObject) {
+        byte[] serialized = edqsConverter.serialize(edqsObject.type(), edqsObject);
+        edqsObject = edqsConverter.deserialize(edqsObject.type(), serialized);
         repository.get(tenantId).addOrUpdate(edqsObject);
     }
 
