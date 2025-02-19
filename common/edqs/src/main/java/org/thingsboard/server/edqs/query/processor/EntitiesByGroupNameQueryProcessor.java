@@ -32,6 +32,7 @@ package org.thingsboard.server.edqs.query.processor;
 
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edqs.fields.EntityGroupFields;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.QueryContext;
 import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
 import org.thingsboard.server.edqs.data.CustomerData;
@@ -56,12 +57,20 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
 
     private final String groupType;
     private final UUID ownerId;
+    private final EntityType ownerType;
     private final Pattern pattern;
 
     public EntitiesByGroupNameQueryProcessor(TenantRepo repo, QueryContext ctx, EdqsQuery query) {
         super(repo, ctx, query, (EntitiesByGroupNameFilter) query.getEntityFilter());
         this.groupType = filter.getGroupType().name();
-        this.ownerId = filter.getOwnerId() != null ? filter.getOwnerId().getId() : null;
+        if (filter.getOwnerId() != null) {
+            this.ownerId = filter.getOwnerId().getId();
+            this.ownerType = filter.getOwnerId().getEntityType();
+        } else {
+            EntityId ownerId = getGroupOwnerId(ctx);
+            this.ownerId = ownerId.getId();
+            this.ownerType = ownerId.getEntityType();
+        }
         this.pattern = RepositoryUtils.toSqlLikePattern(filter.getEntityGroupNameFilter());
     }
 
@@ -125,12 +134,20 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
         EntityGroupFields fields = (EntityGroupFields)ed.getFields();
         return super.matches(ed) && groupType.equals(fields.getType())
                 && (pattern == null || pattern.matcher(fields.getName()).matches())
-                && (ownerId == null || ownerId.equals(fields.getOwnerId()));
+                && (ownerId.equals(fields.getOwnerId()) && ownerType.equals(fields.getOwnerType()));
     }
 
     @Override
     protected int getProbableResultSize() {
         return 1024;
+    }
+
+    public EntityId getGroupOwnerId(QueryContext ctx) {
+        if (ctx.isTenantUser()) {
+            return ctx.getTenantId();
+        } else {
+            return ctx.getCustomerId();
+        }
     }
 
 }
