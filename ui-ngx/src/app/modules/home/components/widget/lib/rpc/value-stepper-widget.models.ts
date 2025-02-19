@@ -32,15 +32,12 @@
 import {
   DataToValueType,
   GetValueAction,
-  GetValueSettings, SetValueAction,
-  SetValueSettings, ValueToDataType
+  GetValueSettings,
+  SetValueAction,
+  SetValueSettings,
+  ValueToDataType
 } from '@shared/models/action-widget-settings.models';
-import { defaultWidgetAction, WidgetAction } from '@shared/models/widget.models';
-import {
-  ButtonToggleAppearance, segmentedButtonDefaultAppearance,
-  SegmentedButtonWidgetSettings
-} from '@home/components/widget/lib/button/segmented-button-widget.models';
-import { WidgetButtonCustomStyles, WidgetButtonType } from '@shared/components/button/widget-button.models';
+import { WidgetButtonCustomStyles } from '@shared/components/button/widget-button.models';
 import { BackgroundSettings, BackgroundType, cssUnit, Font } from '@shared/models/widget-settings.models';
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 
