@@ -53,6 +53,7 @@
       </mat-error>
     </mat-form-field>
     <tb-widgets-bundle-select
+      *ngIf="showSelectWidgetBundle"
       formControlName="widgetsBundle"
       createNew
       bundlesScope="{{bundlesScope}}">
