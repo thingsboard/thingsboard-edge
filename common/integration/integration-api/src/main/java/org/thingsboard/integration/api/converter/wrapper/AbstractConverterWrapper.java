@@ -47,7 +47,7 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
     protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     @Override
-    public TbPair<byte[], UplinkMetaData> wrap(byte[] payload, UplinkMetaData metadata) {
+    public TbPair<byte[], UplinkMetaData> wrap(byte[] payload, UplinkMetaData metadata) throws Exception {
         JsonNode payloadJson = JacksonUtil.fromBytes(payload);
 
         Map<String, String> kvMap = new HashMap<>(metadata.getKvMap());
@@ -66,7 +66,7 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
         return TbPair.of(payloadPair.getFirst(), mergedMetadata);
     }
 
-    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
+    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws Exception {
         var data = payloadJson.get("data").textValue();
         return TbPair.of(data.getBytes(StandardCharsets.UTF_8), ContentType.TEXT);
     }
