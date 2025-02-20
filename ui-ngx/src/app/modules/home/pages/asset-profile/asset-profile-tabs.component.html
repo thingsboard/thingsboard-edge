@@ -30,15 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<<<<<<< HEAD
-<mat-tab *ngIf="entity && !isEdit && (resource.AUDIT_LOG | hasGenericPermission: operation.READ)" #auditLogsTab="matTab"
-=======
 <mat-tab *ngIf="entity && authUser.authority === authorities.TENANT_ADMIN && !isEdit"
          label="{{ 'entity.type-calculated-fields' | translate }}" #calculatedFieldsTab="matTab">
   <tb-calculated-fields-table [active]="calculatedFieldsTab.isActive" [entityId]="entity.id" [entityName]="entity.name"/>
 </mat-tab>
-<mat-tab *ngIf="entity && !isEdit" #auditLogsTab="matTab"
->>>>>>> 8d161382e6d78181593485b4d19cc7970a8d64e8
+<mat-tab *ngIf="entity && !isEdit && (resource.AUDIT_LOG | hasGenericPermission: operation.READ)" #auditLogsTab="matTab"
          label="{{ 'audit-log.audit-logs' | translate }}">
   <tb-audit-log-table detailsMode="true" [active]="auditLogsTab.isActive" [auditLogMode]="auditLogModes.ENTITY" [entityId]="entity.id"></tb-audit-log-table>
 </mat-tab>

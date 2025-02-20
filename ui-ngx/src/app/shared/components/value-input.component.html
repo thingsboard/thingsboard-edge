@@ -47,11 +47,7 @@
       </mat-select>
     </mat-form-field>
     <mat-form-field *ngIf="valueType === valueTypeEnum.STRING" appearance="outline" subscriptSizing="dynamic" class="tb-inline-field tb-suffix-absolute flex flex-1">
-<<<<<<< HEAD
-      <input [disabled]="disabled" matInput [required]="!stringNotRequired"  name="value" #value="ngModel" [(ngModel)]="modelValue" (ngModelChange)="onValueChanged()"
-=======
-      <input [disabled]="disabled" matInput [required]="required" name="value" #value="ngModel" [(ngModel)]="modelValue" (ngModelChange)="onValueChanged()"
->>>>>>> 8d161382e6d78181593485b4d19cc7970a8d64e8
+      <input [disabled]="disabled" matInput [required]="required && !stringNotRequired"  name="value" #value="ngModel" [(ngModel)]="modelValue" (ngModelChange)="onValueChanged()"
              placeholder="{{ 'value.string-value' | translate }}*"/>
       <mat-icon matSuffix
                 matTooltipPosition="above"

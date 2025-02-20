@@ -364,7 +364,6 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         },
         {},
         {}, {}, true);
-      debugStrategyPopover.tbComponentRef.instance.popover = debugStrategyPopover;
       debugStrategyPopover.tbComponentRef.instance.onSettingsApplied.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((settings: EntityDebugSettings) => {
         this.onDebugConfigChanged(id.id, settings);
         debugStrategyPopover.hide();
