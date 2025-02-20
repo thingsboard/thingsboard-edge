@@ -1,0 +1,107 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.common.data.cf.configuration;
+
+import lombok.Data;
+import org.thingsboard.server.common.data.cf.CalculatedFieldLink;
+import org.thingsboard.server.common.data.cf.CalculatedFieldLinkConfiguration;
+import org.thingsboard.server.common.data.id.CalculatedFieldId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+@Data
+public abstract class BaseCalculatedFieldConfiguration implements CalculatedFieldConfiguration {
+
+    protected Map<String, Argument> arguments;
+    protected String expression;
+    protected Output output;
+
+    @Override
+    public List<EntityId> getReferencedEntities() {
+        return arguments.values().stream()
+                .map(Argument::getRefEntityId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public CalculatedFieldLinkConfiguration getReferencedEntityConfig(EntityId entityId) {
+        CalculatedFieldLinkConfiguration linkConfiguration = new CalculatedFieldLinkConfiguration();
+
+        arguments.entrySet().stream()
+                .filter(entry -> entry.getValue().getRefEntityId() != null && entry.getValue().getRefEntityId().equals(entityId))
+                .forEach(entry -> {
+                    ReferencedEntityKey refEntityKey = entry.getValue().getRefEntityKey();
+                    String argumentName = entry.getKey();
+
+                    switch (refEntityKey.getType()) {
+                        case ATTRIBUTE -> {
+                            switch (refEntityKey.getScope()) {
+                                case CLIENT_SCOPE ->
+                                        linkConfiguration.getClientAttributes().put(refEntityKey.getKey(), argumentName);
+                                case SERVER_SCOPE ->
+                                        linkConfiguration.getServerAttributes().put(refEntityKey.getKey(), argumentName);
+                                case SHARED_SCOPE ->
+                                        linkConfiguration.getSharedAttributes().put(refEntityKey.getKey(), argumentName);
+                            }
+                        }
+                        case TS_LATEST, TS_ROLLING ->
+                                linkConfiguration.getTimeSeries().put(refEntityKey.getKey(), argumentName);
+                    }
+                });
+
+        return linkConfiguration;
+    }
+
+    @Override
+    public List<CalculatedFieldLink> buildCalculatedFieldLinks(TenantId tenantId, EntityId cfEntityId, CalculatedFieldId calculatedFieldId) {
+        return getReferencedEntities().stream()
+                .filter(referencedEntity -> !referencedEntity.equals(cfEntityId))
+                .map(referencedEntityId -> buildCalculatedFieldLink(tenantId, referencedEntityId, calculatedFieldId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public CalculatedFieldLink buildCalculatedFieldLink(TenantId tenantId, EntityId referencedEntityId, CalculatedFieldId calculatedFieldId) {
+        CalculatedFieldLink link = new CalculatedFieldLink();
+        link.setTenantId(tenantId);
+        link.setEntityId(referencedEntityId);
+        link.setCalculatedFieldId(calculatedFieldId);
+        link.setConfiguration(getReferencedEntityConfig(referencedEntityId));
+        return link;
+    }
+
+}

@@ -1,0 +1,138 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="flex flex-col gap-3">
+    <div class="tb-form-table">
+        <div class="tb-form-table-header">
+            <div class="argument-name-field tb-form-table-header-cell w-1/6 xs:w-1/3 sm:w-1/4" tbTruncateWithTooltip>{{ 'calculated-fields.argument-name' | translate }}</div>
+            <div class="tb-form-table-header-cell w-1/3 xs:hidden">{{ 'calculated-fields.datasource' | translate }}</div>
+            <div class="tb-form-table-header-cell w-1/6 lt-md:hidden">{{ 'common.type' | translate }}</div>
+            <div class="tb-form-table-header-cell w-1/6 xs:w-1/3">{{ 'entity.key' | translate }}</div>
+            <div class="tb-form-table-header-cell w-20 min-w-20"></div>
+        </div>
+        <div class="tb-form-table-body">
+            @for (group of argumentsFormArray.controls; track group) {
+                <div [formGroup]="group" class="tb-form-table-row">
+                    <mat-form-field appearance="outline" class="argument-name-field tb-inline-field w-1/6 xs:w-1/3 sm:w-1/4" subscriptSizing="dynamic">
+                        <input matInput formControlName="argumentName" placeholder="{{ 'action.set' | translate }}">
+                    </mat-form-field>
+                    <section class="datasource-field flex w-1/3 gap-2 xs:hidden">
+                        @if (group.get('refEntityId')?.get('id')?.value) {
+                            <ng-container [formGroup]="group.get('refEntityId')">
+                                <mat-form-field appearance="outline" class="tb-inline-field w-1/2" subscriptSizing="dynamic">
+                                    <mat-select [value]="group.get('refEntityId').get('entityType').value" formControlName="entityType">
+                                        <mat-option [value]="group.get('refEntityId').get('entityType').value">
+                                            {{ entityTypeTranslations.get(group.get('refEntityId').get('entityType').value)?.type | translate }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <tb-entity-autocomplete
+                                        class="entity-field w-1/2"
+                                        formControlName="id"
+                                        [inlineField]="true"
+                                        [hideLabel]="true"
+                                        [placeholder]="'action.set' | translate"
+                                        [entityType]="group.get('refEntityId').get('entityType').value"
+                                />
+                            </ng-container>
+                        } @else {
+                            <mat-form-field appearance="outline" class="tb-inline-field flex-1" subscriptSizing="dynamic">
+                                <mat-select [value]="'current'" [disabled]="true">
+                                    <mat-option [value]="'current'">
+                                        {{
+                                            (group.get('refEntityId')?.get('entityType')?.value === ArgumentEntityType.Tenant
+                                                ? 'calculated-fields.argument-current-tenant'
+                                                : 'calculated-fields.argument-current') | translate
+                                        }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        }
+                    </section>
+                    <ng-container [formGroup]="group.get('refEntityKey')">
+                        <mat-form-field appearance="outline" class="tb-inline-field w-1/6 lt-md:hidden" subscriptSizing="dynamic">
+                            @if (group.get('refEntityKey').get('type').value; as type) {
+                                <mat-select [value]="type" formControlName="type">
+                                    <mat-option [value]="type">
+                                        {{ ArgumentTypeTranslations.get(type) | translate }}
+                                    </mat-option>
+                                </mat-select>
+                            }
+                        </mat-form-field>
+                        <mat-chip-listbox formControlName="key" class="tb-inline-field w-1/6 xs:w-1/3">
+                            <mat-chip>
+                                <div tbTruncateWithTooltip>
+                                    {{ group.get('refEntityKey').get('key').value }}
+                                </div>
+                            </mat-chip>
+                        </mat-chip-listbox>
+                    </ng-container>
+                    <div class="tb-form-table-row-cell-buttons flex w-20 min-w-20">
+                        <button type="button"
+                                mat-icon-button
+                                #button
+                                (click)="manageArgument($event, button, $index)"
+                                [matTooltip]="'action.edit' | translate"
+                                matTooltipPosition="above">
+                            <mat-icon
+                              [matBadgeHidden]="!(group.get('refEntityKey').get('type').value === ArgumentType.Rolling
+                                  && calculatedFieldType === CalculatedFieldType.SIMPLE)"
+                              matBadgeColor="warn"
+                              matBadgeSize="small"
+                              matBadge="*"
+                            >
+                              edit
+                            </mat-icon>
+                        </button>
+                        <button type="button"
+                                mat-icon-button
+                                (click)="onDelete($index)"
+                                [matTooltip]="'action.delete' | translate"
+                                matTooltipPosition="above">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            } @empty {
+                <span class="tb-prompt flex items-center justify-center">{{ 'calculated-fields.no-arguments' | translate }}</span>
+            }
+        </div>
+        @if (errorText) {
+            <tb-error noMargin [error]="errorText | translate" class="pl-3"/>
+        }
+    </div>
+    <div>
+        <button type="button" mat-stroked-button color="primary" #button (click)="manageArgument($event, button)">
+            {{ 'calculated-fields.add-argument' | translate }}
+        </button>
+    </div>
+</div>

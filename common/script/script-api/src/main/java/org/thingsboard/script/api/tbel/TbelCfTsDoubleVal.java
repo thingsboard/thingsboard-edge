@@ -28,36 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.queue.ruleengine;
+package org.thingsboard.script.api.tbel;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
-import org.thingsboard.server.common.data.queue.QueueConfig;
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import lombok.Data;
 
-import java.util.Set;
+@Data
+public class TbelCfTsDoubleVal implements TbelCfObject {
 
-@Getter
-@ToString
-@AllArgsConstructor
-public class TbQueueConsumerManagerTask {
+    public static final long OBJ_SIZE = 32L; // Approximate calculation;
 
-    private final QueueEvent event;
-    private QueueConfig config;
-    private Set<TopicPartitionInfo> partitions;
-    private boolean drainQueue;
+    private final long ts;
+    private final double value;
 
-    public static TbQueueConsumerManagerTask delete(boolean drainQueue) {
-        return new TbQueueConsumerManagerTask(QueueEvent.DELETE, null, null, drainQueue);
+    @Override
+    public long memorySize() {
+        return OBJ_SIZE;
     }
-
-    public static TbQueueConsumerManagerTask configUpdate(QueueConfig config) {
-        return new TbQueueConsumerManagerTask(QueueEvent.CONFIG_UPDATE, config, null, false);
-    }
-
-    public static TbQueueConsumerManagerTask partitionChange(Set<TopicPartitionInfo> partitions) {
-        return new TbQueueConsumerManagerTask(QueueEvent.PARTITION_CHANGE, null, partitions, false);
-    }
-
 }

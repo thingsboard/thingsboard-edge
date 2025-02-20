@@ -184,6 +184,9 @@ public class TbMsgTimeseriesNode implements TbNode {
                 .ttl(ttl)
                 .strategy(strategy)
                 .overwriteValue(overwriteValue)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .callback(new TelemetryNodeCallback(ctx, msg))
                 .build());
     }

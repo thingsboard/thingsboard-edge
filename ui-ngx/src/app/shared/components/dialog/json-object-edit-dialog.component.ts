@@ -45,6 +45,7 @@ export interface JsonObjectEditDialogData {
   title?: string;
   saveLabel?: string;
   cancelLabel?: string;
+  fillHeight?: boolean;
 }
 
 @Component({

@@ -40,7 +40,8 @@ public enum EventType {
     DEBUG_RULE_NODE("rule_node_debug_event", "DEBUG_RULE_NODE", true),
     DEBUG_RULE_CHAIN("rule_chain_debug_event", "DEBUG_RULE_CHAIN", true),
     DEBUG_CONVERTER("converter_debug_event", "DEBUG_CONVERTER", true),
-    DEBUG_INTEGRATION("integration_debug_event", "DEBUG_INTEGRATION", true);
+    DEBUG_INTEGRATION("integration_debug_event", "DEBUG_INTEGRATION", true),
+    DEBUG_CALCULATED_FIELD("cf_debug_event", "DEBUG_CALCULATED_FIELD", true);
 
     @Getter
     private final String table;

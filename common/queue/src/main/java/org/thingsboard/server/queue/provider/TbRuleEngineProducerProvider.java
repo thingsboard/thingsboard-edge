@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
@@ -69,6 +71,7 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     private TbQueueProducer<TbProtoQueueMsg<ToEdgeMsg>> toEdge;
     private TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> toEdgeNotifications;
     private TbQueueProducer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> toEdgeEvents;
+    private TbQueueProducer<TbProtoQueueMsg<ToCalculatedFieldMsg>> toCalculatedFields;
 
     public TbRuleEngineProducerProvider(TbRuleEngineQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -88,6 +91,7 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
         this.toEdge = tbQueueProvider.createEdgeMsgProducer();
         this.toEdgeNotifications = tbQueueProvider.createEdgeNotificationsMsgProducer();
         this.toEdgeEvents = tbQueueProvider.createEdgeEventMsgProducer();
+        this.toCalculatedFields = tbQueueProvider.createToCalculatedFieldMsgProducer();
     }
 
     @Override
@@ -163,6 +167,16 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
         return toHousekeeper;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCalculatedFieldMsg>> getCalculatedFieldsMsgProducer() {
+        return toCalculatedFields;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> getCalculatedFieldsNotificationsMsgProducer() {
+        throw new RuntimeException("Not Implemented! Should not be used by Rule Engine Service!");
     }
 
 }

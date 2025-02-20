@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.queue.ruleengine;
+package org.thingsboard.server.queue.common.consumer;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -50,14 +50,17 @@ public class TbQueueConsumerTask<M extends TbQueueMsg> {
     private final Object key;
     private volatile TbQueueConsumer<M> consumer;
     private volatile Supplier<TbQueueConsumer<M>> consumerSupplier;
+    @Getter
+    private final Runnable callback;
 
     @Setter
     private Future<?> task;
 
-    public TbQueueConsumerTask(Object key, Supplier<TbQueueConsumer<M>> consumerSupplier) {
+    public TbQueueConsumerTask(Object key, Supplier<TbQueueConsumer<M>> consumerSupplier, Runnable callback) {
         this.key = key;
         this.consumer = null;
         this.consumerSupplier = consumerSupplier;
+        this.callback = callback;
     }
 
     public TbQueueConsumer<M> getConsumer() {
@@ -85,13 +88,21 @@ public class TbQueueConsumerTask<M extends TbQueueMsg> {
     }
 
     public void awaitCompletion() {
+        awaitCompletion(30);
+    }
+
+    public void awaitCompletion(long timeoutSec) {
         log.trace("[{}] Awaiting finish", key);
         if (isRunning()) {
             try {
-                task.get(30, TimeUnit.SECONDS);
+                if (timeoutSec > 0) {
+                    task.get(timeoutSec, TimeUnit.SECONDS);
+                } else {
+                    task.get();
+                }
                 log.trace("[{}] Awaited finish", key);
             } catch (Exception e) {
-                log.warn("[{}] Failed to await for consumer to stop", key, e);
+                log.warn("[{}] Failed to await for consumer to stop (timeout {} sec)", key, timeoutSec, e);
             }
             task = null;
         }

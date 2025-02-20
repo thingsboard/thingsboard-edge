@@ -279,6 +279,9 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     }
 
     private void deleteCustomer(TenantId tenantId, CustomerId customerId, boolean deleteSubcustomers, boolean force) {
+        if (!force && calculatedFieldService.referencedInAnyCalculatedField(tenantId, customerId)) {
+            throw new DataValidationException("Can't delete customer that is referenced in calculated fields!");
+        }
         Customer customer = findCustomerById(tenantId, customerId);
         if (customer == null) {
             if (force) {

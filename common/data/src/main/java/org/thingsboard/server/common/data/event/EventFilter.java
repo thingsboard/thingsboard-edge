@@ -46,7 +46,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = ErrorEventFilter.class, name = "ERROR"),
         @JsonSubTypes.Type(value = LifeCycleEventFilter.class, name = "LC_EVENT"),
         @JsonSubTypes.Type(value = StatisticsEventFilter.class, name = "STATS"),
-        @JsonSubTypes.Type(value = RawDataEventFilter.class, name = "RAW_DATA")
+        @JsonSubTypes.Type(value = RawDataEventFilter.class, name = "RAW_DATA"),
+        @JsonSubTypes.Type(value = CalculatedFieldDebugEventFilter.class, name = "DEBUG_CALCULATED_FIELD")
 })
 public interface EventFilter {
 
