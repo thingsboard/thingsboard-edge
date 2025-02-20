@@ -67,4 +67,9 @@ public class ProfileEntityIdInfo implements Serializable, HasTenantId {
         return new ProfileEntityIdInfo(tenantId, profileId, entityId);
     }
 
+    @Override
+    public void setTenantId(TenantId tenantId) {
+        throw new UnsupportedOperationException();
+    }
+
 }
