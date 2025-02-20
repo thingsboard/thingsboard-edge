@@ -56,6 +56,7 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
     }
 
     public void update(Set<TopicPartitionInfo> newPartitions) {
+        newPartitions = withTopic(newPartitions, stateConsumer.getTopic());
         lock.lock();
         Set<TopicPartitionInfo> oldPartitions = this.partitions != null ? this.partitions : Collections.emptySet();
         Set<TopicPartitionInfo> addedPartitions;
@@ -69,9 +70,10 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
         } finally {
             lock.unlock();
         }
+
         if (!removedPartitions.isEmpty()) {
             stateConsumer.removePartitions(removedPartitions);
-            eventConsumer.removePartitions(removedPartitions.stream().map(tpi -> tpi.withTopic(eventConsumer.getTopic())).collect(Collectors.toSet()));
+            eventConsumer.removePartitions(withTopic(removedPartitions, eventConsumer.getTopic()));
         }
 
         if (!addedPartitions.isEmpty()) {
@@ -86,6 +88,10 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
                 }
             });
         }
+    }
+
+    private Set<TopicPartitionInfo> withTopic(Set<TopicPartitionInfo> partitions, String topic) {
+        return partitions.stream().map(tpi -> tpi.withTopic(topic)).collect(Collectors.toSet());
     }
 
 }

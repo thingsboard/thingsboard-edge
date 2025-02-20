@@ -40,6 +40,8 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.edqs.processor.EdqsProcessor;
 import org.thingsboard.server.edqs.util.EdqsRocksDb;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.common.consumer.PartitionedQueueConsumerManager;
 import org.thingsboard.server.queue.edqs.EdqsQueue;
 import org.thingsboard.server.queue.edqs.InMemoryEdqsComponent;
 
@@ -54,11 +56,17 @@ public class LocalEdqsStateService implements EdqsStateService {
     private final EdqsProcessor processor;
     private final EdqsRocksDb db;
 
+    private PartitionedQueueConsumerManager<TbProtoQueueMsg<ToEdqsMsg>> eventConsumer;
     private Set<TopicPartitionInfo> partitions;
 
     @Override
+    public void init(PartitionedQueueConsumerManager<TbProtoQueueMsg<ToEdqsMsg>> eventConsumer) {
+        this.eventConsumer = eventConsumer;
+    }
+
+    @Override
     public void process(Set<TopicPartitionInfo> partitions) {
-        if (this.partitions != null) {
+        if (this.partitions == null) {
             db.forEach((key, value) -> {
                 try {
                     ToEdqsMsg edqsMsg = ToEdqsMsg.parseFrom(value);
@@ -69,7 +77,7 @@ public class LocalEdqsStateService implements EdqsStateService {
                 }
             });
         }
-        processor.getEventsConsumer().update(partitions);
+        eventConsumer.update(partitions);
         this.partitions = partitions;
     }
 
@@ -88,8 +96,7 @@ public class LocalEdqsStateService implements EdqsStateService {
     }
 
     @Override
-    public boolean isReady() {
-        return partitions != null;
+    public void stop() {
     }
 
 }
