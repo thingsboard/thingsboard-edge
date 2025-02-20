@@ -1940,6 +1940,9 @@ public class EntityServiceTest extends AbstractControllerTest {
         EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
         EntityDataQuery query = new EntityDataQuery(entitiesByGroupNameFilter, pageLink, entityFields, null, null);
         findByQueryAndCheck(customerId, mergedUserPermissions, query, 10);
+
+        // find by tenant user
+        findByQueryAndCheck(query, 0);
     }
 
     private Device createDevice(CustomerId customerId) {

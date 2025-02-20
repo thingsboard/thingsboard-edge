@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -59,19 +60,19 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
     private final UUID ownerId;
     private final EntityType ownerType;
     private final Pattern pattern;
+    private final Set<UUID> allCustomers;
 
     public EntitiesByGroupNameQueryProcessor(TenantRepo repo, QueryContext ctx, EdqsQuery query) {
         super(repo, ctx, query, (EntitiesByGroupNameFilter) query.getEntityFilter());
         this.groupType = filter.getGroupType().name();
-        if (filter.getOwnerId() != null) {
-            this.ownerId = filter.getOwnerId().getId();
-            this.ownerType = filter.getOwnerId().getEntityType();
-        } else {
-            EntityId ownerId = getGroupOwnerId(ctx);
-            this.ownerId = ownerId.getId();
-            this.ownerType = ownerId.getEntityType();
-        }
+        this.ownerId = filter.getOwnerId() != null ? filter.getOwnerId().getId() : null;
+        this.ownerType = filter.getOwnerId() != null ? filter.getOwnerId().getEntityType() : null;
         this.pattern = RepositoryUtils.toSqlLikePattern(filter.getEntityGroupNameFilter());
+        if (ctx.getCustomerId() != null) {
+            allCustomers = repo.getAllCustomers(ctx.getCustomerId().getId());
+        } else {
+            allCustomers = null;
+        }
     }
 
     @Override
@@ -134,7 +135,7 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
         EntityGroupFields fields = (EntityGroupFields)ed.getFields();
         return super.matches(ed) && groupType.equals(fields.getType())
                 && (pattern == null || pattern.matcher(fields.getName()).matches())
-                && (ownerId.equals(fields.getOwnerId()) && ownerType.equals(fields.getOwnerType()));
+                && checkOwnerId(fields);
     }
 
     @Override
@@ -142,7 +143,21 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
         return 1024;
     }
 
-    public EntityId getGroupOwnerId(QueryContext ctx) {
+    private boolean checkOwnerId(EntityGroupFields fields) {
+        if (ownerId != null) {
+            return ownerId.equals(fields.getOwnerId()) && ownerType.equals(fields.getOwnerType());
+        } else if (isEntityFromGenericPart(fields)) {
+            return fields.getOwnerId().equals(getCtxOwnerId(ctx).getId())
+                    && fields.getOwnerType().equals(getCtxOwnerId(ctx).getEntityType());
+        }
+        return true;
+    }
+
+    private boolean isEntityFromGenericPart(EntityGroupFields fields) {
+        return allCustomers == null || allCustomers.contains(fields.getCustomerId());
+    }
+
+    public EntityId getCtxOwnerId(QueryContext ctx) {
         if (ctx.isTenantUser()) {
             return ctx.getTenantId();
         } else {
