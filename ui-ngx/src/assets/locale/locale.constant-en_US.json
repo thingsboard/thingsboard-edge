@@ -1170,11 +1170,8 @@
         "general": "General",
         "username": "Username",
         "password": "Password",
-<<<<<<< HEAD
         "repeat-password": "Repeat password",
-=======
         "data": "Data",
->>>>>>> 8d161382e6d78181593485b4d19cc7970a8d64e8
         "enter-username": "Enter username",
         "enter-password": "Enter password",
         "enter-search": "Enter search",
@@ -1187,7 +1184,6 @@
         "value": "Value",
         "documentation": "Documentation",
         "time-left": "{{time}} left",
-<<<<<<< HEAD
         "loading-please-wait": "Loading... Please wait"
     },
     "converter": {
