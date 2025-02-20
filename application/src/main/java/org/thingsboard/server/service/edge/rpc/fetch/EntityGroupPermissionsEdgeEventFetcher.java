@@ -31,63 +31,53 @@
 package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.edge.EdgeEventService;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @Slf4j
-public class GeneralEdgeEventFetcher implements EdgeEventFetcher {
+public class EntityGroupPermissionsEdgeEventFetcher implements EdgeEventFetcher {
 
-    private final Long queueStartTs;
-    private Long seqIdStart;
-    @Getter
-    private boolean seqIdNewCycleStarted;
-    private Long maxReadRecordsCount;
-    private final EdgeEventService edgeEventService;
+    private final GroupPermissionService groupPermissionService;
+    private final EntityType groupType;
+    private final EntityGroupId entityGroupId;
 
     @Override
     public PageLink getPageLink(int pageSize) {
-        return new TimePageLink(
-                pageSize,
-                0,
-                null,
-                null,
-                queueStartTs,
-                System.currentTimeMillis());
+        return new PageLink(pageSize);
     }
 
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
-        try {
-            log.trace("[{}] Finding general edge events [{}], seqIdStart = {}, pageLink = {}",
-                    tenantId, edge.getId(), seqIdStart, pageLink);
-            PageData<EdgeEvent> edgeEvents = edgeEventService.findEdgeEvents(tenantId, edge.getId(), seqIdStart, null, (TimePageLink) pageLink);
-            if (!edgeEvents.getData().isEmpty()) {
-                return edgeEvents;
-            }
-            if (seqIdStart > this.maxReadRecordsCount) {
-                edgeEvents = edgeEventService.findEdgeEvents(tenantId, edge.getId(), 0L, Math.max(this.maxReadRecordsCount, seqIdStart - this.maxReadRecordsCount), (TimePageLink) pageLink);
-                if (edgeEvents.getData().stream().anyMatch(ee -> ee.getSeqId() < seqIdStart)) {
-                    log.info("[{}] seqId column of edge_event table started new cycle [{}]", tenantId, edge.getId());
-                    this.seqIdNewCycleStarted = true;
-                    this.seqIdStart = 0L;
-                    return edgeEvents;
-                }
-            }
-            log.info("[{}] Unexpected edge notification message received. " +
-                    "No new events found, and the seqId column of the edge_event table has not started a new cycle [{}].", tenantId, edge.getId());
-            return new PageData<>();
-        } catch (Exception e) {
-            log.error("[{}] Failed to find edge events [{}]", tenantId, edge.getId(), e);
-            return new PageData<>();
+        log.trace("[{}] start fetching edge events [{}], groupType {}, entityGroupId {}, pageLink {}", tenantId, edge.getId(), groupType, entityGroupId, pageLink);
+        PageData<GroupPermission> pageData;
+        if (EntityType.USER.equals(groupType)) {
+            pageData = groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(edge.getTenantId(), entityGroupId, pageLink);
+        } else {
+            pageData = groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupId(edge.getTenantId(), entityGroupId, pageLink);
         }
+        List<EdgeEvent> result = new ArrayList<>();
+        if (!pageData.getData().isEmpty()) {
+            for (GroupPermission groupPermission : pageData.getData()) {
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.GROUP_PERMISSION,
+                        EdgeEventActionType.ADDED, groupPermission.getId(), null, null));
+            }
+        }
+        return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
     }
 
 }
