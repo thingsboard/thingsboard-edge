@@ -30,10 +30,10 @@
  */
 package org.thingsboard.server.service.apiusage;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
@@ -58,6 +58,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DaoSqlTest
+@TestPropertySource(properties = {
+        "usage.stats.report.enabled=true",
+        "usage.stats.report.interval=2",
+        "usage.stats.gauge_report_interval=1",
+})
 public class ApiUsageTest extends AbstractControllerTest {
 
     private Tenant savedTenant;
@@ -104,7 +109,7 @@ public class ApiUsageTest extends AbstractControllerTest {
             doPostAsync(url, telemetryPayload, String.class, status().isOk());
         }
 
-        await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> assertEquals(ApiUsageStateValue.WARNING, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState()));
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertEquals(ApiUsageStateValue.WARNING, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState()));
 
         long VALUE_DISABLE = (long) (MAX_DP_ENABLE_VALUE - (MAX_DP_ENABLE_VALUE * WARN_THRESHOLD_VALUE)) / 2;
 
@@ -112,7 +117,7 @@ public class ApiUsageTest extends AbstractControllerTest {
             doPostAsync(url, telemetryPayload, String.class, status().isOk());
         }
 
-        await().atMost(TIMEOUT, TimeUnit.SECONDS)
+        await().atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     assertEquals(ApiUsageStateValue.DISABLED, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState());
                 });

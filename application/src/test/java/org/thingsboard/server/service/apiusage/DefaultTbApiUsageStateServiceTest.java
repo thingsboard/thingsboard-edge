@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.apiusage;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +41,7 @@ import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
@@ -54,6 +54,9 @@ public class DefaultTbApiUsageStateServiceTest extends AbstractControllerTest {
 
     @Autowired
     DefaultTbApiUsageStateService service;
+
+    @Autowired
+    private ApiUsageStateService apiUsageStateService;
 
     private TenantId tenantId;
     private Tenant savedTenant;
@@ -79,12 +82,6 @@ public class DefaultTbApiUsageStateServiceTest extends AbstractControllerTest {
         Assert.assertNotNull(savedTenant);
     }
 
-    @After
-    public void afterTest() throws Exception {
-        loginSysAdmin();
-        deleteTenant(savedTenant.getId());
-    }
-
     @Test
     public void testProcess_transitionFromWarningToDisabled() {
         TransportProtos.ToUsageStatsServiceMsg.Builder warningMsgBuilder = TransportProtos.ToUsageStatsServiceMsg.newBuilder()
@@ -94,27 +91,16 @@ public class DefaultTbApiUsageStateServiceTest extends AbstractControllerTest {
                 .setCustomerIdLSB(0)
                 .setServiceId("testService");
 
-        for (ApiUsageRecordKey key : ApiUsageRecordKey.values()) {
-            if (key.getApiFeature() != null) {
                 warningMsgBuilder.addValues(TransportProtos.UsageStatsKVProto.newBuilder()
-                        .setKey(key.name())
+                        .setKey(ApiUsageRecordKey.STORAGE_DP_COUNT.name())
                         .setValue(VALUE_WARNING)
                         .build());
-            }
-        }
 
         TransportProtos.ToUsageStatsServiceMsg warningStatsMsg = warningMsgBuilder.build();
         TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg> warningMsg = new TbProtoQueueMsg<>(UUID.randomUUID(), warningStatsMsg);
 
         service.process(warningMsg, TbCallback.EMPTY);
-        TenantApiUsageState tenantApiUsageState = (TenantApiUsageState) service.myUsageStates.get(tenantId);
-        for (ApiFeature feature : ApiFeature.values()) {
-            if (containsFeature(feature)) {
-                assertEquals("For feature " + feature + " expected state WARNING", ApiUsageStateValue.WARNING,
-                        tenantApiUsageState.getFeatureValue(feature));
-            }
-        }
-
+        assertEquals(ApiUsageStateValue.WARNING, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState());
 
         TransportProtos.ToUsageStatsServiceMsg.Builder disableMsgBuilder = TransportProtos.ToUsageStatsServiceMsg.newBuilder()
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
@@ -123,35 +109,16 @@ public class DefaultTbApiUsageStateServiceTest extends AbstractControllerTest {
                 .setCustomerIdLSB(0)
                 .setServiceId("testService");
 
-        for (ApiUsageRecordKey key : ApiUsageRecordKey.values()) {
-            if (key.getApiFeature() != null) {
                 disableMsgBuilder.addValues(TransportProtos.UsageStatsKVProto.newBuilder()
-                        .setKey(key.name())
+                        .setKey(ApiUsageRecordKey.STORAGE_DP_COUNT.name())
                         .setValue(VALUE_DISABLE)
                         .build());
-            }
-        }
+
         TransportProtos.ToUsageStatsServiceMsg disableStatsMsg = disableMsgBuilder.build();
         TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg> disableMsg = new TbProtoQueueMsg<>(UUID.randomUUID(), disableStatsMsg);
 
         service.process(disableMsg, TbCallback.EMPTY);
-        tenantApiUsageState = (TenantApiUsageState) service.myUsageStates.get(tenantId);
-        for (ApiFeature feature : ApiFeature.values()) {
-            if (containsFeature(feature)) {
-                assertEquals("For feature " + feature + " expected state DISABLED", ApiUsageStateValue.DISABLED,
-                        tenantApiUsageState.getFeatureValue(feature));
-            }
-        }
-    }
-
-
-    private boolean containsFeature(ApiFeature feature) {
-        for (ApiUsageRecordKey key : ApiUsageRecordKey.values()) {
-            if (key.getApiFeature() != null && key.getApiFeature().equals(feature)) {
-                return true;
-            }
-        }
-        return false;
+        assertEquals(ApiUsageStateValue.DISABLED, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState());
     }
 
     private TenantProfile createTenantProfile() {
@@ -161,15 +128,7 @@ public class DefaultTbApiUsageStateServiceTest extends AbstractControllerTest {
 
         TenantProfileData tenantProfileData = new TenantProfileData();
         DefaultTenantProfileConfiguration config = DefaultTenantProfileConfiguration.builder()
-                .maxJSExecutions(MAX_ENABLE_VALUE)
-                .maxTransportMessages(MAX_ENABLE_VALUE)
-                .maxRuleChains(MAX_ENABLE_VALUE)
-                .maxTbelExecutions(MAX_ENABLE_VALUE)
                 .maxDPStorageDays(MAX_ENABLE_VALUE)
-                .maxREExecutions(MAX_ENABLE_VALUE)
-                .maxEmails(MAX_ENABLE_VALUE)
-                .maxSms(MAX_ENABLE_VALUE)
-                .maxCreatedAlarms(MAX_ENABLE_VALUE)
                 .warnThreshold(WARN_THRESHOLD_VALUE)
                 .build();
 
