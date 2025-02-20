@@ -38,11 +38,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasDebugSettings;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.HasVersion;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
 import org.thingsboard.server.common.data.cf.configuration.SimpleCalculatedFieldConfiguration;
 import org.thingsboard.server.common.data.debug.DebugSettings;
@@ -55,7 +56,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CalculatedField extends BaseData<CalculatedFieldId> implements HasName, HasTenantId, HasVersion, ExportableEntity<CalculatedFieldId>, HasDebugSettings {
+public class CalculatedField extends BaseData<CalculatedFieldId> implements HasName, TenantEntity, HasVersion, ExportableEntity<CalculatedFieldId>, HasDebugSettings {
 
     private static final long serialVersionUID = 4491966747773381420L;
 
@@ -143,6 +144,11 @@ public class CalculatedField extends BaseData<CalculatedFieldId> implements HasN
     @JsonSetter
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CALCULATED_FIELD;
     }
 
 }

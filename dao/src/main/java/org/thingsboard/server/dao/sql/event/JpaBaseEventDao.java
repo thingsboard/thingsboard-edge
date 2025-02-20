@@ -92,9 +92,9 @@ public class JpaBaseEventDao implements EventDao {
     private final RawEventRepository rawEventRepository;
     private final IntegrationDebugEventRepository integrationDebugEventRepository;
     private final ConverterDebugEventRepository converterDebugEventRepository;
+    private final CalculatedFieldDebugEventRepository calculatedFieldDebugEventRepository;
     private final ScheduledLogExecutorComponent logExecutor;
     private final StatsFactory statsFactory;
-    private final CalculatedFieldDebugEventRepository calculatedFieldDebugEventRepository;
 
     @Value("${sql.events.batch_size:10000}")
     private int batchSize;
