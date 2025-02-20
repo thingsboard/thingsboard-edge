@@ -36,54 +36,41 @@ import org.apache.commons.codec.binary.Hex;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
-public class ThingParkConverterWrapper extends AbstractConverterWrapper {
+import java.util.Base64;
+
+public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
 
     private static final ImmutableMap<String, String> KEYS_MAPPING;
 
     static {
         KEYS_MAPPING = new ImmutableMap.Builder<String, String>()
-                .put("time", "/DevEUI_uplink/Time")
-                .put("eui", "DevEUI_uplink/DevEUI")
-                .put("fPort", "/DevEUI_uplink/FPort")
-                .put("fCntUp", "/DevEUI_uplink/FCntUp")
-                .put("lostUplinksAs", "/DevEUI_uplink/LostUplinksAS")
-                .put("aDrBit", "/DevEUI_uplink/ADRbit")
-                .put("mType", "/DevEUI_uplink/MType")
-                .put("fCntDn", "/DevEUI_uplink/FCntDn")
-                .put("payloadHex", "/DevEUI_uplink/payload_hex")
-                .put("micHex", "/DevEUI_uplink/mic_hex")
-                .put("lrcid", "/DevEUI_uplink/Lrcid")
-                .put("lrrRssi", "/DevEUI_uplink/LrrRSSI")
-                .put("lrrSnr", "/DevEUI_uplink/LrrSNR")
-                .put("lrrEsp", "/DevEUI_uplink/LrrESP")
-                .put("spFact", "/DevEUI_uplink/SpFact")
-                .put("subBand", "/DevEUI_uplink/SubBand")
-                .put("channel", "/DevEUI_uplink/Channel")
-                .put("lrrId", "/DevEUI_uplink/Lrrid")
-                .put("late", "/DevEUI_uplink/Late")
-                .put("lrrLat", "/DevEUI_uplink/LrrLAT")
-                .put("lrrLon", "/DevEUI_uplink/LrrLON")
-                .put("lrr", "/DevEUI_uplink/Lrrs/Lrr")
-                .put("devLrrCnt", "/DevLrrCnt")
-                .put("customerId", "/CustomerID")
-                .put("customerData", "/CustomerData")
-                .put("baseStationData", "/BaseStationData")
-                .put("modelCfg", "/ModelCfg")
-                .put("driverCfg", "/DriverCfg")
-                .put("instantPer", "/InstantPER")
-                .put("meanPer", "/MeanPER")
-                .put("devAddr", "/DevAddr")
-                .put("txPower", "/TxPower")
-                .put("nbTrans", "/NbTrans")
-                .put("frequency", "/Frequency")
-                .put("dynamicClass", "/DynamicClass")
+                .put("deviceId", "/end_device_ids/device_id")
+                .put("applicationId", "/end_device_ids/application_ids/application_id")
+                .put("eui", "/end_device_ids/dev_eui")
+                .put("joinEui", "/end_device_ids/join_eui")
+                .put("devAddr", "/end_device_ids/dev_addr")
+                .put("correlationIds", "/correlation_ids")
+                .put("receivedAt", "/received_at")
+                .put("sessionKeyId", "/uplink_message/session_key_id")
+                .put("fPort", "/uplink_message/f_port")
+                .put("fCnt", "/uplink_message/f_cnt")
+                .put("frmPayload", "/uplink_message/frm_payload")
+                .put("rcMetadata", "/uplink_message/rx_metadata")
+                .put("bandwidth", "/uplink_message/settings/data_rate/lora/bandwidth")
+                .put("spreadingFactor", "/uplink_message/settings/data_rate/lora/spreading_factor")
+                .put("dataRateIndex", "/uplink_message/settings/data_rate_index")
+                .put("codingRate", "/uplink_message/settings/coding_rate")
+                .put("frequency", "/uplink_message/settings/frequency")
+                .put("timestamp", "/uplink_message/settings/timestamp")
+                .put("time", "/uplink_message/settings/time")
+                .put("uplinkMessageReceivedAt", "/uplink_message/received_at")
                 .build();
     }
 
     @Override
     protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws Exception {
-        var data = payloadJson.get("DevEUI_uplink").get("payload_hex").textValue();
-        return TbPair.of(Hex.decodeHex(data.toCharArray()), ContentType.BINARY);
+        var data = payloadJson.get("uplink_message").get("frm_payload").textValue();
+        return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
     }
 
     @Override

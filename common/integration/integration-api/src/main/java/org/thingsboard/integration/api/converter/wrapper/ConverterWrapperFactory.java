@@ -46,7 +46,8 @@ public final class ConverterWrapperFactory {
                 Optional.ofNullable(switch (integrationType) {
                     case LORIOT -> new LoriotConverterWrapper();
                     case CHIRPSTACK -> new ChirpStackConverterWrapper();
-                    case THINGPARK -> new ThingParkConverterWrapper();
+                    case THINGPARK, TPE -> new ThingParkConverterWrapper();
+                    case TTN, TTI -> new ThingsStackConverterWrapper();
                     default -> null;
                 }));
     }

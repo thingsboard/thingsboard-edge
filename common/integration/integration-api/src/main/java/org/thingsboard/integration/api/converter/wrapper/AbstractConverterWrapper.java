@@ -37,7 +37,6 @@ import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.util.TbPair;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -66,10 +65,7 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
         return TbPair.of(payloadPair.getFirst(), mergedMetadata);
     }
 
-    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws Exception {
-        var data = payloadJson.get("data").textValue();
-        return TbPair.of(data.getBytes(StandardCharsets.UTF_8), ContentType.TEXT);
-    }
+    protected abstract TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws Exception;
 
     // Key is a name in metadata, Value is a JSON path to value in payload.
     protected abstract ImmutableMap<String, String> getKeysMapping();

@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ConverterWrapperTest {
 
     @Test
-    public void loriotConverterWrapperTest() {
+    public void loriotConverterWrapperTest() throws Exception {
         ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.LORIOT).get();
 
         ObjectNode payloadMsg = JacksonUtil.newObjectNode();
@@ -91,7 +91,7 @@ public class ConverterWrapperTest {
     }
 
     @Test
-    public void chirpStackConverterWrapperTest() {
+    public void chirpStackConverterWrapperTest() throws Exception {
         ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.CHIRPSTACK).get();
 
         ObjectNode payloadMsg = JacksonUtil.newObjectNode();
