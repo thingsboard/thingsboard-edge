@@ -1184,7 +1184,14 @@
         "value": "Value",
         "documentation": "Documentation",
         "time-left": "{{time}} left",
-        "loading-please-wait": "Loading... Please wait"
+        "loading-please-wait": "Loading... Please wait",
+        "output": "Output",
+        "test-function": "Test function",
+        "test-with-this-message": "{{test}} with this message",
+        "suffix": {
+            "s": "s",
+            "ms": "ms"
+        }
     },
     "converter": {
         "converter": "Data converter",
