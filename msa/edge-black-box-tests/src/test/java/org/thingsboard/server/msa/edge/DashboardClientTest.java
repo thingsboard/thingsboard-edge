@@ -24,6 +24,7 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.concurrent.TimeUnit;
@@ -84,11 +85,17 @@ public class DashboardClientTest extends AbstractContainerTest {
                             || dashboard.getAssignedCustomers().isEmpty()) {
                         return false;
                     }
-                    if (dashboard.getAssignedCustomers().size() != 1)  {
+                    if (dashboard.getAssignedCustomers().size() != 1) {
                         return false;
                     }
+
                     ShortCustomerInfo assignedCustomer = dashboard.getAssignedCustomers().iterator().next();
-                    return savedCustomer.getId().equals(assignedCustomer.getCustomerId());
+                    if (!savedCustomer.getId().equals(assignedCustomer.getCustomerId())) {
+                        return false;
+                    }
+
+                    return edgeRestClient.getRelation(savedCustomer.getId(), "CUSTOMER",
+                            RelationTypeGroup.DASHBOARD, savedDashboard2.getId()).isPresent();
                 });
 
         // unassign dashboard #2 from customer
@@ -146,16 +153,21 @@ public class DashboardClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboardOnEdge.getId()).get();
+                    Dashboard dashboard = cloudRestClient.getDashboardById(savedDashboardOnEdge.getId()).get();
                     if (dashboard.getAssignedCustomers() == null
                             || dashboard.getAssignedCustomers().isEmpty()) {
                         return false;
                     }
-                    if (dashboard.getAssignedCustomers().size() != 1)  {
+                    if (dashboard.getAssignedCustomers().size() != 1) {
                         return false;
                     }
                     ShortCustomerInfo assignedCustomer = dashboard.getAssignedCustomers().iterator().next();
-                    return savedCustomer.getId().equals(assignedCustomer.getCustomerId());
+                    if (!savedCustomer.getId().equals(assignedCustomer.getCustomerId())) {
+                        return false;
+                    }
+
+                    return cloudRestClient.getRelation(savedCustomer.getId(), "CUSTOMER",
+                            RelationTypeGroup.DASHBOARD, savedDashboardOnEdge.getId()).isPresent();
                 });
 
         // unassign dashboard from customer
