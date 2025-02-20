@@ -1247,11 +1247,8 @@
         "type-downlink": "Downlink",
         "update-only-keys-list": "Update only keys list",
         "update-only-keys-list-hint": "The values associated with the provided keys will be saved to the database only if they are different from the corresponding values in the previous converted message. This functionality applies to both attributes and telemetry in the converter output.",
-        "add-key": "Add key"
-=======
-        "output": "Output",
+        "add-key": "Add key",
         "test-function": "Test function",
-        "test-with-this-message": "{{test}} with this message",
         "suffix": {
             "s": "s",
             "ms": "ms"
@@ -1267,7 +1264,6 @@
             "key-pattern": "Key is invalid.",
             "key-max-length": "Key should be less than 256 characters."
         }
->>>>>>> 8d161382e6d78181593485b4d19cc7970a8d64e8
     },
     "content-type": {
         "json": "Json",
