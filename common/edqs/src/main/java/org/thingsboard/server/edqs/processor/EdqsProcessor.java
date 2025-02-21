@@ -91,6 +91,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.msg.queue.TopicPartitionInfo.withTopic;
+
 @EdqsComponent
 @Service
 @RequiredArgsConstructor
@@ -293,12 +295,6 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
         } else {
             return null;
         }
-    }
-
-    private Set<TopicPartitionInfo> withTopic(Set<TopicPartitionInfo> partitions, String topic) {
-        return partitions.stream()
-                .map(tpi -> tpi.withTopic(topic))
-                .collect(Collectors.toSet());
     }
 
     @PreDestroy

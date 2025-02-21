@@ -41,7 +41,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.msg.queue.TopicPartitionInfo.withTopic;
 
 @Slf4j
 public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
@@ -101,10 +102,6 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
             });
         }
         initialized = true;
-    }
-
-    private Set<TopicPartitionInfo> withTopic(Set<TopicPartitionInfo> partitions, String topic) {
-        return partitions.stream().map(tpi -> tpi.withTopic(topic)).collect(Collectors.toSet());
     }
 
     public Set<TopicPartitionInfo> getPartitionsInProgress() {

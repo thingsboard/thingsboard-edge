@@ -32,6 +32,8 @@ package org.thingsboard.server.edqs.state;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.EdqsEventType;
@@ -47,14 +49,17 @@ import org.thingsboard.server.queue.edqs.InMemoryEdqsComponent;
 
 import java.util.Set;
 
+import static org.thingsboard.server.common.msg.queue.TopicPartitionInfo.withTopic;
+
 @Service
 @RequiredArgsConstructor
 @InMemoryEdqsComponent
 @Slf4j
 public class LocalEdqsStateService implements EdqsStateService {
 
-    private final EdqsProcessor processor;
     private final EdqsRocksDb db;
+    @Autowired @Lazy
+    private EdqsProcessor processor;
 
     private PartitionedQueueConsumerManager<TbProtoQueueMsg<ToEdqsMsg>> eventConsumer;
     private Set<TopicPartitionInfo> partitions;
@@ -76,8 +81,9 @@ public class LocalEdqsStateService implements EdqsStateService {
                     log.error("[{}] Failed to restore value", key, e);
                 }
             });
+            log.info("Restore completed");
         }
-        eventConsumer.update(partitions);
+        eventConsumer.update(withTopic(partitions, EdqsQueue.EVENTS.getTopic()));
         this.partitions = partitions;
     }
 

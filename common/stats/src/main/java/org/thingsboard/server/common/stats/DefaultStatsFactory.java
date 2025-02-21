@@ -54,7 +54,7 @@ public class DefaultStatsFactory implements StatsFactory {
 
     private static final Counter STUB_COUNTER = new StubCounter();
 
-    @Autowired // FIXME Slavik !!!
+    @Autowired
     private MeterRegistry meterRegistry;
 
     @Value("${metrics.enabled:false}")
