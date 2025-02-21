@@ -38,7 +38,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.edqs.fields.BlobEntityFields;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -141,11 +140,6 @@ public class JpaBlobEntityDao extends JpaPartitionedAbstractDao<BlobEntityEntity
     @Override
     public EntityType getEntityType() {
         return EntityType.BLOB_ENTITY;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.BLOB_ENTITY;
     }
 
 }

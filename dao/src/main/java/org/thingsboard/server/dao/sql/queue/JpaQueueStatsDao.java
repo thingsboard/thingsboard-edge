@@ -97,11 +97,6 @@ public class JpaQueueStatsDao extends JpaAbstractDao<QueueStatsEntity, QueueStat
     }
 
     @Override
-    public ObjectType getType() {
-        return ObjectType.QUEUE_STATS;
-    }
-
-    @Override
     public EntityType getEntityType() {
         return EntityType.QUEUE_STATS;
     }

@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.sql.customtranslation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -88,11 +87,6 @@ public class JpaCustomTranslationDao implements CustomTranslationDao, TenantEnti
     @Override
     public PageData<CustomTranslation> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(customTranslationRepository.findAllByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink, "tenantId", "customerId", "localeCode")));
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.CUSTOM_TRANSLATION;
     }
 
 }

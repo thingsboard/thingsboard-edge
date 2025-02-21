@@ -34,7 +34,6 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -84,11 +83,6 @@ public class JpaDeviceGroupOtaPackageDao implements DeviceGroupOtaPackageDao {
     @Override
     public PageData<DeviceGroupOtaPackage> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(deviceGroupOtaPackageRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.DEVICE_GROUP_OTA_PACKAGE;
     }
 
 }

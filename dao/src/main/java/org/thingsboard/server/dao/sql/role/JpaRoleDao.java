@@ -36,7 +36,6 @@ import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.fields.RoleFields;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -161,11 +160,6 @@ public class JpaRoleDao extends JpaAbstractDao<RoleEntity, Role> implements Role
     @Override
     public EntityType getEntityType() {
         return EntityType.ROLE;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.ROLE;
     }
 
 }
