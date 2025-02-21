@@ -54,6 +54,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
+import org.thingsboard.integration.api.converter.wrapper.ConverterWrapper;
+import org.thingsboard.integration.api.converter.wrapper.ConverterWrapperFactory;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -90,6 +92,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -530,6 +533,19 @@ public class ConverterController extends AutoCommitController {
                 return false;
             }
         }).collect(Collectors.toList());
+    }
+
+    @ApiOperation(value = "Get Converter Keys By Integration Type (getConverterKeysByIntegrationType)",
+            notes = "Return keys collection related to the certain integration type.")
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/converter/keys/{integrationType}", method = RequestMethod.GET)
+    @ResponseBody
+    public Set<String> getConverterKeysByIntegrationType(
+            @Parameter(description = "A string value representing an integration type. For example, 'LORIOT'.", required = true)
+            @PathVariable("integrationType") IntegrationType integrationType) {
+        return ConverterWrapperFactory.getWrapper(integrationType)
+                .map(ConverterWrapper::getKeys)
+                .orElse(Collections.emptySet());
     }
 
 }

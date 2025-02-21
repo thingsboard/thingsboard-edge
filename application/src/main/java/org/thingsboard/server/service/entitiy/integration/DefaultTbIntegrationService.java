@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.converter.wrapper.ConverterWrapper;
 import org.thingsboard.integration.api.converter.wrapper.ConverterWrapperFactory;
 import org.thingsboard.server.common.data.ConvertersInfo;
 import org.thingsboard.server.common.data.IntegrationConvertersInfo;
@@ -56,7 +55,6 @@ import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -107,13 +105,10 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
         for (IntegrationType integrationType : IntegrationType.values()) {
             String directory = integrationType.getDirectory();
             LibraryConvertersInfo libraryInfo = libraryConvertersInfo.getOrDefault(directory, new LibraryConvertersInfo(false, false));
-            Set<String> keys = ConverterWrapperFactory
-                    .getWrapper(integrationType)
-                    .map(ConverterWrapper::getKeys)
-                    .orElse(null);
+            boolean dedicated = ConverterWrapperFactory.getWrapper(integrationType).isPresent();
             result.put(integrationType, new IntegrationConvertersInfo(
-                    new ConvertersInfo(libraryInfo.uplink(), hasUplink, keys),
-                    new ConvertersInfo(libraryInfo.downlink(), hasDownlink, null)
+                    new ConvertersInfo(libraryInfo.uplink(), hasUplink, dedicated),
+                    new ConvertersInfo(libraryInfo.downlink(), hasDownlink, false)
             ));
         }
         return result;
