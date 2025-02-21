@@ -32,7 +32,7 @@ package org.thingsboard.integration.api.converter.wrapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.codec.binary.Hex;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
@@ -54,8 +54,9 @@ public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
                 .put("sessionKeyId", "/uplink_message/session_key_id")
                 .put("fPort", "/uplink_message/f_port")
                 .put("fCnt", "/uplink_message/f_cnt")
-                .put("frmPayload", "/uplink_message/frm_payload")
-                .put("rcMetadata", "/uplink_message/rx_metadata")
+                .put("data", "/uplink_message/frm_payload")
+                .put("decoded", "/uplink_message/decoded_payload")
+                .put("rxMetadata", "/uplink_message/rx_metadata")
                 .put("bandwidth", "/uplink_message/settings/data_rate/lora/bandwidth")
                 .put("spreadingFactor", "/uplink_message/settings/data_rate/lora/spreading_factor")
                 .put("dataRateIndex", "/uplink_message/settings/data_rate_index")
@@ -63,14 +64,34 @@ public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
                 .put("frequency", "/uplink_message/settings/frequency")
                 .put("timestamp", "/uplink_message/settings/timestamp")
                 .put("time", "/uplink_message/settings/time")
+                .put("consumedAirtime", "/uplink_message/consumed_airtime")
+                .put("latitude", "/uplink_message/locations/user/latitude")
+                .put("longitude", "/uplink_message/locations/user/longitude")
+                .put("altitude", "/uplink_message/locations/user/altitude")
+                .put("source", "/uplink_message/locations/user/source")
+                .put("brandId", "/uplink_message/version_ids/brand_id")
+                .put("modelId", "/uplink_message/version_ids/model_id")
+                .put("hardwareVersion", "/uplink_message/version_ids/hardware_version")
+                .put("firmwareVersion", "/uplink_message/version_ids/firmware_version")
+                .put("bandId", "/uplink_message/version_ids/band_id")
+                .put("netId", "/uplink_message/network_ids/net_id")
+                .put("tenantId", "/uplink_message/network_ids/tenant_id")
+                .put("clusterId", "/uplink_message/network_ids/cluster_id")
+                .put("attributes", "/uplink_message/attributes")
                 .put("uplinkMessageReceivedAt", "/uplink_message/received_at")
                 .build();
     }
 
     @Override
-    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws Exception {
-        var data = payloadJson.get("uplink_message").get("frm_payload").textValue();
-        return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
+    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
+        var uplink = payloadJson.get("uplink_message");
+        if (uplink.has("decoded_payload")) {
+            var decoded = uplink.get("decoded_payload");
+            return TbPair.of(JacksonUtil.writeValueAsBytes(decoded), ContentType.JSON);
+        } else {
+            var data = uplink.get("frm_payload").textValue();
+            return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
+        }
     }
 
     @Override

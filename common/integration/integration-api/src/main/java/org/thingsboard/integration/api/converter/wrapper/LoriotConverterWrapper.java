@@ -32,6 +32,8 @@ package org.thingsboard.integration.api.converter.wrapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
@@ -60,18 +62,22 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
                 .put("toa", "/toa")
                 .put("data", "/data")
                 .put("decoded", "/decoded")
+                .put("encdata", "/encdata")
                 .put("gws", "/gws")
                 .build();
     }
 
     @Override
-    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
+    protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws DecoderException {
         if (payloadJson.has("decoded")) {
             var decoded = payloadJson.get("decoded");
             return TbPair.of(JacksonUtil.writeValueAsBytes(decoded), ContentType.JSON);
         } else if (payloadJson.has("data")) {
             var data = payloadJson.get("data").textValue();
-            return TbPair.of(data.getBytes(StandardCharsets.UTF_8), ContentType.TEXT);
+            return TbPair.of(Hex.decodeHex(data.toCharArray()), ContentType.BINARY);
+        } else if (payloadJson.has("encdata")) {
+            var encoded = payloadJson.get("encdata").textValue();
+            return TbPair.of(Hex.decodeHex(encoded.toCharArray()), ContentType.BINARY);
         } else {
             return TbPair.of(EMPTY_BYTE_ARRAY, ContentType.BINARY);
         }

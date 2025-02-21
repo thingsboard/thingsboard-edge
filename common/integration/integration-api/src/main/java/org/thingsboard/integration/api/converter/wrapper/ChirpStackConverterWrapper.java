@@ -32,6 +32,7 @@ package org.thingsboard.integration.api.converter.wrapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
@@ -61,18 +62,24 @@ public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
                 .put("fPort", "/fPort")
                 .put("confirmed", "/confirmed")
                 .put("data", "/data")
+                .put("decoded", "/object")
                 .put("rxInfo", "/rxInfo")
-                .put("frequency", "/frequency")
-                .put("bandwidth", "/bandwidth")
-                .put("spreadingFactor", "/spreadingFactor")
-                .put("codeRate", "/codeRate")
+                .put("frequency", "/txInfo/frequency")
+                .put("bandwidth", "/txInfo/modulation/lora/bandwidth")
+                .put("spreadingFactor", "/txInfo/modulation/lora/spreadingFactor")
+                .put("codeRate", "/txInfo/modulation/lora/codeRate")
                 .build();
     }
 
     @Override
     protected TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) {
-        var data = payloadJson.get("data").textValue();
-        return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
+        if (payloadJson.has("object")) {
+            var decoded = payloadJson.get("object");
+            return TbPair.of(JacksonUtil.writeValueAsBytes(decoded), ContentType.JSON);
+        } else {
+            var data = payloadJson.get("data").textValue();
+            return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
+        }
     }
 
     @Override
