@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.sql.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -106,11 +105,6 @@ public class JpaUserCredentialsDao extends JpaAbstractDao<UserCredentialsEntity,
     @Override
     public PageData<UserCredentials> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(userCredentialsRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.USER_CREDENTIALS;
     }
 
 }

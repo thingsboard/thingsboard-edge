@@ -96,6 +96,11 @@ public class LocalEdqsStateService implements EdqsStateService {
     }
 
     @Override
+    public boolean isReady() {
+        return partitions != null;
+    }
+
+    @Override
     public void stop() {
     }
 

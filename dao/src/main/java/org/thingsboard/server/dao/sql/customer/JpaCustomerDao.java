@@ -38,7 +38,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.fields.CustomerFields;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -195,11 +194,6 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
     @Override
     public EntityType getEntityType() {
         return EntityType.CUSTOMER;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.CUSTOMER;
     }
 
 }

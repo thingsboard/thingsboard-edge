@@ -28,32 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs.repo;
+package org.thingsboard.server.edqs.util;
 
-import org.thingsboard.server.common.data.edqs.EdqsEvent;
-import org.thingsboard.server.common.data.edqs.query.QueryResult;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
-import org.thingsboard.server.common.data.query.EntityCountQuery;
-import org.thingsboard.server.common.data.query.EntityDataQuery;
+import com.google.common.hash.Hashing;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
-import java.util.function.Predicate;
+import java.util.concurrent.ConcurrentMap;
 
-public interface EdqRepository {
+public class TbBytePool {
 
-    void processEvent(EdqsEvent event);
+    private static final ConcurrentMap<String, byte[]> pool = new ConcurrentReferenceHashMap<>();
 
-    @Deprecated
-    default void addOrUpdate(TenantId tenantId, Object object) {}
+    public static byte[] intern(byte[] data) {
+        if (data == null) {
+            return null;
+        }
+        var checksum = Hashing.sha512().hashBytes(data).toString();
+        return pool.computeIfAbsent(checksum, c -> data);
+    }
 
-    long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query, boolean ignorePermissionCheck);
-
-    PageData<QueryResult> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query, boolean ignorePermissionCheck);
-
-    void clearIf(Predicate<TenantId> predicate);
-
-    void clear();
+    public static int size(){
+        return pool.size();
+    }
 
 }

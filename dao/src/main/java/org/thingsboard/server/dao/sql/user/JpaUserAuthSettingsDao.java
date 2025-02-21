@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.sql.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -86,11 +85,6 @@ public class JpaUserAuthSettingsDao extends JpaAbstractDao<UserAuthSettingsEntit
     @Override
     protected JpaRepository<UserAuthSettingsEntity, UUID> getRepository() {
         return repository;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.USER_AUTH_SETTINGS;
     }
 
 }

@@ -48,6 +48,8 @@ public interface EdqsStateService {
 
     void save(TenantId tenantId, ObjectType type, String key, EdqsEventType eventType, ToEdqsMsg msg);
 
+    boolean isReady();
+
     void stop();
 
 }

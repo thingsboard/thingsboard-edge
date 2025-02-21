@@ -28,18 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.alarm;
+package org.thingsboard.server.edqs.repo;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.thingsboard.server.dao.model.sql.AlarmTypeCompositeKey;
-import org.thingsboard.server.dao.model.sql.AlarmTypeEntity;
+import org.thingsboard.server.common.data.edqs.EdqsEvent;
+import org.thingsboard.server.common.data.edqs.query.QueryResult;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.query.EntityCountQuery;
+import org.thingsboard.server.common.data.query.EntityDataQuery;
 
-import java.util.UUID;
+import java.util.function.Predicate;
 
-public interface AlarmTypeRepository extends JpaRepository<AlarmTypeEntity, AlarmTypeCompositeKey> {
+public interface EdqsRepository {
 
-    Page<AlarmTypeEntity> findByTenantId(UUID tenantId, Pageable pageable);
+    void processEvent(EdqsEvent event);
+
+    long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query, boolean ignorePermissionCheck);
+
+    PageData<QueryResult> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query, boolean ignorePermissionCheck);
+
+    void clearIf(Predicate<TenantId> predicate);
+
+    void clear();
 
 }

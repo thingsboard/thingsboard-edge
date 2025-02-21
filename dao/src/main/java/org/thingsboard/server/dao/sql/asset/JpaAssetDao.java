@@ -39,7 +39,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edqs.fields.AssetFields;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -254,11 +253,6 @@ public class JpaAssetDao extends JpaAbstractDao<AssetEntity, Asset> implements A
     @Override
     public EntityType getEntityType() {
         return EntityType.ASSET;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.ASSET;
     }
 
 }

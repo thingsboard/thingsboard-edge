@@ -28,23 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs.repo;
+package org.thingsboard.server.edqs.util;
 
-import com.google.common.hash.Hashing;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 import java.util.concurrent.ConcurrentMap;
 
-public class TbBytePool {
+public class TbStringPool {
 
-    private static final ConcurrentMap<String, byte[]> pool = new ConcurrentReferenceHashMap<>();
+    private static final ConcurrentMap<String, String> pool = new ConcurrentReferenceHashMap<>();
 
-    public static byte[] intern(byte[] data) {
+    public static String intern(String data) {
         if (data == null) {
             return null;
         }
-        var checksum = Hashing.sha512().hashBytes(data).toString();
-        return pool.computeIfAbsent(checksum, c -> data);
+        return pool.computeIfAbsent(data, str -> str);
     }
 
     public static int size(){

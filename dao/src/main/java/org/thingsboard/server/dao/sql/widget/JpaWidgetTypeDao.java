@@ -35,7 +35,6 @@ import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.fields.WidgetTypeFields;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
@@ -287,11 +286,6 @@ public class JpaWidgetTypeDao extends JpaAbstractDao<WidgetTypeDetailsEntity, Wi
     @Override
     public EntityType getEntityType() {
         return EntityType.WIDGET_TYPE;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.WIDGET_TYPE;
     }
 
 }

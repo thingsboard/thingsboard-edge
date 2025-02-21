@@ -71,7 +71,4 @@ public class TenantFields extends AbstractEntityFields {
         this.region = region;
     }
 
-    public TenantFields(UUID id, Long version) {
-        super(id, 0L, null, version);
-    }
 }

@@ -38,7 +38,6 @@ public enum ObjectType {
     TENANT,
     TENANT_PROFILE,
     CUSTOMER,
-    ADMIN_SETTINGS,
     QUEUE,
     RPC,
     RULE_CHAIN,
@@ -55,8 +54,6 @@ public enum ObjectType {
     CONVERTER,
     INTEGRATION,
     USER,
-    USER_CREDENTIALS,
-    USER_AUTH_SETTINGS,
     EDGE,
     WIDGETS_BUNDLE,
     WIDGET_TYPE,
@@ -79,7 +76,6 @@ public enum ObjectType {
     WHITE_LABELING,
     CUSTOM_TRANSLATION,
     ALARM_COMMENT,
-    ALARM_TYPE,
     API_USAGE_STATE,
     QUEUE_STATS,
 
@@ -96,7 +92,10 @@ public enum ObjectType {
     public static final Set<ObjectType> edqsTypes =  EnumSet.copyOf(edqsTenantTypes);
     public static final Set<ObjectType> edqsSystemTypes = EnumSet.of(TENANT, TENANT_PROFILE, USER, DASHBOARD,
             API_USAGE_STATE, ATTRIBUTE_KV, LATEST_TS_KV);
-    public static final Set<ObjectType> unversionedTypes = EnumSet.of(QUEUE_STATS);
+    public static final Set<ObjectType> unversionedTypes = EnumSet.of(
+            QUEUE_STATS, // created once, never updated
+            TENANT_PROFILE // only for total count calculation
+    );
 
     static {
         edqsTypes.addAll(List.of(ENTITY_GROUP, RELATION, ATTRIBUTE_KV, LATEST_TS_KV));
