@@ -28,17 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util.mapping;
+package org.thingsboard.server.common.data.widget;
 
-import jakarta.persistence.Converter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 
-@Converter
-public class WidgetBundleEntityInfosConverter extends AbstractEntityInfosConverter {
+import java.io.Serial;
+import java.util.UUID;
 
-    @Override
-    protected EntityType getEntityType() {
-        return EntityType.WIDGETS_BUNDLE;
+@Value
+@EqualsAndHashCode(callSuper = true)
+public class WidgetBundleInfo extends EntityInfo {
+
+    @Serial
+    private static final long serialVersionUID = 2132305394634509820L;
+
+    public WidgetBundleInfo(@JsonProperty("id") UUID uuid, @JsonProperty("name") String name) {
+        super(EntityIdFactory.getByTypeAndUuid(EntityType.WIDGETS_BUNDLE, uuid), name);
     }
 
 }

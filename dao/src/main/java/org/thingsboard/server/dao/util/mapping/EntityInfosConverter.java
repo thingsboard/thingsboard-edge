@@ -44,9 +44,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Converter
-public abstract class AbstractEntityInfosConverter implements AttributeConverter<List<EntityInfo>, String> {
-
-    protected abstract EntityType getEntityType();
+public class EntityInfosConverter implements AttributeConverter<List<EntityInfo>, String> {
 
     @Override
     public String convertToDatabaseColumn(List<EntityInfo> attribute) {
@@ -58,7 +56,7 @@ public abstract class AbstractEntityInfosConverter implements AttributeConverter
         try {
             JsonNode node = JacksonUtil.fromBytes(s.getBytes(StandardCharsets.UTF_8));
             if (node.isArray()) {
-                List<EntityInfo> entities = new ArrayList<>();
+                List<EntityInfo> groups = new ArrayList<>();
                 for (int i = 0; i < node.size(); i++) {
                     JsonNode row = node.get(i);
                     UUID id = null;
@@ -68,20 +66,20 @@ public abstract class AbstractEntityInfosConverter implements AttributeConverter
                     if (idNode != null && nameNode != null) {
                         try {
                             id = UUID.fromString(idNode.asText());
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                        }
                         name = nameNode.asText();
                     }
                     if (id != null && name != null) {
-                        entities.add(new EntityInfo(id, getEntityType().name(), name));
+                        groups.add(new EntityInfo(id, EntityType.ENTITY_GROUP.name(), name));
                     }
                 }
-                return entities;
+                return groups;
             } else {
                 return Collections.emptyList();
             }
         } catch (Exception ex) {
-            String exception = String.format("Failed to convert String to %s list: %s", getEntityType(), ex.getMessage());
-            throw new RuntimeException(exception, ex);
+            throw new RuntimeException("Failed to convert String to Groups list: " + ex.getMessage(), ex);
         }
     }
 
