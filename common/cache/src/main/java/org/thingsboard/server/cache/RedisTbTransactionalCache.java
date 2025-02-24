@@ -34,15 +34,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.support.NullValue;
-import org.springframework.data.redis.connection.RedisClusterConnection;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -52,13 +51,10 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.util.JedisClusterCRC16;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -81,6 +77,26 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
     protected final Expiration evictExpiration;
     protected final Expiration cacheTtl;
     protected final boolean cacheEnabled;
+
+    static final byte[] EVICT_BY_PREFIX_LUA_SCRIPT = StringRedisSerializer.UTF_8.serialize("""
+            local prefix = ARGV[1]
+            local count = tonumber(ARGV[2]) or 1000
+            local cursor = "0"
+            local keysToDelete = {}
+            repeat
+                local result = redis.call("SCAN", cursor, "MATCH", prefix .. "*", "COUNT", count)
+                cursor = result[1]
+                for i, key in ipairs(result[2]) do
+                    table.insert(keysToDelete, key)
+                end
+            until cursor == "0"
+            if #keysToDelete > 0 then
+                redis.call("DEL", unpack(keysToDelete))
+            end
+            return #keysToDelete
+            """);
+
+    static final byte[] EVICT_BY_PREFIX_SHA = StringRedisSerializer.UTF_8.serialize("837605bb2289f85b0ebf1c10fa8cbd5833bea3ac");
 
     public RedisTbTransactionalCache(String cacheName,
                                      CacheSpecsMap cacheSpecsMap,
@@ -201,19 +217,10 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
         if (!cacheEnabled) {
             return;
         }
-        Set<byte[]> keysToEvict = new HashSet<>();
-        try (var connection = connectionFactory.getConnection()) {
-            ScanOptions scanOptions = ScanOptions.scanOptions().match(cacheName + prefix + "*").count(1000).build();
-            List<Cursor<byte[]>> scans = new ArrayList<>();
-            if (connection instanceof RedisClusterConnection clusterConnection) {
-                clusterConnection.clusterGetNodes().forEach(node -> {
-                    scans.add(clusterConnection.scan(node, scanOptions));
-                });
-            } else {
-                scans.add(connection.keyCommands().scan(scanOptions));
-            }
-            scans.forEach(scan -> scan.forEachRemaining(keysToEvict::add));
-            connection.keyCommands().del(keysToEvict.toArray(new byte[keysToEvict.size()][]));
+        byte[] rawPrefix = StringRedisSerializer.UTF_8.serialize(cacheName + prefix);
+        byte[] rawBatchSize = StringRedisSerializer.UTF_8.serialize(String.valueOf(1000));
+        try (var connection = getConnection(rawPrefix)) {
+            executeScript(connection, EVICT_BY_PREFIX_SHA, EVICT_BY_PREFIX_LUA_SCRIPT, ReturnType.INTEGER, 0, rawPrefix, rawBatchSize);
         }
     }
 
@@ -309,6 +316,26 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
     public void put(RedisConnection connection, byte[] rawKey, V value, RedisStringCommands.SetOption setOption) {
         byte[] rawValue = getRawValue(value);
         connection.stringCommands().set(rawKey, rawValue, this.cacheTtl, setOption);
+    }
+
+    protected void executeScript(RedisConnection connection, byte[] scriptSha, byte[] luaScript, ReturnType returnType, int numKeys, byte[]... keysAndArgs) {
+        try {
+            connection.scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);
+        } catch (InvalidDataAccessApiUsageException ignored) {
+            log.debug("Loading LUA with expected SHA [{}], connection [{}]", new String(scriptSha), connection.getNativeConnection());
+            String actualSha = connection.scriptingCommands().scriptLoad(luaScript);
+            if (!Arrays.equals(scriptSha, StringRedisSerializer.UTF_8.serialize(actualSha))) {
+                String message = String.format("SHA for LUA script wrong! Expected [%s], but actual [%s], connection [%s]",
+                        new String(scriptSha), actualSha, connection.getNativeConnection());
+                throw new IllegalStateException(message);
+            }
+            try {
+                connection.scriptingCommands().evalSha(scriptSha, returnType, numKeys, keysAndArgs);
+            } catch (InvalidDataAccessApiUsageException exception) {
+                log.warn("Slowly executing eval instead of fast evalSha", exception);
+                connection.scriptingCommands().eval(luaScript, returnType, numKeys, keysAndArgs);
+            }
+        }
     }
 
 }
