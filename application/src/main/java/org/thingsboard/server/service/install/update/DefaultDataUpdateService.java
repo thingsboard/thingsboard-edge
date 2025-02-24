@@ -85,8 +85,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         log.info("Updating data ...");
         //TODO: should be cleaned after each release
 
-        installScripts.updateResourcesUsage();
-
         // Edge-only: always run next config:
 
         // remove this line in 4+ release
