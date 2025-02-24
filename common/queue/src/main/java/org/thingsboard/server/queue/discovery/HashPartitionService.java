@@ -82,9 +82,9 @@ public class HashPartitionService implements PartitionService {
     private Integer corePartitions;
     @Value("${queue.integration.partitions:3}")
     private Integer integrationPartitions;
-    @Value("${queue.calculated_fields.event_topic}")
+    @Value("${queue.calculated_fields.event_topic:tb_cf_event}")
     private String cfEventTopic;
-    @Value("${queue.calculated_fields.state_topic}")
+    @Value("${queue.calculated_fields.state_topic:tb_cf_state}")
     private String cfStateTopic;
     @Value("${queue.calculated_fields.partitions:10}")
     private Integer cfPartitions;
