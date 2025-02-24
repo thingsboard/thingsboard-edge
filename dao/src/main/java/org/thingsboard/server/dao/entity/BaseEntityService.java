@@ -288,7 +288,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityCountQuery(query);
 
-        if (edqsService.isApiEnabled() && validForEdqs(query)) { // TODO: separate boolean param whether to use in dashboards; but sync to edqs - always
+        if (edqsService.isApiEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityCountQuery(query)
                     .userPermissions(userPermissions)
@@ -306,7 +306,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityDataQuery(query);
 
-        if (edqsService.isApiEnabled() && validForEdqs(query)) { // TODO: separate boolean param whether to use in dashboards; but sync to edqs - always
+        if (edqsService.isApiEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityDataQuery(query)
                     .userPermissions(userPermissions)
@@ -337,12 +337,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     private EdqsResponse processEdqsRequest(TenantId tenantId, CustomerId customerId, EdqsRequest request) {
         EdqsResponse response;
         try {
-            log.info("Sending request to EDQS: {}", request);
+            log.debug("[{}] Sending request to EDQS: {}", tenantId, request);
             response = edqsService.processRequest(tenantId, customerId, request).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
-        log.info("Received response from EDQS: {}", response);
+        log.debug("[{}] Received response from EDQS: {}", tenantId, response);
         if (response.getError() != null) {
             throw new RuntimeException(response.getError());
         }

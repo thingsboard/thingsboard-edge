@@ -28,21 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+package org.thingsboard.server.queue.common.consumer;
 
 import java.io.Serializable;
-import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AlarmTypeCompositeKey implements Serializable {
+public enum QueueTaskType implements Serializable {
 
-    private UUID tenantId;
-    private String type;
+    UPDATE_PARTITIONS, UPDATE_CONFIG, DELETE,
+    ADD_PARTITIONS, REMOVE_PARTITIONS
 
 }

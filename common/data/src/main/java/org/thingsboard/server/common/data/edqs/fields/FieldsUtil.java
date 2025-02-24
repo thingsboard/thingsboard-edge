@@ -399,13 +399,6 @@ public class FieldsUtil {
                 .build();
     }
 
-    private static <I extends UUIDBased, T extends BaseData<I> & HasEntityType & HasName & HasId<I>> GenericFields toGenericFields(T entity) {
-        return GenericFields.builder()
-                .createdTime(entity.getCreatedTime())
-                .name(entity.getName())
-                .build();
-    }
-
     public static String getText(JsonNode node) {
         return node != null ? node.asText() : "";
     }

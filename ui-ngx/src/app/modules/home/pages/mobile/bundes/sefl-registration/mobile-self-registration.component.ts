@@ -99,17 +99,17 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
 
   selfRegistrationForm = this.fb.group({
     enabled: [false],
-    title: ['', Validators.required],
+    title: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
     notificationRecipient: this.fb.control<NotificationTargetId>(null, Validators.required),
     redirect: this.fb.group({
-      scheme: ['tbscheme', Validators.required],
-      host: ['app.pe.thingsboard.org', Validators.required]
+      scheme: ['tbscheme', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
+      host: ['app.pe.thingsboard.org', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]]
     }),
     signUpFields: [null],
     captcha: this.fb.group({
       version: this.fb.control<CaptchaVersion>('v3'),
-      siteKey: ['', Validators.required],
-      secretKey: ['', Validators.required],
+      siteKey: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
+      secretKey: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
       logActionName: [''],
       projectId: [{value: '', disabled: true}, Validators.required],
       androidKey: [{value: '', disabled: true}],

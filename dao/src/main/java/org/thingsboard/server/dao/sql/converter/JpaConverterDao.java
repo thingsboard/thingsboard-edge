@@ -36,7 +36,6 @@ import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.edqs.fields.ConverterFields;
@@ -161,11 +160,6 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     @Override
     public EntityType getEntityType() {
         return EntityType.CONVERTER;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.CONVERTER;
     }
 
 }

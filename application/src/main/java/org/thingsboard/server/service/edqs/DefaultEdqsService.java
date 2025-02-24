@@ -70,9 +70,9 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.edqs.util.EdqsConverter;
 import org.thingsboard.server.edqs.processor.EdqsProducer;
 import org.thingsboard.server.edqs.state.EdqsPartitionService;
+import org.thingsboard.server.edqs.util.EdqsConverter;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.EdqsEventMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.EdqsRequestMsg;
@@ -83,6 +83,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.HashPartitionService;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.edqs.EdqsQueue;
 import org.thingsboard.server.queue.environment.DistributedLock;
 import org.thingsboard.server.queue.environment.DistributedLockService;
@@ -105,6 +106,7 @@ public class DefaultEdqsService implements EdqsService {
     private final DistributedLockService distributedLockService;
     private final AttributesService attributesService;
     private final EdqsPartitionService edqsPartitionService;
+    private final TopicService topicService;
     @Autowired @Lazy
     private TbClusterService clusterService;
     @Autowired @Lazy
@@ -116,7 +118,7 @@ public class DefaultEdqsService implements EdqsService {
     private EdqsProducer eventsProducer;
     private TbQueueRequestTemplate<TbProtoQueueMsg<ToEdqsMsg>, TbProtoQueueMsg<FromEdqsMsg>> requestTemplate;
     private ExecutorService executor;
-    private DistributedLock<EdqsSyncState> syncLock;
+    private DistributedLock syncLock;
 
     @PostConstruct
     private void init() {
@@ -124,6 +126,7 @@ public class DefaultEdqsService implements EdqsService {
         eventsProducer = EdqsProducer.builder()
                 .queue(EdqsQueue.EVENTS)
                 .partitionService(edqsPartitionService)
+                .topicService(topicService)
                 .producer(queueFactory.createEdqsMsgProducer(EdqsQueue.EVENTS))
                 .build();
         if (apiEnabled) {
@@ -140,7 +143,6 @@ public class DefaultEdqsService implements EdqsService {
         executor.submit(() -> {
             try {
                 EdqsSyncState syncState = getSyncState();
-                // FIXME: Slavik smart events check
                 if (edqsSyncService.isSyncNeeded() || syncState == null || syncState.getStatus() != EdqsSyncStatus.FINISHED) {
                     if (hashPartitionService.isSystemPartitionMine(ServiceType.TB_CORE)) {
                         processSystemRequest(ToCoreEdqsRequest.builder()
@@ -326,14 +328,14 @@ public class DefaultEdqsService implements EdqsService {
                 .flatMap(KvEntry::getJsonValue)
                 .map(value -> JacksonUtil.fromString(value, EdqsSyncState.class))
                 .orElse(null);
-        log.info("getSyncState = {}", state);
+        log.info("EDQS sync state: {}", state);
         return state;
     }
 
     @SneakyThrows
     private void saveSyncState(EdqsSyncStatus status) {
         EdqsSyncState state = new EdqsSyncState(status);
-        log.info("saveSyncState {}", state);
+        log.info("New EDQS sync state: {}", state);
         attributesService.save(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, AttributeScope.SERVER_SCOPE, new BaseAttributeKvEntry(
                 new JsonDataEntry("edqsSyncState", JacksonUtil.toString(state)),
                 System.currentTimeMillis())).get(30, TimeUnit.SECONDS);

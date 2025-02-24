@@ -33,6 +33,7 @@ package org.thingsboard.server.edqs.data.dp;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.thingsboard.server.common.data.kv.DataType;
+import org.thingsboard.server.edqs.util.TbBytePool;
 import org.xerial.snappy.Snappy;
 
 public class CompressedStringDataPoint extends AbstractDataPoint {
@@ -44,7 +45,7 @@ public class CompressedStringDataPoint extends AbstractDataPoint {
     @SneakyThrows
     public CompressedStringDataPoint(long ts, byte[] compressedValue) {
         super(ts);
-        this.compressedValue = compressedValue;
+        this.compressedValue = TbBytePool.intern(compressedValue);
     }
 
     @Override

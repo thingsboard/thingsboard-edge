@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.edqs.fields.DeviceProfileFields;
-import org.thingsboard.server.common.data.edqs.fields.GenericFields;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
 

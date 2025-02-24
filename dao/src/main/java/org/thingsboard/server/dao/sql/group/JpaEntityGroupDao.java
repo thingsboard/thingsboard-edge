@@ -37,7 +37,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.fields.EntityGroupFields;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -201,11 +200,6 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.ENTITY_GROUP;
     }
 
 }

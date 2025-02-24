@@ -41,26 +41,27 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = SingleEntityFilter.class, name = "singleEntity"),//+ TODO: remove the comments
+        @JsonSubTypes.Type(value = SingleEntityFilter.class, name = "singleEntity"),
         @JsonSubTypes.Type(value = EntityGroupFilter.class, name = "entityGroup"),
-        @JsonSubTypes.Type(value = EntityListFilter.class, name = "entityList"),//+
-        @JsonSubTypes.Type(value = EntityNameFilter.class, name = "entityName"),//+
-        @JsonSubTypes.Type(value = EntityTypeFilter.class, name = "entityType"),//+
+        @JsonSubTypes.Type(value = EntityListFilter.class, name = "entityList"),
+        @JsonSubTypes.Type(value = EntityNameFilter.class, name = "entityName"),
+        @JsonSubTypes.Type(value = EntityTypeFilter.class, name = "entityType"),
         @JsonSubTypes.Type(value = EntityGroupListFilter.class, name = "entityGroupList"),
         @JsonSubTypes.Type(value = EntityGroupNameFilter.class, name = "entityGroupName"),
         @JsonSubTypes.Type(value = EntitiesByGroupNameFilter.class, name = "entitiesByGroupName"),
         @JsonSubTypes.Type(value = StateEntityOwnerFilter.class, name = "stateEntityOwner"),
-        @JsonSubTypes.Type(value = AssetTypeFilter.class, name = "assetType"),//+
-        @JsonSubTypes.Type(value = DeviceTypeFilter.class, name = "deviceType"),//+
-        @JsonSubTypes.Type(value = EdgeTypeFilter.class, name = "edgeType"),//+
-        @JsonSubTypes.Type(value = EntityViewTypeFilter.class, name = "entityViewType"),//+
+        @JsonSubTypes.Type(value = AssetTypeFilter.class, name = "assetType"),
+        @JsonSubTypes.Type(value = DeviceTypeFilter.class, name = "deviceType"),
+        @JsonSubTypes.Type(value = EdgeTypeFilter.class, name = "edgeType"),
+        @JsonSubTypes.Type(value = EntityViewTypeFilter.class, name = "entityViewType"),
         @JsonSubTypes.Type(value = ApiUsageStateFilter.class, name = "apiUsageState"),
         @JsonSubTypes.Type(value = RelationsQueryFilter.class, name = "relationsQuery"),
         @JsonSubTypes.Type(value = AssetSearchQueryFilter.class, name = "assetSearchQuery"),
         @JsonSubTypes.Type(value = DeviceSearchQueryFilter.class, name = "deviceSearchQuery"),
         @JsonSubTypes.Type(value = EntityViewSearchQueryFilter.class, name = "entityViewSearchQuery"),
         @JsonSubTypes.Type(value = EdgeSearchQueryFilter.class, name = "edgeSearchQuery"),
-        @JsonSubTypes.Type(value = SchedulerEventFilter.class, name = "schedulerEvent")})
+        @JsonSubTypes.Type(value = SchedulerEventFilter.class, name = "schedulerEvent")
+})
 public interface EntityFilter {
 
     @JsonIgnore

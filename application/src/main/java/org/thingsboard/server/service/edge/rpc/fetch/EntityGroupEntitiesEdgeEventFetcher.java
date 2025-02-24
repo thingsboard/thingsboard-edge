@@ -28,34 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.alarm;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.ObjectType;
-import org.thingsboard.server.common.data.alarm.AlarmType;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.TenantEntityDao;
-import org.thingsboard.server.dao.util.SqlDao;
+import org.thingsboard.server.dao.group.EntityGroupService;
 
-@Component
-@SqlDao
-public class JpaAlarmTypeDao implements TenantEntityDao<AlarmType> {
+import java.util.ArrayList;
+import java.util.List;
 
-    @Autowired
-    private AlarmTypeRepository alarmTypeRepository;
+@AllArgsConstructor
+@Slf4j
+public class EntityGroupEntitiesEdgeEventFetcher implements EdgeEventFetcher {
+
+    private final EntityGroupService entityGroupService;
+    private final EntityType groupType;
+    private final EntityGroupId entityGroupId;
 
     @Override
-    public PageData<AlarmType> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
-        return DaoUtil.toPageData(alarmTypeRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink, "tenantId", "type")));
+    public PageLink getPageLink(int pageSize) {
+        return new PageLink(pageSize);
     }
 
     @Override
-    public ObjectType getType() {
-        return ObjectType.ALARM_TYPE;
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
+        log.trace("[{}] start fetching edge events [{}], groupType {}, entityGroupId {}, pageLink {}", tenantId, edge.getId(), groupType, entityGroupId, pageLink);
+        PageData<EntityId> pageData = entityGroupService.findEntityIds(tenantId, groupType, entityGroupId, pageLink);
+        List<EdgeEvent> result = new ArrayList<>();
+        if (!pageData.getData().isEmpty()) {
+            for (EntityId entityId : pageData.getData()) {
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeUtils.getEdgeEventTypeByEntityType(groupType),
+                        EdgeEventActionType.ADDED, entityId, null, entityGroupId));
+            }
+        }
+        return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
     }
 
 }

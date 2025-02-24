@@ -28,53 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.edqs;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.Table;
-import lombok.Data;
-import org.thingsboard.server.common.data.alarm.AlarmType;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.ToData;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.edqs.state.EdqsStateService;
 
-import java.util.UUID;
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/edqs")
+public class EdqsController {
 
-@Data
-@Entity
-@Table(name = ModelConstants.ALARM_TYPES_TABLE_NAME)
-@IdClass(AlarmTypeCompositeKey.class)
-public class AlarmTypeEntity implements ToData<AlarmType> {
+    private final EdqsStateService edqsStateService;
 
-    @Id
-    @Column(name = ModelConstants.TENANT_ID_PROPERTY, nullable = false)
-    private UUID tenantId;
-
-    @Id
-    @Column(name = ModelConstants.ALARM_TYPE_PROPERTY, nullable = false)
-    private String type;
-
-    public AlarmTypeEntity() {}
-
-    public AlarmTypeEntity(AlarmType alarmType) {
-        setTenantId(alarmType.getTenantId().getId());
-        setType(alarmType.getType());
-    }
-
-    public AlarmTypeEntity(UUID tenantId, String type) {
-        this.tenantId = tenantId;
-        this.type = type;
-    }
-
-    @Override
-    public AlarmType toData() {
-        AlarmType alarmType = new AlarmType();
-        alarmType.setTenantId(TenantId.fromUUID(tenantId));
-        alarmType.setType(type);
-        return alarmType;
+    @GetMapping("/ready")
+    public ResponseEntity<Void> isReady() {
+        if (edqsStateService.isReady()) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 }

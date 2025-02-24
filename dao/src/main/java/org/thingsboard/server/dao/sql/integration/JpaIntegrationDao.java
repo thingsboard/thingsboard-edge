@@ -37,7 +37,6 @@ import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.fields.IntegrationFields;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -167,11 +166,6 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
     @Override
     public EntityType getEntityType() {
         return EntityType.INTEGRATION;
-    }
-
-    @Override
-    public ObjectType getType() {
-        return ObjectType.INTEGRATION;
     }
 
 }
