@@ -151,7 +151,7 @@ public class EdgeEntityProcessor extends BaseEdgeProcessor {
     private ListenableFuture<Void> processAttributesUpdated(TenantId tenantId, EdgeId edgeId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         List<String> attributeKeys = new ArrayList<>();
         try {
-            ArrayNode attributes = (ArrayNode) JacksonUtil.OBJECT_MAPPER.readTree(edgeNotificationMsg.getBody());
+            ArrayNode attributes = (ArrayNode) JacksonUtil.toJsonNode(edgeNotificationMsg.getBody());
             for (JsonNode attribute : attributes) {
                 attributeKeys.add(attribute.get("key").asText());
             }

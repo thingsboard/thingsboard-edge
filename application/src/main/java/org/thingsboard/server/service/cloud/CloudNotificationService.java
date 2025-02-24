@@ -36,4 +36,5 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 public interface CloudNotificationService {
 
     void pushNotificationToCloud(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback);
+
 }

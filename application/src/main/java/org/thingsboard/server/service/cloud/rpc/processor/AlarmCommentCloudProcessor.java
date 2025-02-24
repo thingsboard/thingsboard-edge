@@ -35,64 +35,51 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
-import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
-import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.alarm.BaseAlarmProcessor;
 
 @Slf4j
 @Component
 @TbCoreComponent
-public class RelationCloudProcessor extends BaseRelationProcessor {
+public class AlarmCommentCloudProcessor extends BaseAlarmProcessor {
 
-    public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
+    public ListenableFuture<Void> processAlarmCommentMsgFromCloud(TenantId tenantId, AlarmCommentUpdateMsg alarmCommentUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
-
-            return processRelationMsg(tenantId, relationUpdateMsg);
+            return processAlarmCommentMsg(tenantId, alarmCommentUpdateMsg);
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
     }
 
-    public UplinkMsg convertRelationRequestEventToUplink(CloudEvent cloudEvent) {
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
-        RelationRequestMsg relationRequestMsg = RelationRequestMsg.newBuilder()
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addRelationRequestMsg(relationRequestMsg);
-        return builder.build();
-    }
-
     @Override
     public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-        EntityRelation entityRelation = JacksonUtil.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
-        if (entityRelation != null) {
-            RelationUpdateMsg relationUpdateMsg = EdgeMsgConstructorUtils.constructRelationUpdatedMsg(msgType, entityRelation);
-            return UplinkMsg.newBuilder()
-                    .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addRelationUpdateMsg(relationUpdateMsg).build();
-        }
-        return null;
+        AlarmComment alarmComment;
+        return switch (cloudEvent.getAction()) {
+            case ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> {
+                alarmComment = JacksonUtil.convertValue(cloudEvent.getEntityBody(), AlarmComment.class);
+                yield UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addAlarmCommentUpdateMsg(EdgeMsgConstructorUtils.constructAlarmCommentUpdatedMsg(msgType, alarmComment))
+                        .build();
+            }
+            default -> null;
+        };
     }
 
     @Override
     public CloudEventType getCloudEventType() {
-        return CloudEventType.RELATION;
+        return CloudEventType.ALARM_COMMENT;
     }
 
 }
