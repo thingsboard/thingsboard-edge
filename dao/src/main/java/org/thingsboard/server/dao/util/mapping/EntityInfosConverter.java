@@ -82,4 +82,5 @@ public class EntityInfosConverter implements AttributeConverter<List<EntityInfo>
             throw new RuntimeException("Failed to convert String to Groups list: " + ex.getMessage(), ex);
         }
     }
+
 }

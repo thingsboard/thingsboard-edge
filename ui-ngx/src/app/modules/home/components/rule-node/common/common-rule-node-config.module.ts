@@ -48,6 +48,7 @@ import { RelationsQueryConfigOldComponent } from './relations-query-config-old.c
 import { SelectAttributesComponent } from './select-attributes.component';
 import { AlarmStatusSelectComponent } from './alarm-status-select.component';
 import { ExampleHintComponent } from './example-hint.component';
+import { TimeUnitInputComponent } from './time-unit-input.component';
 import { TargetEntityComponent } from '@home/components/rule-node/common/target-entity.component';
 
 @NgModule({
@@ -67,7 +68,8 @@ import { TargetEntityComponent } from '@home/components/rule-node/common/target-
     SelectAttributesComponent,
     AlarmStatusSelectComponent,
     ExampleHintComponent,
-    TargetEntityComponent
+    TimeUnitInputComponent,
+    TargetEntityComponent,
   ],
   imports: [
     CommonModule,
@@ -90,7 +92,8 @@ import { TargetEntityComponent } from '@home/components/rule-node/common/target-
     SelectAttributesComponent,
     AlarmStatusSelectComponent,
     ExampleHintComponent,
-    TargetEntityComponent
+    TimeUnitInputComponent,
+    TargetEntityComponent,
   ]
 })
 

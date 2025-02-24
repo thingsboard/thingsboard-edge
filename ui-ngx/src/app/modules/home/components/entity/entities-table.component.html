@@ -212,13 +212,14 @@
                   <ng-template [ngSwitchCase]="'chart'">
                     <tb-spark-line [chartData]="cellContent(entity, column, row)" [chartProperty]="cellChartStyle(entity, column, row)"></tb-spark-line>
                   </ng-template>
-                  <ng-template [ngSwitchCase]="'entityChips'">
-                    <tb-entity-chips [entity]="entity" [key]="column.key"></tb-entity-chips>
-                  </ng-template>
                   <ng-template [ngSwitchCase]="'link'">
                     <a *ngIf="column.entityURL(entity) as detailsPageURL; else defaultContent"
                        [routerLink]="detailsPageURL" [innerHTML]="cellContent(entity, column, row)"
                        (click)="$event.stopPropagation();"></a>
+                  </ng-template>
+                  <ng-template [ngSwitchCase]="'entityChips'">
+                    <tb-entity-chips [entity]="entity" [key]="column.key"
+                                     [detailsPagePrefixUrl]="column.entityURL ? column.entityURL(entity) : ''"></tb-entity-chips>
                   </ng-template>
                   <ng-template #defaultContent ngSwitchDefault>
                     <span [innerHTML]="cellContent(entity, column, row)"></span>

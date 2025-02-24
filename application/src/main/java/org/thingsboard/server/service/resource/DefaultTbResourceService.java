@@ -82,7 +82,7 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
     private final AccessControlService accessControlService;
 
     @Override
-    public TbResource save(TbResource resource, SecurityUser user) throws ThingsboardException {
+    public TbResourceInfo save(TbResource resource, SecurityUser user) throws ThingsboardException {
         if (resource.getResourceType() == ResourceType.IMAGE) {
             throw new IllegalArgumentException("Image resource type is not supported");
         }
@@ -94,12 +94,11 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
             } else if (resource.getResourceKey() == null) {
                 resource.setResourceKey(resource.getFileName());
             }
-            TbResource savedResource = resourceService.saveResource(resource);
+            TbResourceInfo savedResource = new TbResourceInfo(resourceService.saveResource(resource));
             logEntityActionService.logEntityAction(tenantId, savedResource.getId(), savedResource, actionType, user);
             return savedResource;
         } catch (Exception e) {
-            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.TB_RESOURCE),
-                    resource, actionType, user, e);
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.TB_RESOURCE), new TbResourceInfo(resource), actionType, user, e);
             throw e;
         }
     }
@@ -202,11 +201,6 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
             comparator = Comparator.comparingLong(LwM2mObject::getId);
         }
         return "DESC".equals(sortOrder) ? comparator.reversed() : comparator;
-    }
-
-    @Override
-    public TbResource save(TbResource tbResource) throws ThingsboardException {
-        return save(tbResource, null);
     }
 
 }

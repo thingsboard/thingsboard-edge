@@ -290,7 +290,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @Autowired
     public EntityGroupService entityGroupService;
-    ;
 
     @Autowired
     protected DefaultActorService actorService;

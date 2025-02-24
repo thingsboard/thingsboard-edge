@@ -59,7 +59,7 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
             "\"connectionString\":\"" + CONNECTION_STRING + "\"," +
             "\"storageConnectionString\":\"" + STORAGE_CONNECTION_STRING + "\"," +
             "\"containerName\":\"" + CONTAINER_NAME + "\"," +
-            "\"enablePersistentCheckpoints\": true," +
+            "\"enablePersistentCheckpoints\": false," +
             "\"consumerGroup\":\"\"," +
             "\"iotHubName\":\"\"}," +
             "\"metadata\":{}}";
@@ -100,6 +100,8 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         integration = createIntegration(AZURE_EVENT_HUB, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
 
+        Thread.sleep(10000); // await for initialization finish
+
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
         sendMessageToHub();
@@ -127,6 +129,7 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
         EventDataBatch eventDataBatch = producer.createBatch();
         eventDataBatch.tryAdd(data);
         producer.send(eventDataBatch);
+        producer.close();
     }
 
     @Override

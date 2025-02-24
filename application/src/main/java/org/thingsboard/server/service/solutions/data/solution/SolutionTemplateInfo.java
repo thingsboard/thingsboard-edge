@@ -40,8 +40,6 @@ import lombok.NoArgsConstructor;
 public class SolutionTemplateInfo extends SolutionTemplate {
     @Schema(description = "URL of the preview image")
     private String previewImageUrl;
-    @Schema(description = "Short description to display on template card")
-    private String shortDescription;
 
     @Schema(description = "Video preview image URL")
     private String videoPreviewImageUrl;
@@ -55,7 +53,6 @@ public class SolutionTemplateInfo extends SolutionTemplate {
     public SolutionTemplateInfo(SolutionTemplateInfo solution) {
         super(solution);
         this.previewImageUrl = solution.previewImageUrl;
-        this.shortDescription = solution.shortDescription;
         this.videoPreviewImageUrl = solution.videoPreviewImageUrl;
         this.previewMp4Url = solution.previewMp4Url;
         this.previewWebmUrl = solution.previewWebmUrl;

@@ -94,6 +94,8 @@ import {
   SaveWidgetTypeAsDialogResult
 } from '@home/pages/widget/save-widget-type-as-dialog.component';
 import { WidgetService } from '@core/http/widget.service';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-scada-symbol',
@@ -162,6 +164,8 @@ export class ScadaSymbolComponent extends PageComponent
 
   showHiddenElements = false;
 
+  showCreateWidgetButton = true;
+
   get isDirty(): boolean {
     return (this.scadaSymbolFormGroup.dirty || this.symbolEditorDirty) && !this.forcePristine;
   }
@@ -179,8 +183,16 @@ export class ScadaSymbolComponent extends PageComponent
               private translate: TranslateService,
               private imageService: ImageService,
               private widgetService: WidgetService,
+              private userPermissionsService: UserPermissionsService,
               private dialog: MatDialog) {
     super(store);
+
+    const authUser = getCurrentAuthUser(store);
+    if (authUser.authority === Authority.CUSTOMER_USER) {
+      this.showCreateWidgetButton = false;
+    } else {
+      this.showCreateWidgetButton = this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.CREATE);
+    }
   }
 
   ngOnInit(): void {
