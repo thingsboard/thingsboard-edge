@@ -64,7 +64,7 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
         boolean deviceNameUpdated = false;
         deviceCreationLock.lock();
         try {
-            Device device =JacksonUtil.fromString(deviceUpdateMsg.getEntity(), Device.class, true);
+            Device device = JacksonUtil.fromString(deviceUpdateMsg.getEntity(), Device.class, true);
             if (device == null) {
                 throw new RuntimeException("[{" + tenantId + "}] deviceUpdateMsg {" + deviceUpdateMsg + "} cannot be converted to device");
             }
