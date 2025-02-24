@@ -35,6 +35,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -161,4 +162,9 @@ public class EntityQueryController extends BaseController {
         edqsService.processSystemRequest(request);
     }
 
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @GetMapping("/edqs/enabled")
+    public boolean isEdqsApiEnabled() {
+        return edqsService.isApiEnabled();
+    }
 }

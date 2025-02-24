@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -83,6 +84,9 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.query.EntityCountQuery;
+import org.thingsboard.server.common.data.query.EntityData;
+import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rpc.Rpc;
@@ -93,7 +97,6 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
@@ -135,6 +138,15 @@ public class TestRestClient {
         token = jsonPath.get("token");
         refreshToken = jsonPath.get("refreshToken");
         requestSpec.header(JWT_TOKEN_HEADER_PARAM, "Bearer " + token);
+    }
+
+    public Tenant postTenant(Tenant tenant) {
+        return given().spec(requestSpec).body(tenant)
+                .post("/api/tenant")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Tenant.class);
     }
 
     public Device postDevice(String accessToken, Device device) {
@@ -755,9 +767,65 @@ public class TestRestClient {
                 .as(User.class);
     }
 
+    public UserId createUserAndLogin(User user, String password) {
+        UserId userId = postUser(user).getId();
+        getUserToken(userId.getId().toString());
+        return userId;
+    }
+
+    public void getUserToken(String id) {
+        ObjectNode tokenInfo = given().spec(requestSpec)
+                .get("/api/user/" + id + "/token")
+                .then()
+                .extract()
+                .as(ObjectNode.class);
+        token = tokenInfo.get("token").asText();
+        refreshToken = tokenInfo.get("refreshToken").asText();
+        requestSpec.header(JWT_TOKEN_HEADER_PARAM, "Bearer " + token);
+    }
+
+    protected void resetTokens() {
+        this.token = null;
+        this.refreshToken = null;
+    }
+
     public void deleteUser(UserId userId) {
         given().spec(requestSpec)
                 .delete("/api/user/{userId}", userId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public PageData<EntityData> postEntityDataQuery(EntityDataQuery entityDataQuery) {
+        return given().spec(requestSpec).body(entityDataQuery)
+                .post("/api/entitiesQuery/find")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<>() {});
+    }
+
+    public Long postCountDataQuery(EntityCountQuery entityCountQuery) {
+        return given().spec(requestSpec).body(entityCountQuery)
+                .post("/api/entitiesQuery/count")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Long.class);
+    }
+
+    public Boolean isEdqsApiEnabled() {
+        return given().spec(requestSpec)
+                .get("/api/edqs/enabled")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Boolean.class);
+    }
+
+    public void deleteTenant(TenantId tenantId) {
+        given().spec(requestSpec)
+                .delete("/api/tenant/" + tenantId.getId().toString())
                 .then()
                 .statusCode(HTTP_OK);
     }
@@ -1014,5 +1082,31 @@ public class TestRestClient {
                 .delete("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
                 .then()
                 .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
+    }
+
+
+    public EntityGroupInfo findCustomerAdminsGroup(CustomerId customerId) throws Exception {
+        return findGroupByOwnerIdTypeAndName(customerId, EntityType.USER, EntityGroup.GROUP_CUSTOMER_ADMINS_NAME);
+    }
+
+    public EntityGroupInfo findGroupByOwnerIdTypeAndName(EntityId ownerId, EntityType groupType, String name) throws Exception {
+        List<EntityGroupInfo> groupsList = getEntityGroupsByOwnerAndType(ownerId, groupType);
+        EntityGroupInfo result = null;
+        for (EntityGroupInfo tmp : groupsList) {
+            if (name.equals(tmp.getName())) {
+                result = tmp;
+            }
+        }
+        return result;
+    }
+
+    public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(EntityId ownerId, EntityType groupType) throws Exception {
+        return given().spec(requestSpec)
+                .get("/api/entityGroups/" + ownerId.getEntityType() + "/" + ownerId.getId() + "/" + groupType.name())
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<List<EntityGroupInfo>>() {
+                });
     }
 }

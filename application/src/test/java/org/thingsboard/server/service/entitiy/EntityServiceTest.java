@@ -705,7 +705,6 @@ public class EntityServiceTest extends AbstractControllerTest {
         deviceService.deleteDevicesByTenantId(tenantId);
     }
 
-    // fails for sql implementation until we fix the issue with the relation query
     @Test
     public void testCountHierarchicalEntitiesByMultiRootQuery() throws InterruptedException {
         List<Asset> buildings = new ArrayList<>();
@@ -732,7 +731,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         filter.setFilters(Lists.newArrayList(
                 new RelationEntityTypeFilter("buildingToApt", Collections.singletonList(EntityType.ASSET)),
                 new RelationEntityTypeFilter("AptToEnergy", Collections.singletonList(EntityType.DEVICE))));
-        countByQueryAndCheck(countQuery, 3);
+        countByQueryAndCheck(countQuery, 9);
 
         deviceService.deleteDevicesByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);

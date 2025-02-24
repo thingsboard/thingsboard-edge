@@ -77,14 +77,7 @@ public class DefaultEdqsRepository implements EdqsRepository {
     @Override
     public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query, boolean ignorePermissionCheck) {
         long startNs = System.nanoTime();
-        long result = 0;
-        if (!tenantId.isSysTenantId()) {
-            result = get(tenantId).countEntitiesByQuery(customerId, userPermissions, query, ignorePermissionCheck);
-        } else {
-            for (TenantRepo repo : repos.values()) {
-                result += repo.countEntitiesByQuery(customerId, userPermissions, query, ignorePermissionCheck);
-            }
-        }
+        long result = get(tenantId).countEntitiesByQuery(customerId, userPermissions, query, ignorePermissionCheck);
         double timingMs = (double) (System.nanoTime() - startNs) / 1000_000;
         log.info("countEntitiesByQuery done in {} ms", timingMs);
         return result;
