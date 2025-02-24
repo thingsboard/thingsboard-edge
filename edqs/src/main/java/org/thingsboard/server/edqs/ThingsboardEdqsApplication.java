@@ -31,14 +31,12 @@
 package org.thingsboard.server.edqs;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.thingsboard.server.edqs.repo.EdqRepository;
 
 import java.util.Arrays;
 

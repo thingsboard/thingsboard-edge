@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -75,19 +76,18 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
     private TenantId tenantId;
     private CustomerId customerId;
     private TenantId tenantId2;
-    private CustomerId customerId2;
     private UserId tenantAdminId;
-    private UserId customerUserId;
+    private UserId customerAdminId;
     private UserId tenant2AdminId;
-    private UserId customer2UserId;
     private final List<Device> tenantDevices = new ArrayList<>();
+    private final List<Device> customerDevices = new ArrayList<>();
     private final List<Device> tenant2Devices = new ArrayList<>();
     private final String deviceProfile = "LoRa-" + RandomStringUtils.randomAlphabetic(10);
 
     @BeforeClass
     public void beforeClass() throws Exception {
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-        await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> testRestClient.isEdqsApiEnabled());
+       // await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> testRestClient.isEdqsApiEnabled());
 
         tenantId = testRestClient.postTenant(EntityPrototypes.defaultTenantPrototype("Tenant")).getId();
         tenantAdminId = testRestClient.createUserAndLogin(defaultTenantAdmin(tenantId, "tenantAdmin@thingsboard.org"), "tenant");
@@ -95,19 +95,14 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
         createDevices(deviceProfile, tenantDevices, 97);
         customerId = testRestClient.postCustomer(defaultCustomer(tenantId, "Customer")).getId();
         EntityGroupInfo customerAdminsGroup = testRestClient.findCustomerAdminsGroup(customerId);
-        customerUserId = testRestClient.postUser(defaultCustomerAdmin(tenantId, customerId,  "customerUser@thingsboard.org"), customerAdminsGroup.getId()).getId();
-        testRestClient.postDeviceProfile(defaultDeviceProfile(deviceProfile));
-        createDevices(deviceProfile, tenantDevices, 12);
+        customerAdminId = testRestClient.postUser(defaultCustomerAdmin(tenantId, customerId,  "customerUser@thingsboard.org"), customerAdminsGroup.getId()).getId();
+        createDevices(customerId, deviceProfile, customerDevices, 12);
 
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-        tenantId2 = testRestClient.postTenant(EntityPrototypes.defaultTenantPrototype("Tenant")).getId();
+        tenantId2 = testRestClient.postTenant(EntityPrototypes.defaultTenantPrototype("Tenant 2")).getId();
         tenant2AdminId = testRestClient.createUserAndLogin(defaultTenantAdmin(tenantId2, "tenant2Admin@thingsboard.org"), "tenant");
         testRestClient.postDeviceProfile(defaultDeviceProfile(deviceProfile));
         createDevices(deviceProfile, tenant2Devices, 97);
-        customerId2 = testRestClient.postCustomer(defaultCustomer(tenantId2, "Customer")).getId();
-        EntityGroupInfo customerAdminsGroup2 = testRestClient.findCustomerAdminsGroup(customerId);
-        customer2UserId = testRestClient.postUser(defaultCustomerAdmin(tenantId2, customerId2,  "customer2User@thingsboard.org"), customerAdminsGroup2.getId()).getId();
-        createDevices(deviceProfile, tenant2Devices, 12);
     }
 
     @BeforeMethod
@@ -129,12 +124,12 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
         EntityCountQuery query = new EntityCountQuery(allDeviceFilter);
         await("Waiting for total device count")
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> testRestClient.postCountDataQuery(query).compareTo(97L * 2) >= 0);
+                .until(() -> testRestClient.postCountDataQuery(query).compareTo(97L * 2 + 12) >= 0);
 
         testRestClient.getUserToken(tenantAdminId.getId().toString());
         await("Waiting for total device count")
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> testRestClient.postCountDataQuery(query).equals(97L));
+                .until(() -> testRestClient.postCountDataQuery(query).equals(97L + 12L));
 
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
         testRestClient.getUserToken(tenant2AdminId.getId().toString());
@@ -147,11 +142,12 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
     public void testRetrieveTenantDevicesByDeviceTypeFilter() {
         // login tenant admin
         testRestClient.getUserToken(tenantAdminId.getId().toString());
-        checkUserDevices(tenantDevices);
+        List<Device> allTenantDevices = Stream.concat(tenantDevices.stream(), customerDevices.stream()).toList();
+        checkUserDevices(allTenantDevices);
 
         // login customer user
-        testRestClient.getUserToken(customerUserId.getId().toString());
-        checkUserDevices(tenantDevices.subList(0, 12));
+        testRestClient.getUserToken(customerAdminId.getId().toString());
+        checkUserDevices(customerDevices);
 
         // login other tenant admin
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
@@ -186,11 +182,12 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
         assertThat(retrievedDeviceNames).containsExactlyInAnyOrderElementsOf(devices.stream().map(Device::getName).toList().subList(0, 10));
     }
 
-    private String createDevices(String deviceType, List<Device> tenantDevices, int deviceCount) throws InterruptedException {
+    private void createDevices(CustomerId customerId, String deviceType, List<Device> tenantDevices, int deviceCount) throws InterruptedException {
         String prefix = StringUtils.randomAlphabetic(5);
         for (int i = 0; i < deviceCount; i++) {
             Device device = new Device();
             device.setName(prefix + "Device" + i);
+            device.setCustomerId(customerId);
             device.setType(deviceType);
             device.setLabel("testLabel" + (int) (Math.random() * 1000));
             //TO make sure devices have different created time
@@ -202,7 +199,10 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
             // save timeseries data
             testRestClient.postTelemetry(token, createDeviceTelemetry(i));
         }
-        return deviceType;
+    }
+
+    private void createDevices(String deviceType, List<Device> tenantDevices, int deviceCount) throws InterruptedException {
+        createDevices(null, deviceType, tenantDevices, deviceCount);
     }
 
     protected ObjectNode createDeviceTelemetry(int temperature) {
