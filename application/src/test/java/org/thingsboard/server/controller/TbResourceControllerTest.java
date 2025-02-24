@@ -122,7 +122,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setFileName(DEFAULT_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedResource, savedResource.getId(), savedResource.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
@@ -137,15 +137,15 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         Assert.assertEquals(DEFAULT_FILE_NAME, savedResource.getResourceKey());
         Assert.assertArrayEquals(resource.getData(), download(savedResource.getId()));
 
-        savedResource.setTitle("My new resource");
-        savedResource.setData(null);
-
-        save(savedResource);
-
         TbResource foundResource = doGet("/api/resource/" + savedResource.getId().getId().toString(), TbResource.class);
+        foundResource.setTitle("My new resource");
+        foundResource.setData(null);
+
+        savedResource = save(foundResource);
+
         Assert.assertEquals(foundResource.getTitle(), savedResource.getTitle());
 
-        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(foundResource, foundResource.getId(), foundResource.getId(),
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedResource, savedResource.getId(), savedResource.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.UPDATED, ActionType.UPDATED);
     }
@@ -165,7 +165,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(resource, savedTenant.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(new TbResourceInfo(resource), savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
@@ -177,7 +177,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setFileName(DEFAULT_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
 
         loginDifferentTenant();
 
@@ -206,7 +206,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setFileName(DEFAULT_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
 
         TbResource foundResource = doGet("/api/resource/" + savedResource.getUuidId(), TbResource.class);
         Assert.assertNotNull(foundResource);
@@ -222,7 +222,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setFileName(DEFAULT_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
 
         Mockito.reset(tbClusterService, auditLogService);
         String resourceIdStr = savedResource.getId().getId().toString();
@@ -247,7 +247,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setFileName(DEFAULT_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
 
         Mockito.reset(tbClusterService, auditLogService);
         String resourceIdStr = savedResource.getId().getId().toString();
@@ -292,7 +292,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new TbResource(), new TbResource(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new TbResourceInfo(), new TbResourceInfo(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, cntEntity, cntEntity, cntEntity);
 
@@ -340,7 +340,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new TbResource(), new TbResource(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new TbResourceInfo(), new TbResourceInfo(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED,
                 jksCntEntity + lwm2mCntEntity, jksCntEntity + lwm2mCntEntity, jksCntEntity + lwm2mCntEntity);
 
@@ -432,7 +432,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
             resource.setResourceType(ResourceType.PKCS_12);
             resource.setFileName(i + DEFAULT_FILE_NAME_2);
             resource.setEncodedData(TEST_DATA);
-            TbResource saved = save(resource);
+            TbResourceInfo saved = save(resource);
             lwm2mesources.add(saved);
         }
 
@@ -554,7 +554,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setFileName(JS_TEST_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
 
         testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedResource, savedResource.getId(), savedResource.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
@@ -585,7 +585,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setFileName(JS_TEST_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
 
         EntityGroupInfo deviceGroup = createSharedPublicEntityGroup(
                 "Device Test Entity Group",
@@ -626,7 +626,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setFileName(JS_TEST_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
 
         loginDifferentTenant();
         loginDifferentTenantCustomer();
@@ -641,17 +641,19 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setTitle("My resource");
         resource.setFileName("3.pks");
         resource.setEncodedData(TEST_DATA);
-        TbResource savedResource = save(resource);
+        TbResourceInfo savedResource = save(resource);
         resource.setEtag(savedResource.getEtag());
 
-        savedResource.setEncodedData(TEST_DATA);
-        doPost("/api/resource", savedResource)
+        TbResource foundResource = doGet("/api/resource/" + savedResource.getUuidId(), TbResource.class);
+
+        foundResource.setEncodedData(TEST_DATA);
+        doPost("/api/resource", foundResource)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("can't be updated")));
 
-        savedResource.setData(null);
-        savedResource.setTitle("Updated resource");
-        savedResource = doPost("/api/resource", savedResource, TbResource.class);
+        foundResource.setData(null);
+        foundResource.setTitle("Updated resource");
+        savedResource = doPost("/api/resource", foundResource, TbResource.class);
         assertThat(savedResource.getTitle()).isEqualTo("Updated resource");
         assertThat(savedResource.getFileName()).isEqualTo(resource.getFileName());
         assertThat(savedResource.getEtag()).isEqualTo(resource.getEtag());
@@ -665,14 +667,16 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         resource.setTitle("My resource");
         resource.setFileName("module.js");
         resource.setEncodedData(TEST_DATA);
-        TbResource savedResource = save(resource);
-        resource.setEtag(savedResource.getEtag());
+        TbResourceInfo savedResource = save(resource);
+
+        TbResource foundResource = doGet("/api/resource/" + savedResource.getUuidId(), TbResource.class);
+        resource.setEtag(foundResource.getEtag());
 
         String newData = Base64.getEncoder().encodeToString(new byte[]{1, 2, 3});
-        savedResource.setEncodedData(newData);
-        savedResource.setFileName("new-module.js");
-        savedResource.setTitle("Updated title");
-        savedResource = save(savedResource);
+        foundResource.setEncodedData(newData);
+        foundResource.setFileName("new-module.js");
+        foundResource.setTitle("Updated title");
+        savedResource = save(foundResource);
 
         assertThat(savedResource.getTitle()).isEqualTo("Updated title");
         assertThat(savedResource.getFileName()).isEqualTo("new-module.js");
@@ -684,7 +688,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     public void testGetLwm2mListObjectsPage() throws Exception {
         loginTenantAdmin();
 
-        List<TbResource> resources = loadLwm2mResources();
+        List<TbResourceInfo> resources = loadLwm2mResources();
 
         List<LwM2mObject> objects =
                 doGetTyped("/api/resource/lwm2m/page?pageSize=100&page=0", new TypeReference<>() {});
@@ -698,7 +702,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     public void testGetLwm2mListObjects() throws Exception {
         loginTenantAdmin();
 
-        List<TbResource> resources = loadLwm2mResources();
+        List<TbResourceInfo> resources = loadLwm2mResources();
 
         List<LwM2mObject> objects =
                 doGetTyped("/api/resource/lwm2m?sortProperty=id&sortOrder=ASC&objectIds=3_1.2,5_1.2,19_1.1", new TypeReference<>() {});
@@ -730,7 +734,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         returnResourcesWithoutPermissionForbidden(apiResources, msgError);
     }
 
-    private TbResource save(TbResource tbResource) throws Exception {
+    private TbResourceInfo save(TbResource tbResource) throws Exception {
         return doPostWithTypedResponse("/api/resource", tbResource, new TypeReference<>() {
         });
     }
@@ -746,10 +750,10 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     }
 
 
-    private List<TbResource> loadLwm2mResources() throws Exception {
+    private List<TbResourceInfo> loadLwm2mResources() throws Exception {
         var models = List.of("1", "2", "3", "5", "6", "9", "19", "3303");
 
-        List<TbResource> resources = new ArrayList<>(models.size());
+        List<TbResourceInfo> resources = new ArrayList<>(models.size());
 
         for (String model : models) {
             String fileName = model + ".xml";
@@ -765,7 +769,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         return resources;
     }
 
-    private void removeLoadResources(List<TbResource> resources) throws Exception {
+    private void removeLoadResources(List<TbResourceInfo> resources) throws Exception {
         for (TbResourceInfo resource : resources) {
             doDelete("/api/resource/" + resource.getId().getId().toString())
                     .andExpect(status().isOk());
