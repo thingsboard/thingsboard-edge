@@ -36,13 +36,11 @@
     flex: 1;
     margin: 10px;
     .mat-mdc-card-title {
-      min-height: 82px;
       margin-bottom: 12px;
     }
     .mat-mdc-card-image {
       width: 100%;
       padding: 0 16px;
-      margin: 0;
       overflow: hidden;
       display: flex;
       justify-content: center;
@@ -53,10 +51,8 @@
         cursor: pointer;
       }
     }
-    .mat-mdc-card-content {
-      padding-top: 16px;
-      overflow-y: auto;
-      color: #464646;
+    .mat-mdc-card-actions {
+      grid-template-columns: min-content 1fr;
     }
   }
   span.level {
@@ -64,8 +60,8 @@
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 16px;
-    color: #1a695b;
-    background-color: #ccece6;
+    color: #02813e;
+    background-color: #f0f8f3;
     line-height: normal;
   }
 }

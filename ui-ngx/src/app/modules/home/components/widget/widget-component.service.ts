@@ -52,6 +52,7 @@ import {
 } from '@core/services/resources.service';
 import {
   IWidgetSettingsComponent,
+  migrateWidgetTypeToDynamicForms,
   Widget,
   widgetActionSources,
   WidgetControllerDescriptor,
@@ -73,12 +74,11 @@ import tinycolor from 'tinycolor2';
 import moment from 'moment';
 import { IModulesMap } from '@modules/common/modules-map.models';
 import { HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
-import { widgetSettingsComponentsMap } from '@home/components/widget/lib/settings/widget-settings.module';
 import { ReportService } from '@core/http/report.service';
-import { basicWidgetConfigComponentsMap } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { IBasicWidgetConfigComponent } from '@home/components/widget/config/widget-config.component.models';
 import { compileTbFunction, TbFunction } from '@shared/models/js-function.models';
 import { HttpClient } from '@angular/common/http';
+import { jsonFormSchemaToFormProperties } from '@shared/models/dynamic-form.models';
 
 @Injectable()
 export class WidgetComponentService {
@@ -129,9 +129,9 @@ export class WidgetComponentService {
             templateHtml: this.utils.editWidgetInfo.templateHtml,
             templateCss: this.utils.editWidgetInfo.templateCss,
             controllerScript: this.utils.editWidgetInfo.controllerScript,
-            settingsSchema: this.utils.editWidgetInfo.settingsSchema,
-            dataKeySettingsSchema: this.utils.editWidgetInfo.dataKeySettingsSchema,
-            latestDataKeySettingsSchema: this.utils.editWidgetInfo.latestDataKeySettingsSchema,
+            settingsForm: this.utils.editWidgetInfo.settingsForm,
+            dataKeySettingsForm: this.utils.editWidgetInfo.dataKeySettingsForm,
+            latestDataKeySettingsForm: this.utils.editWidgetInfo.latestDataKeySettingsForm,
             settingsDirective: this.utils.editWidgetInfo.settingsDirective,
             dataKeySettingsDirective: this.utils.editWidgetInfo.dataKeySettingsDirective,
             latestDataKeySettingsDirective: this.utils.editWidgetInfo.latestDataKeySettingsDirective,
@@ -295,6 +295,7 @@ export class WidgetComponentService {
           this.widgetsInfoFetchQueue.set(fullFqn, fetchQueue);
           this.widgetService.getWidgetType(fullFqn, {ignoreErrors: true}).subscribe(
             (widgetType) => {
+              widgetType = migrateWidgetTypeToDynamicForms(widgetType);
               this.loadWidget(widgetType, widgetInfoSubject);
             },
             () => {
@@ -318,14 +319,14 @@ export class WidgetComponentService {
           this.loadWidgetResources(widgetInfo, widgetNamespace, [SharedModule, WidgetComponentsModule, this.homeComponentsModule]).subscribe(
             {
               next: () => {
-                if (widgetControllerDescriptor.settingsSchema) {
-                  widgetInfo.typeSettingsSchema = widgetControllerDescriptor.settingsSchema;
+                if (widgetControllerDescriptor.settingsForm) {
+                  widgetInfo.typeSettingsForm = widgetControllerDescriptor.settingsForm;
                 }
-                if (widgetControllerDescriptor.dataKeySettingsSchema) {
-                  widgetInfo.typeDataKeySettingsSchema = widgetControllerDescriptor.dataKeySettingsSchema;
+                if (widgetControllerDescriptor.dataKeySettingsForm) {
+                  widgetInfo.typeDataKeySettingsForm = widgetControllerDescriptor.dataKeySettingsForm;
                 }
-                if (widgetControllerDescriptor.latestDataKeySettingsSchema) {
-                  widgetInfo.typeLatestDataKeySettingsSchema = widgetControllerDescriptor.latestDataKeySettingsSchema;
+                if (widgetControllerDescriptor.latestDataKeySettingsForm) {
+                  widgetInfo.typeLatestDataKeySettingsForm = widgetControllerDescriptor.latestDataKeySettingsForm;
                 }
                 widgetInfo.typeParameters = widgetControllerDescriptor.typeParameters;
                 widgetInfo.actionSources = widgetControllerDescriptor.actionSources;
@@ -455,17 +456,17 @@ export class WidgetComponentService {
       basicDirectives.push(widgetInfo.basicModeDirective);
     }
 
-    this.expandSettingComponentMap(widgetSettingsComponentsMap, directives, modulesWithComponents);
-    this.expandSettingComponentMap(basicWidgetConfigComponentsMap, basicDirectives, modulesWithComponents);
+    this.expandSettingComponentMap(this.widgetService.putWidgetSettingsComponentToMap.bind(this.widgetService), directives, modulesWithComponents);
+    this.expandSettingComponentMap(this.widgetService.putBasicWidgetSettingsComponentToMap.bind(this.widgetService), basicDirectives, modulesWithComponents);
   }
 
-  private expandSettingComponentMap(settingsComponentsMap: {[key: string]: Type<IWidgetSettingsComponent | IBasicWidgetConfigComponent>},
+  private expandSettingComponentMap(putComponentToMap: (selector: string, comp: Type<IWidgetSettingsComponent | IBasicWidgetConfigComponent>) => void,
                                     directives: string[], modulesWithComponents: ModulesWithComponents): void {
     if (directives.length) {
       directives.forEach(selector => {
         const compType = componentTypeBySelector(modulesWithComponents, selector);
         if (compType) {
-          settingsComponentsMap[selector] = compType;
+          putComponentToMap(selector, compType);
         }
       });
     }
@@ -526,12 +527,23 @@ export class WidgetComponentService {
 
          '    }\n\n' +
 
-         '    self.getSettingsSchema = function() {\n\n' +
-
+         '    self.getSettingsForm = function() {\n\n' +
+                return [
+                  {
+                    'id': 'testProp',
+                    'name': 'Test property',
+                    'type': 'text',
+                    'default': 'Default value'
+                  }
+                ];
          '    }\n\n' +
 
-         '    self.getDataKeySettingsSchema = function() {\n\n' +
+         '    self.getDataKeySettingsForm = function() {\n\n' +
+                return [];
+         '    }\n\n' +
 
+         '    self.getLatestDataKeySettingsForm = function() {\n\n' +
+                return [];
          '    }\n\n' +
 
          '    self.onDestroy = function() {\n\n' +
@@ -559,15 +571,33 @@ export class WidgetComponentService {
         const result: WidgetControllerDescriptor = {
           widgetTypeFunction: widgetType
         };
-        if (isFunction(widgetTypeInstance.getSettingsSchema)) {
-          result.settingsSchema = widgetTypeInstance.getSettingsSchema();
+        if (isFunction(widgetTypeInstance.getSettingsForm)) {
+          result.settingsForm = widgetTypeInstance.getSettingsForm();
         }
-        if (isFunction(widgetTypeInstance.getDataKeySettingsSchema)) {
-          result.dataKeySettingsSchema = widgetTypeInstance.getDataKeySettingsSchema();
+        if (isFunction(widgetTypeInstance.getDataKeySettingsForm)) {
+          result.dataKeySettingsForm = widgetTypeInstance.getDataKeySettingsForm();
         }
-        if (isFunction(widgetTypeInstance.getLatestDataKeySettingsSchema)) {
-          result.latestDataKeySettingsSchema = widgetTypeInstance.getLatestDataKeySettingsSchema();
+        if (isFunction(widgetTypeInstance.getLatestDataKeySettingsForm)) {
+          result.latestDataKeySettingsForm = widgetTypeInstance.getLatestDataKeySettingsForm();
         }
+
+        /** Start migrate from old JSON Schema Form **/
+
+        if (isFunction((widgetTypeInstance as any).getSettingsSchema) && !result.settingsForm?.length) {
+          const settingsSchema = (widgetTypeInstance as any).getSettingsSchema();
+          result.settingsForm = jsonFormSchemaToFormProperties(settingsSchema);
+        }
+        if (isFunction((widgetTypeInstance as any).getDataKeySettingsSchema) && !result.dataKeySettingsForm?.length) {
+          const dataKeySettingsSchema = (widgetTypeInstance as any).getDataKeySettingsSchema();
+          result.dataKeySettingsForm = jsonFormSchemaToFormProperties(dataKeySettingsSchema);
+        }
+        if (isFunction((widgetTypeInstance as any).getLatestDataKeySettingsSchema) && !result.latestDataKeySettingsForm?.length) {
+          const latestDataKeySettingsSchema = (widgetTypeInstance as any).getLatestDataKeySettingsSchema();
+          result.latestDataKeySettingsForm = jsonFormSchemaToFormProperties(latestDataKeySettingsSchema);
+        }
+
+        /** End migrate from old JSON Schema Form **/
+
         if (isFunction(widgetTypeInstance.typeParameters)) {
           result.typeParameters = widgetTypeInstance.typeParameters();
         } else {

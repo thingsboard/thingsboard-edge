@@ -172,6 +172,7 @@ const edgeRuleChainsRoute: Route = {
         ruleChainType: RuleChainType.EDGE,
         ruleChainsType: 'edge'
       },
+      loadChildren: () => import('../rulechain/rulechain-page.module').then(m => m.RuleChainPageModule),
       resolve: {
         entityGroup: EntityGroupResolver,
         ruleChain: RuleChainResolver,
@@ -442,6 +443,7 @@ const edgeRuleChainTemplatesRoute: Route = {
         import: false,
         ruleChainType: RuleChainType.EDGE
       },
+      loadChildren: () => import('../rulechain/rulechain-page.module').then(m => m.RuleChainPageModule),
       resolve: {
         ruleChain: RuleChainResolver,
         ruleChainMetaData: RuleChainMetaDataResolver,
@@ -464,6 +466,7 @@ const edgeRuleChainTemplatesRoute: Route = {
         import: true,
         ruleChainType: RuleChainType.EDGE
       },
+      loadChildren: () => import('../rulechain/rulechain-page.module').then(m => m.RuleChainPageModule),
       resolve: {
         ruleNodeComponents: RuleNodeComponentsResolver,
         tooltipster: TooltipsterResolver

@@ -2980,7 +2980,7 @@
         "sas-key-name-required": "Cal nom de Clau SAS.",
         "sas-key": "Clau SAS",
         "sas-key-required": "Cal clau SAS.",
-        "iot-hub-name": "Nom del Concentrador IoT (Cal per enllaç descendent)",
+        "iot-hub-name": "Nom del Concentrador IoT",
         "hostname": "Hostname",
         "hostname-required": "Cal hostname",
         "integration-clazz": "Classe d'integració",

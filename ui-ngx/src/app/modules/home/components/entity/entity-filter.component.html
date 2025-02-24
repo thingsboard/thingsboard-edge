@@ -430,7 +430,7 @@
         </tb-entity-select>
       </div>
       <div class="flex flex-1 flex-row" *ngIf="filterFormGroup.get('originatorStateEntity').value">
-        <mat-form-field floatLabel="always" class="mat-block" style="margin-top: 14px; padding-right: 8px;">
+        <mat-form-field floatLabel="always" class="mat-block" style="margin-top: 24px; padding-right: 8px;">
           <mat-label translate>alias.state-entity-parameter-name</mat-label>
           <input matInput formControlName="stateEntityParamName"
                  placeholder="{{ 'alias.default-entity-parameter-name' | translate }}">
@@ -443,10 +443,12 @@
           </tb-entity-select>
         </div>
       </div>
-      <mat-form-field class="mat-block flex-1">
-        <mat-label translate>alias.scheduler-event-type</mat-label>
-        <input matInput formControlName="eventType">
-      </mat-form-field>
+      <tb-scheduler-event-type-autocomplete
+        formControlName="eventType"
+        label="{{ 'alias.scheduler-event-type' | translate }}"
+        placeholder=""
+        [schedulerEventConfigTypes]="schedulerEventConfigTypes"
+      ></tb-scheduler-event-type-autocomplete>
     </ng-template>
   </section>
 </div>

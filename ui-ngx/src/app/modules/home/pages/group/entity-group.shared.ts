@@ -51,6 +51,6 @@ export class EntityGroupResolver<T>  {
 }
 
 export const groupEntitiesLabelFunction: BreadCrumbLabelFunction<GroupEntitiesTableComponent> =
-  (route, translate, component, data) => {
-    return component.entityGroup.name;
+  (route, translate, component, data, utils) => {
+    return utils ? utils.customTranslation(component.entityGroup.name, component.entityGroup.name) : component.entityGroup.name;
   };

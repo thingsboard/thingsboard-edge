@@ -50,7 +50,6 @@ import {
   DataKey,
   DataKeyConfigMode,
   DatasourceType,
-  JsonSettingsSchema,
   Widget,
   widgetType
 } from '@shared/models/widget.models';
@@ -69,6 +68,7 @@ import {
   AggregatedValueCardKeySettings
 } from '@home/components/widget/lib/cards/aggregated-value-card.models';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
+import { FormProperty } from '@shared/models/dynamic-form.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -126,8 +126,8 @@ export class AggregatedDataKeyRowComponent implements ControlValueAccessor, OnIn
     return this.widgetConfigComponent.widget;
   }
 
-  get latestDataKeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.latestDataKeySettingsSchema;
+  get latestDataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.latestDataKeySettingsForm;
   }
 
   get latestDataKeySettingsDirective(): string {
@@ -225,7 +225,7 @@ export class AggregatedDataKeyRowComponent implements ControlValueAccessor, OnIn
         data: {
           dataKey: deepClone(this.modelValue),
           dataKeyConfigMode: DataKeyConfigMode.general,
-          dataKeySettingsSchema: this.latestDataKeySettingsSchema,
+          dataKeySettingsForm: this.latestDataKeySettingsForm,
           dataKeySettingsDirective: this.latestDataKeySettingsDirective,
           dashboard: null,
           aliasController: null,

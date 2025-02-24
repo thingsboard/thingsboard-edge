@@ -55,7 +55,6 @@ export interface SolutionTemplate {
 
 export interface SolutionTemplateInfo extends SolutionTemplate {
   previewImageUrl: string;
-  shortDescription: string;
   videoPreviewImageUrl: string;
   previewMp4Url: string;
   previewWebmUrl: string;

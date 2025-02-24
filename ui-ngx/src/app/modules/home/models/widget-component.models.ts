@@ -36,7 +36,6 @@ import {
   DatasourceData,
   FormattedData,
   fullWidgetTypeFqn,
-  JsonSettingsSchema,
   Widget,
   WidgetActionDescriptor,
   WidgetActionSource,
@@ -125,6 +124,7 @@ import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
 import { UtilsService } from '@core/services/utils.service';
 import { CompiledTbFunction } from '@shared/models/js-function.models';
+import { FormProperty } from '@shared/models/dynamic-form.models';
 
 export interface IWidgetAction {
   name: string;
@@ -586,9 +586,9 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
   fullFqn: string;
   deprecated: boolean;
   scada: boolean;
-  typeSettingsSchema?: string | any;
-  typeDataKeySettingsSchema?: string | any;
-  typeLatestDataKeySettingsSchema?: string | any;
+  typeSettingsForm?: FormProperty[];
+  typeDataKeySettingsForm?: FormProperty[];
+  typeLatestDataKeySettingsForm?: FormProperty[];
   image?: string;
   description?: string;
   tags?: string[];
@@ -603,9 +603,9 @@ export interface WidgetConfigComponentData {
   typeParameters: WidgetTypeParameters;
   actionSources: {[actionSourceId: string]: WidgetActionSource};
   isDataEnabled: boolean;
-  settingsSchema: JsonSettingsSchema;
-  dataKeySettingsSchema: JsonSettingsSchema;
-  latestDataKeySettingsSchema: JsonSettingsSchema;
+  settingsForm: FormProperty[];
+  dataKeySettingsForm: FormProperty[];
+  latestDataKeySettingsForm: FormProperty[];
   dataKeySettingsFunction: DataKeySettingsFunction;
   settingsDirective: string;
   dataKeySettingsDirective: string;
@@ -628,8 +628,8 @@ export const MissingWidgetType: WidgetInfo = {
     '</div>',
   templateCss: '',
   controllerScript: 'self.onInit = function() {}',
-  settingsSchema: '{}\n',
-  dataKeySettingsSchema: '{}\n',
+  settingsForm: [],
+  dataKeySettingsForm: [],
   image: null,
   description: null,
   defaultConfig: '{\n' +
@@ -655,8 +655,8 @@ export const ErrorWidgetType: WidgetInfo = {
                 '</div>',
   templateCss: '',
   controllerScript: 'self.onInit = function() {}',
-  settingsSchema: '{}\n',
-  dataKeySettingsSchema: '{}\n',
+  settingsForm: [],
+  dataKeySettingsForm: [],
   image: null,
   description: null,
   defaultConfig: '{\n' +
@@ -668,9 +668,9 @@ export const ErrorWidgetType: WidgetInfo = {
 };
 
 export interface WidgetTypeInstance {
-  getSettingsSchema?: () => string;
-  getDataKeySettingsSchema?: () => string;
-  getLatestDataKeySettingsSchema?: () => string;
+  getSettingsForm?: () => FormProperty[];
+  getDataKeySettingsForm?: () => FormProperty[];
+  getLatestDataKeySettingsForm?: () => FormProperty[];
   typeParameters?: () => WidgetTypeParameters;
   useCustomDatasources?: () => boolean;
   actionSources?: () => {[actionSourceId: string]: WidgetActionSource};
@@ -696,9 +696,9 @@ export const toWidgetInfo = (widgetTypeEntity: WidgetType): WidgetInfo => ({
   templateHtml: widgetTypeEntity.descriptor.templateHtml,
   templateCss: widgetTypeEntity.descriptor.templateCss,
   controllerScript: widgetTypeEntity.descriptor.controllerScript,
-  settingsSchema: widgetTypeEntity.descriptor.settingsSchema,
-  dataKeySettingsSchema: widgetTypeEntity.descriptor.dataKeySettingsSchema,
-  latestDataKeySettingsSchema: widgetTypeEntity.descriptor.latestDataKeySettingsSchema,
+  settingsForm: widgetTypeEntity.descriptor.settingsForm,
+  dataKeySettingsForm: widgetTypeEntity.descriptor.dataKeySettingsForm,
+  latestDataKeySettingsForm: widgetTypeEntity.descriptor.latestDataKeySettingsForm,
   settingsDirective: widgetTypeEntity.descriptor.settingsDirective,
   dataKeySettingsDirective: widgetTypeEntity.descriptor.dataKeySettingsDirective,
   latestDataKeySettingsDirective: widgetTypeEntity.descriptor.latestDataKeySettingsDirective,
@@ -725,9 +725,9 @@ export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
     templateHtml: widgetInfo.templateHtml,
     templateCss: widgetInfo.templateCss,
     controllerScript: widgetInfo.controllerScript,
-    settingsSchema: widgetInfo.settingsSchema,
-    dataKeySettingsSchema: widgetInfo.dataKeySettingsSchema,
-    latestDataKeySettingsSchema: widgetInfo.latestDataKeySettingsSchema,
+    settingsForm: widgetInfo.settingsForm,
+    dataKeySettingsForm: widgetInfo.dataKeySettingsForm,
+    latestDataKeySettingsForm: widgetInfo.latestDataKeySettingsForm,
     settingsDirective: widgetInfo.settingsDirective,
     dataKeySettingsDirective: widgetInfo.dataKeySettingsDirective,
     latestDataKeySettingsDirective: widgetInfo.latestDataKeySettingsDirective,

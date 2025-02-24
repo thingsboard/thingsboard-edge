@@ -52,9 +52,14 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-azure-event";
     private static final String SECRET_KEY = "secret-key-azure-event";
     private static final String CONNECTION_STRING = System.getProperty("blackBoxTests.azureEventHubConnectionString", "");
+    private static final String STORAGE_CONNECTION_STRING = System.getProperty("blackBoxTests.azureEventHubStorageConnectionString", "");
+    private static final String CONTAINER_NAME = System.getProperty("blackBoxTests.azureEventHubContainerName", "");
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"connectTimeoutSec\":10," +
             "\"connectionString\":\"" + CONNECTION_STRING + "\"," +
+            "\"storageConnectionString\":\"" + STORAGE_CONNECTION_STRING + "\"," +
+            "\"containerName\":\"" + CONTAINER_NAME + "\"," +
+            "\"enablePersistentCheckpoints\": false," +
             "\"consumerGroup\":\"\"," +
             "\"iotHubName\":\"\"}," +
             "\"metadata\":{}}";
@@ -95,6 +100,8 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         integration = createIntegration(AZURE_EVENT_HUB, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
 
+        Thread.sleep(10000); // await for initialization finish
+
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
         sendMessageToHub();
@@ -122,6 +129,7 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
         EventDataBatch eventDataBatch = producer.createBatch();
         eventDataBatch.tryAdd(data);
         producer.send(eventDataBatch);
+        producer.close();
     }
 
     @Override

@@ -47,6 +47,7 @@
             <div class="details-buttons flex flex-row items-center justify-start gap-4">
               <div tb-help="scadaSymbolDev"></div>
               <button mat-stroked-button
+                      *ngIf="showCreateWidgetButton"
                       [disabled]="scadaSymbolFormGroup.invalid"
                       (click)="createWidget()">
                 {{ 'scada.create-widget' | translate }}

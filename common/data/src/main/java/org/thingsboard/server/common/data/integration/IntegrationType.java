@@ -38,8 +38,8 @@ import lombok.Getter;
 public enum IntegrationType {
     OCEANCONNECT(false, null),
     SIGFOX(false, "Sigfox"),
-    THINGPARK(false, "Actility ThingPark"),
-    TPE(false, "Actility ThingPark"),
+    THINGPARK(false, "ThingPark"),
+    TPE(false, "ThingParkEnterprise"),
     CHIRPSTACK(false, "ChirpStack"),
     PARTICLE(false, "Particle"),
     TMOBILE_IOT_CDP(false, null),

@@ -180,9 +180,7 @@ export class EntityChipsEntityTableColumn<T extends BaseData<HasId>> extends Bas
   constructor(public key: string,
               public title: string,
               public width: string = '0px',
-              public cellContentFunction: CellChartContentFunction<T> = (entity, property) => entity[property] ? entity[property] : [],
-              public chartStyleFunction: CellStyleFunction<T> = () => ({}),
-              public cellStyleFunction: CellStyleFunction<T> = () => ({})) {
+              public entityURL?: (entity) => string) {
     super('entityChips', key, title, width, false);
   }
 }

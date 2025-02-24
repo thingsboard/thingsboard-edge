@@ -63,7 +63,6 @@ import java.util.concurrent.ConcurrentHashMap;
                 "Generates outgoing messages with aggregated values for each parent entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
                 "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         inEnabled = false,
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAggregateLatestConfig",
         icon = "functions"
 )
