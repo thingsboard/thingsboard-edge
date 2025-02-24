@@ -28,20 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.tenant;
+package org.thingsboard.server.service.edge.rpc.processor.notification;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.NotificationRuleId;
+import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.NotificationRuleUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
@@ -50,31 +49,41 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @Slf4j
 @Component
 @TbCoreComponent
-public class TenantEdgeProcessor extends BaseEdgeProcessor {
+public class NotificationRuleEdgeProcessor extends BaseEdgeProcessor {
+
+    @Autowired
+    private NotificationRuleService notificationRuleService;
 
     @Override
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
-        TenantId tenantId = TenantId.fromUUID(edgeEvent.getEntityId());
-        if (EdgeEventActionType.UPDATED.equals(edgeEvent.getAction())) {
-            Tenant tenant = edgeCtx.getTenantService().findTenantById(tenantId);
-            if (tenant != null) {
-                UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                TenantUpdateMsg tenantUpdateMsg = EdgeMsgConstructorUtils.constructTenantUpdateMsg(msgType, tenant);
-                TenantProfile tenantProfile = edgeCtx.getTenantProfileService().findTenantProfileById(tenantId, tenant.getTenantProfileId());
-                TenantProfileUpdateMsg tenantProfileUpdateMsg = EdgeMsgConstructorUtils.constructTenantProfileUpdateMsg(msgType, tenantProfile);
-                return DownlinkMsg.newBuilder()
+        NotificationRuleId notificationRuleId = new NotificationRuleId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        switch (edgeEvent.getAction()) {
+            case ADDED, UPDATED -> {
+                NotificationRule notificationRule = notificationRuleService.findNotificationRuleById(edgeEvent.getTenantId(), notificationRuleId);
+                if (notificationRule != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
+                    NotificationRuleUpdateMsg notificationRuleUpdateMsg = EdgeMsgConstructorUtils.constructNotificationRuleUpdateMsg(msgType, notificationRule);
+                    downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addNotificationRuleUpdateMsg(notificationRuleUpdateMsg)
+                            .build();
+                }
+            }
+            case DELETED -> {
+                NotificationRuleUpdateMsg notificationRuleUpdateMsg = EdgeMsgConstructorUtils.constructNotificationRuleDeleteMsg(notificationRuleId);
+                downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addTenantUpdateMsg(tenantUpdateMsg)
-                        .addTenantProfileUpdateMsg(tenantProfileUpdateMsg)
+                        .addNotificationRuleUpdateMsg(notificationRuleUpdateMsg)
                         .build();
             }
         }
-        return null;
+        return downlinkMsg;
     }
 
     @Override
     public EdgeEventType getEdgeEventType() {
-        return EdgeEventType.TENANT;
+        return EdgeEventType.NOTIFICATION_RULE;
     }
 
 }

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor.asset.profile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.AssetProfileId;
@@ -54,7 +55,7 @@ public abstract class BaseAssetProfileProcessor extends BaseEdgeProcessor {
         boolean assetProfileNameUpdated = false;
         assetCreationLock.lock();
         try {
-            AssetProfile assetProfile = constructAssetProfileFromUpdateMsg(tenantId, assetProfileId, assetProfileUpdateMsg);
+            AssetProfile assetProfile = JacksonUtil.fromString(assetProfileUpdateMsg.getEntity(), AssetProfile.class, true);
             if (assetProfile == null) {
                 throw new RuntimeException("[{" + tenantId + "}] assetProfileUpdateMsg {" + assetProfileUpdateMsg + "} cannot be converted to asset profile");
             }
@@ -95,8 +96,6 @@ public abstract class BaseAssetProfileProcessor extends BaseEdgeProcessor {
         }
         return Pair.of(created, assetProfileNameUpdated);
     }
-
-    protected abstract AssetProfile constructAssetProfileFromUpdateMsg(TenantId tenantId, AssetProfileId assetProfileId, AssetProfileUpdateMsg assetProfileUpdateMsg);
 
     protected abstract void setDefaultRuleChainId(TenantId tenantId, AssetProfile assetProfile, RuleChainId ruleChainId);
 

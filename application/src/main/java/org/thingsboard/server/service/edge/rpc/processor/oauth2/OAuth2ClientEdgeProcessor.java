@@ -28,20 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.tenant;
+package org.thingsboard.server.service.edge.rpc.processor.oauth2;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.OAuth2ClientId;
+import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
@@ -50,22 +47,33 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @Slf4j
 @Component
 @TbCoreComponent
-public class TenantEdgeProcessor extends BaseEdgeProcessor {
+public class OAuth2ClientEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
-        TenantId tenantId = TenantId.fromUUID(edgeEvent.getEntityId());
-        if (EdgeEventActionType.UPDATED.equals(edgeEvent.getAction())) {
-            Tenant tenant = edgeCtx.getTenantService().findTenantById(tenantId);
-            if (tenant != null) {
-                UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                TenantUpdateMsg tenantUpdateMsg = EdgeMsgConstructorUtils.constructTenantUpdateMsg(msgType, tenant);
-                TenantProfile tenantProfile = edgeCtx.getTenantProfileService().findTenantProfileById(tenantId, tenant.getTenantProfileId());
-                TenantProfileUpdateMsg tenantProfileUpdateMsg = EdgeMsgConstructorUtils.constructTenantProfileUpdateMsg(msgType, tenantProfile);
+        OAuth2ClientId oAuth2ClientId = new OAuth2ClientId(edgeEvent.getEntityId());
+
+        switch (edgeEvent.getAction()) {
+            case ADDED, UPDATED -> {
+                boolean isPropagateToEdge = edgeCtx.getOAuth2ClientService().isPropagateOAuth2ClientToEdge(edgeEvent.getTenantId(), oAuth2ClientId);
+                if (!isPropagateToEdge) {
+                    return null;
+                }
+                OAuth2Client oAuth2Client = edgeCtx.getOAuth2ClientService().findOAuth2ClientById(edgeEvent.getTenantId(), oAuth2ClientId);
+                if (oAuth2Client != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
+                    OAuth2ClientUpdateMsg oAuth2ClientUpdateMsg = EdgeMsgConstructorUtils.constructOAuth2ClientUpdateMsg(msgType, oAuth2Client);
+                    return DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addOAuth2ClientUpdateMsg(oAuth2ClientUpdateMsg)
+                            .build();
+                }
+            }
+            case DELETED -> {
+                OAuth2ClientUpdateMsg oAuth2ClientDeleteMsg = EdgeMsgConstructorUtils.constructOAuth2ClientDeleteMsg(oAuth2ClientId);
                 return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addTenantUpdateMsg(tenantUpdateMsg)
-                        .addTenantProfileUpdateMsg(tenantProfileUpdateMsg)
+                        .addOAuth2ClientUpdateMsg(oAuth2ClientDeleteMsg)
                         .build();
             }
         }
@@ -74,7 +82,7 @@ public class TenantEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
     public EdgeEventType getEdgeEventType() {
-        return EdgeEventType.TENANT;
+        return EdgeEventType.OAUTH2_CLIENT;
     }
 
 }

@@ -328,15 +328,6 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(entityGroupUpdateMsg));
             }
         }
-        if (downlinkMsg.hasSystemCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getSystemCustomTranslationMsg()));
-        }
-        if (downlinkMsg.hasTenantCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getTenantCustomTranslationMsg()));
-        }
-        if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getCustomerCustomTranslationMsg()));
-        }
         if (downlinkMsg.hasCustomMenuProto()) {
             result.add(saveDownlinkMsg(downlinkMsg.getCustomMenuProto()));
         }
