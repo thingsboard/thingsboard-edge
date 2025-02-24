@@ -1653,7 +1653,7 @@
     "sas-key-name-required": "SAS Key -ს სახელი სავალდებულოა",
     "sas-key": "SAS Key",
     "sas-key-required": "SAS Key სავალდებულოა",
-    "iot-hub-name": "IoT ჰუბის სახელი (საჭიროა downlink-ისთვის)",
+    "iot-hub-name": "IoT ჰუბის სახელი",
     "integration-clazz": "ინტეგრაციის  კლასი",
     "integration-clazz-required": "ინტეგრაციის კლასი სავალდებულოა",
     "integration-configuration": "ინტეგრაციის  JSON კონფიგურაცია",
