@@ -369,6 +369,9 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entry(new BasicTsKvEntry(123L, new DoubleDataEntry("temperature", 22.3)))
                 .ttl(extractTtlAsSeconds(tenantProfile))
                 .strategy(TimeseriesSaveRequest.Strategy.SAVE_ALL)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -404,6 +407,9 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entry(new BasicTsKvEntry(123L, new DoubleDataEntry("temperature", 22.3)))
                 .ttl(extractTtlAsSeconds(tenantProfile))
                 .strategy(TimeseriesSaveRequest.Strategy.SAVE_ALL)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -439,6 +445,9 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entry(new BasicTsKvEntry(123L, new DoubleDataEntry("temperature", 22.3)))
                 .ttl(extractTtlAsSeconds(tenantProfile))
                 .strategy(TimeseriesSaveRequest.Strategy.WS_ONLY)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -478,6 +487,9 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entry(new BasicTsKvEntry(123L, new DoubleDataEntry("temperature", 22.3)))
                 .ttl(extractTtlAsSeconds(tenantProfile))
                 .strategy(TimeseriesSaveRequest.Strategy.SAVE_ALL)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .build();
 
         node.onMsg(ctxMock, msg);
