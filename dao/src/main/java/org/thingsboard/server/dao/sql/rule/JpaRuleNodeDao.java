@@ -123,11 +123,6 @@ public class JpaRuleNodeDao extends JpaAbstractDao<RuleNodeEntity, RuleNode> imp
     }
 
     @Override
-    public PageData<RuleNode> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
-        return DaoUtil.toPageData(ruleNodeRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
     public EntityType getEntityType() {
         return EntityType.RULE_NODE;
     }

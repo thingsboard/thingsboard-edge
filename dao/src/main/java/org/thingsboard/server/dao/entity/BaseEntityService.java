@@ -288,7 +288,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityCountQuery(query);
 
-        if (edqsService.isApiEnabled() && validForEdqs(query)) { // TODO: separate boolean param whether to use in dashboards; but sync to edqs - always
+        if (edqsService.isApiEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityCountQuery(query)
                     .userPermissions(userPermissions)
@@ -306,7 +306,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityDataQuery(query);
 
-        if (edqsService.isApiEnabled() && validForEdqs(query)) { // TODO: separate boolean param whether to use in dashboards; but sync to edqs - always
+        if (edqsService.isApiEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityDataQuery(query)
                     .userPermissions(userPermissions)

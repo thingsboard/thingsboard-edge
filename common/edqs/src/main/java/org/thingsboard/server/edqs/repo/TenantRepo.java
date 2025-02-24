@@ -109,7 +109,7 @@ import static org.thingsboard.server.edqs.util.RepositoryUtils.resolveEntityType
 @Slf4j
 public class TenantRepo {
 
-    public static final Comparator<EntityData<?>> CREATED_TIME_COMPARATOR = Comparator.comparingLong(o -> o.getFields() != null ? o.getFields().getCreatedTime() : 0); // FIXME: fields may be null at first
+    public static final Comparator<EntityData<?>> CREATED_TIME_COMPARATOR = Comparator.comparingLong(ed -> ed.getFields().getCreatedTime());
     public static final Comparator<EntityData<?>> CREATED_TIME_AND_ID_COMPARATOR = CREATED_TIME_COMPARATOR
             .thenComparing(EntityData::getId);
     public static final Comparator<EntityData<?>> CREATED_TIME_AND_ID_DESC_COMPARATOR = CREATED_TIME_AND_ID_COMPARATOR.reversed();
@@ -213,7 +213,11 @@ public class TenantRepo {
 
             EntityData entityData = getOrCreate(entityType, entityId);
             processFields(fields);
-            entityData.setFields(entity.getFields());
+            EntityFields oldFields = entityData.getFields();
+            entityData.setFields(fields);
+            if (oldFields == null) {
+                getEntitySet(entityType).add(entityData);
+            }
 
             switch (entity.getType()) {
                 case ENTITY_GROUP -> {
@@ -346,7 +350,6 @@ public class TenantRepo {
         return getEntityMap(entityType).computeIfAbsent(entityId, id -> {
             log.debug("[{}] Adding {} {}", tenantId, entityType, id);
             EntityData<?> entityData = constructEntityData(entityType, entityId);
-            getEntitySet(entityType).add(entityData);
             edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.UPDATED));
             return entityData;
         });
@@ -440,7 +443,7 @@ public class TenantRepo {
 //          IMPLEMENTATION THAT IS BASED ON TIM SORT (For offset + query.getPageSize() > totalSize / 2)
 //            data.sort(comparator);
 //            var result = data.subList(offset, endIndex);
-            log.debug("EDQ Sorted in {}", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTs));
+            log.trace("EDQ Sorted in {}", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTs));
             return new PageData<>(toQueryResult(result, query, ctx), totalPages, totalSize, totalSize > requiredSize);
         }
     }
