@@ -38,6 +38,7 @@ import { EntitySearchDirection, entitySearchDirectionTranslations } from '@share
 import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { entityGroupTypes } from '@app/shared/models/entity-group.models';
+import { defaultSchedulerEventConfigTypes } from '@home/components/scheduler/scheduler-event-config.models';
 
 @Component({
   selector: 'tb-entity-filter',
@@ -76,6 +77,7 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit, OnDe
   directionTypes = Object.keys(EntitySearchDirection);
   directionTypeTranslations = entitySearchDirectionTranslations;
   directionTypeEnum = EntitySearchDirection;
+  schedulerEventConfigTypes = defaultSchedulerEventConfigTypes;
 
   private propagateChange = null;
 
