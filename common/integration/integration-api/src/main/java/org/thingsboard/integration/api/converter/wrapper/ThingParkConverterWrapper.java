@@ -45,7 +45,7 @@ public class ThingParkConverterWrapper extends AbstractConverterWrapper {
     static {
         KEYS_MAPPING = new ImmutableMap.Builder<String, String>()
                 .put("time", "/DevEUI_uplink/Time")
-                .put("eui", "DevEUI_uplink/DevEUI")
+                .put("eui", "/DevEUI_uplink/DevEUI")
                 .put("fPort", "/DevEUI_uplink/FPort")
                 .put("fCntUp", "/DevEUI_uplink/FCntUp")
                 .put("lostUplinksAs", "/DevEUI_uplink/LostUplinksAS")

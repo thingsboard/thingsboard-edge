@@ -31,6 +31,7 @@
 package org.thingsboard.integration.api.converter.wrapper;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
@@ -38,6 +39,8 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.util.TbPair;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,11 +71,11 @@ public class ConverterWrapperTest {
 
         TbPair<byte[], UplinkMetaData> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
-        assertArrayEquals("2A3F".getBytes(), result.getFirst());
+        assertArrayEquals(Hex.decodeHex("2A3F"), result.getFirst());
 
         assertThat(result.getSecond().getKvMap()).containsExactlyInAnyOrderEntriesOf(expectedKvMap);
 
-        assertEquals(ContentType.TEXT, result.getSecond().getContentType());
+        assertEquals(ContentType.BINARY, result.getSecond().getContentType());
 
         ObjectNode decoded = JacksonUtil.newObjectNode();
         decoded.put("temperature", "42");
@@ -121,6 +124,150 @@ public class ConverterWrapperTest {
         assertThat(result.getSecond().getKvMap()).containsExactlyInAnyOrderEntriesOf(expectedKvMap);
 
         assertEquals(ContentType.BINARY, result.getSecond().getContentType());
+
+        ObjectNode decoded = JacksonUtil.newObjectNode();
+        decoded.put("temperature", "42");
+        decoded.put("humidity", "63");
+
+        payloadMsg.set("object", decoded);
+        expectedKvMap.put("decoded", JacksonUtil.toString(decoded));
+
+        result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+
+        assertArrayEquals(JacksonUtil.writeValueAsBytes(decoded), result.getFirst());
+
+        assertThat(result.getSecond().getKvMap()).containsExactlyInAnyOrderEntriesOf(expectedKvMap);
+
+        assertEquals(ContentType.JSON, result.getSecond().getContentType());
+    }
+
+    @Test
+    public void thingsStackConverterWrapperTest() throws Exception {
+        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.TTN).get();
+
+        ObjectNode payloadMsg = JacksonUtil.fromString(readPayloadFromFile("ThingsStackPayload.json"), ObjectNode.class);
+
+        UplinkMetaData uplinkMetaData = new UplinkMetaData(ContentType.JSON, Map.of("integrationName", "Chirpstack integration"));
+
+        Map<String, String> expectedKvMap = new HashMap<>(uplinkMetaData.getKvMap());
+        expectedKvMap.put("deviceId", "\"03022\"");
+        expectedKvMap.put("applicationId", "\"test-decentlab\"");
+        expectedKvMap.put("eui", "\"70B3D57BA0000BCE\"");
+        expectedKvMap.put("joinEui", "\"70B3D57ED00006B2\"");
+        expectedKvMap.put("devAddr", "\"27000020\"");
+        expectedKvMap.put("correlationIds", "[\"as:up:01E0CY8V864TP36Q130RSQQJBY\"]");
+        expectedKvMap.put("receivedAt", "\"2020-02-06T09:46:05.447941836Z\"");
+        expectedKvMap.put("sessionKeyId", "\"AXAWYbtxgUllLtJWdZrW0Q==\"");
+        expectedKvMap.put("fPort", "1");
+        expectedKvMap.put("fCnt", "101");
+        expectedKvMap.put("data", "\"AgI7AAMANwJxDGA=\"");
+        expectedKvMap.put("rxMetadata", "[]");
+        expectedKvMap.put("bandwidth", "125000");
+        expectedKvMap.put("spreadingFactor", "11");
+        expectedKvMap.put("dataRateIndex", "1");
+        expectedKvMap.put("codingRate", "\"4/5\"");
+        expectedKvMap.put("frequency", "\"867700000\"");
+        expectedKvMap.put("timestamp", "436812492");
+        expectedKvMap.put("time", "\"2020-02-06T09:46:05Z\"");
+        expectedKvMap.put("uplinkMessageReceivedAt", "\"2020-02-06T09:46:05.234172599Z\"");
+
+        TbPair<byte[], UplinkMetaData> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+
+        assertArrayEquals(Base64.getDecoder().decode("AgI7AAMANwJxDGA="), result.getFirst());
+
+        assertThat(result.getSecond().getKvMap()).containsExactlyInAnyOrderEntriesOf(expectedKvMap);
+
+        assertEquals(ContentType.BINARY, result.getSecond().getContentType());
+
+        ObjectNode decoded = JacksonUtil.newObjectNode();
+        decoded.put("temperature", "42");
+        decoded.put("humidity", "63");
+
+        ((ObjectNode) payloadMsg.get("uplink_message")).set("decoded_payload", decoded);
+        expectedKvMap.put("decoded", JacksonUtil.toString(decoded));
+
+        result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+
+        assertArrayEquals(JacksonUtil.writeValueAsBytes(decoded), result.getFirst());
+
+        assertThat(result.getSecond().getKvMap()).containsExactlyInAnyOrderEntriesOf(expectedKvMap);
+
+        assertEquals(ContentType.JSON, result.getSecond().getContentType());
+    }
+
+    @Test
+    public void thingsParkConverterWrapperTest() throws Exception {
+        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.THINGPARK).get();
+
+        ObjectNode payloadMsg = JacksonUtil.fromString(readPayloadFromFile("ThingsParkPayload.json"), ObjectNode.class);
+
+        UplinkMetaData uplinkMetaData = new UplinkMetaData(ContentType.JSON, Map.of("integrationName", "Chirpstack integration"));
+
+        Map<String, String> expectedKvMap = new HashMap<>(uplinkMetaData.getKvMap());
+        expectedKvMap.put("time", "\"2024-11-28T21:08:22.138+00:00\"");
+        expectedKvMap.put("eui", "\"70B3D57BA000156B\"");
+        expectedKvMap.put("fPort", "1");
+        expectedKvMap.put("fCntUp", "26");
+        expectedKvMap.put("lostUplinksAs", "0");
+        expectedKvMap.put("adrBit", "1");
+        expectedKvMap.put("mType", "2");
+        expectedKvMap.put("fCntDn", "2");
+        expectedKvMap.put("data", "\"02023b0003003702710c60\"");
+        expectedKvMap.put("micHex", "\"e7214986\"");
+        expectedKvMap.put("lrcid", "\"00000211\"");
+        expectedKvMap.put("rssi", "-114.0");
+        expectedKvMap.put("snr", "4.75");
+        expectedKvMap.put("esp", "-115.2547");
+        expectedKvMap.put("spreadingFactor", "9");
+        expectedKvMap.put("bandwidth", "\"G0\"");
+        expectedKvMap.put("channel", "\"LC1\"");
+        expectedKvMap.put("lrrId", "\"100019D4\"");
+        expectedKvMap.put("late", "0");
+        expectedKvMap.put("latitude", "32.516357");
+        expectedKvMap.put("longitude", "-106.824348");
+        expectedKvMap.put("lrr", "[]");
+        expectedKvMap.put("devLrrCnt", "1");
+        expectedKvMap.put("customerId", "\"100045194\"");
+        expectedKvMap.put("customerData", "{}");
+        expectedKvMap.put("baseStationData", "{\"doms\":[],\"name\":\"iStation US #6_CDRRC_Summerford\"}");
+        expectedKvMap.put("modelCfg", "\"0\"");
+        expectedKvMap.put("driverCfg", "{}");
+        expectedKvMap.put("instantPer", "0.0");
+        expectedKvMap.put("meanPer", "0.037037");
+        expectedKvMap.put("devAddr", "\"00FDA112\"");
+        expectedKvMap.put("txPower", "18.0");
+        expectedKvMap.put("nbTrans", "2");
+        expectedKvMap.put("frequency", "902.5");
+        expectedKvMap.put("dynamicClass", "\"A\"");
+
+        TbPair<byte[], UplinkMetaData> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+
+        assertArrayEquals(Base64.getDecoder().decode("AgI7AAMANwJxDGA="), result.getFirst());
+
+        assertThat(result.getSecond().getKvMap()).containsExactlyInAnyOrderEntriesOf(expectedKvMap);
+
+        assertEquals(ContentType.BINARY, result.getSecond().getContentType());
+
+        ObjectNode decoded = JacksonUtil.newObjectNode();
+        decoded.put("temperature", "42");
+        decoded.put("humidity", "63");
+
+        ((ObjectNode) payloadMsg.get("DevEUI_uplink")).set("payload", decoded);
+        expectedKvMap.put("decoded", JacksonUtil.toString(decoded));
+
+        result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+
+        assertArrayEquals(JacksonUtil.writeValueAsBytes(decoded), result.getFirst());
+
+        assertThat(result.getSecond().getKvMap()).containsExactlyInAnyOrderEntriesOf(expectedKvMap);
+
+        assertEquals(ContentType.JSON, result.getSecond().getContentType());
+    }
+
+    private String readPayloadFromFile(String fileName) throws Exception {
+        var uri = this.getClass().getClassLoader().getResource(fileName).toURI();
+        return Files.readString(Path.of(uri));
+
     }
 
 }
