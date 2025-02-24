@@ -3458,7 +3458,7 @@
         "sas-key-name-required": "Nazwa klucza SAS-owego jest wymagana.",
         "sas-key": "Klucz SAS-owy",
         "sas-key-required": "Klucz SAS jest wymagany.",
-        "iot-hub-name": "Nazwa IoT Hub (wymagana dla łącza w dół)",
+        "iot-hub-name": "Nazwa IoT Hub",
         "hostname": "Nazwa hosta",
         "hostname-required": "Nazwa hosta jest wymagana",
         "integration-clazz": "Klasa integracyjna",

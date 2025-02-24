@@ -122,7 +122,7 @@
         </div>
       </form>
     </mat-step>
-    <mat-step [stepControl]="downlinkConverterForm" optional="true" *ngIf="showDownlinkStep">
+    <mat-step [stepControl]="downlinkConverterForm" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
         <ng-template #downlinkLabel matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
         <div class="tb-form-panel tb-converter-panel">
@@ -135,7 +135,7 @@
               <tb-toggle-option *ngIf="(integrationInfo$ | async)?.downlink?.library" [value]="ConverterSourceType.LIBRARY">{{ 'integration.library' | translate }}</tb-toggle-option>
             </tb-toggle-select>
           </div>
-          <tb-converter-autocomplete class="flex-1" formControlName="downlinkConverterId"
+          <tb-converter-autocomplete class="flex-1" formControlName="downlinkConverterId" required
                                      *ngIf="downlinkConverterForm.get('converterType').value === ConverterSourceType.EXISTING"
                                      labelText="integration.downlink-converter"
                                      [converterType]="converterType.DOWNLINK"

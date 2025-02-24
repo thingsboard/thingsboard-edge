@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -40,7 +40,7 @@ import {
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
-import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { DashboardInfo } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
@@ -55,6 +55,7 @@ import { getEntityDetailsPageURL } from '@core/utils';
 import { EntityType } from '@shared/models/entity-type.models';
 import { AuthUser } from '@shared/models/user.model';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'tb-dashboard-autocomplete',
@@ -66,7 +67,7 @@ import { coerceBoolean } from '@shared/decorators/coercion';
     multi: true
   }]
 })
-export class DashboardAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit {
+export class DashboardAutocompleteComponent implements ControlValueAccessor, OnInit {
 
   private dirty = false;
 
@@ -91,6 +92,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   @Input()
   tenantId: string;
+
+  @Input()
+  customerId: string;
 
   @Input()
   operation: Operation;
@@ -119,6 +123,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   disabled: boolean;
 
   @ViewChild('dashboardInput', {static: true}) dashboardInput: ElementRef;
+  @ViewChild('dashboardInput', {read: MatAutocompleteTrigger, static: true}) dashboardAutocomplete: MatAutocompleteTrigger;
 
   filteredDashboards: Observable<Array<DashboardInfo>>;
 
@@ -167,14 +172,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
           this.updateView(modelValue);
         }),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
-        distinctUntilChanged(),
         switchMap(name => this.fetchDashboards(name) ),
         share()
       );
-  }
-
-  ngAfterViewInit(): void {
-    // this.selectFirstDashboardIfNeeded();
   }
 
   selectFirstDashboardIfNeeded(): void {
@@ -199,6 +199,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
     this.disabled = isDisabled;
     if (this.disabled) {
       this.selectDashboardFormGroup.disable({emitEvent: false});
+      this.dashboardAutocomplete.closePanel();
     } else {
       this.selectDashboardFormGroup.enable({emitEvent: false});
     }
@@ -257,6 +258,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
     const authUser = getCurrentAuthUser(this.store);
     if (authUser.authority === Authority.SYS_ADMIN && this.tenantId) {
       dashboardsObservable = this.dashboardService.getTenantDashboardsByTenantId(this.tenantId, pageLink,
+        {ignoreLoading: true});
+    } else if (authUser.authority === Authority.TENANT_ADMIN && this.customerId) {
+      dashboardsObservable = this.dashboardService.getCustomerDashboards(true, this.customerId, pageLink,
         {ignoreLoading: true});
     } else {
       let userId = this.userId;

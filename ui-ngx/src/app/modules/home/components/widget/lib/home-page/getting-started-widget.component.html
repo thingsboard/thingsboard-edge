@@ -41,7 +41,7 @@
       <ng-template [ngSwitchCase]="authority.SYS_ADMIN">
         <mat-step [completed]="gettingStarted.maxSelectedIndex > -1">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.sys-admin.step1.title</div>
               <a *ngIf="matStepper.selectedIndex === 0" mat-button color="primary" routerLink="/tenants">{{ 'tenant.tenants' | translate }}</a>
             </div>
@@ -52,7 +52,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 0">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.sys-admin.step2.title</div>
               <a *ngIf="matStepper.selectedIndex === 1" mat-button color="primary" routerLink="/settings/outgoing-mail">{{ 'admin.settings' | translate }}</a>
             </div>
@@ -63,7 +63,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 1">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.sys-admin.step3.title</div>
               <a *ngIf="matStepper.selectedIndex === 2" mat-button color="primary" routerLink="/settings/notifications">{{ 'admin.settings' | translate }}</a>
             </div>
@@ -74,7 +74,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 2">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.sys-admin.step4.title</div>
               <a *ngIf="matStepper.selectedIndex === 3" mat-button color="primary" routerLink="/white-labeling/whiteLabel">{{ 'admin.settings' | translate }}</a>
             </div>
@@ -85,7 +85,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 3">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.sys-admin.step5.title</div>
               <a *ngIf="matStepper.selectedIndex === 4" mat-button color="primary" routerLink="/security-settings/2fa">{{ 'admin.settings' | translate }}</a>
             </div>
@@ -96,7 +96,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 4">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.sys-admin.step6.title</div>
               <a *ngIf="matStepper.selectedIndex === 5" mat-button color="primary" routerLink="/security-settings/oauth2">{{ 'admin.settings' | translate }}</a>
             </div>
@@ -107,7 +107,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 5">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.sys-admin.step7.title</div>
               <a *ngIf="matStepper.selectedIndex === 6" mat-button color="primary" routerLink="/settings/notifications">{{ 'admin.settings' | translate }}</a>
             </div>
@@ -120,7 +120,7 @@
       <ng-template [ngSwitchCase]="authority.TENANT_ADMIN">
         <mat-step [completed]="gettingStarted.maxSelectedIndex > -1">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.tenant-admin.step1.title</div>
               <a *ngIf="matStepper.selectedIndex === 0" mat-button color="primary" routerLink="/entities/devices/all">{{ 'device.devices' | translate }}</a>
             </div>
@@ -131,7 +131,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 0">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.tenant-admin.step2.title</div>
             </div>
           </ng-template>
@@ -179,7 +179,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 1">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.tenant-admin.step3.title</div>
               <a *ngIf="matStepper.selectedIndex === 2" mat-button color="primary" routerLink="/dashboards/all">{{ 'dashboard.dashboards' | translate }}</a>
             </div>
@@ -190,7 +190,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 2">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.tenant-admin.step4.title</div>
               <a *ngIf="matStepper.selectedIndex === 3" mat-button color="primary" routerLink="/profiles/deviceProfiles">{{ 'widgets.getting-started.tenant-admin.step4.alarm-rules' | translate }}</a>
             </div>
@@ -201,7 +201,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 3">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.tenant-admin.step5.title</div>
             </div>
           </ng-template>
@@ -219,7 +219,7 @@
         </mat-step>
         <mat-step [completed]="gettingStarted.maxSelectedIndex > 4">
           <ng-template matStepLabel>
-            <div style="width: 100%;" class="flex flex-row items-center justify-between">
+            <div class="flex items-center justify-between">
               <div translate>widgets.getting-started.tenant-admin.step6.title</div>
               <a *ngIf="matStepper.selectedIndex === 5" mat-button color="primary" routerLink="/customers/all">{{ 'customer.customers' | translate }}</a>
             </div>
@@ -231,7 +231,7 @@
       </ng-template>
     </ng-container>
   </mat-stepper>
-  <div *ngIf="allCompleted" class="flex flex-col items-center justify-center" style="padding-top: 24px;">
+  <div *ngIf="allCompleted" class="flex justify-center pt-6">
     <button (click)="gettingStartedCompleted()" mat-flat-button color="primary">
       <mat-icon>rocket_launch</mat-icon>{{ 'widgets.getting-started.finish' | translate }}</button>
   </div>

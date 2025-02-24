@@ -49,11 +49,10 @@ import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructor;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.ArrayList;
@@ -68,9 +67,9 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
     @Autowired
     protected GroupPermissionService groupPermissionService;
 
-    public DownlinkMsg convertGroupPermissionEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         GroupPermissionId groupPermissionId = new GroupPermissionId(edgeEvent.getEntityId());
-        var msgConstructor = (GroupMsgConstructor) edgeCtx.getGroupMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
@@ -79,19 +78,20 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                 if (groupPermission != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addGroupPermissionMsg(msgConstructor.constructGroupPermissionProto(msgType, groupPermission))
+                            .addGroupPermissionMsg(EdgeMsgConstructorUtils.constructGroupPermissionProto(msgType, groupPermission))
                             .build();
                 }
             }
             case ENTITY_DELETED_RPC_MESSAGE -> downlinkMsg = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addGroupPermissionMsg(msgConstructor.constructGroupPermissionDeleteMsg(groupPermissionId))
+                    .addGroupPermissionMsg(EdgeMsgConstructorUtils.constructGroupPermissionDeleteMsg(groupPermissionId))
                     .build();
         }
         return downlinkMsg;
     }
 
-    public ListenableFuture<Void> processGroupPermissionNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+    @Override
+    public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
@@ -124,6 +124,11 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
             case DELETED -> processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
             default -> Futures.immediateFuture(null);
         };
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.GROUP_PERMISSION;
     }
 
 }
