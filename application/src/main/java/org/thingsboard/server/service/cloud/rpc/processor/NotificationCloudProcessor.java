@@ -33,13 +33,15 @@ import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.gen.edge.v1.NotificationRuleUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.NotificationTargetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.NotificationTemplateUpdateMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class NotificationCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processNotificationRuleMsgFromCloud(TenantId tenantId, NotificationRuleUpdateMsg notificationRuleUpdateMsg) {
