@@ -36,21 +36,21 @@ services:
     restart: always
     image: "${DOCKER_REPO}/${EDQS_DOCKER_NAME}:${TB_VERSION}"
     environment:
-      - TB_KAFKA_SERVERS=kafka:9092
-      - ZOOKEEPER_ENABLED=true
-      - ZOOKEEPER_URL=zookeeper:2181
-      - METRICS_ENABLED=true
-      - METRICS_ENDPOINTS_EXPOSE=prometheus
+      - 'TB_KAFKA_SERVERS=kafka:9092'
+      - 'ZOOKEEPER_ENABLED=true'
+      - 'ZOOKEEPER_URL=zookeeper:2181'
+      - 'METRICS_ENABLED=true'
+      - 'METRICS_ENDPOINTS_EXPOSE=prometheus'
     depends_on:
       - zookeeper
   tb-edqs-2:
     restart: always
     image: "${DOCKER_REPO}/${EDQS_DOCKER_NAME}:${TB_VERSION}"
-    env_file:
-      - TB_KAFKA_SERVERS=kafka:9092
-      - ZOOKEEPER_ENABLED=true
-      - ZOOKEEPER_URL=zookeeper:2181
-      - METRICS_ENABLED=true
-      - METRICS_ENDPOINTS_EXPOSE=prometheus
+    environment:
+      - 'TB_KAFKA_SERVERS=kafka:9092'
+      - 'ZOOKEEPER_ENABLED=true'
+      - 'ZOOKEEPER_URL=zookeeper:2181'
+      - 'METRICS_ENABLED=true'
+      - 'METRICS_ENDPOINTS_EXPOSE=prometheus'
     depends_on:
       - zookeeper

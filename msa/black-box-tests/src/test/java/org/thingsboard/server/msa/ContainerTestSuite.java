@@ -182,6 +182,8 @@ public class ContainerTestSuite {
             }
 
             // to trigger edqs synchronization
+            Map<String, String> installTbEnv = installTb.getEnv();
+            installTbEnv.put("EDQS_DOCKER_NAME", "tb-pe-edqs");
             addToFile(targetDir, "tb-node.env",
                     Map.of("TB_EDQS_SYNC_ENABLED", "true",
                             "TB_EDQS_API_ENABLED", "true"));
@@ -191,7 +193,7 @@ public class ContainerTestSuite {
                     .withLocalCompose(true)
                     .withOptions("--compatibility")
                     .withTailChildContainers(!skipTailChildContainers)
-                    .withEnv(installTb.getEnv())
+                    .withEnv(installTbEnv)
                     .withEnv(queueEnv)
                     .withEnv("LOAD_BALANCER_NAME", "")
                     .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
