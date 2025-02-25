@@ -41,7 +41,7 @@ import {
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { NEVER, Observable, of, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
@@ -77,7 +77,7 @@ export class CalculatedFieldScriptTestDialogComponent extends DialogComponent<Ca
   @ViewChild('expressionContent', {static: true}) expressionContent: JsonContentComponent;
 
   calculatedFieldScriptTestFormGroup = this.fb.group({
-    expression: [],
+    expression: ['', Validators.required],
     arguments: [],
     output: []
   });

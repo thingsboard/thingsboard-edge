@@ -43,7 +43,11 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { AliasFilterType } from '@shared/models/alias.models';
 import { Observable } from 'rxjs';
 import { TbEditorCompleter } from '@shared/models/ace/completion.models';
-import { AceHighlightRules } from '@shared/models/ace/ace.models';
+import {
+  AceHighlightRules,
+  dotOperatorHighlightRule,
+  endGroupHighlightRule
+} from '@shared/models/ace/ace.models';
 
 export interface CalculatedField extends Omit<BaseData<CalculatedFieldId>, 'label'>, HasVersion, HasTenantId, ExportableEntity<CalculatedFieldId> {
   debugSettings?: EntityDebugSettings;
@@ -352,6 +356,7 @@ export const getCalculatedFieldArgumentsHighlights = (
 
 const calculatedFieldSingleArgumentValueHighlightRules: AceHighlightRules = {
   calculatedFieldSingleArgumentValue: [
+    dotOperatorHighlightRule,
     {
       token: 'tb.calculated-field-value',
       regex: /value/,
@@ -361,12 +366,14 @@ const calculatedFieldSingleArgumentValueHighlightRules: AceHighlightRules = {
       token: 'tb.calculated-field-ts',
       regex: /ts/,
       next: 'no_regex'
-    }
+    },
+    endGroupHighlightRule
   ],
 }
 
 const calculatedFieldRollingArgumentValueHighlightRules: AceHighlightRules = {
   calculatedFieldRollingArgumentValue: [
+    dotOperatorHighlightRule,
     {
       token: 'tb.calculated-field-values',
       regex: /values/,
@@ -376,12 +383,14 @@ const calculatedFieldRollingArgumentValueHighlightRules: AceHighlightRules = {
       token: 'tb.calculated-field-time-window',
       regex: /timeWindow/,
       next: 'calculatedFieldRollingArgumentTimeWindow'
-    }
+    },
+    endGroupHighlightRule
   ],
 }
 
 const calculatedFieldTimeWindowArgumentValueHighlightRules: AceHighlightRules = {
   calculatedFieldRollingArgumentTimeWindow: [
+    dotOperatorHighlightRule,
     {
       token: 'tb.calculated-field-start-ts',
       regex: /startTs/,
@@ -396,6 +405,7 @@ const calculatedFieldTimeWindowArgumentValueHighlightRules: AceHighlightRules = 
       token: 'tb.calculated-field-limit',
       regex: /limit/,
       next: 'no_regex'
-    }
+    },
+    endGroupHighlightRule
   ]
 }

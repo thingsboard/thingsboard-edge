@@ -1172,6 +1172,7 @@
         "password": "Password",
         "repeat-password": "Repeat password",
         "data": "Data",
+        "timestamp": "Timestamp",
         "enter-username": "Enter username",
         "enter-password": "Enter password",
         "enter-search": "Enter search",
