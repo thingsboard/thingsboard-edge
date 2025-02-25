@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,21 +31,19 @@
 package org.thingsboard.server.service.edge.rpc.processor.user;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorFactory;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Slf4j
@@ -53,12 +51,9 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @TbCoreComponent
 public class UserEdgeProcessor extends BaseEdgeProcessor {
 
-    @Autowired
-    private UserMsgConstructorFactory userMsgConstructorFactory;
-
-    public DownlinkMsg convertUserEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         UserId userId = new UserId(edgeEvent.getEntityId());
-        var msgConstructor = (UserMsgConstructor) userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
             case ADDED, ADDED_TO_ENTITY_GROUP, UPDATED, ASSIGNED_TO_EDGE -> {
@@ -67,10 +62,10 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addUserUpdateMsg(((UserMsgConstructor) userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserUpdatedMsg(msgType, user, entityGroupId));
+                            .addUserUpdateMsg(EdgeMsgConstructorUtils.constructUserUpdatedMsg(msgType, user, entityGroupId));
                     UserCredentials userCredentialsByUserId = edgeCtx.getUserService().findUserCredentialsByUserId(edgeEvent.getTenantId(), userId);
                     if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
-                        builder.addUserCredentialsUpdateMsg(msgConstructor.constructUserCredentialsUpdatedMsg(userCredentialsByUserId));
+                        builder.addUserCredentialsUpdateMsg(EdgeMsgConstructorUtils.constructUserCredentialsUpdatedMsg(userCredentialsByUserId));
                     }
                     return builder.build();
                 }
@@ -78,13 +73,13 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
             case DELETED, REMOVED_FROM_ENTITY_GROUP, UNASSIGNED_FROM_EDGE, CHANGE_OWNER -> {
                 return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addUserUpdateMsg(((UserMsgConstructor) userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserDeleteMsg(userId, entityGroupId))
+                        .addUserUpdateMsg(EdgeMsgConstructorUtils.constructUserDeleteMsg(userId, entityGroupId))
                         .build();
             }
             case CREDENTIALS_UPDATED -> {
                 UserCredentials userCredentialsByUserId = edgeCtx.getUserService().findUserCredentialsByUserId(edgeEvent.getTenantId(), userId);
                 if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
-                    UserCredentialsUpdateMsg userCredentialsUpdateMsg = msgConstructor.constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
+                    UserCredentialsUpdateMsg userCredentialsUpdateMsg = EdgeMsgConstructorUtils.constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
                     return DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addUserCredentialsUpdateMsg(userCredentialsUpdateMsg)
@@ -93,6 +88,11 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
             }
         }
         return null;
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.USER;
     }
 
 }

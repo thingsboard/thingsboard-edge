@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,19 +31,17 @@
 package org.thingsboard.server.service.edge.rpc.processor.queue;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.queue.QueueMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.queue.QueueMsgConstructorFactory;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Slf4j
@@ -51,18 +49,15 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @TbCoreComponent
 public class QueueEdgeProcessor extends BaseEdgeProcessor {
 
-    @Autowired
-    private QueueMsgConstructorFactory queueMsgConstructorFactory;
-
-    public DownlinkMsg convertQueueEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         QueueId queueId = new QueueId(edgeEvent.getEntityId());
-        var msgConstructor = (QueueMsgConstructor) queueMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         switch (edgeEvent.getAction()) {
             case ADDED, UPDATED -> {
                 Queue queue = edgeCtx.getQueueService().findQueueById(edgeEvent.getTenantId(), queueId);
                 if (queue != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    QueueUpdateMsg queueUpdateMsg = msgConstructor.constructQueueUpdatedMsg(msgType, queue);
+                    QueueUpdateMsg queueUpdateMsg = EdgeMsgConstructorUtils.constructQueueUpdatedMsg(msgType, queue);
                     return DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addQueueUpdateMsg(queueUpdateMsg)
@@ -70,7 +65,7 @@ public class QueueEdgeProcessor extends BaseEdgeProcessor {
                 }
             }
             case DELETED -> {
-                QueueUpdateMsg queueDeleteMsg = msgConstructor.constructQueueDeleteMsg(queueId);
+                QueueUpdateMsg queueDeleteMsg = EdgeMsgConstructorUtils.constructQueueDeleteMsg(queueId);
                 return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addQueueUpdateMsg(queueDeleteMsg)
@@ -78,6 +73,11 @@ public class QueueEdgeProcessor extends BaseEdgeProcessor {
             }
         }
         return null;
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.QUEUE;
     }
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -232,7 +232,7 @@ public class TbResourceController extends BaseController {
                                        @RequestBody TbResource resource) throws Exception {
         resource.setTenantId(getTenantId());
         checkEntity(resource.getId(), resource, Resource.TB_RESOURCE);
-        return new TbResourceInfo(tbResourceService.save(resource, getCurrentUser()));
+        return tbResourceService.save(resource, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Resource Infos (getResources)",

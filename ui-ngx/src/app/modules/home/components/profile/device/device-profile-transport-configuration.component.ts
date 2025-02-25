@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -118,7 +118,7 @@ export class DeviceProfileTransportConfigurationComponent implements ControlValu
       delete configuration.type;
     }
     setTimeout(() => {
-      this.deviceProfileTransportConfigurationFormGroup.patchValue({configuration});
+      this.deviceProfileTransportConfigurationFormGroup.patchValue({configuration}, {emitEvent: false});
     }, 0);
   }
 
