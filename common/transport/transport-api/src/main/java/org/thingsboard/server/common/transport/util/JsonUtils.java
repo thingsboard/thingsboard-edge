@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,7 @@ public class JsonUtils {
         }
         return json;
     }
+
     public static JsonElement parse(Object value) {
         if (value instanceof Integer) {
             return new JsonPrimitive((Integer) value);
@@ -82,7 +83,7 @@ public class JsonUtils {
         }
     }
 
-    public static JsonObject convertToJsonObject(Map<String,?> map) {
+    public static JsonObject convertToJsonObject(Map<String, ?> map) {
         JsonObject jsonObject = new JsonObject();
         for (Map.Entry<String, ?> entry : map.entrySet()) {
             jsonObject.add(entry.getKey(), parse(entry.getValue()));
@@ -90,4 +91,5 @@ public class JsonUtils {
 
         return jsonObject;
     }
+
 }

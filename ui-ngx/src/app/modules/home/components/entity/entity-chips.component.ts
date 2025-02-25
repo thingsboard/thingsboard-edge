@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { BaseData, GroupEntityInfo } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { baseDetailsPageByEntityType, EntityType, groupUrlPrefixByEntityType } from '@app/shared/public-api';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { isEqual, isObject } from '@core/utils';
+import { isEqual, isNotEmptyStr, isObject } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-chips',
@@ -48,6 +48,9 @@ export class EntityChipsComponent implements OnChanges {
 
   @Input()
   key: string;
+
+  @Input()
+  detailsPagePrefixUrl: string;
 
   entityDetailsPrefixUrl: string;
 
@@ -72,7 +75,9 @@ export class EntityChipsComponent implements OnChanges {
       if (isObject(entitiesList) && !Array.isArray(entitiesList)) {
         entitiesList = [entitiesList];
       }
-      if (this.key === 'groups' && groupUrlPrefixByEntityType.has(entityType)) {
+      if (isNotEmptyStr(this.detailsPagePrefixUrl)) {
+        this.entityDetailsPrefixUrl = this.detailsPagePrefixUrl;
+      } else if (this.key === 'groups' && groupUrlPrefixByEntityType.has(entityType)) {
         this.entityDetailsPrefixUrl = groupUrlPrefixByEntityType.get(entityType);
         if (this.entity.ownerId && !this.userPermissionsService.isDirectOwner(this.entity.ownerId)) {
           this.entityDetailsPrefixUrl = `/customers/all/${this.entity.ownerId.id}${this.entityDetailsPrefixUrl}`;

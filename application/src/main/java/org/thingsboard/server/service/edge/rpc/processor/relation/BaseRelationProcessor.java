@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor.relation;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
@@ -44,7 +45,7 @@ public abstract class BaseRelationProcessor extends BaseEdgeProcessor {
     protected ListenableFuture<Void> processRelationMsg(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         log.trace("[{}] processRelationMsg [{}]", tenantId, relationUpdateMsg);
         try {
-            EntityRelation entityRelation = constructEntityRelationFromUpdateMsg(relationUpdateMsg);
+            EntityRelation entityRelation = JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
             if (entityRelation == null) {
                 throw new RuntimeException("[{" + tenantId + "}] relationUpdateMsg {" + relationUpdateMsg + "} cannot be converted to entity relation");
             }
@@ -70,7 +71,5 @@ public abstract class BaseRelationProcessor extends BaseEdgeProcessor {
         }
         return Futures.immediateFuture(null);
     }
-
-    protected abstract EntityRelation constructEntityRelationFromUpdateMsg(RelationUpdateMsg relationUpdateMsg);
 
 }

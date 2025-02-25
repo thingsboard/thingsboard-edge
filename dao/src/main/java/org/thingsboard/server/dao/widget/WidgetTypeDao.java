@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,8 @@ public interface WidgetTypeDao extends Dao<WidgetTypeDetails>, ExportableEntityD
     WidgetType findWidgetTypeById(TenantId tenantId, UUID widgetTypeId);
 
     boolean existsByTenantIdAndId(TenantId tenantId, UUID widgetTypeId);
+
+    WidgetTypeInfo findWidgetTypeInfoById(TenantId tenantId, UUID widgetTypeId);
 
     PageData<WidgetTypeInfo> findSystemWidgetTypes(WidgetTypeFilter widgetTypeFilter, PageLink pageLink);
 

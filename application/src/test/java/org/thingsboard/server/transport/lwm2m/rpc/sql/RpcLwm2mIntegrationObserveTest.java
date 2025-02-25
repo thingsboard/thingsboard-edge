@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@ import org.eclipse.leshan.server.registration.Registration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.thingsboard.server.transport.lwm2m.rpc.AbstractRpcLwM2MIntegrationObserveTest;
+import org.thingsboard.server.transport.lwm2m.rpc.AbstractRpcLwM2MIntegrationTest;
 
 import static org.eclipse.leshan.core.LwM2mId.ACCESS_CONTROL;
 import static org.junit.Assert.assertEquals;
@@ -56,7 +56,7 @@ import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.RESOURCE_ID
 import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.fromVersionedIdToObjectId;
 
 @Slf4j
-public class RpcLwm2mIntegrationObserveTest extends AbstractRpcLwM2MIntegrationObserveTest {
+public class RpcLwm2mIntegrationObserveTest extends AbstractRpcLwM2MIntegrationTest {
 
     @Before
     public void setupObserveTest() throws Exception {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -418,6 +418,7 @@ public class ModelConstants {
     public static final String WIDGETS_BUNDLE_SCADA_PROPERTY = "scada";
     public static final String WIDGETS_BUNDLE_DESCRIPTION = "description";
     public static final String WIDGETS_BUNDLE_ORDER = "widgets_bundle_order";
+    public static final String WIDGET_BUNDLES_PROPERTY = "bundles";
 
     /**
      * Widget_type constants.

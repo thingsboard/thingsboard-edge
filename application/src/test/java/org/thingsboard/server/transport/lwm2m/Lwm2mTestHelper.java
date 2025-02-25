@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,9 @@ package org.thingsboard.server.transport.lwm2m;
 
 public class Lwm2mTestHelper {
 
+    public static final String[] lwm2mClientResources = new String[]{"3.xml", "5.xml", "6.xml", "9.xml", "19.xml", "3303.xml"};
+
     // Models
-    public static final String[] resources = new String[]{"0.xml", "1.xml", "2.xml", "3.xml", "5.xml", "6.xml", "9.xml", "19.xml", "3303.xml"};
     public static final int BINARY_APP_DATA_CONTAINER = 19;
     public static final int TEMPERATURE_SENSOR = 3303;
 

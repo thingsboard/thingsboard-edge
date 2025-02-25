@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,7 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
     @Override
     public void handleEvictEvent(RelatedEdgesEvictEvent event) {
         if (event.getEntityId() == null) {
-            cache.evictByPrefix(event.getTenantId().toString());
+            cache.evictByPrefix("{" + event.getTenantId() + "}");
         } else {
             cache.evict(new RelatedEdgesCacheKey(event.getTenantId(), event.getEntityId()));
         }
