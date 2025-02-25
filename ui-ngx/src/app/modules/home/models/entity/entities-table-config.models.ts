@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -184,9 +184,7 @@ export class EntityChipsEntityTableColumn<T extends BaseData<HasId>> extends Bas
   constructor(public key: string,
               public title: string,
               public width: string = '0px',
-              public cellContentFunction: CellChartContentFunction<T> = (entity, property) => entity[property] ? entity[property] : [],
-              public chartStyleFunction: CellStyleFunction<T> = () => ({}),
-              public cellStyleFunction: CellStyleFunction<T> = () => ({})) {
+              public entityURL?: (entity) => string) {
     super('entityChips', key, title, width, false);
   }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
@@ -101,11 +102,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.thingsboard.server.dao.edge.BaseRelatedEdgesService.RELATED_EDGES_CACHE_ITEMS;
 
 @Slf4j
-public abstract class BaseEdgeProcessor {
+public abstract class BaseEdgeProcessor implements EdgeProcessor {
 
     protected static final Lock deviceCreationLock = new ReentrantLock();
     protected static final Lock assetCreationLock = new ReentrantLock();
 
+    @Lazy
     @Autowired
     protected EdgeContextComponent edgeCtx;
 
@@ -235,6 +237,7 @@ public abstract class BaseEdgeProcessor {
         };
     }
 
+    @Override
     public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
