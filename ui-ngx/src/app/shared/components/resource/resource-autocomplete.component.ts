@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -92,6 +92,8 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
 
   @Input()
   subType = ResourceSubType.EXTENSION;
+
+  ResourceSubType = ResourceSubType;
 
   resourceFormGroup = this.fb.group({
     resource: this.fb.control<string|ResourceInfo>(null)
@@ -223,6 +225,10 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
       this.modelValue = value;
       this.propagateChange(this.modelValue);
     }
+  }
+
+  textIsNotEmpty(text: string): boolean {
+    return (text && text.length > 0);
   }
 
   private fetchResources(searchText?: string): Observable<Array<ResourceInfo>> {

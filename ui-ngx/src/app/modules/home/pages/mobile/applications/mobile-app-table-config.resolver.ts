@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -76,7 +76,7 @@ export class MobileAppTableConfigResolver  {
               ) {
     this.config.selectionEnabled = false;
     this.config.entityType = EntityType.MOBILE_APP;
-    this.config.addEnabled = false;
+    this.config.addAsTextButton = true;
     this.config.entitiesDeleteEnabled = false;
     this.config.rowPointer = true;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.MOBILE_APP);
@@ -89,7 +89,7 @@ export class MobileAppTableConfigResolver  {
     this.config.columns.push(
       new DateEntityTableColumn<MobileApp>('createdTime', 'common.created-time', this.datePipe, '170px'),
       new EntityTableColumn<MobileApp>('pkgName', 'mobile.application-package', '20%', (entity) => entity.pkgName ?? '', () => ({}),
-        false, () => ({}), () => undefined, false,
+        true, () => ({}), () => undefined, false,
         {
           name: this.translate.instant('mobile.copy-application-package'),
           icon: 'content_copy',
@@ -104,7 +104,7 @@ export class MobileAppTableConfigResolver  {
         }),
       new EntityTableColumn<MobileApp>('appSecret', 'mobile.application-secret', '15%',
         (entity) => this.truncatePipe.transform(entity.appSecret, true, 10, '…'), () => ({}),
-        false, () => ({}), () => undefined, false,
+        true, () => ({}), () => undefined, false,
         {
           name: this.translate.instant('mobile.copy-application-secret'),
           icon: 'content_copy',

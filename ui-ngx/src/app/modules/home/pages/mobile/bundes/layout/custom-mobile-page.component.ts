@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,12 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { CustomMobilePage, MobilePageType, mobilePageTypeTranslations } from '@shared/models/mobile-app.models';
+import {
+  CustomMobilePage,
+  MobilePageType,
+  mobilePageTypeTranslations,
+  WEB_URL_REGEX
+} from '@shared/models/mobile-app.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
@@ -75,11 +80,11 @@ export class CustomMobilePageComponent implements ControlValueAccessor, Validato
   customMobilePageForm = this.fb.group({
     visible: [true],
     icon: ['star'],
-    label: ['', Validators.required],
+    label: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
     type: [MobilePageType.DASHBOARD],
     dashboardId: this.fb.control<string>(null, Validators.required),
-    url: [{value:'', disabled: true}, [Validators.required, Validators.pattern(/^(https?:\/\/)?(localhost|([\w\-]+\.)+[\w\-]+)(:\d+)?(\/[\w\-._~:\/?#[\]@!$&'()*+,;=%]*)?$/)]],
-    path: [{value:'', disabled: true}, [Validators.required, Validators.pattern(/^(\/[\w\-._~:\/?#[\]@!$&'()*+,;=%]*)?$/)]]
+    url: [{value:'', disabled: true}, [Validators.required, Validators.pattern(WEB_URL_REGEX)]],
+    path: [{value:'', disabled: true}, [Validators.required, Validators.pattern(/^(\/[\w\-._~:/?#[\]@!$&'()*+,;=%]*)?$/)]]
   });
 
   private propagateChange = (_val: any) => {};

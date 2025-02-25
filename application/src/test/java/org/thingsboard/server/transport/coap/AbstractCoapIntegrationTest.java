@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,7 +60,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @TestPropertySource(properties = {
-        "coap.enabled=true",
+        "coap.server.enabled=true",
         "service.integrations.supported=ALL",
         "transport.coap.enabled=true",
 })
@@ -69,6 +69,14 @@ public abstract class AbstractCoapIntegrationTest extends AbstractTransportInteg
 
     protected final byte[] EMPTY_PAYLOAD = new byte[0];
     protected CoapTestClient client;
+    protected static final String PAYLOAD_VALUES_STR = "{\"key1\":\"value1\", \"key2\":true, \"key3\": 3.0, \"key4\": 4," +
+            " \"key5\": {\"someNumber\": 42, \"someArray\": [1,2,3], \"someNestedObject\": {\"key\": \"value\"}}}";
+    protected static final String PAYLOAD_VALUES_STR_01 = "{\"key2\":\"value2\", \"key3\":false, \"key4\": 4.0, \"key5\": 5," +
+            " \"key6\": {\"someNumber_02\": 52, \"someArray_02\": [1,2,3,4], \"someNestedObject_02\": {\"key_02\": \"value_02\"}}}";
+
+    protected void processBeforeTest() throws Exception {
+        loginTenantAdmin();
+    }
 
     protected void processAfterTest() throws Exception {
         if (client != null) {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -55,6 +55,8 @@ import {
   WidgetsBundleDialogComponent,
   WidgetsBundleDialogData
 } from '@home/pages/widget/widgets-bundle-dialog.component';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-widgets-bundle-select',
@@ -105,6 +107,7 @@ export class WidgetsBundleSelectComponent implements ControlValueAccessor, OnIni
   constructor(private store: Store<AppState>,
               private widgetService: WidgetService,
               private dialog: MatDialog,
+              private userPermissionsService: UserPermissionsService,
               private cd: ChangeDetectorRef) {
   }
 
@@ -117,6 +120,8 @@ export class WidgetsBundleSelectComponent implements ControlValueAccessor, OnIni
   }
 
   ngOnInit() {
+    this.createNew = this.createNew && this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.CREATE);
+
     this.widgetsBundles$ = this.getWidgetsBundles().pipe(
       map((widgetsBundles) => {
         const authState = getCurrentAuthState(this.store);

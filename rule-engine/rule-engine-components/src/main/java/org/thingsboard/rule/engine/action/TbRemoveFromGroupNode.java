@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,6 @@ import org.thingsboard.server.common.msg.TbMsg;
         configClazz = TbRemoveFromGroupConfiguration.class,
         nodeDescription = "Removes Message Originator Entity from Entity Group",
         nodeDetails = "Finds target Entity Group by group name pattern and then removes Originator Entity from this group.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeRemoveFromGroupConfig",
         icon = "remove_circle",
         ruleChainTypes = RuleChainType.CORE

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -297,6 +297,9 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                     if (relationsList != null && !relationsList.isEmpty()) {
                         List<ListenableFuture<Void>> futures = new ArrayList<>();
                         for (List<EntityRelation> entityRelations : relationsList) {
+                            if (entityRelations.isEmpty()) {
+                                continue;
+                            }
                             log.trace("[{}][{}][{}][{}] relation(s) are going to be pushed to edge.", tenantId, edge.getId(), entityId, entityRelations.size());
                             for (EntityRelation relation : entityRelations) {
                                 try {
@@ -317,19 +320,23 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                                 }
                             }
                         }
-                        Futures.addCallback(Futures.allAsList(futures), new FutureCallback<>() {
-                            @Override
-                            public void onSuccess(@Nullable List<Void> voids) {
-                                futureToSet.set(null);
-                            }
+                        if (futures.isEmpty()) {
+                            futureToSet.set(null);
+                        } else {
+                            Futures.addCallback(Futures.allAsList(futures), new FutureCallback<>() {
+                                @Override
+                                public void onSuccess(@Nullable List<Void> voids) {
+                                    futureToSet.set(null);
+                                }
 
-                            @Override
-                            public void onFailure(Throwable throwable) {
-                                String errMsg = String.format("[%s][%s] Exception during saving edge events [%s]!", tenantId, edge.getId(), relationRequestMsg);
-                                log.error(errMsg, throwable);
-                                futureToSet.setException(new RuntimeException(errMsg, throwable));
-                            }
-                        }, dbCallbackExecutorService);
+                                @Override
+                                public void onFailure(Throwable throwable) {
+                                    String errMsg = String.format("[%s][%s] Exception during saving edge events [%s]!", tenantId, edge.getId(), relationRequestMsg);
+                                    log.error(errMsg, throwable);
+                                    futureToSet.setException(new RuntimeException(errMsg, throwable));
+                                }
+                            }, dbCallbackExecutorService);
+                        }
                     } else {
                         futureToSet.set(null);
                     }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -50,6 +50,7 @@ import {
 } from '@shared/models/queue.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-queue-form',
@@ -68,7 +69,7 @@ import { Subscription } from 'rxjs';
     }
   ]
 })
-export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestroy, Validator {
+export class QueueFormComponent implements ControlValueAccessor, OnInit, Validator {
 
   @Input()
   disabled: boolean;
@@ -92,10 +93,10 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestr
   private modelValue: QueueInfo;
   private propagateChange = null;
   private propagateChangePending = false;
-  private valueChange$: Subscription = null;
 
   constructor(private utils: UtilsService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   registerOnChange(fn: any): void {
@@ -137,22 +138,21 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestr
           duplicateMsgToAllPartitions: [false]
         })
       });
-    this.valueChange$ = this.queueFormGroup.valueChanges.subscribe(() => {
+    this.queueFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
-    this.queueFormGroup.get('name').valueChanges.subscribe((value) => {
+    this.queueFormGroup.get('name').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((value) => {
       this.queueFormGroup.patchValue({topic: `tb_rule_engine.${value}`});
     });
-    this.queueFormGroup.get('submitStrategy').get('type').valueChanges.subscribe(() => {
+    this.queueFormGroup.get('submitStrategy').get('type').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.submitStrategyTypeChanged();
     });
-  }
-
-  ngOnDestroy() {
-    if (this.valueChange$) {
-      this.valueChange$.unsubscribe();
-      this.valueChange$ = null;
-    }
   }
 
   setDisabledState(isDisabled: boolean): void {

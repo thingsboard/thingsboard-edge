@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.notification;
 
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
@@ -52,7 +53,7 @@ public interface NotificationSettingsService {
 
     void updateDefaultNotificationConfigs(TenantId tenantId);
 
-    void updateSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template);
+    boolean isNotificationConfigured(TenantId tenantId, NotificationType notificationType);
 
     void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template);
 

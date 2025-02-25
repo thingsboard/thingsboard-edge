@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,7 @@
         </div>
         <div *ngIf="modulesFormArray().controls.length; else noModules" class="tb-form-table-body">
           <div *ngFor="let moduleControl of modulesFormArray().controls; trackBy: trackByModule; let $index = index;">
-            <tb-js-func-module-row class="flex-1"
+            <tb-js-func-module-row class="flex"
                                    [index]="$index"
                                    [formControl]="moduleControl"
                                    (moduleRemoved)="removeModule($index)">

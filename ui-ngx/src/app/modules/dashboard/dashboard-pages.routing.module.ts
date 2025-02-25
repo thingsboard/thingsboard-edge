@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { DashboardResolver } from '@app/modules/home/pages/dashboard/dashboard-routing.module';
 import { UtilsService } from '@core/services/utils.service';
 import { Widget } from '@app/shared/models/widget.models';
-import { Operation, Resource } from '@shared/models/security.models';
+import { Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType } from '@shared/models/entity-type.models';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
@@ -80,7 +80,7 @@ const routes: Routes = [
       },
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       canActivate: (userPermissionsService: UserPermissionsService): boolean =>
-        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
+        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) || userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD),
       title: 'dashboard.dashboard',
       widgetEditMode: false,
       singlePageMode: true

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -94,7 +94,9 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
             if (previousDetails != null) {
                 TbMsgMetaData metaData = msg.getMetaData().copy();
                 metaData.putValue(PREV_ALARM_DETAILS, JacksonUtil.toString(previousDetails));
-                dummyMsg = TbMsg.transformMsgMetadata(msg, metaData);
+                dummyMsg = msg.transform()
+                        .metaData(metaData)
+                        .build();
             }
             return scriptEngine.executeJsonAsync(dummyMsg);
         } catch (Exception e) {

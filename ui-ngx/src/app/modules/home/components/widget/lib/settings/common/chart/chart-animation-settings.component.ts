@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -38,6 +38,7 @@ import {
   Validators
 } from '@angular/forms';
 import { chartAnimationEasings, ChartAnimationSettings } from '@home/components/widget/lib/chart/chart.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-chart-animation-settings',
@@ -66,7 +67,8 @@ export class ChartAnimationSettingsComponent implements OnInit, ControlValueAcce
 
   public animationSettingsFormGroup: UntypedFormGroup;
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -80,11 +82,14 @@ export class ChartAnimationSettingsComponent implements OnInit, ControlValueAcce
       animationEasingUpdate: [null, []],
       animationDelayUpdate: [null, [Validators.min(0)]]
     });
-    this.animationSettingsFormGroup.valueChanges.subscribe(() => {
+    this.animationSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
-    this.animationSettingsFormGroup.get('animation').valueChanges
-    .subscribe(() => {
+    this.animationSettingsFormGroup.get('animation').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
   }
@@ -112,7 +117,9 @@ export class ChartAnimationSettingsComponent implements OnInit, ControlValueAcce
       value, {emitEvent: false}
     );
     this.updateValidators();
-    this.animationSettingsFormGroup.get('animation').valueChanges.subscribe((animation) => {
+    this.animationSettingsFormGroup.get('animation').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((animation) => {
       this.settingsExpanded = animation;
     });
   }

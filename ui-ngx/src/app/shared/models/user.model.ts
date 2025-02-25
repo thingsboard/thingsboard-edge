@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,19 @@ export interface User extends BaseData<UserId> {
   firstName: string;
   lastName: string;
   customMenuId?: CustomMenuId;
-  additionalInfo: any;
+  additionalInfo: Partial<UserAdditionalInfo>;
+}
+
+export interface UserAdditionalInfo {
+  userCredentialsEnabled: boolean;
+  userActivated: boolean;
+  description: string;
+  defaultDashboardId: string;
+  defaultDashboardFullscreen: boolean;
+  homeDashboardId: string;
+  homeDashboardHideToolbar: boolean;
+  lang: string;
+  [key: string]: any;
 }
 
 export type UserInfo = User & GroupEntityInfo<UserId>;

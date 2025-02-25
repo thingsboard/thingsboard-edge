@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -158,6 +158,24 @@ public class JpaAssetInfoDaoTest extends AbstractJpaDaoTest {
         Assert.assertEquals(20, assetInfos3.getData().size());
     }
 
+    @Test
+    public void testFindAssetsByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers() {
+        UUID tenantId = Uuids.timeBased();
+        Customer customer = createCustomer(tenantId, null, 0);
+        AssetProfileId assetProfileId = assetProfileId("test");
+
+        for (int i = 0; i < 10; i++) {
+            assets.add(createAsset(tenantId, customer.getUuidId(), "test", i));
+        }
+
+        PageLink pageLink = new PageLink(10, 0, "test", new SortOrder("name", SortOrder.Direction.ASC));
+        PageData<AssetInfo> assetInfos = assetInfoDao.findAssetsByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(tenantId, customer.getUuidId(), assetProfileId.getId(), pageLink);
+        Assert.assertEquals(10, assetInfos.getTotalElements());
+        assetInfos.getData().forEach(asset -> Assert.assertEquals(assetProfileId, asset.getAssetProfileId()));
+        assetInfos.getData().forEach(asset -> Assert.assertEquals(tenantId, asset.getTenantId().getId()));
+        assetInfos.getData().forEach(asset -> Assert.assertTrue(asset.getName().contains("ASSET_")));
+    }
+
     private Asset createAsset(UUID tenantId, UUID customerId, int index) {
         return this.createAsset(tenantId, customerId, null, index);
     }
@@ -200,5 +218,4 @@ public class JpaAssetInfoDaoTest extends AbstractJpaDaoTest {
         }
         return assetProfileId;
     }
-
 }

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -106,6 +106,7 @@
   <div class="tb-widget-content" [class.tb-no-interaction]="disableWidgetInteraction">
     <tb-widget #widgetComponent
                [dashboardWidget]="widget"
+               [widget]="widget.widget"
                [isEdit]="isEdit"
                [isPreview]="isPreview"
                [isMobile]="isMobile"
@@ -136,8 +137,8 @@
                    noMargin
                    noPadding
                    [isEdit]="isEdit"
-                   [timewindowStyle]="widgetComponent.widget.config.timewindowStyle"
-                   [(ngModel)]="widgetComponent.widget.config.timewindow"
+                   [timewindowStyle]="widget.widget.config.timewindowStyle"
+                   [(ngModel)]="widget.widget.config.timewindow"
                    (ngModelChange)="widgetComponent.onTimewindowChanged($event)">
     </tb-timewindow>
   </div>

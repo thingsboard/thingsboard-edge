@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -99,17 +99,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                         Authentication authentication) throws IOException {
         OAuth2AuthorizationRequest authorizationRequest = httpCookieOAuth2AuthorizationRequestRepository.loadAuthorizationRequest(request);
         String callbackUrlScheme = authorizationRequest.getAttribute(TbOAuth2ParameterNames.CALLBACK_URL_SCHEME);
-        String baseUrl;
-        if (!StringUtils.isEmpty(callbackUrlScheme)) {
-            baseUrl = callbackUrlScheme + ":";
-        } else {
-            baseUrl = this.systemSecurityService.getBaseUrl(Authority.SYS_ADMIN, TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
-            Optional<Cookie> prevUrlOpt = CookieUtils.getCookie(request, PREV_URI_COOKIE_NAME);
-            if (prevUrlOpt.isPresent()) {
-                baseUrl += prevUrlOpt.get().getValue();
-                CookieUtils.deleteCookie(request, response, PREV_URI_COOKIE_NAME);
-            }
-        }
+        String baseUrl = null;
         try {
             OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
 
@@ -120,6 +110,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             OAuth2ClientMapper mapper = oauth2ClientMapperProvider.getOAuth2ClientMapperByType(oauth2Client.getMapperConfig().getType());
             SecurityUser securityUser = mapper.getOrCreateUserByClientPrincipal(request, token, oAuth2AuthorizedClient.getAccessToken().getTokenValue(),
                     oauth2Client);
+            baseUrl = getBaseUrl(request, response, callbackUrlScheme, securityUser);
 
             clearAuthenticationAttributes(request, response);
 
@@ -136,9 +127,31 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             } else {
                 errorPrefix = "/login?loginError=";
             }
+            if (StringUtils.isEmpty(baseUrl)) {
+                baseUrl = getBaseUrl(request, response, callbackUrlScheme, null);
+            }
             getRedirectStrategy().sendRedirect(request, response, baseUrl + errorPrefix +
                     URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8.toString()));
         }
+    }
+
+    private String getBaseUrl(HttpServletRequest request, HttpServletResponse response, String callbackUrlScheme, SecurityUser securityUser) {
+        String baseUrl;
+        if (!StringUtils.isEmpty(callbackUrlScheme)) {
+            baseUrl = callbackUrlScheme + ":";
+        } else {
+            if (securityUser != null) {
+                baseUrl = this.systemSecurityService.getBaseUrl(securityUser.getAuthority(), securityUser.getTenantId(), securityUser.getCustomerId(), request);
+            } else {
+                baseUrl = this.systemSecurityService.getBaseUrl(Authority.SYS_ADMIN, TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
+            }
+            Optional<Cookie> prevUrlOpt = CookieUtils.getCookie(request, PREV_URI_COOKIE_NAME);
+            if (prevUrlOpt.isPresent()) {
+                baseUrl += prevUrlOpt.get().getValue();
+                CookieUtils.deleteCookie(request, response, PREV_URI_COOKIE_NAME);
+            }
+        }
+        return baseUrl;
     }
 
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {

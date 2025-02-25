@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -169,10 +169,6 @@ import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -294,7 +290,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @Autowired
     public EntityGroupService entityGroupService;
-    ;
 
     @Autowired
     protected DefaultActorService actorService;
@@ -1121,12 +1116,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         return Futures.allAsList(futures);
     }
 
-    protected static void setFieldReflectively(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
-    }
-
     protected void testEntityDaoWithRelationsOk(EntityId entityIdFrom, EntityId entityTo, String urlDelete) throws Exception {
         createEntityRelation(entityIdFrom, entityTo, "TEST_TYPE");
         assertThat(findRelationsByTo(entityTo)).hasSize(1);
@@ -1169,33 +1158,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
                 return Collections.emptyList();
         }
         throw new AssertionError("Unexpected status " + mvcResult.getResponse().getStatus());
-    }
-
-    protected static <T> T getFieldValue(Object target, String fieldName) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        return (T) field.get(target);
-    }
-
-    protected static void setStaticFieldValue(Class<?> targetCls, String fieldName, Object value) throws Exception {
-        Field field = targetCls.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(null, value);
-    }
-
-    protected static void setStaticFinalFieldValue(Class<?> targetCls, String fieldName, Object value) throws Exception {
-        Field field = targetCls.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        // Get the VarHandle for the 'modifiers' field in the Field class
-        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(Field.class, MethodHandles.lookup());
-        VarHandle modifiersHandle = lookup.findVarHandle(Field.class, "modifiers", int.class);
-
-        // Remove the final modifier from the field
-        int currentModifiers = field.getModifiers();
-        modifiersHandle.set(field, currentModifiers & ~Modifier.FINAL);
-
-        // Set the new value
-        field.set(null, value);
     }
 
     protected int getDeviceActorSubscriptionCount(DeviceId deviceId, FeatureType featureType) {

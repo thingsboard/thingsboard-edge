@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -396,7 +396,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         OAuth2Client savedOAuth2Client = doPost("/api/oauth2/client", oAuth2Client, OAuth2Client.class);
 
         Domain domain = createDomain(TenantId.SYS_TENANT_ID, "my.home.domain", true, true);
-        doPost("/api/domain?oauth2ClientIds=" + savedOAuth2Client.getId().getId(), domain, Domain.class);
+        Domain savedDomain = doPost("/api/domain?oauth2ClientIds=" + savedOAuth2Client.getId().getId(), domain, Domain.class);
 
         featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
         Assert.assertNotNull(featuresInfo);
@@ -412,6 +412,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "sms");
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "whiteLabelParams");
         oAuth2ClientService.deleteOauth2ClientsByTenantId(TenantId.SYS_TENANT_ID);
+        domainService.deleteDomainById(TenantId.SYS_TENANT_ID, savedDomain.getId());
     }
 
     @Test

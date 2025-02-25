@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -234,7 +234,9 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
             TbMsg tbMsg = (TbMsg) (invocationOnMock.getArguments())[0];
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[1];
-            return TbMsg.transformMsgOriginator(tbMsg, originator);
+            return tbMsg.transform()
+                    .originator(originator)
+                    .build();
         }).when(ctxMock).transformMsgOriginator(
                 eq(msg),
                 eq(userId));
@@ -373,7 +375,14 @@ class TbDuplicateMsgToGroupByNameNodeTest {
             CustomerId customerId = (CustomerId) (invocationOnMock.getArguments())[3];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[4];
             String data = (String) (invocationOnMock.getArguments())[5];
-            return TbMsg.newMsg(queueName, type, originator, customerId, metaData.copy(), data);
+            return TbMsg.newMsg()
+                    .queueName(queueName)
+                    .type(type)
+                    .originator(originator)
+                    .customerId(customerId)
+                    .copyMetaData(metaData)
+                    .data(data)
+                    .build();
         }).when(ctxMock).newMsg(
                 eq(msg.getQueueName()),
                 eq(msg.getType()),
@@ -464,7 +473,14 @@ class TbDuplicateMsgToGroupByNameNodeTest {
             CustomerId customerId = (CustomerId) (invocationOnMock.getArguments())[3];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[4];
             String data = (String) (invocationOnMock.getArguments())[5];
-            return TbMsg.newMsg(queueName, type, originator, customerId, metaData.copy(), data);
+            return TbMsg.newMsg()
+                    .queueName(queueName)
+                    .type(type)
+                    .originator(originator)
+                    .customerId(customerId)
+                    .copyMetaData(metaData)
+                    .data(data)
+                    .build();
         }).when(ctxMock).newMsg(
                 eq(msg.getQueueName()),
                 eq(msg.getType()),
@@ -573,8 +589,12 @@ class TbDuplicateMsgToGroupByNameNodeTest {
     private TbMsg getTbMsgWithBody(EntityId originatorId) {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("groupNameMetaData", "Entity Group Name");
-        return TbMsg.newMsg(
-                TbMsgType.POST_TELEMETRY_REQUEST, originatorId, metaData, "{ \"temp\": 44, \"humidity\": 86, \"groupName\": \"Entity Group Name\" }");
+        return TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(originatorId)
+                .copyMetaData(metaData)
+                .data("{ \"temp\": 44, \"humidity\": 86, \"groupName\": \"Entity Group Name\" }")
+                .build();
     }
 
     private TbMsg getTbMsg() {
@@ -582,8 +602,12 @@ class TbDuplicateMsgToGroupByNameNodeTest {
     }
 
     private TbMsg getTbMsgByOriginator(EntityId originatorId) {
-        return TbMsg.newMsg(
-                TbMsgType.POST_TELEMETRY_REQUEST, originatorId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        return TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(originatorId)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
     }
 
     // Rule nodes upgrade

@@ -3447,7 +3447,7 @@
         "sas-key-name-required": "SAS-sleutelnaam is vereist.",
         "sas-key": "SAS-toets",
         "sas-key-required": "SAS-sleutel is vereist.",
-        "iot-hub-name": "IoT Hub-naam (vereist voor downlink)",
+        "iot-hub-name": "IoT Hub-naam",
         "hostname": "Hostnaam",
         "hostname-required": "Hostnaam is vereist",
         "integration-clazz": "Integratie klasse",
@@ -4552,8 +4552,7 @@
         "metadata-required": "Metagegevensvermeldingen mogen niet leeg zijn.",
         "output": "Uitvoer",
         "test": "Test",
-        "help": "Help",
-        "reset-debug-mode": "Foutopsporingsmodus resetten in alle rule nodes"
+        "help": "Help"
     },
     "role": {
         "role": "Rol",
@@ -5524,7 +5523,6 @@
         "type": "Type widget",
         "resources": "Weg",
         "resource-url": "JavaScript/CSS-URL",
-        "resource-is-module": "Is-module",
         "remove-resource": "Bron verwijderen",
         "add-resource": "Bron toevoegen",
         "html": ".HTML",

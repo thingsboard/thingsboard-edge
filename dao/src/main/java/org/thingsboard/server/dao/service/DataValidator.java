@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -65,6 +66,8 @@ public abstract class DataValidator<D extends BaseData<?>> {
     private static final Pattern QUEUE_PATTERN = Pattern.compile("^[a-zA-Z0-9_.\\-]+$");
     private static final String DOMAIN_REGEX = "^(((?!-))(xn--|_)?[a-z0-9-]{0,61}[a-z0-9]{1,1}\\.)*(xn--)?([a-z0-9][a-z0-9\\-]{0,60}|[a-z0-9-]{1,30}\\.[a-z]{2,})$";
     private static final Pattern DOMAIN_PATTERN = Pattern.compile(DOMAIN_REGEX);
+    private static final String LOCALHOST_REGEX = "^localhost(:\\d{1,5})?$";
+    private static final Pattern LOCALHOST_PATTERN = Pattern.compile(LOCALHOST_REGEX);
     private static final String NAME = "name";
     private static final String TOPIC = "topic";
 
@@ -143,12 +146,24 @@ public abstract class DataValidator<D extends BaseData<?>> {
         }
     }
 
-    public static void validateCustomTranslation(JsonNode customTranslation) {
+    public static void validateCustomTranslationPatch(JsonNode customTranslation) {
         Streams.stream(customTranslation.fieldNames()).forEach(key -> {
             if (key.endsWith(".")) {
                 throw new DataValidationException("The key can`t end with '.'");
             }
         });
+    }
+
+    public static void validateCustomTranslationKeys(Set<String> defaultLocaleKeys, JsonNode customTranslation) {
+        Set<String> customTranslationKeys = JacksonUtil.extractKeys(customTranslation);
+        customTranslationKeys.removeAll(defaultLocaleKeys);
+        for (String addedKey : customTranslationKeys) {
+            for (String defaultLocaleKey : defaultLocaleKeys) {
+                if (addedKey.startsWith(defaultLocaleKey + ".")) {
+                    throw new DataValidationException("The key [" + addedKey + "] overlaps default key [" + defaultLocaleKey + "]");
+                }
+            }
+        }
     }
 
     public static boolean doValidateLocaleCode(String localeCode) {
@@ -230,6 +245,9 @@ public abstract class DataValidator<D extends BaseData<?>> {
     public static boolean isValidDomain(String domainName) {
         if (domainName == null) {
             return false;
+        }
+        if (LOCALHOST_PATTERN.matcher(domainName).matches()) {
+            return true;
         }
         return DOMAIN_PATTERN.matcher(domainName).matches();
     }

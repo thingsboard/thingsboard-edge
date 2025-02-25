@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,21 +45,17 @@ public class MobileAppDataValidator extends DataValidator<MobileApp> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, MobileApp mobileApp) {
-        if (mobileApp.getPlatformType() == PlatformType.ANDROID) {
-            if (mobileApp.getStoreInfo() != null &&
+        if (mobileApp.getStatus() == MobileAppStatus.PUBLISHED) {
+            if (mobileApp.getStoreInfo() == null) {
+                throw new DataValidationException("Store info is required for published apps");
+            }
+            if (mobileApp.getPlatformType() == PlatformType.ANDROID &&
                     (mobileApp.getStoreInfo().getSha256CertFingerprints() == null || mobileApp.getStoreInfo().getStoreLink() == null)) {
                 throw new DataValidationException("Sha256CertFingerprints and store link are required");
-            }
-        } else if (mobileApp.getPlatformType() == PlatformType.IOS) {
-            if (mobileApp.getStoreInfo() != null &&
+            } else if (mobileApp.getPlatformType() == PlatformType.IOS &&
                     (mobileApp.getStoreInfo().getAppId() == null || mobileApp.getStoreInfo().getStoreLink() == null)) {
                 throw new DataValidationException("AppId and store link are required");
             }
-        } else {
-            throw new DataValidationException("Wrong application platform type");
-        }
-        if (mobileApp.getStatus() == MobileAppStatus.PUBLISHED && mobileApp.getStoreInfo() == null) {
-            throw new DataValidationException("Store info is required for published apps");
         }
     }
 }

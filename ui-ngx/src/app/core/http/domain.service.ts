@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,9 +47,12 @@ export class DomainService {
   ) {
   }
 
-  public saveDomain(domain: Domain, oauth2ClientIds: Array<string>, config?: RequestConfig): Observable<Domain> {
-    return this.http.post<Domain>(`/api/domain?oauth2ClientIds=${oauth2ClientIds.join(',')}`,
-      domain, defaultHttpOptionsFromConfig(config));
+  public saveDomain(domain: Domain, oauth2ClientIds?: Array<string>, config?: RequestConfig): Observable<Domain> {
+    let url = '/api/domain';
+    if (oauth2ClientIds?.length) {
+      url += `?oauth2ClientIds=${oauth2ClientIds.join(',')}`;
+    }
+    return this.http.post<Domain>(url, domain, defaultHttpOptionsFromConfig(config));
   }
 
   public updateOauth2Clients(id: string, oauth2ClientIds: Array<string>, config?: RequestConfig): Observable<void> {

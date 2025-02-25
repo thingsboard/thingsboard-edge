@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -47,6 +47,7 @@ import {
   NumericOperation,
   numericOperationTranslationMap,
 } from '@shared/models/query/query.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-numeric-filter-predicate',
@@ -85,7 +86,8 @@ export class NumericFilterPredicateComponent implements ControlValueAccessor, Va
 
   private propagateChange = null;
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -93,7 +95,9 @@ export class NumericFilterPredicateComponent implements ControlValueAccessor, Va
       operation: [NumericOperation.EQUAL, [Validators.required]],
       value: [null, [Validators.required]]
     });
-    this.numericFilterPredicateFormGroup.valueChanges.subscribe(() => {
+    this.numericFilterPredicateFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

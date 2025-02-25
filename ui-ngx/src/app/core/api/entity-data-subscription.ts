@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -700,7 +700,7 @@ export class EntityDataSubscription {
       if (this.tsFields.length > 0) {
         if (this.history) {
           cmd.historyCmd = {
-            keys: this.tsFields.map(key => key.key),
+            keys: [... new Set(this.tsFields.map(key => key.key))],
             startTs: this.subsTw.fixedWindow.startTimeMs,
             endTs: this.subsTw.fixedWindow.endTimeMs,
             interval: 0,
@@ -717,7 +717,7 @@ export class EntityDataSubscription {
           }
         } else {
           cmd.tsCmd = {
-            keys: this.tsFields.map(key => key.key),
+            keys: [... new Set(this.tsFields.map(key => key.key))],
             startTs: this.subsTw.startTs,
             timeWindow: this.subsTw.aggregation.timeWindow,
             interval: 0,

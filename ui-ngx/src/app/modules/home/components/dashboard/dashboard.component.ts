@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -57,7 +57,9 @@ import {
   DashboardCallbacks,
   DashboardWidget,
   DashboardWidgets,
-  IDashboardComponent
+  IDashboardComponent,
+  maxGridsterCol,
+  maxGridsterRow
 } from '../../models/dashboard-component.models';
 import { ReplaySubject, Subject, Subscription } from 'rxjs';
 import { WidgetLayout, WidgetLayouts } from '@shared/models/dashboard.models';
@@ -259,10 +261,10 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       disableAutoPositionOnConflict: false,
       pushItems: false,
       swap: false,
-      maxRows: 3000,
+      maxRows: maxGridsterRow,
       minCols: this.columns ? this.columns : 24,
       setGridSize: this.setGridSize,
-      maxCols: 3000,
+      maxCols: maxGridsterCol,
       maxItemCols: 1000,
       maxItemRows: 1000,
       maxItemArea: 1000000,
@@ -281,7 +283,10 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       draggable: {
         enabled: this.isEdit && !this.isEditingWidget,
         delayStart: 100,
-        stop: (_, itemComponent) => {(itemComponent.item as DashboardWidget).updatePosition(itemComponent.$item.x, itemComponent.$item.y);}
+        stop: (_, itemComponent) => {
+          (itemComponent.item as DashboardWidget).updatePosition(itemComponent.$item.x, itemComponent.$item.y);
+          this.notifyGridsterOptionsChanged();
+        }
       },
       itemChangeCallback: () => this.dashboardWidgets.sortWidgets(),
       itemInitCallback: (_, itemComponent) => {

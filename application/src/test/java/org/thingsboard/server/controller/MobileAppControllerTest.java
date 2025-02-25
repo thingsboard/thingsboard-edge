@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,11 +36,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.mobile.LoginMobileInfo;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,6 +85,13 @@ public class MobileAppControllerTest extends AbstractControllerTest {
         MobileApp retrievedMobileAppInfo = doGet("/api/mobile/app/{id}", MobileApp.class, savedMobileApp.getId().getId());
         assertThat(retrievedMobileAppInfo).isEqualTo(savedMobileApp);
 
+        // get mobile info
+        LoginMobileInfo loginMobileInfo = doGet("/api/noauth/mobile?pkgName={pkgName}&platform={platform}", LoginMobileInfo.class, mobileApp.getPkgName(), mobileApp.getPlatformType());
+        assertThat(loginMobileInfo.oAuth2ClientLoginInfos()).isEmpty();
+        assertThat(loginMobileInfo.storeInfo()).isEqualTo(ModelConstants.MOBILE_APP_STORE_INFO_EMPTY_OBJECT);
+        assertThat(loginMobileInfo.versionInfo()).isEqualTo(ModelConstants.MOBILE_APP_VERSION_INFO_EMPTY_OBJECT);
+        assertThat(loginMobileInfo.selfRegistrationParams()).isNull();
+
         doDelete("/api/mobile/app/" + savedMobileApp.getId().getId());
         doGet("/api/mobile/app/{id}", savedMobileApp.getId().getId())
                 .andExpect(status().isNotFound());
@@ -90,7 +99,7 @@ public class MobileAppControllerTest extends AbstractControllerTest {
 
     @Test
     public void testSaveMobileAppWithShortAppSecret() throws Exception {
-        MobileApp mobileApp = validMobileApp( "mobileApp.ce", PlatformType.ANDROID);
+        MobileApp mobileApp = validMobileApp("mobileApp.ce", PlatformType.ANDROID);
         mobileApp.setAppSecret("short");
         doPost("/api/mobile/app", mobileApp)
                 .andExpect(status().isBadRequest())

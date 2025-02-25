@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,8 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     private boolean enabled;
     @Value("${integrations.converters.library.url:https://github.com/thingsboard/data-converters.git}")
     private String repoUrl;
+    @Value("${integrations.converters.library.branch:main}")
+    private String branch;
     @Value("${integrations.converters.library.fetch_frequency:24}")
     private int fetchFrequencyHours;
 
@@ -82,7 +84,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (!enabled) {
             return;
         }
-        gitSyncService.registerSync(REPO_KEY, repoUrl, "main", TimeUnit.HOURS.toMillis(fetchFrequencyHours), this::updateConvertersInfo);
+        gitSyncService.registerSync(REPO_KEY, repoUrl, branch, TimeUnit.HOURS.toMillis(fetchFrequencyHours), this::updateConvertersInfo);
     }
 
     @Override

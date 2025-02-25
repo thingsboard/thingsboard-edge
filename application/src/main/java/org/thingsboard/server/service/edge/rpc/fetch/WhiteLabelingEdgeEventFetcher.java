@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -81,7 +81,7 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
             EntityId ownerId = edge.getOwnerId();
             List<EdgeEvent> result = new ArrayList<>();
             result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    eventType, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(new TenantId(EntityId.NULL_UUID))));
+                    eventType, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(TenantId.SYS_TENANT_ID)));
             result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
                     eventType, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantId)));
             if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   EventEmitter,
   forwardRef,
   Input,
@@ -55,6 +56,7 @@ import {
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-axis-settings-panel.component';
 import { deepClone } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-time-series-chart-y-axis-row',
@@ -96,7 +98,8 @@ export class TimeSeriesChartYAxisRowComponent implements ControlValueAccessor, O
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private viewContainerRef: ViewContainerRef,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit() {
@@ -109,10 +112,14 @@ export class TimeSeriesChartYAxisRowComponent implements ControlValueAccessor, O
       max: [null, []],
       show: [null, []]
     });
-    this.axisFormGroup.valueChanges.subscribe(
+    this.axisFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
-    this.axisFormGroup.get('show').valueChanges.subscribe(() => {
+    this.axisFormGroup.get('show').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
   }

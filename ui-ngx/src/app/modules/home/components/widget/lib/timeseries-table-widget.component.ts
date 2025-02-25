@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -961,9 +961,9 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               tsRow = isDefined(sourcesLatest[datasourceData.datasource.name])
                 ? deepClone(sourcesLatest[datasourceData.datasource.name]) : {};
               if (columnsToExport.includes('Timestamp')) {
-                tsRow.Timestamp = of(this.datePipe.transform(ts, this.dateFormatFilter));
+                tsRow.Timestamp = this.datePipe.transform(ts, this.dateFormatFilter);
               }
-              tsRow['Entity Name'] = of(datasourceData.datasource.entityName);
+              tsRow['Entity Name'] = datasourceData.datasource.entityName;
               sourcesTsRows[tsKey] = tsRow;
               if (!isEmpty(sourcesLatestContentFunc)) {
                 sourcesTsRowsContentFunc[tsKey] = deepClone(sourcesLatestContentFunc[datasourceData.datasource.name]);
@@ -973,10 +973,10 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
             if (!sourcesTsRowsContentFunc[tsKey]) {
               sourcesTsRowsContentFunc[tsKey] = {};
             }
-            sourcesTsRowsContentFunc[tsKey][key] = deepClone({
-              value,
+            sourcesTsRowsContentFunc[tsKey][key] = {
+              value: deepClone(value),
               contentFunction: header.contentInfo.contentFunction
-            });
+            };
             key = this.checkProperty(tsRow, key);
             tsRow[key] = value;
           });
@@ -990,6 +990,10 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
       const timestampsContentFunc = Object.keys(sourcesTsRowsContentFunc);
       if (timestampsContentFunc.length) {
         timestampsContentFunc.forEach(timestamp => {
+          outputTsRows[timestamp] = {};
+          for (const key in sourcesTsRows[timestamp]) {
+            outputTsRows[timestamp][key] = of(sourcesTsRows[timestamp][key]);
+          }
           const tsRowContentFuncKeys = Object.keys(sourcesTsRowsContentFunc[timestamp]);
           tsRowContentFuncKeys.forEach(key => {
             outputTsRows[timestamp][key] = sourcesTsRowsContentFunc[timestamp][key].contentFunction.pipe(

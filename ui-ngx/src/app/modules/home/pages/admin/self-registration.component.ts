@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
@@ -52,7 +52,9 @@ import {
   RecipientNotificationDialogData
 } from '@home/pages/notification/recipient/recipient-notification-dialog.component';
 import { NotificationTarget } from '@shared/models/notification.models';
+import { EditorOptions } from 'tinymce';
 import { DialogService } from '@core/services/dialog.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-self-registration',
@@ -69,19 +71,22 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   deleteDisabled = true;
 
-  tinyMceOptions: Record<string, any> = {
+  tinyMceOptions: Partial<EditorOptions> = {
     base_url: '/assets/tinymce',
     suffix: '.min',
-    plugins: ['link table image imagetools code fullscreen'],
+    plugins: ['link', 'table', 'image', 'imagetools', 'code', 'fullscreen', 'lists'],
     menubar: 'edit insert tools view format table',
-    toolbar: 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor ' +
-      '| link | table | image | alignleft aligncenter alignright alignjustify  ' +
-      '| numlist bullist outdent indent  | removeformat | code | fullscreen',
+    toolbar_mode: 'sliding',
+    toolbar: 'fontfamily fontsize | bold italic  strikethrough  forecolor backcolor ' +
+      '| link table image | alignleft aligncenter alignright alignjustify  ' +
+      '| numlist bullist outdent indent | blocks | removeformat code | fullscreen',
     height: 380,
     autofocus: false,
     branding: false,
     resize: true,
-    promotion: false
+    promotion: false,
+    relative_urls: false,
+    urlconverter_callback: (url) => url
   };
 
   showMainLoadingBar = false;
@@ -95,7 +100,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
               private dialogService: DialogService,
               private selfRegistrationService: SelfRegistrationService,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super();
   }
 
@@ -129,11 +135,11 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       termsOfUse: [null],
       showTermsOfUse: [true]
     });
-    this.selfRegistrationFormGroup.get('defaultDashboard.id').valueChanges.subscribe(
-      () => {
-        this.updateDisabledState();
-      }
-    );
+    this.selfRegistrationFormGroup.get('defaultDashboard.id').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      this.updateDisabledState();
+    });
   }
 
   private updateDisabledState() {

@@ -1,0 +1,254 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="aggregateIncomingConfigForm" class="flex flex-col">
+  <tb-output-message-type-autocomplete required formControlName="outMsgType"></tb-output-message-type-autocomplete>
+  <div class="gt-sm:flex-row gt-sm:gap-2 flex flex-col">
+    <mat-form-field class="mat-block flex-1">
+      <mat-label translate>rule-node-config.input-value-key</mat-label>
+      <input required matInput formControlName="inputValueKey">
+      <mat-error *ngIf="aggregateIncomingConfigForm.get('inputValueKey').hasError('required')">
+        {{ 'rule-node-config.input-value-key-required' | translate }}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="mat-block flex-1">
+      <mat-label translate>rule-node-config.output-value-key</mat-label>
+      <input required matInput formControlName="outputValueKey">
+      <mat-error *ngIf="aggregateIncomingConfigForm.get('outputValueKey').hasError('required')">
+        {{ 'rule-node-config.output-value-key-required' | translate }}
+      </mat-error>
+    </mat-form-field>
+  </div>
+  <mat-accordion multi>
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>rule-node-config.aggregation</mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-form-field class="mat-block">
+        <mat-label translate>rule-node-config.math-function</mat-label>
+        <mat-select formControlName="mathFunction" required>
+          <mat-option *ngFor="let mathFunction of mathFunctions" [value]="mathFunction">
+            {{ mathFunctionsTranslationMap.get(mathFunction) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="mat-block">
+        <mat-label translate>rule-node-config.aggregate-interval-type</mat-label>
+        <mat-select formControlName="aggIntervalType" required>
+          <mat-option *ngFor="let type of aggIntervalTypes" [value]="type">
+            {{ aggIntervalTypesTranslationMap.get(type) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <tb-timezone-select
+        *ngIf="aggregateIncomingConfigForm.get('aggIntervalType').value !== aggIntervalType.CUSTOM"
+        required
+        userTimezoneByDefault
+        formControlName="timeZoneId">
+      </tb-timezone-select>
+      <div class="gt-sm:flex-row gt-sm:gap-2 flex flex-col"
+           *ngIf="aggregateIncomingConfigForm.get('aggIntervalType').value === aggIntervalType.CUSTOM">
+        <mat-form-field class="mat-block flex-1">
+          <mat-label translate>rule-node-config.agg-interval-value</mat-label>
+          <input type="number" step="1" min="1" max="2147483647" matInput formControlName="aggIntervalValue" required>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('aggIntervalValue').hasError('required')">
+            {{ 'rule-node-config.agg-interval-value-required' | translate }}
+          </mat-error>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('aggIntervalValue').hasError('min')">
+            {{ 'rule-node-config.time-value-range' | translate }}
+          </mat-error>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('aggIntervalValue').hasError('max')">
+            {{ 'rule-node-config.time-value-range' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field class="mat-block flex-1">
+          <mat-label translate>rule-node-config.agg-interval-time-unit</mat-label>
+          <mat-select formControlName="aggIntervalTimeUnit" required>
+            <mat-option *ngFor="let timeUnit of aggPeriodTimeUnits" [value]="timeUnit">
+              {{ timeUnitsTranslationMap.get(timeUnit) | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-expansion-panel>
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>rule-node-config.interval-persistence</mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-form-field class="mat-block">
+        <mat-label translate>rule-node-config.interval-persistence-policy</mat-label>
+        <mat-select formControlName="intervalPersistencePolicy" required>
+          <mat-option *ngFor="let policy of intervalPersistPolicies" [value]="policy">
+            {{ intervalPersistPolicyTranslationMap.get(policy) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="gt-sm:flex-row gt-sm:gap-2 flex flex-col">
+        <mat-form-field class="mat-block flex-1">
+          <mat-label translate>rule-node-config.interval-check-value</mat-label>
+          <input type="number" step="1" min="1" max="2147483647" matInput formControlName="intervalCheckValue" required>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('intervalCheckValue').hasError('required')">
+            {{ 'rule-node-config.interval-check-value-required' | translate }}
+          </mat-error>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('intervalCheckValue').hasError('min')">
+            {{ 'rule-node-config.time-value-range' | translate }}
+          </mat-error>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('intervalCheckValue').hasError('max')">
+            {{ 'rule-node-config.time-value-range' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field class="mat-block flex-1">
+          <mat-label translate>rule-node-config.interval-check-time-unit</mat-label>
+          <mat-select formControlName="intervalCheckTimeUnit" required>
+            <mat-option *ngFor="let timeUnit of aggPeriodTimeUnits" [value]="timeUnit">
+              {{ timeUnitsTranslationMap.get(timeUnit) | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-expansion-panel>
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>rule-node-config.state-persistence</mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-form-field class="mat-block">
+        <mat-label translate>rule-node-config.state-persistence-policy</mat-label>
+        <mat-select formControlName="statePersistencePolicy" required>
+          <mat-option *ngFor="let policy of statePersistPolicies" [value]="policy">
+            {{ statePersistPolicyTranslationMap.get(policy) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="gt-sm:flex-row gt-sm:gap-2 flex flex-col"
+           *ngIf="aggregateIncomingConfigForm.get('statePersistencePolicy').value === StatePersistPolicy.PERIODICALLY">
+        <mat-form-field class="mat-block flex-1">
+          <mat-label translate>rule-node-config.state-persistence-value</mat-label>
+          <input type="number" step="1" min="1" max="2147483647" matInput formControlName="statePersistenceValue" required>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('statePersistenceValue').hasError('required')">
+            {{ 'rule-node-config.state-persistence-value-required' | translate }}
+          </mat-error>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('statePersistenceValue').hasError('min')">
+            {{ 'rule-node-config.time-value-range' | translate }}
+          </mat-error>
+          <mat-error *ngIf="aggregateIncomingConfigForm.get('statePersistenceValue').hasError('max')">
+            {{ 'rule-node-config.time-value-range' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field class="mat-block flex-1">
+          <mat-label translate>rule-node-config.state-persistence-time-unit</mat-label>
+          <mat-select formControlName="statePersistenceTimeUnit" required>
+            <mat-option *ngFor="let timeUnit of aggPeriodTimeUnits" [value]="timeUnit">
+              {{ timeUnitsTranslationMap.get(timeUnit) | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+  <mat-checkbox class="flex-1" formControlName="autoCreateIntervals" style="padding-bottom: 16px;">
+    {{ 'rule-node-config.auto-create-intervals' | translate }}
+  </mat-checkbox>
+  <mat-expansion-panel *ngIf="aggregateIncomingConfigForm.get('autoCreateIntervals').value"
+    [expanded]="true">
+    <mat-expansion-panel-header>
+      <mat-panel-title translate>rule-node-config.interval-entities</mat-panel-title>
+    </mat-expansion-panel-header>
+    <div class="gt-sm:flex-row gt-sm:gap-2 flex flex-col">
+      <mat-form-field class="mat-block flex-1">
+        <mat-label translate>rule-node-config.execution-period-value</mat-label>
+        <input type="number" step="1" min="1" max="2147483647" matInput formControlName="periodValue" required>
+        <mat-error *ngIf="aggregateIncomingConfigForm.get('periodValue').hasError('required')">
+          {{ 'rule-node-config.execution-period-value-required' | translate }}
+        </mat-error>
+        <mat-error *ngIf="aggregateIncomingConfigForm.get('periodValue').hasError('min')">
+          {{ 'rule-node-config.time-value-range' | translate }}
+        </mat-error>
+        <mat-error *ngIf="aggregateIncomingConfigForm.get('periodValue').hasError('max')">
+          {{ 'rule-node-config.time-value-range' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field class="mat-block flex-1">
+        <mat-label translate>rule-node-config.execution-period-time-unit</mat-label>
+        <mat-select formControlName="periodTimeUnit" required>
+          <mat-option *ngFor="let timeUnit of aggPeriodTimeUnits" [value]="timeUnit">
+            {{ timeUnitsTranslationMap.get(timeUnit) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>rule-node-config.entities</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div formGroupName="parentEntitiesQuery" class="flex flex-col">
+        <mat-radio-group formControlName="type" class="flex flex-row gap-2"
+                         style="padding-top: 16px; padding-bottom: 16px;">
+          <mat-radio-button [value]="'single'" color="primary">
+            <span translate>rule-node-config.single-entity</span>
+          </mat-radio-button>
+          <mat-radio-button [value]="'group'" color="primary">
+            <span translate>rule-node-config.group-of-entities</span>
+          </mat-radio-button>
+          <mat-radio-button [value]="'relationsQuery'" color="primary">
+            <span translate>rule-node-config.relations-query</span>
+          </mat-radio-button>
+        </mat-radio-group>
+        <section *ngIf="aggregateIncomingConfigForm.get('parentEntitiesQuery.type').value === 'relationsQuery'"
+                 class="flex flex-col">
+          <label translate class="tb-title tb-required">rule-node-config.root-entity</label>
+          <tb-entity-select
+            required
+            formControlName="rootEntityId">
+          </tb-entity-select>
+          <label translate class="tb-title tb-required">rule-node-config.relations-query</label>
+          <tb-relations-query-config
+            style="padding-bottom: 15px;"
+            formControlName="relationsQuery">
+          </tb-relations-query-config>
+        </section>
+        <tb-entity-select
+          *ngIf="aggregateIncomingConfigForm.get('parentEntitiesQuery.type').value === 'single'"
+          required
+          formControlName="entityId">
+        </tb-entity-select>
+        <tb-entity-group-select
+          *ngIf="aggregateIncomingConfigForm.get('parentEntitiesQuery.type').value === 'group'"
+          required
+          formControlName="entityGroupId"
+          placeholderText="entity-group.select-entity-group"
+          notFoundText="entity-group.no-entity-groups-matching"
+          requiredText="entity-group.target-entity-group-required">
+        </tb-entity-group-select>
+      </div>
+    </mat-expansion-panel>
+  </mat-expansion-panel>
+</section>

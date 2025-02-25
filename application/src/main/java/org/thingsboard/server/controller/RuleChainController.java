@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -400,7 +400,12 @@ public class RuleChainController extends BaseController {
                 }
                 engine = new RuleNodeTbelScriptEngine(getTenantId(), tbelInvokeService, script, argNames);
             }
-            TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadata), TbMsgDataType.JSON, data);
+            TbMsg inMsg = TbMsg.newMsg()
+                    .type(msgType)
+                    .copyMetaData(new TbMsgMetaData(metadata))
+                    .dataType(TbMsgDataType.JSON)
+                    .data(data)
+                    .build();
             switch (scriptType) {
                 case "update":
                     output = msgToOutput(engine.executeUpdateAsync(inMsg).get(TIMEOUT, TimeUnit.SECONDS));

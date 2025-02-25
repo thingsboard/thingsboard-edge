@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -52,6 +52,7 @@ import { Subject } from 'rxjs';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { TranslateService } from '@ngx-translate/core';
+import { EditorOptions } from 'tinymce';
 
 @Component({
   selector: 'tb-template-configuration',
@@ -96,7 +97,7 @@ export class NotificationTemplateConfigurationComponent implements OnDestroy, Co
   readonly NotificationDeliveryMethod = NotificationDeliveryMethod;
   readonly NotificationTemplateTypeTranslateMap = NotificationTemplateTypeTranslateMap;
 
-  tinyMceOptions: Record<string, any> = {
+  tinyMceOptions: Partial<EditorOptions> = {
     base_url: '/assets/tinymce',
     suffix: '.min',
     plugins: ['link', 'table', 'image', 'lists', 'code', 'fullscreen'],
@@ -108,7 +109,9 @@ export class NotificationTemplateConfigurationComponent implements OnDestroy, Co
     height: 400,
     autofocus: false,
     branding: false,
-    promotion: false
+    promotion: false,
+    relative_urls: false,
+    urlconverter_callback: (url) => url
   };
 
   private propagateChange = null;

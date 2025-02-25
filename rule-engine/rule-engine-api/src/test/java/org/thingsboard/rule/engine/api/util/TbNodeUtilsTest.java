@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,12 @@ public class TbNodeUtilsTest {
         ObjectNode node = JacksonUtil.newObjectNode();
         node.put("data_key", "data_value");
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, TenantId.SYS_TENANT_ID, md, JacksonUtil.toString(node));
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(TenantId.SYS_TENANT_ID)
+                .copyMetaData(md)
+                .data(JacksonUtil.toString(node))
+                .build();
         String result = TbNodeUtils.processPattern(pattern, msg);
         Assertions.assertEquals("ABC metadata_value data_value", result);
     }
@@ -73,7 +78,12 @@ public class TbNodeUtilsTest {
         ObjectNode node = JacksonUtil.newObjectNode();
         node.put("key", "data_value");
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, TenantId.SYS_TENANT_ID, md, JacksonUtil.toString(node));
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(TenantId.SYS_TENANT_ID)
+                .copyMetaData(md)
+                .data(JacksonUtil.toString(node))
+                .build();
         String result = TbNodeUtils.processPattern(pattern, msg);
         Assertions.assertEquals(pattern, result);
     }
@@ -87,7 +97,12 @@ public class TbNodeUtilsTest {
         ObjectNode node = JacksonUtil.newObjectNode();
         node.put("key", "data_value");
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, TenantId.SYS_TENANT_ID, md, JacksonUtil.toString(node));
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(TenantId.SYS_TENANT_ID)
+                .copyMetaData(md)
+                .data(JacksonUtil.toString(node))
+                .build();
         String result = TbNodeUtils.processPattern(pattern, msg);
         Assertions.assertEquals("ABC metadata_value data_value", result);
     }
@@ -108,7 +123,12 @@ public class TbNodeUtilsTest {
         ObjectNode node = JacksonUtil.newObjectNode();
         node.set("key1", key1Node);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, TenantId.SYS_TENANT_ID, md, JacksonUtil.toString(node));
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(TenantId.SYS_TENANT_ID)
+                .copyMetaData(md)
+                .data(JacksonUtil.toString(node))
+                .build();
         String result = TbNodeUtils.processPattern(pattern, msg);
         Assertions.assertEquals("ABC metadata_value value3", result);
     }
@@ -129,7 +149,12 @@ public class TbNodeUtilsTest {
         ObjectNode node = JacksonUtil.newObjectNode();
         node.set("key1", key1Node);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, TenantId.SYS_TENANT_ID, md, JacksonUtil.toString(node));
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(TenantId.SYS_TENANT_ID)
+                .copyMetaData(md)
+                .data(JacksonUtil.toString(node))
+                .build();
         String result = TbNodeUtils.processPattern(pattern, msg);
         Assertions.assertEquals("ABC metadata_value $[key1.key2[0].key3]", result);
     }

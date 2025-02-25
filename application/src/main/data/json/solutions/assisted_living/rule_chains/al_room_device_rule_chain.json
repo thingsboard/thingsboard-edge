@@ -23,8 +23,13 @@
         "name": "Save Timeseries",
         "debugFailures": false,
         "debugAll": false,
+        "configurationVersion": 1,
         "configuration": {
-          "defaultTTL": 0
+          "defaultTTL": 0,
+          "useServerTs": false,
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          }
         },
         "externalId": null
       },

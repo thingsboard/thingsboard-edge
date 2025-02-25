@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit, Optional } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit, Optional } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALIDATORS,
@@ -44,8 +44,8 @@ import {
   Datasource,
   DatasourceType,
   datasourceTypeTranslationMap,
-  JsonSettingsSchema,
-  Widget, WidgetConfigMode,
+  Widget,
+  WidgetConfigMode,
   widgetType
 } from '@shared/models/widget.models';
 import { AlarmSearchStatus } from '@shared/models/alarm.models';
@@ -58,6 +58,8 @@ import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/wid
 import { EntityType } from '@shared/models/entity-type.models';
 import { DatasourcesComponent } from '@home/components/widget/config/datasources.component';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
+import { FormProperty } from '@shared/models/dynamic-form.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-datasource',
@@ -123,16 +125,16 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
     return this.widgetConfigComponent.modelValue?.typeParameters?.maxDataKeys;
   }
 
-  public get dataKeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.dataKeySettingsSchema;
+  public get dataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.dataKeySettingsForm;
   }
 
   public get dataKeySettingsDirective(): string {
     return this.widgetConfigComponent.modelValue?.dataKeySettingsDirective;
   }
 
-  public get latestDataKeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.latestDataKeySettingsSchema;
+  public get latestDataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.latestDataKeySettingsForm;
   }
 
   public get latestDataKeySettingsDirective(): string {
@@ -203,7 +205,8 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
   constructor(private fb: UntypedFormBuilder,
               @Optional()
               private datasourcesComponent: DatasourcesComponent,
-              private widgetConfigComponent: WidgetConfigComponent) {
+              private widgetConfigComponent: WidgetConfigComponent,
+              private destroyRef: DestroyRef) {
   }
 
   registerOnChange(fn: any): void {
@@ -253,10 +256,14 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
     if (this.hasAdditionalLatestDataKeys) {
       this.datasourceFormGroup.addControl('latestDataKeys', this.fb.control(null));
     }
-    this.datasourceFormGroup.get('type').valueChanges.subscribe(() => {
+    this.datasourceFormGroup.get('type').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
-    this.datasourceFormGroup.valueChanges.subscribe(
+    this.datasourceFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => {
         this.datasourceUpdated(this.datasourceFormGroup.value);
       }

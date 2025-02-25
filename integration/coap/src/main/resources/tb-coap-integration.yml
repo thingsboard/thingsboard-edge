@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -136,6 +136,30 @@ coap:
     bind_port: "${COAP_DTLS_BIND_PORT:5684}"
     # CoAP DTLS connection ID length. RFC 9146, Connection Identifier for DTLS 1.2
     connection_id_length: "${COAP_DTLS_CONNECTION_ID_LENGTH:}"
+    # Specify the MTU (Maximum Transmission Unit).
+    # Should be used if LAN MTU is not used, e.g. if IP tunnels are used or if the client uses a smaller value than the LAN MTU.
+    # Default = 1024
+    # Minimum value = 64
+    # If set to 0 - LAN MTU is used.
+    max_transmission_unit: "${COAP_DTLS_MAX_TRANSMISSION_UNIT:1024}"
+    # DTLS maximum fragment length (RFC 6066, Section 4).
+    # Default = 1024
+    # Possible values: 512, 1024, 2048, 4096.
+    # If set to 0, the default maximum fragment size of 2^14 bytes (16,384 bytes) is used.
+    # Without this extension, TLS specifies a fixed maximum plaintext fragment length of 2^14 bytes.
+    # It may be desirable for constrained clients to negotiate a smaller maximum fragment length due to memory limitations or bandwidth limitations.
+    # In order to negotiate smaller maximum fragment lengths,
+    # clients MAY include an extension of type "max_fragment_length" in the (extended) client hello.
+    # The "extension_data" field of this extension SHALL contain:
+    # enum {
+    #   2^9(1) == 512,
+    #   2^10(2) == 1024,
+    #   2^11(3) == 2048,
+    #   2^12(4) == 4096,
+    #   (255)
+    # } MaxFragmentLength;
+    # TLS already requires clients and servers to support fragmentation of handshake messages.
+    max_fragment_length: "${COAP_DTLS_MAX_FRAGMENT_LENGTH:1024}"
     # Path to the key store that holds the certificate
     key_store: "${COAP_DTLS_KEY_STORE:coapserver.jks}"
     # Password used to access the key store

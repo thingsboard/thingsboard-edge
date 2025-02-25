@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import { ContentType } from '@shared/models/constants';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { IntegrationType } from '@shared/models/integration.models';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
-import { HasDebugSettings } from '@shared/models/entity.models';
+import { HasEntityDebugSettings } from '@shared/models/entity.models';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -76,7 +76,7 @@ export const converterTypeTranslationMap = new Map<ConverterType, string>(
   ]
 );
 
-export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId>, HasDebugSettings {
+export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId>, HasEntityDebugSettings {
   tenantId?: TenantId;
   name: string;
   type: ConverterType;

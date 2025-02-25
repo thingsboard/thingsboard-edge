@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -51,6 +51,7 @@ import {
 } from '@home/components/widget/lib/maps/map-models';
 import { WidgetService } from '@core/http/widget.service';
 import { Widget } from '@shared/models/widget.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-polygon-settings',
@@ -92,7 +93,8 @@ export class PolygonSettingsComponent extends PageComponent implements OnInit, C
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -121,28 +123,44 @@ export class PolygonSettingsComponent extends PageComponent implements OnInit, C
       usePolygonStrokeColorFunction: [null, []],
       polygonStrokeColorFunction: [null, []]
     });
-    this.polygonSettingsFormGroup.valueChanges.subscribe(() => {
+    this.polygonSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
-    this.polygonSettingsFormGroup.get('showPolygon').valueChanges.subscribe(() => {
+    this.polygonSettingsFormGroup.get('showPolygon').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.polygonSettingsFormGroup.get('showPolygonLabel').valueChanges.subscribe(() => {
+    this.polygonSettingsFormGroup.get('showPolygonLabel').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.polygonSettingsFormGroup.get('usePolygonLabelFunction').valueChanges.subscribe(() => {
+    this.polygonSettingsFormGroup.get('usePolygonLabelFunction').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.polygonSettingsFormGroup.get('showPolygonTooltip').valueChanges.subscribe(() => {
+    this.polygonSettingsFormGroup.get('showPolygonTooltip').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.polygonSettingsFormGroup.get('usePolygonTooltipFunction').valueChanges.subscribe(() => {
+    this.polygonSettingsFormGroup.get('usePolygonTooltipFunction').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.polygonSettingsFormGroup.get('usePolygonColorFunction').valueChanges.subscribe(() => {
+    this.polygonSettingsFormGroup.get('usePolygonColorFunction').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.polygonSettingsFormGroup.get('usePolygonStrokeColorFunction').valueChanges.subscribe(() => {
+    this.polygonSettingsFormGroup.get('usePolygonStrokeColorFunction').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
     this.updateValidators(false);

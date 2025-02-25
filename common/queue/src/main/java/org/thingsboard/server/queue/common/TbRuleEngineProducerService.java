@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -62,7 +62,7 @@ public class TbRuleEngineProducerService {
                 Integer partition = tpi.getPartition().orElse(null);
                 UUID id = i > 0 ? UUID.randomUUID() : tbMsg.getId();
 
-                tbMsg = tbMsg.toBuilder()
+                tbMsg = tbMsg.transform()
                         .id(id)
                         .correlationId(correlationId)
                         .partition(partition)

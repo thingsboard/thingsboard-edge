@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,10 +49,12 @@ import org.thingsboard.server.dao.domain.DomainService;
 public class OAuth2EdgeEventFetcher extends BasePageableEdgeEventFetcher<DomainInfo> {
 
     private final DomainService domainService;
+    private final TenantId tenantId;
+    private final CustomerId customerId;
 
     @Override
     PageData<DomainInfo> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
-        return domainService.findDomainInfosByTenantIdAndCustomerId(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), pageLink);
+        return domainService.findDomainInfosByTenantIdAndCustomerId(this.tenantId, customerId, pageLink);
     }
 
     @Override

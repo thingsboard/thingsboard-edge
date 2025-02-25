@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -41,6 +41,7 @@ import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
 import { deepClone, isDefinedAndNotNull, isObject, isString } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface SchedulerEventDialogData {
   schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
@@ -75,7 +76,8 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
               private schedulerEventService: SchedulerEventService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<SchedulerEventDialogComponent, boolean>,
-              public fb: UntypedFormBuilder) {
+              public fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     this.schedulerEventConfigTypes = data.schedulerEventConfigTypes;
     this.isAdd = data.isAdd;
@@ -101,7 +103,9 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
     } else if (this.defaultEventType) {
       this.schedulerEventFormGroup.get('type').disable();
     } else if (!this.readonly) {
-      this.schedulerEventFormGroup.get('type').valueChanges.subscribe((newVal) => {
+      this.schedulerEventFormGroup.get('type').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe((newVal) => {
         const prevVal = this.schedulerEventFormGroup.value.type;
         if (newVal !== prevVal && newVal) {
           this.schedulerEventFormGroup.get('configuration').patchValue({

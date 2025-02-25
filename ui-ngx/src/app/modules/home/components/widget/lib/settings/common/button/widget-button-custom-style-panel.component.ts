@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   EventEmitter,
   Input,
   OnInit,
@@ -57,6 +58,7 @@ import {
 import { merge } from 'rxjs';
 import { deepClone } from '@core/utils';
 import { WidgetButtonComponent } from '@shared/components/button/widget-button.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-widget-button-custom-style-panel',
@@ -114,7 +116,8 @@ export class WidgetButtonCustomStylePanelComponent extends PageComponent impleme
 
   constructor(private fb: UntypedFormBuilder,
               protected store: Store<AppState>,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -133,11 +136,15 @@ export class WidgetButtonCustomStylePanelComponent extends PageComponent impleme
     );
     merge(this.customStyleFormGroup.get('overrideMainColor').valueChanges,
           this.customStyleFormGroup.get('overrideBackgroundColor').valueChanges,
-          this.customStyleFormGroup.get('overrideDropShadow').valueChanges)
-    .subscribe(() => {
+          this.customStyleFormGroup.get('overrideDropShadow').valueChanges
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
-    this.customStyleFormGroup.valueChanges.subscribe(() => {
+    this.customStyleFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updatePreviewAppearance();
     });
     this.setStyle(this.customStyle);

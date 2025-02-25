@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
 import org.thingsboard.server.common.data.ApiFeature;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.ApiUsageRecordState;
@@ -109,9 +110,9 @@ import java.util.stream.Collectors;
 public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService<EntityId> implements TbApiUsageStateService {
 
     public static final String HOURLY = "Hourly";
-    public static final FutureCallback<Integer> VOID_CALLBACK = new FutureCallback<>() {
+    public static final FutureCallback<Void> VOID_CALLBACK = new FutureCallback<Void>() {
         @Override
-        public void onSuccess(@Nullable Integer result) {
+        public void onSuccess(@Nullable Void result) {
         }
 
         @Override
@@ -237,7 +238,12 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
             updateLock.unlock();
         }
         log.trace("[{}][{}] Saving new stats: {}", tenantId, ownerId, updatedEntries);
-        tsWsService.saveAndNotifyInternal(tenantId, usageState.getApiUsageState().getId(), updatedEntries, VOID_CALLBACK);
+        tsWsService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                .tenantId(tenantId)
+                .entityId(usageState.getApiUsageState().getId())
+                .entries(updatedEntries)
+                .callback(VOID_CALLBACK)
+                .build());
         if (!result.isEmpty()) {
             persistAndNotify(usageState, result);
         }
@@ -358,7 +364,12 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
             }
         }
         if (!profileThresholds.isEmpty()) {
-            tsWsService.saveAndNotifyInternal(tenantId, id, profileThresholds, VOID_CALLBACK);
+            tsWsService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                    .tenantId(tenantId)
+                    .entityId(id)
+                    .entries(profileThresholds)
+                    .callback(VOID_CALLBACK)
+                    .build());
         }
     }
 
@@ -381,11 +392,17 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
 
     private void persistAndNotify(BaseApiUsageState state, Map<ApiFeature, ApiUsageStateValue> result) {
         log.info("[{}] Detected update of the API state for {}: {}", state.getEntityId(), state.getEntityType(), result);
-        apiUsageStateService.update(state.getApiUsageState());
+        ApiUsageState updatedState = apiUsageStateService.update(state.getApiUsageState());
+        state.setApiUsageState(updatedState);
         long ts = System.currentTimeMillis();
         List<TsKvEntry> stateTelemetry = new ArrayList<>();
         result.forEach((apiFeature, aState) -> stateTelemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(apiFeature.getApiStateKey(), aState.name()))));
-        tsWsService.saveAndNotifyInternal(state.getTenantId(), state.getApiUsageState().getId(), stateTelemetry, VOID_CALLBACK);
+        tsWsService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                .tenantId(state.getTenantId())
+                .entityId(state.getApiUsageState().getId())
+                .entries(stateTelemetry)
+                .callback(VOID_CALLBACK)
+                .build());
 
         if (state.getEntityType() == EntityType.TENANT && !state.getEntityId().equals(TenantId.SYS_TENANT_ID)) {
             String email = tenantService.findTenantById(state.getTenantId()).getEmail();
@@ -473,7 +490,12 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
                 .map(key -> new BasicTsKvEntry(state.getCurrentCycleTs(), new LongDataEntry(key.getApiCountKey(), 0L)))
                 .collect(Collectors.toList());
 
-        tsWsService.saveAndNotifyInternal(state.getTenantId(), state.getApiUsageState().getId(), counts, VOID_CALLBACK);
+        tsWsService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                .tenantId(state.getTenantId())
+                .entityId(state.getApiUsageState().getId())
+                .entries(counts)
+                .callback(VOID_CALLBACK)
+                .build());
     }
 
     BaseApiUsageState getOrFetchState(TenantId tenantId, EntityId ownerId) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -332,11 +332,16 @@ public class DefaultTbClusterService implements TbClusterService {
             boolean isQueueTransform = targetQueueName != null && !targetQueueName.equals(tbMsg.getQueueName());
 
             if (isRuleChainTransform && isQueueTransform) {
-                tbMsg = TbMsg.transformMsg(tbMsg, targetRuleChainId, targetQueueName);
+                tbMsg = tbMsg.transform()
+                        .queueName(targetQueueName)
+                        .ruleChainId(targetRuleChainId)
+                        .build();
             } else if (isRuleChainTransform) {
-                tbMsg = TbMsg.transformMsgRuleChainId(tbMsg, targetRuleChainId);
+                tbMsg = tbMsg.transform()
+                        .ruleChainId(targetRuleChainId)
+                        .build();
             } else if (isQueueTransform) {
-                tbMsg = TbMsg.transformMsgQueueName(tbMsg, targetQueueName);
+                tbMsg = tbMsg.transform(targetQueueName);
             }
         }
         return tbMsg;

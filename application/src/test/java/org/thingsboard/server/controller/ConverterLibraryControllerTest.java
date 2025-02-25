@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,17 +34,21 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.service.converter.ConverterLibraryService;
 import org.thingsboard.server.service.converter.Model;
 import org.thingsboard.server.service.converter.Vendor;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @DaoSqlTest
 @TestPropertySource(properties = {
@@ -52,16 +56,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 public class ConverterLibraryControllerTest extends AbstractControllerTest {
 
+    @Autowired
+    ConverterLibraryService converterLibraryService;
+
     @Before
     public void before() throws Exception {
         loginTenantAdmin();
+        await("repo initialization").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> !converterLibraryService.getConvertersInfo().isEmpty());
     }
 
     @Test
     public void testLibrary() throws Exception {
         Map<IntegrationType, List<Vendor>> vendorsMap = new HashMap<>();
         for (IntegrationType integrationType : IntegrationType.values()) {
-            List<Vendor> vendors = doGetTyped("/api/converter/library/" + integrationType + "/vendors", new TypeReference<List<Vendor>>() {});
+            List<Vendor> vendors = doGetTyped("/api/converter/library/" + integrationType + "/vendors", new TypeReference<>() {});
             if (!vendors.isEmpty()) {
                 vendorsMap.put(integrationType, vendors);
             }

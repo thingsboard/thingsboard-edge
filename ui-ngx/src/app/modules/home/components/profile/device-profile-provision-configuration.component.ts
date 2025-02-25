@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -52,6 +52,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-device-profile-provision-configuration',
@@ -94,7 +95,8 @@ export class DeviceProfileProvisionConfigurationComponent implements ControlValu
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -106,7 +108,9 @@ export class DeviceProfileProvisionConfigurationComponent implements ControlValu
       certificateRegExPattern: [{value: null, disabled: true}, Validators.required],
       allowCreateNewDevicesByX509Certificate: [{value: null, disabled: true}, Validators.required]
     });
-    this.provisionConfigurationFormGroup.get('type').valueChanges.subscribe((type) => {
+    this.provisionConfigurationFormGroup.get('type').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((type) => {
       if (type === DeviceProvisionType.DISABLED) {
         for (const field in this.provisionConfigurationFormGroup.controls) {
           if (field !== 'type') {
@@ -144,7 +148,9 @@ export class DeviceProfileProvisionConfigurationComponent implements ControlValu
         this.provisionConfigurationFormGroup.get('provisionDeviceKey').enable({emitEvent: false});
       }
     });
-    this.provisionConfigurationFormGroup.valueChanges.subscribe(() => {
+    this.provisionConfigurationFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

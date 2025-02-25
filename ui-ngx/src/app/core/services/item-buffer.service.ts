@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -320,7 +320,11 @@ export class ItemBufferService {
         connectors: [],
         additionalInfo: origNode.additionalInfo,
         configuration: origNode.configuration,
-        debugMode: origNode.debugMode,
+        debugSettings: {
+          failuresEnabled: origNode.debugSettings?.failuresEnabled,
+          allEnabled: origNode.debugSettings?.allEnabled || origNode.debugSettings?.allEnabledUntil > new Date().getTime(),
+          allEnabledUntil: 0
+        },
         x: origNode.x,
         y: origNode.y,
         name: origNode.name,

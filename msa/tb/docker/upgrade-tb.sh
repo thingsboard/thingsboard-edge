@@ -43,3 +43,4 @@ java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardI
                 -Dinstall.upgrade=true \
                 -Dlogging.config=/usr/share/thingsboard/bin/install/logback.xml \
                 org.springframework.boot.loader.launch.PropertiesLauncher
+

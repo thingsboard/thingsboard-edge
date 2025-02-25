@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,10 +61,10 @@ public class AlarmTriggerProcessor implements NotificationRuleTriggerProcessor<A
             if (triggerConfig.getNotifyOn().contains(AlarmAction.CREATED)) {
                 return severityMatches(alarm, triggerConfig);
             }
-        }  else if (alarmUpdate.isSeverityChanged()) {
+        } else if (alarmUpdate.isSeverityChanged()) {
             if (triggerConfig.getNotifyOn().contains(AlarmAction.SEVERITY_CHANGED)) {
                 return severityMatches(alarmUpdate.getOld(), triggerConfig) || severityMatches(alarm, triggerConfig);
-            }  else {
+            } else {
                 // if we haven't yet sent notification about the alarm
                 return !severityMatches(alarmUpdate.getOld(), triggerConfig) && severityMatches(alarm, triggerConfig);
             }

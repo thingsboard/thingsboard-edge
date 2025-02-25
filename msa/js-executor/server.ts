@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,10 +34,6 @@ import { _logger } from './config/logger';
 import { HttpServer } from './api/httpServer';
 import { IQueue } from './queue/queue.models';
 import { KafkaTemplate } from './queue/kafkaTemplate';
-import { PubSubTemplate } from './queue/pubSubTemplate';
-import { AwsSqsTemplate } from './queue/awsSqsTemplate';
-import { RabbitMqTemplate } from './queue/rabbitmqTemplate';
-import { ServiceBusTemplate } from './queue/serviceBusTemplate';
 
 const logger = _logger('main');
 
@@ -70,14 +66,6 @@ async function createQueue(serviceType: string): Promise<IQueue> {
     switch (serviceType) {
         case 'kafka':
             return new KafkaTemplate();
-        case 'pubsub':
-            return new PubSubTemplate();
-        case 'aws-sqs':
-            return new AwsSqsTemplate();
-        case 'rabbitmq':
-            return new RabbitMqTemplate();
-        case 'service-bus':
-            return new ServiceBusTemplate();
         default:
             throw new Error('Unknown service type: ' + serviceType);
     }

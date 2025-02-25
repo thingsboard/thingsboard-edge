@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 
 import {
   Component,
+  DestroyRef,
   ElementRef,
   forwardRef,
   Inject,
@@ -61,6 +62,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { fromEvent, Subscription } from 'rxjs';
 import { POSITION_MAP } from '@shared/models/overlay.models';
 import { UtilsService } from '@core/services/utils.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export const ALARM_FILTER_CONFIG_DATA = new InjectionToken<any>('AlarmFilterConfigData');
 
@@ -144,7 +146,8 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
               private overlay: Overlay,
               private nativeElement: ElementRef,
               private viewContainerRef: ViewContainerRef,
-              private utils: UtilsService) {
+              private utils: UtilsService,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -164,7 +167,9 @@ export class AlarmFilterConfigComponent implements OnInit, OnDestroy, ControlVal
       searchPropagatedAlarms: [false, []],
       assigneeId: [AlarmAssigneeOption.noAssignee, []]
     });
-    this.alarmFilterConfigForm.valueChanges.subscribe(
+    this.alarmFilterConfigForm.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => {
         if (!this.buttonMode) {
           this.alarmConfigUpdated(this.alarmFilterConfigForm.value);

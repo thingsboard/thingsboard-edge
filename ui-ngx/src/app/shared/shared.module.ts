@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -141,7 +141,6 @@ import { TbJsonPipe } from '@shared/pipe/tbJson.pipe';
 import { ColorPickerDialogComponent } from '@shared/components/dialog/color-picker-dialog.component';
 import { ColorInputComponent } from '@shared/components/color-input.component';
 import { JsFuncComponent } from '@shared/components/js-func.component';
-import { JsonFormComponent } from '@shared/components/json-form/json-form.component';
 import { ConfirmDialogComponent } from '@shared/components/dialog/confirm-dialog.component';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
 import { ErrorAlertDialogComponent } from '@shared/components/dialog/error-alert-dialog.component';
@@ -407,7 +406,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ColorInputComponent,
     MaterialIconSelectComponent,
     NodeScriptTestDialogComponent,
-    JsonFormComponent,
     ImageInputComponent,
     MultipleImageInputComponent,
     FileInputComponent,
@@ -690,7 +688,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ColorInputComponent,
     MaterialIconSelectComponent,
     NodeScriptTestDialogComponent,
-    JsonFormComponent,
     ImageInputComponent,
     MultipleImageInputComponent,
     FileInputComponent,

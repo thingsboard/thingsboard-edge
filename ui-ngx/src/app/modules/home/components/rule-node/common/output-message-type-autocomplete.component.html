@@ -1,0 +1,65 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section class="tb-form-row no-border no-padding tb-standard-fields column-xs" [formGroup]="messageTypeFormGroup">
+  <mat-form-field class="flex" subscriptSizing="{{ subscriptSizing }}" hideRequiredMarker>
+    <mat-label>{{'rule-node-config.output-message-type' | translate}}</mat-label>
+    <mat-select formControlName="messageTypeAlias">
+      <mat-option *ngFor="let msgType of messageTypes" [value]="msgType">
+        {{msgType.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="flex" subscriptSizing="{{ subscriptSizing }}" [hideRequiredMarker]="messageTypeFormGroup.get('messageType').disabled">
+    <mat-label>{{'rule-node-config.message-type-value' | translate}}</mat-label>
+    <input matInput type="text" formControlName="messageType">
+    <button type="button"
+            matSuffix
+            mat-icon-button
+            aria-label="Copy"
+            *ngIf="messageTypeFormGroup.get('messageType').value"
+            ngxClipboard
+            [cbContent]="messageTypeFormGroup.get('messageType').value"
+            matTooltip="{{ 'rule-node-config.copy-message-type' | translate }}">
+      <mat-icon aria-hidden="false"
+                aria-label="help-icon">content_copy
+      </mat-icon>
+    </button>
+    <mat-error *ngIf="messageTypeFormGroup.get('messageType').hasError('required')">
+      {{ 'rule-node-config.message-type-value-required' | translate }}
+    </mat-error>
+    <mat-error *ngIf="messageTypeFormGroup.get('messageType').hasError('maxlength')">
+      {{ 'rule-node-config.message-type-value-max-length' | translate }}
+    </mat-error>
+  </mat-form-field>
+</section>
+

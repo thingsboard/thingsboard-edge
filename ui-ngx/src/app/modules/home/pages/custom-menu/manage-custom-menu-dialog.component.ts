@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, Inject, OnDestroy, OnInit } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
 import {
   CMAssigneeType,
@@ -61,6 +61,7 @@ import { parseHttpErrorMessage } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '@core/services/dialog.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface ManageCustomMenuDialogData {
   add: boolean;
@@ -113,7 +114,8 @@ export class ManageCustomMenuDialogComponent
               private userService: UserService,
               private dialogService: DialogService,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
   }
 
@@ -131,13 +133,17 @@ export class ManageCustomMenuDialogComponent
       this.customMenuFormGroup.get('name').disable({emitEvent: false});
     }
     if (this.data.add && this.authUser.authority === Authority.TENANT_ADMIN) {
-      this.customMenuFormGroup.get('scope').valueChanges.subscribe(() => {
+      this.customMenuFormGroup.get('scope').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateAssigneeTypes();
       });
     } else {
       this.customMenuFormGroup.get('scope').disable({emitEvent: false});
     }
-    this.customMenuFormGroup.get('assigneeType').valueChanges.subscribe(() => {
+    this.customMenuFormGroup.get('assigneeType').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateAssignToList();
     });
   }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -50,6 +50,7 @@ import {
   inheritModeForDynamicValueSourceType,
   StringOperation
 } from '@shared/models/query/query.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-filter-predicate-value',
@@ -128,7 +129,8 @@ export class FilterPredicateValueComponent implements ControlValueAccessor, Vali
   private propagateChange = null;
   private propagateChangePending = false;
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -162,7 +164,9 @@ export class FilterPredicateValueComponent implements ControlValueAccessor, Vali
         }
       )
     });
-    this.filterPredicateValueFormGroup.get('dynamicValue').get('sourceType').valueChanges.subscribe(
+    this.filterPredicateValueFormGroup.get('dynamicValue').get('sourceType').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       (sourceType) => {
         if (!sourceType) {
           this.filterPredicateValueFormGroup.get('dynamicValue').get('sourceAttribute').patchValue(null, {emitEvent: false});
@@ -171,7 +175,9 @@ export class FilterPredicateValueComponent implements ControlValueAccessor, Vali
       }
     );
     this.updateValidationDynamicMode();
-    this.filterPredicateValueFormGroup.valueChanges.subscribe(() => {
+    this.filterPredicateValueFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

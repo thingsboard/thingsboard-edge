@@ -1,0 +1,70 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="checkRelationConfigForm" class="tb-form-panel stroked no-padding-bottom">
+  <div class="tb-form-panel-title" translate>rule-node-config.relation-search-parameters</div>
+  <div class="flex flex-col">
+    <mat-form-field class="mat-block" hideRequiredMarker>
+      <mat-label>{{ 'relation.direction' | translate }}</mat-label>
+      <mat-select formControlName="direction" required>
+        <mat-option *ngFor="let direction of entitySearchDirection" [value]="direction">
+          {{ entitySearchDirectionTranslationsMap.get(direction) | translate }} <span translate>rule-node-config.relations-query-config-direction-suffix</span>
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <tb-relation-type-autocomplete
+      required
+      formControlName="relationType">
+    </tb-relation-type-autocomplete>
+    <div tb-hint-tooltip-icon="{{ 'rule-node-config.check-relation-to-specific-entity-tooltip' | translate }}"
+         class="tb-form-row no-border no-padding slide-toggle">
+      <mat-slide-toggle class="mat-slide" formControlName="checkForSingleEntity">
+        {{ 'rule-node-config.check-relation-to-specific-entity' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <div *ngIf="checkRelationConfigForm.get('checkForSingleEntity').value" class="same-width-component-row">
+      <tb-entity-type-select
+        style="min-width: 100px; flex: 1;"
+        showLabel
+        required
+        formControlName="entityType">
+      </tb-entity-type-select>
+      <tb-entity-autocomplete
+        class="flex-1"
+        required
+        *ngIf="checkRelationConfigForm.get('entityType').value"
+        [entityType]="checkRelationConfigForm.get('entityType').value"
+        formControlName="entityId">
+      </tb-entity-autocomplete>
+    </div>
+  </div>
+</section>

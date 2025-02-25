@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -285,11 +285,11 @@ public class BaseTimeseriesService implements TimeseriesService {
     }
 
     @Override
-    public ListenableFuture<Collection<String>> removeAllLatest(TenantId tenantId, EntityId entityId) {
+    public ListenableFuture<List<String>> removeAllLatest(TenantId tenantId, EntityId entityId) {
         validate(entityId);
         return Futures.transformAsync(this.findAllLatest(tenantId, entityId), latest -> {
             if (latest != null && !latest.isEmpty()) {
-                Collection<String> keys = latest.stream().map(TsKvEntry::getKey).collect(Collectors.toList());
+                List<String> keys = latest.stream().map(TsKvEntry::getKey).collect(Collectors.toList());
                 return Futures.transform(this.removeLatest(tenantId, entityId, keys), res -> keys, MoreExecutors.directExecutor());
             } else {
                 return Futures.immediateFuture(Collections.emptyList());

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -127,9 +127,6 @@ export class TimeSeriesChartWidgetComponent implements OnInit, OnDestroy, AfterV
         legendKey.dataKey.settings = mergeDeep<TimeSeriesChartKeySettings>({} as TimeSeriesChartKeySettings,
           timeSeriesChartKeyDefaultSettings, legendKey.dataKey.settings);
         legendKey.dataKey.hidden = legendKey.dataKey.settings.dataHiddenByDefault;
-        if (this.settings.yAxes[legendKey.dataKey.settings.yAxisId]) {
-          this.settings.yAxes[legendKey.dataKey.settings.yAxisId].show = !legendKey.dataKey.settings.dataHiddenByDefault;
-        }
       });
       this.legendKeys = this.legendKeys.filter(legendKey => legendKey.dataKey.settings.showInLegend);
       if (!this.legendKeys.length) {

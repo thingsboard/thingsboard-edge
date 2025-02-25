@@ -1653,7 +1653,7 @@
     "sas-key-name-required": "SAS Key -ს სახელი სავალდებულოა",
     "sas-key": "SAS Key",
     "sas-key-required": "SAS Key სავალდებულოა",
-    "iot-hub-name": "IoT ჰუბის სახელი (საჭიროა downlink-ისთვის)",
+    "iot-hub-name": "IoT ჰუბის სახელი",
     "integration-clazz": "ინტეგრაციის  კლასი",
     "integration-clazz-required": "ინტეგრაციის კლასი სავალდებულოა",
     "integration-configuration": "ინტეგრაციის  JSON კონფიგურაცია",
@@ -2031,8 +2031,7 @@
     "metadata-required": "მეტამონაცემები ვერ იქნება ცარიელი",
     "output": "რეზულტატი",
     "test": "ტესტი",
-    "help": "დახმარება",
-    "reset-debug-mode": "Debug რეჟიმის გათიშვა ყველა ნოდისთვის"
+    "help": "დახმარება"
   },
   "role": {
     "role": "როლი",

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -1314,7 +1314,7 @@ public class EntityGroupController extends AutoCommitController {
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.assignEntityGroupToEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
 
             logEntityActionService.logEntityAction(getTenantId(), entityGroupId, savedEntityGroup,
-                    actionType, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
+                    actionType, getCurrentUser(), strEntityGroupId, strEdgeId, edge.getName());
 
             return savedEntityGroup;
         } catch (Exception e) {
@@ -1354,12 +1354,12 @@ public class EntityGroupController extends AutoCommitController {
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
 
             logEntityActionService.logEntityAction(getTenantId(), entityGroupId, entityGroup,
-                    actionType, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
+                    actionType, getCurrentUser(), strEntityGroupId, strEdgeId, edge.getName());
 
             return savedEntityGroup;
         } catch (Exception e) {
             logEntityActionService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
-                    actionType, getCurrentUser(), e, strEntityGroupId);
+                    actionType, getCurrentUser(), e, strEntityGroupId, strEdgeId);
 
             throw e;
         }

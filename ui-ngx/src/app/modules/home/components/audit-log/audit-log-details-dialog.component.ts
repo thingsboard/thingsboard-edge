@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -120,7 +120,7 @@ export class AuditLogDetailsDialogComponent extends DialogComponent<AuditLogDeta
     let newWidth = 600;
     if (content && content.length > 0) {
       const lines = content.split('\n');
-      newHeight = 17 * lines.length + 16;
+      newHeight = 18 * lines.length + 16;
       let maxLineLength = 0;
       lines.forEach((row) => {
         const line = row.replace(/\t/g, '    ').replace(/\n/g, '');

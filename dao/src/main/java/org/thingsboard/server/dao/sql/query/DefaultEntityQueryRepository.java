@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -1738,14 +1738,13 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
             if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
                 if (genericPartAdded) {
-                    if (customOwnerId == null) {
-                        allowedGroupIdsSelect += " or id in (:where_group_ids)";
-                    } else {
-                        allowedGroupIdsSelect += " or (id in (:where_group_ids) and owner_id = :customOwnerId) ";
-                        ctx.addUuidParameter("customOwnerId", customOwnerId.getId());
-                    }
+                    allowedGroupIdsSelect += " or ";
+                }
+                if (customOwnerId == null) {
+                    allowedGroupIdsSelect += "id in (:where_group_ids)";
                 } else {
-                    allowedGroupIdsSelect += " id in (:where_group_ids)";
+                    allowedGroupIdsSelect += "(id in (:where_group_ids) and owner_id = :where_group_owner_id) ";
+                    ctx.addUuidParameter("where_group_owner_id", customOwnerId.getId());
                 }
                 ctx.addUuidListParameter("where_group_ids",
                         groupTypePermissionInfo.getEntityGroupIds().stream()

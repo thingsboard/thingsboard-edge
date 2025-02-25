@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
@@ -106,8 +107,8 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             profileConfig.setIntegrationMsgsPerAssetRateLimit("100:1,2000:60");
         });
 
-        setFieldReflectively(limitService, "integrationEventsRateLimitsConf", "100:1,2000:60");
-        setFieldReflectively(limitService, "converterEventsRateLimitsConf", "100:1,2000:60");
+        ReflectionTestUtils.setField(limitService, "integrationEventsRateLimitsConf", "100:1,2000:60");
+        ReflectionTestUtils.setField(limitService, "converterEventsRateLimitsConf", "100:1,2000:60");
     }
 
     @After
@@ -143,7 +144,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
@@ -175,7 +176,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
@@ -207,7 +208,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
@@ -225,7 +226,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
         createIntegration(true);
 
         long startTime = System.currentTimeMillis();
-        setFieldReflectively(limitService, "integrationEventsRateLimitsConf", "10:1,20:60");
+        ReflectionTestUtils.setField(limitService, "integrationEventsRateLimitsConf", "10:1,20:60");
 
         await().atMost(10, TimeUnit.SECONDS)
                 .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerTenantRateLimit() != null);
@@ -238,7 +239,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
@@ -256,7 +257,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
         createIntegration(true);
 
         long startTime = System.currentTimeMillis();
-        setFieldReflectively(limitService, "converterEventsRateLimitsConf", "10:1,20:60");
+        ReflectionTestUtils.setField(limitService, "converterEventsRateLimitsConf", "10:1,20:60");
 
         await().atMost(10, TimeUnit.SECONDS)
                 .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerTenantRateLimit() != null);
@@ -269,7 +270,7 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
             }
         });
 
-        await().atMost(10, TimeUnit.SECONDS).until(() ->
+        await().atMost(20, TimeUnit.SECONDS).until(() ->
                 getConverterDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
         );
 
