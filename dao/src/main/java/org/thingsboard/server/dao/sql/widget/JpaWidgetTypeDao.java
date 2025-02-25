@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -97,6 +97,11 @@ public class JpaWidgetTypeDao extends JpaAbstractDao<WidgetTypeDetailsEntity, Wi
     @Override
     public boolean existsByTenantIdAndId(TenantId tenantId, UUID widgetTypeId) {
         return widgetTypeRepository.existsByTenantIdAndId(tenantId.getId(), widgetTypeId);
+    }
+
+    @Override
+    public WidgetTypeInfo findWidgetTypeInfoById(TenantId tenantId, UUID widgetTypeId) {
+        return DaoUtil.getData(widgetTypeInfoRepository.findById(widgetTypeId));
     }
 
     @Override
