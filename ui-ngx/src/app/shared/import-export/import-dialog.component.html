@@ -37,20 +37,20 @@
           <tb-toggle-option value="content">{{ importContentLabel | translate }}</tb-toggle-option>
         </tb-toggle-select>
         <tb-file-input *ngIf="importFormGroup.get('importType').value === 'file'"
-          [contentConvertFunction]="loadDataFromJsonContent"
-          [existingFileName]="currentFileName"
-          (fileNameChanged)="currentFileName = $event"
-          formControlName="fileContent"
-          required
-          label="{{importFileLabel | translate}}"
-          dropLabel="{{ 'import.drop-json-file-or' | translate }}"
-          accept=".json,application/json"
-          allowedExtensions="json">
+                       [contentConvertFunction]="loadDataFromJsonContent"
+                       [existingFileName]="currentFileName"
+                       (fileNameChanged)="currentFileName = $event"
+                       formControlName="fileContent"
+                       required
+                       label="{{importFileLabel | translate}}"
+                       dropLabel="{{ 'import.drop-json-file-or' | translate }}"
+                       accept=".json,application/json"
+                       allowedExtensions="json">
         </tb-file-input>
         <tb-json-object-edit *ngIf="importFormGroup.get('importType').value === 'content'"
-          formControlName="jsonContent"
-          jsonRequired
-          label="{{ importContentLabel | translate }}">
+                             formControlName="jsonContent"
+                             jsonRequired
+                             label="{{ importContentLabel | translate }}">
         </tb-json-object-edit>
       </div>
     </fieldset>
