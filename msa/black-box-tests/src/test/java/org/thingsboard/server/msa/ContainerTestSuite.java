@@ -130,7 +130,7 @@ public class ContainerTestSuite {
 
             List<File> composeFiles = new ArrayList<>(Arrays.asList(
                     new File(targetDir + "advanced/docker-compose.yml"),
-                    //new File(targetDir + "advanced/docker-compose.edqs.yml"),
+                    new File(targetDir + "docker-compose.edqs.yml"),
                     new File(targetDir + "advanced/docker-compose.volumes.yml"),
                     new File(targetDir + "advanced/" + (IS_HYBRID_MODE ? "docker-compose.hybrid.yml" : "docker-compose.postgres.yml")),
                     new File(targetDir + (IS_HYBRID_MODE ? "docker-compose.hybrid-test-extras.yml" : "docker-compose.postgres-test-extras.yml")),
@@ -182,8 +182,8 @@ public class ContainerTestSuite {
             }
 
             // to trigger edqs synchronization
-//            addToFile(targetDir, "tb-node.env",
-//                    Map.of("TB_EDQS_SYNC_ENABLED", "true"));
+            addToFile(targetDir, "tb-node.env",
+                    Map.of("TB_EDQS_SYNC_ENABLED", "true"));
 
             testContainer = new DockerComposeContainerImpl<>(composeFiles)
                     .withPull(false)
@@ -214,9 +214,9 @@ public class ContainerTestSuite {
                     .waitingFor("tb-integration-executor2", Wait.forLogMessage(TB_IE_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                     .waitingFor("tb-vc-executor1", Wait.forLogMessage(TB_VC_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                     .waitingFor("tb-vc-executor2", Wait.forLogMessage(TB_VC_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
-                    .waitingFor("tb-js-executor", Wait.forLogMessage(TB_JS_EXECUTOR_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT));
-//                    .waitingFor("tb-edqs-1", Wait.forHttp("/api/edqs/ready").withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
-//                    .waitingFor("tb-edqs-2", Wait.forHttp("/api/edqs/ready").withStartupTimeout(CONTAINER_STARTUP_TIMEOUT));
+                    .waitingFor("tb-js-executor", Wait.forLogMessage(TB_JS_EXECUTOR_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
+                    .waitingFor("tb-edqs-1", Wait.forHttp("/api/edqs/ready").withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
+                    .waitingFor("tb-edqs-2", Wait.forHttp("/api/edqs/ready").withStartupTimeout(CONTAINER_STARTUP_TIMEOUT));
             testContainer.start();
             setActive(true);
         } catch (Exception e) {
