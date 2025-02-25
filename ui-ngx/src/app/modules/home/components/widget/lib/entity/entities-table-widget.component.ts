@@ -182,7 +182,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   public enableStickyHeader = true;
   public enableStickyAction = true;
   public showCellActionsMenu = true;
-  public pageSizeOptions;
+  public pageSizeOptions = [];
   public pageLink: EntityDataPageLink;
   public sortOrderProperty: string;
   public textSearchMode = false;
@@ -204,7 +204,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private widgetResize$: ResizeObserver;
   private destroy$ = new Subject<void>();
 
-  private defaultPageSize = 10;
+  private defaultPageSize;
   private defaultSortOrder = 'entityName';
 
   private contentsInfo: {[key: string]: CellContentInfo} = {};
@@ -360,10 +360,26 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.rowStylesInfo = getRowStyleInfo(this.ctx, this.settings, 'entity, ctx');
 
     const pageSize = this.settings.defaultPageSize;
+    let pageStepSize = this.settings.pageStepSize;
+    let pageStepCount = this.settings.pageStepCount;
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+    if (isDefinedAndNotNull(pageStepSize) && isDefinedAndNotNull(pageStepCount)) {
+      if (!this.defaultPageSize) {
+        this.defaultPageSize = pageStepSize;
+      }
+    } else {
+      if (!this.defaultPageSize) {
+        this.defaultPageSize = 10;
+      }
+      pageStepSize = this.defaultPageSize;
+      pageStepCount = 3;
+    }
+
+    for (let i = 1; i <= pageStepCount; i++) {
+      this.pageSizeOptions.push(pageStepSize * i);
+    }
     this.pageLink.pageSize = this.displayPagination ? this.defaultPageSize : 1024;
 
     this.noDataDisplayMessageText =

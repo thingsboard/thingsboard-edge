@@ -35,6 +35,7 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { columnExportOptions } from '@home/components/widget/lib/table-widget.models';
+import { buildPageStepSizeValues, isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-timeseries-table-widget-settings',
@@ -44,6 +45,7 @@ import { columnExportOptions } from '@home/components/widget/lib/table-widget.mo
 export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsComponent {
 
   timeseriesTableWidgetSettingsForm: UntypedFormGroup;
+  pageStepSizeValues = [];
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -68,6 +70,8 @@ export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsCompon
       displayPagination: true,
       useEntityLabel: false,
       defaultPageSize: 10,
+      pageStepSize: null,
+      pageStepCount: 3,
       hideEmptyLines: false,
       disableStickyHeader: false,
       useRowStyleFunction: false,
@@ -95,11 +99,21 @@ export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsCompon
       displayPagination: [settings.displayPagination, []],
       useEntityLabel: [settings.useEntityLabel, []],
       defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],
+      pageStepCount: [isDefinedAndNotNull(settings.pageStepCount) ? settings.pageStepCount : 3,
+        [Validators.min(1), Validators.max(100), Validators.required, Validators.pattern(/^\d*$/)]],
+      pageStepSize: [isDefinedAndNotNull(settings.pageStepSize) ? settings.pageStepSize : settings.defaultPageSize,
+        [Validators.min(1), Validators.required, Validators.pattern(/^\d*$/)]],
       hideEmptyLines: [settings.hideEmptyLines, []],
       disableStickyHeader: [settings.disableStickyHeader, []],
       useRowStyleFunction: [settings.useRowStyleFunction, []],
       rowStyleFunction: [settings.rowStyleFunction, [Validators.required]]
     });
+    buildPageStepSizeValues(this.timeseriesTableWidgetSettingsForm, this.pageStepSizeValues);
+  }
+
+  public onPaginationSettingsChange(): void {
+    this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').reset();
+    buildPageStepSizeValues(this.timeseriesTableWidgetSettingsForm, this.pageStepSizeValues);
   }
 
   protected validatorTriggers(): string[] {
@@ -116,11 +130,17 @@ export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsCompon
     }
     if (displayPagination) {
       this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').enable();
+      this.timeseriesTableWidgetSettingsForm.get('pageStepCount').enable();
+      this.timeseriesTableWidgetSettingsForm.get('pageStepSize').enable();
     } else {
       this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').disable();
+      this.timeseriesTableWidgetSettingsForm.get('pageStepCount').disable();
+      this.timeseriesTableWidgetSettingsForm.get('pageStepSize').disable();
     }
     this.timeseriesTableWidgetSettingsForm.get('rowStyleFunction').updateValueAndValidity({emitEvent});
     this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').updateValueAndValidity({emitEvent});
+    this.timeseriesTableWidgetSettingsForm.get('pageStepCount').updateValueAndValidity({emitEvent});
+    this.timeseriesTableWidgetSettingsForm.get('pageStepSize').updateValueAndValidity({emitEvent});
   }
 
 }

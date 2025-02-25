@@ -34,6 +34,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { buildPageStepSizeValues, isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-alarms-table-widget-settings',
@@ -43,6 +44,7 @@ import { AppState } from '@core/core.state';
 export class AlarmsTableWidgetSettingsComponent extends WidgetSettingsComponent {
 
   alarmsTableWidgetSettingsForm: UntypedFormGroup;
+  pageStepSizeValues = [];
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -71,6 +73,8 @@ export class AlarmsTableWidgetSettingsComponent extends WidgetSettingsComponent 
       displayActivity: true,
       displayPagination: true,
       defaultPageSize: 10,
+      pageStepSize: null,
+      pageStepCount: 3,
       defaultSortOrder: '-createdTime',
       useRowStyleFunction: false,
       rowStyleFunction: ''
@@ -95,10 +99,20 @@ export class AlarmsTableWidgetSettingsComponent extends WidgetSettingsComponent 
       displayActivity: [settings.displayActivity, []],
       displayPagination: [settings.displayPagination, []],
       defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],
+      pageStepCount: [isDefinedAndNotNull(settings.pageStepCount) ? settings.pageStepCount : 3,
+        [Validators.min(1), Validators.max(100), Validators.required, Validators.pattern(/^\d*$/)]],
+      pageStepSize: [isDefinedAndNotNull(settings.pageStepSize) ? settings.pageStepSize : settings.defaultPageSize,
+        [Validators.min(1), Validators.required, Validators.pattern(/^\d*$/)]],
       defaultSortOrder: [settings.defaultSortOrder, []],
       useRowStyleFunction: [settings.useRowStyleFunction, []],
       rowStyleFunction: [settings.rowStyleFunction, [Validators.required]]
     });
+    buildPageStepSizeValues(this.alarmsTableWidgetSettingsForm, this.pageStepSizeValues);
+  }
+
+  public onPaginationSettingsChange(): void {
+    this.alarmsTableWidgetSettingsForm.get('defaultPageSize').reset();
+    buildPageStepSizeValues(this.alarmsTableWidgetSettingsForm, this.pageStepSizeValues);
   }
 
   protected validatorTriggers(): string[] {
@@ -115,11 +129,17 @@ export class AlarmsTableWidgetSettingsComponent extends WidgetSettingsComponent 
     }
     if (displayPagination) {
       this.alarmsTableWidgetSettingsForm.get('defaultPageSize').enable();
+      this.alarmsTableWidgetSettingsForm.get('pageStepCount').enable();
+      this.alarmsTableWidgetSettingsForm.get('pageStepSize').enable();
     } else {
       this.alarmsTableWidgetSettingsForm.get('defaultPageSize').disable();
+      this.alarmsTableWidgetSettingsForm.get('pageStepCount').disable();
+      this.alarmsTableWidgetSettingsForm.get('pageStepSize').disable();
     }
     this.alarmsTableWidgetSettingsForm.get('rowStyleFunction').updateValueAndValidity({emitEvent});
     this.alarmsTableWidgetSettingsForm.get('defaultPageSize').updateValueAndValidity({emitEvent});
+    this.alarmsTableWidgetSettingsForm.get('pageStepCount').updateValueAndValidity({emitEvent});
+    this.alarmsTableWidgetSettingsForm.get('pageStepSize').updateValueAndValidity({emitEvent});
   }
 
 }

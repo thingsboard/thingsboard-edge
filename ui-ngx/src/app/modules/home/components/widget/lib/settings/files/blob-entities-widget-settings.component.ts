@@ -34,6 +34,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { buildPageStepSizeValues, isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-blob-entities-widget-settings',
@@ -43,6 +44,8 @@ import { AppState } from '@core/core.state';
 export class BlobEntitiesWidgetSettingsComponent extends WidgetSettingsComponent {
 
   blobEntitiesWidgetSettingsForm: UntypedFormGroup;
+
+  pageStepSizeValues = [];
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -61,6 +64,8 @@ export class BlobEntitiesWidgetSettingsComponent extends WidgetSettingsComponent
       displayCustomer: true,
       displayPagination: true,
       defaultPageSize: 10,
+      pageStepSize: null,
+      pageStepCount: 3,
       defaultSortOrder: 'name',
       noDataDisplayMessage: '',
       forceDefaultType: ''
@@ -75,10 +80,20 @@ export class BlobEntitiesWidgetSettingsComponent extends WidgetSettingsComponent
       displayCustomer: [settings.displayCustomer, []],
       displayPagination: [settings.displayPagination, []],
       defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],
+      pageStepCount: [isDefinedAndNotNull(settings.pageStepCount) ? settings.pageStepCount : 3,
+        [Validators.min(1), Validators.max(100), Validators.required, Validators.pattern(/^\d*$/)]],
+      pageStepSize: [isDefinedAndNotNull(settings.pageStepSize) ? settings.pageStepSize : settings.defaultPageSize,
+        [Validators.min(1), Validators.required, Validators.pattern(/^\d*$/)]],
       defaultSortOrder: [settings.defaultSortOrder, []],
       noDataDisplayMessage: [settings.noDataDisplayMessage, []],
       forceDefaultType: [settings.forceDefaultType, []]
     });
+    buildPageStepSizeValues(this.blobEntitiesWidgetSettingsForm, this.pageStepSizeValues);
+  }
+
+  public onPaginationSettingsChange(): void {
+    this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').reset();
+    buildPageStepSizeValues(this.blobEntitiesWidgetSettingsForm, this.pageStepSizeValues);
   }
 
   protected validatorTriggers(): string[] {
@@ -89,9 +104,15 @@ export class BlobEntitiesWidgetSettingsComponent extends WidgetSettingsComponent
     const displayPagination: boolean = this.blobEntitiesWidgetSettingsForm.get('displayPagination').value;
     if (displayPagination) {
       this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').enable();
+      this.blobEntitiesWidgetSettingsForm.get('pageStepCount').enable();
+      this.blobEntitiesWidgetSettingsForm.get('pageStepSize').enable();
     } else {
       this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').disable();
+      this.blobEntitiesWidgetSettingsForm.get('pageStepCount').disable();
+      this.blobEntitiesWidgetSettingsForm.get('pageStepSize').disable();
     }
     this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').updateValueAndValidity({emitEvent});
+    this.blobEntitiesWidgetSettingsForm.get('pageStepCount').updateValueAndValidity({emitEvent});
+    this.blobEntitiesWidgetSettingsForm.get('pageStepSize').updateValueAndValidity({emitEvent});
   }
 }

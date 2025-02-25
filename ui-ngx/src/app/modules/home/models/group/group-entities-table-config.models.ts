@@ -121,6 +121,8 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
     this.selectionEnabled = this.settings.enableSelection;
     this.displayPagination = this.settings.displayPagination;
     this.defaultPageSize = this.settings.defaultPageSize;
+    this.pageStepCount = isDefinedAndNotNull(this.settings.pageStepCount) ? this.settings.pageStepCount : 3;
+    this.pageStepSize = isDefinedAndNotNull(this.settings.pageStepSize) ? this.settings.pageStepSize : this.settings.defaultPageSize;
     this.detailsPanelEnabled = this.settings.detailsMode !== EntityGroupDetailsMode.disabled;
     this.deleteEnabled = () => this.settings.enableDelete;
     this.addDialogOwnerAndGroupWizard = this.settings.addDialogOwnerAndGroupWizard;

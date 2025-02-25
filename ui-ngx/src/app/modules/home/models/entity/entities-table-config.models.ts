@@ -234,6 +234,8 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   displayPagination = true;
   pageMode = true;
   defaultPageSize = 10;
+  pageStepCount = 3;
+  pageStepSize: number;
   columns: Array<EntityColumn<L>> = [];
   cellActionDescriptors: Array<CellActionDescriptor<L>> = [];
   groupActionDescriptors: Array<GroupActionDescriptor<L>> = [];

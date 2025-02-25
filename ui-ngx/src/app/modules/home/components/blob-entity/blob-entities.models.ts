@@ -37,6 +37,8 @@ export interface BlobEntitiesWidgetSettings {
   displayCustomer: boolean;
   displayPagination: boolean;
   defaultPageSize: number;
+  pageStepSize: number;
+  pageStepCount: number;
   defaultSortOrder: string;
   noDataDisplayMessage: string;
   forceDefaultType: string;
