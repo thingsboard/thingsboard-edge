@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -395,6 +395,9 @@ import {
 import {
   SegmentedButtonWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/button/segmented-button-widget-settings.component';
+import {
+  ValueStepperWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/control/value-stepper-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -511,6 +514,7 @@ import {
     SingleSwitchWidgetSettingsComponent,
     ActionButtonWidgetSettingsComponent,
     SegmentedButtonWidgetSettingsComponent,
+    ValueStepperWidgetSettingsComponent,
     CommandButtonWidgetSettingsComponent,
     PowerButtonWidgetSettingsComponent,
     SliderWidgetSettingsComponent,
@@ -651,6 +655,7 @@ import {
     SingleSwitchWidgetSettingsComponent,
     ActionButtonWidgetSettingsComponent,
     SegmentedButtonWidgetSettingsComponent,
+    ValueStepperWidgetSettingsComponent,
     CommandButtonWidgetSettingsComponent,
     PowerButtonWidgetSettingsComponent,
     SliderWidgetSettingsComponent,

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,14 +39,14 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.rule.engine.telemetry.strategy.PersistenceStrategy;
+import org.thingsboard.rule.engine.telemetry.strategy.ProcessingStrategy;
 
 import java.util.Objects;
 
-import static org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration.PersistenceSettings.Advanced;
-import static org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration.PersistenceSettings.Deduplicate;
-import static org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration.PersistenceSettings.OnEveryMessage;
-import static org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration.PersistenceSettings.WebSocketsOnly;
+import static org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration.ProcessingSettings.Advanced;
+import static org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration.ProcessingSettings.Deduplicate;
+import static org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration.ProcessingSettings.OnEveryMessage;
+import static org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration.ProcessingSettings.WebSocketsOnly;
 
 @Data
 public class TbMsgTimeseriesNodeConfiguration implements NodeConfiguration<TbMsgTimeseriesNodeConfiguration> {
@@ -54,14 +54,14 @@ public class TbMsgTimeseriesNodeConfiguration implements NodeConfiguration<TbMsg
     private long defaultTTL;
     private boolean useServerTs;
     @NotNull
-    private PersistenceSettings persistenceSettings;
+    private TbMsgTimeseriesNodeConfiguration.ProcessingSettings processingSettings;
 
     @Override
     public TbMsgTimeseriesNodeConfiguration defaultConfiguration() {
         TbMsgTimeseriesNodeConfiguration configuration = new TbMsgTimeseriesNodeConfiguration();
         configuration.setDefaultTTL(0L);
         configuration.setUseServerTs(false);
-        configuration.setPersistenceSettings(new OnEveryMessage());
+        configuration.setProcessingSettings(new OnEveryMessage());
         return configuration;
     }
 
@@ -76,29 +76,29 @@ public class TbMsgTimeseriesNodeConfiguration implements NodeConfiguration<TbMsg
             @JsonSubTypes.Type(value = Deduplicate.class, name = "DEDUPLICATE"),
             @JsonSubTypes.Type(value = Advanced.class, name = "ADVANCED")
     })
-    sealed interface PersistenceSettings permits OnEveryMessage, Deduplicate, WebSocketsOnly, Advanced {
+    sealed interface ProcessingSettings permits OnEveryMessage, Deduplicate, WebSocketsOnly, Advanced {
 
-        record OnEveryMessage() implements PersistenceSettings {}
+        record OnEveryMessage() implements ProcessingSettings {}
 
-        record WebSocketsOnly() implements PersistenceSettings {}
+        record WebSocketsOnly() implements ProcessingSettings {}
 
         @Getter
-        final class Deduplicate implements PersistenceSettings {
+        final class Deduplicate implements ProcessingSettings {
 
             private final int deduplicationIntervalSecs;
 
             @JsonIgnore
-            private final PersistenceStrategy persistenceStrategy;
+            private final ProcessingStrategy processingStrategy;
 
             @JsonCreator
             Deduplicate(@JsonProperty("deduplicationIntervalSecs") int deduplicationIntervalSecs) {
                 this.deduplicationIntervalSecs = deduplicationIntervalSecs;
-                persistenceStrategy = PersistenceStrategy.deduplicate(deduplicationIntervalSecs);
+                processingStrategy = ProcessingStrategy.deduplicate(deduplicationIntervalSecs);
             }
 
         }
 
-        record Advanced(PersistenceStrategy timeseries, PersistenceStrategy latest, PersistenceStrategy webSockets) implements PersistenceSettings {
+        record Advanced(ProcessingStrategy timeseries, ProcessingStrategy latest, ProcessingStrategy webSockets) implements ProcessingSettings {
 
             public Advanced {
                 Objects.requireNonNull(timeseries);

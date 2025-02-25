@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -267,7 +267,6 @@ public class DefaultSolutionService implements SolutionService {
             templateInfo.setTitle(descriptor.getTitle());
             templateInfo.setLevel(descriptor.getLevel());
             templateInfo.setInstallTimeoutMs(descriptor.getInstallTimeoutMs());
-            templateInfo.setShortDescription(readFile(resolve(descriptor.getId(), "short.md")));
             templateInfo.setPreviewImageUrl(descriptor.getPreviewImageUrl());
             templateInfo.setVideoPreviewImageUrl(descriptor.getVideoPreviewImageUrl());
             templateInfo.setPreviewMp4Url(descriptor.getPreviewMp4Url());

@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ DO $$
             SET configuration = (
                 (configuration::jsonb - 'skipLatestPersistence')
                     || jsonb_build_object(
-                        'persistenceSettings', jsonb_build_object(
+                        'processingSettings', jsonb_build_object(
                                 'type',       'ADVANCED',
                                 'timeseries', jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
                                 'latest',     jsonb_build_object('type', 'SKIP'),
@@ -61,7 +61,7 @@ DO $$
             SET configuration = (
                 (configuration::jsonb - 'skipLatestPersistence')
                     || jsonb_build_object(
-                        'persistenceSettings', jsonb_build_object(
+                        'processingSettings', jsonb_build_object(
                                 'type', 'ON_EVERY_MESSAGE'
                                                )
                        )

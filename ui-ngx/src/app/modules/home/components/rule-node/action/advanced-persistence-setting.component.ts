@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@ import {
 } from '@angular/forms';
 import { Component, forwardRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AdvancedPersistenceStrategy } from '@home/components/rule-node/action/timeseries-config.models';
+import { AdvancedProcessingStrategy } from '@home/components/rule-node/action/timeseries-config.models';
 
 @Component({
   selector: 'tb-advanced-persistence-settings',
@@ -91,8 +91,7 @@ export class AdvancedPersistenceSettingComponent implements ControlValueAccessor
     };
   }
 
-  writeValue(value: AdvancedPersistenceStrategy) {
+  writeValue(value: AdvancedProcessingStrategy) {
     this.persistenceForm.patchValue(value, {emitEvent: false});
   }
-
 }

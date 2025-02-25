@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,7 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
             "\"connectionString\":\"" + CONNECTION_STRING + "\"," +
             "\"storageConnectionString\":\"" + STORAGE_CONNECTION_STRING + "\"," +
             "\"containerName\":\"" + CONTAINER_NAME + "\"," +
-            "\"enablePersistentCheckpoints\": true," +
+            "\"enablePersistentCheckpoints\": false," +
             "\"consumerGroup\":\"\"," +
             "\"iotHubName\":\"\"}," +
             "\"metadata\":{}}";
@@ -100,6 +100,8 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         integration = createIntegration(AZURE_EVENT_HUB, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
 
+        Thread.sleep(10000); // await for initialization finish
+
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
         sendMessageToHub();
@@ -127,6 +129,7 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
         EventDataBatch eventDataBatch = producer.createBatch();
         eventDataBatch.tryAdd(data);
         producer.send(eventDataBatch);
+        producer.close();
     }
 
     @Override

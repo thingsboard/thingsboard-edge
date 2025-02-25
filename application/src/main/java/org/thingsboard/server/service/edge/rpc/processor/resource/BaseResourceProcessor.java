@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor.resource;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
@@ -53,7 +54,7 @@ public abstract class BaseResourceProcessor extends BaseEdgeProcessor {
     protected boolean saveOrUpdateTbResource(TenantId tenantId, TbResourceId tbResourceId, ResourceUpdateMsg resourceUpdateMsg) {
         boolean resourceKeyUpdated = false;
         try {
-            TbResource resource = constructResourceFromUpdateMsg(tenantId, tbResourceId, resourceUpdateMsg);
+            TbResource resource = JacksonUtil.fromString(resourceUpdateMsg.getEntity(), TbResource.class, true);
             if (resource == null) {
                 throw new RuntimeException("[{" + tenantId + "}] resourceUpdateMsg {" + resourceUpdateMsg + " } cannot be converted to resource");
             }
@@ -68,6 +69,9 @@ public abstract class BaseResourceProcessor extends BaseEdgeProcessor {
             }
             String resourceKey = resource.getResourceKey();
             ResourceType resourceType = resource.getResourceType();
+            if (!created && !resourceType.isUpdatable()) {
+                resource.setData(null);
+            }
             PageDataIterable<TbResource> resourcesIterable = new PageDataIterable<>(
                     link -> edgeCtx.getResourceService().findTenantResourcesByResourceTypeAndPageLink(tenantId, resourceType, link), 1024);
             for (TbResource tbResource : resourcesIterable) {
@@ -90,7 +94,5 @@ public abstract class BaseResourceProcessor extends BaseEdgeProcessor {
         }
         return resourceKeyUpdated;
     }
-
-    protected abstract TbResource constructResourceFromUpdateMsg(TenantId tenantId, TbResourceId tbResourceId, ResourceUpdateMsg resourceUpdateMsg);
 
 }

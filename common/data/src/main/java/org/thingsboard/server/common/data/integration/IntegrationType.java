@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,8 +38,8 @@ import lombok.Getter;
 public enum IntegrationType {
     OCEANCONNECT(false, null),
     SIGFOX(false, "Sigfox"),
-    THINGPARK(false, "Actility ThingPark"),
-    TPE(false, "Actility ThingPark"),
+    THINGPARK(false, "ThingPark"),
+    TPE(false, "ThingParkEnterprise"),
     CHIRPSTACK(false, "ChirpStack"),
     PARTICLE(false, "Particle"),
     TMOBILE_IOT_CDP(false, null),

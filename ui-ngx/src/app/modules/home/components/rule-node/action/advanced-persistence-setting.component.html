@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,11 @@
 
 -->
 <section [formGroup]="persistenceForm" class="tb-form-panel no-border no-padding">
+  <tb-example-hint
+    [hintText]="'rule-node-config.save-time-series.advanced-settings-hint'"
+    [popupHelpLink]="'rulenode/save_timeseries_node_advanced'"
+  >
+  </tb-example-hint>
   <tb-advanced-persistence-setting-row
     formControlName="timeseries"
     title="{{ 'rule-node-config.save-time-series.time-series' | translate }}"
