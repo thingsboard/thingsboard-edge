@@ -70,14 +70,15 @@ export interface BasicProcessingSettings {
   type: ProcessingType;
 }
 
-export interface DeduplicateProcessingStrategy extends BasicProcessingSettings{
+export interface DeduplicateProcessingStrategy extends BasicProcessingSettings {
   deduplicationIntervalSecs: number;
 }
 
-export interface AdvancedProcessingStrategy extends BasicProcessingSettings{
+export interface AdvancedProcessingStrategy extends BasicProcessingSettings {
   timeseries: AdvancedProcessingConfig;
   latest: AdvancedProcessingConfig;
   webSockets: AdvancedProcessingConfig;
+  calculatedFields: AdvancedProcessingConfig;
 }
 
 export type AdvancedProcessingConfig = WithOptional<DeduplicateProcessingStrategy, 'deduplicationIntervalSecs'>;
@@ -86,8 +87,9 @@ export const defaultAdvancedProcessingConfig: AdvancedProcessingConfig = {
   type: ProcessingType.ON_EVERY_MESSAGE
 }
 
-export const defaultAdvancedPersistenceStrategy: Omit<AdvancedProcessingStrategy, 'type'> = {
+export const defaultAdvancedProcessingStrategy: Omit<AdvancedProcessingStrategy, 'type'> = {
   timeseries: defaultAdvancedProcessingConfig,
   latest: defaultAdvancedProcessingConfig,
   webSockets: defaultAdvancedProcessingConfig,
+  calculatedFields: defaultAdvancedProcessingConfig,
 }

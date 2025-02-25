@@ -29,6 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { Component, forwardRef, Input } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -37,37 +38,55 @@ import {
   ValidationErrors,
   Validator
 } from '@angular/forms';
-import { Component, forwardRef } from '@angular/core';
+import {
+  AdvancedProcessingConfig,
+  defaultAdvancedProcessingConfig,
+  maxDeduplicateTimeSecs,
+  ProcessingType,
+  ProcessingTypeTranslationMap
+} from '@home/components/rule-node/action/timeseries-config.models';
+import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AdvancedProcessingStrategy } from '@home/components/rule-node/action/timeseries-config.models';
 
 @Component({
-  selector: 'tb-advanced-persistence-settings',
-  templateUrl: './advanced-persistence-setting.component.html',
+  selector: 'tb-advanced-processing-setting-row',
+  templateUrl: './advanced-processing-setting-row.component.html',
   providers: [{
     provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => AdvancedPersistenceSettingComponent),
+    useExisting: forwardRef(() => AdvancedProcessingSettingRowComponent),
     multi: true
   },{
     provide: NG_VALIDATORS,
-    useExisting: forwardRef(() => AdvancedPersistenceSettingComponent),
+    useExisting: forwardRef(() => AdvancedProcessingSettingRowComponent),
     multi: true
   }]
 })
-export class AdvancedPersistenceSettingComponent implements ControlValueAccessor, Validator {
+export class AdvancedProcessingSettingRowComponent implements ControlValueAccessor, Validator {
 
-  persistenceForm = this.fb.group({
-    timeseries: [null],
-    latest: [null],
-    webSockets: [null]
+  @Input()
+  title: string;
+
+  processingSettingRowForm = this.fb.group({
+    type: [defaultAdvancedProcessingConfig.type],
+    deduplicationIntervalSecs: [{value: 60, disabled: true}]
   });
+
+  ProcessingType = ProcessingType;
+  processingStrategies = [ProcessingType.ON_EVERY_MESSAGE, ProcessingType.DEDUPLICATE, ProcessingType.SKIP];
+  ProcessingTypeTranslationMap = ProcessingTypeTranslationMap;
+
+  maxDeduplicateTime = maxDeduplicateTimeSecs;
 
   private propagateChange: (value: any) => void = () => {};
 
   constructor(private fb: FormBuilder) {
-    this.persistenceForm.valueChanges.pipe(
+    this.processingSettingRowForm.get('type').valueChanges.pipe(
       takeUntilDestroyed()
-    ).subscribe(value => this.propagateChange(value));
+    ).subscribe(() => this.updatedValidation());
+
+    this.processingSettingRowForm.valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe((value) => this.propagateChange(value));
   }
 
   registerOnChange(fn: any) {
@@ -79,19 +98,32 @@ export class AdvancedPersistenceSettingComponent implements ControlValueAccessor
 
   setDisabledState(isDisabled: boolean) {
     if (isDisabled) {
-      this.persistenceForm.disable({emitEvent: false});
+      this.processingSettingRowForm.disable({emitEvent: false});
     } else {
-      this.persistenceForm.enable({emitEvent: false});
+      this.processingSettingRowForm.enable({emitEvent: false});
+      this.updatedValidation();
     }
   }
 
   validate(): ValidationErrors | null {
-    return this.persistenceForm.valid ? null : {
-      persistenceForm: false
+    return this.processingSettingRowForm.valid ? null : {
+      processingSettingRow: false
     };
   }
 
-  writeValue(value: AdvancedProcessingStrategy) {
-    this.persistenceForm.patchValue(value, {emitEvent: false});
+  writeValue(value: AdvancedProcessingConfig) {
+    if (isDefinedAndNotNull(value)) {
+      this.processingSettingRowForm.patchValue(value, {emitEvent: false});
+    } else {
+      this.processingSettingRowForm.patchValue(defaultAdvancedProcessingConfig);
+    }
+  }
+
+  private updatedValidation() {
+    if (this.processingSettingRowForm.get('type').value === ProcessingType.DEDUPLICATE) {
+      this.processingSettingRowForm.get('deduplicationIntervalSecs').enable({emitEvent: false});
+    } else {
+      this.processingSettingRowForm.get('deduplicationIntervalSecs').disable({emitEvent: false})
+    }
   }
 }

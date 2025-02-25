@@ -29,7 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -38,55 +37,38 @@ import {
   ValidationErrors,
   Validator
 } from '@angular/forms';
-import {
-  AdvancedProcessingConfig,
-  defaultAdvancedProcessingConfig,
-  maxDeduplicateTimeSecs,
-  ProcessingType,
-  ProcessingTypeTranslationMap
-} from '@home/components/rule-node/action/timeseries-config.models';
-import { isDefinedAndNotNull } from '@core/utils';
+import { Component, forwardRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AdvancedProcessingStrategy } from '@home/components/rule-node/action/timeseries-config.models';
 
 @Component({
-  selector: 'tb-advanced-persistence-setting-row',
-  templateUrl: './advanced-persistence-setting-row.component.html',
+  selector: 'tb-advanced-processing-settings',
+  templateUrl: './advanced-processing-setting.component.html',
   providers: [{
     provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => AdvancedPersistenceSettingRowComponent),
+    useExisting: forwardRef(() => AdvancedProcessingSettingComponent),
     multi: true
   },{
     provide: NG_VALIDATORS,
-    useExisting: forwardRef(() => AdvancedPersistenceSettingRowComponent),
+    useExisting: forwardRef(() => AdvancedProcessingSettingComponent),
     multi: true
   }]
 })
-export class AdvancedPersistenceSettingRowComponent implements ControlValueAccessor, Validator {
+export class AdvancedProcessingSettingComponent implements ControlValueAccessor, Validator {
 
-  @Input()
-  title: string;
-
-  persistenceSettingRowForm = this.fb.group({
-    type: [defaultAdvancedProcessingConfig.type],
-    deduplicationIntervalSecs: [{value: 60, disabled: true}]
+  processingForm = this.fb.group({
+    timeseries: [null],
+    latest: [null],
+    webSockets: [null],
+    calculatedFields: [null]
   });
-
-  PersistenceType = ProcessingType;
-  persistenceStrategies = [ProcessingType.ON_EVERY_MESSAGE, ProcessingType.DEDUPLICATE, ProcessingType.SKIP];
-  PersistenceTypeTranslationMap = ProcessingTypeTranslationMap;
-
-  maxDeduplicateTime = maxDeduplicateTimeSecs;
 
   private propagateChange: (value: any) => void = () => {};
 
   constructor(private fb: FormBuilder) {
-    this.persistenceSettingRowForm.get('type').valueChanges.pipe(
+    this.processingForm.valueChanges.pipe(
       takeUntilDestroyed()
-    ).subscribe(() => this.updatedValidation());
-
-    this.persistenceSettingRowForm.valueChanges.pipe(
-      takeUntilDestroyed()
-    ).subscribe((value) => this.propagateChange(value));
+    ).subscribe(value => this.propagateChange(value));
   }
 
   registerOnChange(fn: any) {
@@ -98,32 +80,19 @@ export class AdvancedPersistenceSettingRowComponent implements ControlValueAcces
 
   setDisabledState(isDisabled: boolean) {
     if (isDisabled) {
-      this.persistenceSettingRowForm.disable({emitEvent: false});
+      this.processingForm.disable({emitEvent: false});
     } else {
-      this.persistenceSettingRowForm.enable({emitEvent: false});
-      this.updatedValidation();
+      this.processingForm.enable({emitEvent: false});
     }
   }
 
   validate(): ValidationErrors | null {
-    return this.persistenceSettingRowForm.valid ? null : {
-      persistenceSettingRow: false
+    return this.processingForm.valid ? null : {
+      processingForm: false
     };
   }
 
-  writeValue(value: AdvancedProcessingConfig) {
-    if (isDefinedAndNotNull(value)) {
-      this.persistenceSettingRowForm.patchValue(value, {emitEvent: false});
-    } else {
-      this.persistenceSettingRowForm.patchValue(defaultAdvancedProcessingConfig);
-    }
-  }
-
-  private updatedValidation() {
-    if (this.persistenceSettingRowForm.get('type').value === ProcessingType.DEDUPLICATE) {
-      this.persistenceSettingRowForm.get('deduplicationIntervalSecs').enable({emitEvent: false});
-    } else {
-      this.persistenceSettingRowForm.get('deduplicationIntervalSecs').disable({emitEvent: false})
-    }
+  writeValue(value: AdvancedProcessingStrategy) {
+    this.processingForm.patchValue(value, {emitEvent: false});
   }
 }

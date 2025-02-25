@@ -548,7 +548,7 @@ public class TbMathNodeTest {
         verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
         verify(telemetryService, times(1)).saveTimeseries(assertArg(request -> {
             assertThat(request.getEntries()).size().isOne();
-            assertThat(request.getStrategy()).isEqualTo(TimeseriesSaveRequest.Strategy.SAVE_ALL);
+            assertThat(request.getStrategy()).isEqualTo(TimeseriesSaveRequest.Strategy.PROCESS_ALL);
         }));
 
         TbMsg resultMsg = msgCaptor.getValue();
@@ -584,7 +584,7 @@ public class TbMathNodeTest {
         verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
         verify(telemetryService, times(1)).saveTimeseries(assertArg(request -> {
             assertThat(request.getEntries()).size().isOne();
-            assertThat(request.getStrategy()).isEqualTo(TimeseriesSaveRequest.Strategy.SAVE_ALL);
+            assertThat(request.getStrategy()).isEqualTo(TimeseriesSaveRequest.Strategy.PROCESS_ALL);
         }));
 
         TbMsg resultMsg = msgCaptor.getValue();
