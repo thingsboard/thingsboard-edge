@@ -84,7 +84,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class JsonConverter {
 
@@ -571,10 +570,12 @@ public class JsonConverter {
     }
 
     public static Set<AttributeKvEntry> convertToAttributes(JsonElement element) {
-        Set<AttributeKvEntry> result = new HashSet<>();
         long ts = System.currentTimeMillis();
-        result.addAll(parseValues(element.getAsJsonObject()).stream().map(kv -> new BaseAttributeKvEntry(kv, ts)).collect(Collectors.toList()));
-        return result;
+        return convertToAttributes(element, ts);
+    }
+
+    public static Set<AttributeKvEntry> convertToAttributes(JsonElement element, long ts) {
+        return new HashSet<>(parseValues(element.getAsJsonObject()).stream().map(kv -> new BaseAttributeKvEntry(kv, ts)).toList());
     }
 
     private static List<KvEntry> parseValues(JsonObject valuesObject) {
@@ -740,4 +741,5 @@ public class JsonConverter {
             return "";
         }
     }
+
 }

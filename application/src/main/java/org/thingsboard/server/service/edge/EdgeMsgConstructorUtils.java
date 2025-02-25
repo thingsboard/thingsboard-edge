@@ -515,16 +515,11 @@ public class EdgeMsgConstructorUtils {
                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
                 .setEntityType(entityId.getEntityType().name());
+        long ts = getTs(entityData.getAsJsonObject());
         switch (actionType) {
             case TIMESERIES_UPDATED:
                 try {
                     JsonObject data = entityData.getAsJsonObject();
-                    long ts;
-                    if (data.get("ts") != null && !data.get("ts").isJsonNull()) {
-                        ts = data.getAsJsonPrimitive("ts").getAsLong();
-                    } else {
-                        ts = System.currentTimeMillis();
-                    }
                     builder.setPostTelemetryMsg(JsonConverter.convertToTelemetryProto(data.getAsJsonObject("data"), ts));
                 } catch (Exception e) {
                     log.warn("[{}][{}] Can't convert to telemetry proto, entityData [{}]", tenantId, entityId, entityData, e);
@@ -540,6 +535,7 @@ public class EdgeMsgConstructorUtils {
                         builder.setAttributesUpdatedMsg(attributesUpdatedMsg);
                     }
                     builder.setPostAttributeScope(getScopeOfDefault(data));
+                    builder.setAttributeTs(ts);
                 } catch (Exception e) {
                     log.warn("[{}][{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
@@ -550,6 +546,7 @@ public class EdgeMsgConstructorUtils {
                     TransportProtos.PostAttributeMsg postAttributesMsg = JsonConverter.convertToAttributesProto(data.getAsJsonObject("kv"));
                     builder.setPostAttributesMsg(postAttributesMsg);
                     builder.setPostAttributeScope(getScopeOfDefault(data));
+                    builder.setAttributeTs(ts);
                 } catch (Exception e) {
                     log.warn("[{}][{}] Can't convert to PostAttributesMsg, entityData [{}]", tenantId, entityId, entityData, e);
                 }
@@ -569,6 +566,13 @@ public class EdgeMsgConstructorUtils {
                 break;
         }
         return builder.build();
+    }
+
+    private static long getTs(JsonObject data) {
+        if (data.get("ts") != null && !data.get("ts").isJsonNull()) {
+            return data.getAsJsonPrimitive("ts").getAsLong();
+        }
+        return System.currentTimeMillis();
     }
 
     private static String getScopeOfDefault(JsonObject data) {

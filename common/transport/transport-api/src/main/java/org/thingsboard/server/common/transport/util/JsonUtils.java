@@ -64,6 +64,7 @@ public class JsonUtils {
         }
         return json;
     }
+
     public static JsonElement parse(Object value) {
         if (value instanceof Integer) {
             return new JsonPrimitive((Integer) value);
@@ -82,7 +83,7 @@ public class JsonUtils {
         }
     }
 
-    public static JsonObject convertToJsonObject(Map<String,?> map) {
+    public static JsonObject convertToJsonObject(Map<String, ?> map) {
         JsonObject jsonObject = new JsonObject();
         for (Map.Entry<String, ?> entry : map.entrySet()) {
             jsonObject.add(entry.getKey(), parse(entry.getValue()));
@@ -90,4 +91,5 @@ public class JsonUtils {
 
         return jsonObject;
     }
+
 }
