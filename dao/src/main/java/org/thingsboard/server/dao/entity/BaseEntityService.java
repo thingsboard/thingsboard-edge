@@ -69,7 +69,7 @@ import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
-import org.thingsboard.server.common.msg.edqs.EdqsService;
+import org.thingsboard.server.common.msg.edqs.EdqsApiService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -143,8 +143,8 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     @Lazy
     EntityServiceRegistry entityServiceRegistry;
 
-    @Autowired @Lazy
-    private EdqsService edqsService;
+    @Autowired
+    private EdqsApiService edqsApiService;
 
     @Override
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
@@ -288,7 +288,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityCountQuery(query);
 
-        if (edqsService.isApiEnabled() && validForEdqs(query)) {
+        if (edqsApiService.isEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityCountQuery(query)
                     .userPermissions(userPermissions)
@@ -306,7 +306,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityDataQuery(query);
 
-        if (edqsService.isApiEnabled() && validForEdqs(query)) {
+        if (edqsApiService.isEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityDataQuery(query)
                     .userPermissions(userPermissions)
@@ -338,7 +338,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         EdqsResponse response;
         try {
             log.debug("[{}] Sending request to EDQS: {}", tenantId, request);
-            response = edqsService.processRequest(tenantId, customerId, request).get();
+            response = edqsApiService.processRequest(tenantId, customerId, request).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
