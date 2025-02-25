@@ -18,7 +18,6 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -27,25 +26,23 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.constructor.resource.ResourceMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.resource.ResourceMsgConstructorFactory;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.resource.BaseResourceProcessor;
 
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class ResourceCloudProcessor extends BaseResourceProcessor {
-
-    @Autowired
-    private ResourceMsgConstructorFactory resourceMsgConstructorFactory;
 
     public ListenableFuture<Void> processResourceMsgFromCloud(TenantId tenantId, ResourceUpdateMsg resourceUpdateMsg) {
         TbResourceId tbResourceId = new TbResourceId(new UUID(resourceUpdateMsg.getIdMSB(), resourceUpdateMsg.getIdLSB()));
@@ -102,15 +99,15 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
         }
     }
 
-    public UplinkMsg convertResourceEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
+    @Override
+    public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         TbResourceId tbResourceId = new TbResourceId(cloudEvent.getEntityId());
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED -> {
                 TbResource tbResource = edgeCtx.getResourceService().findResourceById(cloudEvent.getTenantId(), tbResourceId);
                 if (tbResource != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    ResourceUpdateMsg resourceUpdateMsg = ((ResourceMsgConstructor)
-                            resourceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructResourceUpdatedMsg(msgType, tbResource);
+                    ResourceUpdateMsg resourceUpdateMsg = EdgeMsgConstructorUtils.constructResourceUpdatedMsg(msgType, tbResource);
                     return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addResourceUpdateMsg(resourceUpdateMsg)
@@ -122,8 +119,8 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
     }
 
     @Override
-    protected TbResource constructResourceFromUpdateMsg(TenantId tenantId, TbResourceId tbResourceId, ResourceUpdateMsg resourceUpdateMsg) {
-        return JacksonUtil.fromString(resourceUpdateMsg.getEntity(), TbResource.class, true);
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.TB_RESOURCE;
     }
 
 }

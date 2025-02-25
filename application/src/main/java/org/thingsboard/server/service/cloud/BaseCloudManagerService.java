@@ -50,30 +50,14 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
-import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -119,6 +103,9 @@ public abstract class BaseCloudManagerService {
     private long uplinkPackTimeoutSec;
 
     @Autowired
+    private CloudContextComponent cloudCtx;
+
+    @Autowired
     private EdgeService edgeService;
 
     @Autowired
@@ -137,55 +124,10 @@ public abstract class BaseCloudManagerService {
     private EdgeRpcClient edgeRpcClient;
 
     @Autowired
-    private EdgeCloudProcessor edgeCloudProcessor;
-
-    @Autowired
-    private TenantCloudProcessor tenantProcessor;
-
-    @Autowired
-    private CustomerCloudProcessor customerProcessor;
-
-    @Autowired
-    private CloudEventService cloudEventService;
-
-    @Autowired
     private EdgeSettingsService edgeSettingsService;
 
     @Autowired
     private ConfigurableApplicationContext context;
-
-    @Autowired
-    private RelationCloudProcessor relationProcessor;
-
-    @Autowired
-    private DeviceCloudProcessor deviceProcessor;
-
-    @Autowired
-    private DeviceProfileCloudProcessor deviceProfileProcessor;
-
-    @Autowired
-    private AlarmCloudProcessor alarmProcessor;
-
-    @Autowired
-    private TelemetryCloudProcessor telemetryProcessor;
-
-    @Autowired
-    private WidgetBundleCloudProcessor widgetBundleProcessor;
-
-    @Autowired
-    private EntityViewCloudProcessor entityViewProcessor;
-
-    @Autowired
-    private DashboardCloudProcessor dashboardProcessor;
-
-    @Autowired
-    private AssetCloudProcessor assetProcessor;
-
-    @Autowired
-    private AssetProfileCloudProcessor assetProfileProcessor;
-
-    @Autowired
-    private ResourceCloudProcessor resourceCloudProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -447,17 +389,17 @@ public abstract class BaseCloudManagerService {
         this.currentEdgeSettings = edgeSettingsService.findEdgeSettings();
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
-            tenantProcessor.cleanUp();
+            cloudCtx.getTenantProcessor().cleanUp();
             this.currentEdgeSettings = newEdgeSettings;
             resetQueueOffset();
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
-        tenantProcessor.createTenantIfNotExists(this.tenantId);
+        cloudCtx.getTenantProcessor().createTenantIfNotExists(this.tenantId);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
         if (edgeCustomerIdUpdated) {
-            customerProcessor.createCustomerIfNotExists(this.tenantId, edgeConfiguration);
+            cloudCtx.getCustomerProcessor().createCustomerIfNotExists(this.tenantId, edgeConfiguration);
         }
         // TODO: voba - should sync be executed in some other cases ???
         log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
@@ -501,9 +443,9 @@ public abstract class BaseCloudManagerService {
 
     private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws Exception {
         EdgeId edgeId = getEdgeId(edgeConfiguration);
-        edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
-        cloudEventService.saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null);
-        cloudEventService.saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null);
+        cloudCtx.getEdgeProcessor().processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
+        cloudCtx.getCloudEventService().saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null);
+        cloudCtx.getCloudEventService().saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null);
     }
 
     private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) {
@@ -644,10 +586,10 @@ public abstract class BaseCloudManagerService {
                      RELATION_ADD_OR_UPDATE, RELATION_DELETED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER,
                      ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> convertEntityEventToUplink(cloudEvent);
                 case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
-                        telemetryProcessor.convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
-                case ATTRIBUTES_REQUEST -> telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
-                case RELATION_REQUEST -> relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
-                case RPC_CALL -> deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
+                        cloudCtx.getTelemetryProcessor().convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
+                case ATTRIBUTES_REQUEST -> cloudCtx.getTelemetryProcessor().convertAttributesRequestEventToUplink(cloudEvent);
+                case RELATION_REQUEST -> cloudCtx.getRelationProcessor().convertRelationRequestEventToUplink(cloudEvent);
+                case RPC_CALL -> cloudCtx.getDeviceProcessor().convertRpcCallEventToUplink(cloudEvent);
                 default -> {
                     log.warn("Unsupported action type [{}]", cloudEvent);
                     yield null;
@@ -661,24 +603,7 @@ public abstract class BaseCloudManagerService {
 
     private UplinkMsg convertEntityEventToUplink(CloudEvent cloudEvent) {
         log.trace("Executing convertEntityEventToUplink cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
-        EdgeVersion edgeVersion = EdgeVersion.V_LATEST;
-
-        return switch (cloudEvent.getType()) {
-            case DEVICE -> deviceProcessor.convertDeviceEventToUplink(cloudEvent.getTenantId(), cloudEvent, edgeVersion);
-            case DEVICE_PROFILE -> deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
-            case ALARM -> alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
-            case ALARM_COMMENT -> alarmProcessor.convertAlarmCommentEventToUplink(cloudEvent, edgeVersion);
-            case ASSET -> assetProcessor.convertAssetEventToUplink(cloudEvent, edgeVersion);
-            case ASSET_PROFILE -> assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent, edgeVersion);
-            case DASHBOARD -> dashboardProcessor.convertDashboardEventToUplink(cloudEvent, edgeVersion);
-            case ENTITY_VIEW -> entityViewProcessor.convertEntityViewEventToUplink(cloudEvent, edgeVersion);
-            case RELATION -> relationProcessor.convertRelationEventToUplink(cloudEvent, edgeVersion);
-            case TB_RESOURCE -> resourceCloudProcessor.convertResourceEventToUplink(cloudEvent, edgeVersion);
-            default -> {
-                log.warn("Unsupported cloud event type [{}]", cloudEvent);
-                yield null;
-            }
-        };
+        return cloudCtx.getProcessor(cloudEvent.getType()).convertCloudEventToUplink(cloudEvent);
     }
 
     protected ListenableFuture<Boolean> processCloudEvents(List<CloudEvent> cloudEvents, boolean isGeneralMsg) {

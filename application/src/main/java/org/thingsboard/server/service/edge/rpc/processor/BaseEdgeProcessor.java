@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.CloudUtils;
@@ -75,13 +76,14 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.thingsboard.server.dao.edge.BaseRelatedEdgesService.RELATED_EDGES_CACHE_ITEMS;
 
 @Slf4j
-public abstract class BaseEdgeProcessor {
+public abstract class BaseEdgeProcessor implements EdgeProcessor {
 
     protected static final Lock deviceCreationLock = new ReentrantLock();
     protected static final Lock assetCreationLock = new ReentrantLock();
     protected static final Lock widgetCreationLock = new ReentrantLock();
     protected static final Lock customerCreationLock = new ReentrantLock();
 
+    @Lazy
     @Autowired
     protected EdgeContextComponent edgeCtx;
 
@@ -133,7 +135,7 @@ public abstract class BaseEdgeProcessor {
     private boolean doSaveIfEdgeIsOffline(EdgeEventType type, EdgeEventActionType action) {
         return switch (action) {
             case TIMESERIES_UPDATED, ALARM_ACK, ALARM_CLEAR, ALARM_ASSIGNED, ALARM_UNASSIGNED, ADDED_COMMENT,
-                 UPDATED_COMMENT -> true;
+                 UPDATED_COMMENT, DELETED -> true;
             default -> switch (type) {
                 case ALARM, ALARM_COMMENT, RULE_CHAIN, RULE_CHAIN_METADATA, USER, CUSTOMER, TENANT, TENANT_PROFILE,
                      WIDGETS_BUNDLE, WIDGET_TYPE, ADMIN_SETTINGS, OTA_PACKAGE, QUEUE, RELATION, NOTIFICATION_TEMPLATE, NOTIFICATION_TARGET,
@@ -200,6 +202,7 @@ public abstract class BaseEdgeProcessor {
         };
     }
 
+    @Override
     public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());

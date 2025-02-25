@@ -57,7 +57,6 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_UPDATE
                 "<br><code>ALARM</code><br><br>" +
                 "Message will be routed via <b>Failure</b> route if node was not able to save cloud event to database or unsupported originator type/message type arrived. " +
                 "In case successful storage cloud event to database message will be routed via <b>Success</b> route.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodePushToCloudConfig",
         icon = "cloud_upload"
 )
