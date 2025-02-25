@@ -121,15 +121,6 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
         return null;
     }
 
-    @Override
-    protected Set<ShortCustomerInfo> filterNonExistingCustomers(TenantId tenantId, Set<ShortCustomerInfo> assignedCustomers) {
-        if (assignedCustomers != null && !assignedCustomers.isEmpty()) {
-            assignedCustomers.removeIf(assignedCustomer ->
-                    checkCustomerOnEdge(tenantId, assignedCustomer.getCustomerId()) == null);
-        }
-        return assignedCustomers;
-    }
-
     private CustomerId checkCustomerOnEdge(TenantId tenantId, CustomerId customerId) {
         Customer customer = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
         return customer != null ? customer.getId() : null;
@@ -138,6 +129,15 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     @Override
     public CloudEventType getCloudEventType() {
         return CloudEventType.DASHBOARD;
+    }
+
+    @Override
+    protected Set<ShortCustomerInfo> filterNonExistingCustomers(TenantId tenantId, Set<ShortCustomerInfo> currentAssignedCustomers, Set<ShortCustomerInfo> newAssignedCustomers) {
+        if (newAssignedCustomers != null && !newAssignedCustomers.isEmpty()) {
+            newAssignedCustomers.removeIf(assignedCustomer ->
+                    checkCustomerOnEdge(tenantId, assignedCustomer.getCustomerId()) == null);
+        }
+        return newAssignedCustomers;
     }
 
 }
