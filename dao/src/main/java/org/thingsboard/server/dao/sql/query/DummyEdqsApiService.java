@@ -28,27 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.edqs;
+package org.thingsboard.server.dao.sql.query;
 
-import org.thingsboard.server.common.data.ObjectType;
-import org.thingsboard.server.common.data.edqs.EdqsObject;
-import org.thingsboard.server.common.data.edqs.ToCoreEdqsMsg;
-import org.thingsboard.server.common.data.edqs.ToCoreEdqsRequest;
-import org.thingsboard.server.common.data.id.EntityId;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.edqs.query.EdqsRequest;
+import org.thingsboard.server.common.data.edqs.query.EdqsResponse;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.edqs.EdqsApiService;
 
-public interface EdqsService {
+@Service
+@Slf4j
+@ConditionalOnMissingBean(value = EdqsApiService.class, ignored = DummyEdqsApiService.class)
+public class DummyEdqsApiService implements EdqsApiService {
 
-    void onUpdate(TenantId tenantId, EntityId entityId, Object entity);
+    @Override
+    public ListenableFuture<EdqsResponse> processRequest(TenantId tenantId, CustomerId customerId, EdqsRequest request) {
+        throw new UnsupportedOperationException();
+    }
 
-    void onUpdate(TenantId tenantId, ObjectType objectType, EdqsObject object);
+    @Override
+    public boolean isEnabled() {
+        return false;
+    }
 
-    void onDelete(TenantId tenantId, EntityId entityId);
+    @Override
+    public void setEnabled(boolean enabled) {
+        log.warn("Got request to enable EDQS API, but it isn't supported", new RuntimeException("stacktrace"));
+    }
 
-    void onDelete(TenantId tenantId, ObjectType objectType, EdqsObject object);
-
-    void processSystemRequest(ToCoreEdqsRequest request);
-
-    void processSystemMsg(ToCoreEdqsMsg request);
+    @Override
+    public boolean isSupported() {
+        return false;
+    }
 
 }
