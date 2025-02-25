@@ -1781,7 +1781,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertEquals(1, results3.getTotalElements());
         String deviceName3 = results3.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
         assertThat(deviceName3).isEqualTo(customerDevices.get(0).getName());
-   }
+    }
 
     @Test
     public void testFindGroupEntityBySingleEntityFilter() {
@@ -2315,7 +2315,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         //check that tenant entity is not accessible to customer user
         stateEntityOwnerFilter.setSingleEntity(tenantEntityIds.get(0));
         EntityCountQuery countQuery = new EntityDataQuery(stateEntityOwnerFilter, pageLink, null, null, null);
-        long countResult =  entityService.countEntitiesByQuery(tenantId, customerId, mergedUserPermissionsPE, countQuery);
+        long countResult = entityService.countEntitiesByQuery(tenantId, customerId, mergedUserPermissionsPE, countQuery);
         assertEquals(0, countResult);
     }
 
@@ -2555,7 +2555,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             In order to be careful with updating Relation Query while adding new Entity Type,
             this checkup will help to find place, where you could check the correctness of building query
              */
-            Assert.assertEquals(38, EntityType.values().length);
+            Assert.assertEquals(40, EntityType.values().length);
         }
     }
 
@@ -3755,7 +3755,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(thermostats.getData()).isEmpty();
 
         //add text search
-        PageLink pageLink = new PageLink(100, 0,"wrong search text");
+        PageLink pageLink = new PageLink(100, 0, "wrong search text");
         PageData<Device> testDevices = entityService.findUserEntities(tenantId, customerId, mergedUserPermissions,
                 EntityType.DEVICE, Operation.READ, null, pageLink, false, false);
         assertThat(testDevices.getData()).isEmpty();
