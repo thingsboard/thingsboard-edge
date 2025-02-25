@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,7 @@ import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustom
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultDeviceProfile;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultTenantAdmin;
 
+@DisableUIListeners
 public class EdqsEntityDataQueryTest extends AbstractContainerTest {
 
     private TenantId tenantId;
@@ -111,6 +112,7 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
 
     @AfterClass
     public void afterClass() {
+        testRestClient.resetToken();
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
         testRestClient.deleteTenant(tenantId);
         testRestClient.deleteTenant(tenantId2);
@@ -125,13 +127,14 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> testRestClient.postCountDataQuery(query).compareTo(97L * 2 + 12) >= 0);
 
-        testRestClient.getUserToken(tenantAdminId.getId().toString());
+        testRestClient.getAndSetUserToken(tenantAdminId.getId().toString());
         await("Waiting for total device count")
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> testRestClient.postCountDataQuery(query).equals(97L + 12L));
 
+        testRestClient.resetToken();
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-        testRestClient.getUserToken(tenant2AdminId.getId().toString());
+        testRestClient.getAndSetUserToken(tenant2AdminId.getId().toString());
         await("Waiting for total device count")
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> testRestClient.postCountDataQuery(query).equals(97L));
@@ -140,17 +143,18 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
     @Test
     public void testRetrieveTenantDevicesByDeviceTypeFilter() {
         // login tenant admin
-        testRestClient.getUserToken(tenantAdminId.getId().toString());
+        testRestClient.getAndSetUserToken(tenantAdminId.getId().toString());
         List<Device> allTenantDevices = Stream.concat(tenantDevices.stream(), customerDevices.stream()).toList();
         checkUserDevices(allTenantDevices);
 
         // login customer user
-        testRestClient.getUserToken(customerAdminId.getId().toString());
+        testRestClient.getAndSetUserToken(customerAdminId.getId().toString());
         checkUserDevices(customerDevices);
 
         // login other tenant admin
+        testRestClient.resetToken();
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-        testRestClient.getUserToken(tenant2AdminId.getId().toString());
+        testRestClient.getAndSetUserToken(tenant2AdminId.getId().toString());
         checkUserDevices(tenant2Devices);
     }
 

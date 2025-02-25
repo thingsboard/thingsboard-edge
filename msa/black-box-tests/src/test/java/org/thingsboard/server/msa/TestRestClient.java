@@ -140,6 +140,11 @@ public class TestRestClient {
         requestSpec.header(JWT_TOKEN_HEADER_PARAM, "Bearer " + token);
     }
 
+    public void resetToken() {
+        token = null;
+        refreshToken = null;
+    }
+
     public Tenant postTenant(Tenant tenant) {
         return given().spec(requestSpec).body(tenant)
                 .post("/api/tenant")
@@ -769,11 +774,11 @@ public class TestRestClient {
 
     public UserId createUserAndLogin(User user, String password) {
         UserId userId = postUser(user).getId();
-        getUserToken(userId.getId().toString());
+        getAndSetUserToken(userId.getId().toString());
         return userId;
     }
 
-    public void getUserToken(String id) {
+    public void getAndSetUserToken(String id) {
         ObjectNode tokenInfo = given().spec(requestSpec)
                 .get("/api/user/" + id + "/token")
                 .then()
