@@ -160,7 +160,6 @@ export class RuleChainsTableConfigResolver  {
   configureAddActions(ruleChainScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
     if (ruleChainScope === 'tenant' || ruleChainScope === 'edges') {
-      /* Edge-only:  merge comment - hide this on edge
       actions.push(
         {
           name: this.translate.instant('rulechain.create-new-rulechain'),
@@ -175,7 +174,6 @@ export class RuleChainsTableConfigResolver  {
           onAction: ($event) => this.importRuleChain($event)
         }
       );
-       */
     }
     if (ruleChainScope === 'edge') {
       actions.push(
@@ -236,7 +234,6 @@ export class RuleChainsTableConfigResolver  {
       }
     );
     if (ruleChainScope === 'tenant') {
-      /* Edge-only:  merge comment - hide this on edge
       actions.push(
         {
           name: this.translate.instant('rulechain.set-root'),
@@ -245,7 +242,6 @@ export class RuleChainsTableConfigResolver  {
           onAction: ($event, entity) => this.setRootRuleChain($event, entity)
         }
       );
-       */
     }
     if (ruleChainScope === 'edges') {
       actions.push(

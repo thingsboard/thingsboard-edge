@@ -22,6 +22,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -132,5 +133,10 @@ public class RuleChainCloudProcessor extends BaseRuleChainProcessor {
                 break;
         }
         return msg;
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.RULE_CHAIN;
     }
 }
