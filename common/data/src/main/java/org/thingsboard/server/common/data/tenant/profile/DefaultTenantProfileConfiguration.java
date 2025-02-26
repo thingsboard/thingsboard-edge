@@ -160,12 +160,11 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
 
     private double warnThreshold;
 
-    private long maxCalculatedFields;
+    private long maxCalculatedFieldsPerEntity;
     private long maxArgumentsPerCF;
     private long maxDataPointsPerRollingArg;
     private long maxStateSizeInKBytes;
     private long maxSingleValueArgumentSizeInKBytes;
-    private String calculatedFieldDebugEventsRateLimit;
 
     @Override
     public long getProfileThreshold(ApiUsageRecordKey key) {
@@ -210,7 +209,6 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
             case INTEGRATION -> maxIntegrations;
             case CONVERTER -> maxConverters;
             case SCHEDULER_EVENT -> maxSchedulerEvents;
-            case CALCULATED_FIELD -> maxCalculatedFields;
             default -> 0;
         };
     }
