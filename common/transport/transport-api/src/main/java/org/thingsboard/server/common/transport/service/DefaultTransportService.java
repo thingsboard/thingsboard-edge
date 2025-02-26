@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -751,7 +751,11 @@ public class DefaultTransportService extends TransportActivityManager implements
     }
 
     private void recordActivityInternal(TransportProtos.SessionInfoProto sessionInfo) {
-        onActivity(toSessionId(sessionInfo), sessionInfo, getCurrentTimeMillis());
+        if (sessionInfo != null) {
+            onActivity(toSessionId(sessionInfo), sessionInfo, getCurrentTimeMillis());
+        } else {
+            log.warn("Session info is missing, unable to record activity");
+        }
     }
 
     @Override

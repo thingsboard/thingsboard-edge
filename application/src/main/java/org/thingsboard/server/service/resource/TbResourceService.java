@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.resource;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.ResourceExportData;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -45,9 +46,11 @@ import java.util.List;
 
 public interface TbResourceService {
 
-    TbResource save(TbResource entity) throws ThingsboardException;
+    default TbResourceInfo save(TbResource entity) throws ThingsboardException {
+        return save(entity, null);
+    }
 
-    TbResource save(TbResource entity, SecurityUser user) throws ThingsboardException;
+    TbResourceInfo save(TbResource entity, SecurityUser user) throws ThingsboardException;
 
     void delete(TbResource entity, User user);
 

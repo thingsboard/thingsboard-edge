@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -111,6 +111,56 @@ class DefaultTbContextTest {
     @BeforeEach
     public void setUp() {
         defaultTbContext = new DefaultTbContext(mainCtxMock, "Test rule chain name", nodeCtxMock);
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    public void givenMsgWithQueueName_whenInput_thenVerifyEnqueueWithCorrectTpi(String queueName) {
+        // GIVEN
+        var tpi = resolve(queueName);
+
+        given(mainCtxMock.resolve(eq(ServiceType.TB_RULE_ENGINE), eq(queueName), eq(TENANT_ID), eq(TENANT_ID))).willReturn(tpi);
+        var clusterService = mock(TbClusterService.class);
+        given(mainCtxMock.getClusterService()).willReturn(clusterService);
+        var callbackMock = mock(TbMsgCallback.class);
+        given(callbackMock.isMsgValid()).willReturn(true);
+        var ruleNode = new RuleNode(RULE_NODE_ID);
+
+        var msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(TENANT_ID)
+                .queueName(queueName)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_STRING)
+                .callback(callbackMock)
+                .build();
+
+        var ruleChainId = new RuleChainId(UUID.randomUUID());
+
+        ruleNode.setRuleChainId(RULE_CHAIN_ID);
+        ruleNode.setDebugSettings(DebugSettings.failures());
+        given(nodeCtxMock.getTenantId()).willReturn(TENANT_ID);
+        given(nodeCtxMock.getSelf()).willReturn(ruleNode);
+
+        // WHEN
+        defaultTbContext.input(msg, ruleChainId);
+
+        // THEN
+
+        then(clusterService).should().pushMsgToRuleEngine(eq(tpi), eq(msg.getId()), any(), any());
+    }
+
+    private static Stream<String> givenMsgWithQueueName_whenInput_thenVerifyEnqueueWithCorrectTpi() {
+        return Stream.of("Main", "Test", null);
+    }
+
+    private TopicPartitionInfo resolve(String queueName) {
+        var tpiBuilder = TopicPartitionInfo.builder()
+                .topic(queueName == null ? "MainQueueTopic" : queueName + "QueueTopic")
+                .partition(1)
+                .myPartition(true);
+
+        return tpiBuilder.build();
     }
 
     @Test
@@ -825,10 +875,10 @@ class DefaultTbContextTest {
     @MethodSource
     @ParameterizedTest
     void givenDebugFailuresAndDebugAllAndConnectionAndPersistedResultOptions_whenTellNext_thenVerifyDebugOutputPersistence(boolean debugFailures,
-                                                                                                                long debugAllUntil,
-                                                                                                                String connection,
-                                                                                                                boolean shouldPersist,
-                                                                                                                boolean shouldPersistAfterDurationTime) {
+                                                                                                                           long debugAllUntil,
+                                                                                                                           String connection,
+                                                                                                                           boolean shouldPersist,
+                                                                                                                           boolean shouldPersistAfterDurationTime) {
         // GIVEN
         var callbackMock = mock(TbMsgCallback.class);
         var msg = getTbMsgWithCallback(callbackMock);

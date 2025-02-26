@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -141,8 +141,8 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
     final TenantId tenantId;
     final DeviceId deviceId;
     final LinkedHashMapRemoveEldest<UUID, SessionInfoMetaData> sessions;
-    private final Map<UUID, SessionInfo> attributeSubscriptions;
-    private final Map<UUID, SessionInfo> rpcSubscriptions;
+    final Map<UUID, SessionInfo> attributeSubscriptions;
+    final Map<UUID, SessionInfo> rpcSubscriptions;
     private final Map<Integer, ToDeviceRpcRequestMetadata> toDeviceRpcPendingMap;
     private final boolean rpcSequential;
     private final RpcSubmitStrategy rpcSubmitStrategy;
@@ -885,6 +885,8 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
     }
 
     private void notifyTransportAboutClosedSessionMaxSessionsLimit(UUID sessionId, SessionInfoMetaData sessionMd) {
+        attributeSubscriptions.remove(sessionId);
+        rpcSubscriptions.remove(sessionId);
         notifyTransportAboutClosedSession(sessionId, sessionMd, TransportSessionCloseReason.MAX_CONCURRENT_SESSIONS_LIMIT_REACHED);
     }
 

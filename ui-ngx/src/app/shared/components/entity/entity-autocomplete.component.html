@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -39,8 +39,8 @@
          (focusin)="onFocus()"
          [required]="required"
          [matAutocomplete]="entityAutocomplete"
-         [class.!hidden]="disabled && selectEntityFormGroup.get('entity').value">
-  <a *ngIf="selectEntityFormGroup.get('entity').value && disabled" aria-label="Open device profile" [routerLink]=entityURL>
+         [class.!hidden]="showEntityLink">
+  <a *ngIf="showEntityLink" aria-label="Open entity details page" [routerLink]=entityURL>
     {{ displayEntityFn(selectEntityFormGroup.get('entity').value) }}
   </a>
   <button *ngIf="selectEntityFormGroup.get('entity').value && !disabled"
@@ -68,7 +68,7 @@
         </div>
         <ng-template #searchNotEmpty>
           <span>
-              {{ translate.get(noEntitiesMatchingText, {entity: searchText}) | async }}
+              {{ noEntitiesMatchingText | translate: {entity: searchText} }}
           </span>
         </ng-template>
       </div>
