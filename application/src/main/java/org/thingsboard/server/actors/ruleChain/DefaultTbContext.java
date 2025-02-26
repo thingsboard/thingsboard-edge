@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.Arrays;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
@@ -88,7 +89,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -158,6 +158,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static org.thingsboard.server.common.data.DataConstants.MAIN_QUEUE_NAME;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ENTITY_CREATED;
@@ -209,7 +210,7 @@ public class DefaultTbContext implements TbContext, TbPeContext {
         }
         TbMsg tbMsg = msg.copyWithRuleChainId(ruleChainId);
         tbMsg.pushToStack(nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
-        TopicPartitionInfo tpi = mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getQueueName(), getTenantId(), tbMsg.getOriginator());
+        TopicPartitionInfo tpi = resolvePartition(msg);
         doEnqueue(tpi, tbMsg, new SimpleTbQueueCallback(md -> ack(msg), t -> tellFailure(msg, t)));
     }
 
@@ -226,8 +227,7 @@ public class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public void enqueue(TbMsg tbMsg, Runnable onSuccess, Consumer<Throwable> onFailure) {
-        TopicPartitionInfo tpi = mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getQueueName(), getTenantId(), tbMsg.getOriginator());
-        enqueue(tpi, tbMsg, onFailure, onSuccess);
+        enqueue(tbMsg, MAIN_QUEUE_NAME, onSuccess, onFailure);
     }
 
     @Override
