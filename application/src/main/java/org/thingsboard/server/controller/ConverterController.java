@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -538,8 +539,7 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Get Converter Keys By Integration Type (getConverterKeysByIntegrationType)",
             notes = "Return keys collection related to the certain integration type.")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/converter/keys/{integrationType}", method = RequestMethod.GET)
-    @ResponseBody
+    @GetMapping(value = "/converter/keys/{integrationType}")
     public Set<String> getConverterKeysByIntegrationType(
             @Parameter(description = "A string value representing an integration type. For example, 'LORIOT'.", required = true)
             @PathVariable("integrationType") IntegrationType integrationType) {

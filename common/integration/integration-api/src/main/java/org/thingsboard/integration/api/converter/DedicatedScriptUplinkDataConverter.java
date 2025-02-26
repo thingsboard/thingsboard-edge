@@ -54,7 +54,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
@@ -118,48 +118,46 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
     protected UplinkData parseUplinkData(JsonObject src, UplinkMetaData metadata) {
         Map<String, String> kvMap = new HashMap<>(metadata.getKvMap());
 
-        JsonObject telemetry = new JsonObject();
-        JsonObject tsValues = new JsonObject();
-        telemetry.add(VALUES, tsValues);
-
-        if (CollectionsUtil.isNotEmpty(config.getTelemetry())) {
-            kvMap.entrySet().stream()
-                    .filter((e -> config.getTelemetry().contains(e.getKey())))
-                    .forEach(e -> tsValues.add(e.getKey(), gson.fromJson(e.getValue(), JsonElement.class)));
-        }
-
-        JsonObject attributes = new JsonObject();
-
-        if (CollectionsUtil.isNotEmpty(config.getAttributes())) {
-            kvMap.entrySet().stream()
-                    .filter((e -> config.getAttributes().contains(e.getKey())))
-                    .forEach(e -> attributes.add(e.getKey(), gson.fromJson(e.getValue(), JsonElement.class)));
-        }
-
+        JsonElement telemetry;
         if (src.has(TELEMETRY)) {
-            JsonObject srcTelemetry = src.get(TELEMETRY).getAsJsonObject();
-            if (srcTelemetry.has(VALUES)) {
-                srcTelemetry.get(VALUES).getAsJsonObject().entrySet().forEach(e -> {
-                    tsValues.add(e.getKey(), e.getValue());
-                });
+            telemetry = src.get(TELEMETRY);
+
+            if (telemetry.isJsonArray()) {
+                JsonObject telemetryFromMetadata = addKvs(new JsonObject(), kvMap, config.getTelemetry());
+                if (!telemetryFromMetadata.isEmpty()) {
+                    telemetry.getAsJsonArray().add(telemetryFromMetadata);
+                }
+            } else if (telemetry.isJsonObject()) {
+                var obj = telemetry.getAsJsonObject();
+                if (obj.has(VALUES)) {
+                    var values = obj.get(VALUES).getAsJsonObject();
+                    addKvs(values, kvMap, config.getTelemetry());
+                } else {
+                    addKvs(obj, kvMap, config.getTelemetry());
+                }
             }
-            if (srcTelemetry.has(TS)) {
-                telemetry.add(TS, srcTelemetry.get(TS));
-            }
+        } else {
+            telemetry = addKvs(new JsonObject(), kvMap, config.getTelemetry());
         }
 
+        JsonObject attributes;
         if (src.has(ATTRIBUTES)) {
-            src.get(ATTRIBUTES).getAsJsonObject().entrySet().forEach(e -> {
-                attributes.add(e.getKey(), e.getValue());
-            });
+            attributes = src.get(ATTRIBUTES).getAsJsonObject();
+        } else {
+            attributes = new JsonObject();
         }
+
+        addKvs(attributes, kvMap, config.getAttributes());
 
         boolean isAsset = config.getType() == EntityType.ASSET;
 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.isAsset(isAsset);
         String entityName = processTemplate(config.getName(), kvMap);
-        String profile = Optional.ofNullable(processTemplate(config.getProfile(), kvMap)).orElse(DEFAULT_PROFILE);
+        String profile = processTemplate(config.getProfile(), kvMap);
+        if (profile == null) {
+            profile = DEFAULT_PROFILE;
+        }
         String label = processTemplate(config.getLabel(), kvMap);
         String customer = processTemplate(config.getCustomer(), kvMap);
         String group = processTemplate(config.getGroup(), kvMap);
@@ -187,20 +185,18 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
 
         Map<String, String> currentOnValueTelemetryUpdate = this.currentUpdateOnlyTelemetryPerEntity.getOrDefault(entityName, new ConcurrentHashMap<>());
         Map<String, String> currentOnValueAttributesUpdate = this.currentUpdateOnlyAttributesPerEntity.getOrDefault(entityName, new ConcurrentHashMap<>());
-        if (!telemetry.isEmpty()) {
-            TransportProtos.PostTelemetryMsg parsedTelemetry = parseTelemetry(telemetry);
-            if (!this.updateOnlyKeys.isEmpty()) {
-                parsedTelemetry = filterTelemetryOnKeyValueUpdateAndUpdateMap(parsedTelemetry, currentOnValueTelemetryUpdate);
-            }
-            builder.telemetry(parsedTelemetry);
+
+        TransportProtos.PostTelemetryMsg parsedTelemetry = parseTelemetry(telemetry);
+        if (!this.updateOnlyKeys.isEmpty()) {
+            parsedTelemetry = filterTelemetryOnKeyValueUpdateAndUpdateMap(parsedTelemetry, currentOnValueTelemetryUpdate);
         }
-        if (!attributes.isEmpty()) {
-            TransportProtos.PostAttributeMsg parsedAttributes = parseAttributesUpdate(attributes);
-            if (!this.updateOnlyKeys.isEmpty()) {
-                parsedAttributes = filterAttributeOnKeyValueUpdateAndUpdateMap(parsedAttributes, currentOnValueAttributesUpdate);
-            }
-            builder.attributesUpdate(parsedAttributes);
+        builder.telemetry(parsedTelemetry);
+
+        TransportProtos.PostAttributeMsg parsedAttributes = parseAttributesUpdate(attributes);
+        if (!this.updateOnlyKeys.isEmpty()) {
+            parsedAttributes = filterAttributeOnKeyValueUpdateAndUpdateMap(parsedAttributes, currentOnValueAttributesUpdate);
         }
+        builder.attributesUpdate(parsedAttributes);
 
         if (!currentOnValueTelemetryUpdate.isEmpty()) {
             this.currentUpdateOnlyTelemetryPerEntity.put(entityName, currentOnValueTelemetryUpdate);
@@ -211,6 +207,15 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
         }
 
         return builder.build();
+    }
+
+    private JsonObject addKvs(JsonObject kvsObj, Map<String, String> kvMap, Set<String> keys) {
+        if (CollectionsUtil.isNotEmpty(keys) && !kvMap.isEmpty()) {
+            kvMap.entrySet().stream()
+                    .filter(e -> keys.contains(e.getKey()) && !kvsObj.has(e.getKey()))
+                    .forEach(e -> kvsObj.add(e.getKey(), gson.fromJson(e.getValue(), JsonElement.class)));
+        }
+        return kvsObj;
     }
 
     private String processTemplate(String template, Map<String, String> data) {
