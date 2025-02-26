@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,46 +15,10 @@
  */
 package org.thingsboard.server.dao.sql.cloud;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 
 import java.util.UUID;
 
-public interface CloudEventRepository extends JpaRepository<CloudEventEntity, UUID>, JpaSpecificationExecutor<CloudEventEntity> {
+public interface CloudEventRepository extends BaseCloudEventRepository<CloudEventEntity, UUID> {
 
-    @Query("SELECT e FROM CloudEventEntity e WHERE " +
-            "e.tenantId = :tenantId " +
-            "AND (:startTime IS NULL OR e.createdTime >= :startTime) " +
-            "AND (:endTime IS NULL OR e.createdTime <= :endTime) " +
-            "AND (:seqIdStart IS NULL OR e.seqId > :seqIdStart) " +
-            "AND (:seqIdEnd IS NULL OR e.seqId < :seqIdEnd)"
-    )
-    Page<CloudEventEntity> findEventsByTenantId(@Param("tenantId") UUID tenantId,
-                                                @Param("startTime") Long startTime,
-                                                @Param("endTime") Long endTime,
-                                                @Param("seqIdStart") Long seqIdStart,
-                                                @Param("seqIdEnd") Long seqIdEnd,
-                                                Pageable pageable);
-
-    @Query("SELECT COUNT(e) FROM CloudEventEntity e WHERE " +
-            "e.tenantId = :tenantId " +
-            "AND e.entityId  = :entityId " +
-            "AND e.cloudEventType = :cloudEventType " +
-            "AND e.cloudEventAction = :cloudEventAction " +
-            "AND (:startTime IS NULL OR e.createdTime > :startTime) " +
-            "AND (:endTime IS NULL OR e.createdTime <= :endTime) "
-    )
-    long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(@Param("tenantId") UUID tenantId,
-                                                                                @Param("entityId") UUID entityId,
-                                                                                @Param("cloudEventType") CloudEventType cloudEventType,
-                                                                                @Param("cloudEventAction") EdgeEventActionType cloudEventAction,
-                                                                                @Param("startTime") Long startTime,
-                                                                                @Param("endTime") Long endTime);
 }

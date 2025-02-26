@@ -1,152 +1,246 @@
 {
+  "version": 3,
   "firstNodeIndex": 1,
   "nodes": [
     {
-      "additionalInfo": {
-        "description": "",
-        "layoutX": 1132,
-        "layoutY": 51
-      },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
       "name": "Push to Edge",
-      "debugMode": true,
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scope": "CLIENT_SCOPE"
       },
-      "externalId": null
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 525,
+        "layoutY": 563
+      }
     },
     {
-      "additionalInfo": {
-        "description": "Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \"Success\" relation type.",
-        "layoutX": 204,
-        "layoutY": 240
-      },
       "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
       "name": "Device Profile Node",
-      "debugMode": true,
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 1,
       "configuration": {
         "persistAlarmRulesState": false,
         "fetchAlarmRulesStateOnStart": false
       },
-      "externalId": null
+      "additionalInfo": {
+        "description": "Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \"Success\" relation type.",
+        "layoutX": 204,
+        "layoutY": 240
+      }
     },
     {
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+      "name": "Save Timeseries",
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "defaultTTL": 7776000
+      },
       "additionalInfo": {
         "description": null,
         "layoutX": 824,
         "layoutY": 156
-      },
-      "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
-      "name": "Save Timeseries",
-      "debugMode": true,
-      "configuration": {
-        "defaultTTL": 7776000
-      },
-      "externalId": null
+      }
     },
     {
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+      "name": "Save Client Attributes",
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 2,
+      "configuration": {
+        "scope": "CLIENT_SCOPE",
+        "updateAttributesOnlyOnValueChange": false,
+        "notifyDevice": true,
+        "sendAttributesUpdatedNotification": false
+      },
       "additionalInfo": {
         "layoutX": 825,
         "layoutY": 52
-      },
-      "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
-      "name": "Save Client Attributes",
-      "debugMode": false,
-      "configuration": {
-        "scope": "CLIENT_SCOPE"
-      },
-      "externalId": null
+      }
     },
     {
-      "additionalInfo": {
-        "layoutX": 347,
-        "layoutY": 149
-      },
       "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
       "name": "Message Type Switch",
-      "debugMode": true,
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "version": 0
       },
-      "externalId": null
+      "additionalInfo": {
+        "layoutX": 347,
+        "layoutY": 149
+      }
     },
     {
+      "type": "org.thingsboard.rule.engine.action.TbLogNode",
+      "name": "Log RPC from Device",
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "TBEL",
+        "jsScript": "return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);",
+        "tbelScript": "return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);"
+      },
       "additionalInfo": {
         "layoutX": 825,
         "layoutY": 266
-      },
-      "type": "org.thingsboard.rule.engine.action.TbLogNode",
-      "name": "Log RPC from Device",
-      "debugMode": false,
-      "configuration": {
-        "scriptLang": "TBEL",
-        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
-        "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-      },
-      "externalId": null
+      }
     },
     {
+      "type": "org.thingsboard.rule.engine.action.TbLogNode",
+      "name": "Log Other",
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "TBEL",
+        "jsScript": "return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);",
+        "tbelScript": "return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);"
+      },
       "additionalInfo": {
         "layoutX": 825,
         "layoutY": 379
-      },
-      "type": "org.thingsboard.rule.engine.action.TbLogNode",
-      "name": "Log Other",
-      "debugMode": true,
-      "configuration": {
-        "scriptLang": "TBEL",
-        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
-        "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-      },
-      "externalId": null
+      }
     },
     {
-      "additionalInfo": {
-        "layoutX": 825,
-        "layoutY": 468
-      },
       "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
       "name": "RPC Call Request",
-      "debugMode": false,
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "timeoutInSeconds": 60
       },
-      "externalId": null
+      "additionalInfo": {
+        "layoutX": 825,
+        "layoutY": 468
+      }
     },
     {
-      "additionalInfo": {
-        "description": "",
-        "layoutX": 1086,
-        "layoutY": 206
-      },
       "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
       "name": "Create RPC reply",
-      "debugMode": false,
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scriptLang": "TBEL",
         "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-        "tbelScript": "var rpcResponse;\nif (msg.method === \"getCurrentTime\"){\n   rpcResponse = {\"currentTime\": new Date().getTime()};\n} else {\n   rpcResponse = \"Unknown RPC request method: \" + msg.method;  \n}\nreturn {msg: rpcResponse, metadata: metadata, msgType: msgType};"
+        "tbelScript": "var rpcResponse;\nif (msg.method === \"getCurrentTime\") {\n   rpcResponse = {\"currentTime\": new Date().getTime()};\n} else {\n   rpcResponse = \"Unknown RPC request method: \" + msg.method;  \n}\nreturn {msg: rpcResponse, metadata: metadata, msgType: msgType};"
       },
-      "externalId": null
-    },
-    {
       "additionalInfo": {
         "description": "",
-        "layoutX": 1088,
-        "layoutY": 317
-      },
+        "layoutX": 1118,
+        "layoutY": 238
+      }
+    },
+    {
       "type": "org.thingsboard.rule.engine.rpc.TbSendRPCReplyNode",
       "name": "Reply",
-      "debugMode": false,
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "serviceIdMetaDataAttribute": "serviceId",
         "sessionIdMetaDataAttribute": "sessionId",
         "requestIdMetaDataAttribute": "requestId"
       },
-      "externalId": null
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 1156,
+        "layoutY": 396
+      }
+    },
+    {
+      "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
+      "name": "Push To Edge (Timeseries & Attributes)",
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 1736952973604
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scope": "SERVER_SCOPE"
+      },
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 1123,
+        "layoutY": 104
+      }
     }
   ],
   "connections": [
+    {
+      "fromIndex": 1,
+      "toIndex": 0,
+      "type": "Alarm Created"
+    },
+    {
+      "fromIndex": 1,
+      "toIndex": 0,
+      "type": "Alarm Updated"
+    },
     {
       "fromIndex": 1,
       "toIndex": 4,
@@ -154,13 +248,23 @@
     },
     {
       "fromIndex": 2,
-      "toIndex": 0,
+      "toIndex": 10,
       "type": "Success"
     },
     {
       "fromIndex": 3,
-      "toIndex": 0,
+      "toIndex": 10,
       "type": "Success"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Alarm Acknowledged"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Alarm Cleared"
     },
     {
       "fromIndex": 4,

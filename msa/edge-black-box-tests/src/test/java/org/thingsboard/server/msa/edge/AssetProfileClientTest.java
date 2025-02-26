@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,19 @@ import java.util.stream.Collectors;
 public class AssetProfileClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAssetProfiles() throws Exception {
-        verifyAssetProfilesOnEdge(2);
+    public void testAssetProfiles() {
+        performTestOnEachEdge(this::_testAssetProfiles);
+    }
+
+    private void _testAssetProfiles() {
+        verifyAssetProfilesOnEdge(1);
 
         // create asset profile
         DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Test Dashboard");
         RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Asset Profile Test RuleChain");
         AssetProfile savedAssetProfile = createCustomAssetProfile(dashboardId, savedRuleChainId);
 
-        verifyAssetProfilesOnEdge(3);
+        verifyAssetProfilesOnEdge(2);
 
         // update asset profile
         savedAssetProfile.setName("Buildings Updated");
@@ -53,7 +57,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
                 .until(() -> "Buildings Updated".equals(edgeRestClient.getAssetProfileById(savedAssetProfile.getId()).get().getName()));
         // delete asset profile
         cloudRestClient.deleteAssetProfile(savedAssetProfile.getId());
-        verifyAssetProfilesOnEdge(2);
+        verifyAssetProfilesOnEdge(1);
 
         unAssignFromEdgeAndDeleteDashboard(dashboardId);
         unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
@@ -61,20 +65,25 @@ public class AssetProfileClientTest extends AbstractContainerTest {
 
     @Test
     public void testAssetProfileToCloud() {
+        performTestOnEachEdge(this::_testAssetProfileToCloud);
+    }
+
+    private void _testAssetProfileToCloud() {
         // create asset profile on edge
-        AssetProfile saveAssetProfileOnEdge = saveAssetProfileOnEdge("Asset Profile On Edge");
+        AssetProfile saveAssetProfileOnEdge = saveAssetProfileOnEdge("Asset Profile On Edge " + edge.getName());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).isPresent());
 
         // update asset profile
-        saveAssetProfileOnEdge.setName("Asset Profile On Edge Updated");
+        String updatedAssetProfileName = "Asset Profile On Edge Updated " + edge.getName();
+        saveAssetProfileOnEdge.setName(updatedAssetProfileName);
         edgeRestClient.saveAssetProfile(saveAssetProfileOnEdge);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Asset Profile On Edge Updated".equals(cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).get().getName()));
+                .until(() -> (updatedAssetProfileName).equals(cloudRestClient.getAssetProfileById(saveAssetProfileOnEdge.getId()).get().getName()));
 
         // cleanup - we can delete asset profile only on Cloud
         cloudRestClient.deleteAssetProfile(saveAssetProfileOnEdge.getId());
@@ -100,7 +109,15 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() ->  edgeRestClient.getAssetProfiles(new PageLink(100)).getTotalElements() == expectedAssetProfilesCnt);
+                .until(() ->  {
+                    PageData<AssetProfile> assetProfiles = edgeRestClient.getAssetProfiles(new PageLink(100));
+                    if (assetProfiles.getTotalElements() != expectedAssetProfilesCnt) {
+                        for (AssetProfile assetProfile : assetProfiles.getData()) {
+                            log.error("Asset profile: {}", assetProfile);
+                        }
+                    }
+                    return assetProfiles.getTotalElements() == expectedAssetProfilesCnt;
+                });
 
         PageData<AssetProfile> pageData = edgeRestClient.getAssetProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.ASSET_PROFILE);
@@ -113,4 +130,3 @@ public class AssetProfileClientTest extends AbstractContainerTest {
     }
 
 }
-

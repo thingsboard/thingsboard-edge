@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.thingsboard.server.msa;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvEntry;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
@@ -27,6 +28,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.thingsboard.server.msa.AbstractContainerTest.edgeConfigurations;
 
 @Slf4j
 public class ThingsBoardDbInstaller extends ExternalResource {
@@ -42,6 +45,8 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final String tbLogVolume;
     private final String tbEdgeLogVolume;
     private final String tbEdgeDataVolume;
+
+    @Getter
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
@@ -68,18 +73,20 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             }
             env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
             env.put("TB_LOG_VOLUME", tbLogVolume);
-            env.put("TB_EDGE_LOG_VOLUME", tbEdgeLogVolume);
-            env.put("TB_EDGE_DATA_VOLUME", tbEdgeDataVolume);
+
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                env.put("SPRING_DATASOURCE_URL" + config.getTagWithUnderscore().toUpperCase(), "jdbc:postgresql://postgres:5432/tb_edge" + config.getTagWithUnderscore());
+                env.put("TB_EDGE_LOG_VOLUME" + config.getTagWithUnderscore().toUpperCase(), tbEdgeLogVolume + config.getTagWithDash());
+                env.put("TB_EDGE_DATA_VOLUME" + config.getTagWithUnderscore().toUpperCase(), tbEdgeDataVolume + config.getTagWithDash());
+                env.put("CLOUD_ROUTING_KEY" + config.getTagWithUnderscore().toUpperCase(), config.getRoutingKey());
+                env.put("CLOUD_ROUTING_SECRET" + config.getTagWithUnderscore().toUpperCase(), config.getSecret());
+            }
 
             dockerCompose.withEnv(env);
         } catch (Exception e) {
             log.error("Failed to create ThingsBoardDbInstaller", e);
             throw e;
         }
-    }
-
-    public Map<String, String> getEnv() {
-        return env;
     }
 
     @Override
@@ -91,12 +98,13 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
             dockerCompose.withCommand("volume create " + tbLogVolume);
             dockerCompose.invokeDocker();
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                dockerCompose.withCommand("volume create " + tbEdgeLogVolume + config.getTagWithDash());
+                dockerCompose.invokeDocker();
 
-            dockerCompose.withCommand("volume create " + tbEdgeLogVolume);
-            dockerCompose.invokeDocker();
-
-            dockerCompose.withCommand("volume create " + tbEdgeDataVolume);
-            dockerCompose.invokeDocker();
+                dockerCompose.withCommand("volume create " + tbEdgeDataVolume  + config.getTagWithDash());
+                dockerCompose.invokeDocker();
+            }
 
             dockerCompose.withCommand("up -d postgres");
             dockerCompose.invokeCompose();
@@ -104,9 +112,16 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB=true -e LOAD_DEMO=true tb-monolith");
             dockerCompose.invokeCompose();
 
-            dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB_EDGE=true -e LOAD_DEMO=true tb-edge");
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB_EDGE=true -e LOAD_DEMO=true tb-edge" + config.getTagWithDash());
+                dockerCompose.invokeCompose();
+            }
+            dockerCompose.withCommand("exec -T postgres psql -U postgres -d thingsboard -f /custom-sql/thingsboard.sql");
             dockerCompose.invokeCompose();
-
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge" + config.getTagWithUnderscore() + " -f /custom-sql/tb_edge.sql");
+                dockerCompose.invokeCompose();
+            }
         } finally {
             try {
                 dockerCompose.withCommand("down -v");
@@ -120,11 +135,13 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     @Override
     protected void after() {
         try {
-            copyLogs(tbLogVolume, "./target/tb-logs/");
-            copyLogs(tbEdgeLogVolume, "./target/tb-edge-logs/");
+            for (TestEdgeConfiguration config : edgeConfigurations) {
+                copyLogs(tbLogVolume, "./target/tb-logs/");
+                copyLogs(tbEdgeLogVolume + config.getTagWithDash(), "./target/tb-edge-logs/");
 
-            dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume);
-            dockerCompose.invokeDocker();
+                dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume + config.getTagWithDash());
+                dockerCompose.invokeDocker();
+            }
         } catch (Exception e) {
             log.error("Failed [after]", e);
             throw e;
@@ -141,7 +158,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("run -d --rm --name " + logsContainerName + " -v " + volumeName + ":/root alpine tail -f /dev/null");
             dockerCompose.invokeDocker();
 
-            dockerCompose.withCommand("cp " + logsContainerName + ":/root/. "+tbLogsDir.getAbsolutePath());
+            dockerCompose.withCommand("cp " + logsContainerName + ":/root/. " + tbLogsDir.getAbsolutePath());
             dockerCompose.invokeDocker();
 
             dockerCompose.withCommand("rm -f " + logsContainerName);

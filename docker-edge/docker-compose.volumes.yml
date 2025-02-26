@@ -1,5 +1,5 @@
 #
-# Copyright © 2016-2023 The Thingsboard Authors
+# Copyright © 2016-2025 The Thingsboard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,6 +27,18 @@ services:
     volumes:
       - tb-edge-log-volume:/var/log/tb-edge
       - tb-edge-data-volume:/data
+  tb-edge-kafka:
+    volumes:
+      - tb-edge-log-volume-kafka:/var/log/tb-edge
+      - tb-edge-data-volume-kafka:/data
+  tb-edge-38:
+    volumes:
+      - tb-edge-log-volume-38:/var/log/tb-edge
+      - tb-edge-data-volume-38:/data
+  tb-edge-37:
+    volumes:
+      - tb-edge-log-volume-37:/var/log/tb-edge
+      - tb-edge-data-volume-37:/data
 volumes:
   postgres-db-volume:
     external:
@@ -40,3 +52,21 @@ volumes:
   tb-edge-data-volume:
     external:
       name: ${TB_EDGE_DATA_VOLUME}
+  tb-edge-log-volume-kafka:
+    external:
+      name: ${TB_EDGE_LOG_VOLUME_KAFKA}
+  tb-edge-data-volume-kafka:
+    external:
+      name: ${TB_EDGE_DATA_VOLUME_KAFKA}
+  tb-edge-log-volume-38:
+    external:
+      name: ${TB_EDGE_LOG_VOLUME_38}
+  tb-edge-data-volume-38:
+    external:
+      name: ${TB_EDGE_DATA_VOLUME_38}
+  tb-edge-log-volume-37:
+    external:
+      name: ${TB_EDGE_LOG_VOLUME_37}
+  tb-edge-data-volume-37:
+    external:
+      name: ${TB_EDGE_DATA_VOLUME_37}

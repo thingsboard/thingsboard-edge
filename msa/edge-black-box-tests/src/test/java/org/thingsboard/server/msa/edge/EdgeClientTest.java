@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,32 @@
 package org.thingsboard.server.msa.edge;
 
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.msa.AbstractContainerTest;
-
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testEdge_assignToCustomer_unassignFromCustomer() {
+        performTestOnEachEdge(this::_testEdge_assignToCustomer_unassignFromCustomer);
+    }
+
+    private void _testEdge_assignToCustomer_unassignFromCustomer() {
         // assign edge to customer
         Customer customer = new Customer();
         customer.setTitle("Edge Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
-        cloudRestClient.assignEdgeToCustomer(savedCustomer.getId(), edge.getId());
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
 
-        try {
-            // wait until sync process completed fully
-            TimeUnit.SECONDS.sleep(5);
-        } catch (Exception ignored) {}
+        // assign edge to customer
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
 
         // unassign edge from customer
-        cloudRestClient.unassignEdgeFromCustomer(edge.getId());
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
+
+        // cleanup
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
     }
 
 }
-

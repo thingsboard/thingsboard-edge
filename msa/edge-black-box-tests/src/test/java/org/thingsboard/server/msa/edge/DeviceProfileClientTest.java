@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,7 +143,11 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
                     "  }";
 
     @Test
-    public void testDeviceProfiles() throws Exception {
+    public void testDeviceProfiles() {
+        performTestOnEachEdge(this::_testDeviceProfiles);
+    }
+
+    private void _testDeviceProfiles() {
         verifyDeviceProfilesOnEdge(3);
 
         // create device profile
@@ -207,20 +211,25 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
 
     @Test
     public void testDeviceProfileToCloud() {
+        performTestOnEachEdge(this::_testDeviceProfileToCloud);
+    }
+
+    private void _testDeviceProfileToCloud() {
         // create device profile on edge
-        DeviceProfile saveDeviceProfileOnEdge = createDeviceProfileOnEdge("Device Profile On Edge");
+        DeviceProfile saveDeviceProfileOnEdge = createDeviceProfileOnEdge("Device Profile On Edge " + edge.getName());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).isPresent());
 
         // update asset profile
-        saveDeviceProfileOnEdge.setName("Device Profile On Edge Updated");
+        String updatedDeviceProfileName = "Device Profile On Edge Updated " + edge.getName();
+        saveDeviceProfileOnEdge.setName(updatedDeviceProfileName);
         edgeRestClient.saveDeviceProfile(saveDeviceProfileOnEdge);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Device Profile On Edge Updated".equals(cloudRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).get().getName()));
+                .until(() -> updatedDeviceProfileName.equals(cloudRestClient.getDeviceProfileById(saveDeviceProfileOnEdge.getId()).get().getName()));
 
         // cleanup - we can delete asset profile only on Cloud
         cloudRestClient.deleteDeviceProfile(saveDeviceProfileOnEdge.getId());
@@ -260,7 +269,7 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         List<LwM2MBootstrapServerCredential> bootstrap = new ArrayList<>();
         AbstractLwM2MBootstrapServerCredential bootstrapServerCredential = new NoSecLwM2MBootstrapServerCredential();
         bootstrapServerCredential.setServerPublicKey("PUBLIC_KEY");
-        bootstrapServerCredential.setShortServerId(123);
+        bootstrapServerCredential.setShortServerId(0);
         bootstrapServerCredential.setBootstrapServerIs(true);
         bootstrapServerCredential.setHost("localhost");
         bootstrapServerCredential.setPort(5687);
@@ -293,11 +302,19 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == expectedDeviceProfilesCnt);
+                .until(() ->  {
+                    PageData<DeviceProfile> deviceProfiles = edgeRestClient.getDeviceProfiles(new PageLink(100));
+                    if (deviceProfiles.getTotalElements() != expectedDeviceProfilesCnt) {
+                        log.warn("Incorrect number of device profiles on the edge, expected {}, found {}", expectedDeviceProfilesCnt, deviceProfiles.getTotalElements());
+                        for (DeviceProfile datum : deviceProfiles.getData()) {
+                            log.warn("Device profile: {}", datum);
+                        }
+                    }
+                    return deviceProfiles.getTotalElements() == expectedDeviceProfilesCnt;
+                });
 
         PageData<DeviceProfile> pageData = edgeRestClient.getDeviceProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.DEVICE_PROFILE);
     }
 
 }
-

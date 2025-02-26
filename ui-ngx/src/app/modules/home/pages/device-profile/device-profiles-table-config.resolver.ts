@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2025 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { Resolve, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   checkBoxCell,
   DateEntityTableColumn,
@@ -41,22 +41,22 @@ import {
   AddDeviceProfileDialogComponent,
   AddDeviceProfileDialogData
 } from '@home/components/profile/add-device-profile-dialog.component';
-import { ImportExportService } from '@home/components/import-export/import-export.service';
-import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { ImportExportService } from '@shared/import-export/import-export.service';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 
 @Injectable()
-export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableConfig<DeviceProfile>> {
+export class DeviceProfilesTableConfigResolver  {
 
   private readonly config: EntityTableConfig<DeviceProfile> = new EntityTableConfig<DeviceProfile>();
 
   constructor(private deviceProfileService: DeviceProfileService,
               private importExport: ImportExportService,
-              private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private dialogService: DialogService,
               private router: Router,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private customTranslate: CustomTranslatePipe) {
 
     this.config.entityType = EntityType.DEVICE_PROFILE;
     this.config.entityComponent = DeviceProfileComponent;
@@ -77,7 +77,8 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
       new EntityTableColumn<DeviceProfile>('transportType', 'device-profile.transport-type', '20%', (deviceProfile) => {
         return this.translate.instant(deviceTransportTypeTranslationMap.get(deviceProfile.transportType));
       }),
-      new EntityTableColumn<DeviceProfile>('description', 'device-profile.description', '40%'),
+      new EntityTableColumn<DeviceProfile>('description', 'device-profile.description', '40%',
+          entity => this.customTranslate.transform(entity.description || '')),
       new EntityTableColumn<DeviceProfile>('isDefault', 'device-profile.default', '60px',
         entity => {
           return checkBoxCell(entity.default);
@@ -91,7 +92,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportDeviceProfile($event, entity)
       },
-      /* @voba: not visible on edge
+      /* Edge-only: not visible on edge
       {
         name: this.translate.instant('device-profile.set-default'),
         icon: 'flag',
@@ -117,7 +118,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.config.entitySelectionEnabled = (deviceProfile) => deviceProfile && !deviceProfile.default;
     this.config.addActionDescriptors = this.configureAddActions();
 
-    // @voba: device profile can't be deleted from edge
+    // edge-only: device profile can't be deleted from edge
     this.config.deleteEnabled = () => false;
     this.config.entitiesDeleteEnabled = false;
 

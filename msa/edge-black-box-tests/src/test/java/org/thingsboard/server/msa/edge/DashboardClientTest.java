@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,10 @@ public class DashboardClientTest extends AbstractContainerTest {
 
     @Test
     public void testDashboards() {
+        performTestOnEachEdge(this::_testDashboards);
+    }
+
+    private void _testDashboards() {
         // create dashboard #1 and assign to edge
         Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1");
         cloudRestClient.assignDashboardToEdge(edge.getId(), savedDashboard1.getId());
@@ -96,6 +100,7 @@ public class DashboardClientTest extends AbstractContainerTest {
                     Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboard2.getId()).get();
                     return dashboard.getAssignedCustomers().isEmpty();
                 });
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
         // delete dashboard #2
@@ -108,6 +113,10 @@ public class DashboardClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendDashboardToCloud() {
+        performTestOnEachEdge(this::_testSendDashboardToCloud);
+    }
+
+    private void _testSendDashboardToCloud() {
         // create dashboard on edge
         Dashboard savedDashboardOnEdge = saveDashboardOnEdge("Edge Dashboard 3");
         Awaitility.await()
@@ -173,5 +182,5 @@ public class DashboardClientTest extends AbstractContainerTest {
 
         cloudRestClient.deleteDashboard(savedDashboardOnEdge.getId());
     }
-}
 
+}

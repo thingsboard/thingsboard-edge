@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,16 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class EdgeCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock edgeCreationLock = new ReentrantLock();
@@ -42,8 +44,8 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
         EdgeId edgeId = new EdgeId(new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB()));
         edgeCreationLock.lock();
         try {
-            edgeSynchronizationManager.getSync().set(true);
-            Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+            cloudSynchronizationManager.getSync().set(true);
+            Edge edge = edgeCtx.getEdgeService().findEdgeById(tenantId, edgeId);
             if (edge == null) {
                 edge = new Edge();
                 edge.setId(edgeId);
@@ -57,11 +59,12 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
             edge.setRoutingKey(edgeConfiguration.getRoutingKey());
             edge.setSecret(edgeConfiguration.getSecret());
             edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
-            edgeService.saveEdge(edge, false);
+            edgeCtx.getEdgeService().saveEdge(edge, false);
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
             edgeCreationLock.unlock();
         }
         return Futures.immediateFuture(null);
     }
+
 }

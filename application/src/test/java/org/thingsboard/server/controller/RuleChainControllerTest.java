@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.action.TbCreateAlarmNode;
 import org.thingsboard.rule.engine.action.TbCreateAlarmNodeConfiguration;
+import org.thingsboard.rule.engine.debug.TbMsgGeneratorNode;
+import org.thingsboard.rule.engine.debug.TbMsgGeneratorNodeConfiguration;
 import org.thingsboard.rule.engine.metadata.TbGetRelatedAttributeNode;
 import org.thingsboard.rule.engine.metadata.TbGetRelatedDataNodeConfiguration;
 import org.thingsboard.server.common.data.StringUtils;
@@ -82,7 +84,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -99,14 +101,11 @@ public class RuleChainControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testSaveRuleChain() throws Exception {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName("RuleChain");
@@ -124,7 +123,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
                 ActionType.ADDED);
 
         savedRuleChain.setName("New RuleChain");
-        doPost("/api/ruleChain", savedRuleChain, RuleChain.class);
+        savedRuleChain = doPost("/api/ruleChain", savedRuleChain, RuleChain.class);
         RuleChain foundRuleChain = doGet("/api/ruleChain/" + savedRuleChain.getId().getId().toString(), RuleChain.class);
         Assert.assertEquals(savedRuleChain.getName(), foundRuleChain.getName());
 
@@ -150,9 +149,9 @@ public class RuleChainControllerTest extends AbstractControllerTest {
         int currentVersion = annotation.version();
 
         String oldConfig = "{\"attrMapping\":{\"serialNumber\":\"sn\"}," +
-                        "\"relationsQuery\":{\"direction\":\"FROM\",\"maxLevel\":1," +
-                        "\"filters\":[{\"relationType\":\"Contains\",\"entityTypes\":[]}]," +
-                        "\"fetchLastLevelOnly\":false},\"telemetry\":false}";
+                "\"relationsQuery\":{\"direction\":\"FROM\",\"maxLevel\":1," +
+                "\"filters\":[{\"relationType\":\"Contains\",\"entityTypes\":[]}]," +
+                "\"fetchLastLevelOnly\":false},\"telemetry\":false}";
 
         TbGetRelatedDataNodeConfiguration defaultConfiguration = new TbGetRelatedDataNodeConfiguration().defaultConfiguration();
         String newConfig = JacksonUtil.toString(defaultConfiguration);
@@ -254,10 +253,8 @@ public class RuleChainControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgErrorNoFound("Rule chain", entityIdStr))));
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindEdgeRuleChainsByTenantIdAndName() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -361,6 +358,48 @@ public class RuleChainControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest()));
         assertThat(error).contains("severity is malformed");
         assertThat(error).contains("alarmType is malformed");
+    }
+
+    @Test
+    @Ignore("HasVersion check is ignored for Edge")
+    public void testSaveRuleChainWithOutdatedVersion() throws Exception {
+        RuleChain ruleChain = createRuleChain("My rule chain");
+
+        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
+        ruleChainMetaData.setRuleChainId(ruleChain.getId());
+        RuleNode ruleNode = new RuleNode();
+        ruleNode.setName("Test");
+        ruleNode.setType(TbMsgGeneratorNode.class.getName());
+        TbMsgGeneratorNodeConfiguration config = new TbMsgGeneratorNodeConfiguration();
+        ruleNode.setConfiguration(JacksonUtil.valueToTree(config));
+        List<RuleNode> ruleNodes = new ArrayList<>();
+        ruleNodes.add(ruleNode);
+        ruleChainMetaData.setFirstNodeIndex(0);
+        ruleChainMetaData.setNodes(ruleNodes);
+
+        ruleChainMetaData = doPost("/api/ruleChain/metadata", ruleChainMetaData, RuleChainMetaData.class);
+        assertThat(ruleChainMetaData.getVersion()).isEqualTo(2);
+
+        ruleChain = doGet("/api/ruleChain/" + ruleChain.getId(), RuleChain.class);
+        assertThat(ruleChain.getVersion()).isEqualTo(2);
+
+        ruleChain.setName("Updated");
+        ruleChain = doPost("/api/ruleChain", ruleChain, RuleChain.class);
+        assertThat(ruleChain.getVersion()).isEqualTo(3);
+
+        ruleChain.setVersion(1L);
+        doPost("/api/ruleChain", ruleChain)
+                .andExpect(status().isConflict());
+        ruleChainMetaData.setVersion(1L);
+        doPost("/api/ruleChain/metadata", ruleChainMetaData)
+                .andExpect(status().isConflict());
+
+        ruleChainMetaData.setVersion(3L);
+        ruleChainMetaData = doPost("/api/ruleChain/metadata", ruleChainMetaData, RuleChainMetaData.class);
+        assertThat(ruleChainMetaData.getVersion()).isEqualTo(4);
+        ruleChain.setVersion(4L);
+        ruleChain = doPost("/api/ruleChain", ruleChain, RuleChain.class);
+        assertThat(ruleChain.getVersion()).isEqualTo(5);
     }
 
     private RuleChain createRuleChain(String name) {

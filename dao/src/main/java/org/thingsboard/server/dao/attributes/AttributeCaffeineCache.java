@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,27 @@ package org.thingsboard.server.dao.attributes;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.cache.VersionedCaffeineTbCache;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
 @Service("AttributeCache")
-public class AttributeCaffeineCache extends CaffeineTbTransactionalCache<AttributeCacheKey, AttributeKvEntry> {
+public class AttributeCaffeineCache extends VersionedCaffeineTbCache<AttributeCacheKey, AttributeKvEntry> {
 
     public AttributeCaffeineCache(CacheManager cacheManager) {
         super(cacheManager, CacheConstants.ATTRIBUTES_CACHE);
+    }
+
+    @Override
+    public Long getVersion(AttributeKvEntry value) {
+        if (value == null) {
+            return 0L;
+        } else if (value.getVersion() != null) {
+            return value.getVersion();
+        } else {
+            return null;
+        }
     }
 
 }

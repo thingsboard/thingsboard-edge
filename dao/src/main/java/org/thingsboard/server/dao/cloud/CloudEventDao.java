@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,40 +15,12 @@
  */
 package org.thingsboard.server.dao.cloud;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.Dao;
 
 import java.util.UUID;
 
-/**
- * The Interface CloudEventDao.
- */
-public interface CloudEventDao extends Dao<CloudEvent> {
-
-    /**
-     * Save or update cloud event object
-     *
-     * @param cloudEvent the event object
-     * @return saved cloud event object future
-     */
-    ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
-
-
-    /**
-     * Find cloud events by tenantId and pageLink.
-     *
-     * @param tenantId the tenantId
-     * @param seqIdStart  the seq id start
-     * @param seqIdEnd  the seq id end
-     * @param pageLink the pageLink
-     * @return the event list
-     */
-    PageData<CloudEvent> findCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+public interface CloudEventDao extends TsKvCloudEventDao {
 
     long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId,
                                                                                 UUID entityId,
@@ -57,11 +29,4 @@ public interface CloudEventDao extends Dao<CloudEvent> {
                                                                                 Long startTime,
                                                                                 Long endTime);
 
-    /**
-     * Executes stored procedure to cleanup old cloud events.
-     * @param eventsTtl the ttl for cloud events in seconds
-     */
-    void cleanupEvents(long eventsTtl);
-
-    void migrateCloudEvents();
 }

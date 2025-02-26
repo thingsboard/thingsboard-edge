@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,25 +22,27 @@ import org.junit.ClassRule;
 import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static org.thingsboard.server.msa.AbstractContainerTest.CLOUD_ROUTING_KEY;
-import static org.thingsboard.server.msa.AbstractContainerTest.CLOUD_ROUTING_SECRET;
+import static org.thingsboard.server.msa.AbstractContainerTest.TAG_KAFKA;
 import static org.thingsboard.server.msa.AbstractContainerTest.TB_EDGE_SERVICE_NAME;
 import static org.thingsboard.server.msa.AbstractContainerTest.TB_MONOLITH_SERVICE_NAME;
+import static org.thingsboard.server.msa.AbstractContainerTest.edgeConfigurations;
 
 @RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.edge.*Test"})
 @Slf4j
 public class ContainerTestSuite {
 
-    public static DockerComposeContainer<?> testContainer;
-
     private static final String SOURCE_DIR = "./../../docker-edge/";
+
+    public static DockerComposeContainer<?> testContainer;
 
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
@@ -48,9 +50,11 @@ public class ContainerTestSuite {
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
         HashMap<String, String> env = new HashMap<>();
-        env.put("CLOUD_ROUTING_KEY", CLOUD_ROUTING_KEY);
-        env.put("CLOUD_ROUTING_SECRET", CLOUD_ROUTING_SECRET);
         env.put("CLOUD_RPC_HOST", TB_MONOLITH_SERVICE_NAME);
+        for (TestEdgeConfiguration config : edgeConfigurations) {
+            env.put("CLOUD_ROUTING_KEY" + config.getTagWithUnderscore().toUpperCase(), config.getRoutingKey());
+            env.put("CLOUD_ROUTING_SECRET" + config.getTagWithUnderscore().toUpperCase(), config.getSecret());
+        }
 
         if (testContainer == null) {
             try {
@@ -71,6 +75,7 @@ public class ContainerTestSuite {
                         super.stop();
                         tryDeleteDir(targetDir);
                     }
+
                 }
 
                 testContainer = new DockerComposeContainerImpl<>(
@@ -83,8 +88,15 @@ public class ContainerTestSuite {
                         .withTailChildContainers(true)
                         .withEnv(installTb.getEnv())
                         .withEnv(env)
-                        .withExposedService(TB_MONOLITH_SERVICE_NAME, 8080)
-                        .withExposedService(TB_EDGE_SERVICE_NAME, 8082);
+                        .withExposedService(TB_MONOLITH_SERVICE_NAME, 8080, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)))
+                        .withExposedService("kafka", 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
+                for (TestEdgeConfiguration edgeConfiguration : edgeConfigurations) {
+                    testContainer.withExposedService(TB_EDGE_SERVICE_NAME + edgeConfiguration.getTagWithDash(), edgeConfiguration.getPort(), Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
+                    if (edgeConfiguration.getTag().equals(TAG_KAFKA)) {
+                        testContainer.withExposedService("kafka-edge", 9092, Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofMinutes(3)));
+                    }
+                }
+
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 Assert.fail("Failed to create test container");
@@ -101,4 +113,5 @@ public class ContainerTestSuite {
             log.error("Can't delete temp directory " + targetDir, e);
         }
     }
+
 }

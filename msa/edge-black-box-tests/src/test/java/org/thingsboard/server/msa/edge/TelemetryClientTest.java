@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -39,8 +40,14 @@ import java.util.concurrent.TimeUnit;
 public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
-    public void testSendPostTelemetryRequestToCloud_performanceTest() throws Exception {
+    public void testSendPostTelemetryRequestToCloud_performanceTest() {
+        performTestOnEachEdge(this::_testSendPostTelemetryRequestToCloud_performanceTest);
+    }
+
+    private void _testSendPostTelemetryRequestToCloud_performanceTest() {
         Device device = saveAndAssignDeviceToEdge();
+
+        int frequencyOfDeviceUpdatePerTimeSeriesRecords = 34;
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -56,19 +63,32 @@ public class TelemetryClientTest extends AbstractContainerTest {
         DeviceCredentials deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
         final String accessToken = deviceCredentials.getCredentialsId();
         final String telemetryKey = "index";
-        final long numberOfTimeseriesToSend = 1000L;
+        final long numberOfTimeseriesToSend = 10_000L;
+        String deviceName = null;
+        String originalDeviceName = device.getName();
         for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
             JsonObject timeseriesPayload = new JsonObject();
             timeseriesPayload.addProperty(telemetryKey, idx);
             ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
                     .postForEntity(edgeUrl + "/api/v1/{credentialsId}/telemetry",
-                            JacksonUtil.OBJECT_MAPPER.readTree(timeseriesPayload.toString()),
+                            JacksonUtil.toJsonNode(timeseriesPayload.toString()),
                             ResponseEntity.class,
                             accessToken);
             Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
+            if (idx % frequencyOfDeviceUpdatePerTimeSeriesRecords == 0) {
+                deviceName = originalDeviceName + StringUtils.randomAlphanumeric(10);
+                device.setName(deviceName);
+                edgeRestClient.saveDevice(device);
+            }
         }
 
         verifyDeviceIsActive(cloudRestClient, device.getId());
+
+        String finalDeviceName = deviceName;
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> finalDeviceName.equals(cloudRestClient.getDeviceById(device.getId()).get().getName()));
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -90,7 +110,11 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendPostTelemetryRequestToCloud() throws Exception {
+    public void testSendPostTelemetryRequestToCloud() {
+        performTestOnEachEdge(this::_testSendPostTelemetryRequestToCloud);
+    }
+
+    private void _testSendPostTelemetryRequestToCloud() {
         List<String> keys = Arrays.asList("strTelemetryToCloud", "boolTelemetryToCloud", "doubleTelemetryToCloud", "longTelemetryToCloud");
 
         JsonObject timeseriesPayload = new JsonObject();
@@ -118,7 +142,11 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendPostTelemetryRequestToEdge() throws Exception {
+    public void testSendPostTelemetryRequestToEdge() {
+        performTestOnEachEdge(this::_testSendPostTelemetryRequestToEdge);
+    }
+
+    private void _testSendPostTelemetryRequestToEdge() {
         List<String> keys = Arrays.asList("strTelemetryToEdge", "boolTelemetryToEdge", "doubleTelemetryToEdge", "longTelemetryToEdge");
 
         JsonObject timeseriesPayload = new JsonObject();
@@ -137,7 +165,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
                 Assert.assertEquals(true, kvEntry.getBooleanValue().get());
             }
             if (kvEntry.getKey().equals("doubleTelemetryToEdge")) {
-                Assert.assertEquals(42.0, (double) kvEntry.getDoubleValue().get(), 0.0);
+                Assert.assertEquals(42.0, kvEntry.getDoubleValue().get(), 0.0);
             }
             if (kvEntry.getKey().equals("longTelemetryToEdge")) {
                 Assert.assertEquals(72L, kvEntry.getLongValue().get().longValue());
@@ -146,7 +174,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     private List<TsKvEntry> sendPostTelemetryRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
-                                                     JsonObject timeseriesPayload, List<String> keys) throws Exception {
+                                                     JsonObject timeseriesPayload, List<String> keys) {
         Device device = saveAndAssignDeviceToEdge();
 
         Awaitility.await()
@@ -158,10 +186,9 @@ public class TelemetryClientTest extends AbstractContainerTest {
         String accessToken = deviceCredentials.getCredentialsId();
 
         ResponseEntity deviceTelemetryResponse = sourceRestClient.getRestTemplate()
-                .postForEntity(sourceUrl + "/api/v1/{credentialsId}/telemetry",
-                        JacksonUtil.OBJECT_MAPPER.readTree(timeseriesPayload.toString()),
-                        ResponseEntity.class,
-                        accessToken);
+                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/telemetry",
+                        JacksonUtil.toJsonNode(timeseriesPayload.toString()),
+                        ResponseEntity.class);
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()
@@ -188,7 +215,11 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendPostAttributesRequestToCloud() throws Exception {
+    public void testSendPostAttributesRequestToCloud() {
+        performTestOnEachEdge(this::_testSendPostAttributesRequestToCloud);
+    }
+
+    private void _testSendPostAttributesRequestToCloud() {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
 
         JsonObject attrPayload = new JsonObject();
@@ -217,7 +248,11 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendPostAttributesRequestToEdge() throws Exception {
+    public void testSendPostAttributesRequestToEdge() {
+        performTestOnEachEdge(this::_testSendPostAttributesRequestToEdge);
+    }
+
+    private void _testSendPostAttributesRequestToEdge() {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
 
         JsonObject attrPayload = new JsonObject();
@@ -245,7 +280,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     private List<AttributeKvEntry> testSendPostAttributesRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
-                                                                 JsonObject attributesPayload, List<String> keys) throws Exception {
+                                                                 JsonObject attributesPayload, List<String> keys) {
 
         Device device = saveAndAssignDeviceToEdge();
 
@@ -257,9 +292,9 @@ public class TelemetryClientTest extends AbstractContainerTest {
         String accessToken = deviceCredentials.getCredentialsId();
 
         ResponseEntity deviceClientsAttributes = sourceRestClient.getRestTemplate()
-                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/", JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()),
-                        ResponseEntity.class,
-                        accessToken);
+                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes",
+                        JacksonUtil.toJsonNode(attributesPayload.toString()),
+                        ResponseEntity.class);
         Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()
@@ -285,7 +320,11 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendAttributesUpdatedToEdge() throws Exception {
+    public void testSendAttributesUpdatedToEdge() {
+        performTestOnEachEdge(this::_testSendAttributesUpdatedToEdge);
+    }
+
+    private void _testSendAttributesUpdatedToEdge() {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
 
         JsonObject attrPayload = new JsonObject();
@@ -319,7 +358,11 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendAttributesUpdatedToCloud() throws Exception {
+    public void testSendAttributesUpdatedToCloud() {
+        performTestOnEachEdge(this::_testSendAttributesUpdatedToCloud);
+    }
+
+    private void _testSendAttributesUpdatedToCloud() {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
 
         JsonObject attrPayload = new JsonObject();
@@ -345,7 +388,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
                 Assert.assertEquals(true, attributeKvEntry.getBooleanValue().get());
             }
             if (attributeKvEntry.getKey().equals("doubleAttrToCloud")) {
-                Assert.assertEquals(42.0, (double) attributeKvEntry.getDoubleValue().get(), 0.0);
+                Assert.assertEquals(42.0, attributeKvEntry.getDoubleValue().get(), 0.0);
             }
             if (attributeKvEntry.getKey().equals("longAttrToCloud")) {
                 Assert.assertEquals(72L, attributeKvEntry.getLongValue().get().longValue());
@@ -354,4 +397,3 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
 }
-

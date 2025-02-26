@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@ public class CustomerClientTest extends AbstractContainerTest {
 
     @Test
     public void testCreateUpdateDeleteCustomer() {
+        performTestOnEachEdge(this::_testCreateUpdateDeleteCustomer);
+    }
+
+    private void _testCreateUpdateDeleteCustomer() {
         // create customer
         Customer customer = new Customer();
         customer.setTitle("Test Customer");
@@ -46,21 +50,22 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Updated Customer Name".equals(edgeRestClient.getCustomerById(savedCustomer.getId()).get().getTitle()));
 
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
         // delete customer
         cloudRestClient.deleteCustomer(savedCustomer.getId());
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
     }
 
     @Test
     public void testPublicCustomerCreatedOnEdge() {
+        performTestOnEachEdge(this::_testPublicCustomerCreatedOnEdge);
+    }
+
+    private void _testPublicCustomerCreatedOnEdge() {
         Customer publicCustomer = findPublicCustomer();
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
     }
-}
 
+}

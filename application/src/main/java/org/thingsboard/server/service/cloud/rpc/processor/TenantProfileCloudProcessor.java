@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,72 +15,63 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
-    @Autowired
-    private DataDecodingEncodingService dataDecodingEncodingService;
-
     public ListenableFuture<Void> processTenantProfileMsgFromCloud(TenantId tenantId, TenantProfileUpdateMsg tenantProfileUpdateMsg) {
-        TenantProfileId tenantProfileId = new TenantProfileId(new UUID(tenantProfileUpdateMsg.getIdMSB(), tenantProfileUpdateMsg.getIdLSB()));
+        TenantProfile tenantProfileMsg  = JacksonUtil.fromString(tenantProfileUpdateMsg.getEntity(), TenantProfile.class, true);
+        if (tenantProfileMsg == null) {
+            throw new RuntimeException("[{" + tenantId + "}] tenantProfileUpdateMsg {" + tenantProfileUpdateMsg + "} cannot be converted to tenant profile");
+        }
         try {
-            edgeSynchronizationManager.getSync().set(true);
+            cloudSynchronizationManager.getSync().set(true);
 
             switch (tenantProfileUpdateMsg.getMsgType()) {
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    String tenantProfileMsgName = tenantProfileUpdateMsg.getName();
+                    String tenantProfileMsgName = tenantProfileMsg.getName();
                     TenantProfile tenantProfileByName = findTenantProfileByName(tenantId, tenantProfileMsgName);
                     boolean removePreviousProfile = false;
-                    if (tenantProfileByName != null && !tenantProfileByName.getId().equals(tenantProfileId)) {
+                    if (tenantProfileByName != null && !tenantProfileByName.getId().equals(tenantProfileMsg.getId())) {
                         renamePreviousTenantProfile(tenantProfileByName);
                         removePreviousProfile = true;
                     }
-                    TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(tenantId, tenantProfileId);
+                    TenantProfile tenantProfile = edgeCtx.getTenantProfileService().findTenantProfileById(tenantId, tenantProfileMsg.getId());
+                    boolean isDefault = tenantProfileMsg.isDefault();
                     if (tenantProfile == null) {
-                        tenantProfile = createTenantProfile(tenantProfileId, tenantProfileMsgName, tenantProfileByName != null && tenantProfileByName.isDefault());
+                        tenantProfileMsg.setDefault(false);
+                        edgeCtx.getTenantProfileService().saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg, false);
                     }
-                    if (!tenantProfile.isDefault() && tenantProfileUpdateMsg.getDefault()) {
-                        tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile.getId());
+                    if (isDefault) {
+                        edgeCtx.getTenantProfileService().setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg.getId());
+                        tenantProfileMsg.setDefault(true);
                     }
-                    tenantProfile.setName(tenantProfileMsgName);
-                    tenantProfile.setDefault(tenantProfileUpdateMsg.getDefault());
-                    tenantProfile.setDescription(tenantProfileUpdateMsg.getDescription());
-                    tenantProfile.setIsolatedTbRuleEngine(tenantProfileUpdateMsg.getIsolatedRuleChain());
-                    tenantProfile.setProfileDataBytes(tenantProfile.getProfileDataBytes());
-                    Optional<TenantProfileData> profileDataOpt =
-                            dataDecodingEncodingService.decode(tenantProfileUpdateMsg.getProfileDataBytes().toByteArray());
-                    tenantProfile.setProfileData(profileDataOpt.orElse(null));
 
-                    TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfile, false);
-                    notifyCluster(tenantId, savedTenantProfile);
+                    clearRateLimitsProfileConfiguration(tenantProfileMsg);
+                    edgeCtx.getTenantProfileService().saveTenantProfile(tenantId, tenantProfileMsg, false);
 
                     if (removePreviousProfile) {
-                        updateTenants(tenantProfileId, tenantProfileByName.getId());
-                        tenantProfileService.deleteTenantProfile(tenantId, tenantProfileByName.getId());
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, tenantProfileByName.getId(), ComponentLifecycleEvent.DELETED);
+                        updateTenants(tenantProfileMsg.getId(), tenantProfileByName.getId());
+                        edgeCtx.getTenantProfileService().deleteTenantProfile(tenantId, tenantProfileByName.getId());
                     }
 
                     break;
@@ -88,14 +79,52 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                     return handleUnsupportedMsgType(tenantProfileUpdateMsg.getMsgType());
             }
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
 
+    private void clearRateLimitsProfileConfiguration(TenantProfile tenantProfile) {
+        DefaultTenantProfileConfiguration configuration =
+                (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();
+
+        // Clear all rate limit related configurations by setting them to null
+        configuration.setTransportTenantMsgRateLimit(null);
+        configuration.setTransportDeviceMsgRateLimit(null);
+        configuration.setTransportTenantTelemetryMsgRateLimit(null);
+        configuration.setTransportDeviceTelemetryMsgRateLimit(null);
+
+        configuration.setTransportTenantTelemetryDataPointsRateLimit(null);
+        configuration.setTransportDeviceTelemetryDataPointsRateLimit(null);
+        configuration.setTenantServerRestLimitsConfiguration(null);
+        configuration.setCustomerServerRestLimitsConfiguration(null);
+        configuration.setTenantEntityExportRateLimit(null);
+        configuration.setTenantEntityImportRateLimit(null);
+        configuration.setWsUpdatesPerSessionRateLimit(null);
+        configuration.setCassandraQueryTenantRateLimitsConfiguration(null);
+        configuration.setTenantNotificationRequestsRateLimit(null);
+        configuration.setTenantNotificationRequestsPerRuleRateLimit(null);
+        configuration.setEdgeEventRateLimits(null);
+        configuration.setEdgeEventRateLimitsPerEdge(null);
+
+        configuration.setRpcTtlDays(0);
+        configuration.setMaxJSExecutions(0);
+        configuration.setMaxREExecutions(0);
+        configuration.setMaxDPStorageDays(0);
+        configuration.setMaxTbelExecutions(0);
+        configuration.setQueueStatsTtlDays(0);
+        configuration.setMaxTransportMessages(0);
+        configuration.setDefaultStorageTtlDays(0);
+        configuration.setMaxTransportDataPoints(0);
+        configuration.setRuleEngineExceptionsTtlDays(0);
+        configuration.setMaxRuleNodeExecutionsPerMessage(0);
+
+        tenantProfile.getProfileData().setConfiguration(configuration);
+    }
+
     private TenantProfile findTenantProfileByName(TenantId tenantId, String name) {
         PageDataIterable<TenantProfile> tenantProfiles = new PageDataIterable<>(
-                link -> tenantProfileService.findTenantProfiles(tenantId, link), DEFAULT_PAGE_SIZE);
+                link -> edgeCtx.getTenantProfileService().findTenantProfiles(tenantId, link), 1000);
 
         for (TenantProfile tenantProfile : tenantProfiles) {
             if (tenantProfile.getName().equals(name)) {
@@ -107,30 +136,18 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
     private void renamePreviousTenantProfile(TenantProfile tenantProfileByName) {
         tenantProfileByName.setName(tenantProfileByName.getName() + StringUtils.randomAlphanumeric(15));
-        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileByName);
+        edgeCtx.getTenantProfileService().saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileByName);
     }
 
     private void updateTenants(TenantProfileId newTenantProfileId, TenantProfileId oldTenantProfileId) {
-        List<TenantId> tenantIdList = tenantService.findTenantIdsByTenantProfileId(oldTenantProfileId);
-        PageDataIterable<Tenant> tenants = new PageDataIterable<>(link -> tenantService.findTenants(link), DEFAULT_PAGE_SIZE);
+        List<TenantId> tenantIdList = edgeCtx.getTenantService().findTenantIdsByTenantProfileId(oldTenantProfileId);
+        PageDataIterable<Tenant> tenants = new PageDataIterable<>(link -> edgeCtx.getTenantService().findTenants(link), 1000);
         for (Tenant tenant : tenants) {
             if (tenantIdList.contains(tenant.getId())) {
                 tenant.setTenantProfileId(newTenantProfileId);
-                tenantService.saveTenant(tenant);
+                edgeCtx.getTenantService().saveTenant(tenant);
             }
         }
     }
 
-    private TenantProfile createTenantProfile(TenantProfileId tenantProfileId, String name, boolean isDefaultPreviousProfile) {
-        TenantProfile tenantProfile = new TenantProfile();
-        tenantProfile.setId(tenantProfileId);
-        tenantProfile.setCreatedTime(Uuids.unixTimestamp(tenantProfileId.getId()));
-        tenantProfile.setName(name);
-        return tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile, false);
-    }
-
-    private void notifyCluster(TenantId tenantId, TenantProfile savedTenantProfile) {
-        tbClusterService.onTenantProfileChange(savedTenantProfile, null);
-        tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedTenantProfile.getId(), ComponentLifecycleEvent.UPDATED);
-    }
 }

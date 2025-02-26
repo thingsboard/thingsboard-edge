@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,82 +15,46 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.RuleNodeProto;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.rule.BaseRuleChainProcessor;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static org.thingsboard.server.service.edge.DefaultEdgeNotificationService.EDGE_IS_ROOT_BODY_KEY;
-
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class RuleChainCloudProcessor extends BaseRuleChainProcessor {
 
-    @Autowired
-    private RuleChainService ruleChainService;
-
-    public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg,
-                                                               Long queueStartTs) {
-        RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
+    public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg) {
         try {
-            edgeSynchronizationManager.getSync().set(true);
-
+            cloudSynchronizationManager.getSync().set(true);
+            RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
             switch (ruleChainUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    boolean created = saveOrUpdateRuleChain(tenantId, ruleChainId, ruleChainUpdateMsg);
-                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId,
-                            created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-                    return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RULE_CHAIN, EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null, queueStartTs);
+                    saveOrUpdateRuleChain(tenantId, ruleChainId, ruleChainUpdateMsg);
+                    return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    RuleChain ruleChainById = ruleChainService.findRuleChainById(tenantId, ruleChainId);
+                    RuleChain ruleChainById = edgeCtx.getRuleChainService().findRuleChainById(tenantId, ruleChainId);
                     if (ruleChainById != null) {
-                        List<RuleNode> referencingRuleNodes = ruleChainService.getReferencingRuleChainNodes(tenantId, ruleChainId);
-
-                        Set<RuleChainId> referencingRuleChainIds = referencingRuleNodes.stream().map(RuleNode::getRuleChainId).collect(Collectors.toSet());
-
-                        ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
-
-                        referencingRuleChainIds.remove(ruleChainId);
-
-                        referencingRuleChainIds.forEach(referencingRuleChainId ->
-                                tbClusterService.broadcastEntityStateChangeEvent(tenantId, referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
-
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
+                        edgeCtx.getRuleChainService().deleteRuleChainById(tenantId, ruleChainId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -101,30 +65,26 @@ public class RuleChainCloudProcessor extends BaseRuleChainProcessor {
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         } finally {
-            edgeSynchronizationManager.getSync().remove();
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
 
+    private void saveOrUpdateRuleChain(TenantId tenantId, RuleChainId ruleChainId, RuleChainUpdateMsg ruleChainUpdateMsg) {
+        Pair<Boolean, Boolean> resultPair = saveOrUpdateRuleChain(tenantId, ruleChainId, ruleChainUpdateMsg, RuleChainType.CORE);
+        Boolean isRoot = resultPair.getSecond();
+        if (isRoot) {
+            edgeCtx.getRuleChainService().setRootRuleChain(tenantId, ruleChainId);
+        }
+    }
+
     public ListenableFuture<Void> processRuleChainMetadataMsgFromCloud(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
         try {
+            cloudSynchronizationManager.getSync().set(true);
             switch (ruleChainMetadataUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    RuleChainMetaData ruleChainMetadata = new RuleChainMetaData();
-                    UUID ruleChainUUID = new UUID(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB());
-                    RuleChainId ruleChainId = new RuleChainId(ruleChainUUID);
-                    ruleChainMetadata.setRuleChainId(ruleChainId);
-                    ruleChainMetadata.setNodes(parseNodeProtos(ruleChainId, ruleChainMetadataUpdateMsg.getNodesList()));
-                    ruleChainMetadata.setConnections(parseConnectionProtos(ruleChainMetadataUpdateMsg.getConnectionsList()));
-                    ruleChainMetadata.setRuleChainConnections(parseRuleChainConnectionProtos(ruleChainMetadataUpdateMsg.getRuleChainConnectionsList()));
-                    if (ruleChainMetadataUpdateMsg.getFirstNodeIndex() != -1) {
-                        ruleChainMetadata.setFirstNodeIndex(ruleChainMetadataUpdateMsg.getFirstNodeIndex());
-                    }
-                    if (ruleChainMetadata.getNodes().size() > 0) {
-                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata, Function.identity());
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
-                    }
+                    saveOrUpdateRuleChainMetadata(tenantId, ruleChainMetadataUpdateMsg);
                     break;
                 case UNRECOGNIZED:
                     return handleUnsupportedMsgType(ruleChainMetadataUpdateMsg.getMsgType());
@@ -133,79 +93,33 @@ public class RuleChainCloudProcessor extends BaseRuleChainProcessor {
             String errMsg = String.format("Can't process rule chain metadata update msg %s", ruleChainMetadataUpdateMsg);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
 
-    private List<RuleChainConnectionInfo> parseRuleChainConnectionProtos(List<org.thingsboard.server.gen.edge.v1.RuleChainConnectionInfoProto> ruleChainConnectionsList) throws IOException {
-        List<RuleChainConnectionInfo> result = new ArrayList<>();
-        for (org.thingsboard.server.gen.edge.v1.RuleChainConnectionInfoProto proto : ruleChainConnectionsList) {
-            RuleChainConnectionInfo info = new RuleChainConnectionInfo();
-            info.setFromIndex(proto.getFromIndex());
-            info.setTargetRuleChainId(new RuleChainId(new UUID(proto.getTargetRuleChainIdMSB(), proto.getTargetRuleChainIdLSB())));
-            info.setType(proto.getType());
-            info.setAdditionalInfo(JacksonUtil.OBJECT_MAPPER.readTree(proto.getAdditionalInfo()));
-            result.add(info);
-        }
-        return result;
-    }
-
-    private List<NodeConnectionInfo> parseConnectionProtos(List<org.thingsboard.server.gen.edge.v1.NodeConnectionInfoProto> connectionsList) {
-        List<NodeConnectionInfo> result = new ArrayList<>();
-        for (org.thingsboard.server.gen.edge.v1.NodeConnectionInfoProto proto : connectionsList) {
-            NodeConnectionInfo info = new NodeConnectionInfo();
-            info.setFromIndex(proto.getFromIndex());
-            info.setToIndex(proto.getToIndex());
-            info.setType(proto.getType());
-            result.add(info);
-        }
-        return result;
-    }
-
-    private List<RuleNode> parseNodeProtos(RuleChainId ruleChainId, List<RuleNodeProto> nodesList) throws IOException {
-        List<RuleNode> result = new ArrayList<>();
-        for (RuleNodeProto proto : nodesList) {
-            RuleNode ruleNode = new RuleNode();
-            RuleNodeId ruleNodeId = new RuleNodeId(new UUID(proto.getIdMSB(), proto.getIdLSB()));
-            ruleNode.setId(ruleNodeId);
-            ruleNode.setCreatedTime(Uuids.unixTimestamp(ruleNodeId.getId()));
-            ruleNode.setRuleChainId(ruleChainId);
-            ruleNode.setType(proto.getType());
-            ruleNode.setName(proto.getName());
-            ruleNode.setDebugMode(proto.getDebugMode());
-            ruleNode.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree(proto.getConfiguration()));
-            ruleNode.setAdditionalInfo(JacksonUtil.OBJECT_MAPPER.readTree(proto.getAdditionalInfo()));
-            result.add(ruleNode);
-        }
-        return result;
-    }
-
-    public UplinkMsg convertRuleChainMetadataRequestEventToUplink(CloudEvent cloudEvent) {
-        EntityId ruleChainId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
-        RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
-                .setRuleChainIdMSB(ruleChainId.getId().getMostSignificantBits())
-                .setRuleChainIdLSB(ruleChainId.getId().getLeastSignificantBits())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addRuleChainMetadataRequestMsg(ruleChainMetadataRequestMsg);
-        return builder.build();
-    }
-
-    public UplinkMsg convertRuleChainEventToUplink(CloudEvent cloudEvent) {
+    @Override
+    public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         RuleChainId ruleChainId = new RuleChainId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
             case ADDED:
             case UPDATED:
-                RuleChain ruleChain = ruleChainService.findRuleChainById(cloudEvent.getTenantId(), ruleChainId);
+                RuleChain ruleChain = edgeCtx.getRuleChainService().findRuleChainById(cloudEvent.getTenantId(), ruleChainId);
                 if (ruleChain != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    RuleChainUpdateMsg ruleChainUpdateMsg =
-                            ruleChainMsgConstructor.constructRuleChainUpdatedMsg(msgType, ruleChain, false);
-                    msg = UplinkMsg.newBuilder()
+                    RuleChainUpdateMsg ruleChainUpdateMsg = EdgeMsgConstructorUtils.constructRuleChainUpdatedMsg(msgType, ruleChain, false);
+                    UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addRuleChainUpdateMsg(ruleChainUpdateMsg).build();
+                            .addRuleChainUpdateMsg(ruleChainUpdateMsg);
+
+                    RuleChainMetaData ruleChainMetaData = edgeCtx.getRuleChainService().loadRuleChainMetaData(cloudEvent.getTenantId(), ruleChainId);
+                    RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = EdgeMsgConstructorUtils
+                            .constructRuleChainMetadataUpdatedMsg(msgType, ruleChainMetaData);
+                    builder.addRuleChainMetadataUpdateMsg(ruleChainMetadataUpdateMsg);
+
+                    msg = builder.build();
                 } else {
                     log.info("Skipping event as asset was not found [{}]", cloudEvent);
                 }
@@ -213,7 +127,7 @@ public class RuleChainCloudProcessor extends BaseRuleChainProcessor {
             case DELETED:
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addRuleChainUpdateMsg(ruleChainMsgConstructor.constructRuleChainDeleteMsg(ruleChainId))
+                        .addRuleChainUpdateMsg(EdgeMsgConstructorUtils.constructRuleChainDeleteMsg(ruleChainId))
                         .build();
                 break;
         }

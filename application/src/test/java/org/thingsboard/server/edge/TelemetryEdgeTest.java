@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,18 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.AttributeDeleteMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
+import org.thingsboard.server.gen.edge.v1.RpcRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DaoSqlTest
 public class TelemetryEdgeTest extends AbstractEdgeTest {
@@ -48,20 +53,28 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
     @Ignore
     public void testTimeseriesWithFailures() throws Exception {
         int numberOfTimeseriesToSend = 333;
+        int numberOfHighPriorityRpcRequests = 13;
+        int frequencyOfRpcRequestsPerTimeseries = 25;
 
         Device device = findDeviceByName("Edge Device 1");
 
         edgeImitator.setRandomFailuresOnTimeseriesDownlink(true);
         // imitator will generate failure in 5% of cases
         edgeImitator.setFailureProbability(5.0);
-        edgeImitator.expectMessageAmount(numberOfTimeseriesToSend);
+        edgeImitator.expectMessageAmount(numberOfTimeseriesToSend + numberOfHighPriorityRpcRequests);
         for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
             String timeseriesData = "{\"data\":{\"idx\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
             JsonNode timeseriesEntityData = JacksonUtil.toJsonNode(timeseriesData);
             EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED,
                     device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
             edgeEventService.saveAsync(edgeEvent).get();
-            clusterService.onEdgeEventUpdate(tenantId, edge.getId());
+            if (idx % frequencyOfRpcRequestsPerTimeseries == 0) {
+                doPostAsync(
+                        "/api/rpc/oneway/" + device.getId().getId().toString(),
+                        JacksonUtil.toString(createDefaultRpc(idx)),
+                        String.class,
+                        status().isOk());
+            }
         }
 
         Assert.assertTrue(edgeImitator.waitForMessages(120));
@@ -71,6 +84,14 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
 
         for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
             Assert.assertTrue(isIdxExistsInTheDownlinkList(idx, allTelemetryMsgs));
+        }
+
+        List<DeviceRpcCallMsg> allDeviceRpcCallMsgs = edgeImitator.findAllMessagesByType(DeviceRpcCallMsg.class);
+        Assert.assertEquals(numberOfHighPriorityRpcRequests, allDeviceRpcCallMsgs.size());
+
+        for (int idx = 1; idx <= numberOfHighPriorityRpcRequests; idx++) {
+            int pinValue = idx * frequencyOfRpcRequestsPerTimeseries;
+            Assert.assertTrue(isPinValueExistsInTheRpcDownlinkList(pinValue, allDeviceRpcCallMsgs));
         }
 
         edgeImitator.setRandomFailuresOnTimeseriesDownlink(false);
@@ -92,7 +113,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.POST_ATTRIBUTES, device.getId().getId(), EdgeEventType.DEVICE, postAttributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -117,7 +137,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_DELETED, device.getId().getId(), EdgeEventType.DEVICE, deleteAttributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -146,7 +165,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         edgeImitator.expectMessageAmount(1);
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED, device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
         edgeEventService.saveAsync(edgeEvent).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -182,6 +200,16 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         return false;
     }
 
+    private boolean isPinValueExistsInTheRpcDownlinkList(int idx, List<DeviceRpcCallMsg> rpcDownlinkMsgs) {
+        for (DeviceRpcCallMsg proto : rpcDownlinkMsgs) {
+            RpcRequestMsg rpcRequestMsg = proto.getRequestMsg();
+            if ((JacksonUtil.toJsonNode(rpcRequestMsg.getParams())).get("value").intValue() == idx) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Test
     @Ignore
     public void testTimeseriesDeliveryFailuresForever_deliverOnlyDeviceUpdateMsgs() throws Exception {
@@ -192,7 +220,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         edgeImitator.setRandomFailuresOnTimeseriesDownlink(true);
         // imitator will generate failure in 100% of timeseries cases
         edgeImitator.setFailureProbability(100);
-        edgeImitator.expectMessageAmount(numberOfMsgsToSend);
+        edgeImitator.expectMessageAmount(numberOfMsgsToSend * 2);
         for (int idx = 1; idx <= numberOfMsgsToSend; idx++) {
             String timeseriesData = "{\"data\":{\"idx\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
             JsonNode timeseriesEntityData = JacksonUtil.toJsonNode(timeseriesData);
@@ -203,8 +231,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
             EdgeEvent successEdgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.UPDATED,
                     device.getId().getId(), EdgeEventType.DEVICE, null);
             edgeEventService.saveAsync(successEdgeEvent).get();
-
-            clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         }
 
         Assert.assertTrue(edgeImitator.waitForMessages(120));
@@ -214,6 +240,9 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
 
         List<DeviceUpdateMsg> deviceUpdateMsgs = edgeImitator.findAllMessagesByType(DeviceUpdateMsg.class);
         Assert.assertEquals(numberOfMsgsToSend, deviceUpdateMsgs.size());
+
+        List<DeviceCredentialsUpdateMsg> deviceCredentialsUpdateMsgs = edgeImitator.findAllMessagesByType(DeviceCredentialsUpdateMsg.class);
+        Assert.assertEquals(numberOfMsgsToSend, deviceCredentialsUpdateMsgs.size());
 
         edgeImitator.setRandomFailuresOnTimeseriesDownlink(false);
     }
@@ -230,7 +259,6 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
         EdgeEvent edgeEvent1 = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, entityId.getId(), EdgeEventType.valueOf(entityId.getEntityType().name()), attributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent1).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();

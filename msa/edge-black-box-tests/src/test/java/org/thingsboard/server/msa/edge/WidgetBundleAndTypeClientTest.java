@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetType;
@@ -39,26 +40,30 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundles_verifyInitialSetup() {
+        performTestOnEachEdge(this::_testWidgetsBundles_verifyInitialSetup);
+    }
+
+    private void _testWidgetsBundles_verifyInitialSetup() {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 18);
+                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 31);
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
 
-        for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
+        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).toList()) {
             Awaitility.await()
                     .pollInterval(500, TimeUnit.MILLISECONDS)
                     .atMost(30, TimeUnit.SECONDS)
                     .until(() -> {
-                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                        List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
+                        List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);
                         return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
                                 && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
                     });
-            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(widgetsBundleId);
+            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(widgetsBundleId);
             Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
             Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
             assertEntitiesByIdsAndType(edgeBundleWidgetTypes.stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGET_TYPE);
@@ -67,6 +72,10 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundleAndWidgetType() {
+        performTestOnEachEdge(this::_testWidgetsBundleAndWidgetType);
+    }
+
+    private void _testWidgetsBundleAndWidgetType() {
         // create widget bundle
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("Test Widget Bundle");
@@ -79,7 +88,7 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         // create widget type
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
         widgetType.setName("Test Widget Type");
-        ObjectNode descriptor = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode descriptor = JacksonUtil.newObjectNode();
         descriptor.put("key", "value");
         widgetType.setDescriptor(descriptor);
         WidgetTypeDetails savedWidgetType = cloudRestClient.saveWidgetType(widgetType);
@@ -120,4 +129,3 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
     }
 
 }
-

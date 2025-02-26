@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -36,7 +35,11 @@ import java.util.concurrent.TimeUnit;
 public class AssetClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAssets() throws Exception {
+    public void testAssets() {
+        performTestOnEachEdge(this::_testAssets);
+    }
+
+    private void _testAssets() {
         // create asset #1 and assign to edge
         Asset savedAsset1 = saveAndAssignAssetToEdge("Building");
         cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset1.getId());
@@ -54,7 +57,7 @@ public class AssetClientTest extends AbstractContainerTest {
                 .until(() -> "Updated Asset Name".equals(edgeRestClient.getAssetById(savedAsset1.getId()).get().getName()));
 
         // save asset attribute
-        JsonNode assetAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"assetKey\":\"assetValue\"}");
+        JsonNode assetAttributes = JacksonUtil.toJsonNode("{\"assetKey\":\"assetValue\"}");
         cloudRestClient.saveEntityAttributesV1(savedAsset1.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -88,6 +91,7 @@ public class AssetClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getAssetById(savedAsset2.getId()).get().getCustomerId()));
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
 
         // unassign asset #2 from customer
         cloudRestClient.unassignAssetFromCustomer(savedAsset2.getId());
@@ -114,6 +118,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendAssetToCloud() {
+        performTestOnEachEdge(this::_testSendAssetToCloud);
+    }
+
+    private void _testSendAssetToCloud() {
         // create asset on edge
         String defaultAssetProfileName = edgeRestClient.getDefaultAssetProfileInfo().getName();
         Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset 2", defaultAssetProfileName);
@@ -169,6 +177,10 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
+        performTestOnEachEdge(this::_testSendAssetToCloudWithNameThatAlreadyExistsOnCloud);
+    }
+
+    private void _testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() {
         // create asset on cloud and edge with the same name
         Asset savedAssetOnCloud = saveAssetOnCloud("Edge Asset 3", "Building");
         Awaitility.await()
@@ -182,7 +194,15 @@ public class AssetClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<Asset> assetOptional = cloudRestClient.getAssetById(savedAssetOnEdge.getId());
-                    return assetOptional.isPresent() && !assetOptional.get().getName().equals(savedAssetOnCloud.getName());
+                    return assetOptional.isPresent() && !assetOptional.get().getName().equals("Edge Asset 3");
+                });
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<Asset> assetOptional = edgeRestClient.getAssetById(savedAssetOnEdge.getId());
+                    return assetOptional.isPresent() && !assetOptional.get().getName().equals("Edge Asset 3");
                 });
 
         // delete asset
@@ -208,4 +228,3 @@ public class AssetClientTest extends AbstractContainerTest {
     }
 
 }
-

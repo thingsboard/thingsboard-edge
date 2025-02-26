@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2025 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  Input,
+  Input, NgZone,
   OnDestroy,
   OnInit,
   ViewChild
@@ -49,10 +49,9 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { RelationsDatasource } from '../../models/datasource/relation-datasource';
 import { RelationDialogComponent, RelationDialogData } from '@home/components/relation/relation-dialog.component';
 import { hidePageSizePixelValue } from '@shared/models/constants';
-import { ResizeObserver } from '@juggle/resize-observer';
+import { FormBuilder } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityType } from '@shared/models/entity-type.models';
-import { FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'tb-relation-table',
@@ -134,7 +133,8 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
               private dialogService: DialogService,
               private cd: ChangeDetectorRef,
               private elementRef: ElementRef,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private zone: NgZone) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'type', direction: Direction.ASC };
@@ -146,11 +146,13 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
 
   ngOnInit() {
     this.widgetResize$ = new ResizeObserver(() => {
-      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-      if (showHidePageSize !== this.hidePageSize) {
-        this.hidePageSize = showHidePageSize;
-        this.cd.markForCheck();
-      }
+      this.zone.run(() => {
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
     });
     this.widgetResize$.observe(this.elementRef.nativeElement);
   }

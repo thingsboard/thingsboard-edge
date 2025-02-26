@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.jboss.aerogear.security.otp.Totp;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +113,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         twoFaConfigManager.deletePlatformTwoFaSettings(TenantId.SYS_TENANT_ID);
     }
 
+    // edge-only: @Ignore - two factor disabled on Edge
     @Test
+    @Ignore
     public void testTwoFa_totp() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa();
 
@@ -132,7 +135,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         assertThat(currentUser.getId()).isEqualTo(user.getId());
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testTwoFa_sms() throws Exception {
         configureSmsTwoFa();
 
@@ -154,7 +159,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         assertThat(currentUser.getId()).isEqualTo(user.getId());
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testTwoFaPreVerificationTokenLifetime() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setTotalAllowedTimeForVerification(65);
@@ -171,7 +178,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 });
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testCheckVerificationCode_userBlocked() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(10);
@@ -200,7 +209,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         assertThat(errorMessage).containsIgnoringCase("user is disabled");
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testSendVerificationCode_rateLimit() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setMinVerificationCodeSendPeriod(10);
@@ -224,7 +235,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 });
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testCheckVerificationCode_rateLimit() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setVerificationCodeCheckRateLimit("3:10");
@@ -255,7 +268,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testCheckVerificationCode_invalidVerificationCode() throws Exception {
         configureTotpTwoFa();
         logInWithPreVerificationToken(username, password);
@@ -267,7 +282,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         }
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testCheckVerificationCode_codeExpiration() throws Exception {
         configureSmsTwoFa(smsTwoFaProviderConfig -> {
             smsTwoFaProviderConfig.setVerificationCodeLifetime(10);
@@ -292,21 +309,21 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 });
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testTwoFa_logLoginAction() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa();
 
         logInWithPreVerificationToken(username, password);
         await("async audit log saving").during(1, TimeUnit.SECONDS);
-        assertThat(getLogInAuditLogs()).isEmpty();
-        assertThat(userService.findUserById(tenantId, user.getId()).getAdditionalInfo()
-                .get("lastLoginTs")).isNull();
 
         doPost("/api/auth/2fa/verification/check?providerType=TOTP&verificationCode=incorrect")
                 .andExpect(status().isBadRequest());
 
+        // there is the first login audit log after user activation
         await("async audit log saving").atMost(1, TimeUnit.SECONDS)
-                .until(() -> getLogInAuditLogs().size() == 1);
+                .until(() -> getLogInAuditLogs().size() == 2);
         assertThat(getLogInAuditLogs().get(0)).satisfies(failedLogInAuditLog -> {
             assertThat(failedLogInAuditLog.getActionStatus()).isEqualTo(ActionStatus.FAILURE);
             assertThat(failedLogInAuditLog.getActionFailureDetails()).containsIgnoringCase("verification code is incorrect");
@@ -316,12 +333,14 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         doPost("/api/auth/2fa/verification/check?providerType=TOTP&verificationCode=" + getCorrectTotp(totpTwoFaAccountConfig))
                 .andExpect(status().isOk());
         await("async audit log saving").atMost(1, TimeUnit.SECONDS)
-                .until(() -> getLogInAuditLogs().size() == 2);
+                .until(() -> getLogInAuditLogs().size() == 3);
         assertThat(getLogInAuditLogs().get(0)).satisfies(successfulLogInAuditLog -> {
             assertThat(successfulLogInAuditLog.getActionStatus()).isEqualTo(ActionStatus.SUCCESS);
             assertThat(successfulLogInAuditLog.getUserName()).isEqualTo(username);
         });
-        assertThat(userService.findUserById(tenantId, user.getId()).getAdditionalInfo()
+
+        loginTenantAdmin();
+        assertThat(doGet("/api/user/" + user.getId(), User.class).getAdditionalInfo()
                 .get("lastLoginTs").asLong())
                 .isGreaterThan(System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(3));
     }
@@ -331,7 +350,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 new TimePageLink(new PageLink(10, 0, null, new SortOrder("createdTime", SortOrder.Direction.DESC)), 0L, System.currentTimeMillis())).getData();
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testAuthWithoutTwoFaAccountConfig() throws ThingsboardException {
         configureTotpTwoFa();
         twoFaConfigManager.deleteTwoFaAccountConfig(tenantId, user.getId(), TwoFaProviderType.TOTP);
@@ -341,7 +362,9 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         });
     }
 
+    // edge-only: @Ignore - two factor disabled on edge
     @Test
+    @Ignore
     public void testTwoFa_multipleProviders() throws Exception {
         PlatformTwoFaSettings platformTwoFaSettings = new PlatformTwoFaSettings();
 

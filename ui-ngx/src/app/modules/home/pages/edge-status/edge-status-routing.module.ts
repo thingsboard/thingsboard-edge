@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2025 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import { AttributeData, AttributeScope } from '@shared/models/telemetry/telemetr
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AttributeService } from '@core/http/attribute.service';
+import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
 export class EdgeAttributesResolver implements Resolve<Array<AttributeData>> {
@@ -55,8 +56,7 @@ const routes: Routes = [
       auth: [Authority.TENANT_ADMIN],
       title: 'edge.edge',
       breadcrumb: {
-        label: 'edge.edge',
-        icon: 'router'
+        menuId: MenuId.edge
       }
     },
     children: [
@@ -75,8 +75,7 @@ const routes: Routes = [
           auth: [Authority.TENANT_ADMIN],
           title: 'edge.status',
           breadcrumb: {
-            label: 'edge.status',
-            icon: 'info'
+            menuId: MenuId.edge_status
           }
         },
         resolve: {
@@ -90,8 +89,7 @@ const routes: Routes = [
           auth: [Authority.TENANT_ADMIN],
           title: 'edge.cloud-events',
           breadcrumb: {
-            label: 'edge.cloud-events',
-            icon: 'date_range'
+            menuId: MenuId.cloud_events
           }
         }
       }

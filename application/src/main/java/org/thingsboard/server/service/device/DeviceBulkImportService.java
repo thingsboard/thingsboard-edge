@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -66,6 +66,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.eclipse.leshan.core.LwM2m.Version.V1_0;
 
 @Service
 @TbCoreComponent
@@ -119,9 +121,7 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
         if (deviceCredentials.getCredentialsType() == DeviceCredentialsType.LWM2M_CREDENTIALS) {
             deviceProfile = setUpLwM2mDeviceProfile(device.getTenantId(), device);
         } else if (StringUtils.isNotEmpty(device.getType())) {
-            // TODO: @voba device profiles are not created on edge at the moment
-            // deviceProfile = deviceProfileService.findOrCreateDeviceProfile(entity.getTenantId(), entity.getType());
-            deviceProfile = deviceService.findDeviceProfileByNameOrDefault(device.getTenantId(), device.getType());
+            deviceProfile = deviceProfileService.findOrCreateDeviceProfile(device.getTenantId(), device.getType());
         } else {
             deviceProfile = deviceProfileService.findDefaultDeviceProfile(device.getTenantId());
         }
@@ -257,7 +257,7 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
 
                     Lwm2mDeviceProfileTransportConfiguration transportConfiguration = new Lwm2mDeviceProfileTransportConfiguration();
                     transportConfiguration.setBootstrap(Collections.emptyList());
-                    transportConfiguration.setClientLwM2mSettings(new OtherConfiguration(1, 1, 1, PowerMode.DRX, null, null, null, null, null));
+                    transportConfiguration.setClientLwM2mSettings(new OtherConfiguration(1, 1, 1, PowerMode.DRX, null, null, null, null, null, V1_0.toString()));
                     transportConfiguration.setObserveAttr(new TelemetryMappingConfiguration(Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptyMap()));
 
                     DeviceProfileData deviceProfileData = new DeviceProfileData();

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,38 +20,33 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public interface CloudEventService {
-
-    ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 
     void saveCloudEvent(TenantId tenantId,
                         CloudEventType cloudEventType,
                         EdgeEventActionType cloudEventAction,
                         EntityId entityId,
-                        JsonNode entityBody,
-                        Long queueStartTs) throws ExecutionException, InterruptedException;
+                        JsonNode entityBody) throws ExecutionException, InterruptedException;
 
     ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId,
                                                CloudEventType cloudEventType,
                                                EdgeEventActionType cloudEventAction,
                                                EntityId entityId,
-                                               JsonNode entityBody,
-                                               Long queueStartTs);
+                                               JsonNode entityBody);
+
+    ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
+
+    ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent);
 
     PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
-    EdgeSettings findEdgeSettings(TenantId tenantId);
+    PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
-    ListenableFuture<List<String>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
-
-    void cleanupEvents(long ttl);
 }

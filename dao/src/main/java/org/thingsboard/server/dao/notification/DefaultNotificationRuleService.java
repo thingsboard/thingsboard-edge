@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 
 import java.util.List;
 import java.util.Map;
@@ -44,12 +46,15 @@ public class DefaultNotificationRuleService extends AbstractEntityService implem
     public NotificationRule saveNotificationRule(TenantId tenantId, NotificationRule notificationRule) {
         if (notificationRule.getId() != null) {
             NotificationRule oldNotificationRule = findNotificationRuleById(tenantId, notificationRule.getId());
-            if (notificationRule.getTriggerType() != oldNotificationRule.getTriggerType()) {
+            if (oldNotificationRule != null && notificationRule.getTriggerType() != oldNotificationRule.getTriggerType()) {
                 throw new IllegalArgumentException("Notification rule trigger type cannot be updated");
             }
         }
         try {
-            return notificationRuleDao.saveAndFlush(tenantId, notificationRule);
+            NotificationRule savedRule = notificationRuleDao.saveAndFlush(tenantId, notificationRule);
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedRule.getId())
+                    .created(notificationRule.getId() == null).build());
+            return savedRule;
         } catch (Exception e) {
             checkConstraintViolation(e, Map.of(
                     "uq_notification_rule_name", "Notification rule with such name already exists"
@@ -84,8 +89,19 @@ public class DefaultNotificationRuleService extends AbstractEntityService implem
     }
 
     @Override
+    public Optional<NotificationRule> findNotificationRuleByTenantIdAndName(TenantId tenantId, String name) {
+        return Optional.ofNullable(notificationRuleDao.findByTenantIdAndName(tenantId.getId(), name));
+    }
+
+    @Override
     public void deleteNotificationRuleById(TenantId tenantId, NotificationRuleId id) {
         notificationRuleDao.removeById(tenantId, id.getId());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(id).build());
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteNotificationRuleById(tenantId, (NotificationRuleId) id);
     }
 
     @Override
@@ -94,13 +110,13 @@ public class DefaultNotificationRuleService extends AbstractEntityService implem
     }
 
     @Override
-    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
-        return Optional.ofNullable(findNotificationRuleById(tenantId, new NotificationRuleId(entityId.getId())));
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteNotificationRulesByTenantId(tenantId);
     }
 
     @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteNotificationRuleById(tenantId, (NotificationRuleId) id);
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findNotificationRuleById(tenantId, new NotificationRuleId(entityId.getId())));
     }
 
     @Override

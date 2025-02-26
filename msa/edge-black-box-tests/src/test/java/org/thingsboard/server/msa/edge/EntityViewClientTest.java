@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,10 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
     public void testEntityViews() {
+        performTestOnEachEdge(this::_testEntityViews);
+    }
+
+    private void _testEntityViews() {
         // create entity view #1 and assign to edge
         Device device = saveAndAssignDeviceToEdge();
         EntityView savedEntityView1 = saveEntityViewOnCloud("Edge Entity View 1", "Default", device.getId());
@@ -86,6 +90,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEntityViewById(savedEntityView2.getId()).get().getCustomerId().getId()));
+        unassignEdgeFromCustomerAndValidateUnassignmentOnCloud();
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
         // delete entity view #2
@@ -101,6 +106,10 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendEntityViewToCloud() {
+        performTestOnEachEdge(this::_testSendEntityViewToCloud);
+    }
+
+    private void _testSendEntityViewToCloud() {
         // create asset on edge
         Asset savedAssetOnEdge = saveAssetOnEdge("Edge Asset For Entity View", edgeRestClient.getDefaultAssetProfileInfo().getName());
         Awaitility.await()
@@ -169,6 +178,10 @@ public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
     public void testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() {
+        performTestOnEachEdge(this::_testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud);
+    }
+
+    private void _testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() {
         // create entity view on cloud and edge with the same name
         Device device = saveAndAssignDeviceToEdge();
         EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View Exists", "Default", device.getId());
@@ -216,4 +229,3 @@ public class EntityViewClientTest extends AbstractContainerTest {
     }
 
 }
-
