@@ -145,7 +145,7 @@ export interface NotificationRule extends Omit<BaseData<NotificationRuleId>, 'la
 export type NotificationRuleTriggerConfig = Partial<AlarmNotificationRuleTriggerConfig & DeviceInactivityNotificationRuleTriggerConfig &
   EntityActionNotificationRuleTriggerConfig & AlarmCommentNotificationRuleTriggerConfig & AlarmAssignmentNotificationRuleTriggerConfig &
   RuleEngineLifecycleEventNotificationRuleTriggerConfig & EntitiesLimitNotificationRuleTriggerConfig &
-  ApiUsageLimitNotificationRuleTriggerConfig & RateLimitsNotificationRuleTriggerConfig &
+  ApiUsageLimitNotificationRuleTriggerConfig & RateLimitsNotificationRuleTriggerConfig & ResourceUsageShortageNotificationRuleTriggerConfig &
   IntegrationLifecycleEventNotificationRuleTriggerConfig>;
 
 export interface AlarmNotificationRuleTriggerConfig {
@@ -198,6 +198,12 @@ export interface RuleEngineLifecycleEventNotificationRuleTriggerConfig {
 export interface EntitiesLimitNotificationRuleTriggerConfig {
   entityTypes: EntityType[];
   threshold: number;
+}
+
+export interface ResourceUsageShortageNotificationRuleTriggerConfig {
+  cpuThreshold: number;
+  ramThreshold: number;
+  storageThreshold: number;
 }
 
 export interface ApiUsageLimitNotificationRuleTriggerConfig {
