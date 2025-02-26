@@ -28,30 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.telemetry;
+package org.thingsboard.rule.engine.api;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings;
+import org.junit.jupiter.api.Test;
 
-import static org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings.OnEveryMessage;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@Data
-public class TbMsgTimeseriesNodeConfiguration implements NodeConfiguration<TbMsgTimeseriesNodeConfiguration> {
+class AttributesSaveRequestTest {
 
-    private long defaultTTL;
-    private boolean useServerTs;
-    @NotNull
-    private TimeseriesProcessingSettings processingSettings;
+    @Test
+    void testDefaultSaveStrategyIsProcessAll() {
+        var request = AttributesSaveRequest.builder().build();
 
-    @Override
-    public TbMsgTimeseriesNodeConfiguration defaultConfiguration() {
-        TbMsgTimeseriesNodeConfiguration configuration = new TbMsgTimeseriesNodeConfiguration();
-        configuration.setDefaultTTL(0L);
-        configuration.setUseServerTs(false);
-        configuration.setProcessingSettings(new OnEveryMessage());
-        return configuration;
+        assertThat(request.getStrategy()).isEqualTo(AttributesSaveRequest.Strategy.PROCESS_ALL);
+    }
+
+    @Test
+    void testProcessAllStrategy() {
+        assertThat(AttributesSaveRequest.Strategy.PROCESS_ALL).isEqualTo(new AttributesSaveRequest.Strategy(true, true));
+    }
+
+    @Test
+    void testWsOnlyStrategy() {
+        assertThat(AttributesSaveRequest.Strategy.WS_ONLY).isEqualTo(new AttributesSaveRequest.Strategy(false, true));
+    }
+
+    @Test
+    void testSkipAllStrategy() {
+        assertThat(AttributesSaveRequest.Strategy.SKIP_ALL).isEqualTo(new AttributesSaveRequest.Strategy(false, false));
     }
 
 }

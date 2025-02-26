@@ -28,17 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.telemetry;
+package org.thingsboard.rule.engine.telemetry.settings;
 
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.thingsboard.rule.engine.telemetry.strategy.ProcessingStrategy;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Objects;
 
-class TbMsgAttributesNodeConfigurationTest {
+import static org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings.Advanced;
+import static org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings.Deduplicate;
+import static org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings.OnEveryMessage;
+import static org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings.WebSocketsOnly;
 
-    @Test
-    void testDefaultConfig_givenUpdateAttributesOnlyOnValueChange_thenTrue_sinceVersion1() {
-        assertThat(new TbMsgAttributesNodeConfiguration().defaultConfiguration().isUpdateAttributesOnlyOnValueChange()).isTrue();
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = OnEveryMessage.class, name = "ON_EVERY_MESSAGE"),
+        @JsonSubTypes.Type(value = WebSocketsOnly.class, name = "WEBSOCKETS_ONLY"),
+        @JsonSubTypes.Type(value = Deduplicate.class, name = "DEDUPLICATE"),
+        @JsonSubTypes.Type(value = Advanced.class, name = "ADVANCED")
+})
+public sealed interface TimeseriesProcessingSettings extends BaseProcessingSettings permits OnEveryMessage, Deduplicate, WebSocketsOnly, Advanced {
+
+    record Advanced(ProcessingStrategy timeseries, ProcessingStrategy latest, ProcessingStrategy webSockets) implements TimeseriesProcessingSettings {
+
+        public Advanced {
+            Objects.requireNonNull(timeseries);
+            Objects.requireNonNull(latest);
+            Objects.requireNonNull(webSockets);
+        }
+
     }
 
 }
