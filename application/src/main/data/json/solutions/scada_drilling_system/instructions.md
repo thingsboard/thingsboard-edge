@@ -27,3 +27,17 @@ Use Docker Compose to pull and run the IoT Gateway:
 ```bash
 docker compose up{:copy-code}
 ```
+
+##### Interacting with the SCADA Drilling System
+
+As part of this solution, we have provided a <a href="${MAIN_DASHBOARD_URL}" target="_blank">SCADA Oil & Gas</a> dashboard to visualize and interact with the data from multiple drilling devices.
+This dashboard allows you to:
+
+- Monitor drilling performance in real time, including rotary speed, drilling speed, and well depth.
+- Analyze historical data on mud flow rates, pressure levels, and mechanical loads.
+- Track key drilling parameters such as drawwork tension, motor power consumption, and rig vibrations.
+- Control system components remotely, including activating pumps, adjusting the preventer, and switching drilling modes.
+
+For further customization of the <a href="${MAIN_DASHBOARD_URL}" target="_blank">SCADA Oil & Gas</a> dashboard refer to the <a href="${DOCS_BASE_URL}/user-guide/dashboards/" target="_blank">dashboard development guide</a>.
+
+For real-time monitoring of device data received from Modbus servers, you can access the <a href="${GATEWAYS_URL}" target="_blank">Gateways</a> page to view the status and data of connected drilling devices.
