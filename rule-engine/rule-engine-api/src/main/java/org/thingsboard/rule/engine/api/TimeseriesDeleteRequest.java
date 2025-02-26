@@ -38,8 +38,10 @@ import lombok.ToString;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @ToString
@@ -50,6 +52,8 @@ public class TimeseriesDeleteRequest {
     private final EntityId entityId;
     private final List<String> keys;
     private final List<DeleteTsKvQuery> deleteHistoryQueries;
+    private final UUID tbMsgId;
+    private final TbMsgType tbMsgType;
     private final FutureCallback<List<String>> callback;
 
     public static Builder builder() {
@@ -62,9 +66,12 @@ public class TimeseriesDeleteRequest {
         private EntityId entityId;
         private List<String> keys;
         private List<DeleteTsKvQuery> deleteHistoryQueries;
+        private UUID tbMsgId;
+        private TbMsgType tbMsgType;
         private FutureCallback<List<String>> callback;
 
-        Builder() {}
+        Builder() {
+        }
 
         public Builder tenantId(TenantId tenantId) {
             this.tenantId = tenantId;
@@ -86,13 +93,23 @@ public class TimeseriesDeleteRequest {
             return this;
         }
 
+        public Builder tbMsgId(UUID tbMsgId) {
+            this.tbMsgId = tbMsgId;
+            return this;
+        }
+
+        public Builder tbMsgType(TbMsgType tbMsgType) {
+            this.tbMsgType = tbMsgType;
+            return this;
+        }
+
         public Builder callback(FutureCallback<List<String>> callback) {
             this.callback = callback;
             return this;
         }
 
         public TimeseriesDeleteRequest build() {
-            return new TimeseriesDeleteRequest(tenantId, entityId, keys, deleteHistoryQueries, callback);
+            return new TimeseriesDeleteRequest(tenantId, entityId, keys, deleteHistoryQueries, tbMsgId, tbMsgType, callback);
         }
 
     }

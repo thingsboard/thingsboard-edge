@@ -56,6 +56,8 @@ public class TsRollingArgumentEntry implements ArgumentEntry {
     private Long timeWindow;
     private TreeMap<Long, Double> tsRecords = new TreeMap<>();
 
+    private boolean forceResetPrevious;
+
     public TsRollingArgumentEntry(List<TsKvEntry> kvEntries, int limit, long timeWindow) {
         this.limit = limit;
         this.timeWindow = timeWindow;
@@ -72,6 +74,12 @@ public class TsRollingArgumentEntry implements ArgumentEntry {
         this.tsRecords = new TreeMap<>();
         this.limit = limit;
         this.timeWindow = timeWindow;
+    }
+
+    public TsRollingArgumentEntry(Integer limit, Long timeWindow, TreeMap<Long, Double> tsRecords) {
+        this.limit = limit;
+        this.timeWindow = timeWindow;
+        this.tsRecords = tsRecords;
     }
 
     @Override

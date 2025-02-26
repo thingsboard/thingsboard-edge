@@ -31,7 +31,7 @@
 
 import {
   AdditionalDebugActionConfig,
-  EntityDebugSettings,
+  HasEntityDebugSettings,
   HasTenantId,
   HasVersion
 } from '@shared/models/entity.models';
@@ -49,8 +49,7 @@ import {
   endGroupHighlightRule
 } from '@shared/models/ace/ace.models';
 
-export interface CalculatedField extends Omit<BaseData<CalculatedFieldId>, 'label'>, HasVersion, HasTenantId, ExportableEntity<CalculatedFieldId> {
-  debugSettings?: EntityDebugSettings;
+export interface CalculatedField extends Omit<BaseData<CalculatedFieldId>, 'label'>, HasVersion, HasEntityDebugSettings, HasTenantId, ExportableEntity<CalculatedFieldId> {
   configuration: CalculatedFieldConfiguration;
   type: CalculatedFieldType;
   entityId: EntityId;
