@@ -71,8 +71,9 @@ public class ResourceClientTest extends AbstractContainerTest {
 
     private void _testSendResourceToCloud() {
         // create resource on edge
-        String title = "Resource on Edge";
-        TbResource resource = saveResourceOnEdge(title, "ResourceEdge.js", edgeRestClient);
+        String title = edge.getName() + " Resource on Edge";
+        String resourceKey = edge.getName() + "ResourceEdge.js";
+        TbResource resource = saveResourceOnEdge(title, resourceKey, edgeRestClient);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
@@ -103,7 +104,7 @@ public class ResourceClientTest extends AbstractContainerTest {
         TbResource tbResource = new TbResource();
         tbResource.setTitle(title);
         tbResource.setResourceKey(resourceKey);
-        tbResource.setResourceType(ResourceType.JS_MODULE);
+        tbResource.setResourceType(ResourceType.JKS);
         tbResource.setFileName(resourceKey);
         tbResource.setData("Data".getBytes());
         return restClient.saveResource(tbResource);

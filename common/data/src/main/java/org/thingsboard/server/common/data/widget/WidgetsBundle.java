@@ -115,5 +115,4 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements HasName,
     public String getName() {
         return title;
     }
-
 }

@@ -67,9 +67,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     JpaExecutorService jpaExecutorService;
 
-    @Autowired
-    private InstallScripts installScripts;
-
     // edge-only: for case "edge" in updateData
     @Autowired
     private TenantService tenantService;
