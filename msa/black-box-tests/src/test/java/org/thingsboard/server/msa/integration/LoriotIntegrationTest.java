@@ -71,8 +71,8 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
                     "data"
                 ],
                 "scriptLang": "TBEL",
-                "function": " ",
-                "tbelFunction": "var payloadStr = decodeToString(payload);\\nvar result = {\\n    attributes: {},\\n    telemetry: {\\n        ts: metadata.ts,\\n        values: {\\n            temperature: payload[0],\\n            humidity: payload[1]\\n        }\\n    }\\n};\\n\\nreturn result;",
+                "decoder": "",
+                "tbelDecoder": "var payloadStr = decodeToString(payload);\\nvar result = {\\n    attributes: {},\\n    telemetry: {\\n        ts: metadata.ts,\\n        values: {\\n            temperature: payload[0],\\n            humidity: payload[1]\\n        }\\n    }\\n};\\n\\nreturn result;",
                 "encoder": null,
                 "tbelEncoder": null,
                 "updateOnlyKeys": [

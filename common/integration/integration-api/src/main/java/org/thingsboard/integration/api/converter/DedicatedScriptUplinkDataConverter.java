@@ -81,9 +81,9 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
         super.init(configuration);
         this.config = JacksonUtil.treeToValue(configuration.getConfiguration(), DedicatedConverterConfig.class);
         ScriptInvokeService scriptInvokeService = getScriptInvokeService(configuration);
-        String functionField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "function" : "tbelFunction";
-        String function = configuration.getConfiguration().get(functionField).asText();
-        this.evaluator = new ScriptUplinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), function);
+        String decoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "decoder" : "tbelDecoder";
+        String decoder = configuration.getConfiguration().get(decoderField).asText();
+        this.evaluator = new ScriptUplinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), decoder);
         IntegrationType integrationType = configuration.getIntegrationType();
         this.converterWrapper = ConverterWrapperFactory
                 .getWrapper(integrationType)

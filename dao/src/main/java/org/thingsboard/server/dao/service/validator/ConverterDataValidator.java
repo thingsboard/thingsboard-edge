@@ -96,22 +96,14 @@ public class ConverterDataValidator extends DataValidator<Converter> {
             throw new DataValidationException("Converter configuration should be specified!");
         } else {
             if (converter.getType() == ConverterType.UPLINK) {
-                switch (converter.getConverterVersion()) {
-                    case 1 -> {
-                        if (!converter.getConfiguration().has("decoder")) {
-                            throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
-                        }
-                    }
-                    case 2 -> {
-                        if (converter.getIntegrationType() == null) {
-                            throw new DataValidationException("Converter 'integrationType' should be specified!");
-                        }
-                        if (!converter.getConfiguration().has("function")) {
-                            throw new DataValidationException("Converter 'function' field should be specified in configuration!");
-                        }
-                    }
-                    default ->
-                            throw new DataValidationException("Unknown converter version: " + converter.getConverterVersion());
+                if (!converter.getConfiguration().has("decoder")) {
+                    throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
+                }
+                if (converter.getConverterVersion() == null) {
+                    throw new DataValidationException("Converter 'version' should be specified!");
+                }
+                if (converter.getConverterVersion() == 2 && converter.getIntegrationType() == null) {
+                    throw new DataValidationException("Converter 'integrationType' should be specified!");
                 }
             } else {
                 if (!converter.getConfiguration().has("encoder")) {
