@@ -47,7 +47,6 @@ public class ResourcesShortageNotificationRuleTriggerConfig implements Notificat
     @Serial
     private static final long serialVersionUID = 339395299693241424L;
 
-    private String resource;
     @Max(1)
     private float cpuThreshold; // in percents
     @Max(1)
