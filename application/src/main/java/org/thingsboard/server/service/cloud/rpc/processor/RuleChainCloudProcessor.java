@@ -110,7 +110,7 @@ public class RuleChainCloudProcessor extends BaseRuleChainProcessor {
                 RuleChain ruleChain = edgeCtx.getRuleChainService().findRuleChainById(cloudEvent.getTenantId(), ruleChainId);
                 if (ruleChain != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    RuleChainUpdateMsg ruleChainUpdateMsg = EdgeMsgConstructorUtils.constructRuleChainUpdatedMsg(msgType, ruleChain, false);
+                    RuleChainUpdateMsg ruleChainUpdateMsg = EdgeMsgConstructorUtils.constructRuleChainUpdatedMsg(msgType, ruleChain, ruleChain.isRoot());
                     UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addRuleChainUpdateMsg(ruleChainUpdateMsg);
