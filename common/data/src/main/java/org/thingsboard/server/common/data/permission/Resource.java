@@ -87,7 +87,8 @@ public enum Resource {
     NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
             EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE),
     MOBILE_APP_SETTINGS,
-    CUSTOM_MENU;
+    CUSTOM_MENU,
+    CALCULATED_FIELD(EntityType.CALCULATED_FIELD);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
