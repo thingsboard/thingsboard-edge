@@ -148,14 +148,6 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         onAction: (_, entity) => this.openDebugEventsDialog(entity),
       },
       {
-        name: '',
-        nameFunction: entity => this.getDebugConfigLabel(entity?.debugSettings),
-        icon: 'mdi:bug',
-        isEnabled: () => !this.readonly,
-        iconFunction: ({ debugSettings }) => this.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
-        onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
-      },
-      {
         name: this.translate.instant('action.edit'),
         nameFunction: () => this.translate.instant(this.readonly ? 'action.view' : 'action.edit'),
         icon: 'edit',
@@ -164,6 +156,17 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         onAction: (_, entity) => this.editCalculatedField(entity),
       }
     );
+
+    if (!this.readonly) {
+      this.cellActionDescriptors.push({
+        name: '',
+        nameFunction: entity => this.getDebugConfigLabel(entity?.debugSettings),
+        icon: 'mdi:bug',
+        isEnabled: () => true,
+        iconFunction: ({ debugSettings }) => this.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
+        onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
+      });
+    }
   }
 
   fetchCalculatedFields(pageLink: PageLink): Observable<PageData<CalculatedField>> {
