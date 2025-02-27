@@ -6737,7 +6737,9 @@
                 "ADD_TO_GROUP": "Add to Group",
                 "REMOVE_FROM_GROUP": "Remove from Group",
                 "SHARE_GROUP": "Share Group",
-                "ASSIGN_TO_TENANT": "Assign to Tenant"
+                "ASSIGN_TO_TENANT": "Assign to Tenant",
+                "READ_CALCULATED_FIELD": "Read Calculated Field",
+                "WRITE_CALCULATED_FIELD": "Write Calculated Field"
             }
         }
     },

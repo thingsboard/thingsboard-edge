@@ -122,6 +122,10 @@ export class CalculatedFieldDialogComponent extends DialogComponent<CalculatedFi
     this.observeIsLoading();
     this.applyDialogData();
     this.observeTypeChanges();
+
+    if (this.data.readonly) {
+      this.fieldFormGroup.disable();
+    }
   }
 
   get configFormGroup(): FormGroup {
@@ -196,7 +200,7 @@ export class CalculatedFieldDialogComponent extends DialogComponent<CalculatedFi
     this.isLoading$.pipe(takeUntilDestroyed()).subscribe(loading => {
       if (loading) {
         this.fieldFormGroup.disable({emitEvent: false});
-      } else {
+      } else if (!this.data.readonly) {
         this.fieldFormGroup.enable({emitEvent: false});
         this.toggleScopeByOutputType(this.outputFormGroup.get('type').value);
         this.toggleKeyByCalculatedFieldType(this.fieldFormGroup.get('type').value);

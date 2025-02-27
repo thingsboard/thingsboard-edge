@@ -92,8 +92,8 @@
         </mat-cell>
       </ng-container>
       <ng-container matColumnDef="actions" stickyEnd>
-        <mat-header-cell *matHeaderCellDef class="w-20 min-w-20"/>
-        <mat-cell *matCellDef="let argument; let $index = index">
+        <mat-header-cell *matHeaderCellDef class="w-20 min-w-20" [class.hidden]="readonly"/>
+        <mat-cell *matCellDef="let argument; let $index = index" [class.hidden]="readonly">
           <div class="tb-form-table-row-cell-buttons flex w-20 min-w-20">
             <button type="button"
                     mat-icon-button
@@ -134,9 +134,11 @@
       <tb-error noMargin [error]="errorText | translate" class="flex h-9 items-center pl-3"/>
     }
   </div>
-  <div>
-    <button type="button" mat-stroked-button color="primary" #button (click)="manageArgument($event, button)">
-      {{ 'calculated-fields.add-argument' | translate }}
-    </button>
-  </div>
+  @if (!readonly) {
+    <div>
+      <button type="button" mat-stroked-button color="primary" #button (click)="manageArgument($event, button)">
+        {{ 'calculated-fields.add-argument' | translate }}
+      </button>
+    </div>
+  }
 </div>
