@@ -63,14 +63,27 @@
       {{ 'entity-group.display-pagination' | translate }}
     </mat-checkbox>
     <mat-form-field [class.!hidden]="!settingsFormGroup.get('displayPagination').value" class="mat-block">
-      <mat-label translate>entity-group.page-step-size</mat-label>
-      <input matInput formControlName="pageStepSize" type="number" min="1" step="1" required
-             (change)="onPaginationSettingsChange()">
+      <mat-label translate>entity-group.page-step-increment</mat-label>
+      <input matInput formControlName="pageStepIncrement" type="number" min="1" step="1" required>
+      <mat-error translate *ngIf="settingsFormGroup.get('pageStepIncrement').hasError('required')">
+        widgets.value-source.value-required
+      </mat-error>
+      <mat-error translate *ngIf="settingsFormGroup.get('pageStepIncrement').hasError('min') ||
+                                  settingsFormGroup.get('pageStepIncrement').hasError('pattern')">
+        entity-group.page-step-increment-format-message
+      </mat-error>
     </mat-form-field>
     <mat-form-field [class.!hidden]="!settingsFormGroup.get('displayPagination').value" class="mat-block">
       <mat-label translate>entity-group.page-step-count</mat-label>
-      <input matInput formControlName="pageStepCount" type="number" min="1" max="100" step="1" required
-             (change)="onPaginationSettingsChange()">
+      <input matInput formControlName="pageStepCount" type="number" min="1" max="100" step="1" required>
+      <mat-error translate *ngIf="settingsFormGroup.get('pageStepCount').hasError('required')">
+        widgets.value-source.value-required
+      </mat-error>
+      <mat-error translate *ngIf="settingsFormGroup.get('pageStepCount').hasError('min') ||
+                                  settingsFormGroup.get('pageStepCount').hasError('max') ||
+                                  settingsFormGroup.get('pageStepCount').hasError('pattern')">
+        entity-group.page-step-count-format-message
+      </mat-error>
     </mat-form-field>
     <mat-form-field [class.!hidden]="!settingsFormGroup.get('displayPagination').value" class="mat-block">
       <mat-label translate>entity-group.default-page-size</mat-label>

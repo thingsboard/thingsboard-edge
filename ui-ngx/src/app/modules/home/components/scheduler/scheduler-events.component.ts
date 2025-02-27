@@ -347,25 +347,24 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     this.displayedColumns.push('actions');
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     const pageSize = this.settings.defaultPageSize;
-    let pageStepSize = this.settings.pageStepSize;
+    let pageStepIncrement = this.settings.pageStepIncrement;
     let pageStepCount = this.settings.pageStepCount;
+
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    if (isDefinedAndNotNull(pageStepSize) && isDefinedAndNotNull(pageStepCount)) {
-      if (!this.defaultPageSize) {
-        this.defaultPageSize = pageStepSize;
-      }
-    } else {
-      if (!this.defaultPageSize) {
-        this.defaultPageSize = 10;
-      }
-      pageStepSize = this.defaultPageSize;
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
       pageStepCount = 3;
     }
 
     for (let i = 1; i <= pageStepCount; i++) {
-      this.pageSizeOptions.push(pageStepSize * i);
+      this.pageSizeOptions.push(pageStepIncrement * i);
     }
 
     if (this.settings.defaultSortOrder && this.settings.defaultSortOrder.length) {

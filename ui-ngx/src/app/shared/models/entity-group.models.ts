@@ -99,7 +99,7 @@ export interface EntityGroupSettings {
   detailsMode: EntityGroupDetailsMode;
   displayPagination: boolean;
   defaultPageSize: number;
-  pageStepSize: number;
+  pageStepIncrement: number;
   pageStepCount: number;
   enableCredentialsManagement: boolean;
   enableLoginAsUser: boolean;
@@ -428,7 +428,7 @@ export const groupSettingsDefaults = (entityType: EntityType, settings: EntityGr
       detailsMode: EntityGroupDetailsMode.onRowClick,
       displayPagination: true,
       defaultPageSize: 10,
-      pageStepSize: 10,
+      pageStepIncrement: 10,
       pageStepCount: 3
   }, ...settings};
 

@@ -277,25 +277,24 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
     this.displayPagination = this.entitiesTableConfig.displayPagination;
     const pageSize = this.entitiesTableConfig.defaultPageSize;
-    let pageStepSize = this.entitiesTableConfig.pageStepSize;
+    let pageStepIncrement = this.entitiesTableConfig.pageStepIncrement;
     let pageStepCount = this.entitiesTableConfig.pageStepCount;
+
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    if (isDefinedAndNotNull(pageStepSize) && isDefinedAndNotNull(pageStepCount)) {
-      if (!this.defaultPageSize) {
-        this.defaultPageSize = pageStepSize;
-      }
-    } else {
-      if (!this.defaultPageSize) {
-        this.defaultPageSize = 10;
-      }
-      pageStepSize = this.defaultPageSize;
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
       pageStepCount = 3;
     }
 
     for (let i = 1; i <= pageStepCount; i++) {
-      this.pageSizeOptions.push(pageStepSize * i);
+      this.pageSizeOptions.push(pageStepIncrement * i);
     }
 
     if (this.entitiesTableConfig.useTimePageLink) {
