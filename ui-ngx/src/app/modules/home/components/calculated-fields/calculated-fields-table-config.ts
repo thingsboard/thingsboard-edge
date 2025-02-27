@@ -91,7 +91,8 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
               private destroyRef: DestroyRef,
               private renderer: Renderer2,
               public entityName: string,
-              private importExportService: ImportExportService
+              private importExportService: ImportExportService,
+              private readonly: boolean = false,
   ) {
     super();
     this.tableTitle = this.translate.instant('entity.type-calculated-fields');
@@ -102,6 +103,8 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
 
     this.entitiesFetchFunction = (pageLink: PageLink) => this.fetchCalculatedFields(pageLink);
     this.addEntity = this.getCalculatedFieldDialog.bind(this);
+    this.addEnabled = !this.readonly;
+    this.entitiesDeleteEnabled = !this.readonly;
     this.deleteEntityTitle = (field: CalculatedField) => this.translate.instant('calculated-fields.delete-title', {title: field.name});
     this.deleteEntityContent = () => this.translate.instant('calculated-fields.delete-text');
     this.deleteEntitiesTitle = count => this.translate.instant('calculated-fields.delete-multiple-title', {count});
@@ -143,22 +146,28 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         icon: 'mdi:clipboard-text-clock',
         isEnabled: () => true,
         onAction: (_, entity) => this.openDebugEventsDialog(entity),
-      },
-      {
+      }
+    );
+
+    if (!this.readonly) {
+      this.cellActionDescriptors.push({
         name: '',
         nameFunction: entity => this.getDebugConfigLabel(entity?.debugSettings),
         icon: 'mdi:bug',
         isEnabled: () => true,
         iconFunction: ({ debugSettings }) => this.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
         onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
-      },
-      {
-        name: this.translate.instant('action.edit'),
-        icon: 'edit',
-        isEnabled: () => true,
-        onAction: (_, entity) => this.editCalculatedField(entity),
-      }
-    );
+      });
+    }
+
+    this.cellActionDescriptors.push(      {
+      name: this.translate.instant('action.edit'),
+      nameFunction: () => this.translate.instant(this.readonly ? 'action.view' : 'action.edit'),
+      icon: 'edit',
+      iconFunction: () => this.readonly ? 'visibility' : 'edit',
+      isEnabled: () => true,
+      onAction: (_, entity) => this.editCalculatedField(entity),
+    });
   }
 
   fetchCalculatedFields(pageLink: PageLink): Observable<PageData<CalculatedField>> {
@@ -220,6 +229,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         additionalDebugActionConfig: this.additionalDebugActionConfig,
         getTestScriptDialogFn: this.getTestScriptDialog.bind(this),
         isDirty,
+        readonly: this.readonly,
       },
       enterAnimationDuration: isDirty ? 0 : null,
     })
@@ -293,7 +303,8 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
           expression: calculatedField.configuration.expression,
           argumentsEditorCompleter: getCalculatedFieldArgumentsEditorCompleter(calculatedField.configuration.arguments),
           argumentsHighlightRules: getCalculatedFieldArgumentsHighlights(calculatedField.configuration.arguments),
-          openCalculatedFieldEdit
+          openCalculatedFieldEdit,
+          readonly: this.readonly,
         }
       }).afterClosed()
       .pipe(

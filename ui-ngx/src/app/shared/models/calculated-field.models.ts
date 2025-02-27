@@ -172,6 +172,7 @@ export interface CalculatedFieldDialogData {
   additionalDebugActionConfig: AdditionalDebugActionConfig<(calculatedField: CalculatedField) => void>;
   getTestScriptDialogFn: CalculatedFieldTestScriptFn;
   isDirty?: boolean;
+  readonly: boolean;
 }
 
 export interface CalculatedFieldDebugDialogData {
@@ -189,6 +190,7 @@ export interface CalculatedFieldTestScriptDialogData extends CalculatedFieldTest
   argumentsEditorCompleter: TbEditorCompleter;
   argumentsHighlightRules: AceHighlightRules;
   openCalculatedFieldEdit?: boolean;
+  readonly: boolean;
 }
 
 export interface ArgumentEntityTypeParams {

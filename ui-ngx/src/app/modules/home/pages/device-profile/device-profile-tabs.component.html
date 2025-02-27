@@ -55,9 +55,14 @@
     </div>
   </div>
 </mat-tab>
-<mat-tab *ngIf="entity && authUser.authority === authorities.TENANT_ADMIN && !isEdit"
+<mat-tab *ngIf="entity && !isEdit && authUser.authority === authorities.TENANT_ADMIN && (resource.DEVICE_PROFILE | hasGenericPermission: operation.READ_CALCULATED_FIELD)"
          label="{{ 'entity.type-calculated-fields' | translate }}" #calculatedFieldsTab="matTab">
-  <tb-calculated-fields-table [active]="calculatedFieldsTab.isActive" [entityId]="entity.id" [entityName]="entity.name"/>
+  <tb-calculated-fields-table
+    [active]="calculatedFieldsTab.isActive"
+    [entityId]="entity.id"
+    [entityName]="entity.name"
+    [readonly]="!(resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE_CALCULATED_FIELD)"
+  />
 </mat-tab>
 <mat-tab *ngIf="entity" #alarmRules="matTab"
          label="{{'device-profile.alarm-rules-with-count' | translate:
