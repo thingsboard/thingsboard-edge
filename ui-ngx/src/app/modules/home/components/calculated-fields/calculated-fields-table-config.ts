@@ -157,7 +157,9 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
       },
       {
         name: this.translate.instant('action.edit'),
+        nameFunction: () => this.translate.instant(this.readonly ? 'action.view' : 'action.edit'),
         icon: 'edit',
+        iconFunction: () => this.readonly ? 'visibility' : 'edit',
         isEnabled: () => true,
         onAction: (_, entity) => this.editCalculatedField(entity),
       }
