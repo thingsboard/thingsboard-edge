@@ -146,14 +146,6 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         icon: 'mdi:clipboard-text-clock',
         isEnabled: () => true,
         onAction: (_, entity) => this.openDebugEventsDialog(entity),
-      },
-      {
-        name: this.translate.instant('action.edit'),
-        nameFunction: () => this.translate.instant(this.readonly ? 'action.view' : 'action.edit'),
-        icon: 'edit',
-        iconFunction: () => this.readonly ? 'visibility' : 'edit',
-        isEnabled: () => true,
-        onAction: (_, entity) => this.editCalculatedField(entity),
       }
     );
 
@@ -167,6 +159,15 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
       });
     }
+
+    this.cellActionDescriptors.push(      {
+      name: this.translate.instant('action.edit'),
+      nameFunction: () => this.translate.instant(this.readonly ? 'action.view' : 'action.edit'),
+      icon: 'edit',
+      iconFunction: () => this.readonly ? 'visibility' : 'edit',
+      isEnabled: () => true,
+      onAction: (_, entity) => this.editCalculatedField(entity),
+    });
   }
 
   fetchCalculatedFields(pageLink: PageLink): Observable<PageData<CalculatedField>> {
