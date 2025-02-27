@@ -32,45 +32,14 @@
 version: '3.0'
 
 services:
-  tb-core1:
-    environment:
-      - 'TB_EDQS_SYNC_ENABLED=true'
-      - 'TB_EDQS_API_ENABLED=true'
-  tb-core2:
-    environment:
-      - 'TB_EDQS_SYNC_ENABLED=true'
-      - 'TB_EDQS_API_ENABLED=true'
   tb-edqs-1:
-    restart: always
-    image: "${DOCKER_REPO}/${EDQS_DOCKER_NAME}:${TB_VERSION}"
-    environment:
-      - 'TB_KAFKA_SERVERS=kafka:9092'
-      - 'ZOOKEEPER_ENABLED=true'
-      - 'ZOOKEEPER_URL=zookeeper:2181'
-      - 'METRICS_ENABLED=true'
-      - 'METRICS_ENDPOINTS_EXPOSE=prometheus'
     volumes:
-      - ./edqs/conf:/usr/share/edqs/conf
-      - ./edqs/log:/var/log/edqs
-    ports:
-      - "8080"
-    depends_on:
-      - zookeeper
-      - kafka
+      - tb-edqs-log-volume:/var/log/edqs
   tb-edqs-2:
-    restart: always
-    image: "${DOCKER_REPO}/${EDQS_DOCKER_NAME}:${TB_VERSION}"
-    environment:
-      - 'TB_KAFKA_SERVERS=kafka:9092'
-      - 'ZOOKEEPER_ENABLED=true'
-      - 'ZOOKEEPER_URL=zookeeper:2181'
-      - 'METRICS_ENABLED=true'
-      - 'METRICS_ENDPOINTS_EXPOSE=prometheus'
     volumes:
-      - ./edqs/conf:/usr/share/edqs/conf
-      - ./edqs/log:/var/log/edqs
-    ports:
-      - "8080"
-    depends_on:
-      - zookeeper
-      - kafka
+      - tb-edqs-log-volume:/var/log/edqs
+
+volumes:
+  tb-edqs-log-volume:
+    external:
+      name: ${TB_EDQS_LOG_VOLUME}
