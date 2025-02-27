@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldScriptEngine;
@@ -142,6 +143,7 @@ public class CalculatedFieldController extends BaseController {
     public CalculatedField saveCalculatedField(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the calculated field.")
                                                @RequestBody CalculatedField calculatedField) throws Exception {
         calculatedField.setTenantId(getTenantId());
+        checkEntity(calculatedField.getId(), calculatedField, Resource.CALCULATED_FIELD, null);
         checkEntityId(calculatedField.getEntityId(), Operation.WRITE_CALCULATED_FIELD);
         checkReferencedEntities(calculatedField.getConfiguration(), getCurrentUser());
         return tbCalculatedFieldService.save(calculatedField, getCurrentUser());
@@ -191,7 +193,7 @@ public class CalculatedFieldController extends BaseController {
     public void deleteCalculatedField(@PathVariable(CALCULATED_FIELD_ID) String strCalculatedField) throws Exception {
         checkParameter(CALCULATED_FIELD_ID, strCalculatedField);
         CalculatedFieldId calculatedFieldId = new CalculatedFieldId(toUUID(strCalculatedField));
-        CalculatedField calculatedField = tbCalculatedFieldService.findById(calculatedFieldId, getCurrentUser());
+        CalculatedField calculatedField = checkCalculatedFieldId(calculatedFieldId, Operation.DELETE);
         checkEntityId(calculatedField.getEntityId(), Operation.WRITE_CALCULATED_FIELD);
         tbCalculatedFieldService.delete(calculatedField, getCurrentUser());
     }
