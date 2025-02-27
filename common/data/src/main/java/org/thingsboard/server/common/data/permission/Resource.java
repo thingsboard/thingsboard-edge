@@ -87,9 +87,7 @@ public enum Resource {
     NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
             EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE),
     MOBILE_APP_SETTINGS,
-    CUSTOM_MENU,
-    CALCULATED_FIELD(EntityType.CALCULATED_FIELD),
-    CALCULATED_FIELD_LINK(EntityType.CALCULATED_FIELD_LINK);
+    CUSTOM_MENU;
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -127,11 +125,12 @@ public enum Resource {
         operationsByResource.put(Resource.DEVICE, Set.of(Operation.ALL, Operation.READ, Operation.WRITE,
                 Operation.CREATE, Operation.DELETE, Operation.RPC_CALL, Operation.READ_CREDENTIALS, Operation.WRITE_CREDENTIALS,
                 Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY,
-                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT));
-        operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultEntityOperations);
-        operationsByResource.put(Resource.ASSET_PROFILE, Operation.defaultEntityOperations);
+                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT, Operation.READ_CALCULATED_FIELD,
+                Operation.WRITE_CALCULATED_FIELD));
+        operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultCFEntityOperations);
+        operationsByResource.put(Resource.ASSET_PROFILE, Operation.defaultCFEntityOperations);
         operationsByResource.put(Resource.OTA_PACKAGE, Operation.defaultEntityOperations);
-        operationsByResource.put(Resource.ASSET, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.ASSET, Operation.defaultCFEntityOperations);
         operationsByResource.put(Resource.CUSTOMER, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.DASHBOARD, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);

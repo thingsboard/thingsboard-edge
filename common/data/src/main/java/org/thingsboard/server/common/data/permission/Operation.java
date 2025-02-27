@@ -78,6 +78,12 @@ public enum Operation {
         }
     }
 
+    public static Set<Operation> defaultCFEntityOperations = new HashSet<>(defaultEntityOperations);
+    static {
+        defaultCFEntityOperations.add(READ_CALCULATED_FIELD);
+        defaultCFEntityOperations.add(WRITE_CALCULATED_FIELD);
+    }
+
     @Getter
     private boolean allowedForGroupRole;
 
