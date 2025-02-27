@@ -36,6 +36,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -53,6 +54,7 @@ import org.thingsboard.server.common.data.query.EntityDataSortOrder;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
+import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.DisableUIListeners;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
@@ -60,6 +62,7 @@ import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -127,14 +130,14 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> testRestClient.postCountDataQuery(query).compareTo(97L * 2 + 12) >= 0);
 
-        testRestClient.getAndSetUserToken(tenantAdminId.getId().toString());
+        testRestClient.getAndSetUserToken(tenantAdminId);
         await("Waiting for total device count")
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> testRestClient.postCountDataQuery(query).equals(97L + 12L));
 
         testRestClient.resetToken();
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-        testRestClient.getAndSetUserToken(tenant2AdminId.getId().toString());
+        testRestClient.getAndSetUserToken(tenant2AdminId);
         await("Waiting for total device count")
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> testRestClient.postCountDataQuery(query).equals(97L));
@@ -143,18 +146,18 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
     @Test
     public void testRetrieveTenantDevicesByDeviceTypeFilter() {
         // login tenant admin
-        testRestClient.getAndSetUserToken(tenantAdminId.getId().toString());
+        testRestClient.getAndSetUserToken(tenantAdminId);
         List<Device> allTenantDevices = Stream.concat(tenantDevices.stream(), customerDevices.stream()).toList();
         checkUserDevices(allTenantDevices);
 
         // login customer user
-        testRestClient.getAndSetUserToken(customerAdminId.getId().toString());
+        testRestClient.getAndSetUserToken(customerAdminId);
         checkUserDevices(customerDevices);
 
         // login other tenant admin
         testRestClient.resetToken();
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-        testRestClient.getAndSetUserToken(tenant2AdminId.getId().toString());
+        testRestClient.getAndSetUserToken(tenant2AdminId);
         checkUserDevices(tenant2Devices);
     }
 
@@ -183,6 +186,13 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
         assertThat(retrievedDevices).hasSize(10);
         List<String> retrievedDeviceNames = retrievedDevices.stream().map(entityData -> entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).toList();
         assertThat(retrievedDeviceNames).containsExactlyInAnyOrderElementsOf(devices.stream().map(Device::getName).toList().subList(0, 10));
+
+        //check temperature
+        for (int i = 0; i < 10; i++) {
+            Map<EntityKeyType, Map<String, TsValue>> latest = retrievedDevices.get(i).getLatest();
+            String name = latest.get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
+            //assertThat(latest.get(EntityKeyType.TIME_SERIES).get("temperature").getValue()).isEqualTo(name.substring(name.length() - 1));
+        }
     }
 
     private void createDevices(CustomerId customerId, String deviceType, List<Device> tenantDevices, int deviceCount) throws InterruptedException {
@@ -209,7 +219,7 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
     }
 
     protected ObjectNode createDeviceTelemetry(int temperature) {
-        ObjectNode objectNode = mapper.createObjectNode();
+        ObjectNode objectNode = JacksonUtil.newObjectNode();
         objectNode.put("temperature", temperature);
         return objectNode;
     }

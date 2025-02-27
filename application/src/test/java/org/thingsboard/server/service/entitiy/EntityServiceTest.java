@@ -2250,43 +2250,15 @@ public class EntityServiceTest extends AbstractControllerTest {
         for (EntityKeyType currentAttributeKeyType : attributesEntityTypes) {
             List<EntityKey> latestValues = Collections.singletonList(new EntityKey(currentAttributeKeyType, "temperature"));
             EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, latestValues, null);
-            PageData<EntityData> data = findByQueryAndCheck(query, 67);
-            List<EntityData> loadedEntities = new ArrayList<>(data.getData());
-            while (data.hasNext()) {
-                query = query.next();
-                data = findByQuery(query);
-                loadedEntities.addAll(data.getData());
-            }
-            Assert.assertEquals(67, loadedEntities.size());
-            List<String> loadedTemperatures = new ArrayList<>();
-            for (Device device : devices) {
-                loadedTemperatures.add(loadedEntities.stream().filter(entityData -> entityData.getEntityId().equals(device.getId())).findFirst().orElse(null)
-                        .getLatest().get(currentAttributeKeyType).get("temperature").getValue());
-            }
-            List<String> deviceTemperatures = temperatures.stream().map(aLong -> Long.toString(aLong)).collect(Collectors.toList());
-            Assert.assertEquals(deviceTemperatures, loadedTemperatures);
+            List<String> deviceTemperatures = temperatures.stream().map(aLong -> Long.toString(aLong)).toList();
+            findByQueryAndCheckTelemetry(query, currentAttributeKeyType, "temperature", deviceTemperatures);
 
             pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
             KeyFilter highTemperatureFilter = createNumericKeyFilter("temperature", currentAttributeKeyType, NumericFilterPredicate.NumericOperation.GREATER, 45);
             List<KeyFilter> keyFiltersHighTemperature = Collections.singletonList(highTemperatureFilter);
 
             query = new EntityDataQuery(filter, pageLink, entityFields, latestValues, keyFiltersHighTemperature);
-            data = findByQueryAndCheck(query, highTemperatures.size());
-
-            loadedEntities = new ArrayList<>(data.getData());
-            while (data.hasNext()) {
-                query = query.next();
-                data = findByQuery(query);
-                loadedEntities.addAll(data.getData());
-            }
-            Assert.assertEquals(highTemperatures.size(), loadedEntities.size());
-
-            List<String> loadedHighTemperatures = loadedEntities.stream().map(entityData ->
-                    entityData.getLatest().get(currentAttributeKeyType).get("temperature").getValue()).collect(Collectors.toList());
-            List<String> deviceHighTemperatures = highTemperatures.stream().map(aLong -> Long.toString(aLong)).collect(Collectors.toList());
-
-            Assert.assertEquals(deviceHighTemperatures, loadedHighTemperatures);
-
+            findByQueryAndCheckTelemetry(query, currentAttributeKeyType, "temperature", highTemperatures.stream().map(Object::toString).toList());
         }
         deviceService.deleteDevicesByTenantId(tenantId);
     }
@@ -3921,7 +3893,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         return savedCustomer.getId();
     }
 
-    private PageData<EntityData> findByQuery(EntityDataQuery query) {
+    protected PageData<EntityData> findByQuery(EntityDataQuery query) {
         return findByQuery(new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query);
     }
 
@@ -3929,7 +3901,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         return entityService.findEntityDataByQuery(tenantId, customerId, permissions, query);
     }
 
-    private PageData<EntityData> findByQueryAndCheck(EntityDataQuery query, long expectedResultSize) {
+    protected PageData<EntityData> findByQueryAndCheck(EntityDataQuery query, long expectedResultSize) {
         return findByQueryAndCheck(new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query, expectedResultSize);
     }
 
@@ -3937,6 +3909,23 @@ public class EntityServiceTest extends AbstractControllerTest {
         PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, customerId, permissions, query);
         assertThat(result.getTotalElements()).isEqualTo(expectedResultSize);
         return result;
+    }
+
+    protected List<String> findByQueryAndCheckTelemetry(EntityDataQuery query, EntityKeyType entityKeyType, String key, List<String> expectedTelemetry) {
+        List<String> entitiesTelemetry = findEntitiesTelemetry(query, entityKeyType, key, expectedTelemetry);
+        assertThat(entitiesTelemetry).containsExactlyInAnyOrderElementsOf(expectedTelemetry);
+        return entitiesTelemetry;
+    }
+
+    protected List<String> findEntitiesTelemetry(EntityDataQuery query, EntityKeyType entityKeyType, String key, List<String> expectedTelemetries) {
+        PageData<EntityData> data = findByQueryAndCheck(query, expectedTelemetries.size());
+        List<EntityData> loadedEntities = new ArrayList<>(data.getData());
+        while (data.hasNext()) {
+            query = query.next();
+            data = findByQuery(query);
+            loadedEntities.addAll(data.getData());
+        }
+        return loadedEntities.stream().map(entityData -> entityData.getLatest().get(entityKeyType).get(key).getValue()).toList();
     }
 
     protected long countByQuery(CustomerId customerId, MergedUserPermissions permissions, EntityCountQuery query) {

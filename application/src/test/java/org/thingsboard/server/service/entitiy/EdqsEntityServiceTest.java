@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
@@ -121,6 +122,12 @@ public class EdqsEntityServiceTest extends EntityServiceTest {
     protected PageData<EntityData> findByQueryAndCheck(CustomerId customerId, MergedUserPermissions permissions, EntityDataQuery query, long expectedResultSize) {
         return await().atMost(15, TimeUnit.SECONDS).until(() -> findByQuery(customerId, permissions, query),
                 result -> result.getTotalElements() == expectedResultSize);
+    }
+
+    @Override
+    protected List<String> findByQueryAndCheckTelemetry(EntityDataQuery query, EntityKeyType entityKeyType, String key, List<String> expectedTelemetries) {
+        return await().atMost(15, TimeUnit.SECONDS).until(() -> findEntitiesTelemetry(query, entityKeyType, key, expectedTelemetries),
+                loadedTelemetry -> loadedTelemetry.containsAll(expectedTelemetries));
     }
 
     @Override

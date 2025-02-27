@@ -73,7 +73,6 @@ public abstract class AbstractContainerTest {
     protected final static String TEST_PROVISION_DEVICE_KEY = "test_provision_key";
     protected final static String TEST_PROVISION_DEVICE_SECRET = "test_provision_secret";
     protected static long timeoutMultiplier = 1;
-    protected ObjectMapper mapper = new ObjectMapper();
     protected static final String TELEMETRY_KEY = "temperature";
     protected static final String ATTRIBUTE_KEY = "humidity";
     protected static final String TELEMETRY_VALUE = "42";
