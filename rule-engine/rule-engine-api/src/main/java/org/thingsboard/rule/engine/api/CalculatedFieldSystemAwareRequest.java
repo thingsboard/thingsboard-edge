@@ -28,28 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cf;
+package org.thingsboard.rule.engine.api;
 
-import jakarta.annotation.PreDestroy;
-import org.rocksdb.Options;
-import org.rocksdb.WriteOptions;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.utils.TbRocksDb;
+import org.thingsboard.server.common.data.id.CalculatedFieldId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 
-@Component
-@ConditionalOnExpression("'${queue.type:null}'=='in-memory'")
-public class CfRocksDb extends TbRocksDb {
+import java.util.List;
+import java.util.UUID;
 
-    public CfRocksDb(@Value("${queue.calculated_fields.rocks_db_path:${user.home}/.rocksdb/cf_states}") String path) throws Exception {
-        super(path, new Options().setCreateIfMissing(true), new WriteOptions().setSync(true));
-    }
+public interface CalculatedFieldSystemAwareRequest {
 
-    @PreDestroy
-    @Override
-    public void close() {
-        super.close();
-    }
+    List<CalculatedFieldId> getPreviousCalculatedFieldIds();
+
+    UUID getTbMsgId();
+
+    TbMsgType getTbMsgType();
 
 }

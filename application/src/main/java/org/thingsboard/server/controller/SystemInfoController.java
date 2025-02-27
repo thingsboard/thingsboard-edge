@@ -187,6 +187,8 @@ public class SystemInfoController extends BaseController {
                 systemParams.setIntegrationDebugPerTenantLimitsConfiguration(debugModeRateLimitsConfig.getIntegrationDebugPerTenantLimitsConfiguration());
                 systemParams.setConverterDebugPerTenantLimitsConfiguration(debugModeRateLimitsConfig.getConverterDebugPerTenantLimitsConfiguration());
             }
+            systemParams.setMaxArgumentsPerCF(tenantProfileConfiguration.getMaxArgumentsPerCF());
+            systemParams.setMaxDataPointsPerRollingArg(tenantProfileConfiguration.getMaxDataPointsPerRollingArg());
         }
         systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
         systemParams.setMobileQrEnabled(Optional.ofNullable(qrCodeSettingService.getMergedQrCodeSettings(tenantId))

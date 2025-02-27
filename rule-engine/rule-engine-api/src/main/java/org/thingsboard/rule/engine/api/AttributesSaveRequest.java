@@ -51,7 +51,7 @@ import java.util.UUID;
 @Getter
 @ToString
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class AttributesSaveRequest {
+public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest {
 
     private final TenantId tenantId;
     private final EntityId entityId;

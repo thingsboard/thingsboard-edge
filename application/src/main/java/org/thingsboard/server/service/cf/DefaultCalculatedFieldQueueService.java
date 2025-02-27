@@ -62,7 +62,6 @@ import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -201,7 +200,7 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
     }
 
     private ToCalculatedFieldMsg toCalculatedFieldTelemetryMsgProto(AttributesDeleteRequest request, List<String> removedKeys) {
-        CalculatedFieldTelemetryMsgProto telemetryMsg = buildTelemetryMsgProto(request.getTenantId(), request.getEntityId(), new ArrayList<>(), request.getTbMsgId(), request.getTbMsgType())
+        CalculatedFieldTelemetryMsgProto telemetryMsg = buildTelemetryMsgProto(request.getTenantId(), request.getEntityId(), request.getPreviousCalculatedFieldIds(), request.getTbMsgId(), request.getTbMsgType())
                 .setScope(AttributeScopeProto.valueOf(request.getScope().name()))
                 .addAllRemovedAttrKeys(removedKeys).build();
         return ToCalculatedFieldMsg.newBuilder()
@@ -210,7 +209,7 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
     }
 
     private ToCalculatedFieldMsg toCalculatedFieldTelemetryMsgProto(TimeseriesDeleteRequest request, List<String> removedKeys) {
-        CalculatedFieldTelemetryMsgProto telemetryMsg = buildTelemetryMsgProto(request.getTenantId(), request.getEntityId(), new ArrayList<>(), request.getTbMsgId(), request.getTbMsgType())
+        CalculatedFieldTelemetryMsgProto telemetryMsg = buildTelemetryMsgProto(request.getTenantId(), request.getEntityId(), request.getPreviousCalculatedFieldIds(), request.getTbMsgId(), request.getTbMsgType())
                 .addAllRemovedTsKeys(removedKeys).build();
         return ToCalculatedFieldMsg.newBuilder()
                 .setTelemetryMsg(telemetryMsg)
