@@ -78,6 +78,9 @@ public enum Operation {
         }
     }
 
+    public static Set<Operation> defaultCFEntityOperations = new HashSet<>(Arrays.asList(ALL, READ, WRITE, CREATE, DELETE,
+            READ_ATTRIBUTES, WRITE_ATTRIBUTES, READ_TELEMETRY, WRITE_TELEMETRY, CHANGE_OWNER, READ_CALCULATED_FIELD, WRITE_CALCULATED_FIELD));
+
     @Getter
     private boolean allowedForGroupRole;
 

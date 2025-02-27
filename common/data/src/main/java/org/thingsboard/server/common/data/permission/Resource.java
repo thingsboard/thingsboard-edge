@@ -127,11 +127,12 @@ public enum Resource {
         operationsByResource.put(Resource.DEVICE, Set.of(Operation.ALL, Operation.READ, Operation.WRITE,
                 Operation.CREATE, Operation.DELETE, Operation.RPC_CALL, Operation.READ_CREDENTIALS, Operation.WRITE_CREDENTIALS,
                 Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY,
-                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT));
-        operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultEntityOperations);
-        operationsByResource.put(Resource.ASSET_PROFILE, Operation.defaultEntityOperations);
+                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT, Operation.READ_CALCULATED_FIELD,
+                Operation.WRITE_CALCULATED_FIELD));
+        operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultCFEntityOperations);
+        operationsByResource.put(Resource.ASSET_PROFILE, Operation.defaultCFEntityOperations);
         operationsByResource.put(Resource.OTA_PACKAGE, Operation.defaultEntityOperations);
-        operationsByResource.put(Resource.ASSET, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.ASSET, Operation.defaultCFEntityOperations);
         operationsByResource.put(Resource.CUSTOMER, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.DASHBOARD, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);
@@ -235,7 +236,8 @@ public enum Resource {
                 Resource.QUEUE_STATS,
                 Resource.VERSION_CONTROL,
                 Resource.NOTIFICATION,
-                Resource.MOBILE_APP_SETTINGS
+                Resource.MOBILE_APP_SETTINGS,
+                Resource.CALCULATED_FIELD
         ));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, Set.of(
