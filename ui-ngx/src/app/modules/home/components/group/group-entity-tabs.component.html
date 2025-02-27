@@ -55,7 +55,7 @@
   && (resource[entityType] | hasGenericPermission: operation.READ_CALCULATED_FIELD)"
          label="{{ 'entity.type-calculated-fields' | translate }}" #calculatedFieldsTab="matTab">
   <tb-calculated-fields-table
-    [readonly]="!(resource[entityType] | hasGenericPermission: operation.READ_CALCULATED_FIELD)"
+    [readonly]="!(resource[entityType] | hasGenericPermission: operation.WRITE_CALCULATED_FIELD)"
     [active]="calculatedFieldsTab.isActive"
     [entityId]="entity.id"
   />
