@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,7 +72,18 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
             Operation.READ_TELEMETRY
     );
 
+    public static final List<Operation> TENANT_READ_ONLY_GROUP_PERMISSIONS = new ArrayList<>(READ_ONLY_GROUP_PERMISSIONS);
+    static {
+        TENANT_READ_ONLY_GROUP_PERMISSIONS.add(Operation.READ_CALCULATED_FIELD);
+    }
+
     public static final List<Operation> WRITE_GROUP_PERMISSIONS = Collections.singletonList(Operation.ALL);
+
+    public static final Map<Resource, List<Operation>> TENANT_READ_ONLY_USER_PERMISSIONS = new HashMap<>();
+    static {
+        TENANT_READ_ONLY_USER_PERMISSIONS.put(Resource.ALL, TENANT_READ_ONLY_GROUP_PERMISSIONS);
+        TENANT_READ_ONLY_USER_PERMISSIONS.put(Resource.PROFILE, Arrays.asList(Operation.ALL));
+    }
 
     public static final Map<Resource, List<Operation>> READ_ONLY_USER_PERMISSIONS = new HashMap<>();
     static {
