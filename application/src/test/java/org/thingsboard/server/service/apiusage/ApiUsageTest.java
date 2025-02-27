@@ -30,98 +30,97 @@
  */
 package org.thingsboard.server.service.apiusage;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
-import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.controller.AbstractControllerTest;
+import org.thingsboard.server.controller.TbUrlConstants;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DaoSqlTest
-public class DefaultTbApiUsageStateServiceTest extends AbstractControllerTest {
+@TestPropertySource(properties = {
+        "usage.stats.report.enabled=true",
+        "usage.stats.report.interval=2",
+        "usage.stats.gauge_report_interval=1",
+})
+public class ApiUsageTest extends AbstractControllerTest {
 
-    @Autowired
-    DefaultTbApiUsageStateService service;
+    private Tenant savedTenant;
+    private User tenantAdmin;
 
+    private static final int MAX_DP_ENABLE_VALUE = 12;
+    private static final double WARN_THRESHOLD_VALUE = 0.5;
     @Autowired
     private ApiUsageStateService apiUsageStateService;
 
-    private TenantId tenantId;
-    private Tenant savedTenant;
-
-    private static final int MAX_ENABLE_VALUE = 5000;
-    private static final long VALUE_WARNING = 4500L;
-    private static final long VALUE_DISABLE = 5500L;
-    private static final double WARN_THRESHOLD_VALUE = 0.8;
-
     @Before
-    public void init() throws Exception {
+    public void beforeTest() throws Exception {
         loginSysAdmin();
 
         TenantProfile tenantProfile = createTenantProfile();
         TenantProfile savedTenantProfile = doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
-        Assert.assertNotNull(savedTenantProfile);
+        assertNotNull(savedTenantProfile);
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
         tenant.setTenantProfileId(savedTenantProfile.getId());
         savedTenant = saveTenant(tenant);
         tenantId = savedTenant.getId();
-        Assert.assertNotNull(savedTenant);
+        assertNotNull(savedTenant);
+
+        tenantAdmin = new User();
+        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
+        tenantAdmin.setTenantId(savedTenant.getId());
+        tenantAdmin.setEmail("tenant2@thingsboard.org");
+
+        tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
     }
 
     @Test
-    public void testProcess_transitionFromWarningToDisabled() {
-        TransportProtos.ToUsageStatsServiceMsg.Builder warningMsgBuilder = TransportProtos.ToUsageStatsServiceMsg.newBuilder()
-                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
-                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
-                .setCustomerIdMSB(0)
-                .setCustomerIdLSB(0)
-                .setServiceId("testService");
+    public void testTelemetryApiCall() throws Exception {
+        Device device = createDevice();
+        assertNotNull(device);
+        String telemetryPayload = "{\"temperature\":25, \"humidity\":60}";
+        String url = TbUrlConstants.TELEMETRY_URL_PREFIX + "/DEVICE/" + device.getId() + "/timeseries/ANY";
 
-        warningMsgBuilder.addValues(TransportProtos.UsageStatsKVProto.newBuilder()
-                .setKey(ApiUsageRecordKey.STORAGE_DP_COUNT.name())
-                .setValue(VALUE_WARNING)
-                .build());
+        long VALUE_WARNING = (long) (MAX_DP_ENABLE_VALUE * WARN_THRESHOLD_VALUE) / 2;
 
-        TransportProtos.ToUsageStatsServiceMsg warningStatsMsg = warningMsgBuilder.build();
-        TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg> warningMsg = new TbProtoQueueMsg<>(UUID.randomUUID(), warningStatsMsg);
+        for (int i = 0; i < VALUE_WARNING; i++) {
+            doPostAsync(url, telemetryPayload, String.class, status().isOk());
+        }
 
-        service.process(warningMsg, TbCallback.EMPTY);
-        assertEquals(ApiUsageStateValue.WARNING, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState());
+        await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> assertEquals(ApiUsageStateValue.WARNING, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState()));
 
-        TransportProtos.ToUsageStatsServiceMsg.Builder disableMsgBuilder = TransportProtos.ToUsageStatsServiceMsg.newBuilder()
-                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
-                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
-                .setCustomerIdMSB(0)
-                .setCustomerIdLSB(0)
-                .setServiceId("testService");
+        long VALUE_DISABLE = (long) (MAX_DP_ENABLE_VALUE - (MAX_DP_ENABLE_VALUE * WARN_THRESHOLD_VALUE)) / 2;
 
-        disableMsgBuilder.addValues(TransportProtos.UsageStatsKVProto.newBuilder()
-                .setKey(ApiUsageRecordKey.STORAGE_DP_COUNT.name())
-                .setValue(VALUE_DISABLE)
-                .build());
+        for (int i = 0; i < VALUE_DISABLE; i++) {
+            doPostAsync(url, telemetryPayload, String.class, status().isOk());
+        }
 
-        TransportProtos.ToUsageStatsServiceMsg disableStatsMsg = disableMsgBuilder.build();
-        TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg> disableMsg = new TbProtoQueueMsg<>(UUID.randomUUID(), disableStatsMsg);
-
-        service.process(disableMsg, TbCallback.EMPTY);
-        assertEquals(ApiUsageStateValue.DISABLED, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState());
+        await().atMost(TIMEOUT, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    assertEquals(ApiUsageStateValue.DISABLED, apiUsageStateService.findTenantApiUsageState(tenantId).getDbStorageState());
+                });
     }
 
     private TenantProfile createTenantProfile() {
@@ -131,13 +130,30 @@ public class DefaultTbApiUsageStateServiceTest extends AbstractControllerTest {
 
         TenantProfileData tenantProfileData = new TenantProfileData();
         DefaultTenantProfileConfiguration config = DefaultTenantProfileConfiguration.builder()
-                .maxDPStorageDays(MAX_ENABLE_VALUE)
+                .maxDPStorageDays(MAX_DP_ENABLE_VALUE)
                 .warnThreshold(WARN_THRESHOLD_VALUE)
                 .build();
 
         tenantProfileData.setConfiguration(config);
         tenantProfile.setProfileData(tenantProfileData);
         return tenantProfile;
+    }
+
+    private Device createDevice() throws Exception {
+        String testToken = "TEST_TOKEN";
+
+        Device device = new Device();
+        device.setName("My device");
+        device.setType("default");
+        device.setTenantId(tenantId);
+
+        DeviceCredentials deviceCredentials = new DeviceCredentials();
+        deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
+        deviceCredentials.setCredentialsId(testToken);
+
+        SaveDeviceWithCredentialsRequest saveRequest = new SaveDeviceWithCredentialsRequest(device, deviceCredentials);
+
+        return readResponse(doPost("/api/device-with-credentials", saveRequest).andExpect(status().isOk()), Device.class);
     }
 
 }

@@ -68,9 +68,16 @@ public class ConverterLibraryControllerTest extends AbstractControllerTest {
 
     @Test
     public void testLibrary() throws Exception {
+        validateConverters("uplink", "UPLINK");
+        validateConverters("downlink", "DOWNLINK");
+    }
+
+    private void validateConverters(String converterType, String expectedType) throws Exception {
         Map<IntegrationType, List<Vendor>> vendorsMap = new HashMap<>();
         for (IntegrationType integrationType : IntegrationType.values()) {
-            List<Vendor> vendors = doGetTyped("/api/converter/library/" + integrationType + "/vendors", new TypeReference<>() {});
+            List<Vendor> vendors = doGetTyped(
+                    "/api/converter/library/" + integrationType + "/vendors?converterType=" + converterType,
+                    new TypeReference<>() {});
             if (!vendors.isEmpty()) {
                 vendorsMap.put(integrationType, vendors);
             }
@@ -84,7 +91,9 @@ public class ConverterLibraryControllerTest extends AbstractControllerTest {
                 assertThat(vendor.name()).as(vendor.name() + " vendor name").isNotBlank();
                 assertThat(vendor.logo()).as(vendor.name() + " vendor logo").isNotBlank();
 
-                List<Model> models = doGetTyped("/api/converter/library/" + integrationType + "/" + vendor.name() + "/models?converterType=uplink", new TypeReference<>() {});
+                List<Model> models = doGetTyped(
+                        "/api/converter/library/" + integrationType + "/" + vendor.name() + "/models?converterType=" + converterType, new TypeReference<>() {});
+
                 for (Model model : models) {
                     String modelUrl = integrationType + "/" + vendor.name() + "/" + model.name();
 
@@ -92,36 +101,21 @@ public class ConverterLibraryControllerTest extends AbstractControllerTest {
                     assertThat(model.photo()).as("photo for " + modelUrl).isNotBlank();
                     assertThat(model.info().toString()).as("info for " + modelUrl).isNotBlank().isNotEqualTo("{}");
 
-                    ObjectNode uplinkConverter = doGet("/api/converter/library/" + modelUrl + "/uplink", ObjectNode.class);
-                    if (uplinkConverter.isEmpty()) {
-                        continue;
+                    ObjectNode converter = doGet("/api/converter/library/" + modelUrl + "/" + converterType, ObjectNode.class);
+                    if (converter.isEmpty()) {
+                        return;
                     }
-                    assertThat(uplinkConverter.get("type").asText()).as(modelUrl + " uplink converter type").isEqualTo("UPLINK");
+                    assertThat(converter.get("type").asText()).as(modelUrl + " " + converterType + " converter type").isEqualTo(expectedType);
 
-                    ObjectNode uplinkConverterMetadata = doGet("/api/converter/library/" + modelUrl + "/uplink/metadata", ObjectNode.class);
-                    assertThat(uplinkConverterMetadata).as("uplink converter metadata for " + modelUrl).isNotEmpty();
-                    assertThat(uplinkConverterMetadata.has("integrationName")).as("downlink converter metadata integrationName for " + modelUrl).isTrue();
+                    ObjectNode converterMetadata = doGet("/api/converter/library/" + modelUrl + "/" + converterType + "/metadata", ObjectNode.class);
+                    assertThat(converterMetadata).as(converterType + " converter metadata for " + modelUrl).isNotEmpty();
+                    assertThat(converterMetadata.has("integrationName")).as(converterType + " converter metadata integrationName for " + modelUrl).isTrue();
 
-                    String uplinkPayload = doGet("/api/converter/library/" + modelUrl + "/uplink/payload", String.class);
-                    assertThat(uplinkPayload).as("uplink payload for " + modelUrl).isNotBlank().isNotEqualTo("{}");
-
-
-                    ObjectNode downlinkConverter = doGet("/api/converter/library/" + modelUrl + "/downlink", ObjectNode.class);
-                    if (downlinkConverter.isEmpty()) {
-                        continue;
-                    }
-                    assertThat(downlinkConverter.get("type").asText()).as(modelUrl + " downlink converter type").isEqualTo("DOWNLINK");
-
-                    ObjectNode downlinkConverterMetadata = doGet("/api/converter/library/" + modelUrl + "/downlink/metadata", ObjectNode.class);
-                    assertThat(downlinkConverterMetadata).as("downlink converter metadata for " + modelUrl).isNotEmpty();
-                    assertThat(downlinkConverterMetadata.has("integrationName")).as("downlink converter metadata integrationName for " + modelUrl).isTrue();
-
-                    String downlinkPayload = doGet("/api/converter/library/" + modelUrl + "/downlink/payload", String.class);
-                    assertThat(downlinkPayload).as("downlink payload for " + modelUrl).isNotBlank().isNotEqualTo("{}");
+                    String payload = doGet("/api/converter/library/" + modelUrl + "/" + converterType + "/payload", String.class);
+                    assertThat(payload).as(converterType + " payload for " + modelUrl).isNotBlank().isNotEqualTo("{}");
                 }
             }
         }
-
     }
 
 }

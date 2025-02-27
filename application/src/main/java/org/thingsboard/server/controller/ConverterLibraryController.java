@@ -61,8 +61,9 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns a list of vendors for the integration type")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/vendors")
-    public List<Vendor> getVendors(@PathVariable IntegrationType integrationType) {
-        return converterLibraryService.getVendors(integrationType);
+    public List<Vendor> getVendors(@PathVariable IntegrationType integrationType,
+                                   @RequestParam(required = false) String converterType) {
+        return converterLibraryService.getVendors(integrationType, converterType);
     }
 
     @ApiOperation(value = "Get vendor models (getVendorModels)",

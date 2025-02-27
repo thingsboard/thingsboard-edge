@@ -160,6 +160,9 @@ public class EdgeEventSourcingListener {
         if (event.getEntityId() != null && EntityType.DEVICE.equals(event.getEntityId().getEntityType()) && ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {
             return;
         }
+        if (EntityType.ALARM.equals(event.getEntityId().getEntityType())) {
+            return;
+        }
         try {
             if (event.getEntityGroup() != null) {
                 if (event.getEntityGroup().isGroupAll()) {

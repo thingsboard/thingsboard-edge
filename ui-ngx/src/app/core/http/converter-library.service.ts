@@ -48,8 +48,11 @@ export class ConverterLibraryService {
   ) {
   }
 
-  getVendors(integrationType: IntegrationType, config?: RequestConfig): Observable<Vendor[]> {
-    return this.http.get(`${this.baseUrl}/${integrationType}/vendors`, defaultHttpOptionsFromConfig(config)) as Observable<Vendor[]>;
+  getVendors(integrationType: IntegrationType, converterType: ConverterType, config?: RequestConfig): Observable<Vendor[]> {
+    return this.http.get(
+      `${this.baseUrl}/${integrationType}/vendors?converterType=${converterType.toLowerCase()}`,
+      defaultHttpOptionsFromConfig(config)
+    ) as Observable<Vendor[]>;
   }
 
   getModels(
@@ -59,7 +62,7 @@ export class ConverterLibraryService {
     config?: RequestConfig
   ): Observable<Model[]> {
     return this.http.get(
-      `${this.baseUrl}/${integrationType}/${vendorName}/models?converterType=${converterType.toLowerCase()}`,
+      `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/models?converterType=${converterType.toLowerCase()}`,
       defaultHttpOptionsFromConfig(config)
     ) as Observable<Model[]>;
   }
@@ -71,7 +74,7 @@ export class ConverterLibraryService {
     config?: RequestConfig
   ): Observable<Converter> {
     return this.http.get(
-      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}`,
+      `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/${encodeURIComponent(modelName)}/${converterType.toLowerCase()}`,
       defaultHttpOptionsFromConfig(config)
     ) as Observable<Converter>;
   }
@@ -84,7 +87,7 @@ export class ConverterLibraryService {
     config?: RequestConfig
   ) {
     return this.http.get(
-      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}/metadata`,
+      `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/${encodeURIComponent(modelName)}/${converterType.toLowerCase()}/metadata`,
       defaultHttpOptionsFromConfig(config)
     );
   }
@@ -97,7 +100,7 @@ export class ConverterLibraryService {
     config?: RequestConfig
   ) {
     return this.http.get(
-      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}/payload`,
+      `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/${encodeURIComponent(modelName)}/${converterType.toLowerCase()}/payload`,
       defaultHttpOptionsFromConfig(config)
     );
   }

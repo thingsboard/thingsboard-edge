@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @Setter
-public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEntity {
+public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEntity, HasVersion {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -57,6 +57,7 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
     private ApiUsageStateValue emailExecState;
     private ApiUsageStateValue smsExecState;
     private ApiUsageStateValue alarmExecState;
+    private Long version;
 
     public ApiUsageState() {
         super();
@@ -78,6 +79,7 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
         this.emailExecState = ur.getEmailExecState();
         this.smsExecState = ur.getSmsExecState();
         this.alarmExecState = ur.getAlarmExecState();
+        this.version = ur.getVersion();
     }
 
     public boolean isTransportEnabled() {
@@ -100,11 +102,11 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
         return !ApiUsageStateValue.DISABLED.equals(tbelExecState);
     }
 
-    public boolean isEmailSendEnabled(){
+    public boolean isEmailSendEnabled() {
         return !ApiUsageStateValue.DISABLED.equals(emailExecState);
     }
 
-    public boolean isSmsSendEnabled(){
+    public boolean isSmsSendEnabled() {
         return !ApiUsageStateValue.DISABLED.equals(smsExecState);
     }
 
