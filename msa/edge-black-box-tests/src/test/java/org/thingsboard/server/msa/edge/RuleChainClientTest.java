@@ -18,6 +18,7 @@ package org.thingsboard.server.msa.edge;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.IdBased;
@@ -103,4 +104,50 @@ public class RuleChainClientTest extends AbstractContainerTest {
                 });
     }
 
+    @Test
+    @Ignore
+    public void testSendRuleChainToCloud() {
+        performTestOnEachEdge(this::_testSendRuleChainToCloud);
+    }
+
+    public void _testSendRuleChainToCloud() {
+        // create rule chain on edge
+        RuleChain savedRuleChain = saveRuleChain("Edge Rule Chain");
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRuleChainById(savedRuleChain.getId()).isPresent());
+
+        // update rule chain
+        savedRuleChain.setName("Edge Rule Chain Updated");
+        edgeRestClient.saveRuleChain(savedRuleChain);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Rule Chain Updated".equals(cloudRestClient.getRuleChainById(savedRuleChain.getId()).get().getName()));
+
+        // delete rule chain
+        edgeRestClient.deleteRuleChain(savedRuleChain.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<RuleChain> edgeRuleChains = cloudRestClient.getEdgeRuleChains(edge.getId(), new TimePageLink(1000));
+                    long count = edgeRuleChains.getData().stream().filter(d -> savedRuleChain.getId().equals(d.getId())).count();
+                    return count == 0;
+                });
+
+        cloudRestClient.deleteRuleChain(savedRuleChain.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRuleChainById(savedRuleChain.getId()).isEmpty());
+
+    }
+
+    private RuleChain saveRuleChain(String name) {
+        RuleChain ruleChain = new RuleChain();
+        ruleChain.setName(name);
+        return edgeRestClient.saveRuleChain(ruleChain);
+    }
 }
