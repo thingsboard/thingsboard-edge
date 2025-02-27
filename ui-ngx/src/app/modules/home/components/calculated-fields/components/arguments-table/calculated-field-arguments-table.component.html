@@ -134,9 +134,11 @@
       <tb-error noMargin [error]="errorText | translate" class="flex h-9 items-center pl-3"/>
     }
   </div>
-  <div>
-    <button type="button" mat-stroked-button color="primary" #button (click)="manageArgument($event, button)">
-      {{ 'calculated-fields.add-argument' | translate }}
-    </button>
-  </div>
+  @if (!readonly) {
+    <div>
+      <button type="button" mat-stroked-button color="primary" #button (click)="manageArgument($event, button)">
+        {{ 'calculated-fields.add-argument' | translate }}
+      </button>
+    </div>
+  }
 </div>
