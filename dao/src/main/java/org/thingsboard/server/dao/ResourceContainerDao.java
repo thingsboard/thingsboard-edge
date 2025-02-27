@@ -28,28 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .tb-images-in-use-content {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    &.multiple {
-      gap: 16px;
-    }
-    .table-container {
-      overflow: auto;
-      .mat-mdc-cell.mat-column-preview {
-        width: 50px;
-        height: 50px;
-        padding: 2px 12px;
-        display: block;
-      }
-    }
-    .tb-image-preview {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-      border-radius: 4px;
-    }
-  }
+package org.thingsboard.server.dao;
+
+import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.TenantId;
+
+import java.util.List;
+
+public interface ResourceContainerDao<T extends HasId<?>> {
+
+    List<T> findByTenantIdAndResourceLink(TenantId tenantId, String link, int limit);
+
+    List<T> findByResourceLink(String link, int limit);
+
 }
