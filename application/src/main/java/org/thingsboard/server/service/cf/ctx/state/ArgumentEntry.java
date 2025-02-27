@@ -59,6 +59,12 @@ public interface ArgumentEntry {
 
     boolean isEmpty();
 
+    TbelCfArg toTbelCfArg();
+
+    boolean isForceResetPrevious();
+
+    void setForceResetPrevious(boolean forceResetPrevious);
+
     static ArgumentEntry createSingleValueArgument(KvEntry kvEntry) {
         return new SingleValueArgumentEntry(kvEntry);
     }
@@ -66,11 +72,5 @@ public interface ArgumentEntry {
     static ArgumentEntry createTsRollingArgument(List<TsKvEntry> kvEntries, int limit, long timeWindow) {
         return new TsRollingArgumentEntry(kvEntries, limit, timeWindow);
     }
-
-    TbelCfArg toTbelCfArg();
-
-    boolean isForceResetPrevious();
-
-    void setForceResetPrevious(boolean forceResetPrevious);
 
 }

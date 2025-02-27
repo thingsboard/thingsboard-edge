@@ -115,8 +115,6 @@ public class SingleValueArgumentEntry implements ArgumentEntry {
             if (newVersion == null || this.version == null || newVersion > this.version) {
                 this.ts = singleValueEntry.getTs();
                 this.version = newVersion;
-
-                // TODO: should we persist updated ts and version values?
                 BasicKvEntry newValue = singleValueEntry.getKvEntryValue();
                 if (this.kvEntryValue != null && this.kvEntryValue.getValue().equals(newValue.getValue())) {
                     return false;
@@ -124,7 +122,6 @@ public class SingleValueArgumentEntry implements ArgumentEntry {
                 this.kvEntryValue = singleValueEntry.getKvEntryValue();
                 return true;
             }
-
         } else {
             throw new IllegalArgumentException("Unsupported argument entry type for single value argument entry: " + entry.getType());
         }

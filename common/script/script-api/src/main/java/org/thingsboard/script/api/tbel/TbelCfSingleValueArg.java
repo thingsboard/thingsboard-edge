@@ -37,6 +37,8 @@ import lombok.Data;
 @Data
 public class TbelCfSingleValueArg implements TbelCfArg {
 
+    public static final long OBJ_SIZE = 32L; // Approximate calculation;
+
     private final long ts;
     private final Object value;
 
@@ -51,7 +53,11 @@ public class TbelCfSingleValueArg implements TbelCfArg {
 
     @Override
     public long memorySize() {
-        return 8L; // TODO;
+        if (value instanceof String strValue) {
+            return OBJ_SIZE + strValue.length();
+        } else {
+            return OBJ_SIZE;
+        }
     }
 
     @Override

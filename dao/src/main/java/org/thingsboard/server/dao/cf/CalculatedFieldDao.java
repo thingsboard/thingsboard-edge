@@ -56,8 +56,6 @@ public interface CalculatedFieldDao extends Dao<CalculatedField> {
 
     List<CalculatedField> removeAllByEntityId(TenantId tenantId, EntityId entityId);
 
-    boolean existsByEntityId(TenantId tenantId, EntityId entityId);
-
     long countCFByEntityId(TenantId tenantId, EntityId entityId);
 
 }
