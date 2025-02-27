@@ -64,6 +64,7 @@ export class CalculatedFieldsTableComponent {
   active = input<boolean>();
   entityId = input<EntityId>();
   entityName = input<string>();
+  readonly = input(false);
 
   calculatedFieldsTableConfig: CalculatedFieldsTableConfig;
 
@@ -91,7 +92,8 @@ export class CalculatedFieldsTableComponent {
           this.destroyRef,
           this.renderer,
           this.entityName(),
-          this.importExportService
+          this.importExportService,
+          this.readonly()
         );
         this.cd.markForCheck();
       }

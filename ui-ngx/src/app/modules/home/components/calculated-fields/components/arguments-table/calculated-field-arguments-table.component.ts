@@ -31,6 +31,7 @@
 
 import {
   AfterViewInit,
+  booleanAttribute,
   ChangeDetectorRef,
   Component,
   DestroyRef,
@@ -94,6 +95,7 @@ export class CalculatedFieldArgumentsTableComponent implements ControlValueAcces
   @Input() tenantId: string;
   @Input() entityName: string;
   @Input() calculatedFieldType: CalculatedFieldType;
+  @Input({ transform: booleanAttribute }) readonly: boolean;
 
   @ViewChild(MatSort, { static: true }) sort: MatSort;
 

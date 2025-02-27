@@ -84,6 +84,7 @@
           <tb-calculated-field-arguments-table
             formControlName="arguments"
             [entityId]="data.entityId"
+            [readonly]="data.readonly"
             [tenantId]="data.tenantId"
             [entityName]="data.entityName"
             [calculatedFieldType]="fieldFormGroup.get('type').value"
@@ -199,10 +200,12 @@
             (click)="cancel()">
       {{ 'action.cancel' | translate }}
     </button>
-    <button mat-raised-button color="primary"
-            (click)="add()"
-            [disabled]="(isLoading$ | async) || fieldFormGroup.invalid || !fieldFormGroup.dirty">
-      {{ data.buttonTitle | translate }}
-    </button>
+    @if (!data.readonly) {
+      <button mat-raised-button color="primary"
+              (click)="add()"
+              [disabled]="(isLoading$ | async) || fieldFormGroup.invalid || !fieldFormGroup.dirty">
+        {{ data.buttonTitle | translate }}
+      </button>
+    }
   </div>
 </div>

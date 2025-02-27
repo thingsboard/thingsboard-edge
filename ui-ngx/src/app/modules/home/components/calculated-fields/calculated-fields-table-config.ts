@@ -91,7 +91,8 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
               private destroyRef: DestroyRef,
               private renderer: Renderer2,
               public entityName: string,
-              private importExportService: ImportExportService
+              private importExportService: ImportExportService,
+              private readonly: boolean = false,
   ) {
     super();
     this.tableTitle = this.translate.instant('entity.type-calculated-fields');
@@ -102,6 +103,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
 
     this.entitiesFetchFunction = (pageLink: PageLink) => this.fetchCalculatedFields(pageLink);
     this.addEntity = this.getCalculatedFieldDialog.bind(this);
+    this.addEnabled = !this.readonly;
     this.deleteEntityTitle = (field: CalculatedField) => this.translate.instant('calculated-fields.delete-title', {title: field.name});
     this.deleteEntityContent = () => this.translate.instant('calculated-fields.delete-text');
     this.deleteEntitiesTitle = count => this.translate.instant('calculated-fields.delete-multiple-title', {count});
@@ -148,7 +150,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         name: '',
         nameFunction: entity => this.getDebugConfigLabel(entity?.debugSettings),
         icon: 'mdi:bug',
-        isEnabled: () => true,
+        isEnabled: () => !this.readonly,
         iconFunction: ({ debugSettings }) => this.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
         onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
       },
@@ -220,6 +222,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         additionalDebugActionConfig: this.additionalDebugActionConfig,
         getTestScriptDialogFn: this.getTestScriptDialog.bind(this),
         isDirty,
+        readonly: this.readonly,
       },
       enterAnimationDuration: isDirty ? 0 : null,
     })
@@ -293,7 +296,8 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
           expression: calculatedField.configuration.expression,
           argumentsEditorCompleter: getCalculatedFieldArgumentsEditorCompleter(calculatedField.configuration.arguments),
           argumentsHighlightRules: getCalculatedFieldArgumentsHighlights(calculatedField.configuration.arguments),
-          openCalculatedFieldEdit
+          openCalculatedFieldEdit,
+          readonly: this.readonly,
         }
       }).afterClosed()
       .pipe(

@@ -49,6 +49,14 @@
                       [entityName]="entity.name">
   </tb-attribute-table>
 </mat-tab>
+<mat-tab  *ngIf="entity && (entityType === entityTypes.DEVICE || entityType === entityTypes.ASSET) && (resource[entityType] | hasGenericPermission: operation.READ_CALCULATED_FIELD)"
+         label="{{ 'entity.type-calculated-fields' | translate }}" #calculatedFieldsTab="matTab">
+  <tb-calculated-fields-table
+    [readonly]="!(resource[entityType] | hasGenericPermission: operation.WRITE_CALCULATED_FIELD)"
+    [active]="calculatedFieldsTab.isActive"
+    [entityId]="entity.id"
+  />
+</mat-tab>
 <mat-tab *ngIf="entity && (resource.ALARM | hasGenericPermission: operation.READ)"
          label="{{ 'alarm.alarms' | translate }}" #alarmsTab="matTab">
   <tb-alarm-table [active]="alarmsTab.isActive"

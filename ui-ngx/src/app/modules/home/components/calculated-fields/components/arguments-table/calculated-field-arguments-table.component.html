@@ -92,8 +92,8 @@
         </mat-cell>
       </ng-container>
       <ng-container matColumnDef="actions" stickyEnd>
-        <mat-header-cell *matHeaderCellDef class="w-20 min-w-20"/>
-        <mat-cell *matCellDef="let argument; let $index = index">
+        <mat-header-cell *matHeaderCellDef class="w-20 min-w-20" [class.hidden]="readonly"/>
+        <mat-cell *matCellDef="let argument; let $index = index" [class.hidden]="readonly">
           <div class="tb-form-table-row-cell-buttons flex w-20 min-w-20">
             <button type="button"
                     mat-icon-button
