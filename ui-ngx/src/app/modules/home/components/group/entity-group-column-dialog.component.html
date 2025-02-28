@@ -92,9 +92,10 @@
         <mat-error *ngIf="columnFormGroup.get('sortOrder').hasError('required')">
           {{ 'entity-group.default-sort-order-required' | translate }}
         </mat-error>
-      </mat-form-field><mat-checkbox formControlName="disableSorting">
-      {{ 'entity-group.disable-sorting' | translate }}
-    </mat-checkbox>
+      </mat-form-field>
+      <mat-checkbox formControlName="disableSorting">
+        {{ 'entity-group.disable-sorting' | translate }}
+      </mat-checkbox>
       <mat-checkbox formControlName="mobileHide">
         {{ 'entity-group.hide-in-mobile-view' | translate }}
       </mat-checkbox>

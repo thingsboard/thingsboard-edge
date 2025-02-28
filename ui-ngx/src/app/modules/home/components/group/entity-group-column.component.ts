@@ -116,8 +116,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
       key: [null, Validators.required],
       title: [null],
       sortOrder: [null, Validators.required],
-      mobileHide: [null],
-      disableSorting: [null]
+      mobileHide: [null]
     });
     this.columnFormGroup.get('sortOrder').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
@@ -199,7 +198,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
       this.columnFormGroup.disable({emitEvent: false})
     } else {
       this.columnFormGroup.enable({emitEvent: false})
-      if (this.columnFormGroup.get('disableSorting').value) {
+      if (this.modelValue?.disableSorting) {
         this.columnFormGroup.get('sortOrder').disable({emitEvent: false});
       }
     }
