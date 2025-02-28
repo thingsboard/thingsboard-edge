@@ -639,7 +639,7 @@
                     "predicates": [
                       {
                         "type": "NUMERIC",
-                        "operation": "GREATER_OR_EQUAL",
+                        "operation": "GREATER",
                         "value": {
                           "defaultValue": 5,
                           "userValue": null,
@@ -727,7 +727,7 @@
                     },
                     {
                       "type": "NUMERIC",
-                      "operation": "LESS",
+                      "operation": "LESS_OR_EQUAL",
                       "value": {
                         "defaultValue": 5,
                         "userValue": null,
