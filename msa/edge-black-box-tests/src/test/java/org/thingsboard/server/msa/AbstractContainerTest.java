@@ -584,15 +584,13 @@ public abstract class AbstractContainerTest {
         if (expectedMetadata.getConnections().size() != actualMetadata.getConnections().size()) {
             return false;
         }
-        for (RuleNode expectedNode : expectedMetadata.getNodes()) {
-            Optional<RuleNode> actualNodeOpt =
-                    actualMetadata.getNodes().stream().filter(n -> n.getId().equals(expectedNode.getId())).findFirst();
-            if (actualNodeOpt.isEmpty()) {
-                return false;
-            }
-            RuleNode actualNode = actualNodeOpt.get();
+        for (int i = 0; i < expectedMetadata.getNodes().size(); i++) {
+            RuleNode actualNode = actualMetadata.getNodes().get(i);
+            RuleNode expectedNode = expectedMetadata.getNodes().get(i);
             actualNode.setId(null);
+            actualNode.setCreatedTime(0L);
             expectedNode.setId(null);
+            expectedNode.setCreatedTime(0L);
             if (!expectedNode.equals(actualNode)) {
                 return false;
             }
