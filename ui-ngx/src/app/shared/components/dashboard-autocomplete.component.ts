@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -92,6 +92,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   @Input()
   tenantId: string;
+
+  @Input()
+  customerId: string;
 
   @Input()
   operation: Operation;
@@ -255,6 +258,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
     const authUser = getCurrentAuthUser(this.store);
     if (authUser.authority === Authority.SYS_ADMIN && this.tenantId) {
       dashboardsObservable = this.dashboardService.getTenantDashboardsByTenantId(this.tenantId, pageLink,
+        {ignoreLoading: true});
+    } else if (authUser.authority === Authority.TENANT_ADMIN && this.customerId) {
+      dashboardsObservable = this.dashboardService.getCustomerDashboards(true, this.customerId, pageLink,
         {ignoreLoading: true});
     } else {
       let userId = this.userId;

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -161,6 +161,9 @@ import { ScadaSymbolBasicConfigComponent } from '@home/components/widget/config/
 import {
   SegmentedButtonBasicConfigComponent
 } from '@home/components/widget/config/basic/button/segmented-button-basic-config.component';
+import {
+  ValueStepperBasicConfigComponent
+} from '@home/components/widget/config/basic/rpc/value-stepper-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -197,6 +200,7 @@ import {
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
     ToggleButtonBasicConfigComponent,
+    ValueStepperBasicConfigComponent,
     TimeSeriesChartBasicConfigComponent,
     ComparisonKeyRowComponent,
     ComparisonKeysTableComponent,
@@ -251,6 +255,7 @@ import {
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
     ToggleButtonBasicConfigComponent,
+    ValueStepperBasicConfigComponent,
     TimeSeriesChartBasicConfigComponent,
     StatusWidgetBasicConfigComponent,
     PieChartBasicConfigComponent,

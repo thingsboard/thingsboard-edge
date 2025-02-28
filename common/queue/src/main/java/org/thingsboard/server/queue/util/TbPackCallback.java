@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.util;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 
@@ -38,9 +39,11 @@ import java.util.UUID;
 @Slf4j
 public class TbPackCallback<T> implements TbCallback {
     private final TbPackProcessingContext<T> ctx;
+    @Getter
     private final UUID id;
 
     public TbPackCallback(UUID id, TbPackProcessingContext<T> ctx) {
+        log.trace("[{}] CALLBACK CREATED", id);
         this.id = id;
         this.ctx = ctx;
     }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -115,6 +115,7 @@ import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
@@ -127,6 +128,8 @@ import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 
 import java.util.ArrayList;
@@ -188,7 +191,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
-        edgeImitator.expectMessageAmount(30);
+        edgeImitator.expectMessageAmount(36);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -279,7 +282,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
 
     private void verifyEdgeConnectionAndInitialData() throws Exception {
-        Assert.assertTrue(edgeImitator.waitForMessages());
+        boolean condition = edgeImitator.waitForMessages();
+        Assert.assertTrue(condition);
 
         validateEdgeConfiguration();
 
@@ -291,7 +295,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(RuleChainUpdateMsg.class, 1);
         UUID ruleChainUUID = validateRuleChains();
 
-        // 1 from request message
+        // 1 from rule chain fetcher and 1 from request message
         validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 2);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
@@ -299,11 +303,11 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(AdminSettingsUpdateMsg.class, 4);
         validateAdminSettings(4);
 
-        // 3 messages
+        // 5 messages
         // - 1 from default profile fetcher
-        // - 2 from device profile fetcher (default and thermostat)
-        validateMsgsCnt(DeviceProfileUpdateMsg.class, 3);
-        validateDeviceProfiles(3);
+        // - 4 from device profile fetcher (2 * (default and thermostat) before and after ota packages fetcher
+        validateMsgsCnt(DeviceProfileUpdateMsg.class, 5);
+        validateDeviceProfiles(5);
 
         // 2 messages
         // - 1 from default profile fetcher
@@ -343,6 +347,15 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 3 messages from fetcher: 'sysadmin' and 'tenant' and 'customer' default custom menu
         validateMsgsCnt(CustomMenuProto.class, 3);
         validateCustomMenu(3);
+
+        // 2 messages from fetcher
+        validateMsgsCnt(GroupPermissionProto.class, 2);
+
+        // 1 message from fetcher
+        validateMsgsCnt(UserUpdateMsg.class, 1);
+
+        // 1 message from fetcher
+        validateMsgsCnt(UserCredentialsUpdateMsg.class, 1);
 
         // 1 message sync completed
         validateMsgsCnt(SyncCompletedMsg.class, 1);
@@ -764,7 +777,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected RuleChainId createEdgeRuleChainAndAssignToEdge(String ruleChainName) throws Exception {
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName(ruleChainName);
         ruleChain.setType(RuleChainType.EDGE);

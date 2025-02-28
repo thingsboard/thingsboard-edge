@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -456,6 +456,9 @@ public class HashPartitionServiceTest {
                 topicService);
         ReflectionTestUtils.setField(partitionService, "coreTopic", "tb.core");
         ReflectionTestUtils.setField(partitionService, "corePartitions", 10);
+        ReflectionTestUtils.setField(partitionService, "cfEventTopic", "tb_cf_event");
+        ReflectionTestUtils.setField(partitionService, "cfStateTopic", "tb_cf_state");
+        ReflectionTestUtils.setField(partitionService, "cfPartitions", 10);
         ReflectionTestUtils.setField(partitionService, "vcTopic", "tb.vc");
         ReflectionTestUtils.setField(partitionService, "vcPartitions", 10);
         ReflectionTestUtils.setField(partitionService, "integrationPartitions", 3);

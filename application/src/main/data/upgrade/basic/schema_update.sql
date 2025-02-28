@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,14 @@ ALTER TABLE converter ADD COLUMN IF NOT EXISTS converter_version INT DEFAULT 1;
 
 -- CONVERTERS 2.0 END
 
+-- UPDATE DEFAULT TENANT USERS ROLE START
+
+UPDATE role SET permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY", "READ_CALCULATED_FIELD"]}'
+            WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' and customer_id = '13814000-1dd2-11b2-8080-808080808080' and name = 'Tenant User'
+              and permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY"]}';
+
+-- UPDATE DEFAULT TENANT USERS ROLE END
+
 -- UPDATE SAVE TIME SERIES NODES START
 
 DO $$
@@ -52,11 +60,12 @@ DO $$
             SET configuration = (
                 (configuration::jsonb - 'skipLatestPersistence')
                     || jsonb_build_object(
-                        'persistenceSettings', jsonb_build_object(
+                        'processingSettings', jsonb_build_object(
                                 'type',       'ADVANCED',
-                                'timeseries', jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
-                                'latest',     jsonb_build_object('type', 'SKIP'),
-                                'webSockets', jsonb_build_object('type', 'ON_EVERY_MESSAGE')
+                                'timeseries',       jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
+                                'latest',           jsonb_build_object('type', 'SKIP'),
+                                'webSockets',       jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
+                                'calculatedFields', jsonb_build_object('type', 'ON_EVERY_MESSAGE')
                                                )
                        )
                 )::text,
@@ -69,7 +78,7 @@ DO $$
             SET configuration = (
                 (configuration::jsonb - 'skipLatestPersistence')
                     || jsonb_build_object(
-                        'persistenceSettings', jsonb_build_object(
+                        'processingSettings', jsonb_build_object(
                                 'type', 'ON_EVERY_MESSAGE'
                                                )
                        )
@@ -84,3 +93,5 @@ DO $$
 $$;
 
 -- UPDATE SAVE TIME SERIES NODES END
+
+ALTER TABLE api_usage_state ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;

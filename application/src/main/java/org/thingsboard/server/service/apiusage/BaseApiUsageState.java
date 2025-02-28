@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,7 +55,8 @@ public abstract class BaseApiUsageState {
     private final Map<ApiUsageRecordKey, Long> gaugesReportCycles = new HashMap<>();
 
     @Getter
-    private final ApiUsageState apiUsageState;
+    @Setter
+    private ApiUsageState apiUsageState;
     @Getter
     private volatile long currentCycleTs;
     @Getter

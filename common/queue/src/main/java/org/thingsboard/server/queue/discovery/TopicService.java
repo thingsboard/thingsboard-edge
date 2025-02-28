@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,6 +50,7 @@ public class TopicService {
     private final ConcurrentMap<String, TopicPartitionInfo> tbCoreNotificationTopics = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TopicPartitionInfo> tbRuleEngineNotificationTopics = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TopicPartitionInfo> tbEdgeNotificationTopics = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, TopicPartitionInfo> tbCalculatedFieldNotificationTopics = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TopicPartitionInfo> tbIntegrationExecutorNotificationTopics = new ConcurrentHashMap<>();
     private final ConcurrentReferenceHashMap<EdgeId, TopicPartitionInfo> tbEdgeEventsNotificationTopics = new ConcurrentReferenceHashMap<>();
 
@@ -73,7 +74,11 @@ public class TopicService {
     }
 
     private TopicPartitionInfo buildNotificationsTopicPartitionInfo(ServiceType serviceType, String serviceId) {
-        return buildTopicPartitionInfo(serviceType.name().toLowerCase() + ".notifications." + serviceId, null, null, false);
+        return buildNotificationsTopicPartitionInfo(serviceType.name().toLowerCase(), serviceId);
+    }
+
+    private TopicPartitionInfo buildNotificationsTopicPartitionInfo(String serviceType, String serviceId) {
+        return buildTopicPartitionInfo(serviceType + ".notifications." + serviceId, null, null, false);
     }
 
     public TopicPartitionInfo getEdgeNotificationsTopic(String serviceId) {
@@ -82,6 +87,11 @@ public class TopicService {
 
     private TopicPartitionInfo buildEdgeNotificationsTopicPartitionInfo(String serviceId) {
         return buildTopicPartitionInfo("tb_edge.notifications." + serviceId, null, null, false);
+    }
+
+    public TopicPartitionInfo getCalculatedFieldNotificationsTopic(String serviceId) {
+        return tbCalculatedFieldNotificationTopics.computeIfAbsent(serviceId,
+                id -> buildNotificationsTopicPartitionInfo("calculated_field", serviceId)); // FIXME alandiak - get rid of hardcode
     }
 
     public TopicPartitionInfo getEdgeEventNotificationsTopic(TenantId tenantId, EdgeId edgeId) {

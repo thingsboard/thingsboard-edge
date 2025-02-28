@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,10 +32,12 @@ package org.thingsboard.server.dao.sql.device;
 
 import org.springframework.data.domain.Pageable;
 import org.thingsboard.server.common.data.DeviceIdInfo;
+import org.thingsboard.server.common.data.ProfileEntityIdInfo;
 import org.thingsboard.server.common.data.page.PageData;
 
-public interface NativeDeviceRepository {
+public interface NativeDeviceRepository extends NativeProfileEntityRepository {
 
     PageData<DeviceIdInfo> findDeviceIdInfos(Pageable pageable);
+
 
 }
