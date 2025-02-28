@@ -2890,6 +2890,7 @@
         "column-title": "Title",
         "default-sort-order": "Default sort order",
         "default-sort-order-required": "Default sort order is required.",
+        "disable-sorting": "Disable sorting",
         "hide-in-mobile-view": "Mobile hidden",
         "use-cell-style-function": "Use cell style function",
         "use-cell-content-function": "Use cell content function",
@@ -10013,7 +10014,8 @@
             "timeseries-column-error": "At least one time series column should be specified",
             "alarm-column-error": "At least one alarm column should be specified",
             "table-tabs": "Table tabs",
-            "show-cell-actions-menu-mobile": "Show cell actions dropdown menu in mobile mode"
+            "show-cell-actions-menu-mobile": "Show cell actions dropdown menu in mobile mode",
+            "disable-sorting": "Disable sorting"
         },
         "latest-chart": {
             "total": "Total",

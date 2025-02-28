@@ -247,6 +247,7 @@ export interface EntityGroupColumn {
   title?: string;
   sortOrder: EntityGroupSortOrder;
   mobileHide: boolean;
+  disableSorting?: boolean;
   useCellStyleFunction?: boolean;
   cellStyleFunction?: TbFunction;
   useCellContentFunction?: string;
