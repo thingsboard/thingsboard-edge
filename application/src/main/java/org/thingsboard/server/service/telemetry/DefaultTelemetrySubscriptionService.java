@@ -46,6 +46,7 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.rule.engine.api.AttributesDeleteRequest;
 import org.thingsboard.rule.engine.api.AttributesSaveRequest;
+import org.thingsboard.rule.engine.api.DeviceStateManager;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.TimeseriesDeleteRequest;
 import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
@@ -53,9 +54,11 @@ import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
@@ -67,6 +70,7 @@ import org.thingsboard.server.dao.util.KvUtils;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cf.CalculatedFieldQueueService;
 import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 
 import java.util.ArrayList;
@@ -93,6 +97,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     private final TbApiUsageReportClient apiUsageClient;
     private final TbApiUsageStateService apiUsageStateService;
     private final CalculatedFieldQueueService calculatedFieldQueueService;
+    private final DeviceStateManager deviceStateManager;
 
     private ExecutorService tsCallBackExecutor;
 
@@ -104,13 +109,15 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
                                                @Lazy TbEntityViewService tbEntityViewService,
                                                TbApiUsageReportClient apiUsageClient,
                                                TbApiUsageStateService apiUsageStateService,
-                                               CalculatedFieldQueueService calculatedFieldQueueService) {
+                                               CalculatedFieldQueueService calculatedFieldQueueService,
+                                               DeviceStateManager deviceStateManager) {
         this.attrService = attrService;
         this.tsService = tsService;
         this.tbEntityViewService = tbEntityViewService;
         this.apiUsageClient = apiUsageClient;
         this.apiUsageStateService = apiUsageStateService;
         this.calculatedFieldQueueService = calculatedFieldQueueService;
+        this.deviceStateManager = deviceStateManager;
     }
 
     @PostConstruct
@@ -173,6 +180,14 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
             }
         }, t -> request.getCallback().onFailure(t));
 
+        if (entityId.getEntityType() == EntityType.DEVICE && request.getStrategy().saveLatest() /* Device State Service reads from the latest values when initializing */) {
+            findNewInactivityTimeout(request.getEntries()).ifPresent(newInactivityTimeout ->
+                    addMainCallback(resultFuture, __ -> deviceStateManager.onDeviceInactivityTimeoutUpdate(
+                            tenantId, new DeviceId(entityId.getId()), newInactivityTimeout, TbCallback.EMPTY)
+                    )
+            );
+        }
+
         if (strategy.sendWsUpdate()) {
             addWsCallback(resultFuture, success -> onTimeSeriesUpdate(tenantId, entityId, request.getEntries()));
         }
@@ -180,6 +195,21 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
             copyLatestToEntityViews(tenantId, entityId, request.getEntries());
         }
         return resultFuture;
+    }
+
+    private static Optional<Long> findNewInactivityTimeout(List<TsKvEntry> entries) {
+        return entries.stream()
+                .filter(entry -> Objects.equals(DefaultDeviceStateService.INACTIVITY_TIMEOUT, entry.getKey()))
+                .findFirst()
+                .map(DefaultTelemetrySubscriptionService::parseAsLong);
+    }
+
+    private static long parseAsLong(KvEntry kve) {
+        try {
+            return Long.parseLong(kve.getValueAsString());
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
     }
 
     @Override
@@ -274,8 +304,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
                                                 .strategy(TimeseriesSaveRequest.Strategy.LATEST_AND_WS)
                                                 .callback(new FutureCallback<>() {
                                                     @Override
-                                                    public void onSuccess(@Nullable Void tmp) {
-                                                    }
+                                                    public void onSuccess(@Nullable Void tmp) {}
 
                                                     @Override
                                                     public void onFailure(Throwable t) {
@@ -339,6 +368,10 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         addMainCallback(saveFuture, result -> callback.onSuccess(null), callback::onFailure);
     }
 
+    private <S> void addMainCallback(ListenableFuture<S> saveFuture, Consumer<S> onSuccess) {
+        addMainCallback(saveFuture, onSuccess, null);
+    }
+
     private <S> void addMainCallback(ListenableFuture<S> saveFuture, Consumer<S> onSuccess, Consumer<Throwable> onFailure) {
         DonAsynchron.withCallback(saveFuture, onSuccess, onFailure, tsCallBackExecutor);
     }
@@ -360,13 +393,12 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
             }
 
             @Override
-            public void onFailure(Throwable t) {
-            }
+            public void onFailure(Throwable t) {}
         };
     }
 
     private FutureCallback<Void> getCalculatedFieldCallback(FutureCallback<List<String>> originalCallback, List<String> keys) {
-        return new FutureCallback<Void>() {
+        return new FutureCallback<>() {
             @Override
             public void onSuccess(Void unused) {
                 originalCallback.onSuccess(keys);
