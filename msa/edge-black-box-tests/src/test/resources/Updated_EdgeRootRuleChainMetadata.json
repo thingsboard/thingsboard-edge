@@ -156,7 +156,7 @@
       "queueName": null,
       "configurationVersion": 0,
       "configuration": {
-        "scope": "SERVER_SCOPE"
+        "scope": "CLIENT_SCOPE"
       },
       "additionalInfo": {
         "layoutX": 1126,
