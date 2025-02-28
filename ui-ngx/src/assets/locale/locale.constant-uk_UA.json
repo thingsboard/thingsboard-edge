@@ -1778,7 +1778,7 @@
         "sas-key-name-required": "Необхідно вказати назву ключа SAS.",
         "sas-key": "Ключ SAS",
         "sas-key-required": "Потрібен ключ SAS.",
-        "iot-hub-name": "Назва IoT Hub (необхідна для downlink)",
+        "iot-hub-name": "Назва IoT Hub",
         "integration-clazz": "Клас інтеграції",
         "integration-clazz-required": "Необхідно вказати клас інтеграції",
         "integration-configuration": "JSON конфігурація інтеграції",

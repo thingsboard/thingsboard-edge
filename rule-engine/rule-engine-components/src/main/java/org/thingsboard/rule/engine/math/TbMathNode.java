@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -91,7 +91,6 @@ import static org.thingsboard.rule.engine.math.TbMathArgumentType.CONSTANT;
                 "<br/><br/>" +
                 "The execution is synchronized in scope of message originator (e.g. device) and server node. " +
                 "If you have rule nodes in different rule chains, they will process messages from the same originator synchronously in the scope of the server node.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeMathFunctionConfig",
         icon = "calculate"
 

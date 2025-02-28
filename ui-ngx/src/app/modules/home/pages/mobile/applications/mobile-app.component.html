@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -122,7 +122,7 @@
           <mat-label translate>mobile.latest-version</mat-label>
           <input matInput formControlName="latestVersion">
           <mat-hint> </mat-hint>
-          <mat-error *ngIf="entityForm.get('versionInfo.minVersion').hasError('pattern')">
+          <mat-error *ngIf="entityForm.get('versionInfo.latestVersion').hasError('pattern')">
             {{ 'mobile.invalid-version-pattern' | translate }}
           </mat-error>
         </mat-form-field>
@@ -145,7 +145,7 @@
         <mat-label>{{
             (entityForm.get('platformType').value === PlatformType.ANDROID ? 'mobile.google-play-link' : 'mobile.app-store-link') | translate
           }}</mat-label>
-        <input matInput [required]="entityForm.get('status').value === 'PUBLISHED'" formControlName="storeLink">
+        <input matInput [required]="entityForm.get('status').value === MobileAppStatus.PUBLISHED" formControlName="storeLink">
         <tb-copy-button
           matSuffix
           miniButton="false"
@@ -163,7 +163,7 @@
       </mat-form-field>
       <mat-form-field appearance="outline" *ngIf="entityForm.get('platformType').value === PlatformType.ANDROID">
         <mat-label translate>mobile.sha256-certificate-fingerprints</mat-label>
-        <input matInput [required]="entityForm.get('status').value !== MobileAppStatus.DRAFT" formControlName="sha256CertFingerprints">
+        <input matInput [required]="entityForm.get('status').value === MobileAppStatus.PUBLISHED" formControlName="sha256CertFingerprints">
         <tb-copy-button
           matSuffix
           miniButton="false"
@@ -181,7 +181,7 @@
       </mat-form-field>
       <mat-form-field appearance="outline" *ngIf="entityForm.get('platformType').value === PlatformType.IOS">
         <mat-label translate>mobile.app-id</mat-label>
-        <input matInput [required]="entityForm.get('status').value !== MobileAppStatus.DRAFT" formControlName="appId">
+        <input matInput [required]="entityForm.get('status').value === MobileAppStatus.PUBLISHED" formControlName="appId">
         <tb-copy-button
           matSuffix
           miniButton="false"

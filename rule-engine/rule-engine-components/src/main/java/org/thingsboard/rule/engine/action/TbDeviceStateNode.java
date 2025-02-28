@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -73,7 +73,6 @@ import java.util.Set;
                 "This node is particularly useful when device isn't using transports to receive data, such as when fetching data from external API or computing new data within the rule chain.",
         configClazz = TbDeviceStateNodeConfiguration.class,
         relationTypes = {TbNodeConnectionType.SUCCESS, TbNodeConnectionType.FAILURE, "Rate limited"},
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeDeviceStateConfig"
 )
 public class TbDeviceStateNode implements TbNode {

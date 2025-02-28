@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -88,11 +88,12 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     }
 
     @Override
-    public List<Vendor> getVendors(IntegrationType integrationType) {
+    public List<Vendor> getVendors(IntegrationType integrationType, String converterType) {
         log.trace("Executing getVendors [{}]", integrationType);
         return listFiles("VENDORS", 1, true).stream()
                 .filter(vendorDir -> {
                     Set<String> integrationTypes = listFiles(vendorDir.path(), 3, true).stream()
+                            .filter(integrationDir -> hasConverter(integrationDir, integrationType, converterType))
                             .map(RepoFile::name)
                             .collect(Collectors.toSet());
                     return integrationTypes.contains(integrationType.getDirectory());
@@ -108,17 +109,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     public List<Model> getVendorModels(IntegrationType integrationType, String converterType, String vendorName) {
         log.trace("Executing getVendorModels [{}][{}][{}]", integrationType, converterType, vendorName);
         return listFiles("VENDORS/" + vendorName, 3, true).stream()
-                .filter(integrationDir -> {
-                    if (!integrationDir.name().equals(integrationType.getDirectory())) {
-                        return false;
-                    }
-                    if (StringUtils.isEmpty(converterType)) {
-                        return true;
-                    }
-                    List<String> converterTypes = listFiles(integrationDir.path(), 4, true).stream()
-                            .map(RepoFile::name).toList();
-                    return converterTypes.contains(converterType);
-                })
+                .filter(integrationDir -> hasConverter(integrationDir, integrationType, converterType))
                 .map(integrationDir -> Path.of(integrationDir.path()).getParent())
                 .map(modelPath -> {
                     String name = modelPath.getFileName().toString();
@@ -130,6 +121,18 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
                 .toList();
     }
 
+    private boolean hasConverter(RepoFile integrationDir, IntegrationType integrationType, String converterType) {
+        if (!integrationDir.name().equals(integrationType.getDirectory())) {
+            return false;
+        }
+        if (StringUtils.isEmpty(converterType)) {
+            return true;
+        }
+        return listFiles(integrationDir.path(), 4, true)
+                .stream()
+                .map(RepoFile::name)
+                .anyMatch(name -> name.equals(converterType));
+    }
 
     @Override
     public String getConverter(IntegrationType integrationType, String converterType, String vendorName, String model) {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -270,6 +270,9 @@ export class DigitalSimpleGaugeBasicConfigComponent extends BasicWidgetConfigCom
 
   private getCardButtons(config: WidgetConfig): string[] {
     const buttons: string[] = [];
+    if (isUndefined(config.enableDataExport) || config.enableDataExport) {
+      buttons.push('dataExport');
+    }
     if (isUndefined(config.enableFullscreen) || config.enableFullscreen) {
       buttons.push('fullscreen');
     }
@@ -277,6 +280,7 @@ export class DigitalSimpleGaugeBasicConfigComponent extends BasicWidgetConfigCom
   }
 
   private setCardButtons(buttons: string[], config: WidgetConfig) {
+    config.enableDataExport = buttons.includes('dataExport');
     config.enableFullscreen = buttons.includes('fullscreen');
   }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -74,8 +74,7 @@ import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
                 "<li><strong>ALL</strong> - return all messages as a single JSON array message. " +
                 "Where each element represents object with <strong><i>msg</i></strong> and <strong><i>metadata</i></strong> inner properties.</li></ul>",
         icon = "content_copy",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbActionNodeMsgDeduplicationConfig"
+        configDirective = "tbTransformationNodeDeduplicationConfig"
 )
 @Slf4j
 public class TbMsgDeduplicationNode implements TbNode {

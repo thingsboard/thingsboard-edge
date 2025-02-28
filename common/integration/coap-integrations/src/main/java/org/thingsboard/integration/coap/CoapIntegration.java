@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -96,7 +96,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         CoapExchange exchange = msg.getExchange();
         Request request = exchange.advanced().getRequest();
         var dtlsSessionId = request.getSourceContext().get(KEY_SESSION_ID);
-        if (integrationResource == null && dtlsSessionId != null && !dtlsSessionId.isEmpty()) {
+        if (this.dtlsIntegrationResource == null && dtlsSessionId != null && !dtlsSessionId.isEmpty()) {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "No secure connection is not allowed");
             return;
         }

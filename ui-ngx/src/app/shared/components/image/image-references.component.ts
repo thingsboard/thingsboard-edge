@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { ImageReferences } from '@shared/models/resource.models';
+import { ResourceReferences } from '@shared/models/resource.models';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { getEntityDetailsPageURL } from '@core/utils';
@@ -75,7 +75,7 @@ type ReferencedEntitiesEntry = [EntityId, HolderReferencedEntities];
 export class ImageReferencesComponent implements OnInit {
 
   @Input()
-  references: ImageReferences;
+  references: ResourceReferences;
 
   popoverComponent: TbPopoverComponent<ImageReferencesComponent>;
 
@@ -124,7 +124,7 @@ export class ImageReferencesComponent implements OnInit {
     return this.translate.instant(id.entityType === EntityType.TENANT ? 'tenant.tenant' : 'customer.customer');
   }
 
-  private hasNotSameAuthLevelEntities(references: ImageReferences): boolean {
+  private hasNotSameAuthLevelEntities(references: ResourceReferences): boolean {
     const authority = this.authUser.authority;
     if (authority === Authority.SYS_ADMIN &&
       references.some(e => e.tenantId && e.tenantId.id && e.tenantId.id !== NULL_UUID)) {
@@ -141,7 +141,7 @@ export class ImageReferencesComponent implements OnInit {
     return false;
   }
 
-  private toReferencedEntitiesList(references: ImageReferences): ReferencedEntityInfo[] {
+  private toReferencedEntitiesList(references: ResourceReferences): ReferencedEntityInfo[] {
     const result: ReferencedEntityInfo[] = [];
     for (const reference of references) {
       if ((reference as BaseData<HasId>).id) {
@@ -171,7 +171,7 @@ export class ImageReferencesComponent implements OnInit {
     return result;
   }
 
-  private toReferencedEntitiesEntries(references: ImageReferences): Observable<ReferencedEntitiesEntry[]> {
+  private toReferencedEntitiesEntries(references: ResourceReferences): Observable<ReferencedEntitiesEntry[]> {
     let referencedEntities: ReferencedEntities = {};
     const referencedEntitiesList = this.toReferencedEntitiesList(references);
     for (const referencedEntityInfo of referencedEntitiesList) {

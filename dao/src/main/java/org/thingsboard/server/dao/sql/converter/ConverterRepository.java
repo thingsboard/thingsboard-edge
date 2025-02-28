@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -62,6 +62,13 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
 
     ConverterEntity findByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type);
 
+    @Query("SELECT count(c) > 0 FROM ConverterEntity c WHERE c.tenantId = :tenantId " +
+            "AND c.name = :name AND c.type = :type AND (:skippedId IS NULL OR c.id <> :skippedId)")
+    boolean existsByTenantIdAndNameAndTypeAndIdNot(@Param("tenantId") UUID tenantId,
+                                                   @Param("name") String name,
+                                                   @Param("type") ConverterType type,
+                                                   @Param("skippedId") UUID skippedId);
+
     List<ConverterEntity> findConvertersByTenantIdAndIdIn(UUID tenantId, List<UUID> converterIds);
 
     Long countByTenantId(UUID tenantId);
@@ -72,5 +79,4 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
     UUID getExternalIdById(@Param("id") UUID id);
 
     boolean existsByTenantIdAndType(UUID tenantId, ConverterType type);
-
 }

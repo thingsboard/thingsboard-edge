@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -876,6 +876,7 @@ CREATE TABLE IF NOT EXISTS api_usage_state (
     email_exec varchar(32),
     sms_exec varchar(32),
     alarm_exec varchar(32),
+    version BIGINT DEFAULT 1,
     CONSTRAINT api_usage_state_unq_key UNIQUE (tenant_id, entity_id)
 );
 

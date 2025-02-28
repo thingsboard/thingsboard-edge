@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,7 +61,6 @@ import java.util.stream.Collectors;
         nodeDetails = "Copies key-value pairs from the message to message metadata, or vice-versa, according to the configured direction and keys. " +
                 "Regular expressions can be used to define which keys-value pairs to copy. Any configured key not found in the source will be ignored.<br><br>" +
                 "Output connections: <code>Success</code>, <code>Failure</code>.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeCopyKeysConfig",
         icon = "content_copy"
 )

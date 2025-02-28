@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,8 @@ package org.thingsboard.server.transport.mqtt.session;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -54,9 +56,11 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by ashvayka on 19.01.17.
  */
+@ToString(callSuper = true)
 @Slf4j
 public abstract class AbstractGatewayDeviceSessionContext<T extends AbstractGatewaySessionHandler> extends MqttDeviceAwareSessionContext implements SessionMsgListener {
 
+    @Getter
     protected final T parent;
     private final TransportService transportService;
 

@@ -1,0 +1,128 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="aggregateLatestConfigForm" class="flex flex-col">
+  <tb-output-message-type-autocomplete required formControlName="outMsgType"></tb-output-message-type-autocomplete>
+  <div class="gt-sm:flex-row gt-sm:gap-2 flex flex-col">
+    <mat-form-field class="mat-block flex-1">
+      <mat-label translate>rule-node-config.execution-period-value</mat-label>
+      <input type="number" step="1" min="1" max="2147483647" matInput formControlName="periodValue" required>
+      <mat-error *ngIf="aggregateLatestConfigForm.get('periodValue').hasError('required')">
+        {{ 'rule-node-config.execution-period-value-required' | translate }}
+      </mat-error>
+      <mat-error *ngIf="aggregateLatestConfigForm.get('periodValue').hasError('min')">
+        {{ 'rule-node-config.time-value-range' | translate }}
+      </mat-error>
+      <mat-error *ngIf="aggregateLatestConfigForm.get('periodValue').hasError('max')">
+        {{ 'rule-node-config.time-value-range' | translate }}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="mat-block flex-1">
+      <mat-label translate>rule-node-config.execution-period-time-unit</mat-label>
+      <mat-select formControlName="periodTimeUnit" required>
+        <mat-option *ngFor="let timeUnit of aggPeriodTimeUnits" [value]="timeUnit">
+          {{ timeUnitsTranslationMap.get(timeUnit) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div formGroupName="parentEntitiesQuery">
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>rule-node-config.parent-entity</mat-panel-title>
+      </mat-expansion-panel-header>
+        <mat-radio-group formControlName="type" class="flex flex-row gap-2"
+                         style="padding-top: 16px; padding-bottom: 16px;">
+          <mat-radio-button [value]="'single'" color="primary">
+            <span translate>rule-node-config.single-entity</span>
+          </mat-radio-button>
+          <mat-radio-button [value]="'group'" color="primary">
+            <span translate>rule-node-config.group-of-entities</span>
+          </mat-radio-button>
+          <mat-radio-button [value]="'relationsQuery'" color="primary">
+            <span translate>rule-node-config.relations-query</span>
+          </mat-radio-button>
+        </mat-radio-group>
+        <section *ngIf="aggregateLatestConfigForm.get('parentEntitiesQuery.type').value === 'relationsQuery'"
+                 class="flex flex-col">
+          <label translate class="tb-title tb-required">rule-node-config.root-entity</label>
+          <tb-entity-select
+            required
+            formControlName="rootEntityId">
+          </tb-entity-select>
+          <mat-checkbox formControlName="includeRootEntity" style="padding-bottom: 16px;">
+            {{ 'rule-node-config.include-root-entity-to-parent-entities' | translate }}
+          </mat-checkbox>
+          <label translate class="tb-title tb-required">rule-node-config.relations-query</label>
+          <tb-relations-query-config
+            style="padding-bottom: 15px;"
+            formControlName="relationsQuery">
+          </tb-relations-query-config>
+        </section>
+        <tb-entity-select
+          *ngIf="aggregateLatestConfigForm.get('parentEntitiesQuery.type').value === 'single'"
+          required
+          formControlName="entityId">
+        </tb-entity-select>
+        <tb-entity-group-select
+          *ngIf="aggregateLatestConfigForm.get('parentEntitiesQuery.type').value === 'group'"
+          required
+          formControlName="entityGroupId"
+          placeholderText="entity-group.select-entity-group"
+          notFoundText="entity-group.no-entity-groups-matching"
+          requiredText="entity-group.target-entity-group-required">
+        </tb-entity-group-select>
+    </mat-expansion-panel>
+    <mat-expansion-panel *ngIf="aggregateLatestConfigForm.get('parentEntitiesQuery.type').value === 'relationsQuery' ||
+                                aggregateLatestConfigForm.get('parentEntitiesQuery.type').value === 'single'"
+                         [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>rule-node-config.child-entities</mat-panel-title>
+      </mat-expansion-panel-header>
+      <label translate class="tb-title tb-required">rule-node-config.relations-query</label>
+      <tb-relations-query-config
+        style="padding-bottom: 15px;"
+        formControlName="childRelationsQuery">
+      </tb-relations-query-config>
+    </mat-expansion-panel>
+  </div>
+  <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel-header>
+      <mat-panel-title translate>rule-node-config.agg-latest-mappings</mat-panel-title>
+    </mat-expansion-panel-header>
+    <tb-agg-latest-mapping-table
+      required
+      formControlName="aggMappings"
+      style="padding-bottom: 15px;">
+    </tb-agg-latest-mapping-table>
+  </mat-expansion-panel>
+</section>

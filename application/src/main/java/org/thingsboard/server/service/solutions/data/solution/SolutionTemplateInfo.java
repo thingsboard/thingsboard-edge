@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,8 +40,6 @@ import lombok.NoArgsConstructor;
 public class SolutionTemplateInfo extends SolutionTemplate {
     @Schema(description = "URL of the preview image")
     private String previewImageUrl;
-    @Schema(description = "Short description to display on template card")
-    private String shortDescription;
 
     @Schema(description = "Video preview image URL")
     private String videoPreviewImageUrl;
@@ -55,7 +53,6 @@ public class SolutionTemplateInfo extends SolutionTemplate {
     public SolutionTemplateInfo(SolutionTemplateInfo solution) {
         super(solution);
         this.previewImageUrl = solution.previewImageUrl;
-        this.shortDescription = solution.shortDescription;
         this.videoPreviewImageUrl = solution.videoPreviewImageUrl;
         this.previewMp4Url = solution.previewMp4Url;
         this.previewWebmUrl = solution.previewWebmUrl;

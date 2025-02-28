@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,7 +68,6 @@ import java.util.Optional;
         nodeDescription = "Adds Message Originator Entity to Entity Group",
         nodeDetails = "Finds target Entity Group by group name pattern and then adds Originator Entity to this group. " +
                 "Will create new Entity Group if it doesn't exists and 'Create new group if not exists' is set to true.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeAddToGroupConfig",
         icon = "add_circle",
         ruleChainTypes = RuleChainType.CORE

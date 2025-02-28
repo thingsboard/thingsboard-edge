@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -91,6 +91,11 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     public Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name) {
         Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndName(tenantId, name));
         return Optional.ofNullable(converter);
+    }
+
+    @Override
+    public boolean existsByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type, UUID skippedId) {
+        return converterRepository.existsByTenantIdAndNameAndTypeAndIdNot(tenantId, name,  type, skippedId);
     }
 
     @Override

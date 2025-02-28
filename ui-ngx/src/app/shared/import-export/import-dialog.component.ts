@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -86,7 +86,7 @@ export class ImportDialogComponent extends DialogComponent<ImportDialogComponent
     this.importFormGroup = this.fb.group({
       importType: ['file'],
       fileContent: [null, [Validators.required]],
-      jsonContent: [null, [Validators.required]]
+      jsonContent: [{ value: null, disabled: true }, [Validators.required]]
     });
     this.importFormGroup.get('importType').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)

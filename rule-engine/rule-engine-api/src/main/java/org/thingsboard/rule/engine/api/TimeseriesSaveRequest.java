@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,10 +53,18 @@ public class TimeseriesSaveRequest {
     private final EntityId entityId;
     private final List<TsKvEntry> entries;
     private final long ttl;
-    private final boolean saveLatest;
-    private final boolean onlyLatest;
+    private final Strategy strategy;
     private final boolean overwriteValue;
     private final FutureCallback<Void> callback;
+
+    public record Strategy(boolean saveTimeseries, boolean saveLatest, boolean sendWsUpdate) {
+
+        public static final Strategy SAVE_ALL = new Strategy(true, true, true);
+        public static final Strategy WS_ONLY = new Strategy(false, false, true);
+        public static final Strategy LATEST_AND_WS = new Strategy(false, true, true);
+        public static final Strategy SKIP_ALL = new Strategy(false, false, false);
+
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -69,10 +77,9 @@ public class TimeseriesSaveRequest {
         private EntityId entityId;
         private List<TsKvEntry> entries;
         private long ttl;
-        private FutureCallback<Void> callback;
-        private boolean saveLatest = true;
-        private boolean onlyLatest;
+        private Strategy strategy = Strategy.SAVE_ALL;
         private boolean overwriteValue;
+        private FutureCallback<Void> callback;
 
         Builder() {}
 
@@ -109,14 +116,8 @@ public class TimeseriesSaveRequest {
             return this;
         }
 
-        public Builder saveLatest(boolean saveLatest) {
-            this.saveLatest = saveLatest;
-            return this;
-        }
-
-        public Builder onlyLatest(boolean onlyLatest) {
-            this.onlyLatest = onlyLatest;
-            this.saveLatest = true;
+        public Builder strategy(Strategy strategy) {
+            this.strategy = strategy;
             return this;
         }
 
@@ -145,7 +146,7 @@ public class TimeseriesSaveRequest {
         }
 
         public TimeseriesSaveRequest build() {
-            return new TimeseriesSaveRequest(tenantId, customerId, entityId, entries, ttl, saveLatest, onlyLatest, overwriteValue, callback);
+            return new TimeseriesSaveRequest(tenantId, customerId, entityId, entries, ttl, strategy, overwriteValue, callback);
         }
 
     }

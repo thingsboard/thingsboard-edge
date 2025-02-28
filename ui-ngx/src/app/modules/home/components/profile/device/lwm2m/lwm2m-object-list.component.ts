@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -205,7 +205,7 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
   private fetchListObjects = (searchText: string): Observable<Array<ObjectLwM2M>> =>  {
     this.searchText = searchText;
     const pageLink = new PageLink(PAGE_SIZE_LIMIT, 0, this.searchText, {
-      property: 'id',
+      property: 'resourceKey',
       direction: Direction.ASC
     });
     return this.deviceProfileService.getLwm2mObjectsPage(pageLink);

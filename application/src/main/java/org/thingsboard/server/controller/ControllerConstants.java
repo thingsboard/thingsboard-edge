@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -575,6 +575,7 @@ public class ControllerConstants {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     protected static final String DEFAULT_DASHBOARD = "defaultDashboardId";
+    protected static final String DEFAULT_DASHBOARD_FULLSCREEN = "defaultDashboardFullscreen";
     protected static final String HOME_DASHBOARD = "homeDashboardId";
 
     protected static final String SINGLE_ENTITY = "\n\n## Single Entity\n\n" +
