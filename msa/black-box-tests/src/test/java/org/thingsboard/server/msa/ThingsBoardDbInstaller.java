@@ -169,7 +169,7 @@ public class ThingsBoardDbInstaller {
         env.put("TB_COAP_INTEGRATION_VOLUME", tbCoapIntegrationLogVolume);
         env.put("TB_TCP_INTEGRATION_VOLUME", tbTcpIntegrationLogVolume);
         env.put("TB_UDP_INTEGRATION_VOLUME", tbUdpIntegrationLogVolume);
-        env.put("TB_EDQS_VOLUME", tbEdqsLogVolume);
+        env.put("TB_EDQS_LOG_VOLUME", tbEdqsLogVolume);
 
         if (IS_REDIS_CLUSTER) {
             for (int i = 0; i < 6; i++) {
