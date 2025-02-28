@@ -84,14 +84,14 @@ public abstract class AbstractContainerTest {
 
     @BeforeSuite
     public void beforeSuite() {
-//        if ("false".equals(System.getProperty("runLocal", "false"))) {
-//            containerTestSuite.start();
-//        }
+        if ("false".equals(System.getProperty("runLocal", "false"))) {
+            containerTestSuite.start();
+        }
         testRestClient = new TestRestClient(TestProperties.getBaseUrl());
         remoteHttpClient = new TestRestClient(TestProperties.getRemoteHttpUrl());
-//        if (!"kafka".equals(System.getProperty("blackBoxTests.queue", "kafka"))) {
-//            timeoutMultiplier = 10;
-//        }
+        if (!"kafka".equals(System.getProperty("blackBoxTests.queue", "kafka"))) {
+            timeoutMultiplier = 10;
+        }
     }
 
     @AfterSuite
