@@ -169,7 +169,7 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
 
     @Override
     public Resource createGatewayDockerComposeFile(String baseUrl, Device device) throws URISyntaxException {
-        DockerComposeParams params = new DockerComposeParams(true, true, true, true, true);
+        DockerComposeParams params = new DockerComposeParams(true, "tb-gateway", true, true, true, true);
         return createGatewayDockerComposeFile(baseUrl, device, params);
     }
 

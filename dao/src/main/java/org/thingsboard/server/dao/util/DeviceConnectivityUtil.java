@@ -119,7 +119,7 @@ public class DeviceConnectivityUtil {
         dockerComposeBuilder.append("  # ThingsBoard IoT Gateway Service Configuration\n");
         dockerComposeBuilder.append("  tb-gateway:\n");
         dockerComposeBuilder.append("    image: thingsboard/tb-gateway\n");
-        dockerComposeBuilder.append("    container_name: tb-gateway\n");
+        dockerComposeBuilder.append("    container_name: ").append(params.containerName()).append("\n");
         dockerComposeBuilder.append("    restart: always\n");
         if (params.includePortBindings()) {
             dockerComposeBuilder.append("\n");

@@ -601,7 +601,7 @@ public class DefaultSolutionService implements SolutionService {
             template = template.replace("${" + credentialsInfo.getName() + "ACCESS_TOKEN}", credentialsInfo.getCredentials().getCredentialsId());
 
             if (credentialsInfo.isGateway()) {
-                template = template.replace("${DOCKER_CONFIG}", prepareDockerComposeFile(ctx.getTenantId(), baseUrl, credentialsInfo.getCredentials().getDeviceId()));
+                template = template.replace("${DOCKER_CONFIG}", prepareDockerComposeFile(ctx.getTenantId(), ctx.getSolutionId(), baseUrl, credentialsInfo.getCredentials().getDeviceId()));
             }
         }
 
@@ -665,10 +665,11 @@ public class DefaultSolutionService implements SolutionService {
         return dashboardLink;
     }
 
-    private String prepareDockerComposeFile(TenantId tenantId, String baseUrl, DeviceId deviceId) {
+    private String prepareDockerComposeFile(TenantId tenantId, String solutionId, String baseUrl, DeviceId deviceId) {
         Device device = new Device(deviceId);
         device.setTenantId(tenantId);
-        DockerComposeParams params = new DockerComposeParams(false, false, true, false, false);
+        String containerName = "tb-gateway-" + solutionId.replace('_', '-');
+        DockerComposeParams params = new DockerComposeParams(false, containerName, false, true, false, false);
         try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, params).getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         ) {

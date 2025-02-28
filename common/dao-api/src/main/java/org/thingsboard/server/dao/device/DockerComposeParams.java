@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.device;
 
-public record DockerComposeParams(boolean includeVersion, boolean includePortBindings, boolean includeExtraHosts,
-                                  boolean includeVolumesBind, boolean includeVolumesDeclaration) {
+public record DockerComposeParams(boolean includeVersion, String containerName, boolean includePortBindings,
+                                  boolean includeExtraHosts, boolean includeVolumesBind,
+                                  boolean includeVolumesDeclaration) {
 }
