@@ -144,7 +144,6 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.dao.entityview.EntityViewDao;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
@@ -176,7 +175,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.thingsboard.server.common.data.permission.Resource.ALL;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ATTRIBUTE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
@@ -3317,8 +3315,8 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     protected void createMultiRootHierarchy(List<Asset> buildings, List<Asset> apartments,
-                                          Map<String, Map<UUID, String>> entityNameByTypeMap,
-                                          Map<UUID, UUID> childParentRelationMap) throws InterruptedException {
+                                            Map<String, Map<UUID, String>> entityNameByTypeMap,
+                                            Map<UUID, UUID> childParentRelationMap) throws InterruptedException {
         for (int k = 0; k < 3; k++) {
             Asset building = new Asset();
             building.setTenantId(tenantId);
