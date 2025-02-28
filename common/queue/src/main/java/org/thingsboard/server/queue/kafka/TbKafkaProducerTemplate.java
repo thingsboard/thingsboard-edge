@@ -136,7 +136,7 @@ public class TbKafkaProducerTemplate<T extends TbQueueMsg> implements TbQueuePro
                     if (callback != null) {
                         callback.onFailure(exception);
                     } else {
-                        log.warn("Producer template failure:", exception);
+                        log.warn("Producer template failure", exception);
                     }
                 }
             });

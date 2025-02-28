@@ -37,6 +37,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,6 +113,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+import org.thingsboard.server.service.cf.CalculatedFieldCache;
 import org.thingsboard.server.service.custommenu.TbCustomMenuService;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
@@ -214,8 +216,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbImageService imageService,
                                         TbCustomTranslationService translationService,
                                         TbCustomMenuService customMenuService,
+                                        CalculatedFieldCache calculatedFieldCache,
                                         EdqsService edqsService) {
-        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, apiUsageStateService, partitionService,
+        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService,
                 eventPublisher, jwtSettingsService);
         this.stateService = stateService;
         this.schedulerService = schedulerService;
@@ -315,7 +318,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
         TbPackProcessingContext<TbProtoQueueMsg<ToCoreMsg>> ctx = new TbPackProcessingContext<>(
                 processingTimeoutLatch, pendingMap, new ConcurrentHashMap<>());
-        PendingMsgHolder pendingMsgHolder = new PendingMsgHolder();
+        PendingMsgHolder<ToCoreMsg> pendingMsgHolder = new PendingMsgHolder<>();
         Future<?> packSubmitFuture = consumersExecutor.submit(() -> {
             orderedMsgList.forEach((element) -> {
                 UUID id = element.getUuid();
@@ -324,7 +327,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                 TbCallback callback = new TbPackCallback<>(id, ctx);
                 try {
                     ToCoreMsg toCoreMsg = msg.getValue();
-                    pendingMsgHolder.setToCoreMsg(toCoreMsg);
+                    pendingMsgHolder.setMsg(toCoreMsg);
                     if (toCoreMsg.hasToSubscriptionMgrMsg()) {
                         log.trace("[{}] Forwarding message to subscription manager service {}", id, toCoreMsg.getToSubscriptionMgrMsg());
                         forwardToSubMgrService(toCoreMsg.getToSubscriptionMgrMsg(), callback);
@@ -380,8 +383,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         if (!processingTimeoutLatch.await(packProcessingTimeout, TimeUnit.MILLISECONDS)) {
             if (!packSubmitFuture.isDone()) {
                 packSubmitFuture.cancel(true);
-                ToCoreMsg lastSubmitMsg = pendingMsgHolder.getToCoreMsg();
-                log.info("Timeout to process message: {}", lastSubmitMsg);
+                log.info("Timeout to process message: {}", pendingMsgHolder.getMsg());
             }
             if (log.isDebugEnabled()) {
                 ctx.getAckMap().forEach((id, msg) -> log.debug("[{}] Timeout to process message: {}", id, msg.getValue()));
@@ -389,12 +391,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             ctx.getFailedMap().forEach((id, msg) -> log.warn("[{}] Failed to process message: {}", id, msg.getValue()));
         }
         consumer.commit();
-    }
-
-    private static class PendingMsgHolder {
-        @Getter
-        @Setter
-        private volatile ToCoreMsg toCoreMsg;
     }
 
     @Override

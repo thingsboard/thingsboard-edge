@@ -135,29 +135,29 @@ export interface ImageExportData {
 export type ImageResourceType = 'tenant' | 'system';
 export type TBResourceScope = 'tenant' | 'system';
 
-export type ImageReferences = Array<BaseData<HasId> | WhiteLabeling>;
+export type ResourceReferences = Array<BaseData<HasId> | WhiteLabeling>;
 
-export interface ImageResourceInfoWithReferences extends ImageResourceInfo {
-  references: ImageReferences;
+export interface ResourceInfoWithReferences extends ResourceInfo {
+  references: ResourceReferences;
 }
 
-export interface ImageDeleteResult {
-  image: ImageResourceInfo;
+export interface ResourceDeleteResult {
+  resource: TbResourceInfo<any>;
   success: boolean;
-  imageIsReferencedError?: boolean;
+  resourceIsReferencedError?: boolean;
   error?: any;
-  references?: ImageReferences;
+  references?: ResourceReferences;
 }
 
-export const toImageDeleteResult = (image: ImageResourceInfo, e?: any): ImageDeleteResult => {
+export const toResourceDeleteResult = (resource: ResourceInfo, e?: any): ResourceDeleteResult => {
   if (!e) {
-    return {image, success: true};
+    return {resource, success: true};
   } else {
-    const result: ImageDeleteResult = {image, success: false, error: e};
-    if (e?.status === 400 && e?.error?.success === false && (e?.error?.references || e?.error?.whiteLabelingList)) {
+    const result: ResourceDeleteResult = {resource, success: false, error: e};
+    if (e?.status === 400 && e?.error?.success === false && e?.error?.references) {
       const entityReferences: {[entityType: string]: Array<BaseData<HasId>>} = e?.error?.references;
       const whiteLabelingList: Array<WhiteLabeling> = e?.error?.whiteLabelingList;
-      const references: ImageReferences = [];
+      const references: ResourceReferences = [];
       if (entityReferences) {
         for (const entityTypeStr of Object.keys(entityReferences)) {
           const entities = entityReferences[entityTypeStr];
@@ -167,7 +167,7 @@ export const toImageDeleteResult = (image: ImageResourceInfo, e?: any): ImageDel
       if (whiteLabelingList) {
         references.push.apply(references, whiteLabelingList);
       }
-      result.imageIsReferencedError = true;
+      result.resourceIsReferencedError = true;
       result.references = references;
     }
     return result;

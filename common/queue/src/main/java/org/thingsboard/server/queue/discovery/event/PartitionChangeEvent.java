@@ -39,6 +39,7 @@ import org.thingsboard.server.queue.discovery.QueueKey;
 
 import java.io.Serial;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,6 +76,10 @@ public class PartitionChangeEvent extends TbApplicationEvent {
 
     public Set<TopicPartitionInfo> getPartitions() {
         return newPartitions.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+    }
+
+    public Set<TopicPartitionInfo> getCfPartitions() {
+        return newPartitions.getOrDefault(QueueKey.CF, Collections.emptySet());
     }
 
     private Set<TopicPartitionInfo> getPartitionsByServiceTypeAndQueueName(ServiceType serviceType, String queueName) {
