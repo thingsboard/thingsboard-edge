@@ -29,20 +29,15 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Component, ElementRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
-import { AppState } from '@app/core/core.state';
-import { TranslateService } from '@ngx-translate/core';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { ConverterService } from '@core/http/converter.service';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { PageLink } from '@shared/models/page/page-link';
 import { getEntityDetailsPageURL } from '@core/utils';
-import { TruncatePipe } from '@shared/pipe/truncate.pipe';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatDialog } from '@angular/material/dialog';
 import {
@@ -50,6 +45,8 @@ import {
   AddConverterDialogData
 } from '@home/components/converter/add-converter-dialog.component';
 import { Operation, Resource } from '@shared/models/security.models';
+import { IntegrationType } from '@shared/models/integration.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-converter-autocomplete',
@@ -61,13 +58,11 @@ import { Operation, Resource } from '@shared/models/security.models';
     multi: true
   }]
 })
-export class ConverterAutocompleteComponent implements ControlValueAccessor, OnInit {
+export class ConverterAutocompleteComponent implements ControlValueAccessor, OnInit, OnChanges {
 
-  selectConverterFormGroup: UntypedFormGroup;
+  selectConverterFormGroup: FormGroup;
 
   private modelValue: ConverterId | string | null;
-
-  private converterTypeValue: ConverterType;
 
   @Input()
   useFullEntityId = false;
@@ -79,32 +74,20 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   addNewConverter = false;
 
   @Input()
-  set converterType(converterType: ConverterType) {
-    if (this.converterTypeValue !== converterType) {
-      this.converterTypeValue = converterType;
-      this.load();
-      this.reset();
-      this.dirty = true;
-    }
-  }
+  converterType: ConverterType;
 
   @Input()
   excludeEntityIds: Array<string>;
 
   @Input()
-  labelText: string;
+  labelText = 'converter.converter';
 
   @Input()
-  requiredText: string;
+  requiredText = 'converter.converter-required';
 
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  required: boolean;
 
   @Input()
   disabled: boolean;
@@ -112,11 +95,11 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   @Input()
   showDetailsPageLink = false;
 
+  @Input()
+  integrationType: IntegrationType
+
   @ViewChild('converterInput', {static: true}) converterInput: ElementRef<HTMLElement>;
   @ViewChild('converterInput', {read: MatAutocompleteTrigger}) converterAutocomplete: MatAutocompleteTrigger;
-
-  entityText: string;
-  entityRequiredText: string;
 
   filteredEntities: Observable<Array<Converter>>;
 
@@ -128,14 +111,11 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
 
   private dirty = false;
 
-  private propagateChange = (v: any) => { };
+  private propagateChange: (value: any) => void = () => {};
 
-  constructor(private store: Store<AppState>,
-              public translate: TranslateService,
-              public truncate: TruncatePipe,
-              private converterService: ConverterService,
-              public dialog: MatDialog,
-              private fb: UntypedFormBuilder) {
+  constructor(private converterService: ConverterService,
+              private dialog: MatDialog,
+              private fb: FormBuilder) {
     this.selectConverterFormGroup = this.fb.group({
       entity: [null]
     });
@@ -145,7 +125,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   ngOnInit() {
@@ -165,36 +145,20 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
           }
         }),
         map(value => value ? (typeof value === 'string' ? value.trim() : value.name) : ''),
-        distinctUntilChanged(),
-        switchMap(name => this.fetchEntities(name) ),
+        switchMap(name => this.fetchEntities(name)),
         share()
       );
   }
 
-  private load() {
-    this.entityText = 'converter.converter';
-    this.entityRequiredText = 'converter.converter-required';
-    if (this.labelText && this.labelText.length) {
-      this.entityText = this.labelText;
-    }
-    if (this.requiredText && this.requiredText.length) {
-      this.entityRequiredText = this.requiredText;
-    }
-    const currentEntity = this.getCurrentEntity();
-    if (currentEntity) {
-      const currentConverterType = currentEntity.type;
-      if (this.converterTypeValue && currentConverterType !== this.converterTypeValue) {
-        this.reset();
+  ngOnChanges(changes: SimpleChanges) {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        if (propName === 'converterType' || propName === 'integrationType') {
+          this.reset();
+          this.dirty = true;
+        }
       }
-    }
-  }
-
-  private getCurrentEntity(): Converter | null {
-    const currentEntity = this.selectConverterFormGroup.get('entity').value;
-    if (currentEntity && typeof currentEntity !== 'string') {
-      return currentEntity as Converter;
-    } else {
-      return null;
     }
   }
 
@@ -257,7 +221,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
       limit += this.excludeEntityIds.length;
     }
     const pageLink = new PageLink(limit, 0, this.searchText);
-    return this.converterService.getConvertersByEdgeTemplate(pageLink, this.isEdgeTemplate, {ignoreLoading: true}).pipe(
+    return this.converterService.getConvertersByEdgeTemplate(pageLink, this.isEdgeTemplate, this.integrationType, {ignoreLoading: true}).pipe(
       catchError(() => of(null)),
       map((data) => {
           if (data) {
@@ -267,8 +231,8 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
             } else {
               entities = data.data;
             }
-            if (this.converterTypeValue) {
-              entities = entities.filter((converter) => converter.type === this.converterTypeValue);
+            if (this.converterType) {
+              entities = entities.filter((converter) => converter.type === this.converterType);
             }
             return entities;
           } else {
@@ -301,7 +265,8 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
         data: {
           name: converterName.trim(),
           edgeTemplate: this.isEdgeTemplate,
-          type: this.converterTypeValue
+          type: this.converterType,
+          integrationType: this.integrationType
         }
       }).afterClosed().subscribe(
         (entity) => {

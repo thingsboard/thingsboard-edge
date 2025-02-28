@@ -132,9 +132,8 @@
 </div>
 <tb-converter [class.!hidden]="!libraryFormGroup.get('vendor').value?.name || !libraryFormGroup.get('model').value?.name"
               #dataConverter
-              [integrationType]="integrationType"
               [libraryInfo]="{ vendorName: libraryFormGroup.get('vendor').value?.name, modelName: libraryFormGroup.get('model').value?.name }"
-              hideType="true"
+              hideTypes="true"
               isEdit="true"
               [entity]="converter$ | async"
 />

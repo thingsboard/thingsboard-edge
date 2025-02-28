@@ -58,6 +58,7 @@ import { PageData } from '@shared/models/page/page-data';
 import { isUndefined } from '@core/utils';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
+import { integrationTypeInfoMap } from '@shared/models/integration.models';
 
 @Injectable()
 export class ConvertersTableConfigResolver  {
@@ -83,18 +84,24 @@ export class ConvertersTableConfigResolver  {
         return getConverterHelpLink(entity);
       }
     };
-    this.config.addDialogStyle = {width: '600px'};
+    this.config.addDialogStyle = {width: '750px'};
 
     this.config.entityTitle = (converter) => converter ?
       this.utils.customTranslation(converter.name, converter.name) : '';
 
     this.config.columns.push(
       new DateEntityTableColumn<Converter>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Converter>('name', 'converter.name', '33%', this.config.entityTitle),
-      new EntityTableColumn<Converter>('type', 'converter.type', '33%', (converter) => {
+      new EntityTableColumn<Converter>('name', 'converter.name', '35%', this.config.entityTitle),
+      new EntityTableColumn<Converter>('type', 'converter.type', '20%', (converter) => {
         return this.translate.instant(converterTypeTranslationMap.get(converter.type));
       }),
-      new EntityTableColumn<Converter>('description', 'converter.description', '33%',
+      new EntityTableColumn<Converter>('integrationType', 'converter.integration-type', '20%', (converter) => {
+        if (integrationTypeInfoMap.has(converter.integrationType)) {
+          return this.translate.instant(integrationTypeInfoMap.get(converter.integrationType).name);
+        }
+        return '';
+      }),
+      new EntityTableColumn<Converter>('description', 'converter.description', '25%',
         (converter) => this.customTranslate.transform(converter.additionalInfo?.description || ''),
         () => ({}), false),
     );

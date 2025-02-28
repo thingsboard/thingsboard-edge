@@ -46,6 +46,7 @@ import {
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
+import { IntegrationType } from '@shared/models/integration.models';
 
 @Injectable({
   providedIn: 'root'
@@ -57,12 +58,19 @@ export class ConverterService {
   ) { }
 
   public getConverters(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Converter>> {
-    return this.getConvertersByEdgeTemplate(pageLink, false, config);
+    return this.getConvertersByEdgeTemplate(pageLink, false, null, config);
   }
 
-  public getConvertersByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean, config?: RequestConfig): Observable<PageData<Converter>> {
-    return this.http.get<PageData<Converter>>(`/api/converters${pageLink.toQuery()}&isEdgeTemplate=${isEdgeTemplate}`,
-      defaultHttpOptionsFromConfig(config));
+  public getConvertersByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean, integrationType?: IntegrationType,
+                                     config?: RequestConfig): Observable<PageData<Converter>> {
+    let url = `/api/converters${pageLink.toQuery()}`;
+    if (isEdgeTemplate) {
+      url += `&isEdgeTemplate=${isEdgeTemplate}`;
+    }
+    if (integrationType) {
+      url += `&integrationType=${integrationType}`;
+    }
+    return this.http.get<PageData<Converter>>(url, defaultHttpOptionsFromConfig(config));
   }
 
   public getConvertersByIds(converterIds: Array<string>, config?: RequestConfig): Observable<Array<Converter>> {

@@ -59,7 +59,7 @@
            (matChipInputTokenEnd)="addItem($event)"
            [matAutocompleteConnectedTo]="origin"
            [matAutocomplete]="stringItemAutocomplete"
-           [matAutocompleteDisabled]="!predefinedValues?.length">
+           [matAutocompleteDisabled]="!predefinedValues?.length && !fetchOptionsFn">
   </mat-chip-grid>
   <mat-autocomplete #stringItemAutocomplete="matAutocomplete"
                     [displayWith]="displayValueFn"

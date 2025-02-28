@@ -37,6 +37,7 @@ import { ActivatedRouteSnapshot } from '@angular/router';
 import { IntegrationType } from '@shared/models/integration.models';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { HasEntityDebugSettings } from '@shared/models/entity.models';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -56,12 +57,22 @@ export const IntegrationTbelDefaultConvertersUrl = new Map<IntegrationType, stri
   [IntegrationType.KPN, '/assets/converters/tbel-kpn-decoder.raw']
 ]);
 
-export const jsDefaultConvertorsUrl = new Map<ConverterType, string>([
+export const jsDefaultConvertersUrl = new Map<ConverterType, string>([
   [ConverterType.UPLINK, '/assets/converters/js-decoder.raw' ],
   [ConverterType.DOWNLINK, '/assets/converters/js-encoder.raw'],
 ]);
 
-export const tbelDefaultConvertorsUrl = new Map<ConverterType, string>([
+export const jsDefaultConvertersV2Url = new Map<ConverterType, string>([
+  [ConverterType.UPLINK, '/assets/converters/js-decoder.raw' ],
+  [ConverterType.DOWNLINK, '/assets/converters/js-encoder.raw'],
+]);
+
+export const tbelDefaultConvertersUrl = new Map<ConverterType, string>([
+  [ConverterType.UPLINK, '/assets/converters/tbel-decoder.raw' ],
+  [ConverterType.DOWNLINK, '/assets/converters/tbel-encoder.raw'],
+]);
+
+export const tbelDefaultConvertersV2Url = new Map<ConverterType, string>([
   [ConverterType.UPLINK, '/assets/converters/tbel-decoder.raw' ],
   [ConverterType.DOWNLINK, '/assets/converters/tbel-encoder.raw'],
 ]);
@@ -76,13 +87,17 @@ export const converterTypeTranslationMap = new Map<ConverterType, string>(
   ]
 );
 
+export type ConverterVersion = 1 | 2;
+
 export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId>, HasEntityDebugSettings {
   tenantId?: TenantId;
   name: string;
   type: ConverterType;
-  configuration: ConverterConfig;
+  configuration: ConverterConfig & Partial<ConverterConfigV2>;
   additionalInfo?: any;
   edgeTemplate: boolean;
+  integrationType?: IntegrationType;
+  converterVersion: ConverterVersion;
 }
 
 export interface ConverterConfig {
@@ -92,6 +107,17 @@ export interface ConverterConfig {
   encoder: string;
   tbelEncoder: string;
   updateOnlyKeys: string[];
+}
+
+export interface ConverterConfigV2 extends ConverterConfig {
+  type: EntityType.DEVICE | EntityType.ASSET;
+  name: string;
+  profile: string;
+  label: string;
+  customer: string;
+  group: string;
+  attributes: string[];
+  telemetry: string[];
 }
 
 export interface TestUpLinkInputParams {
@@ -179,3 +205,60 @@ export function resolveConverterParams(route: ActivatedRouteSnapshot): Converter
     converterScope: route.data.convertersType ? route.data.convertersType : 'tenant'
   };
 }
+
+const getJsTemplateUrl = (
+  converterType: ConverterType,
+  converterVersion: ConverterVersion
+): string => {
+  const url =
+    converterVersion === 2
+      ? jsDefaultConvertersV2Url.get(converterType)
+      : jsDefaultConvertersUrl.get(converterType);
+  if (!url) {
+    throw new Error(
+      `JS template URL not found for converterType: ${converterType} and converterVersion: ${converterVersion}`
+    );
+  }
+  return url;
+};
+
+const getTbelTemplateUrl = (
+  converterType: ConverterType,
+  converterVersion: ConverterVersion
+): string => {
+  const url =
+    converterVersion === 2
+      ? tbelDefaultConvertersV2Url.get(converterType)
+      : tbelDefaultConvertersUrl.get(converterType);
+  if (!url) {
+    throw new Error(
+      `Tbel template URL not found for converterType: ${converterType} and converterVersion: ${converterVersion}`
+    );
+  }
+  return url;
+};
+
+export const getTargetField =
+  (converterType: ConverterType, scriptLang: ScriptLanguage): string => {
+    return scriptLang === ScriptLanguage.TBEL
+      ? (converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder')
+      : (converterType === ConverterType.UPLINK ? 'decoder' : 'encoder');
+  }
+
+export const getTargetTemplateUrl =
+  (converterType: ConverterType, scriptLang: ScriptLanguage,
+   integrationType: IntegrationType, converterVersion: ConverterVersion = 1): string => {
+    if (scriptLang === ScriptLanguage.JS) {
+      return getJsTemplateUrl(converterType, converterVersion);
+    } else if (converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(integrationType)) {
+      return IntegrationTbelDefaultConvertersUrl.get(integrationType);
+    }
+    return getTbelTemplateUrl(converterType, converterVersion);
+  }
+
+export const getConverterFunctionHeldId =
+  (converterType: ConverterType, scriptLang: ScriptLanguage): string => {
+    return scriptLang === ScriptLanguage.TBEL
+      ? (converterType === ConverterType.UPLINK ? 'converter/tbel/decoder_fn' : 'converter/tbel/encoder_fn')
+      : (converterType === ConverterType.UPLINK ? 'converter/decoder_fn' : 'converter/encoder_fn');
+  }
