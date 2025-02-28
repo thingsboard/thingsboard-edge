@@ -915,7 +915,7 @@ public class DeviceServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testDeleteAssetIfReferencedInCalculatedField() {
+    public void testDeleteDeviceIfReferencedInCalculatedField() {
         Device device = saveDevice(tenantId, "Test Device");
         Device deviceWithCf = saveDevice(tenantId, "Device with CF");
 
