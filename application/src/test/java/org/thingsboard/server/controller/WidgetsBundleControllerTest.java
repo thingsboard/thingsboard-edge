@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -110,7 +110,7 @@ public class WidgetsBundleControllerTest extends AbstractControllerTest {
         Assert.assertEquals(widgetsBundle.getTitle(), savedWidgetsBundle.getTitle());
 
         savedWidgetsBundle.setTitle("My new widgets bundle");
-        doPost("/api/widgetsBundle", savedWidgetsBundle, WidgetsBundle.class);
+        savedWidgetsBundle = doPost("/api/widgetsBundle", savedWidgetsBundle, WidgetsBundle.class);
 
         WidgetsBundle foundWidgetsBundle = doGet("/api/widgetsBundle/" + savedWidgetsBundle.getId().getId().toString(), WidgetsBundle.class);
         Assert.assertEquals(foundWidgetsBundle.getTitle(), savedWidgetsBundle.getTitle());

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -794,7 +794,7 @@ export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.RULE_CHAIN, '/ruleChains'],
   [EntityType.EDGE, '/edgeManagement/instances/all'],
   [EntityType.ENTITY_VIEW, '/entities/entityViews/all'],
-  [EntityType.ROLE, '/roles'],
+  [EntityType.ROLE, '/security-settings/roles'],
   [EntityType.TB_RESOURCE, '/resources/resources-library'],
   [EntityType.OTA_PACKAGE, '/features/otaUpdates'],
   [EntityType.QUEUE, '/settings/queues'],

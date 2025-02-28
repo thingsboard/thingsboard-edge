@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -884,7 +884,7 @@ export class ImportExportService {
   private processCSVCell(cellData: any): any {
     if (isString(cellData)) {
       let result = cellData.replace(/"/g, '""');
-      if (result.search(/([",\n])/g) >= 0) {
+      if (result.search(/([",;\n])/g) >= 0) {
         result = `"${result}"`;
       }
       return result;
