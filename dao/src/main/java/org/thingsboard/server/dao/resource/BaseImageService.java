@@ -97,8 +97,6 @@ import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 @Slf4j
 public class BaseImageService extends BaseResourceService implements ImageService {
 
-    private static final int MAX_ENTITIES_TO_FIND = 10;
-
     public static Map<String, String> DASHBOARD_BASE64_MAPPING = new HashMap<>();
     public static Map<String, String> WIDGET_TYPE_BASE64_MAPPING = new HashMap<>();
 
@@ -134,8 +132,6 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     private final AssetProfileDao assetProfileDao;
     private final DeviceProfileDao deviceProfileDao;
     private final WidgetsBundleDao widgetsBundleDao;
-    private final WidgetTypeDao widgetTypeDao;
-    private final DashboardInfoDao dashboardInfoDao;
     private final WhiteLabelingDao whiteLabelingDao;
     private final DomainDao domainDao;
     private final Map<EntityType, ImageContainerDao<?>> imageContainerDaoMap = new HashMap<>();
@@ -143,12 +139,10 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     public BaseImageService(TbResourceDao resourceDao, TbResourceInfoDao resourceInfoDao, ResourceDataValidator resourceValidator,
                             AssetProfileDao assetProfileDao, DeviceProfileDao deviceProfileDao, WidgetsBundleDao widgetsBundleDao,
                             WidgetTypeDao widgetTypeDao, DashboardInfoDao dashboardInfoDao, WhiteLabelingDao whiteLabelingDao, DomainDao domainDao) {
-        super(resourceDao, resourceInfoDao, resourceValidator);
+        super(resourceDao, resourceInfoDao, resourceValidator, widgetTypeDao, dashboardInfoDao);
         this.assetProfileDao = assetProfileDao;
         this.deviceProfileDao = deviceProfileDao;
         this.widgetsBundleDao = widgetsBundleDao;
-        this.widgetTypeDao = widgetTypeDao;
-        this.dashboardInfoDao = dashboardInfoDao;
         this.whiteLabelingDao = whiteLabelingDao;
         this.domainDao = domainDao;
     }
@@ -161,7 +155,6 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         imageContainerDaoMap.put(EntityType.ASSET_PROFILE, assetProfileDao);
         imageContainerDaoMap.put(EntityType.DASHBOARD, dashboardInfoDao);
     }
-
 
     @Override
     @SneakyThrows
@@ -369,7 +362,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             }
         }
         if (success) {
-            deleteResource(tenantId, imageId, force);
+            success = deleteResource(tenantId, imageId, true)
+                    .isSuccess();
         }
         return result.success(success).build();
     }

@@ -52,7 +52,7 @@ import static org.thingsboard.rule.engine.telemetry.settings.AttributesProcessin
         @JsonSubTypes.Type(value = Deduplicate.class, name = "DEDUPLICATE"),
         @JsonSubTypes.Type(value = Advanced.class, name = "ADVANCED")
 })
-public sealed interface AttributesProcessingSettings extends BaseProcessingSettings permits OnEveryMessage, Deduplicate, WebSocketsOnly, Advanced {
+public sealed interface AttributesProcessingSettings extends ProcessingSettings permits OnEveryMessage, Deduplicate, WebSocketsOnly, Advanced {
 
     record Advanced(ProcessingStrategy attributes, ProcessingStrategy webSockets) implements AttributesProcessingSettings {
 

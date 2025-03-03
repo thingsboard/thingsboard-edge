@@ -159,6 +159,9 @@ class TbMsgAttributesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entry(new DoubleDataEntry("temperature", 22.3))
                 .notifyDevice(false)
                 .strategy(Strategy.PROCESS_ALL)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -201,6 +204,9 @@ class TbMsgAttributesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entry(new DoubleDataEntry("temperature", 22.3))
                 .notifyDevice(false)
                 .strategy(Strategy.PROCESS_ALL)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -240,6 +246,9 @@ class TbMsgAttributesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entry(new DoubleDataEntry("temperature", 22.3))
                 .notifyDevice(false)
                 .strategy(Strategy.WS_ONLY)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .build();
 
         node.onMsg(ctxMock, msg);
@@ -285,6 +294,9 @@ class TbMsgAttributesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .entry(new DoubleDataEntry("temperature", 22.3))
                 .notifyDevice(false)
                 .strategy(Strategy.PROCESS_ALL)
+                .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
+                .tbMsgId(msg.getId())
+                .tbMsgType(msg.getInternalType())
                 .build();
 
         node.onMsg(ctxMock, msg);
