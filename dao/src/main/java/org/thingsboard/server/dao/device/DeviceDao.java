@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.ProfileEntityIdInfo;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -90,6 +91,16 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao<Device>, Exporta
      * @return the list of device objects
      */
     PageData<Device> findDevicesByTenantIdAndType(UUID tenantId, String type, PageLink pageLink);
+
+    /**
+     * Find device ids by tenantId, type and page link.
+     *
+     * @param tenantId the tenantId
+     * @param deviceProfileId the deviceProfileId
+     * @param pageLink the page link
+     * @return the list of device objects
+     */
+    PageData<DeviceId> findDeviceIdsByTenantIdAndDeviceProfileId(UUID tenantId, UUID deviceProfileId, PageLink pageLink);
 
     /**
      * Find devices by tenantId and devices Ids.
@@ -215,5 +226,7 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao<Device>, Exporta
     Long countByDeviceProfileAndEmptyOtaPackage(UUID tenantId, UUID deviceProfileId, OtaPackageType type);
 
     PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink);
+
+    PageData<ProfileEntityIdInfo> findProfileEntityIdInfos(PageLink pageLink);
 
 }

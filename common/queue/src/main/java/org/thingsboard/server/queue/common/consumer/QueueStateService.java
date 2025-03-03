@@ -39,8 +39,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.thingsboard.server.common.msg.queue.TopicPartitionInfo.withTopic;
 
@@ -55,7 +55,7 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
     private final Set<TopicPartitionInfo> partitionsInProgress = ConcurrentHashMap.newKeySet();
     private boolean initialized;
 
-    private final Lock lock = new ReentrantLock();
+    private final ReadWriteLock partitionsLock = new ReentrantReadWriteLock();
 
     public void init(PartitionedQueueConsumerManager<S> stateConsumer, PartitionedQueueConsumerManager<E> eventConsumer) {
         this.stateConsumer = stateConsumer;
@@ -64,7 +64,8 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
 
     public void update(Set<TopicPartitionInfo> newPartitions) {
         newPartitions = withTopic(newPartitions, stateConsumer.getTopic());
-        lock.lock();
+        var writeLock = partitionsLock.writeLock();
+        writeLock.lock();
         Set<TopicPartitionInfo> oldPartitions = this.partitions != null ? this.partitions : Collections.emptySet();
         Set<TopicPartitionInfo> addedPartitions;
         Set<TopicPartitionInfo> removedPartitions;
@@ -75,7 +76,7 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
             removedPartitions.removeAll(newPartitions);
             this.partitions = newPartitions;
         } finally {
-            lock.unlock();
+            writeLock.unlock();
         }
 
         if (!removedPartitions.isEmpty()) {
@@ -86,7 +87,8 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
         if (!addedPartitions.isEmpty()) {
             partitionsInProgress.addAll(addedPartitions);
             stateConsumer.addPartitions(addedPartitions, partition -> {
-                lock.lock();
+                var readLock = partitionsLock.readLock();
+                readLock.lock();
                 try {
                     partitionsInProgress.remove(partition);
                     log.info("Finished partition {} (still in progress: {})", partition, partitionsInProgress);
@@ -97,7 +99,7 @@ public class QueueStateService<E extends TbQueueMsg, S extends TbQueueMsg> {
                         eventConsumer.addPartitions(Set.of(partition.withTopic(eventConsumer.getTopic())));
                     }
                 } finally {
-                    lock.unlock();
+                    readLock.unlock();
                 }
             });
         }

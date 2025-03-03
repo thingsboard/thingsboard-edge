@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -143,7 +144,6 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.dao.entityview.EntityViewDao;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
@@ -175,7 +175,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.thingsboard.server.common.data.permission.Resource.ALL;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ATTRIBUTE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
@@ -2325,7 +2324,7 @@ public class EntityServiceTest extends AbstractControllerTest {
             In order to be careful with updating Relation Query while adding new Entity Type,
             this checkup will help to find place, where you could check the correctness of building query
              */
-            Assert.assertEquals(38, EntityType.values().length);
+            Assert.assertEquals(40, EntityType.values().length);
         }
     }
 
@@ -2672,7 +2671,7 @@ public class EntityServiceTest extends AbstractControllerTest {
             }
         }
 
-        List<ListenableFuture<Integer>> timeseriesFutures = new ArrayList<>();
+        List<ListenableFuture<TimeseriesSaveResult>> timeseriesFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             timeseriesFutures.add(saveLongTimeseries(device.getId(), "temperature", temperatures.get(i)));
@@ -3280,7 +3279,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         return attributesService.save(tenantId, entityId, scope, Collections.singletonList(attr));
     }
 
-    private ListenableFuture<Integer> saveLongTimeseries(EntityId entityId, String key, Double value) {
+    private ListenableFuture<TimeseriesSaveResult> saveLongTimeseries(EntityId entityId, String key, Double value) {
         TsKvEntity tsKv = new TsKvEntity();
         tsKv.setStrKey(key);
         tsKv.setDoubleValue(value);
@@ -3290,8 +3289,8 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     protected void createMultiRootHierarchy(List<Asset> buildings, List<Asset> apartments,
-                                          Map<String, Map<UUID, String>> entityNameByTypeMap,
-                                          Map<UUID, UUID> childParentRelationMap) throws InterruptedException {
+                                            Map<String, Map<UUID, String>> entityNameByTypeMap,
+                                            Map<UUID, UUID> childParentRelationMap) throws InterruptedException {
         for (int k = 0; k < 3; k++) {
             Asset building = new Asset();
             building.setTenantId(tenantId);

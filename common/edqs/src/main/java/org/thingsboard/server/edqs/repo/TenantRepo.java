@@ -273,7 +273,9 @@ public class TenantRepo {
             EntityType entityType = entity.getType();
             EntityData<?> removed = getEntityMap(entityType).remove(entityId);
             if (removed != null) {
-                getEntitySet(entityType).remove(removed);
+                if (removed.getFields() != null) {
+                    getEntitySet(entityType).remove(removed);
+                }
                 edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.DELETED));
             }
             switch (entityType) {

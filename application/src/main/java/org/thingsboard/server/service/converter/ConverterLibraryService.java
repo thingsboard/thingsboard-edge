@@ -38,7 +38,7 @@ import java.util.Map;
 
 public interface ConverterLibraryService {
 
-    List<Vendor> getVendors(IntegrationType integrationType);
+    List<Vendor> getVendors(IntegrationType integrationType, String converterType);
 
     List<Model> getVendorModels(IntegrationType integrationType, String converterType, String vendorName);
 

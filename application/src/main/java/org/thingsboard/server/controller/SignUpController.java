@@ -672,9 +672,14 @@ public class SignUpController extends BaseController {
         objectNode.put("lang", "en_US");
 
         Optional.ofNullable(selfRegistrationParams.getDefaultDashboard())
-                .ifPresent(dashboard -> {
-                    objectNode.put("defaultDashboardId", dashboard.getId());
-                    objectNode.put("defaultDashboardFullscreen", dashboard.isFullscreen());
+                .ifPresent(dashboardParams -> {
+                    objectNode.put(ControllerConstants.DEFAULT_DASHBOARD, dashboardParams.getId());
+                    objectNode.put(ControllerConstants.DEFAULT_DASHBOARD_FULLSCREEN, dashboardParams.isFullscreen());
+                });
+        Optional.ofNullable(selfRegistrationParams.getHomeDashboard())
+                .ifPresent(homeDashboardParams -> {
+                    objectNode.put(HOME_DASHBOARD_ID, homeDashboardParams.getId());
+                    objectNode.put(HOME_DASHBOARD_HIDE_TOOLBAR, homeDashboardParams.isHideToolbar());
                 });
         user.setAdditionalInfo(objectNode);
 

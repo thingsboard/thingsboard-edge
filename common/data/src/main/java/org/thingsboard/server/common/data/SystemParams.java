@@ -55,4 +55,7 @@ public class SystemParams {
     String ruleChainDebugPerTenantLimitsConfiguration;
     String integrationDebugPerTenantLimitsConfiguration;
     String converterDebugPerTenantLimitsConfiguration;
+    String calculatedFieldDebugPerTenantLimitsConfiguration;
+    long maxArgumentsPerCF;
+    long maxDataPointsPerRollingArg;
 }
