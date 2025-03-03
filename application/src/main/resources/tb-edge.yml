@@ -1844,7 +1844,7 @@ queue:
     # Thread pool size for processing of the incoming messages
     pool_size: "${TB_QUEUE_CF_POOL_SIZE:8}"
     # RocksDB path for storing CF states
-    rocks_db_path: "${TB_QUEUE_CF_ROCKS_DB_PATH:${user.home}/.rocksdb/cf_states}"
+    rocks_db_path: "${TB_QUEUE_CF_ROCKS_DB_PATH:${user.home}/.rocksdb/edge_cf_states}"
   transport:
     # For high-priority notifications that require minimum latency and processing time
     notifications_topic: "${TB_QUEUE_TRANSPORT_NOTIFICATIONS_TOPIC:tb_transport.notifications}"
