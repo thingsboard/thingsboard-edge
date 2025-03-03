@@ -435,6 +435,9 @@ public abstract class BaseCloudManagerService {
             resetQueueOffset();
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
+            this.currentEdgeSettings.setName(newEdgeSettings.getName());
+            this.currentEdgeSettings.setType(newEdgeSettings.getType());
+            this.currentEdgeSettings.setRoutingKey(newEdgeSettings.getRoutingKey());
         }
 
         cloudCtx.getTenantProcessor().createTenantIfNotExists(this.tenantId);

@@ -132,7 +132,6 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                     return handleUnsupportedMsgType(entityGroupUpdateMsg.getMsgType());
             }
         }
-
         if (entityGroup != null) {
             ObjectNode body = JacksonUtil.newObjectNode();
             body.put("type", entityGroup.getType().name());

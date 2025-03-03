@@ -33,6 +33,7 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
@@ -47,6 +48,7 @@ import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -58,6 +60,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UserCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock userCreationLock = new ReentrantLock();
+
+    @Autowired
+    private UserPermissionsService userPermissionsService;
 
     public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId, UserUpdateMsg userUpdateMsg) throws ThingsboardException {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
@@ -88,6 +93,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                             }
                         }
                         safeAddEntityToGroup(tenantId, userUpdateMsg, savedUser);
+                        userPermissionsService.onUserUpdatedOrRemoved(savedUser);
                     } finally {
                         userCreationLock.unlock();
                     }
