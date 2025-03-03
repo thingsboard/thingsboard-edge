@@ -35,6 +35,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +58,7 @@ import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.msg.edqs.EdqsApiService;
 import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -76,6 +78,8 @@ public class EntityQueryController extends BaseController {
     private EntityQueryService entityQueryService;
     @Autowired
     private EdqsService edqsService;
+    @Autowired
+    private EdqsApiService edqsApiService;
 
     private static final int MAX_PAGE_SIZE = 100;
 
@@ -161,4 +165,9 @@ public class EntityQueryController extends BaseController {
         edqsService.processSystemRequest(request);
     }
 
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @GetMapping("/edqs/enabled")
+    public boolean isEdqsApiEnabled() {
+        return edqsApiService.isEnabled();
+    }
 }

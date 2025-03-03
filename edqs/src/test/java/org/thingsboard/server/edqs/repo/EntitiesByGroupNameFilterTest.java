@@ -63,15 +63,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class EntitiesByGroupNameFilterTest extends AbstractEDQTest {
 
+    private UUID tenantDeviceId;
     private UUID deviceId;
     private UUID deviceId2;
     private UUID deviceId3;
 
+    private UUID tenantGroupAId;
     private UUID groupAId;
     private UUID groupBId;
 
     @Before
     public void setUp() {
+        tenantGroupAId = createGroup(EntityType.DEVICE, "Group A");
+        tenantDeviceId = createDevice("Tenant-Lora-1");
+        createRelation(EntityType.ENTITY_GROUP, tenantGroupAId, EntityType.DEVICE, tenantDeviceId, RelationTypeGroup.FROM_ENTITY_GROUP, "Contains");
+
         deviceId = createDevice(customerId, "Lora-1");
         deviceId2 = createDevice(customerId, "Lora-2");
         deviceId3 = createDevice(customerId, "Lora-3");
@@ -95,12 +101,18 @@ public class EntitiesByGroupNameFilterTest extends AbstractEDQTest {
         // get entity list
         var result = repository.findEntityDataByQuery(tenantId, null, RepositoryUtils.ALL_READ_PERMISSIONS, getEntitiesByGroupNameDataQuery(EntityType.DEVICE, "Group A", null, null), false);
 
-        Assert.assertEquals(2, result.getTotalElements());
+        Assert.assertEquals(1, result.getTotalElements());
         List<UUID> entityIds = result.getData().stream().map(queryResult -> queryResult.getEntityId().getId()).toList();
-        assertThat(entityIds).containsOnly(deviceId, deviceId2);
+        assertThat(entityIds).containsOnly(tenantDeviceId);
 
         result = repository.findEntityDataByQuery(tenantId, null, RepositoryUtils.ALL_READ_PERMISSIONS, getEntitiesByGroupNameDataQuery(EntityType.DEVICE, "Group B", null, null), false);
-        Assert.assertEquals(1, result.getTotalElements());
+        Assert.assertEquals(0, result.getTotalElements());
+
+        // find by customer owner id
+        result = repository.findEntityDataByQuery(tenantId, null, RepositoryUtils.ALL_READ_PERMISSIONS, getEntitiesByGroupNameDataQuery(EntityType.DEVICE, "Group A", customerId, null), false);
+        Assert.assertEquals(2, result.getTotalElements());
+        entityIds = result.getData().stream().map(queryResult -> queryResult.getEntityId().getId()).toList();
+        assertThat(entityIds).containsOnly(deviceId, deviceId2);
     }
 
     @Test

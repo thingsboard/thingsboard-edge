@@ -288,7 +288,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityCountQuery(query);
 
-        if (edqsApiService.isEnabled() && validForEdqs(query)) {
+        if (edqsApiService.isEnabled() && validForEdqs(query) && !tenantId.isSysTenantId()) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityCountQuery(query)
                     .userPermissions(userPermissions)

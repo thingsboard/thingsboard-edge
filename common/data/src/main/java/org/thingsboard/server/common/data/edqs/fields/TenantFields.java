@@ -71,4 +71,8 @@ public class TenantFields extends AbstractEntityFields {
         this.region = region;
     }
 
+    @Override
+    public UUID getTenantId() {
+        return getId();
+    }
 }

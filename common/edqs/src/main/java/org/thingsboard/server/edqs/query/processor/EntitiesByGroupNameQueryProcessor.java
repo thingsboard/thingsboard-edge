@@ -32,6 +32,7 @@ package org.thingsboard.server.edqs.query.processor;
 
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edqs.fields.EntityGroupFields;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.QueryContext;
 import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
 import org.thingsboard.server.edqs.data.CustomerData;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -56,13 +58,21 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
 
     private final String groupType;
     private final UUID ownerId;
+    private final EntityType ownerType;
     private final Pattern pattern;
+    private final Set<UUID> allCustomers;
 
     public EntitiesByGroupNameQueryProcessor(TenantRepo repo, QueryContext ctx, EdqsQuery query) {
         super(repo, ctx, query, (EntitiesByGroupNameFilter) query.getEntityFilter());
         this.groupType = filter.getGroupType().name();
         this.ownerId = filter.getOwnerId() != null ? filter.getOwnerId().getId() : null;
+        this.ownerType = filter.getOwnerId() != null ? filter.getOwnerId().getEntityType() : null;
         this.pattern = RepositoryUtils.toSqlLikePattern(filter.getEntityGroupNameFilter());
+        if (ctx.getCustomerId() != null) {
+            allCustomers = repo.getAllCustomers(ctx.getCustomerId().getId());
+        } else {
+            allCustomers = null;
+        }
     }
 
     @Override
@@ -125,12 +135,34 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
         EntityGroupFields fields = (EntityGroupFields)ed.getFields();
         return super.matches(ed) && groupType.equals(fields.getType())
                 && (pattern == null || pattern.matcher(fields.getName()).matches())
-                && (ownerId == null || ownerId.equals(fields.getOwnerId()));
+                && checkOwnerId(fields);
     }
 
     @Override
     protected int getProbableResultSize() {
         return 1024;
+    }
+
+    private boolean checkOwnerId(EntityGroupFields fields) {
+        if (ownerId != null) {
+            return ownerId.equals(fields.getOwnerId()) && ownerType.equals(fields.getOwnerType());
+        } else if (isEntityFromGenericPart(fields)) {
+            return fields.getOwnerId().equals(getCtxOwnerId(ctx).getId())
+                    && fields.getOwnerType().equals(getCtxOwnerId(ctx).getEntityType());
+        }
+        return true;
+    }
+
+    private boolean isEntityFromGenericPart(EntityGroupFields fields) {
+        return allCustomers == null || allCustomers.contains(fields.getCustomerId());
+    }
+
+    public EntityId getCtxOwnerId(QueryContext ctx) {
+        if (ctx.isTenantUser()) {
+            return ctx.getTenantId();
+        } else {
+            return ctx.getCustomerId();
+        }
     }
 
 }

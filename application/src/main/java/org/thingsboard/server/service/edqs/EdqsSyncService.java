@@ -60,38 +60,17 @@ import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
 import org.thingsboard.server.dao.sql.relation.RelationRepository;
 import org.thingsboard.server.dao.sqlts.latest.TsKvLatestRepository;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.thingsboard.server.common.data.ObjectType.API_USAGE_STATE;
-import static org.thingsboard.server.common.data.ObjectType.ASSET;
-import static org.thingsboard.server.common.data.ObjectType.ASSET_PROFILE;
 import static org.thingsboard.server.common.data.ObjectType.ATTRIBUTE_KV;
-import static org.thingsboard.server.common.data.ObjectType.BLOB_ENTITY;
-import static org.thingsboard.server.common.data.ObjectType.CONVERTER;
-import static org.thingsboard.server.common.data.ObjectType.CUSTOMER;
-import static org.thingsboard.server.common.data.ObjectType.DASHBOARD;
-import static org.thingsboard.server.common.data.ObjectType.DEVICE;
-import static org.thingsboard.server.common.data.ObjectType.DEVICE_PROFILE;
-import static org.thingsboard.server.common.data.ObjectType.EDGE;
 import static org.thingsboard.server.common.data.ObjectType.ENTITY_GROUP;
-import static org.thingsboard.server.common.data.ObjectType.ENTITY_VIEW;
-import static org.thingsboard.server.common.data.ObjectType.INTEGRATION;
 import static org.thingsboard.server.common.data.ObjectType.LATEST_TS_KV;
-import static org.thingsboard.server.common.data.ObjectType.QUEUE_STATS;
 import static org.thingsboard.server.common.data.ObjectType.RELATION;
-import static org.thingsboard.server.common.data.ObjectType.ROLE;
-import static org.thingsboard.server.common.data.ObjectType.RULE_CHAIN;
-import static org.thingsboard.server.common.data.ObjectType.SCHEDULER_EVENT;
-import static org.thingsboard.server.common.data.ObjectType.TENANT_PROFILE;
-import static org.thingsboard.server.common.data.ObjectType.USER;
-import static org.thingsboard.server.common.data.ObjectType.WIDGETS_BUNDLE;
-import static org.thingsboard.server.common.data.ObjectType.WIDGET_TYPE;
+import static org.thingsboard.server.common.data.ObjectType.edqsTenantTypes;
 
 @Slf4j
 public abstract class EdqsSyncService {
@@ -120,12 +99,6 @@ public abstract class EdqsSyncService {
     private final ConcurrentHashMap<Integer, String> keys = new ConcurrentHashMap<>();
 
     private final Map<ObjectType, AtomicInteger> counters = new ConcurrentHashMap<>();
-
-    public static final Set<ObjectType> edqsTenantTypes = EnumSet.of(
-            TENANT_PROFILE, CUSTOMER, DEVICE_PROFILE, DEVICE, ASSET_PROFILE, ASSET, EDGE, ENTITY_VIEW, USER, DASHBOARD,
-            RULE_CHAIN, WIDGET_TYPE, WIDGETS_BUNDLE, CONVERTER, INTEGRATION, SCHEDULER_EVENT, ROLE,
-            BLOB_ENTITY, API_USAGE_STATE, QUEUE_STATS
-    );
 
     public abstract boolean isSyncNeeded();
 
@@ -192,7 +165,7 @@ public abstract class EdqsSyncService {
                     entityInfoMap.put(groupFields.getId(), new EntityIdInfo(EntityType.ENTITY_GROUP, entityIdInfo.tenantId()));
                     process(entityIdInfo.tenantId(), ENTITY_GROUP, new Entity(EntityType.ENTITY_GROUP, groupFields));
                 } else {
-                    log.info("Entity group owner not found: " + groupFields.getOwnerId());
+                    log.info("Entity group owner not found: {} ", groupFields);
                 }
             }
             EntityFields lastRecord = batch.get(batch.size() - 1);
@@ -237,7 +210,7 @@ public abstract class EdqsSyncService {
                 if (entityIdInfo != null) {
                     process(entityIdInfo.tenantId(), RELATION, relation.toData());
                 } else {
-                    log.info("Relation from entity not found: " + relation.getFromType() + " " + relation.getFromId());
+                    log.info("Relation from id not found: {} ", relation);
                 }
             }
         }
