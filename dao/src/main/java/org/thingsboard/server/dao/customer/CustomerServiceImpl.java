@@ -42,6 +42,7 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -184,6 +185,10 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     @Transactional
     @Override
     public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        if (!force && calculatedFieldService.referencedInAnyCalculatedField(tenantId, id)) {
+            throw new DataValidationException("Can't delete customer that is referenced in calculated fields!");
+        }
+
         CustomerId customerId = (CustomerId) id;
         Customer customer = findCustomerById(tenantId, customerId);
         if (customer == null) {
