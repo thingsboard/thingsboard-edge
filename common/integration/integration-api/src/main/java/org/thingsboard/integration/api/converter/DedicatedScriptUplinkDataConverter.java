@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConverter {
 
@@ -153,14 +154,14 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.isAsset(isAsset);
-        String entityName = processTemplate(config.getName(), kvMap);
-        String profile = processTemplate(config.getProfile(), kvMap);
+        String entityName = getProperty(src, "name", () -> processTemplate(config.getName(), kvMap));
+        String profile = getProperty(src, "profile", () -> processTemplate(config.getProfile(), kvMap));
         if (profile == null) {
             profile = DEFAULT_PROFILE;
         }
-        String label = processTemplate(config.getLabel(), kvMap);
-        String customer = processTemplate(config.getCustomer(), kvMap);
-        String group = processTemplate(config.getGroup(), kvMap);
+        String label = getProperty(src, "label", () -> processTemplate(config.getLabel(), kvMap));
+        String customer = getProperty(src, "customer", () -> processTemplate(config.getCustomer(), kvMap));
+        String group = getProperty(src, "group", () -> processTemplate(config.getGroup(), kvMap));
 
         if (isAsset) {
             builder.assetName(entityName);
@@ -207,6 +208,13 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
         }
 
         return builder.build();
+    }
+
+    private String getProperty(JsonObject src, String key, Supplier<String> defaultValue) {
+        if (src.has(key)) {
+            src.get(key).getAsString();
+        }
+        return defaultValue.get();
     }
 
     private JsonObject addKvs(JsonObject kvsObj, Map<String, String> kvMap, Set<String> keys) {
