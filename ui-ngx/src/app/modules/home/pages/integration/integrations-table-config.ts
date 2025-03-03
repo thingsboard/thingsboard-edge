@@ -82,12 +82,10 @@ import { EntityDebugSettings } from '@shared/models/entity.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TbPopoverService } from '@shared/components/popover.service';
 import { DestroyRef } from '@angular/core';
-import { EntityDebugSettingsPanelComponent } from '@home/components/entity/debug/entity-debug-settings-panel.component';
 import { MINUTE } from '@shared/models/time/time.models';
+import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
 
@@ -104,8 +102,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
               private dialogService: DialogService,
               private dialog: MatDialog,
               private store: Store<AppState>,
-              private durationLeft: DurationLeftPipe,
-              private popoverService: TbPopoverService,
+              private entityDebugSettingsService: EntityDebugSettingsService,
               private destroyRef: DestroyRef,
               private params: IntegrationParams) {
     super(params);
@@ -168,10 +165,6 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     this.addEntity = () => this.addIntegration();
 
     defaultEntityTablePermissions(this.userPermissionsService, this);
-  }
-
-  private isDebugActive(allEnabledUntil: number): boolean {
-    return allEnabledUntil > new Date().getTime();
   }
 
   private configureEntityTableColumns(): Array<EntityColumn<IntegrationInfo>> {
@@ -250,10 +243,10 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
   private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<IntegrationInfo>> {
     const actions: Array<CellActionDescriptor<IntegrationInfo>> = [{
       name: '',
-      nameFunction: (entity) => this.getDebugConfigLabel(entity?.debugSettings),
+      nameFunction: (entity) => this.entityDebugSettingsService.getDebugConfigLabel(entity?.debugSettings),
       icon: 'mdi:bug',
       isEnabled: () => true,
-      iconFunction: ({ debugSettings }) => this.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
+      iconFunction: ({ debugSettings }) => this.entityDebugSettingsService.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
       onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
     }];
     if (params.integrationScope === 'edge') {
@@ -267,16 +260,6 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       );
     }
     return actions;
-  }
-
-  private getDebugConfigLabel(debugSettings: EntityDebugSettings): string {
-    const isDebugActive = this.isDebugActive(debugSettings?.allEnabledUntil);
-
-    if (!isDebugActive) {
-      return debugSettings?.failuresEnabled ? this.translate.instant('debug-settings.failures') : this.translate.instant('common.disabled');
-    } else {
-      return this.durationLeft.transform(debugSettings?.allEnabledUntil)
-    }
   }
 
   private saveIntegration(integration: Integration): Observable<Integration> {
@@ -346,29 +329,23 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
   }
 
   onOpenDebugConfig($event: Event, { debugSettings = {}, id }: IntegrationInfo): void {
-    const { renderer, viewContainerRef } = this.getTable();
     if ($event) {
       $event.stopPropagation();
     }
-    const trigger = $event.target as Element;
-    if (this.popoverService.hasPopover(trigger)) {
-      this.popoverService.hidePopover(trigger);
-    } else {
-      const debugStrategyPopover = this.popoverService.displayPopover(trigger, renderer,
-        viewContainerRef, EntityDebugSettingsPanelComponent, 'bottom', true, null,
-        {
-          debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
-          maxDebugModeDuration: this.maxDebugModeDuration,
-          entityLabel: this.translate.instant('debug-settings.integration'),
-          ...debugSettings
-        },
-        {},
-        {}, {}, true);
-      debugStrategyPopover.tbComponentRef.instance.onSettingsApplied.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((settings: EntityDebugSettings) => {
-        this.onDebugConfigChanged(id.id, settings);
-        debugStrategyPopover.hide();
-      });
-    }
+
+    const { viewContainerRef, renderer } = this.getTable();
+    this.entityDebugSettingsService.viewContainerRef = viewContainerRef;
+    this.entityDebugSettingsService.renderer = renderer;
+
+    this.entityDebugSettingsService.openDebugStrategyPanel({
+      debugSettings,
+      debugConfig: {
+        debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
+        maxDebugModeDuration: this.maxDebugModeDuration,
+        entityLabel: this.translate.instant('debug-settings.integration'),
+      },
+      onSettingsAppliedFn: settings => this.onDebugConfigChanged(id.id, settings)
+    }, $event.target as Element);
   }
 
   private onDebugConfigChanged(id: string, debugSettings: EntityDebugSettings): void {

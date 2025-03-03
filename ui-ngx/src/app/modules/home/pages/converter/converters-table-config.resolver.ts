@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable } from '@angular/core';
+import { DestroyRef, Injectable } from '@angular/core';
 
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
@@ -53,16 +53,27 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.component';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { isUndefined } from '@core/utils';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
+import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
+import { EntityDebugSettings } from '@shared/models/entity.models';
+import { catchError, switchMap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { MINUTE } from '@shared/models/time/time.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
 @Injectable()
 export class ConvertersTableConfigResolver  {
 
   private readonly config: EntityTableConfig<Converter> = new EntityTableConfig<Converter>();
+
+  readonly maxDebugModeDuration = getCurrentAuthState(this.store).maxDebugModeDurationMinutes * MINUTE;
+  readonly converterDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).converterDebugPerTenantLimitsConfiguration;
 
   constructor(private converterService: ConverterService,
               private userPermissionsService: UserPermissionsService,
@@ -71,6 +82,9 @@ export class ConvertersTableConfigResolver  {
               private datePipe: DatePipe,
               private router: Router,
               private utils: UtilsService,
+              private entityDebugSettingsService: EntityDebugSettingsService,
+              private destroyRef: DestroyRef,
+              private store: Store<AppState>,
               private customTranslate: CustomTranslatePipe) {
 
     this.config.entityType = EntityType.CONVERTER;
@@ -105,6 +119,14 @@ export class ConvertersTableConfigResolver  {
         icon: 'file_download',
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportConverter($event, entity)
+      },
+      {
+        name: '',
+        nameFunction: (entity) => this.entityDebugSettingsService.getDebugConfigLabel(entity?.debugSettings),
+        icon: 'mdi:bug',
+        isEnabled: () => true,
+        iconFunction: ({ debugSettings }) => this.entityDebugSettingsService.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
+        onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
       }
     );
 
@@ -178,6 +200,26 @@ export class ConvertersTableConfigResolver  {
     }
   }
 
+  onOpenDebugConfig($event: Event, { debugSettings = {}, id }: Converter): void {
+    if ($event) {
+      $event.stopPropagation();
+    }
+
+    const { viewContainerRef, renderer } = this.config.getTable();
+    this.entityDebugSettingsService.viewContainerRef = viewContainerRef;
+    this.entityDebugSettingsService.renderer = renderer;
+
+    this.entityDebugSettingsService.openDebugStrategyPanel({
+      debugSettings,
+      debugConfig: {
+        debugLimitsConfiguration: this.converterDebugPerTenantLimitsConfiguration,
+        maxDebugModeDuration: this.maxDebugModeDuration,
+        entityLabel: this.translate.instant('debug-settings.integration'),
+      },
+      onSettingsAppliedFn: settings => this.onDebugConfigChanged(id.id, settings)
+    }, $event.target as Element);
+  }
+
   exportConverter($event: Event, converter: Converter) {
     if ($event) {
       $event.stopPropagation();
@@ -204,6 +246,14 @@ export class ConvertersTableConfigResolver  {
         return true;
     }
     return false;
+  }
+
+  private onDebugConfigChanged(id: string, debugSettings: EntityDebugSettings): void {
+    this.converterService.getConverter(id).pipe(
+      switchMap(converter => this.converterService.saveConverter({ ...converter, debugSettings })),
+      catchError(() => of(null)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.config.updateData());
   }
 
   private configureTableTitle(converterScope: string): string {
