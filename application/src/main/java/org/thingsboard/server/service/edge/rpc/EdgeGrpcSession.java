@@ -74,6 +74,8 @@ import org.thingsboard.server.gen.edge.v1.RequestMsgType;
 import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.ResponseMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
+import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SyncCompletedMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
@@ -97,7 +99,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
-
 
 @Slf4j
 @Data
@@ -819,6 +820,16 @@ public abstract class EdgeGrpcSession implements Closeable {
             if (uplinkMsg.getAssetUpdateMsgCount() > 0) {
                 for (AssetUpdateMsg assetUpdateMsg : uplinkMsg.getAssetUpdateMsgList()) {
                     result.add(ctx.getAssetProcessor().processAssetMsgFromEdge(edge.getTenantId(), edge, assetUpdateMsg));
+                }
+            }
+            if (uplinkMsg.getRuleChainUpdateMsgCount() > 0) {
+                for (RuleChainUpdateMsg ruleChainUpdateMsg : uplinkMsg.getRuleChainUpdateMsgList()) {
+                    result.add(ctx.getRuleChainProcessor().processRuleChainMsgFromEdge(edge.getTenantId(), edge, ruleChainUpdateMsg));
+                }
+            }
+            if (uplinkMsg.getRuleChainMetadataUpdateMsgCount() > 0) {
+                for (RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg : uplinkMsg.getRuleChainMetadataUpdateMsgList()) {
+                    result.add(ctx.getRuleChainProcessor().processRuleChainMetadataMsgFromEdge(edge.getTenantId(), edge, ruleChainMetadataUpdateMsg));
                 }
             }
             if (uplinkMsg.getEntityViewUpdateMsgCount() > 0) {

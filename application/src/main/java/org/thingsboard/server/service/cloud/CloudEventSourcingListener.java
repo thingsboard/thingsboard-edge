@@ -69,6 +69,7 @@ public class CloudEventSourcingListener {
             EntityType.ASSET,
             EntityType.ASSET_PROFILE,
             EntityType.DASHBOARD,
+            EntityType.RULE_CHAIN,
             EntityType.TB_RESOURCE);
 
     private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{

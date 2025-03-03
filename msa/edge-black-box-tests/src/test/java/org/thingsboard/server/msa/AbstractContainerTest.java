@@ -224,7 +224,7 @@ public abstract class AbstractContainerTest {
                 until(() -> {
                     try {
                         long totalElements = edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements();
-                        final long expectedCount = 31;
+                        final long expectedCount = 32;
                         if (totalElements != expectedCount) {
                             log.warn("Expected {} widget bundles, but got {}", expectedCount, totalElements);
                         }
@@ -552,6 +552,8 @@ public abstract class AbstractContainerTest {
             Assert.assertEquals("Cloud rule chain type is incorrect", RuleChainType.EDGE, actual.getType());
             expected.setType(null);
             actual.setType(null);
+            expected.setFirstRuleNodeId(null);
+            actual.setFirstRuleNodeId(null);
             cleanUpVersion(expected, actual);
             Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
 
@@ -582,13 +584,13 @@ public abstract class AbstractContainerTest {
         if (expectedMetadata.getConnections().size() != actualMetadata.getConnections().size()) {
             return false;
         }
-        for (RuleNode expectedNode : expectedMetadata.getNodes()) {
-            Optional<RuleNode> actualNodeOpt =
-                    actualMetadata.getNodes().stream().filter(n -> n.getId().equals(expectedNode.getId())).findFirst();
-            if (actualNodeOpt.isEmpty()) {
-                return false;
-            }
-            RuleNode actualNode = actualNodeOpt.get();
+        for (int i = 0; i < expectedMetadata.getNodes().size(); i++) {
+            RuleNode actualNode = actualMetadata.getNodes().get(i);
+            RuleNode expectedNode = expectedMetadata.getNodes().get(i);
+            actualNode.setId(null);
+            actualNode.setCreatedTime(0L);
+            expectedNode.setId(null);
+            expectedNode.setCreatedTime(0L);
             if (!expectedNode.equals(actualNode)) {
                 return false;
             }

@@ -14,7 +14,7 @@
       "queueName": null,
       "configurationVersion": 0,
       "configuration": {
-        "scope": "CLIENT_SCOPE"
+        "scope": "SERVER_SCOPE"
       },
       "additionalInfo": {
         "description": "",
@@ -221,7 +221,7 @@
       "queueName": null,
       "configurationVersion": 0,
       "configuration": {
-        "scope": "SERVER_SCOPE"
+        "scope": "CLIENT_SCOPE"
       },
       "additionalInfo": {
         "description": "",

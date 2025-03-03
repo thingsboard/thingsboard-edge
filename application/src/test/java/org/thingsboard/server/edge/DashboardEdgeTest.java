@@ -187,6 +187,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
 
         Dashboard dashboard = buildDashboardForUplinkMsg(savedCustomer);
 
+        // create dashboard on edge
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         DashboardUpdateMsg.Builder dashboardUpdateMsgBuilder = DashboardUpdateMsg.newBuilder();
         dashboardUpdateMsgBuilder.setIdMSB(dashboard.getUuidId().getMostSignificantBits());
