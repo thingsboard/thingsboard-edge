@@ -2358,6 +2358,16 @@ public class EntityServiceTest extends AbstractServiceTest {
         schedulerEventFilter.setOriginator(otherCustomerId);
         PageData<EntityData> result3 = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query);
         assertEquals(0, result3.getTotalElements());
+
+        // find scheduler events by customer user
+        EntityTypeFilter entityTypeFilter = new EntityTypeFilter();
+        entityTypeFilter.setEntityType(EntityType.SCHEDULER_EVENT);
+        EntityDataQuery entityTypeQuery = new EntityDataQuery(entityTypeFilter, pageLink, entityFields, null, null);
+
+        PageData<EntityData> result4 = entityService.findEntityDataByQuery(tenantId, customerId, mergedUserPermissionsPE, entityTypeQuery);
+        assertEquals(1, result4.getTotalElements());
+        String schedulerName = result4.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
+        assertThat(schedulerName).isEqualTo(schedulerEvent.getName());
     }
 
     private PageData<EntityData> searchEntities(EntityDataQuery query) {
