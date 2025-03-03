@@ -74,13 +74,13 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                     Pair<Boolean, TbResourceId> resultPair = renamePreviousResource(tenantId, tbResourceId, tbResource.getResourceType(), tbResource.getResourceKey());
                     super.saveOrUpdateTbResource(tenantId, tbResourceId, resourceUpdateMsg);
                     if (resultPair.getFirst()) {
-                        edgeCtx.getResourceService().deleteResource(tenantId, resultPair.getSecond());
+                        edgeCtx.getResourceService().deleteResource(tenantId, resultPair.getSecond(), true);
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
                     TbResource tbResourceToDelete = edgeCtx.getResourceService().findResourceById(tenantId, tbResourceId);
                     if (tbResourceToDelete != null) {
-                        edgeCtx.getResourceService().deleteResource(tenantId, tbResourceId);
+                        edgeCtx.getResourceService().deleteResource(tenantId, tbResourceId, true);
                     }
                     break;
                 case UNRECOGNIZED:

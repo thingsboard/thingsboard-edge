@@ -653,8 +653,10 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     @Test
     @Ignore
     public void testSendDeviceToCloud() throws Exception {
-        Device deviceMsg = buildDeviceForUplinkMsg("Edge Device 2", "test");
+        String deviceName = "Edge Device 2";
+        Device deviceMsg = buildDeviceForUplinkMsg(deviceName, "test");
 
+        // create device on edge
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         DeviceUpdateMsg.Builder deviceUpdateMsgBuilder = DeviceUpdateMsg.newBuilder();
         deviceUpdateMsgBuilder.setIdMSB(deviceMsg.getUuidId().getMostSignificantBits());
@@ -669,10 +671,28 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         Device device = doGet("/api/device/" + deviceMsg.getId().getId(), Device.class);
         Assert.assertNotNull(device);
-        Assert.assertEquals("Edge Device 2", device.getName());
+        Assert.assertEquals(deviceName, device.getName());
 
         var deviceGroups = getEntityGroupsIdsForEntity(device.getId());
         Assert.assertEquals("Device must have 2 groups - 'All' and 'Edge All group'", 2, deviceGroups.size());
+
+        // update device on edge
+        deviceMsg.setName(deviceName + " Updated");
+        uplinkMsgBuilder = UplinkMsg.newBuilder();
+        deviceUpdateMsgBuilder = DeviceUpdateMsg.newBuilder();
+        deviceUpdateMsgBuilder.setIdMSB(deviceMsg.getUuidId().getMostSignificantBits());
+        deviceUpdateMsgBuilder.setIdLSB(deviceMsg.getUuidId().getLeastSignificantBits());
+        deviceUpdateMsgBuilder.setEntity(JacksonUtil.toString(deviceMsg));
+        deviceUpdateMsgBuilder.setMsgType(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE);
+        uplinkMsgBuilder.addDeviceUpdateMsg(deviceUpdateMsgBuilder.build());
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+
+        device = doGet("/api/device/" + deviceMsg.getId().getId(), Device.class);
+        Assert.assertNotNull(device);
+        Assert.assertEquals(deviceName + " Updated", device.getName());
     }
 
     @Test

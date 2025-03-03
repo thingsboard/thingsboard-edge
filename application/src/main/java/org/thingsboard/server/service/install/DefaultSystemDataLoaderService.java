@@ -68,6 +68,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
+import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
@@ -317,7 +318,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             jwtSettingsService.saveJwtSettings(jwtSettings);
         }
 
-        List<MobileApp> mobiles = mobileAppDao.findByTenantId(TenantId.SYS_TENANT_ID, null, new PageLink(Integer.MAX_VALUE,0)).getData();
+        List<MobileApp> mobiles = mobileAppDao.findByTenantId(TenantId.SYS_TENANT_ID, null, new PageLink(Integer.MAX_VALUE, 0)).getData();
         if (CollectionUtils.isNotEmpty(mobiles)) {
             mobiles.stream()
                     .filter(mobileApp -> !validateKeyLength(mobileApp.getAppSecret()))
@@ -595,7 +596,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     private void save(DeviceId deviceId, String key, boolean value) {
         if (persistActivityToTelemetry) {
-            ListenableFuture<Integer> saveFuture = tsService.save(
+            ListenableFuture<TimeseriesSaveResult> saveFuture = tsService.save(
                     TenantId.SYS_TENANT_ID,
                     deviceId,
                     Collections.singletonList(new BasicTsKvEntry(System.currentTimeMillis(), new BooleanDataEntry(key, value))), 0L);

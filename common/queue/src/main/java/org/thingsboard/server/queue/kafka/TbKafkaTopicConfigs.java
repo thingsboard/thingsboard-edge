@@ -73,6 +73,10 @@ public class TbKafkaTopicConfigs {
     private String cloudEventProperties;
     @Value("${queue.kafka.topic-properties.cloud_event_ts:}")
     private String cloudEventTSProperties;
+    @Value("${queue.kafka.topic-properties.calculated-field:}")
+    private String calculatedFieldProperties;
+    @Value("${queue.kafka.topic-properties.calculated-field-state:}")
+    private String calculatedFieldStateProperties;
 
     @Getter
     private Map<String, String> coreConfigs;
@@ -108,6 +112,10 @@ public class TbKafkaTopicConfigs {
     private Map<String, String> cloudEventConfigs;
     @Getter
     private Map<String, String> cloudEventTSConfigs;
+    @Getter
+    private Map<String, String> calculatedFieldConfigs;
+    @Getter
+    private Map<String, String>  calculatedFieldStateConfigs;
 
     @PostConstruct
     private void init() {
@@ -131,6 +139,8 @@ public class TbKafkaTopicConfigs {
         edgeEventConfigs = PropertyUtils.getProps(edgeEventProperties);
         cloudEventConfigs = PropertyUtils.getProps(cloudEventProperties);
         cloudEventTSConfigs = PropertyUtils.getProps(cloudEventTSProperties);
+        calculatedFieldConfigs = PropertyUtils.getProps(calculatedFieldProperties);
+        calculatedFieldStateConfigs = PropertyUtils.getProps(calculatedFieldStateProperties);
     }
 
 }

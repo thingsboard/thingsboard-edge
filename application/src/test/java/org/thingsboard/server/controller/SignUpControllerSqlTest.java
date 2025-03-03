@@ -41,6 +41,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.CustomerInfo;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
@@ -59,6 +61,8 @@ import org.thingsboard.server.common.data.notification.NotificationDeliveryMetho
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.selfregistration.DefaultDashboardParams;
+import org.thingsboard.server.common.data.selfregistration.HomeDashboardParams;
 import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
 import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
@@ -188,7 +192,9 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     public void testSelfRegisterUserFromMobileApp() throws Exception {
         String appSecret = StringUtils.randomAlphanumeric(24);
         String mobilePkgName = "my.test.android.app";
-        createMobileSelfRegistrationSettings(mobilePkgName, appSecret, PlatformType.ANDROID);
+        DashboardId homeDashboardId = createDashboard();
+        DashboardId defaultDashboardId = createDashboard();
+        createMobileSelfRegistrationSettings(mobilePkgName, appSecret, PlatformType.ANDROID, homeDashboardId, defaultDashboardId);
 
         List<Customer> customers = customerService.findCustomersByTenantId(tenantId, new PageLink(10)).getData();
 
@@ -216,6 +222,8 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         User user = userService.findUserByEmail(tenantId, CUSTOMER_TEST_EMAIL);
         assertThat(user).isNotNull();
         assertThat(user.getEmail()).isEqualTo(CUSTOMER_TEST_EMAIL);
+        assertThat(user.getAdditionalInfo().get("homeDashboardId").textValue()).isEqualTo(homeDashboardId.getId().toString());
+        assertThat(user.getAdditionalInfo().get("defaultDashboardId").textValue()).isEqualTo(defaultDashboardId.getId().toString());
 
         removeCreatedUser(user);
     }
@@ -348,7 +356,8 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         createNotificationTemplate(NotificationType.USER_REGISTERED, "User registered", "User ${userEmail} was registered", NotificationDeliveryMethod.WEB);
     }
 
-    private void createMobileSelfRegistrationSettings(String mobilePkgName, String appSecret, PlatformType platformType) {
+    private void createMobileSelfRegistrationSettings(String mobilePkgName, String appSecret, PlatformType platformType,
+                                                      DashboardId homeDashboardId, DashboardId defaultDashboardId) {
         MobileApp mobileApp = validMobileApp(mobilePkgName, appSecret, platformType);
         mobileApp = doPost("/api/mobile/app", mobileApp, MobileApp.class);
 
@@ -359,7 +368,8 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         } else {
             mobileAppBundle.setIosAppId(mobileApp.getId());
         }
-        MobileSelfRegistrationParams selfRegistrationParams = createMobileSelfRegistrationParams();
+
+        MobileSelfRegistrationParams selfRegistrationParams = createMobileSelfRegistrationParams(homeDashboardId, defaultDashboardId);
         mobileAppBundle.setSelfRegistrationParams(selfRegistrationParams);
         MobileAppBundle createdMobileAppBundle = doPost("/api/mobile/bundle", mobileAppBundle, MobileAppBundle.class);
 
@@ -367,13 +377,22 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         createNotificationTemplate(NotificationType.USER_REGISTERED, "User registered", "User ${userEmail} was registered", NotificationDeliveryMethod.WEB);
     }
 
-    private MobileSelfRegistrationParams createMobileSelfRegistrationParams() {
+    private MobileSelfRegistrationParams createMobileSelfRegistrationParams(DashboardId homeDashboardId, DashboardId defaultDashboardId) {
         MobileSelfRegistrationParams selfRegistrationParams = new MobileSelfRegistrationParams();
         selfRegistrationParams.setTitle("Please sign up");
         V2CaptchaParams captcha = new V2CaptchaParams();
         captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
         captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
         captcha.setLogActionName("sign_up");
+
+        DefaultDashboardParams defaultDashboardParams = new DefaultDashboardParams();
+        defaultDashboardParams.setId(defaultDashboardId.toString());
+        defaultDashboardParams.setFullscreen(true);
+
+        HomeDashboardParams homeDashboardParams = new HomeDashboardParams();
+        homeDashboardParams.setId(homeDashboardId.toString());
+        homeDashboardParams.setHideToolbar(true);
+
         selfRegistrationParams.setCaptcha(captcha);
         selfRegistrationParams.setShowPrivacyPolicy(true);
         selfRegistrationParams.setShowTermsOfUse(true);
@@ -385,6 +404,8 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         selfRegistrationParams.setCustomerTitlePrefix(CUSTOMER_TITLE_PREFIX);
         selfRegistrationParams.setCustomerGroupId(customerGroup.getId());
         selfRegistrationParams.setCustomMenuId(customMenu.getId());
+        selfRegistrationParams.setHomeDashboard(homeDashboardParams);
+        selfRegistrationParams.setDefaultDashboard(defaultDashboardParams);
         selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email", true),
                 new SignUpField(SignUpFieldId.PASSWORD, "password", true)));
         MobileRedirectParams redirect = new MobileRedirectParams();
@@ -393,6 +414,12 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         selfRegistrationParams.setRedirect(redirect);
         selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email", true)));
         return selfRegistrationParams;
+    }
+
+    private DashboardId createDashboard() {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle("Test dashboard " + RandomStringUtils.randomAlphabetic(6));
+        return doPost("/api/dashboard", dashboard, Dashboard.class).getId();
     }
 
     private MobileApp validMobileApp(String mobileAppName, String secret, PlatformType platformType) {
