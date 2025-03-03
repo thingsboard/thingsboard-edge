@@ -93,8 +93,12 @@ public class EdgeEntityProcessor extends BaseEdgeProcessor {
 
     @Override
     public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        EdgeId originatorEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         EdgeId edgeId = new EdgeId(new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        if (edgeId.equals(originatorEdgeId)) {
+            return Futures.immediateFuture(null);
+        }
         return switch (actionType) {
             case CHANGE_OWNER -> {
                 ListenableFuture<Edge> edgeFuture = edgeCtx.getEdgeService().findEdgeByIdAsync(tenantId, edgeId);

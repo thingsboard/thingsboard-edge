@@ -1823,6 +1823,8 @@ queue:
   core:
     # Default topic name
     topic: "${TB_QUEUE_CORE_TOPIC:tb_core}"
+    # For high-priority notifications that require minimum latency and processing time
+    notifications_topic: "${TB_QUEUE_CORE_NOTIFICATIONS_TOPIC:tb_core.notifications}"
     # Interval in milliseconds to poll messages by Core microservices
     poll-interval: "${TB_QUEUE_CORE_POLL_INTERVAL_MS:25}"
     # Amount of partitions used by Core microservices
@@ -1935,6 +1937,8 @@ queue:
   rule-engine:
     # Deprecated. It will be removed in the nearest releases
     topic: "${TB_QUEUE_RULE_ENGINE_TOPIC:tb_rule_engine}"
+    # For high-priority notifications that require minimum latency and processing time
+    notifications_topic: "${TB_QUEUE_RULE_ENGINE_NOTIFICATIONS_TOPIC:tb_rule_engine.notifications}"
     # Interval in milliseconds to poll messages by Rule Engine
     poll-interval: "${TB_QUEUE_RULE_ENGINE_POLL_INTERVAL_MS:25}"
     # Timeout for processing a message pack of Rule Engine
@@ -1955,6 +1959,8 @@ queue:
     event_topic: "${TB_QUEUE_CF_EVENT_TOPIC:tb_cf_event}"
     # Topic name for Calculated Field (CF) compacted states
     state_topic: "${TB_QUEUE_CF_STATE_TOPIC:tb_cf_state}"
+    # For high-priority notifications that require minimum latency and processing time
+    notifications_topic: "${TB_QUEUE_CF_NOTIFICATIONS_TOPIC:calculated_field.notifications}"
     # Interval in milliseconds to poll messages by CF (Rule Engine) microservices
     poll_interval: "${TB_QUEUE_CF_POLL_INTERVAL_MS:25}"
     # Amount of partitions used by CF microservices
@@ -1973,6 +1979,10 @@ queue:
   edge:
     # Default topic name
     topic: "${TB_QUEUE_EDGE_TOPIC:tb_edge}"
+    # For high-priority notifications that require minimum latency and processing time
+    notifications_topic: "${TB_QUEUE_EDGE_NOTIFICATIONS_TOPIC:tb_edge.notifications}"
+    # For edge events messages
+    event_notifications_topic: "${TB_QUEUE_EDGE_EVENT_NOTIFICATIONS_TOPIC:tb_edge_event.notifications}"
     # Amount of partitions used by Edge services
     partitions: "${TB_QUEUE_EDGE_PARTITIONS:10}"
     # Poll interval for topics related to Edge services
@@ -1991,10 +2001,13 @@ queue:
   integration:
     # Name of hash function used for consistent hash ring in Cluster Mode. See architecture docs for more details. Valid values - murmur3_32, murmur3_128 or sha256
     partitions: "${TB_QUEUE_INTEGRATION_PARTITIONS:3}"
-    # Default notification topic name used by queue
-    notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_ie.notifications}"
+    # For high-priority notifications that require minimum latency and processing time
+    notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_integration_executor.notifications}"
     # Default downlink topic name used by queue
     downlink_topic: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPIC:tb_ie.downlink}"
+    # Downlink topic names for integration type (semicolon separated). Example: "MQTT:tb_ie.downlink.mqtt;HTTP:tb_ie.downlink.http"
+    # If not specified, the default topic will construct as before - 'downlink_topic' + IntegrationType.name()
+    downlink_topics: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPICS:}"
     # Default uplink topic name used by queue
     uplink_topic: "${TB_QUEUE_INTEGRATION_UPLINK_TOPIC:tb_ie.uplink}"
     # Interval in milliseconds to poll messages by integrations
