@@ -360,6 +360,7 @@ public class ActorSystemContext {
     @Getter
     private CloudEventService cloudEventService;
 
+    @Lazy
     @Autowired
     @Getter
     private TelemetrySubscriptionService tsSubService;

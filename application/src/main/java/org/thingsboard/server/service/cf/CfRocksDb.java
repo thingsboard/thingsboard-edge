@@ -42,7 +42,7 @@ import org.thingsboard.server.utils.TbRocksDb;
 @ConditionalOnExpression("'${queue.type:null}'=='in-memory'")
 public class CfRocksDb extends TbRocksDb {
 
-    public CfRocksDb(@Value("${queue.calculated_fields.rocks_db_path:${user.home}/.rocksdb/cf_states}") String path) throws Exception {
+    public CfRocksDb(@Value("${queue.calculated_fields.rocks_db_path:${user.home}/.rocksdb/edge_cf_states}") String path) throws Exception {
         super(path, new Options().setCreateIfMissing(true), new WriteOptions().setSync(true));
     }
 

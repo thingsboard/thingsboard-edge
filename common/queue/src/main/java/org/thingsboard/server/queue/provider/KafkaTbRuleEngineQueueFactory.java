@@ -119,6 +119,7 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
 
     private final TbQueueAdmin cfAdmin;
     private final TbQueueAdmin cfStateAdmin;
+
     private final AtomicLong consumerCount = new AtomicLong();
 
     public KafkaTbRuleEngineQueueFactory(TopicService topicService, TbKafkaSettings kafkaSettings,

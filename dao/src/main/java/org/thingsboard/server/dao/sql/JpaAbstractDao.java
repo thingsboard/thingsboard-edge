@@ -158,9 +158,12 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     @Override
     @Transactional
     public D saveAndFlush(TenantId tenantId, D domain) {
+        // edge-only ...
         D d = save(tenantId, domain);
         getRepository().flush();
         return d;
+        // ... edge-only
+//        return save(tenantId, domain, true);
     }
 
     @Override

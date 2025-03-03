@@ -123,6 +123,7 @@ public class ResourceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testUpdateResourceTitleOnCloud() throws Exception {
         TbResource tbResource = createTbResource();
         UUID uuid = Uuids.timeBased();

@@ -254,6 +254,15 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
 
     @Override
     public ApiUsageState getApiUsageState(TenantId tenantId) {
+        ApiUsageState apiUsageStateInt = getApiUsageStateInt(tenantId);
+
+        // edge-only: set version for api usage state to avoid null pointer exception
+        apiUsageStateInt.setVersion(1L);
+
+        return apiUsageStateInt;
+    }
+
+    private ApiUsageState getApiUsageStateInt(TenantId tenantId) {
         TenantApiUsageState tenantState = (TenantApiUsageState) myUsageStates.get(tenantId);
         if (tenantState != null) {
             return tenantState.getApiUsageState();
