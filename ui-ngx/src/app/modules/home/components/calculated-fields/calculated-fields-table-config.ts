@@ -177,13 +177,15 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
       ...this.additionalDebugActionConfig,
       action: () => this.openDebugEventsDialog(calculatedField)
     };
-    const { viewContainerRef } = this.getTable();
     if ($event) {
       $event.stopPropagation();
     }
 
-    this.entityDebugSettingsService.viewContainerRef = viewContainerRef;
-    this.entityDebugSettingsService.renderer = this.renderer;
+    const { viewContainerRef, renderer } = this.entityDebugSettingsService;
+    if (!viewContainerRef || !renderer) {
+      this.entityDebugSettingsService.viewContainerRef = this.getTable().viewContainerRef;
+      this.entityDebugSettingsService.renderer = this.renderer;
+    }
 
     this.entityDebugSettingsService.openDebugStrategyPanel({
       debugSettings,
