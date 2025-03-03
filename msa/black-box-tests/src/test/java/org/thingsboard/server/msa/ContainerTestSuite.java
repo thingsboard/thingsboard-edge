@@ -131,8 +131,8 @@ public class ContainerTestSuite {
 
             List<File> composeFiles = new ArrayList<>(Arrays.asList(
                     new File(targetDir + "advanced/docker-compose.yml"),
-                    new File(targetDir + "docker-compose.edqs.yml"),
-                    new File(targetDir + "docker-compose.edqs.volumes.yml"),
+                    new File(targetDir + "advanced/docker-compose.edqs.yml"),
+                    new File(targetDir + "advanced/docker-compose.edqs.volumes.yml"),
                     new File(targetDir + "advanced/docker-compose.volumes.yml"),
                     new File(targetDir + "advanced/" + (IS_HYBRID_MODE ? "docker-compose.hybrid.yml" : "docker-compose.postgres.yml")),
                     new File(targetDir + (IS_HYBRID_MODE ? "docker-compose.hybrid-test-extras.yml" : "docker-compose.postgres-test-extras.yml")),
@@ -183,16 +183,12 @@ public class ContainerTestSuite {
                 composeFiles.add(new File(targetDir + "advanced/docker-compose.cassandra.volumes.yml"));
             }
 
-            // temporary workaround until pe-docker-compose is updated
-            Map<String, String> installTbEnv = installTb.getEnv();
-            installTbEnv.put("EDQS_DOCKER_NAME", "tb-pe-edqs");
-
             testContainer = new DockerComposeContainerImpl<>(composeFiles)
                     .withPull(false)
                     .withLocalCompose(true)
                     .withOptions("--compatibility")
                     .withTailChildContainers(!skipTailChildContainers)
-                    .withEnv(installTbEnv)
+                    .withEnv(installTb.getEnv())
                     .withEnv(queueEnv)
                     .withEnv("LOAD_BALANCER_NAME", "")
                     .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
