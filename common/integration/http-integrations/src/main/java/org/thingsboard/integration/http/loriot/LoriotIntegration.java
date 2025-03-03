@@ -73,6 +73,7 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
     private static final String DATA = "data";
     private static final String APP_ID = "appid";
     private static final String CONFIRMED = "confirmed";
+    private static final String IS_HEX_ENCODED = "isHexEncoded";
 
     private LoriotConfiguration loriotConfiguration;
     private RestTemplate httpClient;
@@ -220,8 +221,14 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
                     payload.put("cmd", "tx");
                     payload.put(EUI, eui);
                     payload.put(PORT, port);
-                    payload.put(DATA, toHex(data));
                     payload.put(APP_ID, loriotConfiguration.getAppId());
+
+                    String isHexEncodedStr = metadata.get(IS_HEX_ENCODED);
+                    if (StringUtils.isNotEmpty(isHexEncodedStr) && Boolean.parseBoolean(isHexEncodedStr)) {
+                        payload.put(DATA, data);
+                    } else {
+                        payload.put(DATA, toHex(data));
+                    }
 
                     if (metadata.containsKey(CONFIRMED)) {
                         payload.put(CONFIRMED, Boolean.parseBoolean(metadata.get(CONFIRMED)));

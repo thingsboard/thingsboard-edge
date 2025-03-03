@@ -108,6 +108,7 @@ public class HashPartitionServiceTest {
         queueRoutingInfoService = mock(QueueRoutingInfoService.class);
         integrationExecutorSettings = spy(TbQueueIntegrationExecutorSettings.class);
         ReflectionTestUtils.setField(integrationExecutorSettings, "downlinkTopic", "tb_ie.downlink");
+        ReflectionTestUtils.setField(integrationExecutorSettings, "downlinkTopics", new HashMap<>());
         topicService = mock(TopicService.class);
         when(topicService.buildTopicName(Mockito.any())).thenAnswer(i -> i.getArguments()[0]);
         partitionService = createPartitionService();
