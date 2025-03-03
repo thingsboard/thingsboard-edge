@@ -1,0 +1,8 @@
+{
+    "CHIRPSTACK": {
+        "type": "DEVICE",
+        "name": "$deviceName $eui",
+        "profile": "$deviceProfileName",
+        "attributes": ["eui", "devAddr", "fPort"]
+    }
+}

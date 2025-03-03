@@ -38,6 +38,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import {
   Converter,
+  ConverterConfigV2,
   ConverterDebugInput,
   ConverterType,
   converterTypeTranslationMap,
@@ -139,6 +140,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   private encoderArgs = ['msg', 'metadata', 'msgType', 'integrationMetadata'];
 
   private integrationsConvertersInfo: IntegrationsConvertersInfo;
+  private defaultConverterV2Configuration: Record<IntegrationType, ConverterConfigV2> = {} as any;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -153,13 +155,17 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
               protected cd: ChangeDetectorRef,
               private destroyRef: DestroyRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
-    this.resourcesService.loadJsonResource<DefaultUpdateOnlyKeys>('/assets/converters/default-update-only-keys.json')
-        .subscribe(value => this.defaultUpdateOnlyKeysByIntegrationType = value);
-    this.integrationService
-      .getIntegrationsConvertersInfoCached()
-      .subscribe(value => {
-        this.integrationsConvertersInfo = value;
-      });
+    forkJoin({
+      updateOnlyKeys: this.resourcesService.loadJsonResource<DefaultUpdateOnlyKeys>('/assets/converters/default-update-only-keys.json'),
+      converterV2Config: this.resourcesService.loadJsonResource<Record<IntegrationType, ConverterConfigV2>>('/assets/converters/default-converters-v2-configuration.json'),
+      integrationsConvertersInfo: this.integrationService.getIntegrationsConvertersInfoCached()
+    }).pipe(
+      takeUntilDestroyed()
+    ).subscribe((value) =>{
+      this.defaultUpdateOnlyKeysByIntegrationType = value.updateOnlyKeys;
+      this.defaultConverterV2Configuration = value.converterV2Config;
+      this.integrationsConvertersInfo = value.integrationsConvertersInfo;
+    })
   }
 
   ngOnInit() {
@@ -180,6 +186,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       this.updatedConverterVersion();
       this.onSetDefaultScriptBody(this.entityForm.get('type').value);
       this.updatedOnlyKeysValue(value);
+      this.updatedDefaultConfiguration(value);
     });
     this.checkIsNewConverter(this.entity, this.entityForm);
   }
@@ -243,6 +250,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
         form.get('configuration.scriptLang').patchValue(
           this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
+        form.get('integrationType').updateValueAndValidity({onlySelf: true});
       } else {
         form.updateValueAndValidity();
       }
@@ -257,12 +265,20 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
-  private updatedOnlyKeysValue(integrationType: IntegrationType ) {
+  private updatedOnlyKeysValue(integrationType: IntegrationType) {
     let updateOnlyKeys = DefaultUpdateOnlyKeysValue;
     if (this.defaultUpdateOnlyKeysByIntegrationType.hasOwnProperty(integrationType)) {
       updateOnlyKeys = this.defaultUpdateOnlyKeysByIntegrationType[integrationType];
     }
     this.entityForm.get('configuration').patchValue({updateOnlyKeys}, {emitEvent: false});
+  }
+
+  private updatedDefaultConfiguration(integrationType: IntegrationType) {
+    if (this.entityForm.get('converterVersion').value === 2) {
+      if (this.defaultConverterV2Configuration.hasOwnProperty(integrationType)) {
+        this.entityForm.get('configuration').patchValue(this.defaultConverterV2Configuration[integrationType], {emitEvent: false});
+      }
+    }
   }
 
   private converterTypeChanged(converterType: ConverterType) {
@@ -290,24 +306,33 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       const converterInfo: ConverterInfo = this.integrationsConvertersInfo[integrationType]?.[converterType.toLocaleLowerCase()];
       if (converterInfo?.keys?.length) {
         this.entityForm.get('converterVersion').setValue(2, {emitEvent: false});
-        this.predefinedConverterKeys = converterInfo.keys.map(value => ({name: value, value}));
       } else {
         this.entityForm.get('converterVersion').setValue(1, {emitEvent: false});
-        this.predefinedConverterKeys = null;
       }
     } else {
       this.entityForm.get('converterVersion').setValue(1, {emitEvent: false});
-      this.predefinedConverterKeys = null;
     }
+    this.updatedPredefinedConverterKeys();
     this.updatedConverterVersionDisableState();
   }
 
   private updatedConverterVersionDisableState() {
     const converterVersion: number = this.entityForm.get('converterVersion').value;
-    if (converterVersion === 2) {
+    if (converterVersion === 2 && this.entityForm.enabled) {
       this.entityForm.get('configuration').get('name').enable({emitEvent: false});
     } else {
       this.entityForm.get('configuration').get('name').disable({emitEvent: false});
+    }
+  }
+
+  private updatedPredefinedConverterKeys() {
+    if (this.entityForm.get('converterVersion').value === 2) {
+      const converterType: ConverterType = this.entityForm.get('type').value;
+      const integrationType: IntegrationType = this.entityForm.get('integrationType').value;
+      const converterInfo: ConverterInfo = this.integrationsConvertersInfo[integrationType]?.[converterType.toLocaleLowerCase()];
+      this.predefinedConverterKeys = converterInfo.keys.map(value => ({name: value, value}));
+    } else {
+      this.predefinedConverterKeys = null;
     }
   }
 
@@ -372,10 +397,12 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
     this.checkIsNewConverter(entity, this.entityForm);
     if (isDefinedAndNotNull(entity.converterVersion)) {
+      this.updatedPredefinedConverterKeys();
       this.updatedConverterVersionDisableState();
     } else {
       this.updatedConverterVersion();
     }
+    this.updatedOnlyKeysValue(this.entityForm.get('integrationType').value);
   }
 
   onConverterIdCopied() {
@@ -465,7 +492,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     } else {
       const parameters: LatestConverterParameters = {
         converterType: this.entityForm.get('type').value,
-        integrationType: this.entityForm.get('itegrationType').value
+        integrationType: this.entityForm.get('integrationType').value
       };
       if (this.integrationName) {
         parameters.integrationName = this.integrationName;
