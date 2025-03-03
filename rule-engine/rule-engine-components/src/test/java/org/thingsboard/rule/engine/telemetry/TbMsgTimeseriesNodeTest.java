@@ -496,7 +496,6 @@ public class TbMsgTimeseriesNodeTest extends AbstractRuleNodeUpgradeTest {
                 .previousCalculatedFieldIds(msg.getPreviousCalculatedFieldIds())
                 .tbMsgId(msg.getId())
                 .tbMsgType(msg.getInternalType())
-                .callback(new TelemetryNodeCallback(ctxMock, msg))
                 .build();
 
         node.onMsg(ctxMock, msg);

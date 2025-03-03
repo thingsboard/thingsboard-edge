@@ -54,11 +54,12 @@ import static org.thingsboard.rule.engine.telemetry.settings.AttributesProcessin
 })
 public sealed interface AttributesProcessingSettings extends ProcessingSettings permits OnEveryMessage, Deduplicate, WebSocketsOnly, Advanced {
 
-    record Advanced(ProcessingStrategy attributes, ProcessingStrategy webSockets) implements AttributesProcessingSettings {
+    record Advanced(ProcessingStrategy attributes, ProcessingStrategy webSockets, ProcessingStrategy calculatedFields) implements AttributesProcessingSettings {
 
         public Advanced {
             Objects.requireNonNull(attributes);
             Objects.requireNonNull(webSockets);
+            Objects.requireNonNull(calculatedFields);
         }
 
     }

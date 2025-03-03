@@ -36,6 +36,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
+import org.thingsboard.common.util.NoOpFutureCallback;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -47,6 +48,8 @@ import org.thingsboard.server.common.data.msg.TbMsgType;
 
 import java.util.List;
 import java.util.UUID;
+
+import static java.util.Objects.requireNonNullElse;
 
 @Getter
 @ToString
@@ -64,11 +67,11 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
     private final TbMsgType tbMsgType;
     private final FutureCallback<Void> callback;
 
-    public record Strategy(boolean saveAttributes, boolean sendWsUpdate) {
+    public record Strategy(boolean saveAttributes, boolean sendWsUpdate, boolean processCalculatedFields) {
 
-        public static final Strategy PROCESS_ALL = new Strategy(true, true);
-        public static final Strategy WS_ONLY = new Strategy(false, true);
-        public static final Strategy SKIP_ALL = new Strategy(false, false);
+        public static final Strategy PROCESS_ALL = new Strategy(true, true, true);
+        public static final Strategy WS_ONLY = new Strategy(false, true, false);
+        public static final Strategy SKIP_ALL = new Strategy(false, false, false);
 
     }
 
@@ -83,7 +86,7 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
         private AttributeScope scope;
         private List<AttributeKvEntry> entries;
         private boolean notifyDevice = true;
-        private Strategy strategy = Strategy.PROCESS_ALL;
+        private Strategy strategy;
         private List<CalculatedFieldId> previousCalculatedFieldIds;
         private UUID tbMsgId;
         private TbMsgType tbMsgType;
@@ -175,8 +178,8 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
 
         public AttributesSaveRequest build() {
             return new AttributesSaveRequest(
-                    tenantId, entityId, scope, entries, notifyDevice, strategy,
-                    previousCalculatedFieldIds, tbMsgId, tbMsgType, callback
+                    tenantId, entityId, scope, entries, notifyDevice, requireNonNullElse(strategy, Strategy.PROCESS_ALL),
+                    previousCalculatedFieldIds, tbMsgId, tbMsgType, requireNonNullElse(callback, NoOpFutureCallback.instance())
             );
         }
 

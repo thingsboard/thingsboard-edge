@@ -639,7 +639,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             subscriptionManagerService.onAttributesDelete(
                     toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
-                    proto.getScope(), proto.getKeysList(), proto.getNotifyDevice(), callback);
+                    proto.getScope(), proto.getKeysList(), callback);
         } else if (msg.hasTsDelete()) {
             TbTimeSeriesDeleteProto proto = msg.getTsDelete();
             subscriptionManagerService.onTimeSeriesDelete(

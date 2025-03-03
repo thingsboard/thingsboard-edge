@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.rule.engine.api.AttributesDeleteRequest;
 import org.thingsboard.rule.engine.api.AttributesSaveRequest;
@@ -50,9 +51,14 @@ import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.TimeseriesDeleteRequest;
 import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -60,6 +66,7 @@ import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -67,6 +74,7 @@ import org.thingsboard.server.dao.util.KvUtils;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cf.CalculatedFieldQueueService;
 import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
+import org.thingsboard.server.service.subscription.TbAttributeSubscriptionScope;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 
 import java.util.ArrayList;
@@ -156,6 +164,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         EntityId entityId = request.getEntityId();
         TimeseriesSaveRequest.Strategy strategy = request.getStrategy();
         ListenableFuture<TimeseriesSaveResult> resultFuture;
+
         if (strategy.saveTimeseries() && strategy.saveLatest()) {
             resultFuture = tsService.save(tenantId, entityId, request.getEntries(), request.getTtl(), request.isOverwriteValue());
         } else if (strategy.saveLatest()) {
@@ -192,19 +201,50 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     @Override
     public void saveAttributesInternal(AttributesSaveRequest request) {
         log.trace("Executing saveInternal [{}]", request);
-        ListenableFuture<List<Long>> saveFuture;
-        if (request.getStrategy().saveAttributes()) {
-            saveFuture = attrService.save(request.getTenantId(), request.getEntityId(), request.getScope(), request.getEntries());
+        TenantId tenantId = request.getTenantId();
+        EntityId entityId = request.getEntityId();
+        AttributesSaveRequest.Strategy strategy = request.getStrategy();
+        ListenableFuture<List<Long>> resultFuture;
+
+        if (strategy.saveAttributes()) {
+            resultFuture = attrService.save(tenantId, entityId, request.getScope(), request.getEntries());
         } else {
-            saveFuture = Futures.immediateFuture(Collections.emptyList());
+            resultFuture = Futures.immediateFuture(Collections.emptyList());
         }
 
-        DonAsynchron.withCallback(saveFuture, result -> {
-            calculatedFieldQueueService.pushRequestToQueue(request, result, request.getCallback());
-        }, safeCallback(request.getCallback()), tsCallBackExecutor);
+        addMainCallback(resultFuture, result -> {
+            if (strategy.processCalculatedFields()) {
+                calculatedFieldQueueService.pushRequestToQueue(request, result, request.getCallback());
+            } else {
+                request.getCallback().onSuccess(null);
+            }
+        }, t -> request.getCallback().onFailure(t));
 
-        if (request.getStrategy().sendWsUpdate()) {
-            addWsCallback(saveFuture, success -> onAttributesUpdate(request.getTenantId(), request.getEntityId(), request.getScope().name(), request.getEntries(), request.isNotifyDevice()));
+        if (strategy.saveAttributes()
+                && entityId.getEntityType() == EntityType.DEVICE
+                && TbAttributeSubscriptionScope.SHARED_SCOPE.name().equalsIgnoreCase(request.getScope().name())
+                && request.isNotifyDevice()) {
+            addMainCallback(resultFuture, success -> clusterService.pushMsgToCore(
+                    DeviceAttributesEventNotificationMsg.onUpdate(tenantId, new DeviceId(entityId.getId()), DataConstants.SHARED_SCOPE, request.getEntries()), null
+            ));
+        }
+
+        if (strategy.saveAttributes() && entityId.getEntityType() == EntityType.EDGE) {
+            addMainCallback(resultFuture, success -> {
+                try {
+                    var edgeId = new EdgeId(entityId.getId());
+                    clusterService.sendNotificationMsgToEdge(
+                            tenantId, edgeId, edgeId, JacksonUtil.writeValueAsString(request.getEntries()),
+                            EdgeEventType.EDGE, EdgeEventActionType.ATTRIBUTES_UPDATED, null
+                    );
+                } catch (Exception e) {
+                    log.warn("[{}][{}] Can't send edge attributes updated event [{}]", tenantId, entityId.getId(), request.getEntries(), e);
+                }
+            });
+        }
+
+        if (strategy.sendWsUpdate()) {
+            addWsCallback(resultFuture, success -> onAttributesUpdate(tenantId, entityId, request.getScope().name(), request.getEntries()));
         }
     }
 
@@ -216,11 +256,25 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
 
     @Override
     public void deleteAttributesInternal(AttributesDeleteRequest request) {
-        ListenableFuture<List<String>> deleteFuture = attrService.removeAll(request.getTenantId(), request.getEntityId(), request.getScope(), request.getKeys());
-        DonAsynchron.withCallback(deleteFuture, result -> {
-            calculatedFieldQueueService.pushRequestToQueue(request, result, request.getCallback());
-        }, safeCallback(request.getCallback()), tsCallBackExecutor);
-        addWsCallback(deleteFuture, success -> onAttributesDelete(request.getTenantId(), request.getEntityId(), request.getScope().name(), request.getKeys(), request.isNotifyDevice()));
+        TenantId tenantId = request.getTenantId();
+        EntityId entityId = request.getEntityId();
+
+        ListenableFuture<List<String>> deleteFuture = attrService.removeAll(tenantId, entityId, request.getScope(), request.getKeys());
+
+        addMainCallback(deleteFuture,
+                result -> calculatedFieldQueueService.pushRequestToQueue(request, result, request.getCallback()),
+                t -> request.getCallback().onFailure(t)
+        );
+
+        if (entityId.getEntityType() == EntityType.DEVICE
+                && TbAttributeSubscriptionScope.SHARED_SCOPE.name().equalsIgnoreCase(request.getScope().name())
+                && request.isNotifyDevice()) {
+            addMainCallback(deleteFuture, success -> clusterService.pushMsgToCore(
+                    DeviceAttributesEventNotificationMsg.onDelete(tenantId, new DeviceId(entityId.getId()), DataConstants.SHARED_SCOPE, request.getKeys()), null
+            ));
+        }
+
+        addWsCallback(deleteFuture, success -> onAttributesDelete(tenantId, entityId, request.getScope().name(), request.getKeys()));
     }
 
     @Override
@@ -305,16 +359,16 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         }
     }
 
-    private void onAttributesUpdate(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes, boolean notifyDevice) {
+    private void onAttributesUpdate(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes) {
         forwardToSubscriptionManagerService(tenantId, entityId,
-                subscriptionManagerService -> subscriptionManagerService.onAttributesUpdate(tenantId, entityId, scope, attributes, notifyDevice, TbCallback.EMPTY),
+                subscriptionManagerService -> subscriptionManagerService.onAttributesUpdate(tenantId, entityId, scope, attributes, TbCallback.EMPTY),
                 () -> TbSubscriptionUtils.toAttributesUpdateProto(tenantId, entityId, scope, attributes));
     }
 
-    private void onAttributesDelete(TenantId tenantId, EntityId entityId, String scope, List<String> keys, boolean notifyDevice) {
+    private void onAttributesDelete(TenantId tenantId, EntityId entityId, String scope, List<String> keys) {
         forwardToSubscriptionManagerService(tenantId, entityId,
-                subscriptionManagerService -> subscriptionManagerService.onAttributesDelete(tenantId, entityId, scope, keys, notifyDevice, TbCallback.EMPTY),
-                () -> TbSubscriptionUtils.toAttributesDeleteProto(tenantId, entityId, scope, keys, notifyDevice));
+                subscriptionManagerService -> subscriptionManagerService.onAttributesDelete(tenantId, entityId, scope, keys, TbCallback.EMPTY),
+                () -> TbSubscriptionUtils.toAttributesDeleteProto(tenantId, entityId, scope, keys));
     }
 
     private void onTimeSeriesUpdate(TenantId tenantId, EntityId entityId, List<TsKvEntry> ts) {
@@ -346,6 +400,10 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     private <S> void addMainCallback(ListenableFuture<S> saveFuture, final FutureCallback<Void> callback) {
         if (callback == null) return;
         addMainCallback(saveFuture, result -> callback.onSuccess(null), callback::onFailure);
+    }
+
+    private <S> void addMainCallback(ListenableFuture<S> saveFuture, Consumer<S> onSuccess) {
+        DonAsynchron.withCallback(saveFuture, onSuccess, null, tsCallBackExecutor);
     }
 
     private <S> void addMainCallback(ListenableFuture<S> saveFuture, Consumer<S> onSuccess, Consumer<Throwable> onFailure) {
