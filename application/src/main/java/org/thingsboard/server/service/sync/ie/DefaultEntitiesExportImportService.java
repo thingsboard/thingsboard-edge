@@ -38,6 +38,7 @@ import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -46,6 +47,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
 import org.thingsboard.server.common.data.util.ThrowingRunnable;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -76,6 +78,7 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     private final Map<EntityType, EntityImportService<?, ?, ?>> importServices = new HashMap<>();
 
     private final RelationService relationService;
+    private final CalculatedFieldService calculatedFieldService;
     private final RateLimitService rateLimitService;
     private final TbLogEntityActionService logEntityActionService;
 
@@ -140,6 +143,11 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
         for (EntityRelation relation : ctx.getRelations()) {
             logEntityActionService.logEntityRelationAction(ctx.getTenantId(), null,
                     relation, ctx.getUser(), ActionType.RELATION_ADD_OR_UPDATE, null, relation);
+        }
+
+        for (CalculatedField calculatedField : ctx.getCalculatedFields()) {
+            var savedCalculatedField = calculatedFieldService.save(calculatedField);
+            logEntityActionService.logEntityAction(ctx.getTenantId(), savedCalculatedField.getId(), savedCalculatedField, ActionType.ADDED, ctx.getUser());
         }
     }
 
