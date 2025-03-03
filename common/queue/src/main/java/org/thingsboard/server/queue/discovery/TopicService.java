@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -62,12 +62,16 @@ public class TopicService {
     @Value("${queue.edge.event-notifications-topic:tb_edge_event.notifications}")
     private String tbEdgeEventNotificationsTopic;
 
+    @Value("${queue.calculated_fields.notifications-topic:calculated_field}")
+    private String tbCalculatedFieldNotificationsTopic;
+
     @Value("${queue.integration.notifications-topic:tb_integration_executor.notifications}")
     private String tbIntegrationExecutorNotificationsTopic;
 
     private final ConcurrentMap<String, TopicPartitionInfo> tbCoreNotificationTopics = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TopicPartitionInfo> tbRuleEngineNotificationTopics = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TopicPartitionInfo> tbEdgeNotificationTopics = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, TopicPartitionInfo> tbCalculatedFieldNotificationTopics = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TopicPartitionInfo> tbIntegrationExecutorNotificationTopics = new ConcurrentHashMap<>();
     private final ConcurrentReferenceHashMap<EdgeId, TopicPartitionInfo> tbEdgeEventsNotificationTopics = new ConcurrentReferenceHashMap<>();
 
@@ -105,6 +109,10 @@ public class TopicService {
 
     private TopicPartitionInfo buildEdgeNotificationsTopicPartitionInfo(String serviceId) {
         return buildTopicPartitionInfo(buildNotificationTopicName(tbEdgeNotificationsTopic, serviceId), null, null, false);
+    }
+
+    public TopicPartitionInfo getCalculatedFieldNotificationsTopic(String serviceId) {
+        return tbCalculatedFieldNotificationTopics.computeIfAbsent(serviceId, id -> buildNotificationsTopicPartitionInfo(tbCalculatedFieldNotificationsTopic, serviceId));
     }
 
     public TopicPartitionInfo getEdgeEventNotificationsTopic(TenantId tenantId, EdgeId edgeId) {

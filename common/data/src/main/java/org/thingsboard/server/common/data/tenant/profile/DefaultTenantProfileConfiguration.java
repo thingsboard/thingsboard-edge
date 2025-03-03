@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -159,6 +159,12 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private int blobEntityTtlDays;
 
     private double warnThreshold;
+
+    private long maxCalculatedFieldsPerEntity;
+    private long maxArgumentsPerCF;
+    private long maxDataPointsPerRollingArg;
+    private long maxStateSizeInKBytes;
+    private long maxSingleValueArgumentSizeInKBytes;
 
     @Override
     public long getProfileThreshold(ApiUsageRecordKey key) {

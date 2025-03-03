@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -327,15 +327,6 @@ public class EdgeImitator {
             for (EntityGroupUpdateMsg entityGroupUpdateMsg: downlinkMsg.getEntityGroupUpdateMsgList()) {
                 result.add(saveDownlinkMsg(entityGroupUpdateMsg));
             }
-        }
-        if (downlinkMsg.hasSystemCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getSystemCustomTranslationMsg()));
-        }
-        if (downlinkMsg.hasTenantCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getTenantCustomTranslationMsg()));
-        }
-        if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getCustomerCustomTranslationMsg()));
         }
         if (downlinkMsg.hasCustomMenuProto()) {
             result.add(saveDownlinkMsg(downlinkMsg.getCustomMenuProto()));

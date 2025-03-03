@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -204,6 +204,14 @@ export class GetValueActionSettingsComponent implements OnInit, ControlValueAcce
           }
         } else {
           this.displayValue = this.translate.instant('widgets.value-action.get-dashboard-state-text');
+        }
+        break;
+      case GetValueAction.GET_DASHBOARD_STATE_OBJECT:
+        if (this.valueType === ValueType.BOOLEAN) {
+          const state = this.modelValue.dataToValue?.compareToValue;
+          this.displayValue = this.translate.instant('widgets.value-action.when-dashboard-state-object-function-is-text', {state});
+        } else {
+          this.displayValue = this.translate.instant('widgets.value-action.get-dashboard-state-object-text');
         }
         break;
     }

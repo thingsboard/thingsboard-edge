@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor.entityview;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -55,7 +56,7 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
     protected Pair<Boolean, Boolean> saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) throws ThingsboardException {
         boolean created = false;
         boolean entityViewNameUpdated = false;
-        EntityView entityView = constructEntityViewFromUpdateMsg(tenantId, entityViewId, entityViewUpdateMsg);
+        EntityView entityView = JacksonUtil.fromString(entityViewUpdateMsg.getEntity(), EntityView.class, true);
         if (entityView == null) {
             throw new RuntimeException("[{" + tenantId + "}] entityViewUpdateMsg {" + entityViewUpdateMsg + "} cannot be converted to entity view");
         }
@@ -97,8 +98,6 @@ public abstract class BaseEntityViewProcessor extends BaseEdgeProcessor {
             safeAddEntityToGroup(tenantId, new EntityGroupId(entityGroupUUID), entityViewId);
         }
     }
-
-    protected abstract EntityView constructEntityViewFromUpdateMsg(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg);
 
     protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg);
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -80,7 +80,7 @@ export class CustomMobilePageComponent implements ControlValueAccessor, Validato
   customMobilePageForm = this.fb.group({
     visible: [true],
     icon: ['star'],
-    label: ['', [Validators.required, Validators.pattern(/\S/)]],
+    label: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
     type: [MobilePageType.DASHBOARD],
     dashboardId: this.fb.control<string>(null, Validators.required),
     url: [{value:'', disabled: true}, [Validators.required, Validators.pattern(WEB_URL_REGEX)]],

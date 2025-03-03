@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -284,7 +284,7 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
                         .tenantId(entityView.getTenantId())
                         .entityId(entityId)
                         .entries(latestValues)
-                        .onlyLatest(true)
+                        .strategy(TimeseriesSaveRequest.Strategy.LATEST_AND_WS)
                         .callback(new FutureCallback<Void>() {
                             @Override
                             public void onSuccess(@Nullable Void tmp) {

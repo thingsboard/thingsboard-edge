@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,8 +49,6 @@ import org.thingsboard.server.service.install.TsLatestDatabaseSchemaService;
 import org.thingsboard.server.service.install.migrate.TsLatestMigrateService;
 import org.thingsboard.server.service.install.update.CacheCleanupService;
 import org.thingsboard.server.service.install.update.DataUpdateService;
-
-import static org.thingsboard.server.service.install.update.DefaultDataUpdateService.getEnv;
 
 @Service
 @Profile("install")
@@ -114,11 +112,7 @@ public class ThingsboardInstallService {
                 if ("cassandra-latest-to-postgres".equals(upgradeFromVersion)) {
                     log.info("Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...");
                     latestMigrateService.migrate();
-                } else if (upgradeFromVersion.equals("3.9.0-resources")) {
-                    installScripts.updateResourcesUsage();
-                } else if (upgradeFromVersion.equals("3.9.0-mail-templates")) {
-                    installScripts.migrateMailTemplates();
-                }  else {
+                } else {
                     // TODO DON'T FORGET to update SUPPORTED_VERSIONS_FROM in DefaultDatabaseSchemaSettingsService
                     var updateFromCE = "CE".equals(upgradeFromVersion);
                     databaseSchemaVersionService.validateSchemaSettings(updateFromCE);
@@ -140,35 +134,16 @@ public class ThingsboardInstallService {
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
                     // Creates missing indexes.
                     entityDatabaseSchemaService.createDatabaseIndexes();
-                    // Runs upgrade scripts that are not possible in plain SQL.
 
                     // TODO: cleanup update code after each release
-                    if (!getEnv("SKIP_RESOURCES_USAGE_MIGRATION", false)) {
-                        installScripts.setUpdateResourcesUsage(true);
-                    } else {
-                        log.info("Skipping resources usage migration. Run the upgrade with fromVersion as '3.9.0-resources' to migrate");
-                    }
-                    if (installScripts.isUpdateResourcesUsage()) {
-                        installScripts.updateResourcesUsage();
-                    }
-                    if (!getEnv("SKIP_MAIL_TEMPLATES_MIGRATION", false)) {
-                        installScripts.setMigrateMailTemplates(true);
-                    } else {
-                        log.info("Skipping migration of mail templates to notification center. Run the upgrade with fromVersion as '3.9.0-mail-templates' to migrate");
-                    }
-                    if (installScripts.isMigrateMailTemplates()) {
-                        installScripts.migrateMailTemplates();
-                    }
 
+                    // Runs upgrade scripts that are not possible in plain SQL.
                     dataUpdateService.updateData(updateFromCE);
                     log.info("Updating system data...");
                     dataUpdateService.upgradeRuleNodes();
                     systemDataLoaderService.loadSystemWidgets();
                     installScripts.loadSystemLwm2mResources();
                     installScripts.loadSystemImagesAndResources();
-                    if (installScripts.isUpdateImages()) {
-                        installScripts.updateImages();
-                    }
                     systemDataLoaderService.createDefaultCustomMenu();
                     installScripts.updateSystemNotificationTemplates();
                     databaseSchemaVersionService.updateSchemaVersion();

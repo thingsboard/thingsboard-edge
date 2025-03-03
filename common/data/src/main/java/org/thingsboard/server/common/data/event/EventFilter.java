@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = ErrorEventFilter.class, name = "ERROR"),
         @JsonSubTypes.Type(value = LifeCycleEventFilter.class, name = "LC_EVENT"),
         @JsonSubTypes.Type(value = StatisticsEventFilter.class, name = "STATS"),
-        @JsonSubTypes.Type(value = RawDataEventFilter.class, name = "RAW_DATA")
+        @JsonSubTypes.Type(value = RawDataEventFilter.class, name = "RAW_DATA"),
+        @JsonSubTypes.Type(value = CalculatedFieldDebugEventFilter.class, name = "DEBUG_CALCULATED_FIELD")
 })
 public interface EventFilter {
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,12 @@ import {
   IntegrationDownlinkConfigComponent
 } from '@home/components/rule-node/action/integration-downlink-config.component';
 import { RemoveFromGroupConfigComponent } from '@home/components/rule-node/action/remove-from-group-config.component';
+import {
+  AdvancedProcessingSettingComponent
+} from '@home/components/rule-node/action/advanced-processing-setting.component';
+import {
+  AdvancedProcessingSettingRowComponent
+} from '@home/components/rule-node/action/advanced-processing-setting-row.component';
 
 @NgModule({
   declarations: [
@@ -90,6 +96,8 @@ import { RemoveFromGroupConfigComponent } from '@home/components/rule-node/actio
     PushToCloudConfigComponent,
     MathFunctionConfigComponent,
     DeviceStateConfigComponent,
+    AdvancedProcessingSettingComponent,
+    AdvancedProcessingSettingRowComponent,
     AddToGroupConfigComponent,
     ChangeOwnerConfigComponent,
     GenerateReportConfigComponent,

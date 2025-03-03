@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -69,6 +69,10 @@ public class TbKafkaTopicConfigs {
     private String housekeeperProperties;
     @Value("${queue.kafka.topic-properties.housekeeper-reprocessing:}")
     private String housekeeperReprocessingProperties;
+    @Value("${queue.kafka.topic-properties.calculated-field:}")
+    private String calculatedFieldProperties;
+    @Value("${queue.kafka.topic-properties.calculated-field-state:}")
+    private String calculatedFieldStateProperties;
 
     @Getter
     private Map<String, String> coreConfigs;
@@ -100,6 +104,10 @@ public class TbKafkaTopicConfigs {
     private Map<String, String> edgeConfigs;
     @Getter
     private Map<String, String> edgeEventConfigs;
+    @Getter
+    private Map<String, String> calculatedFieldConfigs;
+    @Getter
+    private Map<String, String>  calculatedFieldStateConfigs;
 
     @PostConstruct
     private void init() {
@@ -121,6 +129,8 @@ public class TbKafkaTopicConfigs {
         housekeeperReprocessingConfigs = PropertyUtils.getProps(housekeeperReprocessingProperties);
         edgeConfigs = PropertyUtils.getProps(edgeProperties);
         edgeEventConfigs = PropertyUtils.getProps(edgeEventProperties);
+        calculatedFieldConfigs = PropertyUtils.getProps(calculatedFieldProperties);
+        calculatedFieldStateConfigs = PropertyUtils.getProps(calculatedFieldStateProperties);
     }
 
 }

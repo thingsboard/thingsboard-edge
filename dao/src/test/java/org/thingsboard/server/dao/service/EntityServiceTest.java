@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -1780,7 +1781,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertEquals(1, results3.getTotalElements());
         String deviceName3 = results3.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
         assertThat(deviceName3).isEqualTo(customerDevices.get(0).getName());
-   }
+    }
 
     @Test
     public void testFindGroupEntityBySingleEntityFilter() {
@@ -2314,7 +2315,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         //check that tenant entity is not accessible to customer user
         stateEntityOwnerFilter.setSingleEntity(tenantEntityIds.get(0));
         EntityCountQuery countQuery = new EntityDataQuery(stateEntityOwnerFilter, pageLink, null, null, null);
-        long countResult =  entityService.countEntitiesByQuery(tenantId, customerId, mergedUserPermissionsPE, countQuery);
+        long countResult = entityService.countEntitiesByQuery(tenantId, customerId, mergedUserPermissionsPE, countQuery);
         assertEquals(0, countResult);
     }
 
@@ -2554,7 +2555,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             In order to be careful with updating Relation Query while adding new Entity Type,
             this checkup will help to find place, where you could check the correctness of building query
              */
-            Assert.assertEquals(38, EntityType.values().length);
+            Assert.assertEquals(40, EntityType.values().length);
         }
     }
 
@@ -2915,7 +2916,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             }
         }
 
-        List<ListenableFuture<Integer>> timeseriesFutures = new ArrayList<>();
+        List<ListenableFuture<TimeseriesSaveResult>> timeseriesFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             timeseriesFutures.add(saveLongTimeseries(device.getId(), "temperature", temperatures.get(i)));
@@ -3525,7 +3526,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));
     }
 
-    private ListenableFuture<Integer> saveLongTimeseries(EntityId entityId, String key, Double value) {
+    private ListenableFuture<TimeseriesSaveResult> saveLongTimeseries(EntityId entityId, String key, Double value) {
         TsKvEntity tsKv = new TsKvEntity();
         tsKv.setStrKey(key);
         tsKv.setDoubleValue(value);
@@ -3754,7 +3755,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         assertThat(thermostats.getData()).isEmpty();
 
         //add text search
-        PageLink pageLink = new PageLink(100, 0,"wrong search text");
+        PageLink pageLink = new PageLink(100, 0, "wrong search text");
         PageData<Device> testDevices = entityService.findUserEntities(tenantId, customerId, mergedUserPermissions,
                 EntityType.DEVICE, Operation.READ, null, pageLink, false, false);
         assertThat(testDevices.getData()).isEmpty();

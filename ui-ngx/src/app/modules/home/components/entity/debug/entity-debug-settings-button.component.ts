@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,7 @@ import { EntityDebugSettingsPanelComponent } from './entity-debug-settings-panel
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, of, shareReplay, timer } from 'rxjs';
 import { SECOND, MINUTE } from '@shared/models/time/time.models';
-import { EntityDebugSettings } from '@shared/models/entity.models';
+import { AdditionalDebugActionConfig, EntityDebugSettings } from '@shared/models/entity.models';
 import { map, switchMap, takeWhile } from 'rxjs/operators';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AppState } from '@core/core.state';
@@ -76,6 +76,7 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
 
   @Input() debugLimitsConfiguration: string;
   @Input() entityLabel: string;
+  @Input() additionalActionConfig: AdditionalDebugActionConfig;
 
   debugSettingsFormGroup = this.fb.group({
     failuresEnabled: [false],
@@ -148,11 +149,11 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
           ...debugSettings,
           maxDebugModeDuration: this.maxDebugModeDuration,
           debugLimitsConfiguration: this.debugLimitsConfiguration,
-          entityLabel: this.entityLabel
+          entityLabel: this.entityLabel,
+          additionalActionConfig: this.additionalActionConfig,
         },
         {},
         {}, {}, true);
-      debugStrategyPopover.tbComponentRef.instance.popover = debugStrategyPopover;
       debugStrategyPopover.tbComponentRef.instance.onSettingsApplied.subscribe((settings: EntityDebugSettings) => {
         this.debugSettingsFormGroup.patchValue(settings);
         this.cd.markForCheck();

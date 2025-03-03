@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,6 +53,7 @@ import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -114,7 +115,11 @@ public abstract class AbstractSubscriptionService extends TbApplicationEventList
     }
 
     protected <T> void addWsCallback(ListenableFuture<T> saveFuture, Consumer<T> callback) {
-        Futures.addCallback(saveFuture, new FutureCallback<T>() {
+        addCallback(saveFuture, callback, wsCallBackExecutor);
+    }
+
+    protected <T> void addCallback(ListenableFuture<T> saveFuture, Consumer<T> callback, Executor executor) {
+        Futures.addCallback(saveFuture, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable T result) {
                 callback.accept(result);
@@ -123,7 +128,15 @@ public abstract class AbstractSubscriptionService extends TbApplicationEventList
             @Override
             public void onFailure(Throwable t) {
             }
-        }, wsCallBackExecutor);
+        }, executor);
+    }
+
+    protected static Consumer<Throwable> safeCallback(FutureCallback<Void> callback) {
+        if (callback != null) {
+            return callback::onFailure;
+        } else {
+            return throwable -> {};
+        }
     }
 
 }

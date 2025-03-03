@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ package org.thingsboard.server.service.edge.rpc.processor.role;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
@@ -53,8 +52,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.role.RoleMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.role.RoleMsgConstructorFactory;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.ArrayList;
@@ -66,12 +64,9 @@ import java.util.UUID;
 @TbCoreComponent
 public class RoleEdgeProcessor extends BaseEdgeProcessor {
 
-    @Autowired
-    protected RoleMsgConstructorFactory roleMsgConstructorFactory;
-
-    public DownlinkMsg convertRoleEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         RoleId roleId = new RoleId(edgeEvent.getEntityId());
-        var msgConstructor = (RoleMsgConstructor) roleMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
@@ -81,21 +76,22 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                 if (role != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addRoleMsg(msgConstructor.constructRoleProto(msgType, role))
+                            .addRoleMsg(EdgeMsgConstructorUtils.constructRoleProto(msgType, role))
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addRoleMsg(msgConstructor.constructRoleDeleteMsg(roleId))
+                        .addRoleMsg(EdgeMsgConstructorUtils.constructRoleDeleteMsg(roleId))
                         .build();
                 break;
         }
         return downlinkMsg;
     }
 
-    public ListenableFuture<Void> processRoleNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+    @Override
+    public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
@@ -123,6 +119,11 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
             case DELETED -> processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
             default -> Futures.immediateFuture(null);
         };
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.ROLE;
     }
 
 }

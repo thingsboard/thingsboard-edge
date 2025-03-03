@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -140,7 +140,13 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       edgeEventRateLimits: [null, []],
       edgeEventRateLimitsPerEdge: [null, []],
       edgeUplinkMessagesRateLimits: [null, []],
-      edgeUplinkMessagesRateLimitsPerEdge: [null, []]
+      edgeUplinkMessagesRateLimitsPerEdge: [null, []],
+      maxCalculatedFieldsPerEntity: [null, [Validators.required, Validators.min(0)]],
+      maxArgumentsPerCF: [null, [Validators.required, Validators.min(0)]],
+      maxDataPointsPerRollingArg: [null, [Validators.required, Validators.min(0)]],
+      maxStateSizeInKBytes: [null, [Validators.required, Validators.min(0)]],
+      calculatedFieldDebugEventsRateLimit: [null, []],
+      maxSingleValueArgumentSizeInKBytes: [null, [Validators.required, Validators.min(0)]],
     });
 
     this.defaultTenantProfileConfigurationFormGroup.get('smsEnabled').valueChanges.pipe(

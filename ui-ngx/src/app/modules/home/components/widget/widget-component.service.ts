@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -456,8 +456,8 @@ export class WidgetComponentService {
       basicDirectives.push(widgetInfo.basicModeDirective);
     }
 
-    this.expandSettingComponentMap(this.widgetService.putWidgetSettingsComponentToMap, directives, modulesWithComponents);
-    this.expandSettingComponentMap(this.widgetService.putBasicWidgetSettingsComponentToMap, basicDirectives, modulesWithComponents);
+    this.expandSettingComponentMap(this.widgetService.putWidgetSettingsComponentToMap.bind(this.widgetService), directives, modulesWithComponents);
+    this.expandSettingComponentMap(this.widgetService.putBasicWidgetSettingsComponentToMap.bind(this.widgetService), basicDirectives, modulesWithComponents);
   }
 
   private expandSettingComponentMap(putComponentToMap: (selector: string, comp: Type<IWidgetSettingsComponent | IBasicWidgetConfigComponent>) => void,
