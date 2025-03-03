@@ -17,7 +17,25 @@
     "f_port": 1,
     "f_cnt": 101,
     "frm_payload": "AgI7AAMANwJxDGA=",
-    "rx_metadata": [],
+    "rx_metadata": [
+      {
+        "gateway_ids": {
+          "gateway_id": "eui-6A7E111A10000000",
+          "eui": "6A7E111A10000000"
+        },
+        "rssi": -22,
+        "channel_rssi": -22,
+        "snr": 11
+      },
+      {
+        "gateway_ids": {
+          "gateway_id": "packetbroker"
+        },
+        "rssi": -24,
+        "channel_rssi": -24,
+        "snr": 12
+      }
+    ],
     "settings": {
       "data_rate": {
         "lora": {

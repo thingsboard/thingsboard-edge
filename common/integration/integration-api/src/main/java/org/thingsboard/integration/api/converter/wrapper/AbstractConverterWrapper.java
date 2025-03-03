@@ -58,12 +58,35 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
             }
         });
 
+        postMapping(kvMap, payloadJson);
+
         kvMap.putAll(metadata.getKvMap());
         TbPair<byte[], ContentType> payloadPair = getPayload(payloadJson);
         UplinkMetaData mergedMetadata = new UplinkMetaData(payloadPair.getSecond(), kvMap);
 
         return TbPair.of(payloadPair.getFirst(), mergedMetadata);
     }
+
+    protected Integer findRssi(JsonNode rxInfoArray) {
+        Integer closestRssi = null;
+        int minAbsDifference = Integer.MAX_VALUE;
+
+        for (JsonNode rxInfo : rxInfoArray) {
+            JsonNode rssi = rxInfo.get("rssi");
+            if (rssi != null && rssi.isNumber()) {
+                int rssiValue = rssi.asInt();
+                int absDifference = Math.abs(rssiValue);
+
+                if (absDifference < minAbsDifference) {
+                    minAbsDifference = absDifference;
+                    closestRssi = rssiValue;
+                }
+            }
+        }
+        return closestRssi;
+    }
+
+    protected void postMapping(Map<String, String> kvMap, JsonNode payloadJson) {}
 
     protected abstract TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws Exception;
 

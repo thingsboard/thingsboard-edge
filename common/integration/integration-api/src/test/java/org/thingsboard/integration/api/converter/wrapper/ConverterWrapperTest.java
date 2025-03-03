@@ -55,19 +55,25 @@ public class ConverterWrapperTest {
     public void loriotConverterWrapperTest() throws Exception {
         ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.LORIOT).get();
 
-        ObjectNode payloadMsg = JacksonUtil.newObjectNode();
-        payloadMsg.put("data", "2A3F");
-        payloadMsg.put("rssi", "-130");
-        payloadMsg.put("port", 80);
-        payloadMsg.put("EUI", "BE7A123456789");
+        ObjectNode payloadMsg = JacksonUtil.fromString(readPayloadFromFile("LoriotPayload.json"), ObjectNode.class);
 
         UplinkMetaData uplinkMetaData = new UplinkMetaData(ContentType.JSON, Map.of("integrationName", "Loriot integration"));
 
         Map<String, String> expectedKvMap = new HashMap<>(uplinkMetaData.getKvMap());
         expectedKvMap.put("data", "\"2A3F\"");
-        expectedKvMap.put("rssi", "\"-130\"");
+        expectedKvMap.put("rssi", "-49");
         expectedKvMap.put("fPort", "80");
         expectedKvMap.put("eui", "\"BE7A123456789\"");
+        expectedKvMap.put("gws", "[{\"rssi\":-49,\"snr\":9.2},{\"rssi\":-49,\"snr\":8.8}]");
+        expectedKvMap.put("seqno", "3");
+        expectedKvMap.put("toa", "1319");
+        expectedKvMap.put("ack", "false");
+        expectedKvMap.put("dr", "\"SF12 BW125 4/5\"");
+        expectedKvMap.put("frequency", "868100000");
+        expectedKvMap.put("battery", "143");
+        expectedKvMap.put("cmd", "\"gw\"");
+        expectedKvMap.put("fСnt", "2");
+        expectedKvMap.put("ts", "1690901187375");
 
         TbPair<byte[], UplinkMetaData> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
@@ -97,16 +103,7 @@ public class ConverterWrapperTest {
     public void chirpStackConverterWrapperTest() throws Exception {
         ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.CHIRPSTACK).get();
 
-        ObjectNode payloadMsg = JacksonUtil.newObjectNode();
-        payloadMsg.put("data", "MkEzRg==");
-        payloadMsg.put("fPort", 80);
-
-        ObjectNode deviceInfoMsg = JacksonUtil.newObjectNode();
-        deviceInfoMsg.put("deviceName", "Chirpstack");
-        deviceInfoMsg.put("deviceProfileName", "default");
-        deviceInfoMsg.put("devEui", "BE7A123456789");
-
-        payloadMsg.set("deviceInfo", deviceInfoMsg);
+        ObjectNode payloadMsg = JacksonUtil.fromString(readPayloadFromFile("ChirpStackPayload.json"), ObjectNode.class);
 
         UplinkMetaData uplinkMetaData = new UplinkMetaData(ContentType.JSON, Map.of("integrationName", "Chirpstack integration"));
 
@@ -116,6 +113,22 @@ public class ConverterWrapperTest {
         expectedKvMap.put("eui", "\"BE7A123456789\"");
         expectedKvMap.put("deviceName", "\"Chirpstack\"");
         expectedKvMap.put("deviceProfileName", "\"default\"");
+        expectedKvMap.put("devAddr", "\"00189440\"");
+        expectedKvMap.put("rssi", "-22");
+        expectedKvMap.put("bandwidth", "125000");
+        expectedKvMap.put("deduplicationId", "\"3ac7e3c4-4401-4b8d-9386-a5c902f9202d\"");
+        expectedKvMap.put("deviceProfileId", "\"14855bf7-d10d-4aee-b618-ebfcb64dc7ad\"");
+        expectedKvMap.put("dr", "1");
+        expectedKvMap.put("tags", "{\"key\":\"value\"}");
+        expectedKvMap.put("frequency", "867100000");
+        expectedKvMap.put("codeRate", "\"CR_4_5\"");
+        expectedKvMap.put("spreadingFactor", "11");
+        expectedKvMap.put("tenantName", "\"ChirpStack\"");
+        expectedKvMap.put("tenantId", "\"52f14cd4-c6f1-4fbd-8f87-4025e1d49242\"");
+        expectedKvMap.put("time", "\"2022-07-18T09:34:15.775023242+00:00\"");
+        expectedKvMap.put("applicationId", "\"17c82e96-be03-4f38-aef3-f83d48582d97\"");
+        expectedKvMap.put("applicationName", "\"Test application\"");
+        expectedKvMap.put("rxInfo", "[{\"uplinkId\":2,\"rssi\":-36,\"snr\":10.5},{\"uplinkId\":1,\"rssi\":-22,\"snr\":10.5}]");
 
         TbPair<byte[], UplinkMetaData> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
@@ -161,15 +174,16 @@ public class ConverterWrapperTest {
         expectedKvMap.put("fPort", "1");
         expectedKvMap.put("fCnt", "101");
         expectedKvMap.put("data", "\"AgI7AAMANwJxDGA=\"");
-        expectedKvMap.put("rxMetadata", "[]");
+        expectedKvMap.put("rxMetadata", "[{\"gateway_ids\":{\"gateway_id\":\"eui-6A7E111A10000000\",\"eui\":\"6A7E111A10000000\"},\"rssi\":-22,\"channel_rssi\":-22,\"snr\":11},{\"gateway_ids\":{\"gateway_id\":\"packetbroker\"},\"rssi\":-24,\"channel_rssi\":-24,\"snr\":12}]");
         expectedKvMap.put("bandwidth", "125000");
         expectedKvMap.put("spreadingFactor", "11");
         expectedKvMap.put("dataRateIndex", "1");
-        expectedKvMap.put("codingRate", "\"4/5\"");
+        expectedKvMap.put("codeRate", "\"4/5\"");
         expectedKvMap.put("frequency", "\"867700000\"");
         expectedKvMap.put("timestamp", "436812492");
         expectedKvMap.put("time", "\"2020-02-06T09:46:05Z\"");
         expectedKvMap.put("uplinkMessageReceivedAt", "\"2020-02-06T09:46:05.234172599Z\"");
+        expectedKvMap.put("rssi", "-22");
 
         TbPair<byte[], UplinkMetaData> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
@@ -207,9 +221,9 @@ public class ConverterWrapperTest {
         expectedKvMap.put("time", "\"2024-11-28T21:08:22.138+00:00\"");
         expectedKvMap.put("eui", "\"70B3D57BA000156B\"");
         expectedKvMap.put("fPort", "1");
-        expectedKvMap.put("fCntUp", "26");
+        expectedKvMap.put("fCnt", "26");
         expectedKvMap.put("lostUplinksAs", "0");
-        expectedKvMap.put("adrBit", "1");
+        expectedKvMap.put("adr", "1");
         expectedKvMap.put("mType", "2");
         expectedKvMap.put("fCntDn", "2");
         expectedKvMap.put("data", "\"02023b0003003702710c60\"");

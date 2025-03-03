@@ -37,6 +37,7 @@ import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Base64;
+import java.util.Map;
 
 public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
 
@@ -60,7 +61,7 @@ public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
                 .put("bandwidth", "/uplink_message/settings/data_rate/lora/bandwidth")
                 .put("spreadingFactor", "/uplink_message/settings/data_rate/lora/spreading_factor")
                 .put("dataRateIndex", "/uplink_message/settings/data_rate_index")
-                .put("codingRate", "/uplink_message/settings/coding_rate")
+                .put("codeRate", "/uplink_message/settings/coding_rate")
                 .put("frequency", "/uplink_message/settings/frequency")
                 .put("timestamp", "/uplink_message/settings/timestamp")
                 .put("time", "/uplink_message/settings/time")
@@ -79,7 +80,19 @@ public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
                 .put("clusterId", "/uplink_message/network_ids/cluster_id")
                 .put("attributes", "/uplink_message/attributes")
                 .put("uplinkMessageReceivedAt", "/uplink_message/received_at")
+                .put("rssi", "")
                 .build();
+    }
+
+    @Override
+    protected void postMapping(Map<String, String> kvMap, JsonNode payloadJson) {
+        JsonNode rxMetadata = payloadJson.at("/uplink_message/rx_metadata");
+        if (!rxMetadata.isEmpty()) {
+            Integer closestRssi = findRssi(rxMetadata);
+            if (closestRssi != null) {
+                kvMap.put("rssi", String.valueOf(closestRssi));
+            }
+        }
     }
 
     @Override

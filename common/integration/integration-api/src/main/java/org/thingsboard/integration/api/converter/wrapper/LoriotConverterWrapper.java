@@ -38,7 +38,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 public class LoriotConverterWrapper extends AbstractConverterWrapper {
 
@@ -51,7 +51,7 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
                 .put("eui", "/EUI")
                 .put("ts", "/ts")
                 .put("ack", "/ack")
-                .put("bat", "/bat")
+                .put("battery", "/bat")
                 .put("fСnt", "/fcnt")
                 .put("fPort", "/port")
                 .put("offline", "/offline")
@@ -65,6 +65,20 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
                 .put("encdata", "/encdata")
                 .put("gws", "/gws")
                 .build();
+    }
+
+    @Override
+    protected void postMapping(Map<String, String> kvMap, JsonNode payloadJson) {
+        if (kvMap.containsKey("rssi")) {
+            return;
+        }
+        JsonNode gws = payloadJson.get("gws");
+        if (gws != null && !gws.isEmpty()) {
+            Integer closestRssi = findRssi(gws);
+            if (closestRssi != null) {
+                kvMap.put("rssi", String.valueOf(closestRssi));
+            }
+        }
     }
 
     @Override
