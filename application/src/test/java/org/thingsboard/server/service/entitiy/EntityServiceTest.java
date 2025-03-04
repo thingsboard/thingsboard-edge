@@ -428,6 +428,8 @@ public class EntityServiceTest extends AbstractControllerTest {
         }
         Futures.successfulAsList(attributeFutures).get();
 
+        List<String> deviceTemperatures = temperatures.stream().map(aLong -> Long.toString(aLong)).collect(Collectors.toList());
+
         EntityDataSortOrder sortOrder = new EntityDataSortOrder(
                 new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
         );
@@ -436,18 +438,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<EntityKey> latestValues = Collections.singletonList(new EntityKey(EntityKeyType.ATTRIBUTE, "temperature"));
 
         EntityDataQuery query = new EntityDataQuery(evenFilter, pageLink, entityFields, latestValues, null);
-        PageData<EntityData> data = findByQueryAndCheck(query, evenDevices.size());
-        List<EntityData> loadedEntities = new ArrayList<>(data.getData());
-        while (data.hasNext()) {
-            query = query.next();
-            data = findByQuery(query);
-            loadedEntities.addAll(data.getData());
-        }
-        Assert.assertEquals(evenDevices.size(), loadedEntities.size());
-        List<String> loadedTemperatures = loadedEntities.stream().map(entityData ->
-                entityData.getLatest().get(EntityKeyType.ATTRIBUTE).get("temperature").getValue()).collect(Collectors.toList());
-        List<String> deviceTemperatures = temperatures.stream().map(aLong -> Long.toString(aLong)).collect(Collectors.toList());
-        Assert.assertEquals(deviceTemperatures, loadedTemperatures);
+        findByQueryAndCheckTelemetry(query, EntityKeyType.ATTRIBUTE, "temperature", deviceTemperatures);
     }
 
     @Test
@@ -1856,7 +1847,6 @@ public class EntityServiceTest extends AbstractControllerTest {
         );
 
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
-        genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.CUSTOMER_GROUP, Collections.singleton(Operation.ALL));
 
         Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions = new HashMap<>();
