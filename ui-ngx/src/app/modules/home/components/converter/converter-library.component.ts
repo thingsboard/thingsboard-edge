@@ -84,7 +84,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
 
-  @ViewChild('modelInput', { static: true }) modelInput: ElementRef;
+  @ViewChild('modelInput') modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
   @ViewChild('dataConverter', { static: true }) dataConverterComponent: ConverterComponent;
 
@@ -118,7 +118,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       switchMap(() => of(this.integrationType)),
       distinctUntilChanged(),
       switchMap(() =>
-        this.converterLibraryService.getVendors(this.integrationType)
+        this.converterLibraryService.getVendors(this.integrationType, this.converterType)
       ),
       shareReplay(1)
     );
@@ -177,7 +177,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
         distinctUntilChanged(),
         map((converter: Converter) => {
           const debugSettings = { allEnabled: true, failuresEnabled: true };
-          return converter ? { ...converter, debugSettings } : { type: this.converterType, debugSettings } as Converter
+          return converter ? { ...converter, debugSettings } : { type: this.converterType, debugSettings } as Converter;
         })
     );
   }
