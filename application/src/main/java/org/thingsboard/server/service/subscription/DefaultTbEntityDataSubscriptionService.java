@@ -451,7 +451,9 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
                 ctx.sendWsMsg(update);
             } else {
                 ctx.doFetchAlarmCount();
-                ctx.createAlarmSubscriptions();
+                if (entitiesIds != null) {
+                    ctx.createAlarmSubscriptions();
+                }
                 TbAlarmCountSubCtx finalCtx = ctx;
                 ScheduledFuture<?> task = scheduler.scheduleWithFixedDelay(
                         () -> refreshDynamicQuery(finalCtx),
