@@ -175,6 +175,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.thingsboard.server.common.data.permission.Resource.ALL;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ATTRIBUTE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
@@ -2089,6 +2090,16 @@ public class EntityServiceTest extends AbstractControllerTest {
         schedulerEventFilter.setEventType("report");
         schedulerEventFilter.setOriginator(otherCustomerId);
         findByQueryAndCheck(new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, query, 0);
+
+        // find scheduler events by customer user
+        EntityTypeFilter entityTypeFilter = new EntityTypeFilter();
+        entityTypeFilter.setEntityType(EntityType.SCHEDULER_EVENT);
+        EntityDataQuery entityTypeQuery = new EntityDataQuery(entityTypeFilter, pageLink, entityFields, null, null);
+
+        PageData<EntityData> result4 = entityService.findEntityDataByQuery(tenantId, customerId, mergedUserPermissionsPE, entityTypeQuery);
+        assertEquals(1, result4.getTotalElements());
+        String schedulerName = result4.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
+        assertThat(schedulerName).isEqualTo(schedulerEvent.getName());
     }
 
     private EntityDataQuery createDeviceSearchQuery(String deviceField, StringOperation operation, String searchQuery) {
