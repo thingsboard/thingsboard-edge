@@ -29,6 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export const noLeadTrailSpacesRegex = /^\S+(?: \S+)*$/;
+export const oneSpaceInsideRegex = /^\s*\S+(?:\s\S+)*\s*$/;
 
 export const charsWithNumRegex = /^[a-zA-Z]+[a-zA-Z0-9]*$/;
+
+export const digitsRegex = /^\d*$/;
