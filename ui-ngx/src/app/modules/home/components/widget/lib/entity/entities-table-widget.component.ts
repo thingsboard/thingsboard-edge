@@ -962,8 +962,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     };
     const latest = queryEntityData.latest;
     if (latest) {
-      entity.entityName = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'name', '');
-      entity.entityLabel = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'label', entity.entityName);
+      entity.entityName = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'name', '') || entity.entityName;
+      entity.entityLabel = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'label', entity.entityName) || entity.entityLabel;
     }
     for (const column of columns) {
       if (!Object.keys(entity).includes(column.label)) {
