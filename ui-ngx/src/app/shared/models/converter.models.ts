@@ -135,7 +135,7 @@ export interface TestDownLinkInputParams {
 }
 
 export interface LatestConverterParameters {
-  converterType: ConverterType;
+  converterType?: ConverterType;
   integrationType?: IntegrationType;
   integrationName?: string;
 }

@@ -259,7 +259,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         scriptLang = ScriptLanguage.JS;
         form.get('configuration.scriptLang').patchValue(scriptLang, {emitEvent: true});
       }
-      if (isDefinedAndNotNull(entity.converterVersion)) {
+      if (isDefinedAndNotNull(entity?.converterVersion)) {
         this.updatedPredefinedConverterKeys();
         this.updatedConverterVersionDisableState();
       } else {

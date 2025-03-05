@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { Observable } from 'rxjs';
@@ -114,9 +114,18 @@ export class ConverterService {
                                       config?: RequestConfig): Observable<ConverterDebugInput> {
     let url = `/api/converter/${converterId}/debugIn`;
     if (parameters) {
-      url += `?converterType=${parameters.converterType}`;
-      if (parameters.integrationName && parameters.integrationType) {
-        url += `&integrationType=${parameters.integrationType}&integrationName=${parameters.integrationName}`;
+      let params = new HttpParams();
+      if (parameters.converterType) {
+        params = params.set('converterType', parameters.converterType)
+      }
+      if (parameters.integrationType) {
+        params = params.set('integrationType', parameters.integrationType)
+      }
+      if (parameters.integrationName) {
+        params = params.set('integrationName', parameters.integrationName)
+      }
+      if (params.toString()) {
+        url += `?${params.toString()}`;
       }
     }
     return this.http.get<ConverterDebugInput>(url, defaultHttpOptionsFromConfig(config));
