@@ -30,26 +30,47 @@
  */
 package org.thingsboard.script.api.tbel;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class TbTimeWindow implements TbelCfObject {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 
-    public static final long OBJ_SIZE = 32L;
+import static org.thingsboard.script.api.tbel.TbelCfTsDoubleVal.OBJ_SIZE;
 
-    private long startTs;
-    private long endTs;
+public class TbelCfTsRollingData implements TbelCfObject, Iterable<TbelCfTsMultiDoubleVal> {
+
+    @Getter
+    private final TbTimeWindow timeWindow;
+    @Getter
+    private final List<TbelCfTsMultiDoubleVal> values;
+
+    public TbelCfTsRollingData(TbTimeWindow timeWindow, List<TbelCfTsMultiDoubleVal> values) {
+        this.timeWindow = timeWindow;
+        this.values = Collections.unmodifiableList(values);
+    }
 
     @Override
     public long memorySize() {
-        return OBJ_SIZE;
+        return 12 + values.size() * OBJ_SIZE;
     }
 
-    public boolean matches(long ts) {
-        return ts >= startTs && ts < endTs;
+    @JsonIgnore
+    public List<TbelCfTsMultiDoubleVal> getValue() {
+        return values;
     }
+
+    @JsonIgnore
+    public int getSize() {
+        return values.size();
+    }
+
+    @Override
+    public Iterator<TbelCfTsMultiDoubleVal> iterator() {
+        return values.iterator();
+    }
+
 }
