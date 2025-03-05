@@ -29,6 +29,12 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 .tb-autocomplete.tb-converter-library-autocomplete {
+  .mat-mdc-option {
+    .mdc-list-item__primary-text {
+      flex: 1;
+    }
+  }
+
   .library-model {
     padding: 6px 0 14px;
     position: relative;
