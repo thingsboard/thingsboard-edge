@@ -809,8 +809,8 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
     public void testNotificationRuleProcessing_resourcesShortage() throws Exception {
         loginSysAdmin();
         ResourcesShortageNotificationRuleTriggerConfig triggerConfig = ResourcesShortageNotificationRuleTriggerConfig.builder()
-                .cpuThreshold(0.01f)
-                .ramThreshold(1f)
+                .ramThreshold(0.01f)
+                .cpuThreshold(1f)
                 .storageThreshold(1f)
                 .build();
         createNotificationRule(triggerConfig, "Test", "Test", createNotificationTarget(tenantAdminUserId).getId());
@@ -829,8 +829,8 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
     public void testNotificationsDeduplication_resourcesShortage() throws Exception {
         loginSysAdmin();
         ResourcesShortageNotificationRuleTriggerConfig triggerConfig = ResourcesShortageNotificationRuleTriggerConfig.builder()
-                .cpuThreshold(0.1f)
-                .ramThreshold(1f)
+                .ramThreshold(0.01f)
+                .cpuThreshold(1f)
                 .storageThreshold(1f)
                 .build();
         createNotificationRule(triggerConfig, "Test", "Test", createNotificationTarget(tenantAdminUserId).getId());
@@ -839,7 +839,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         assertThat(getMyNotifications(false, 100)).size().isZero();
         for (int i = 0; i < 10; i++) {
             notificationRuleProcessor.process(ResourcesShortageTrigger.builder()
-                    .resource(Resource.CPU)
+                    .resource(Resource.RAM)
                     .usage(15L)
                     .build());
             TimeUnit.MILLISECONDS.sleep(300);
@@ -849,7 +849,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
 
         // deduplication is 5 minute, no new message is exp
         notificationRuleProcessor.process(ResourcesShortageTrigger.builder()
-                .resource(Resource.CPU)
+                .resource(Resource.RAM)
                 .usage(5L)
                 .build());
         await("").atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertThat(getMyNotifications(false, 100)).size().isOne());
