@@ -955,9 +955,9 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private async queryEntityDataToExportedData(queryEntityData: QueryEntityData,
                                         index: number,
                                         columns: EntityColumn[]): Promise<{[key: string]: any}> {
+    const entityFields = this.entityDatasource.entities.find(e => e.id.id === queryEntityData.entityId.id);
     const entity: EntityData = {
-      entityName: '',
-      id: queryEntityData.entityId,
+      ...entityFields,
       entityType: this.translate.instant(entityTypeTranslations.get(queryEntityData.entityId.entityType).type)
     };
     const latest = queryEntityData.latest;
@@ -966,7 +966,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       entity.entityLabel = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'label', entity.entityName);
     }
     for (const column of columns) {
-      if (!['entityName', 'entityLabel', 'entityType'].includes(column.label)) {
+      if (!Object.keys(entity).includes(column.label)) {
         if (latest) {
           let dataValue: any = '';
           let tsValue;
