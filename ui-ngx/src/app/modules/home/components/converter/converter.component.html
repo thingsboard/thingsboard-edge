@@ -95,16 +95,13 @@
                 formControlName="type"
                 class="flex-1">
               </tb-entity-type-select>
-              <mat-form-field class="flex-1">
-                <mat-label>{{ entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name'] | translate }}</mat-label>
-                <input matInput required formControlName="name">
-                <mat-error *ngIf="entityForm.get('configuration.name').hasError('required') || entityForm.get('name').hasError('pattern')">
-                  {{ entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name-require'] | translate }}
-                </mat-error>
-                <mat-error *ngIf="entityForm.get('configuration.name').hasError('maxlength')">
-                  {{ entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name-max-length'] | translate }}
-                </mat-error>
-              </mat-form-field>
+              <tb-string-pattern-autocomplete class="flex-1"
+                                              [predefinedValues]="predefinedKeys"
+                                              formControlName="name"
+                                              required
+                                              [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name'] | translate"
+                                              [errorText]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name-require'] | translate">
+              </tb-string-pattern-autocomplete>
             </div>
           }
           <tb-js-func
@@ -152,24 +149,28 @@
                 <div class="flex flex-1 flex-col">
                   @if (entityForm.get('converterVersion').value === 2) {
                     <section class="flex gap-3 xs:flex-col">
-                      <mat-form-field class="flex-1">
-                        <mat-label>{{ entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['profile'] | translate }}</mat-label>
-                        <input matInput formControlName="profile">
-                      </mat-form-field>
-                      <mat-form-field class="flex-1">
-                        <mat-label>{{ entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['label'] | translate }}</mat-label>
-                        <input matInput formControlName="label">
-                      </mat-form-field>
+                      <tb-string-pattern-autocomplete class="flex-1"
+                                                      formControlName="profile"
+                                                      [predefinedValues]="predefinedKeys"
+                                                      [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['profile'] | translate">
+                      </tb-string-pattern-autocomplete>
+                      <tb-string-pattern-autocomplete class="flex-1"
+                                                      formControlName="label"
+                                                      [predefinedValues]="predefinedKeys"
+                                                      [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['label'] | translate">
+                      </tb-string-pattern-autocomplete>
                     </section>
                     <section class="flex gap-3 xs:flex-col">
-                      <mat-form-field class="flex-1">
-                        <mat-label translate>converter.customer-name</mat-label>
-                        <input matInput formControlName="customer">
-                      </mat-form-field>
-                      <mat-form-field class="flex-1">
-                        <mat-label>{{ entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['group'] | translate }}</mat-label>
-                        <input matInput formControlName="group">
-                      </mat-form-field>
+                      <tb-string-pattern-autocomplete class="flex-1"
+                                                      formControlName="customer"
+                                                      [predefinedValues]="predefinedKeys"
+                                                      [label]="'converter.customer-name' | translate">
+                      </tb-string-pattern-autocomplete>
+                      <tb-string-pattern-autocomplete class="flex-1"
+                                                      formControlName="group"
+                                                      [predefinedValues]="predefinedKeys"
+                                                      [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['group'] | translate">
+                      </tb-string-pattern-autocomplete>
                     </section>
                     <tb-string-items-list label="{{ 'converter.telemetry' | translate }}"
                                           placeholder="{{ 'converter.add-key' | translate }}"

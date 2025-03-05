@@ -61,7 +61,7 @@ import {
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { ConverterInfo, IntegrationsConvertersInfo, IntegrationType } from '@shared/models/integration.models';
-import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
+import { deepClone, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { map } from 'rxjs/operators';
 import { forkJoin, Observable, of } from 'rxjs';
@@ -85,7 +85,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   hideTypes = false;
 
   @Input()
-  set convertorName(value: string) {
+  set converterName(value: string) {
     this.predefinedConverterName = value;
     if (isDefinedAndNotNull(value) && this.entityForm.get('name').pristine) {
       this.entityForm.get('name').patchValue(value, {emitEvent: false});
@@ -110,11 +110,12 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   EntityType = EntityType;
 
+  predefinedKeys: Array<string> = [];
+
   entityTypeKeysTranslationMap = new Map<EntityType, Record<string, string>>([
     [EntityType.ASSET, {
       'name': 'converter.asset-name',
       'name-required': 'converter.asset-name-required',
-      'name-max-length': 'converter.asset-name-max-length',
       'profile': 'converter.asset-profile-name',
       'label': 'converter.asset-label',
       'group': 'converter.asset-group-name'
@@ -123,24 +124,22 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     [EntityType.DEVICE, {
       'name': 'converter.device-name',
       'name-required': 'converter.device-name-required',
-      'name-max-length': 'converter.device-name-max-length',
       'profile': 'converter.device-profile-name',
       'label': 'converter.device-label',
       'group': 'converter.device-group-name'
     }]
   ])
 
-  private predefinedConverterKeys: StringItemsOption[];
-
   readonly converterDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).converterDebugPerTenantLimitsConfiguration;
-
-  private defaultUpdateOnlyKeysByIntegrationType: DefaultUpdateOnlyKeys = {};
 
   private decoderArgs = ['payload', 'metadata'];
   private encoderArgs = ['msg', 'metadata', 'msgType', 'integrationMetadata'];
 
+  private predefinedConverterKeys: StringItemsOption[];
   private integrationsConvertersInfo: IntegrationsConvertersInfo;
-  private defaultConverterV2Configuration: Record<IntegrationType, ConverterConfigV2> = {} as any;
+
+  private defaultUpdateOnlyKeysByIntegrationType: DefaultUpdateOnlyKeys = {};
+  private defaultConverterV2Configuration: Record<IntegrationType, ConverterConfigV2> = {} as Record<IntegrationType, ConverterConfigV2>;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -172,8 +171,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.get('type').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((value: ConverterType) => {
-      this.converterTypeChanged(value);
-      this.updatedConverterVersion();
+      this.onConverterTypeChanged(value);
+      this.updateConverterVersion();
     });
     this.entityForm.get('configuration.scriptLang').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
@@ -183,10 +182,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.get('integrationType').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((value: IntegrationType) => {
-      this.updatedConverterVersion();
+      this.updateConverterVersion();
       this.onSetDefaultScriptBody(this.entityForm.get('type').value);
-      this.updatedOnlyKeysValue(value);
-      this.updatedDefaultConfiguration(value);
+      this.updateDefaultConfiguration(value);
     });
     this.checkIsNewConverter(this.entity, this.entityForm);
   }
@@ -194,9 +192,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   hideDelete() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.deleteEnabled(this.entity);
-    } else {
-      return false;
     }
+    return false;
   }
 
   buildForm(entity: Converter): FormGroup {
@@ -231,7 +228,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   prepareFormValue(value: Converter): Converter {
-    if (value.converterVersion != 2) {
+    if (value.converterVersion !== 2) {
       delete value.configuration.type;
       delete value.configuration.name;
       delete value.configuration.profile;
@@ -262,6 +259,12 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         scriptLang = ScriptLanguage.JS;
         form.get('configuration.scriptLang').patchValue(scriptLang, {emitEvent: true});
       }
+      if (isDefinedAndNotNull(entity.converterVersion)) {
+        this.updatedPredefinedConverterKeys();
+        this.updatedConverterVersionDisableState();
+      } else {
+        this.updateConverterVersion();
+      }
     }
   }
 
@@ -273,15 +276,19 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.get('configuration').patchValue({updateOnlyKeys}, {emitEvent: false});
   }
 
-  private updatedDefaultConfiguration(integrationType: IntegrationType) {
+  private updateDefaultConfiguration(integrationType: IntegrationType) {
     if (this.entityForm.get('converterVersion').value === 2) {
       if (this.defaultConverterV2Configuration.hasOwnProperty(integrationType)) {
         this.entityForm.get('configuration').patchValue(this.defaultConverterV2Configuration[integrationType], {emitEvent: false});
+      } else {
+        this.updatedOnlyKeysValue(integrationType);
       }
+    } else {
+      this.updatedOnlyKeysValue(integrationType);
     }
   }
 
-  private converterTypeChanged(converterType: ConverterType) {
+  private onConverterTypeChanged(converterType: ConverterType) {
     if (converterType) {
       if (converterType === ConverterType.UPLINK) {
         this.entityForm.get('configuration').patchValue({
@@ -299,7 +306,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
-  private updatedConverterVersion() {
+  private updateConverterVersion() {
     const integrationType: IntegrationType = this.entityForm.get('integrationType').value;
     if (isNotEmptyStr(integrationType)) {
       const converterType: ConverterType = this.entityForm.get('type').value;
@@ -331,8 +338,10 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       const integrationType: IntegrationType = this.entityForm.get('integrationType').value;
       const converterInfo: ConverterInfo = this.integrationsConvertersInfo[integrationType]?.[converterType.toLocaleLowerCase()];
       this.predefinedConverterKeys = converterInfo.keys.map(value => ({name: value, value}));
+      this.predefinedKeys = deepClone(converterInfo.keys);
     } else {
       this.predefinedConverterKeys = null;
+      this.predefinedKeys = null;
     }
   }
 
@@ -396,13 +405,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }, {emitEvent: false});
 
     this.checkIsNewConverter(entity, this.entityForm);
-    if (isDefinedAndNotNull(entity.converterVersion)) {
-      this.updatedPredefinedConverterKeys();
-      this.updatedConverterVersionDisableState();
-    } else {
-      this.updatedConverterVersion();
-    }
-    this.updatedOnlyKeysValue(this.entityForm.get('integrationType').value);
   }
 
   onConverterIdCopied() {

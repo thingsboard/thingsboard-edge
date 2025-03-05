@@ -110,7 +110,7 @@
                         [class.!hidden]="uplinkConverterForm.get('converterType').value !== ConverterSourceType.NEW"
                         hideTypes="true"
                         [integrationName]="integrationWizardForm.get('name').value"
-                        [convertorName]="createConvertorName(converterType.UPLINK)"
+                        [converterName]="createConvertorName(converterType.UPLINK)"
                         isEdit="true"
                         [entity]="uplinkConverter"
           ></tb-converter>
@@ -146,7 +146,7 @@
           <tb-converter #downlinkDataConverter
                         [class.!hidden]="downlinkConverterForm.get('converterType').value !== ConverterSourceType.NEW"
                         [integrationName]="integrationWizardForm.get('name').value"
-                        [convertorName]="createConvertorName(converterType.DOWNLINK)"
+                        [converterName]="createConvertorName(converterType.DOWNLINK)"
                         hideTypes="true"
                         isEdit="true"
                         [entity]="downlinkConverter"
