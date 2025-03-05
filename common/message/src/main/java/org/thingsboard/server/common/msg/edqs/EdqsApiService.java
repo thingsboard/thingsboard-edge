@@ -46,4 +46,6 @@ public interface EdqsApiService {
 
     boolean isSupported();
 
+    boolean isAutoEnable();
+
 }

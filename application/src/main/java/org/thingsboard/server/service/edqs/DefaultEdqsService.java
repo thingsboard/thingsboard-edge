@@ -133,7 +133,7 @@ public class DefaultEdqsService implements EdqsService {
                                 .syncRequest(new EdqsSyncRequest())
                                 .build());
                     }
-                } else if (edqsApiService.isSupported()) {
+                } else if (edqsApiService.isSupported() && edqsApiService.isAutoEnable()) {
                     // only if topic/RocksDB is not empty and sync is finished
                     edqsApiService.setEnabled(true);
                 }
@@ -174,11 +174,15 @@ public class DefaultEdqsService implements EdqsService {
                         edqsSyncService.sync();
                         saveSyncState(EdqsSyncStatus.FINISHED);
 
-                        if (edqsApiService.isSupported()) {
-                            broadcast(ToCoreEdqsMsg.builder()
-                                    .apiEnabled(Boolean.TRUE)
-                                    .build());
-                        }
+                        if (edqsApiService.isSupported())
+                            if (edqsApiService.isAutoEnable()) {
+                                log.info("EDQS sync is finished, auto-enabling API");
+                                broadcast(ToCoreEdqsMsg.builder()
+                                        .apiEnabled(Boolean.TRUE)
+                                        .build());
+                            } else {
+                                log.info("EDQS sync is finished, but leaving API disabled");
+                            }
                     } catch (Exception e) {
                         log.error("Failed to complete sync", e);
                         saveSyncState(EdqsSyncStatus.FAILED);
