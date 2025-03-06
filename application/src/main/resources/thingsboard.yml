@@ -598,8 +598,10 @@ integrations:
       enabled: "${TB_INTEGRATIONS_CONVERTERS_LIBRARY_ENABLED:true}"
       # URL of the data converters repository
       url: "${TB_INTEGRATIONS_CONVERTERS_LIBRARY_REPO_URL:https://github.com/thingsboard/data-converters.git}"
-      # Branch of the data converters repository to use
-      branch: "${TB_INTEGRATIONS_CONVERTERS_LIBRARY_REPO_BRANCH:main}"
+      # Branch of the data converters repository to use. By default, a release branch with compatible version.
+      # Whenever non-backward-compatible changes are needed in the library - a new branch with min supported TB version should be created,
+      # and the default branch here - updated.
+      branch: "${TB_INTEGRATIONS_CONVERTERS_LIBRARY_REPO_BRANCH:release/4.0.0}"
       # Fetch frequency in hours for data converters repository
       fetch_frequency: "${TB_INTEGRATIONS_CONVERTERS_LIBRARY_REPO_FETCH_FREQUENCY:24}"
 
