@@ -748,7 +748,7 @@
               ],
               "spec": {
                 "type": "DURATION",
-                "unit": "DAYS",
+                "unit": "SECONDS",
                 "predicate": {
                   "defaultValue": 1,
                   "userValue": null,
