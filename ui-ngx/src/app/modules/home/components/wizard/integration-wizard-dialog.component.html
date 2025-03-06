@@ -85,7 +85,7 @@
         </div>
       </form>
     </mat-step>
-    <mat-step [stepControl]="uplinkConverterForm">
+    <mat-step #uplinkConverterStep [stepControl]="uplinkConverterForm">
       <form [formGroup]="uplinkConverterForm">
         <ng-template #uplinkLabel matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
         <div class="tb-form-panel tb-converter-panel">
@@ -116,13 +116,14 @@
           ></tb-converter>
           <tb-converter-library
             formControlName="libraryUplinkConverter"
+            [interacted]="uplinkConverterStep.interacted"
             [class.!hidden]="uplinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY"
             [integrationType]="integrationWizardForm.get('type').value"
           />
         </div>
       </form>
     </mat-step>
-    <mat-step [stepControl]="downlinkConverterForm" *ngIf="showDownlinkStep">
+    <mat-step #downlinkConverterStep [stepControl]="downlinkConverterForm" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
         <ng-template #downlinkLabel matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
         <div class="tb-form-panel tb-converter-panel">
@@ -153,6 +154,7 @@
           ></tb-converter>
           <tb-converter-library
             formControlName="libraryDownlinkConverter"
+            [interacted]="downlinkConverterStep.interacted"
             [class.!hidden]="downlinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY"
             [integrationType]="integrationWizardForm.get('type').value"
             [converterType]="converterType.DOWNLINK"

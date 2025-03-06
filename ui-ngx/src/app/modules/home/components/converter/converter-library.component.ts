@@ -33,8 +33,10 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   forwardRef,
+  input,
   Input,
   OnChanges,
   OnDestroy,
@@ -83,6 +85,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
+  interacted = input(false);
 
   @ViewChild('modelInput') modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
@@ -180,6 +183,12 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           return converter ? { ...converter, debugSettings } : { type: this.converterType, debugSettings } as Converter;
         })
     );
+
+    effect(() => {
+      if (this.interacted()) {
+        this.libraryFormGroup.markAllAsTouched();
+      }
+    });
   }
 
   get vendorValueChanges(): Observable<Vendor | string> {
