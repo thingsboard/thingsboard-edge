@@ -144,6 +144,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     EntityServiceRegistry entityServiceRegistry;
 
     @Autowired
+    @Lazy
     private EdqsApiService edqsApiService;
 
     @Override
