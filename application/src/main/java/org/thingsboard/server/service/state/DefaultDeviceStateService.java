@@ -158,11 +158,11 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
             new EntityKey(EntityKeyType.SERVER_ATTRIBUTE, LAST_CONNECT_TIME),
             new EntityKey(EntityKeyType.SERVER_ATTRIBUTE, LAST_DISCONNECT_TIME));
 
-    public static final List<String> ACTIVITY_KEYS_WITHOUT_INACTIVITY_TIMEOUT = List.of(
+    public static final Set<String> ACTIVITY_KEYS_WITHOUT_INACTIVITY_TIMEOUT = Set.of(
             ACTIVITY_STATE, LAST_CONNECT_TIME, LAST_DISCONNECT_TIME, LAST_ACTIVITY_TIME, INACTIVITY_ALARM_TIME
     );
 
-    public static final List<String> ACTIVITY_KEYS_WITH_INACTIVITY_TIMEOUT = List.of(
+    public static final Set<String> ACTIVITY_KEYS_WITH_INACTIVITY_TIMEOUT = Set.of(
             ACTIVITY_STATE, LAST_CONNECT_TIME, LAST_DISCONNECT_TIME, LAST_ACTIVITY_TIME, INACTIVITY_ALARM_TIME, INACTIVITY_TIMEOUT
     );
 
