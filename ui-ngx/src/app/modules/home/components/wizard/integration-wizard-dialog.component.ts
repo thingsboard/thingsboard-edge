@@ -44,7 +44,7 @@ import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AddEntityDialogData } from '@home/models/entity/entity-component.models';
-import { MatStep, MatStepper, StepperOrientation } from '@angular/material/stepper';
+import { MatStepper, StepperOrientation } from '@angular/material/stepper';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { filter, map, mergeMap, takeUntil, tap } from 'rxjs/operators';
@@ -75,8 +75,6 @@ export class IntegrationWizardDialogComponent extends
   DialogComponent<IntegrationWizardDialogComponent, Integration> implements AfterViewInit, OnDestroy {
 
   @ViewChild('addIntegrationWizardStepper', {static: true}) addIntegrationWizardStepper: MatStepper;
-  @ViewChild('uplinkConverterStep', {static: true}) uplinkStep: MatStep;
-  @ViewChild('downlinkConverterStep', {static: true}) downlinkStep: MatStep;
   @ViewChild('uplinkDataConverter', {static: true}) uplinkDataConverterComponent: ConverterComponent;
   @ViewChild('downlinkDataConverter') downlinkDataConverterComponent: ConverterComponent;
 
