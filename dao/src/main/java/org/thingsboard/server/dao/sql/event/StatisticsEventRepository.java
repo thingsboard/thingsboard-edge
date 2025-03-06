@@ -38,6 +38,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.event.StatisticsEvent;
+import org.thingsboard.server.dao.model.sql.IntegrationStats;
 import org.thingsboard.server.dao.model.sql.StatisticsEventEntity;
 
 import java.util.List;
@@ -46,7 +47,7 @@ import java.util.UUID;
 public interface StatisticsEventRepository extends EventRepository<StatisticsEventEntity, StatisticsEvent>, JpaRepository<StatisticsEventEntity, UUID> {
 
     @Override
-    @Query(nativeQuery = true,  value = "SELECT * FROM stats_event e WHERE e.tenant_id = :tenantId AND e.entity_id = :entityId ORDER BY e.ts DESC LIMIT :limit")
+    @Query(nativeQuery = true, value = "SELECT * FROM stats_event e WHERE e.tenant_id = :tenantId AND e.entity_id = :entityId ORDER BY e.ts DESC LIMIT :limit")
     List<StatisticsEventEntity> findLatestEvents(@Param("tenantId") UUID tenantId, @Param("entityId") UUID entityId, @Param("limit") int limit);
 
     @Query("SELECT e FROM StatisticsEventEntity e WHERE " +
@@ -132,4 +133,15 @@ public interface StatisticsEventRepository extends EventRepository<StatisticsEve
                       @Param("maxMessagesProcessed") Integer maxMessagesProcessed,
                       @Param("minErrorsOccurred") Integer minErrorsOccurred,
                       @Param("maxErrorsOccurred") Integer maxErrorsOccurred);
+
+    @Query(value = "SELECT sub.entity_id as entityId, CAST(json_agg(sub.element) AS VARCHAR) AS stats " +
+            "FROM " +
+            "(SELECT se.entity_id, SUM(se.e_messages_processed + se.e_errors_occurred) AS element FROM stats_event se " +
+            "WHERE se.tenant_id = :tenantId AND se.entity_id IN (:entityIds) " +
+            "AND se.ts >= (EXTRACT(EPOCH FROM current_timestamp) * 1000 - 24 * 60 * 60 * 1000)::bigint " +
+            "GROUP BY se.entity_id, se.ts / 3600000 ORDER BY se.entity_id, se.ts / 3600000) sub " +
+            "GROUP BY sub.entity_id", nativeQuery = true)
+    List<IntegrationStats> findAggregatedDailyStats(@Param("tenantId") UUID tenantId,
+                                                    @Param("entityIds") List<UUID> entityIds);
+
 }
