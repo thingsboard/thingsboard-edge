@@ -89,11 +89,12 @@ public enum ObjectType {
             RULE_CHAIN, WIDGET_TYPE, WIDGETS_BUNDLE, CONVERTER, INTEGRATION, SCHEDULER_EVENT, ROLE,
             BLOB_ENTITY, API_USAGE_STATE, QUEUE_STATS
     );
-    public static final Set<ObjectType> edqsTypes =  EnumSet.copyOf(edqsTenantTypes);
+    public static final Set<ObjectType> edqsTypes = EnumSet.copyOf(edqsTenantTypes);
     public static final Set<ObjectType> edqsSystemTypes = EnumSet.of(TENANT, USER, DASHBOARD,
             API_USAGE_STATE, ATTRIBUTE_KV, LATEST_TS_KV);
     public static final Set<ObjectType> unversionedTypes = EnumSet.of(
-            QUEUE_STATS // created once, never updated
+            QUEUE_STATS, // created once, never updated
+            BLOB_ENTITY // created once, never updated
     );
 
     static {
