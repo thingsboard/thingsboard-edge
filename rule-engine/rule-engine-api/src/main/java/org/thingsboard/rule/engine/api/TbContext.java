@@ -375,6 +375,8 @@ public interface TbContext {
 
     CalculatedFieldService getCalculatedFieldService();
 
+    RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService();
+
     boolean isExternalNodeForceAck();
 
     /**

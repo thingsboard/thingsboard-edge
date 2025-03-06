@@ -139,6 +139,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cf.CalculatedFieldProcessingService;
+import org.thingsboard.server.service.cf.CalculatedFieldQueueService;
 import org.thingsboard.server.service.cf.CalculatedFieldStateService;
 import org.thingsboard.server.service.cf.cache.CalculatedFieldEntityProfileCache;
 import org.thingsboard.server.service.cf.ctx.state.ArgumentEntry;
@@ -632,6 +633,11 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter
     private CalculatedFieldStateService calculatedFieldStateService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private CalculatedFieldQueueService calculatedFieldQueueService;
 
     @Lazy
     @Autowired(required = false)
