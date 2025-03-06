@@ -37,7 +37,6 @@ import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Base64;
-import java.util.Map;
 
 public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
 
@@ -81,18 +80,13 @@ public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
                 .put("attributes", "/uplink_message/attributes")
                 .put("uplinkMessageReceivedAt", "/uplink_message/received_at")
                 .put("rssi", "")
+                .put("snr", "")
                 .build();
     }
 
     @Override
-    protected void postMapping(Map<String, String> kvMap, JsonNode payloadJson) {
-        JsonNode rxMetadata = payloadJson.at("/uplink_message/rx_metadata");
-        if (!rxMetadata.isEmpty()) {
-            Integer closestRssi = findRssi(rxMetadata);
-            if (closestRssi != null) {
-                kvMap.put("rssi", String.valueOf(closestRssi));
-            }
-        }
+    protected String getGatewayInfoPath() {
+        return "/uplink_message/rx_metadata";
     }
 
     @Override

@@ -52,13 +52,22 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
         Map<String, String> kvMap = new HashMap<>(metadata.getKvMap());
 
         getKeysMapping().forEach((name, path) -> {
+            if (path.isEmpty()) {
+                return;
+            }
             JsonNode value = payloadJson.at(path);
             if (!value.isMissingNode()) {
-                kvMap.put(name, value.toString());
+                String textValue;
+                if (value.isTextual()) {
+                    textValue = value.textValue();
+                } else {
+                    textValue = value.toString();
+                }
+                kvMap.put(name, textValue);
             }
         });
 
-        postMapping(kvMap, payloadJson);
+        addGatewayAdditionalInfo(kvMap, payloadJson);
 
         kvMap.putAll(metadata.getKvMap());
         TbPair<byte[], ContentType> payloadPair = getPayload(payloadJson);
@@ -67,26 +76,38 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
         return TbPair.of(payloadPair.getFirst(), mergedMetadata);
     }
 
-    protected Integer findRssi(JsonNode rxInfoArray) {
-        Integer closestRssi = null;
-        int minAbsDifference = Integer.MAX_VALUE;
+    protected void addGatewayAdditionalInfo(Map<String, String> kvMap, JsonNode payloadJson) {
+        JsonNode rxMetadataArray = payloadJson.at(getGatewayInfoPath());
+        if (!rxMetadataArray.isEmpty()) {
+            JsonNode rxMetadata = findByMaxRssi(rxMetadataArray);
+            if (rxMetadata != null) {
+                kvMap.put("rssi", rxMetadata.get("rssi").asText());
+                kvMap.put("snr", rxMetadata.get("snr").asText());
+            }
+        }
+    }
 
-        for (JsonNode rxInfo : rxInfoArray) {
-            JsonNode rssi = rxInfo.get("rssi");
-            if (rssi != null && rssi.isNumber()) {
-                int rssiValue = rssi.asInt();
-                int absDifference = Math.abs(rssiValue);
+    protected String getGatewayInfoPath() {
+        return "";
+    }
 
-                if (absDifference < minAbsDifference) {
-                    minAbsDifference = absDifference;
-                    closestRssi = rssiValue;
+    protected JsonNode findByMaxRssi(JsonNode gwArray) {
+        JsonNode result = null;
+        int maxRssi = Integer.MIN_VALUE;
+
+        for (JsonNode node : gwArray) {
+            JsonNode rssiNode = node.get("rssi");
+            if (rssiNode != null && rssiNode.isNumber()) {
+                int rssi = rssiNode.asInt();
+
+                if (rssi > maxRssi) {
+                    maxRssi = rssi;
+                    result = node;
                 }
             }
         }
-        return closestRssi;
+        return result;
     }
-
-    protected void postMapping(Map<String, String> kvMap, JsonNode payloadJson) {}
 
     protected abstract TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws Exception;
 

@@ -37,7 +37,6 @@ import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Base64;
-import java.util.Map;
 
 public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
 
@@ -73,18 +72,13 @@ public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
                 .put("longitude", "/location/longitude")
                 .put("altitude", "/location/altitude")
                 .put("rssi", "")
+                .put("snr", "")
                 .build();
     }
 
     @Override
-    protected void postMapping(Map<String, String> kvMap, JsonNode payloadJson) {
-        JsonNode rxInfo = payloadJson.get("rxInfo");
-        if (rxInfo != null && !rxInfo.isEmpty()) {
-            Integer rssi = findRssi(rxInfo);
-            if (rssi != null) {
-                kvMap.put("rssi", String.valueOf(rssi));
-            }
-        }
+    protected String getGatewayInfoPath() {
+        return "/rxInfo";
     }
 
     @Override

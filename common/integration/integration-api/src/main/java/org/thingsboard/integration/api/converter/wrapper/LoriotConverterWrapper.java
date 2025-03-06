@@ -38,8 +38,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
-import java.util.Map;
-
 public class LoriotConverterWrapper extends AbstractConverterWrapper {
 
     private static final ImmutableMap<String, String> KEYS_MAPPING;
@@ -64,21 +62,13 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
                 .put("decoded", "/decoded")
                 .put("encdata", "/encdata")
                 .put("gws", "/gws")
+
                 .build();
     }
 
     @Override
-    protected void postMapping(Map<String, String> kvMap, JsonNode payloadJson) {
-        if (kvMap.containsKey("rssi")) {
-            return;
-        }
-        JsonNode gws = payloadJson.get("gws");
-        if (gws != null && !gws.isEmpty()) {
-            Integer closestRssi = findRssi(gws);
-            if (closestRssi != null) {
-                kvMap.put("rssi", String.valueOf(closestRssi));
-            }
-        }
+    protected String getGatewayInfoPath() {
+        return "/gws";
     }
 
     @Override
