@@ -32,7 +32,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "running": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -41,11 +41,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -53,8 +53,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "warning": {
@@ -159,9 +159,9 @@
                 "click": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "high_performance_drawwork",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 }
@@ -551,7 +551,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "running": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -560,11 +560,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -572,8 +572,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "warning": {
@@ -610,9 +610,9 @@
                 "warningClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -647,9 +647,9 @@
                 "criticalClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -826,7 +826,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "running": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -835,11 +835,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -847,8 +847,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "warning": {
@@ -885,9 +885,9 @@
                 "warningClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -922,9 +922,9 @@
                 "criticalClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -1160,7 +1160,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "running": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -1169,11 +1169,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -1181,8 +1181,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "warning": {
@@ -1219,9 +1219,9 @@
                 "warningClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -1256,9 +1256,9 @@
                 "criticalClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -1272,8 +1272,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "state"
@@ -1284,16 +1284,16 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
-                    "compareToValue": true
+                    "compareToValue": true,
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
                 "click": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "high_performance_drilling_rig",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 }
@@ -1370,7 +1370,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "running": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -1379,11 +1379,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -1391,8 +1391,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "warning": {
@@ -1429,9 +1429,9 @@
                 "warningClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -1466,9 +1466,9 @@
                 "criticalClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -3725,7 +3725,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "value": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -3734,11 +3734,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -3746,8 +3746,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "onUpdateState": {
@@ -3848,7 +3848,7 @@
           "titleIcon": "mdi:lightbulb-outline",
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "configMode": "advanced",
+          "configMode": "basic",
           "targetDevice": {
             "type": "entity",
             "entityAliasId": "ad4e5ca2-ba97-6e1e-aa29-f9b854930f8a"
@@ -3891,7 +3891,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "value": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -3900,11 +3900,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -3912,8 +3912,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "onUpdateState": {
@@ -4043,7 +4043,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "value": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -4052,11 +4052,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -4064,8 +4064,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "onUpdateState": {
@@ -4195,7 +4195,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "value": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -4204,11 +4204,11 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": "CLIENT_SCOPE"
+                    "scope": "CLIENT_SCOPE",
+                    "key": "running"
                   },
                   "getTimeSeries": {
-                    "key": "state"
+                    "key": "running"
                   },
                   "getAlarmStatus": {
                     "severityList": null,
@@ -4216,8 +4216,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "onUpdateState": {
@@ -4305,7 +4305,7 @@
           "titleIcon": "mdi:lightbulb-outline",
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "configMode": "advanced",
+          "configMode": "basic",
           "targetDevice": {
             "type": "entity",
             "entityAliasId": "e1d9b550-8b3c-9b29-30e2-a722fa9d1774"
@@ -5694,7 +5694,7 @@
           "padding": "10px",
           "settings": {
             "alarmsTitle": "Alarms",
-            "enableSelection": true,
+            "enableSelection": false,
             "enableSearch": true,
             "enableSelectColumnDisplay": false,
             "enableFilter": true,
@@ -6377,7 +6377,7 @@
           "padding": "10px",
           "settings": {
             "alarmsTitle": "Alarms",
-            "enableSelection": true,
+            "enableSelection": false,
             "enableSearch": true,
             "enableSelectColumnDisplay": false,
             "enableFilter": true,
@@ -6484,7 +6484,7 @@
           },
           "displayTimewindow": true,
           "actions": {},
-          "configMode": "basic",
+          "configMode": "advanced",
           "alarmFilterConfig": {
             "statusList": [
               "ACTIVE"
@@ -7386,7 +7386,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "value": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -7395,8 +7395,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": null
+                    "scope": null,
+                    "key": "running"
                   },
                   "getTimeSeries": {
                     "key": "running"
@@ -7407,8 +7407,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "onUpdateState": {
@@ -9004,7 +9004,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "value": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -10034,7 +10034,7 @@
             "scadaSymbolObjectSettings": {
               "behavior": {
                 "value": {
-                  "action": "GET_ATTRIBUTE",
+                  "action": "GET_TIME_SERIES",
                   "defaultValue": false,
                   "executeRpc": {
                     "method": "getState",
@@ -10043,8 +10043,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "key": "running",
-                    "scope": null
+                    "scope": null,
+                    "key": "running"
                   },
                   "getTimeSeries": {
                     "key": "running"
@@ -10055,8 +10055,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "compareToValue": true,
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
+                    "compareToValue": true
                   }
                 },
                 "onUpdateState": {
@@ -10155,7 +10155,7 @@
           "titleIcon": "mdi:lightbulb-outline",
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "configMode": "advanced",
+          "configMode": "basic",
           "targetDevice": {
             "type": "entity",
             "entityAliasId": "e1d9b550-8b3c-9b29-30e2-a722fa9d1774"
@@ -12932,7 +12932,7 @@
           "titleIcon": "mdi:lightbulb-outline",
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "configMode": "advanced",
+          "configMode": "basic",
           "targetDevice": {
             "type": "entity",
             "entityAliasId": "e1d9b550-8b3c-9b29-30e2-a722fa9d1774"
@@ -18538,7 +18538,7 @@
           "padding": "10px",
           "settings": {
             "alarmsTitle": "Alarms",
-            "enableSelection": true,
+            "enableSelection": false,
             "enableSearch": true,
             "enableSelectColumnDisplay": false,
             "enableFilter": true,
@@ -18645,7 +18645,7 @@
           },
           "displayTimewindow": true,
           "actions": {},
-          "configMode": "basic",
+          "configMode": "advanced",
           "alarmFilterConfig": {
             "statusList": [
               "ACTIVE"
@@ -20380,7 +20380,7 @@
           "padding": "10px",
           "settings": {
             "alarmsTitle": "Alarms",
-            "enableSelection": true,
+            "enableSelection": false,
             "enableSearch": true,
             "enableSelectColumnDisplay": false,
             "enableFilter": true,
@@ -20487,7 +20487,7 @@
           },
           "displayTimewindow": true,
           "actions": {},
-          "configMode": "basic",
+          "configMode": "advanced",
           "alarmFilterConfig": {
             "statusList": [
               "ACTIVE"
@@ -23308,7 +23308,7 @@
           "padding": "10px",
           "settings": {
             "alarmsTitle": "Alarms",
-            "enableSelection": true,
+            "enableSelection": false,
             "enableSearch": true,
             "enableSelectColumnDisplay": false,
             "enableFilter": true,
@@ -23415,7 +23415,7 @@
           },
           "displayTimewindow": true,
           "actions": {},
-          "configMode": "basic",
+          "configMode": "advanced",
           "alarmFilterConfig": {
             "statusList": [
               "ACTIVE"
@@ -56802,7 +56802,7 @@
       "realtime": {
         "realtimeType": 0,
         "interval": 5000,
-        "timewindowMs": 300000,
+        "timewindowMs": 600000,
         "quickInterval": "CURRENT_DAY",
         "hideInterval": false,
         "hideLastInterval": false,
@@ -56823,7 +56823,7 @@
         "hideQuickInterval": false
       },
       "aggregation": {
-        "type": "NONE",
+        "type": "AVG",
         "limit": 25000
       },
       "timezone": null

@@ -51,7 +51,7 @@
                 },
                 {
                   "key": {
-                    "type": "ATTRIBUTE",
+                    "type": "TIME_SERIES",
                     "key": "running"
                   },
                   "valueType": "BOOLEAN",
@@ -127,7 +127,7 @@
                 },
                 {
                   "key": {
-                    "type": "ATTRIBUTE",
+                    "type": "TIME_SERIES",
                     "key": "running"
                   },
                   "valueType": "BOOLEAN",
@@ -243,7 +243,7 @@
                 },
                 {
                   "key": {
-                    "type": "ATTRIBUTE",
+                    "type": "TIME_SERIES",
                     "key": "running"
                   },
                   "valueType": "BOOLEAN",
@@ -334,7 +334,7 @@
                 },
                 {
                   "key": {
-                    "type": "ATTRIBUTE",
+                    "type": "TIME_SERIES",
                     "key": "running"
                   },
                   "valueType": "BOOLEAN",
@@ -435,7 +435,7 @@
                 },
                 {
                   "key": {
-                    "type": "ATTRIBUTE",
+                    "type": "TIME_SERIES",
                     "key": "running"
                   },
                   "valueType": "BOOLEAN",
@@ -511,7 +511,7 @@
                 },
                 {
                   "key": {
-                    "type": "ATTRIBUTE",
+                    "type": "TIME_SERIES",
                     "key": "running"
                   },
                   "valueType": "BOOLEAN",
@@ -612,7 +612,7 @@
                 },
                 {
                   "key": {
-                    "type": "ATTRIBUTE",
+                    "type": "TIME_SERIES",
                     "key": "running"
                   },
                   "valueType": "BOOLEAN",
@@ -688,7 +688,7 @@
                 },
                 {
                   "key": {
-                    "type": "ATTRIBUTE",
+                    "type": "TIME_SERIES",
                     "key": "running"
                   },
                   "valueType": "BOOLEAN",
