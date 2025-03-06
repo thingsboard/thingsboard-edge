@@ -702,6 +702,7 @@ public class VersionControlTest extends AbstractControllerTest {
         });
     }
 
+    @Test
     public void testVcWithCalculatedFields_betweenTenants() throws Exception {
         Asset asset = createAsset(null, null, "Asset 1");
         Device device = createDevice(null, null, "Device 1", "test1");
@@ -824,6 +825,7 @@ public class VersionControlTest extends AbstractControllerTest {
         });
     }
 
+    @Test
     public void testVcWithCalculatedFields_sameTenant() throws Exception {
         Asset asset = createAsset(null, null, "Asset 1");
         CalculatedField calculatedField = createCalculatedField("CalculatedField", asset.getId(), asset.getId());
