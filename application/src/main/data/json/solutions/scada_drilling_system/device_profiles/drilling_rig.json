@@ -68,7 +68,13 @@
                 }
               ],
               "spec": {
-                "type": "SIMPLE"
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
               }
             },
             "schedule": null,
@@ -144,7 +150,13 @@
                 }
               ],
               "spec": {
-                "type": "SIMPLE"
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
               }
             },
             "schedule": null,
@@ -245,7 +257,13 @@
                 }
               ],
               "spec": {
-                "type": "SIMPLE"
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
               }
             },
             "schedule": null,
@@ -321,7 +339,13 @@
                 }
               ],
               "spec": {
-                "type": "SIMPLE"
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
               }
             },
             "schedule": null,
@@ -422,7 +446,13 @@
                 }
               ],
               "spec": {
-                "type": "SIMPLE"
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
               }
             },
             "schedule": null,
@@ -498,7 +528,13 @@
                 }
               ],
               "spec": {
-                "type": "SIMPLE"
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
               }
             },
             "schedule": null,
@@ -599,7 +635,13 @@
                 }
               ],
               "spec": {
-                "type": "SIMPLE"
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
               }
             },
             "schedule": null,
@@ -675,7 +717,13 @@
                 }
               ],
               "spec": {
-                "type": "SIMPLE"
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
               }
             },
             "schedule": null,
