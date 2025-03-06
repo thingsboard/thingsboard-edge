@@ -727,6 +727,7 @@ public class VersionControlTest extends AbstractControllerTest {
         });
     }
 
+    @Test
     public void testVcWithReferencedCalculatedFields_betweenTenants() throws Exception {
         Asset asset = createAsset(null, null, "Asset 1");
         Device device = createDevice(null, null, "Device 1", "test1");
