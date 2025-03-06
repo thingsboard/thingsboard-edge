@@ -295,7 +295,7 @@ public interface TbContext {
 
     DeviceCredentialsService getDeviceCredentialsService();
 
-    RuleEngineDeviceStateManager getDeviceStateManager();
+    DeviceStateManager getDeviceStateManager();
 
     String getDeviceStateNodeRateLimitConfig();
 

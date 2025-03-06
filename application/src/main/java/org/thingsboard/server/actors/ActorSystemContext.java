@@ -48,10 +48,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.DeviceStateManager;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceStateManager;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.notification.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
@@ -267,7 +267,7 @@ public class ActorSystemContext {
 
     @Autowired(required = false)
     @Getter
-    private RuleEngineDeviceStateManager deviceStateManager;
+    private DeviceStateManager deviceStateManager;
 
     @Autowired
     @Getter
@@ -380,25 +380,32 @@ public class ActorSystemContext {
     private MailExecutorService mailExecutor;
 
     @Autowired
-    @Getter private ConverterService converterService;
+    @Getter
+    private ConverterService converterService;
 
     @Autowired
-    @Getter private IntegrationService integrationService;
+    @Getter
+    private IntegrationService integrationService;
 
     @Autowired
-    @Getter private EntityGroupService entityGroupService;
+    @Getter
+    private EntityGroupService entityGroupService;
 
     @Autowired
-    @Getter private ReportService reportService;
+    @Getter
+    private ReportService reportService;
 
     @Autowired
-    @Getter private BlobEntityService blobEntityService;
+    @Getter
+    private BlobEntityService blobEntityService;
 
     @Autowired
-    @Getter private GroupPermissionService groupPermissionService;
+    @Getter
+    private GroupPermissionService groupPermissionService;
 
     @Autowired
-    @Getter private RoleService roleService;
+    @Getter
+    private RoleService roleService;
 
     @Autowired
     @Getter
@@ -548,11 +555,13 @@ public class ActorSystemContext {
 
     @Lazy
     @Autowired(required = false)
-    @Getter private PlatformIntegrationService platformIntegrationService;
+    @Getter
+    private PlatformIntegrationService platformIntegrationService;
 
     @Lazy
     @Autowired(required = false)
-    @Getter private DataConverterService dataConverterService;
+    @Getter
+    private DataConverterService dataConverterService;
 
     @Lazy
     @Autowired(required = false)
