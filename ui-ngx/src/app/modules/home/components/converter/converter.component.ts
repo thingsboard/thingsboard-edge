@@ -249,6 +249,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
         form.get('integrationType').updateValueAndValidity({onlySelf: true});
       } else {
+        this.updatedPredefinedConverterKeys();
+        this.updatedConverterVersionDisableState();
         form.updateValueAndValidity();
       }
     } else {
