@@ -38,7 +38,8 @@ public enum StatsType {
     RATE_EXECUTOR("rateExecutor"),
     INTEGRATION("integration"),
     HOUSEKEEPER("housekeeper"),
-    EDGE("edge");
+    EDGE("edge"),
+    EDQS("edqs");
 
     private final String name;
 

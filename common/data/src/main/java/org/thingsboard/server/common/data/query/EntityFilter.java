@@ -60,7 +60,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = DeviceSearchQueryFilter.class, name = "deviceSearchQuery"),
         @JsonSubTypes.Type(value = EntityViewSearchQueryFilter.class, name = "entityViewSearchQuery"),
         @JsonSubTypes.Type(value = EdgeSearchQueryFilter.class, name = "edgeSearchQuery"),
-        @JsonSubTypes.Type(value = SchedulerEventFilter.class, name = "schedulerEvent")})
+        @JsonSubTypes.Type(value = SchedulerEventFilter.class, name = "schedulerEvent")
+})
 public interface EntityFilter {
 
     @JsonIgnore

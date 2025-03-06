@@ -28,59 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.utils;
+package org.thingsboard.server.edqs.state;
 
-import lombok.SneakyThrows;
-import org.rocksdb.Options;
-import org.rocksdb.RocksDB;
-import org.rocksdb.RocksIterator;
-import org.rocksdb.WriteOptions;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.edqs.EdqsEventType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.common.consumer.PartitionedQueueConsumerManager;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.function.BiConsumer;
+import java.util.Set;
 
-public class TbRocksDb {
+public interface EdqsStateService {
 
-    protected final String path;
-    private final WriteOptions writeOptions;
-    protected final RocksDB db;
+    void init(PartitionedQueueConsumerManager<TbProtoQueueMsg<ToEdqsMsg>> eventConsumer);
 
-    static {
-        RocksDB.loadLibrary();
-    }
+    void process(Set<TopicPartitionInfo> partitions);
 
-    public TbRocksDb(String path, Options dbOptions, WriteOptions writeOptions) throws Exception {
-        this.path = path;
-        this.writeOptions = writeOptions;
-        Files.createDirectories(Path.of(path).getParent());
-        this.db = RocksDB.open(dbOptions, path);
-    }
+    void save(TenantId tenantId, ObjectType type, String key, EdqsEventType eventType, ToEdqsMsg msg);
 
-    @SneakyThrows
-    public void put(String key, byte[] value) {
-        db.put(writeOptions, key.getBytes(StandardCharsets.UTF_8), value);
-    }
+    boolean isReady();
 
-    public void forEach(BiConsumer<String, byte[]> processor) {
-        try (RocksIterator iterator = db.newIterator()) {
-            for (iterator.seekToFirst(); iterator.isValid(); iterator.next()) {
-                String key = new String(iterator.key(), StandardCharsets.UTF_8);
-                processor.accept(key, iterator.value());
-            }
-        }
-    }
-
-    @SneakyThrows
-    public void delete(String key) {
-        db.delete(writeOptions, key.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public void close() {
-        if (db != null) {
-            db.close();
-        }
-    }
+    void stop();
 
 }

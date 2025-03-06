@@ -195,7 +195,7 @@
         <weisj-jsvg.version>1.6.1</weisj-jsvg.version>
         <drewnoakes-metadata-extractor.version>2.19.0</drewnoakes-metadata-extractor.version>
         <firebase-admin.version>9.2.0</firebase-admin.version>
-
+        <snappy.version>1.1.10.5</snappy.version>
         <rocksdbjni.version>9.10.0</rocksdbjni.version>
     </properties>
 
@@ -205,6 +205,7 @@
         <module>rule-engine</module>
         <module>rule-engine-pe</module>
         <module>dao</module>
+        <module>edqs</module>
         <module>transport</module>
         <module>integration</module>
         <module>ui-ngx</module>
@@ -1160,6 +1161,11 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>coap-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common</groupId>
+                <artifactId>edqs</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2519,6 +2525,11 @@
                 <groupId>com.google.auth</groupId>
                 <artifactId>google-auth-library-oauth2-http</artifactId>
                 <version>${google.oauth2-http.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>${snappy.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.rocksdb</groupId>

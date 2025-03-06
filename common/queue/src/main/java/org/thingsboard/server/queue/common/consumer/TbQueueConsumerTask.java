@@ -91,7 +91,7 @@ public class TbQueueConsumerTask<M extends TbQueueMsg> {
         awaitCompletion(30);
     }
 
-    public void awaitCompletion(long timeoutSec) {
+    public void awaitCompletion(int timeoutSec) {
         log.trace("[{}] Awaiting finish", key);
         if (isRunning()) {
             try {

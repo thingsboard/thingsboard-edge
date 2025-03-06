@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.query;
+package org.thingsboard.server.common.data.permission;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,10 +36,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
 import org.thingsboard.server.common.data.query.EntityFilter;
 import org.thingsboard.server.common.data.query.EntityFilterType;
@@ -48,9 +44,11 @@ import org.thingsboard.server.common.data.query.EntityGroupListFilter;
 import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
-public class QuerySecurityContext {
+public class QueryContext {
 
     @Getter
     private final TenantId tenantId;
@@ -74,23 +72,26 @@ public class QuerySecurityContext {
     @Setter
     private final EntityType entityGroupType;
 
-    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter) {
+    @Getter
+    private final Map<UUID, UUID> relatedParentIdMap = new HashMap<>();
+
+    public QueryContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter) {
         this(tenantId, customerId, entityType, userPermissions, entityFilter, null, null, false);
     }
 
-    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, boolean ignorePermissionCheck) {
+    public QueryContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, boolean ignorePermissionCheck) {
         this(tenantId, customerId, entityType, userPermissions, entityFilter, null, null, ignorePermissionCheck);
     }
 
-    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId, boolean ignorePermissionCheck) {
+    public QueryContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId, boolean ignorePermissionCheck) {
         this(tenantId, customerId, entityType, userPermissions, entityFilter, ownerId, null, ignorePermissionCheck);
     }
 
-    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityType entityGroupType, boolean ignorePermissionCheck) {
+    public QueryContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityType entityGroupType, boolean ignorePermissionCheck) {
         this(tenantId, customerId, entityType, userPermissions, entityFilter, null, entityGroupType, ignorePermissionCheck);
     }
 
-    private QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId, EntityType entityGroupType, boolean ignorePermissionCheck) {
+    private QueryContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId, EntityType entityGroupType, boolean ignorePermissionCheck) {
         this.tenantId = tenantId;
         this.customerId = customerId;
         this.entityType = entityType;
@@ -120,19 +121,12 @@ public class QuerySecurityContext {
     public EntityType getEntityType() {
         EntityType entityType;
         if (entityFilter != null) {
-            switch (entityFilter.getType()) {
-                case ENTITY_GROUP_NAME:
-                    entityType = ((EntityGroupNameFilter) entityFilter).getGroupType();
-                    break;
-                case ENTITIES_BY_GROUP_NAME:
-                    entityType = ((EntitiesByGroupNameFilter) entityFilter).getGroupType();
-                    break;
-                case ENTITY_GROUP:
-                    entityType = ((EntityGroupFilter) entityFilter).getGroupType();
-                    break;
-                default:
-                    entityType = this.entityType;
-            }
+            entityType = switch (entityFilter.getType()) {
+                case ENTITY_GROUP_NAME -> ((EntityGroupNameFilter) entityFilter).getGroupType();
+                case ENTITIES_BY_GROUP_NAME -> ((EntitiesByGroupNameFilter) entityFilter).getGroupType();
+                case ENTITY_GROUP -> ((EntityGroupFilter) entityFilter).getGroupType();
+                default -> this.entityType;
+            };
         } else {
             entityType = this.entityType;
         }

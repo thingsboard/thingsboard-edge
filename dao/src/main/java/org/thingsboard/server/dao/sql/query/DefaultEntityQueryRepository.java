@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.QueryContext;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.ApiUsageStateFilter;
 import org.thingsboard.server.common.data.query.AssetSearchQueryFilter;
@@ -509,7 +510,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     @Override
     public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query) {
-        QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), TenantId.SYS_TENANT_ID.equals(tenantId));
+        SqlQueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), TenantId.SYS_TENANT_ID.equals(tenantId));
         MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
         if (readPermissions == null) {
             return 0L;
@@ -612,7 +613,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     }
 
     public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query, boolean ignorePermissionCheck) {
-        QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), ignorePermissionCheck);
+        SqlQueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), ignorePermissionCheck);
         MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
         if (readPermissions == null) {
             return new PageData<>();
@@ -758,7 +759,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         });
     }
 
-    private boolean customerUserIsTryingToAccessTenantEntity(QueryContext ctx, EntityFilter entityFilter) {
+    private boolean customerUserIsTryingToAccessTenantEntity(SqlQueryContext ctx, EntityFilter entityFilter) {
         if (ctx.isTenantUser()) {
             return false;
         } else {
@@ -798,16 +799,15 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private QueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter, boolean ignorePermissionCheck) {
-        QuerySecurityContext securityContext;
+    private SqlQueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter, boolean ignorePermissionCheck) {
+        QueryContext securityContext;
         if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-            MergedUserPermissions permission = SYS_ADMIN_PERMISSIONS;
-            securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), permission, filter, ignorePermissionCheck);
+            securityContext = new QueryContext(tenantId, customerId, resolveEntityType(filter), SYS_ADMIN_PERMISSIONS, filter, ignorePermissionCheck);
         } else {
             switch (filter.getType()) {
                 case STATE_ENTITY_OWNER:
                     EntityId ownerId = getOwnerId(tenantId, filter);
-                    securityContext = new QuerySecurityContext(tenantId, customerId, ownerId.getEntityType(), userPermissions, filter, ownerId, ignorePermissionCheck);
+                    securityContext = new QueryContext(tenantId, customerId, ownerId.getEntityType(), userPermissions, filter, ownerId, ignorePermissionCheck);
                     break;
                 case SINGLE_ENTITY:
                     SingleEntityFilter seFilter = (SingleEntityFilter) filter;
@@ -815,19 +815,19 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     if (entityId != null && entityId.getEntityType().equals(EntityType.ENTITY_GROUP)) {
                         EntityGroupEntity entityGroupEntity = getEntityGroup(tenantId, entityId);
                         if (entityGroupEntity != null) {
-                            securityContext = new QuerySecurityContext(tenantId, customerId, EntityType.ENTITY_GROUP, userPermissions, filter, entityGroupEntity.getType(), ignorePermissionCheck);
+                            securityContext = new QueryContext(tenantId, customerId, EntityType.ENTITY_GROUP, userPermissions, filter, entityGroupEntity.getType(), ignorePermissionCheck);
                         } else {
-                            securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
+                            securityContext = new QueryContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
                         }
                     } else {
-                        securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
+                        securityContext = new QueryContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
                     }
                     break;
                 default:
-                    securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
+                    securityContext = new QueryContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
             }
         }
-        return new QueryContext(securityContext);
+        return new SqlQueryContext(securityContext);
     }
 
     private EntityGroupEntity getEntityGroup(TenantId tenantId, EntityId entityGroupId) {
@@ -935,7 +935,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             TenantId tenantId, CustomerId customerId, EntityType entityType, String type,
             List<EntityGroupId> groupIds, PageLink pageLink, EntityMapping<?, T> mapping, boolean mobile) {
         return transactionTemplate.execute(status -> {
-            QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, entityType, null, null));
+            SqlQueryContext ctx = new SqlQueryContext(new QueryContext(tenantId, customerId, entityType, null, null));
             StringBuilder fromClause = new StringBuilder();
 
             fromClause.append("FROM ");
@@ -1046,7 +1046,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         });
     }
 
-    private StringBuilder buildRelationsEntitiesQuery(EntityCountQuery query, QueryContext ctx, String entityWhereClause, String entityFieldsSelection) {
+    private StringBuilder buildRelationsEntitiesQuery(EntityCountQuery query, SqlQueryContext ctx, String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
 
         Map<Resource, MergedGroupTypePermissionInfo> readPermMap = ctx.getSecurityCtx().getMergedReadEntityPermissionsMap();
@@ -1145,13 +1145,13 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return entitiesQuery;
     }
 
-    private void addTenantEntityCheck(QueryContext ctx, StringBuilder entitiesQuery, Map<Resource, MergedGroupTypePermissionInfo> readPermMap, EntityType entityType) {
+    private void addTenantEntityCheck(SqlQueryContext ctx, StringBuilder entitiesQuery, Map<Resource, MergedGroupTypePermissionInfo> readPermMap, EntityType entityType) {
         entitiesQuery.append("(e.entity_type = '").append(entityType.name()).append("' AND ");
         entitiesQuery.append(ctx.isTenantUser() && readPermMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead() ? "true" : "false");
         entitiesQuery.append(")");
     }
 
-    private void addCustomerEntityCheck(QueryContext ctx, StringBuilder entitiesQuery, Map<Resource, MergedGroupTypePermissionInfo> readPermMap, EntityType entityType) {
+    private void addCustomerEntityCheck(SqlQueryContext ctx, StringBuilder entitiesQuery, Map<Resource, MergedGroupTypePermissionInfo> readPermMap, EntityType entityType) {
         if (ctx.isTenantUser()) {
             entitiesQuery.append("(e.entity_type = '").append(entityType.name()).append("' AND ");
             entitiesQuery.append(readPermMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead() ? "true" : "false");
@@ -1167,7 +1167,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private void buildPermissionsSelect(QueryContext ctx, StringBuilder entitiesQuery,
+    private void buildPermissionsSelect(SqlQueryContext ctx, StringBuilder entitiesQuery,
                                         Map<Resource, MergedGroupTypePermissionInfo> permissionsMap,
                                         String groupIdParamNamePrefix, String selectionName) {
         if (hasGenericForAllRelationQueryResources(permissionsMap)) {
@@ -1198,7 +1198,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private StringBuilder buildCommonEntitiesQuery(EntityCountQuery query, QueryContext ctx,
+    private StringBuilder buildCommonEntitiesQuery(EntityCountQuery query, SqlQueryContext ctx,
                                                    MergedGroupTypePermissionInfo readPermissions,
                                                    String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
@@ -1300,7 +1300,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return bool ? "1" : "0";
     }
 
-    private boolean addGroupIdsFilters(QueryContext ctx, GroupIdsWrapper groupIds, StringBuilder entityFlagsQuery, int paramIdx, Predicate<GroupIdPermKey> keyFilter) {
+    private boolean addGroupIdsFilters(SqlQueryContext ctx, GroupIdsWrapper groupIds, StringBuilder entityFlagsQuery, int paramIdx, Predicate<GroupIdPermKey> keyFilter) {
         boolean first = true;
         for (Map.Entry<GroupIdPermKey, Set<EntityGroupId>> e : groupIds.getGroupIdsMap().entrySet()) {
             GroupIdPermKey permKey = e.getKey();
@@ -1325,7 +1325,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     }
 
 
-    private boolean addGroupEntitiesByGroupIdsFilters(QueryContext ctx, GroupIdsWrapper groupIds, StringBuilder entityFlagsQuery, int paramIdx, Predicate<GroupIdPermKey> keyFilter) {
+    private boolean addGroupEntitiesByGroupIdsFilters(SqlQueryContext ctx, GroupIdsWrapper groupIds, StringBuilder entityFlagsQuery, int paramIdx, Predicate<GroupIdPermKey> keyFilter) {
         boolean first = true;
         for (Map.Entry<GroupIdPermKey, Set<EntityGroupId>> e : groupIds.getGroupIdsMap().entrySet()) {
             GroupIdPermKey permKey = e.getKey();
@@ -1354,7 +1354,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return permissions.getEntityGroupIds() == null || permissions.getEntityGroupIds().isEmpty();
     }
 
-    private StringBuilder buildGroupEntitiesQuery(EntityCountQuery query, QueryContext ctx,
+    private StringBuilder buildGroupEntitiesQuery(EntityCountQuery query, SqlQueryContext ctx,
                                                   MergedGroupTypePermissionInfo readPermissions, String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
 
@@ -1488,7 +1488,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return true;
     }
 
-    private String buildEntityWhere(QueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> entityFieldsFilters) {
+    private String buildEntityWhere(SqlQueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> entityFieldsFilters) {
         String permissionQuery = this.buildPermissionQuery(ctx, entityFilter);
         String entityFilterQuery = this.buildEntityFilterQuery(ctx, entityFilter);
         String entityFieldsQuery = EntityKeyMapping.buildQuery(ctx, entityFieldsFilters, entityFilter.getType());
@@ -1510,7 +1510,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return result;
     }
 
-    private String buildPermissionQuery(QueryContext ctx, EntityFilter entityFilter) {
+    private String buildPermissionQuery(SqlQueryContext ctx, EntityFilter entityFilter) {
         if (ctx.isIgnorePermissionCheck()) {
             return "1=1";
         }
@@ -1551,9 +1551,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private String defaultPermissionQuery(QueryContext ctx, EntityFilter entityFilter) {
+    private String defaultPermissionQuery(SqlQueryContext ctx, EntityFilter entityFilter) {
         ctx.addUuidParameter("permissions_tenant_id", ctx.getTenantId().getId());
-        QuerySecurityContext securityCtx = ctx.getSecurityCtx();
+        QueryContext securityCtx = ctx.getSecurityCtx();
         if (!securityCtx.isTenantUser() && securityCtx.hasGeneric(Operation.READ) && securityCtx.getMergedReadPermissionsByEntityType().getEntityGroupIds().isEmpty()) {
             ctx.addUuidParameter("permissions_customer_id", ctx.getCustomerId().getId());
             if (ctx.getEntityType() == EntityType.CUSTOMER && entityFilter.getType() != EntityFilterType.ENTITY_GROUP_LIST
@@ -1568,7 +1568,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "e.tenant_id=:permissions_tenant_id";
     }
 
-    private String buildEntityFilterQuery(QueryContext ctx, EntityFilter entityFilter) {
+    private String buildEntityFilterQuery(SqlQueryContext ctx, EntityFilter entityFilter) {
         switch (entityFilter.getType()) {
             case SINGLE_ENTITY:
                 return this.singleEntityQuery(ctx, (SingleEntityFilter) entityFilter);
@@ -1603,7 +1603,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private String schedulerEventQuery(QueryContext ctx, SchedulerEventFilter entityFilter) {
+    private String schedulerEventQuery(SqlQueryContext ctx, SchedulerEventFilter entityFilter) {
         String query = "";
         if (StringUtils.isNotBlank(entityFilter.getEventType())) {
             ctx.addStringParameter("entity_filter_scheduler_event_type", entityFilter.getEventType());
@@ -1617,7 +1617,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return query;
     }
 
-    private String addEntityTableQuery(QueryContext ctx, EntityFilter entityFilter) {
+    private String addEntityTableQuery(SqlQueryContext ctx, EntityFilter entityFilter) {
         switch (entityFilter.getType()) {
             case ENTITY_GROUP:
                 return entityGroupQuery(ctx, (EntityGroupFilter) entityFilter);
@@ -1652,7 +1652,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private String entityGroupQueryByGroupList(QueryContext ctx, EntityGroupListFilter entityFilter) {
+    private String entityGroupQueryByGroupList(SqlQueryContext ctx, EntityGroupListFilter entityFilter) {
         EntityType entityType = entityFilter.getGroupType();
         String select = "SELECT * ," +
                 " CASE WHEN owner_type = 'CUSTOMER' THEN (select tenant_id from customer where id = owner_id) ELSE owner_id END as tenant_id," +
@@ -1663,7 +1663,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "(" + select + ")";
     }
 
-    private String entityGroupQuery(QueryContext ctx, EntityGroupFilter entityFilter) {
+    private String entityGroupQuery(SqlQueryContext ctx, EntityGroupFilter entityFilter) {
         EntityType entityType = entityFilter.getGroupType();
         EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString(entityFilter.getEntityGroup()));
         String selectFields = "SELECT * FROM " + entityTableMap.get(entityType);
@@ -1673,7 +1673,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "( " + selectFields + from + ")";
     }
 
-    private String entityGroupQueryByGroupName(QueryContext ctx, EntityGroupNameFilter entityFilter) {
+    private String entityGroupQueryByGroupName(SqlQueryContext ctx, EntityGroupNameFilter entityFilter) {
         EntityType entityType = entityFilter.getGroupType();
         String select = "SELECT * ," +
                 " CASE WHEN owner_type = 'CUSTOMER' THEN (select tenant_id from customer where id = owner_id) ELSE owner_id END as tenant_id," +
@@ -1687,7 +1687,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "(" + select + ")";
     }
 
-    private String entityGroupQueryById(QueryContext ctx, SingleEntityFilter entityFilter) {
+    private String entityGroupQueryById(SqlQueryContext ctx, SingleEntityFilter entityFilter) {
         EntityId entityId = entityFilter.getSingleEntity();
         String select = "SELECT * ," +
                 " CASE WHEN owner_type = 'CUSTOMER' THEN (select tenant_id from customer where id = owner_id) ELSE owner_id END as tenant_id," +
@@ -1697,7 +1697,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "(" + select + ")";
     }
 
-    private String entityByGroupNameQuery(QueryContext ctx, EntitiesByGroupNameFilter entityFilter) {
+    private String entityByGroupNameQuery(SqlQueryContext ctx, EntitiesByGroupNameFilter entityFilter) {
         EntityType entityType = entityFilter.getGroupType();
         String selectFields = "SELECT * FROM " + entityTableMap.get(entityType);
         MergedGroupTypePermissionInfo groupTypePermissionInfo = ctx.getSecurityCtx().getMergedReadGroupPermissionsByEntityType();
@@ -1763,7 +1763,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "( " + selectFields + where + ")";
     }
 
-    private String entitySearchQuery(QueryContext ctx, EntitySearchQueryFilter entityFilter, EntityType entityType, List<String> types) {
+    private String entitySearchQuery(SqlQueryContext ctx, EntitySearchQueryFilter entityFilter, EntityType entityType, List<String> types) {
         EntityId rootId = entityFilter.getRootEntity();
         String lvlFilter = getLvlFilter(entityFilter.getMaxLevel());
         String selectFields = "SELECT tenant_id, customer_id, id, created_time, type, name, additional_info "
@@ -1803,7 +1803,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return query;
     }
 
-    private String relationQuery(QueryContext ctx, RelationsQueryFilter entityFilter) {
+    private String relationQuery(SqlQueryContext ctx, RelationsQueryFilter entityFilter) {
         EntityId rootId = entityFilter.getRootEntity();
         String lvlFilter = getLvlFilter(entityFilter.getMaxLevel());
         String selectFields = SELECT_TENANT_ID + ", " + SELECT_CUSTOMER_ID
@@ -1815,6 +1815,10 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 SELECT_ADDRESS + ", " + SELECT_ADDRESS_2 + ", " + SELECT_ZIP + ", " + SELECT_PHONE + ", " +
                 SELECT_ADDITIONAL_INFO + (entityFilter.isMultiRoot() ? (", " + SELECT_RELATED_PARENT_ID) : "") +
                 ", entity.entity_type as entity_type";
+        /*
+        * FIXME:
+        *  target entities are duplicated in result list, if search direction is TO and multiple relations are references to target entity
+        * */
         String from = getQueryTemplate(entityFilter.getDirection(), entityFilter.isMultiRoot());
 
         if (entityFilter.isMultiRoot()) {
@@ -1885,7 +1889,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "( " + selectFields + from + ")";
     }
 
-    private String buildEtfCondition(QueryContext ctx, RelationEntityTypeFilter etf, EntitySearchDirection direction, int entityTypeFilterIdx) {
+    private String buildEtfCondition(SqlQueryContext ctx, RelationEntityTypeFilter etf, EntitySearchDirection direction, int entityTypeFilterIdx) {
         StringBuilder whereFilter = new StringBuilder();
         String relationType = etf.getRelationType();
         List<EntityType> entityTypes = etf.getEntityTypes();
@@ -1936,7 +1940,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return from;
     }
 
-    private String buildAliasWhereQuery(QueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> selectionMapping, String searchText) {
+    private String buildAliasWhereQuery(SqlQueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> selectionMapping, String searchText) {
         List<EntityKeyMapping> aliasFiltersMapping = selectionMapping.stream().filter(mapping -> !mapping.isLatest() && mapping.getEntityKeyColumn() == null)
                 .collect(Collectors.toList());
         String entityFieldsQuery = EntityKeyMapping.buildQuery(ctx, aliasFiltersMapping, entityFilter.getType());
@@ -1951,7 +1955,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return result;
     }
 
-    private String buildTextSearchQuery(QueryContext ctx, List<EntityKeyMapping> selectionMapping, String searchText) {
+    private String buildTextSearchQuery(SqlQueryContext ctx, List<EntityKeyMapping> selectionMapping, String searchText) {
         if (!StringUtils.isEmpty(searchText) && !selectionMapping.isEmpty()) {
             String sqlSearchText = "%" + searchText + "%";
             ctx.addStringParameter("lowerSearchTextParam", sqlSearchText);
@@ -1968,22 +1972,22 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private String singleEntityByStateOwner(QueryContext ctx) {
+    private String singleEntityByStateOwner(SqlQueryContext ctx) {
         ctx.addUuidParameter("entity_filter_single_owner_id", ctx.getStateEntityOwnerId().getId());
         return "e.id=:entity_filter_single_owner_id";
     }
 
-    private String singleEntityQuery(QueryContext ctx, SingleEntityFilter filter) {
+    private String singleEntityQuery(SqlQueryContext ctx, SingleEntityFilter filter) {
         ctx.addUuidParameter("entity_filter_single_entity_id", filter.getSingleEntity().getId());
         return "e.id=:entity_filter_single_entity_id";
     }
 
-    private String entityListQuery(QueryContext ctx, EntityListFilter filter) {
+    private String entityListQuery(SqlQueryContext ctx, EntityListFilter filter) {
         ctx.addUuidListParameter("entity_filter_entity_ids", filter.getEntityList().stream().map(UUID::fromString).collect(Collectors.toList()));
         return "e.id in (:entity_filter_entity_ids)";
     }
 
-    private String entityNameQuery(QueryContext ctx, EntityNameFilter filter) {
+    private String entityNameQuery(SqlQueryContext ctx, EntityNameFilter filter) {
         ctx.addStringParameter("entity_filter_name_filter", filter.getEntityNameFilter());
         String nameColumn = getNameColumn(filter.getEntityType());
         if (filter.getEntityNameFilter().startsWith("%") || filter.getEntityNameFilter().endsWith("%")) {
@@ -1993,7 +1997,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return String.format("e.%s ILIKE concat(:entity_filter_name_filter, '%%')", nameColumn);
     }
 
-    private String entityGroupNameQuery(QueryContext ctx, EntityGroupNameFilter filter) {
+    private String entityGroupNameQuery(SqlQueryContext ctx, EntityGroupNameFilter filter) {
         ctx.addStringParameter("entity_filter_group_name_filter", filter.getEntityGroupNameFilter());
         if (filter.getEntityGroupNameFilter().startsWith("%") || filter.getEntityGroupNameFilter().endsWith("%")) {
             return "e.name ILIKE :entity_filter_group_name_filter";
@@ -2001,7 +2005,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "e.name ILIKE concat(:entity_filter_group_name_filter, '%%')";
     }
 
-    private String typeQuery(QueryContext ctx, EntityFilter filter) {
+    private String typeQuery(SqlQueryContext ctx, EntityFilter filter) {
         List<String> types;
         String name;
         String nameColumn;
