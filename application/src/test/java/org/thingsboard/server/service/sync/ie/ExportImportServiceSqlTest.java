@@ -342,6 +342,7 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
         assertThat(calculatedFields.size()).isOne();
         var importedCalculatedField = calculatedFields.get(0);
         assertThat(importedCalculatedField.getName()).isEqualTo(calculatedField.getName());
+        verify(tbClusterService).onCalculatedFieldUpdated(eq(importedCalculatedField), isNull(), any());
 
         EntityExportData<Device> updatedDeviceEntity = getAndClone(entitiesExportData, EntityType.DEVICE);
         updatedDeviceEntity.getEntity().setLabel("t" + updatedDeviceEntity.getEntity().getLabel());
