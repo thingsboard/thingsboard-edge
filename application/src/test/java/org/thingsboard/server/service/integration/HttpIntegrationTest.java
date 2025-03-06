@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
@@ -52,6 +53,7 @@ import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.cache.DefaultIntegrationExecutorTenantProfileCache;
 import org.thingsboard.server.service.cache.IntegrationExecutorTenantProfileCache;
@@ -73,12 +75,13 @@ import static org.thingsboard.server.service.integration.IntegrationDebugMessage
 @TestPropertySource(properties = {
         "js.evaluator=local",
         "service.integrations.supported=ALL",
-        "transport.coap.enabled=true"
+        "transport.coap.enabled=true",
+        "integrations.statistics.persist_frequency=3000"
 })
 @Slf4j
 @DaoSqlTest
-@ContextConfiguration(classes = {BasicRateLimitsIntegrationTest.Config.class})
-public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
+@ContextConfiguration(classes = {HttpIntegrationTest.Config.class})
+public class HttpIntegrationTest extends AbstractIntegrationTest {
 
     @SpyBean
     private DefaultIntegrationRateLimitService limitService;
@@ -155,6 +158,11 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(events);
         Assert.assertEquals(1, events.size());
         Assert.assertEquals("TENANT rate limits reached!", events.get(0).getBody().get("error").asText());
+
+        // check integration stats
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> getIntegrationInfos(new PageLink(10))
+                        .getData().get(0).getStats().equals(JacksonUtil.fromString("[20]", ArrayNode.class)));
     }
 
     @Test
