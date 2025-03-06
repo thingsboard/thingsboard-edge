@@ -219,6 +219,11 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     keyName: 'ownerType',
     name: 'entity-field.owner-type',
     value: 'ownerType'
+  },
+  additionalInfo: {
+    keyName: 'additionalInfo',
+    name: 'entity-field.additional-info',
+    value: 'additionalInfo'
   }
 };
 

@@ -902,6 +902,13 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
                                                        c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey);
 
+      if (query.entityFields.every(entityField => entityField.key !== entityFields.name.keyName)) {
+        query.entityFields.push({ key: entityFields.name.keyName, type: EntityKeyType.ENTITY_FIELD });
+      }
+      if (query.entityFields.every(entityField => entityField.key !== entityFields.label.keyName)) {
+        query.entityFields.push({ key: entityFields.label.keyName, type: EntityKeyType.ENTITY_FIELD });
+      }
+
       return this.entityService.findEntityDataByQuery(query).pipe(
         expand(data => {
             if (data.hasNext) {
