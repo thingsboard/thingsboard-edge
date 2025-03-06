@@ -75,7 +75,6 @@ import static org.thingsboard.server.service.integration.IntegrationDebugMessage
 @TestPropertySource(properties = {
         "js.evaluator=local",
         "service.integrations.supported=ALL",
-        "transport.coap.enabled=true",
         "integrations.statistics.persist_frequency=3000"
 })
 @Slf4j

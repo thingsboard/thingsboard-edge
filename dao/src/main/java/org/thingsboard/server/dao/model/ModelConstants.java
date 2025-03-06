@@ -332,7 +332,6 @@ public class ModelConstants {
     public static final String INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
 
     public static final String INTEGRATION_VIEW_NAME = "integration_info";
-    public static final String INTEGRATION_VIEW_STATS_PROPERTY = "stats";
     public static final String INTEGRATION_VIEW_STATUS_PROPERTY = "status";
 
     /**

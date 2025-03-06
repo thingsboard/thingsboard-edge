@@ -116,9 +116,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
     }
 
     public PageData<IntegrationInfo> getIntegrationInfos(PageLink pageLink) throws Exception {
-        return doGetTypedWithPageLink("/api/integrationInfos?",
-                new TypeReference<PageData<IntegrationInfo>>() {
-                }, pageLink);
+        return doGetTypedWithPageLink("/api/integrationInfos?", new TypeReference<>() {}, pageLink);
     }
 
     public void enableIntegration() {
