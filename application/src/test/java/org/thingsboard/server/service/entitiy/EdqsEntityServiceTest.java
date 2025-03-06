@@ -49,7 +49,6 @@ import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
-import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.common.msg.edqs.EdqsApiService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.edqs.util.EdqsRocksDb;
@@ -121,13 +120,13 @@ public class EdqsEntityServiceTest extends EntityServiceTest {
 
     @Override
     protected PageData<EntityData> findByQueryAndCheck(CustomerId customerId, MergedUserPermissions permissions, EntityDataQuery query, long expectedResultSize) {
-        return await().atMost(30, TimeUnit.SECONDS).until(() -> findByQuery(customerId, permissions, query),
+        return await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> findByQuery(customerId, permissions, query),
                 result -> result.getTotalElements() == expectedResultSize);
     }
 
     @Override
     protected List<EntityData> findByQueryAndCheckTelemetry(EntityDataQuery query, EntityKeyType entityKeyType, String key, List<String> expectedTelemetries) {
-        return await().atMost(30, TimeUnit.SECONDS).until(() -> findEntitiesTelemetry(query, entityKeyType, key, expectedTelemetries),
+        return await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> findEntitiesTelemetry(query, entityKeyType, key, expectedTelemetries),
                 loadedEntities -> loadedEntities.stream().map(entityData -> entityData.getLatest().get(entityKeyType).get(key).getValue()).toList().containsAll(expectedTelemetries));
     }
 
@@ -138,7 +137,7 @@ public class EdqsEntityServiceTest extends EntityServiceTest {
 
     @Override
     protected long countByQueryAndCheck(CustomerId customerId, MergedUserPermissions permissions, EntityCountQuery query, int expectedResult) {
-        return await().atMost(30, TimeUnit.SECONDS).until(() -> countByQuery(customerId, permissions, query),
+        return await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> countByQuery(customerId, permissions, query),
                 result -> result == expectedResult);
     }
 
