@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
-import org.thingsboard.server.dao.model.sql.IntegrationStats;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sql.event.StatisticsEventRepository;
 import org.thingsboard.server.dao.util.SqlDao;
@@ -119,7 +118,7 @@ public class JpaIntegrationInfoDao extends JpaAbstractDao<IntegrationInfoEntity,
 
         Map<UUID, String> statsMap = statisticsEventRepository.findAggregatedDailyStats(tenantId, integrationIds)
                 .stream()
-                .collect(Collectors.toMap(IntegrationStats::getEntityId, IntegrationStats::getStats));
+                .collect(Collectors.toMap(StatisticsEventRepository.Stats::getEntityId, StatisticsEventRepository.Stats::getStats));
 
         // add stats to integration info
         integrationInfos.getData().forEach(info -> {

@@ -38,7 +38,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.event.StatisticsEvent;
-import org.thingsboard.server.dao.model.sql.IntegrationStats;
 import org.thingsboard.server.dao.model.sql.StatisticsEventEntity;
 
 import java.util.List;
@@ -141,7 +140,13 @@ public interface StatisticsEventRepository extends EventRepository<StatisticsEve
             "AND se.ts >= (EXTRACT(EPOCH FROM current_timestamp) * 1000 - 24 * 60 * 60 * 1000)::bigint " +
             "GROUP BY se.entity_id, se.ts / 3600000 ORDER BY se.entity_id, se.ts / 3600000) sub " +
             "GROUP BY sub.entity_id", nativeQuery = true)
-    List<IntegrationStats> findAggregatedDailyStats(@Param("tenantId") UUID tenantId,
-                                                    @Param("entityIds") List<UUID> entityIds);
+    List<Stats> findAggregatedDailyStats(@Param("tenantId") UUID tenantId,
+                                         @Param("entityIds") List<UUID> entityIds);
+
+    interface Stats {
+        String getStats();
+
+        UUID getEntityId();
+    }
 
 }
