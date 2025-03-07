@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, DestroyRef, Inject, OnDestroy, OnInit, SkipSelf, ViewChild } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, SkipSelf, ViewChild } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -88,7 +88,7 @@ export interface WidgetActionDialogData {
   styleUrls: []
 })
 export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDialogComponent,
-                                                 WidgetActionDescriptorInfo> implements OnInit, OnDestroy, ErrorStateMatcher {
+                                                 WidgetActionDescriptorInfo> implements OnInit, ErrorStateMatcher {
 
   widgetActionFormGroup: FormGroup;
 
@@ -191,10 +191,6 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
         }
       }
     });
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
   }
 
   widgetHeaderButtonValidators() {
