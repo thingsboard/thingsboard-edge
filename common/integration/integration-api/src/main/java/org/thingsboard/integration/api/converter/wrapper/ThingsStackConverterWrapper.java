@@ -79,6 +79,7 @@ public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
                 .put("clusterId", "/uplink_message/network_ids/cluster_id")
                 .put("attributes", "/uplink_message/attributes")
                 .put("uplinkMessageReceivedAt", "/uplink_message/received_at")
+                .put("simulated", "/simulated")
                 .put("rssi", "")
                 .put("snr", "")
                 .build();

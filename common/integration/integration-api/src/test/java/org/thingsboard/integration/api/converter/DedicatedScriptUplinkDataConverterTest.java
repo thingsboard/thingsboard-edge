@@ -207,6 +207,33 @@ public class DedicatedScriptUplinkDataConverterTest {
         });
     }
 
+    @Test
+    public void parseUplinkDataTest() {
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("Device $eui");
+        config.setProfile("$deviceProfile");
+        config.setLabel("$eui");
+        config.setAttributes(Set.of("eui", "fPort", "rssi"));
+
+        ReflectionTestUtils.setField(uplinkDataConverter, "config", config);
+
+        JsonObject uplinkJson = new JsonObject();
+        uplinkJson.add("attributes", new JsonObject());
+        uplinkJson.add("telemetry", new JsonObject());
+
+        Map<String, String> kvMap = Map.of(
+                "eui", "BE7A123456789",
+                "deviceProfile", "default");
+
+        UplinkMetaData uplinkMetaData = new UplinkMetaData(ContentType.JSON, kvMap);
+
+        UplinkData uplink = uplinkDataConverter.parseUplinkData(uplinkJson, uplinkMetaData);
+        assertEquals("Device BE7A123456789", uplink.getDeviceName());
+        assertEquals("default", uplink.getDeviceType());
+        assertEquals("BE7A123456789", uplink.getDeviceLabel());
+    }
+
     private Object getValue(TransportProtos.KeyValueProto kv) {
         return switch (kv.getType()) {
             case STRING_V -> kv.getStringV();

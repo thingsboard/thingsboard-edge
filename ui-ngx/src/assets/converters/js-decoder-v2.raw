@@ -1,3 +1,7 @@
+// Decode an uplink message from a buffer
+// payload - array of bytes
+// metadata - key/value object
+
 // If you want to override configuration from converter you can set value instead of null to variables below.
 var entityType = null; // Entity type allows you to choose type of created entity. Can be DEVICE or ASSET.
 var name = null; // Device or asset name.
@@ -20,9 +24,9 @@ function decodePayload(input) {
         telemetry: []
     };
 
-    var timestamp = metadata.ts;
-
     var decoded = {}; // Key/value telemetry object.
+
+    var timestamp = new Date();
 
     output.telemetry = [{
         ts: timestamp,

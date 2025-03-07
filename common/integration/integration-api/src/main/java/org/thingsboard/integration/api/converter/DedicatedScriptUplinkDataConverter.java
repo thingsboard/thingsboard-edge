@@ -150,7 +150,13 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
 
         addKvs(attributes, kvMap, config.getAttributes());
 
-        boolean isAsset = config.getType() == EntityType.ASSET;
+        EntityType entityType;
+        if (src.has("type")) {
+            entityType = EntityType.valueOf(src.get("type").getAsString());
+        } else {
+            entityType = config.getType();
+        }
+        boolean isAsset = entityType == EntityType.ASSET;
 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
         builder.isAsset(isAsset);
@@ -221,7 +227,7 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
         if (CollectionsUtil.isNotEmpty(keys) && !kvMap.isEmpty()) {
             kvMap.entrySet().stream()
                     .filter(e -> keys.contains(e.getKey()) && !kvsObj.has(e.getKey()))
-                    .forEach(e -> kvsObj.add(e.getKey(), gson.fromJson(e.getValue(), JsonElement.class)));
+                    .forEach(e -> kvsObj.addProperty(e.getKey(), e.getValue()));
         }
         return kvsObj;
     }
@@ -242,7 +248,7 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
     }
 
     private static String formatVarTemplate(String key) {
-        return "${" + key + '}';
+        return "$" + key;
     }
 
 }

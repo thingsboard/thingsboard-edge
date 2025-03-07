@@ -98,6 +98,18 @@ import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_DE
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_THINGSPARK_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_THINGSPARK_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TPE_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TPE_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTI_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTN_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
@@ -152,6 +164,24 @@ public class ConverterController extends AutoCommitController {
 
     private final static Map<IntegrationType, String> converterDefaultMetadatas = Map.of(
             IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA
+    );
+
+    private final static Map<IntegrationType, String> dedicatedConverterDefaultMessages = Map.of(
+            IntegrationType.LORIOT, DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD,
+            IntegrationType.TTI, DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD,
+            IntegrationType.TTN, DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD,
+            IntegrationType.CHIRPSTACK, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD,
+            IntegrationType.THINGPARK, DEDICATED_THINGSPARK_UPLINK_CONVERTER_PAYLOAD,
+            IntegrationType.TPE, DEDICATED_TPE_UPLINK_CONVERTER_PAYLOAD
+    );
+
+    private final static Map<IntegrationType, String> dedicatedConverterDefaultMetadatas = Map.of(
+            IntegrationType.LORIOT, DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA,
+            IntegrationType.TTI, DEDICATED_TTI_UPLINK_CONVERTER_METADATA,
+            IntegrationType.TTN, DEDICATED_TTN_UPLINK_CONVERTER_METADATA,
+            IntegrationType.CHIRPSTACK, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA,
+            IntegrationType.THINGPARK, DEDICATED_THINGSPARK_UPLINK_CONVERTER_METADATA,
+            IntegrationType.TPE, DEDICATED_TPE_UPLINK_CONVERTER_METADATA
     );
 
     public static final String CONVERTER_ID = "converterId";
@@ -243,12 +273,14 @@ public class ConverterController extends AutoCommitController {
     @ResponseBody
     public JsonNode getLatestConverterDebugInput(@Parameter(description = CONVERTER_ID_PARAM_DESCRIPTION)
                                                  @PathVariable(CONVERTER_ID) String strConverterId,
-                                                 @Parameter(required = false, description = CONVERTER_TYPE_DESCRIPTION)
+                                                 @Parameter(description = CONVERTER_TYPE_DESCRIPTION)
                                                  @RequestParam(required = false) String converterType,
-                                                 @Parameter(required = false, description = INTEGRATION_TYPE_DESCRIPTION)
+                                                 @Parameter(description = INTEGRATION_TYPE_DESCRIPTION)
                                                  @RequestParam(required = false) String integrationType,
-                                                 @Parameter(required = false, description = INTEGRATION_NAME_PARAM_DESCRIPTION)
-                                                 @RequestParam(required = false) String integrationName) throws Exception {
+                                                 @Parameter(description = INTEGRATION_NAME_PARAM_DESCRIPTION)
+                                                 @RequestParam(required = false) String integrationName,
+                                                 @Parameter(description = "Converter version.")
+                                                 @RequestParam(required = false) Integer converterVersion) throws Exception {
         checkParameter(CONVERTER_ID, strConverterId);
         UUID uuid = toUUID(strConverterId);
         Converter converter = null;
@@ -264,11 +296,10 @@ public class ConverterController extends AutoCommitController {
             }
         }
 
-        return createDefaultDebugIn(converter, converterType, integrationType, integrationName);
+        return createDefaultDebugIn(converter, converterType, integrationType, integrationName, converterVersion);
     }
 
-    private JsonNode createDefaultDebugIn(Converter converter, String converterType, String integrationType, String integrationName) throws ThingsboardException {
-
+    private JsonNode createDefaultDebugIn(Converter converter, String converterType, String integrationType, String integrationName, Integer converterVersion) throws ThingsboardException {
         if ((converter == null && !ConverterType.UPLINK.name().equals(converterType)) ||
                 (converter != null && !ConverterType.UPLINK.equals(converter.getType()))) {
             return null;
@@ -284,23 +315,36 @@ public class ConverterController extends AutoCommitController {
             integrationName = targetIntegrationInfo.getSecond();
         }
 
-        return createDebugIn(integrationName, targetIntegrationType);
+        if (converterVersion == null) {
+            converterVersion = converter != null ? converter.getConverterVersion() : null;
+        }
+
+        return createDebugIn(integrationName, targetIntegrationType, converterVersion);
     }
 
-    private JsonNode createDebugIn(String integrationName, IntegrationType targetIntegrationType) {
+    private JsonNode createDebugIn(String integrationName, IntegrationType targetIntegrationType, Integer converterVersion) {
         ObjectNode debugIn = JacksonUtil.newObjectNode();
         ObjectNode metadata = JacksonUtil.newObjectNode();
         metadata.put(INTEGRATION_NAME, integrationName);
         metadata.put(INCLUDE_GATEWAY_INFO, IS_GATEWAY_INFO_INCLUDED);
-        String inContent = converterDefaultMessages.get(targetIntegrationType);
 
-        if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
-            metadata.setAll(JacksonUtil.fromString(converterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
+        String inContent;
+        ContentType contentType;
+        if (converterVersion != null && converterVersion == 2) {
+            inContent = dedicatedConverterDefaultMessages.get(targetIntegrationType);
+            metadata.setAll(JacksonUtil.fromString(dedicatedConverterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
+            contentType = ContentType.BINARY;
+        } else {
+            inContent = converterDefaultMessages.get(targetIntegrationType);
+            if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
+                metadata.setAll(JacksonUtil.fromString(converterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
+            }
+            contentType = ContentType.JSON;
         }
 
         debugIn.put("inMetadata", JacksonUtil.toString(metadata));
         debugIn.put("inContent", inContent);
-        debugIn.put("inContentType", ContentType.JSON.name());
+        debugIn.put("inContentType", contentType.name());
 
         return debugIn.isEmpty() ? null : debugIn;
     }
@@ -314,10 +358,16 @@ public class ConverterController extends AutoCommitController {
             if (integration != null) {
                 targetIntegrationType = integration.getType();
                 targetIntegrationName = integration.getName();
+            } else if (converter.getIntegrationType() != null) {
+                targetIntegrationType = converter.getIntegrationType();
             }
         }
         if (StringUtils.isNotBlank(integrationType) && targetIntegrationType == null) {
             targetIntegrationType = IntegrationType.valueOf(integrationType);
+        }
+
+        if (targetIntegrationType != null && StringUtils.isBlank(targetIntegrationName)) {
+            targetIntegrationName = "Test " + targetIntegrationType.getDirectory();
         }
 
         return (targetIntegrationType == null) ? null : Pair.of(targetIntegrationType, targetIntegrationName);
