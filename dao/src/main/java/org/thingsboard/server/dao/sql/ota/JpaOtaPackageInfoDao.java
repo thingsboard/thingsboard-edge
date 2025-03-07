@@ -128,4 +128,5 @@ public class JpaOtaPackageInfoDao extends JpaAbstractDao<OtaPackageInfoEntity, O
                         pageLink.getTextSearch(),
                         DaoUtil.toPageable(pageLink)));
     }
+
 }

@@ -35,12 +35,13 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.TenantEntityDao;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 
 import java.util.List;
 import java.util.Set;
 
-public interface WhiteLabelingDao {
+public interface WhiteLabelingDao extends TenantEntityDao<WhiteLabeling> {
 
     WhiteLabeling save(TenantId tenantId, WhiteLabeling whiteLabeling);
 

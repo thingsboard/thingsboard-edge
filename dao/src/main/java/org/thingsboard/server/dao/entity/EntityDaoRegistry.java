@@ -41,6 +41,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@SuppressWarnings({"unchecked"})
 public class EntityDaoRegistry {
 
     private final Map<EntityType, Dao<?>> daos = new EnumMap<>(EntityType.class);
@@ -54,7 +55,6 @@ public class EntityDaoRegistry {
         });
     }
 
-    @SuppressWarnings("unchecked")
     public <T> Dao<T> getDao(EntityType entityType) {
         Dao<T> dao = (Dao<T>) daos.get(entityType);
         if (dao == null) {

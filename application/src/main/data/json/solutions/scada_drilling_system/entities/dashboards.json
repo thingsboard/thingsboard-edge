@@ -1,0 +1,8 @@
+[
+  {
+    "name": "SCADA Drilling system",
+    "file": "scada_drilling_system.json",
+    "group": "SCADA Drilling System",
+    "main": true
+  }
+]

@@ -39,11 +39,12 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<EntityGroupId, EntityGroup> {
+public interface EntityGroupDao extends Dao<EntityGroup>, TenantEntityDao<EntityGroup>, ExportableEntityDao<EntityGroupId, EntityGroup> {
 
     PageData<EntityGroup> findEntityGroupsByType
             (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink);

@@ -41,7 +41,7 @@ import java.util.UUID;
 /**
  * The Interface SchedulerEventDao.
  */
-public interface SchedulerEventDao extends Dao<SchedulerEvent>, TenantEntityDao {
+public interface SchedulerEventDao extends Dao<SchedulerEvent>, TenantEntityDao<SchedulerEvent> {
 
     /**
      * Find scheduler event by tenantId, edgeId and page link.
@@ -52,4 +52,5 @@ public interface SchedulerEventDao extends Dao<SchedulerEvent>, TenantEntityDao 
      * @return the list of scheduler event objects
      */
     PageData<SchedulerEvent> findSchedulerEventsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
+
 }

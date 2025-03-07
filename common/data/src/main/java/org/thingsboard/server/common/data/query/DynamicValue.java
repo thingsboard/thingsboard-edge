@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.data.query;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.validation.NoXss;
@@ -41,7 +40,6 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class DynamicValue<T> implements Serializable {
 
-    @JsonIgnore
     private T resolvedValue;
 
     private final DynamicValueSourceType sourceType;
