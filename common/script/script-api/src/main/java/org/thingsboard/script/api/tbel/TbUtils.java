@@ -33,6 +33,8 @@ package org.thingsboard.script.api.tbel;
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
+import org.mvel2.ConversionHandler;
+import org.mvel2.DataConversion;
 import org.mvel2.ExecutionContext;
 import org.mvel2.ParserConfiguration;
 import org.mvel2.execution.ExecutionArrayList;
