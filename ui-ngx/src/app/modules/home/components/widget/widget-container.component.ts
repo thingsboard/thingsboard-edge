@@ -60,8 +60,9 @@ import { GridsterItemComponent } from 'angular-gridster2';
 import { UtilsService } from '@core/services/utils.service';
 import { from } from 'rxjs';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
-import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
 import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
+import { WidgetHeaderActionButtonType } from '@shared/models/widget.models';
+import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
 
 export enum WidgetComponentActionType {
   MOUSE_DOWN,
@@ -148,6 +149,8 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   get widgetEditActionsEnabled(): boolean {
     return (this.isEditActionEnabled || this.isRemoveActionEnabled || this.isExportActionEnabled) && !this.widget?.isFullscreen;
   }
+
+  widgetHeaderActionButtonType = WidgetHeaderActionButtonType;
 
   private cssClass: string;
 
