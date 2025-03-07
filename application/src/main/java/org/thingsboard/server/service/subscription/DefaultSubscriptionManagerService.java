@@ -175,9 +175,6 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
     @Override
     public void onTimeSeriesUpdate(TenantId tenantId, EntityId entityId, List<TsKvEntry> ts, TbCallback callback) {
         onTimeSeriesUpdate(entityId, ts);
-        if (entityId.getEntityType() == EntityType.DEVICE) {
-            updateDeviceInactivityTimeout(tenantId, entityId, ts);
-        }
         callback.onSuccess();
     }
 
@@ -185,9 +182,6 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
     public void onTimeSeriesDelete(TenantId tenantId, EntityId entityId, List<String> keys, TbCallback callback) {
         onTimeSeriesUpdate(entityId,
                 keys.stream().map(key -> new BasicTsKvEntry(0, new StringDataEntry(key, ""))).collect(Collectors.toList()));
-        if (entityId.getEntityType() == EntityType.DEVICE) {
-            deleteDeviceInactivityTimeout(tenantId, entityId, keys);
-        }
         callback.onSuccess();
     }
 

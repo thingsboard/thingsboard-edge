@@ -394,8 +394,7 @@ public final class TbMsg implements Serializable {
         protected TbMsgProcessingCtx ctx;
         protected TbMsgCallback callback;
 
-        TbMsgBuilder() {
-        }
+        TbMsgBuilder() {}
 
         TbMsgBuilder(TbMsg tbMsg) {
             this.queueName = tbMsg.queueName;

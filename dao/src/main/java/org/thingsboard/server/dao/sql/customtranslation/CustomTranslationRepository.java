@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.dao.sql.customtranslation;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -55,4 +57,7 @@ public interface CustomTranslationRepository extends JpaRepository<CustomTransla
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey(ct.tenantId, ct.customerId, ct.localeCode) FROM CustomTranslationEntity ct WHERE ct.tenantId = :tenantId ")
     List<CustomTranslationCompositeKey> findByTenantId(@Param("tenantId") UUID tenantId);
+
+    Page<CustomTranslationEntity> findAllByTenantId(UUID tenantId, Pageable pageable);
+
 }

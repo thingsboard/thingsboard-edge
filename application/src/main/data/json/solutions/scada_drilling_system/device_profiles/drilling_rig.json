@@ -1,0 +1,786 @@
+{
+  "name": "Drilling rig",
+  "description": "",
+  "image": null,
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": null,
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "defaultEdgeRuleChainId": null,
+  "default": false,
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": [
+      {
+        "id": "41588276-c4dc-b469-add2-ded1c84e10da",
+        "alarmType": "Hoist Speed",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "lineHoistSpeed"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 50,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "lineHoistSpeed"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 30,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 50,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 10,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "lineHoistSpeed"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 10,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 30,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "41ebc30b-70a1-44ba-a141-bc6a04b21190",
+        "alarmType": "Pressure",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "pressure"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 50,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "pressure"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 30,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 50,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 10,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "pressure"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 10,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 30,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "acc1ade0-7132-8af8-b22d-d6dcde1a0279",
+        "alarmType": "Rotary speed",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "speed"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 300,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "speed"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 150,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 300,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 80,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "speed"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 80,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 150,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "cc0d5a8c-8373-8eb0-1078-d6558f0f3db0",
+        "alarmType": "Hook Load",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "hookLoad"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 750,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "hookLoad"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 400,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 750,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 150,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "hookLoad"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 150,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 400,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      }
+    ]
+  }
+}

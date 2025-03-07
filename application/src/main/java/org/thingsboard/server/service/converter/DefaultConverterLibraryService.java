@@ -70,7 +70,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     private boolean enabled;
     @Value("${integrations.converters.library.url:https://github.com/thingsboard/data-converters.git}")
     private String repoUrl;
-    @Value("${integrations.converters.library.branch:main}")
+    @Value("${integrations.converters.library.branch}")
     private String branch;
     @Value("${integrations.converters.library.fetch_frequency:24}")
     private int fetchFrequencyHours;

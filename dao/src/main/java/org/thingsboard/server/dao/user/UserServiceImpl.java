@@ -62,7 +62,6 @@ import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.mobile.MobileSessionInfo;
-import org.thingsboard.server.common.data.mobile.UserMobileInfo;
 import org.thingsboard.server.common.data.mobile.UserMobileSessionInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;

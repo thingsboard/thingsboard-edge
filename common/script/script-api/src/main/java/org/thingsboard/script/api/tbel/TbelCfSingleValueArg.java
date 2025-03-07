@@ -37,8 +37,6 @@ import lombok.Data;
 @Data
 public class TbelCfSingleValueArg implements TbelCfArg {
 
-    public static final long OBJ_SIZE = 32L; // Approximate calculation;
-
     private final long ts;
     private final Object value;
 
