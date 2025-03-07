@@ -30,14 +30,17 @@
  */
 package org.thingsboard.server.dao.sql.group;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edqs.fields.EntityGroupFields;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, UUID> {
@@ -137,5 +140,9 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
 
     @Query("SELECT externalId FROM EntityGroupEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.EntityGroupFields(eg.id, eg.createdTime, " +
+            "eg.name, eg.version, eg.type, eg.additionalInfo, eg.ownerId, eg.ownerType) FROM EntityGroupEntity eg WHERE eg.id > :id ORDER BY eg.id")
+    List<EntityGroupFields> findNextBatch(@Param("id") UUID id, Limit limit);
 
 }

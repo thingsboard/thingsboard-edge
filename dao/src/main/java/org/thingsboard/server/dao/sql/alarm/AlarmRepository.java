@@ -458,4 +458,6 @@ public interface AlarmRepository extends JpaRepository<AlarmEntity, UUID> {
                                           @Param("alarmSeverities") List<String> alarmSeverities,
                                           int limit);
 
+    Page<AlarmEntity> findByTenantId(UUID tenantId, Pageable pageable);
+
 }

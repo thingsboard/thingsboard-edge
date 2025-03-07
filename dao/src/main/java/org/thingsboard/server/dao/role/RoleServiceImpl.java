@@ -107,7 +107,7 @@ public class RoleServiceImpl extends CachedVersionedEntityService<RoleCacheKey, 
             Role savedRole = roleDao.save(tenantId, role);
             publishEvictEvent(new RoleEvictEvent(savedRole.getId(), savedRole));
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedRole.getId())
-                    .created(role.getId() == null).build());
+                    .entity(savedRole).created(role.getId() == null).build());
             return savedRole;
         } catch (Exception t) {
             checkConstraintViolation(t,

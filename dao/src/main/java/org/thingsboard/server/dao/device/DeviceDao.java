@@ -53,7 +53,7 @@ import java.util.UUID;
  * The Interface DeviceDao.
  *
  */
-public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCustomerEntityDao<Device, DeviceId> {
+public interface DeviceDao extends Dao<Device>, TenantEntityDao<Device>, ExportableCustomerEntityDao<Device, DeviceId> {
 
     /**
      * Save or update device object

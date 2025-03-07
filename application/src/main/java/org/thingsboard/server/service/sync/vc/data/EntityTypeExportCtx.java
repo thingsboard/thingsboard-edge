@@ -60,6 +60,7 @@ public class EntityTypeExportCtx extends EntitiesExportCtx<VersionCreateRequest>
                 .exportRelations(config.isSaveRelations())
                 .exportAttributes(config.isSaveAttributes())
                 .exportCredentials(config.isSaveCredentials())
+                .exportCalculatedFields(config.isSaveCalculatedFields())
                 .exportGroupEntities(config.isSaveGroupEntities())
                 .exportPermissions(config.isSavePermissions())
                 .build();

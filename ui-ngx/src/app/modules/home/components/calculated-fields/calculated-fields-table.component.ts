@@ -49,6 +49,7 @@ import { CalculatedFieldsTableConfig } from '@home/components/calculated-fields/
 import { CalculatedFieldsService } from '@core/http/calculated-fields.service';
 import { ImportExportService } from '@shared/import-export/import-export.service';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'tb-calculated-fields-table',
@@ -72,6 +73,7 @@ export class CalculatedFieldsTableComponent {
               private translate: TranslateService,
               private dialog: MatDialog,
               private store: Store<AppState>,
+              private datePipe: DatePipe,
               private cd: ChangeDetectorRef,
               private renderer: Renderer2,
               private importExportService: ImportExportService,
@@ -84,6 +86,7 @@ export class CalculatedFieldsTableComponent {
           this.calculatedFieldsService,
           this.translate,
           this.dialog,
+          this.datePipe,
           this.entityId(),
           this.store,
           this.destroyRef,
