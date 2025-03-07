@@ -126,8 +126,7 @@ public abstract class AbstractSubscriptionService extends TbApplicationEventList
             }
 
             @Override
-            public void onFailure(Throwable t) {
-            }
+            public void onFailure(Throwable t) {}
         }, executor);
     }
 

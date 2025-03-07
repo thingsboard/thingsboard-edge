@@ -28,30 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.telemetry;
+package org.thingsboard.rule.engine.telemetry.settings;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.thingsboard.rule.engine.telemetry.strategy.ProcessingStrategy;
 
-import static org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings.OnEveryMessage;
+sealed interface ProcessingSettings permits TimeseriesProcessingSettings, AttributesProcessingSettings {
 
-@Data
-public class TbMsgTimeseriesNodeConfiguration implements NodeConfiguration<TbMsgTimeseriesNodeConfiguration> {
+    record OnEveryMessage() implements TimeseriesProcessingSettings, AttributesProcessingSettings {}
 
-    private long defaultTTL;
-    private boolean useServerTs;
-    @NotNull
-    private TimeseriesProcessingSettings processingSettings;
+    record WebSocketsOnly() implements TimeseriesProcessingSettings, AttributesProcessingSettings {}
 
-    @Override
-    public TbMsgTimeseriesNodeConfiguration defaultConfiguration() {
-        TbMsgTimeseriesNodeConfiguration configuration = new TbMsgTimeseriesNodeConfiguration();
-        configuration.setDefaultTTL(0L);
-        configuration.setUseServerTs(false);
-        configuration.setProcessingSettings(new OnEveryMessage());
-        return configuration;
+    @Getter
+    final class Deduplicate implements TimeseriesProcessingSettings, AttributesProcessingSettings {
+
+        private final int deduplicationIntervalSecs;
+
+        @JsonIgnore
+        private final ProcessingStrategy processingStrategy;
+
+        @JsonCreator
+        public Deduplicate(@JsonProperty("deduplicationIntervalSecs") int deduplicationIntervalSecs) {
+            this.deduplicationIntervalSecs = deduplicationIntervalSecs;
+            this.processingStrategy = ProcessingStrategy.deduplicate(deduplicationIntervalSecs);
+        }
+
     }
 
 }

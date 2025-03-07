@@ -28,17 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.telemetry;
+package org.thingsboard.rule.engine.api;
 
 import org.junit.jupiter.api.Test;
+import org.thingsboard.common.util.NoOpFutureCallback;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class TbMsgAttributesNodeConfigurationTest {
+class AttributesSaveRequestTest {
 
     @Test
-    void testDefaultConfig_givenUpdateAttributesOnlyOnValueChange_thenTrue_sinceVersion1() {
-        assertThat(new TbMsgAttributesNodeConfiguration().defaultConfiguration().isUpdateAttributesOnlyOnValueChange()).isTrue();
+    void testDefaultProcessingStrategyIsProcessAll() {
+        var request = AttributesSaveRequest.builder().build();
+
+        assertThat(request.getStrategy()).isEqualTo(AttributesSaveRequest.Strategy.PROCESS_ALL);
+    }
+
+    @Test
+    void testNullProcessingStrategyIsProcessAll() {
+        var request = AttributesSaveRequest.builder().strategy(null).build();
+
+        assertThat(request.getStrategy()).isEqualTo(AttributesSaveRequest.Strategy.PROCESS_ALL);
+    }
+
+    @Test
+    void testProcessAllStrategy() {
+        assertThat(AttributesSaveRequest.Strategy.PROCESS_ALL).isEqualTo(new AttributesSaveRequest.Strategy(true, true, true));
+    }
+
+    @Test
+    void testWsOnlyStrategy() {
+        assertThat(AttributesSaveRequest.Strategy.WS_ONLY).isEqualTo(new AttributesSaveRequest.Strategy(false, true, false));
+    }
+
+    @Test
+    void testSkipAllStrategy() {
+        assertThat(AttributesSaveRequest.Strategy.SKIP_ALL).isEqualTo(new AttributesSaveRequest.Strategy(false, false, false));
+    }
+
+    @Test
+    void testDefaultCallbackIsNoOp() {
+        var request = AttributesSaveRequest.builder().build();
+
+        assertThat(request.getCallback()).isEqualTo(NoOpFutureCallback.instance());
+    }
+
+    @Test
+    void testNullCallbackIsNoOp() {
+        var request = AttributesSaveRequest.builder().callback(null).build();
+
+        assertThat(request.getCallback()).isEqualTo(NoOpFutureCallback.instance());
     }
 
 }
