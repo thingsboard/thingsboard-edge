@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,18 +39,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.TbCacheValueWrapper;
 import org.thingsboard.server.cache.VersionedTbCache;
 import org.thingsboard.server.common.data.AttributeScope;
+import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.edqs.AttributeKv;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.util.TbPair;
+import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.common.stats.DefaultCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.cache.CacheExecutorService;
@@ -82,6 +86,7 @@ public class CachedAttributesService implements AttributesService {
     private final AttributesDao attributesDao;
     private final JpaExecutorService jpaExecutorService;
     private final CacheExecutorService cacheExecutorService;
+    private final EdqsService edqsService;
     private final DefaultCounter hitCounter;
     private final DefaultCounter missCounter;
     private final VersionedTbCache<AttributeCacheKey, AttributeKvEntry> cache;
@@ -94,11 +99,12 @@ public class CachedAttributesService implements AttributesService {
 
     public CachedAttributesService(AttributesDao attributesDao,
                                    JpaExecutorService jpaExecutorService,
-                                   StatsFactory statsFactory,
+                                   @Lazy EdqsService edqsService, StatsFactory statsFactory,
                                    CacheExecutorService cacheExecutorService,
                                    VersionedTbCache<AttributeCacheKey, AttributeKvEntry> cache) {
         this.attributesDao = attributesDao;
         this.jpaExecutorService = jpaExecutorService;
+        this.edqsService = edqsService;
         this.cacheExecutorService = cacheExecutorService;
         this.cache = cache;
 
@@ -238,11 +244,6 @@ public class CachedAttributesService implements AttributesService {
     }
 
     @Override
-    public ListenableFuture<List<Long>> save(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes) {
-        return save(tenantId, entityId, AttributeScope.valueOf(scope), attributes);
-    }
-
-    @Override
     public ListenableFuture<List<Long>> save(TenantId tenantId, EntityId entityId, AttributeScope scope, List<AttributeKvEntry> attributes) {
         validate(entityId, scope);
         AttributeUtils.validate(attributes, valueNoXssValidation);
@@ -257,8 +258,10 @@ public class CachedAttributesService implements AttributesService {
 
     private ListenableFuture<Long> doSave(TenantId tenantId, EntityId entityId, AttributeScope scope, AttributeKvEntry attribute) {
         ListenableFuture<Long> future = attributesDao.save(tenantId, entityId, scope, attribute);
-         return Futures.transform(future, version -> {
-            put(entityId, scope, new BaseAttributeKvEntry(((BaseAttributeKvEntry)attribute).getKv(), attribute.getLastUpdateTs(), version));
+        return Futures.transform(future, version -> {
+            BaseAttributeKvEntry attributeKvEntry = new BaseAttributeKvEntry(((BaseAttributeKvEntry) attribute).getKv(), attribute.getLastUpdateTs(), version);
+            put(entityId, scope, attributeKvEntry);
+            edqsService.onUpdate(tenantId, ObjectType.ATTRIBUTE_KV, new AttributeKv(entityId, scope, attributeKvEntry, version));
             return version;
         }, cacheExecutor);
     }
@@ -271,17 +274,16 @@ public class CachedAttributesService implements AttributesService {
     }
 
     @Override
-    public ListenableFuture<List<String>> removeAll(TenantId tenantId, EntityId entityId, String scope, List<String> attributeKeys) {
-        return removeAll(tenantId, entityId, AttributeScope.valueOf(scope), attributeKeys);
-    }
-
-    @Override
     public ListenableFuture<List<String>> removeAll(TenantId tenantId, EntityId entityId, AttributeScope scope, List<String> attributeKeys) {
         validate(entityId, scope);
         List<ListenableFuture<TbPair<String, Long>>> futures = attributesDao.removeAllWithVersions(tenantId, entityId, scope, attributeKeys);
         return Futures.allAsList(futures.stream().map(future -> Futures.transform(future, keyVersionPair -> {
             String key = keyVersionPair.getFirst();
-            cache.evict(new AttributeCacheKey(scope, entityId, key), keyVersionPair.getSecond());
+            Long version = keyVersionPair.getSecond();
+            cache.evict(new AttributeCacheKey(scope, entityId, key), version);
+            if (version != null) {
+                edqsService.onDelete(tenantId, ObjectType.ATTRIBUTE_KV, new AttributeKv(entityId, scope, key, version));
+            }
             return key;
         }, cacheExecutor)).collect(Collectors.toList()));
     }
@@ -294,6 +296,8 @@ public class CachedAttributesService implements AttributesService {
             String key = deleted.getValue();
             if (scope != null && key != null) {
                 cache.evict(new AttributeCacheKey(scope, entityId, key));
+                // using version as Long.MAX_VALUE because we expect that the entity is deleted and there won't be any attributes after this
+                edqsService.onDelete(tenantId, ObjectType.ATTRIBUTE_KV, new AttributeKv(entityId, scope, key, Long.MAX_VALUE));
             }
         });
         return result.size();

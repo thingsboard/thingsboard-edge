@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -230,14 +230,24 @@ export interface HasVersion {
   version?: number;
 }
 
-export interface HasDebugSettings {
-  debugSettings?: DebugSettings;
+export interface HasEntityDebugSettings {
+  debugSettings?: EntityDebugSettings;
 }
 
-export interface DebugSettings {
+export interface EntityDebugSettings {
   failuresEnabled?: boolean;
   allEnabled?: boolean;
   allEnabledUntil?: number;
+}
+
+export interface EntityTestScriptResult {
+  output: string;
+  error: string;
+}
+
+export interface AdditionalDebugActionConfig<Action = (...args: unknown[]) => void> {
+  action: Action;
+  title: string;
 }
 
 export type VersionedEntity = EntityInfoData & HasVersion | RuleChainMetaData;

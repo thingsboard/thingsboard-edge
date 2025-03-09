@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.transport.mqtt.session;
 
+import lombok.ToString;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
@@ -39,6 +40,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by nickAS21 on 26.12.22
  */
+@ToString(callSuper = true)
 public class GatewayDeviceSessionContext extends AbstractGatewayDeviceSessionContext<GatewaySessionHandler> {
 
     public GatewayDeviceSessionContext(GatewaySessionHandler parent,

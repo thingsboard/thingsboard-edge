@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.server.actors.ruleChain;
 
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.TbActorCtx;
 import org.thingsboard.server.actors.TbActorRef;
@@ -50,7 +51,6 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.plugin.RuleNodeUpdatedMsg;
@@ -232,7 +232,10 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
             RuleNodeCtx targetCtx;
             if (targetId == null) {
                 targetCtx = firstNode;
-                msg = msg.copyWithRuleChainId(entityId);
+                msg = msg.copy()
+                        .ruleChainId(entityId)
+                        .resetRuleNodeId()
+                        .build();
             } else {
                 targetCtx = nodeActors.get(targetId);
             }
@@ -358,10 +361,18 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
     private void putToQueue(TopicPartitionInfo tpi, TbMsg msg, TbQueueCallback callbackWrapper, EntityId target) {
         switch (target.getEntityType()) {
             case RULE_NODE:
-                putToQueue(tpi, msg.copyWithRuleNodeId(entityId, new RuleNodeId(target.getId()), UUID.randomUUID()), callbackWrapper);
+                putToQueue(tpi, msg.copy()
+                        .id(UUID.randomUUID())
+                        .ruleChainId(entityId)
+                        .ruleNodeId(new RuleNodeId(target.getId()))
+                        .build(), callbackWrapper);
                 break;
             case RULE_CHAIN:
-                putToQueue(tpi, msg.copyWithRuleChainId(new RuleChainId(target.getId()), UUID.randomUUID()), callbackWrapper);
+                putToQueue(tpi, msg.copy()
+                        .id(UUID.randomUUID())
+                        .ruleChainId(new RuleChainId(target.getId()))
+                        .resetRuleNodeId()
+                        .build(), callbackWrapper);
                 break;
         }
     }

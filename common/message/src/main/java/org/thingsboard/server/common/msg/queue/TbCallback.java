@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,10 @@
  */
 package org.thingsboard.server.common.msg.queue;
 
+import org.thingsboard.server.common.data.id.EntityId;
+
+import java.util.UUID;
+
 public interface TbCallback {
 
     TbCallback EMPTY = new TbCallback() {
@@ -44,6 +48,10 @@ public interface TbCallback {
 
         }
     };
+
+    default UUID getId(){
+        return EntityId.NULL_UUID;
+    }
 
     void onSuccess();
 

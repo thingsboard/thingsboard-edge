@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -50,6 +50,7 @@ import {
   hereMapProviderTranslationMap
 } from '@home/components/widget/lib/maps/map-models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-here-map-provider-settings',
@@ -85,7 +86,8 @@ export class HereMapProviderSettingsComponent extends PageComponent implements O
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -99,7 +101,9 @@ export class HereMapProviderSettingsComponent extends PageComponent implements O
         apiKey: [null, [Validators.required]]
       })
     });
-    this.providerSettingsFormGroup.get('credentials.useV3').valueChanges.subscribe(value => {
+    this.providerSettingsFormGroup.get('credentials.useV3').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(value => {
       if (value) {
         this.providerSettingsFormGroup.get('credentials.apiKey').enable({emitEvent: false});
         this.providerSettingsFormGroup.get('credentials.app_id').disable({emitEvent: false});
@@ -110,7 +114,9 @@ export class HereMapProviderSettingsComponent extends PageComponent implements O
         this.providerSettingsFormGroup.get('credentials.app_code').enable({emitEvent: false});
       }
     });
-    this.providerSettingsFormGroup.valueChanges.subscribe(() => {
+    this.providerSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

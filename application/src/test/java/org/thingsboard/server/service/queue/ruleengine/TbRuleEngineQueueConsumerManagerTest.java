@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -641,8 +641,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
                 .until(() -> consumer.subscribed && consumer.getPartitions().equals(expectedPartitions) && consumer.pollingStarted);
         verify(consumer, times(1)).subscribe(any());
         verify(consumer).subscribe(eq(expectedPartitions));
-        verify(consumer).doSubscribe(argThat(topics -> topics.containsAll(expectedPartitions.stream()
-                .map(TopicPartitionInfo::getFullTopicName).collect(Collectors.toList()))));
+        verify(consumer).doSubscribe(argThat(topics -> topics.containsAll(expectedPartitions)));
         verify(consumer, atLeastOnce()).poll(eq((long) queue.getPollInterval()));
         verify(consumer, atLeastOnce()).doPoll(eq((long) queue.getPollInterval()));
         verify(consumer, never()).unsubscribe();
@@ -758,9 +757,11 @@ public class TbRuleEngineQueueConsumerManagerTest {
         }
 
         @Override
-        protected void doSubscribe(List<String> topicNames) {
-            log.debug("doSubscribe({})", topicNames);
-            this.topics = topicNames;
+        protected void doSubscribe(Set<TopicPartitionInfo> partitions) {
+            this.topics = partitions.stream()
+                    .map(TopicPartitionInfo::getFullTopicName)
+                    .collect(Collectors.toList());
+            log.debug("doSubscribe({})", topics);
             subscribed = true;
         }
 
@@ -797,7 +798,12 @@ public class TbRuleEngineQueueConsumerManagerTest {
         }
 
         public void setUpTestMsg() {
-            testMsg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, new DeviceId(UUID.randomUUID()), new TbMsgMetaData(), "{}");
+            testMsg = TbMsg.newMsg()
+                    .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                    .originator(new DeviceId(UUID.randomUUID()))
+                    .copyMetaData(new TbMsgMetaData())
+                    .data("{}")
+                    .build();
         }
     }
 

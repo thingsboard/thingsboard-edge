@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,5 +55,11 @@ public interface TsKvLatestRepository extends JpaRepository<TsKvLatestEntity, Ts
             "INNER JOIN key_dictionary ON ts_kv_latest.key = key_dictionary.key_id " +
             "WHERE ts_kv_latest.entity_id IN :entityIds ORDER BY key_dictionary.key", nativeQuery = true)
     List<String> findAllKeysByEntityIds(@Param("entityIds") List<UUID> entityIds);
+
+    @Query(value = "SELECT entity_id, key, ts, bool_v, str_v, long_v, dbl_v, json_v, version FROM ts_kv_latest WHERE (entity_id, key) > " +
+            "(:entityId, :key) ORDER BY entity_id, key LIMIT :batchSize", nativeQuery = true)
+    List<TsKvLatestEntity> findNextBatch(@Param("entityId") UUID entityId,
+                                          @Param("key") int key,
+                                          @Param("batchSize") int batchSize);
 
 }

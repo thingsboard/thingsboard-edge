@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,8 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.apache.commons.lang3.ArrayUtils;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
+import org.thingsboard.server.common.data.mobile.app.MobileAppVersionInfo;
+import org.thingsboard.server.common.data.mobile.app.StoreInfo;
 
 import java.util.UUID;
 
@@ -330,7 +332,6 @@ public class ModelConstants {
     public static final String INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
 
     public static final String INTEGRATION_VIEW_NAME = "integration_info";
-    public static final String INTEGRATION_VIEW_STATS_PROPERTY = "stats";
     public static final String INTEGRATION_VIEW_STATUS_PROPERTY = "status";
 
     /**
@@ -416,6 +417,7 @@ public class ModelConstants {
     public static final String WIDGETS_BUNDLE_SCADA_PROPERTY = "scada";
     public static final String WIDGETS_BUNDLE_DESCRIPTION = "description";
     public static final String WIDGETS_BUNDLE_ORDER = "widgets_bundle_order";
+    public static final String WIDGET_BUNDLES_PROPERTY = "bundles";
 
     /**
      * Widget_type constants.
@@ -485,6 +487,7 @@ public class ModelConstants {
     public static final String RULE_CHAIN_DEBUG_EVENT_TABLE_NAME = "rule_chain_debug_event";
     public static final String CONVERTER_DEBUG_EVENT_TABLE_NAME = "converter_debug_event";
     public static final String INTEGRATION_DEBUG_EVENT_TABLE_NAME = "integration_debug_event";
+    public static final String CALCULATED_FIELD_DEBUG_EVENT_TABLE_NAME = "cf_debug_event";
 
     public static final String EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String EVENT_SERVICE_ID_PROPERTY = "service_id";
@@ -516,6 +519,10 @@ public class ModelConstants {
     public static final String EVENT_IN_MSG_COLUMN_NAME = "e_in_message";
     public static final String EVENT_OUT_MSG_TYPE_COLUMN_NAME = "e_out_message_type";
     public static final String EVENT_OUT_MSG_COLUMN_NAME = "e_out_message";
+
+    public static final String EVENT_CALCULATED_FIELD_ID_COLUMN_NAME = "cf_id";
+    public static final String EVENT_CALCULATED_FIELD_ARGUMENTS_COLUMN_NAME = "e_args";
+    public static final String EVENT_CALCULATED_FIELD_RESULT_COLUMN_NAME = "e_result";
 
     public static final String DEBUG_MODE = "debug_mode";
     public static final String DEBUG_SETTINGS = "debug_settings";
@@ -622,6 +629,8 @@ public class ModelConstants {
     public static final String MOBILE_APP_STATUS_PROPERTY = "status";
     public static final String MOBILE_APP_VERSION_INFO_PROPERTY = "version_info";
     public static final String MOBILE_APP_STORE_INFO_PROPERTY = "store_info";
+    public static final MobileAppVersionInfo MOBILE_APP_VERSION_INFO_EMPTY_OBJECT = new MobileAppVersionInfo();
+    public static final StoreInfo MOBILE_APP_STORE_INFO_EMPTY_OBJECT = new StoreInfo();
 
     /**
      * Mobile application bundle constants.
@@ -899,6 +908,28 @@ public class ModelConstants {
     public static final String QR_CODE_SETTINGS_BUNDLE_ID_PROPERTY = "mobile_app_bundle_id";
     public static final String QR_CODE_SETTINGS_CONFIG_PROPERTY = "qr_code_config";
 
+    /**
+     * Calculated fields constants.
+     */
+    public static final String CALCULATED_FIELD_TABLE_NAME = "calculated_field";
+    public static final String CALCULATED_FIELD_TENANT_ID_COLUMN = TENANT_ID_COLUMN;
+    public static final String CALCULATED_FIELD_ENTITY_TYPE = ENTITY_TYPE_COLUMN;
+    public static final String CALCULATED_FIELD_ENTITY_ID = ENTITY_ID_COLUMN;
+    public static final String CALCULATED_FIELD_TYPE = "type";
+    public static final String CALCULATED_FIELD_NAME = "name";
+    public static final String CALCULATED_FIELD_CONFIGURATION_VERSION = "configuration_version";
+    public static final String CALCULATED_FIELD_CONFIGURATION = "configuration";
+    public static final String CALCULATED_FIELD_VERSION = "version";
+
+    /**
+     * Calculated field links constants.
+     */
+    public static final String CALCULATED_FIELD_LINK_TABLE_NAME = "calculated_field_link";
+    public static final String CALCULATED_FIELD_LINK_TENANT_ID_COLUMN = TENANT_ID_COLUMN;
+    public static final String CALCULATED_FIELD_LINK_ENTITY_TYPE = ENTITY_TYPE_COLUMN;
+    public static final String CALCULATED_FIELD_LINK_ENTITY_ID = ENTITY_ID_COLUMN;
+    public static final String CALCULATED_FIELD_LINK_CALCULATED_FIELD_ID = "calculated_field_id";
+
     protected static final String[] NONE_AGGREGATION_COLUMNS = new String[]{LONG_VALUE_COLUMN, DOUBLE_VALUE_COLUMN, BOOLEAN_VALUE_COLUMN, STRING_VALUE_COLUMN, JSON_VALUE_COLUMN, KEY_COLUMN, TS_COLUMN};
 
     protected static final String[] COUNT_AGGREGATION_COLUMNS = new String[]{count(LONG_VALUE_COLUMN), count(DOUBLE_VALUE_COLUMN), count(BOOLEAN_VALUE_COLUMN), count(STRING_VALUE_COLUMN), count(JSON_VALUE_COLUMN), max(TS_COLUMN)};
@@ -955,4 +986,5 @@ public class ModelConstants {
             "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
             "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
             "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
+
 }

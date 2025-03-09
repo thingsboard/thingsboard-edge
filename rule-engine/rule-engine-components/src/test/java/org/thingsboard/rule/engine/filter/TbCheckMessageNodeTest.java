@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,12 @@ import static org.mockito.Mockito.verify;
 class TbCheckMessageNodeTest {
 
     private static final DeviceId DEVICE_ID = new DeviceId(UUID.randomUUID());
-    private static final TbMsg EMPTY_POST_ATTRIBUTES_MSG = TbMsg.newMsg(TbMsgType.POST_ATTRIBUTES_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+    private static final TbMsg EMPTY_POST_ATTRIBUTES_MSG = TbMsg.newMsg()
+            .type(TbMsgType.POST_ATTRIBUTES_REQUEST)
+            .originator(DEVICE_ID)
+            .copyMetaData(TbMsgMetaData.EMPTY)
+            .data(TbMsg.EMPTY_JSON_OBJECT)
+            .build();
 
     private TbCheckMessageNode node;
 
@@ -211,7 +216,12 @@ class TbCheckMessageNodeTest {
         metadata.putValue(DataConstants.DEVICE_NAME, "Test Device");
         metadata.putValue(DataConstants.DEVICE_TYPE, DataConstants.DEFAULT_DEVICE_TYPE);
         metadata.putValue("ts", String.valueOf(System.currentTimeMillis()));
-        return TbMsg.newMsg(TbMsgType.POST_ATTRIBUTES_REQUEST, DEVICE_ID, metadata, data);
+        return TbMsg.newMsg()
+                .type(TbMsgType.POST_ATTRIBUTES_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(metadata)
+                .data(data)
+                .build();
     }
 
 }

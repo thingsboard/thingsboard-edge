@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -47,6 +47,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { TripAnimationCommonSettings } from '@home/components/widget/lib/maps/map-models';
 import { Widget } from '@shared/models/widget.models';
 import { WidgetService } from '@core/http/widget.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-trip-animation-common-settings',
@@ -84,7 +85,8 @@ export class TripAnimationCommonSettingsComponent extends PageComponent implemen
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -102,13 +104,19 @@ export class TripAnimationCommonSettingsComponent extends PageComponent implemen
       tooltipPattern: [null, []],
       tooltipFunction: [null, []],
     });
-    this.tripAnimationCommonSettingsFormGroup.valueChanges.subscribe(() => {
+    this.tripAnimationCommonSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
-    this.tripAnimationCommonSettingsFormGroup.get('showTooltip').valueChanges.subscribe(() => {
+    this.tripAnimationCommonSettingsFormGroup.get('showTooltip').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.tripAnimationCommonSettingsFormGroup.get('useTooltipFunction').valueChanges.subscribe(() => {
+    this.tripAnimationCommonSettingsFormGroup.get('useTooltipFunction').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
     this.updateValidators(false);

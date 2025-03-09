@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -53,15 +53,13 @@ import {
 } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { JsonFormComponent } from '@shared/components/json-form/json-form.component';
-import { JsonFormComponentData } from '@shared/components/json-form/json-form-component.models';
-import { IWidgetSettingsComponent, Widget, WidgetSettings } from '@shared/models/widget.models';
-import { widgetSettingsComponentsMap } from '@home/components/widget/lib/settings/widget-settings.module';
+import { DynamicFormData, IWidgetSettingsComponent, Widget, WidgetSettings } from '@shared/models/widget.models';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { WidgetService } from '@core/http/widget.service';
 import { IAliasController } from '@core/api/widget-api.models';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
+import { FormProperty } from '@shared/models/dynamic-form.models';
 
 @Component({
   selector: 'tb-widget-settings',
@@ -81,8 +79,6 @@ import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-con
 export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy, OnChanges, Validator {
 
   @ViewChild('definedSettingsContent', {read: ViewContainerRef, static: true}) definedSettingsContainer: ViewContainerRef;
-
-  @ViewChild('jsonFormComponent') jsonFormComponent: JsonFormComponent;
 
   @Input()
   disabled: boolean;
@@ -106,6 +102,8 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy,
 
   definedDirectiveError: string;
 
+  settingsForm?: FormProperty[];
+
   widgetSettingsFormGroup: UntypedFormGroup;
 
   changeSubscription: Subscription;
@@ -113,7 +111,7 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy,
   private definedSettingsComponentRef: ComponentRef<IWidgetSettingsComponent>;
   private definedSettingsComponent: IWidgetSettingsComponent;
 
-  private widgetSettingsFormData: JsonFormComponentData;
+  private widgetSettingsFormData: DynamicFormData;
   private propagateChange = (_v: any) => { };
 
   constructor(private translate: TranslateService,
@@ -169,6 +167,10 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy,
     if (this.definedSettingsComponentRef) {
       this.definedSettingsComponentRef.destroy();
     }
+    if (this.changeSubscription) {
+      this.changeSubscription.unsubscribe();
+      this.changeSubscription = null;
+    }
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -180,8 +182,9 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy,
     }
   }
 
-  writeValue(value: JsonFormComponentData): void {
+  writeValue(value: DynamicFormData): void {
     this.widgetSettingsFormData = value;
+    this.settingsForm = this.widgetSettingsFormData.settingsForm;
     if (this.changeSubscription) {
       this.changeSubscription.unsubscribe();
       this.changeSubscription = null;
@@ -196,10 +199,10 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy,
         this.updateModel(settings);
       });
     } else {
-      this.widgetSettingsFormGroup.get('settings').patchValue(this.widgetSettingsFormData, {emitEvent: false});
+      this.widgetSettingsFormGroup.get('settings').patchValue(this.widgetSettingsFormData.model, {emitEvent: false});
       this.changeSubscription = this.widgetSettingsFormGroup.get('settings').valueChanges.subscribe(
-        (widgetSettingsFormData: JsonFormComponentData) => {
-          this.updateModel(widgetSettingsFormData.model);
+        (data: WidgetSettings) => {
+          this.updateModel(data);
         }
       );
     }
@@ -210,7 +213,7 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy,
       this.settingsDirective.length && !this.definedDirectiveError;
   }
 
-  useJsonForm(): boolean {
+  useDynamicForm(): boolean {
     return !this.settingsDirective || !this.settingsDirective.length;
   }
 
@@ -226,7 +229,7 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy,
       this.definedSettingsComponent = null;
     }
     if (this.settingsDirective && this.settingsDirective.length) {
-      const componentType = widgetSettingsComponentsMap[this.settingsDirective];
+      const componentType = this.widgetService.getWidgetSettingsComponentTypeBySelector(this.settingsDirective);
       if (!componentType) {
         this.definedDirectiveError = this.translate.instant('widget-config.settings-component-not-found',
           {selector: this.settingsDirective});
@@ -261,7 +264,7 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy,
           }
         };
       }
-    } else if (this.useJsonForm()) {
+    } else if (this.useDynamicForm()) {
       if (!this.widgetSettingsFormGroup.get('settings').valid) {
         return {
           widgetSettings: {

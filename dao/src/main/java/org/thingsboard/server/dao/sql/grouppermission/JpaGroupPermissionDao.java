@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
@@ -124,6 +125,11 @@ public class JpaGroupPermissionDao extends JpaAbstractDao<GroupPermissionEntity,
     @Override
     public boolean existsByUserGroupIdAndRoleId(EntityGroupId entityGroupId, RoleId roleId) {
         return groupPermissionRepository.existsByUserGroupIdAndRoleId(entityGroupId.getId(), roleId.getId());
+    }
+
+    @Override
+    public PageData<GroupPermission> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findGroupPermissionsByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override

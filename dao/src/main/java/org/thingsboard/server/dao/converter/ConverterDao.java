@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ import java.util.UUID;
  * The Interface ConverterDao.
  *
  */
-public interface ConverterDao extends Dao<Converter>, TenantEntityDao, ExportableEntityDao<ConverterId, Converter> {
+public interface ConverterDao extends Dao<Converter>, TenantEntityDao<Converter>, ExportableEntityDao<ConverterId, Converter> {
 
     /**
      * Find all (core and edge template) converters by tenantId and page link.
@@ -114,4 +114,5 @@ public interface ConverterDao extends Dao<Converter>, TenantEntityDao, Exportabl
      */
     boolean hasConverterOfType(UUID tenantId, ConverterType type);
 
+    boolean existsByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type, UUID skippedId);
 }

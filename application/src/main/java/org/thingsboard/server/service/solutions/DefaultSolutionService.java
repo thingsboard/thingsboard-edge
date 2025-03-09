@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -267,7 +267,6 @@ public class DefaultSolutionService implements SolutionService {
             templateInfo.setTitle(descriptor.getTitle());
             templateInfo.setLevel(descriptor.getLevel());
             templateInfo.setInstallTimeoutMs(descriptor.getInstallTimeoutMs());
-            templateInfo.setShortDescription(readFile(resolve(descriptor.getId(), "short.md")));
             templateInfo.setPreviewImageUrl(descriptor.getPreviewImageUrl());
             templateInfo.setVideoPreviewImageUrl(descriptor.getVideoPreviewImageUrl());
             templateInfo.setPreviewMp4Url(descriptor.getPreviewMp4Url());
@@ -581,18 +580,8 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
 
-        if (template.contains("${GATEWAYS_DASHBOARD_URL}")) {
-            TenantId tenantId = ctx.getTenantId();
-            String dashboardLink;
-            try {
-                DashboardInfo thingsBoardIoTGateways = dashboardService.findFirstDashboardInfoByTenantIdAndName(tenantId, "ThingsBoard IoT Gateways");
-                EntityGroup dashboardGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME)
-                        .orElseThrow(() -> new RuntimeException("Could not find entity group by name 'All'."));
-                dashboardLink = getDashboardLink(solutionInstructions, dashboardGroup.getId(), thingsBoardIoTGateways.getId(), false);
-            } catch (Exception e) {
-                dashboardLink = "/dashboards";
-            }
-            template = template.replace("${GATEWAYS_DASHBOARD_URL}", dashboardLink);
+        if (template.contains("${GATEWAYS_URL}")) {
+            template = template.replace("${GATEWAYS_URL}", "/entities/gateways");
         }
 
         StringBuilder devList = new StringBuilder();
@@ -611,7 +600,7 @@ public class DefaultSolutionService implements SolutionService {
             template = template.replace("${" + credentialsInfo.getName() + "ACCESS_TOKEN}", credentialsInfo.getCredentials().getCredentialsId());
 
             if (credentialsInfo.isGateway()) {
-                template = template.replace("${DOCKER_CONFIG}", prepareDockerComposeFile(ctx.getTenantId(), baseUrl, credentialsInfo.getCredentials().getDeviceId()));
+                template = template.replace("${DOCKER_CONFIG}", prepareDockerComposeFile(ctx.getTenantId(), ctx.getSolutionId(), baseUrl, credentialsInfo.getCredentials().getDeviceId()));
             }
         }
 
@@ -675,10 +664,11 @@ public class DefaultSolutionService implements SolutionService {
         return dashboardLink;
     }
 
-    private String prepareDockerComposeFile(TenantId tenantId, String baseUrl, DeviceId deviceId) {
+    private String prepareDockerComposeFile(TenantId tenantId, String solutionId, String baseUrl, DeviceId deviceId) {
         Device device = new Device(deviceId);
         device.setTenantId(tenantId);
-        DockerComposeParams params = new DockerComposeParams(false, false, true, false, false);
+        String containerName = "tb-gateway-" + solutionId.replace('_', '-');
+        DockerComposeParams params = new DockerComposeParams(false, containerName, false, true, false, false);
         try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, params).getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         ) {

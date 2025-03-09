@@ -1807,7 +1807,7 @@
     "sas-key-name-required": "O nome da chave de SAS é obrigatório.",
     "sas-key": "Chave de SAS",
     "sas-key-required": "A chave de SAS é obrigatória.",
-    "iot-hub-name": "Nome do hub de IoT (obrigatório para downlink)",
+    "iot-hub-name": "Nome do hub de IoT",
     "hostname": "Nome do host",
     "hostname-required": "O nome do host é obrigatório.",
     "integration-clazz": "Classe de integração",
@@ -2222,8 +2222,7 @@
     "metadata-required": "As entradas de metadados não podem estar em branco.",
     "output": "Saída",
     "test": "Teste",
-    "help": "Ajuda",
-    "reset-debug-mode": "Redefinir modo de depuração em todos os nós"
+    "help": "Ajuda"
   },
   "role": {
     "role": "Função",
@@ -2705,7 +2704,6 @@
     "type": "Tipo de widget",
     "resources": "Recursos",
     "resource-url": "URL de JavaScript/CSS",
-    "resource-is-module": "É módulo",
     "remove-resource": "Remover recurso",
     "add-resource": "Adicionar recurso",
     "html": "HTML",

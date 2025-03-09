@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data.util;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,6 +89,25 @@ public class CollectionsUtil {
 
     public static <V> boolean emptyOrContains(Collection<V> collection, V element) {
         return isEmpty(collection) || collection.contains(element);
+    }
+
+    public static <V> HashSet<V> concat(Set<V> set1, Set<V> set2) {
+        HashSet<V> result = new HashSet<>();
+        result.addAll(set1);
+        result.addAll(set2);
+        return result;
+    }
+
+    public static <V> boolean isOneOf(V value, V... others) {
+        if (value == null) {
+            return false;
+        }
+        for (V other : others) {
+            if (value.equals(other)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

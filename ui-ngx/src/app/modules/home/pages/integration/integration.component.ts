@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -95,7 +95,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
         type: [{value: this.integrationType, disabled: true}, [Validators.required]],
         enabled: [isDefined(entity?.enabled) ? entity.enabled : true],
-        debugSettings: [entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true }],
+        debugSettings: [entity?.debugSettings ?? { failuresEnabled: false, allEnabled: false, allEnabledUntil: 0 }],
         allowCreateDevicesOrAssets: [entity && isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true],
         defaultConverterId: [entity ? entity.defaultConverterId : null, [Validators.required]],
         downlinkConverterId: [entity ? entity.downlinkConverterId : null, []],
@@ -164,7 +164,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       name: entity.name,
       type: entity.type,
       enabled: isDefined(entity.enabled) ? entity.enabled : true,
-      debugSettings: entity?.debugSettings ?? { allEnabled: true, failuresEnabled: true },
+      debugSettings: entity?.debugSettings ?? { allEnabled: false, failuresEnabled: false, allEnabledUntil: 0 },
       allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true,
       defaultConverterId: entity.defaultConverterId,
       downlinkConverterId: entity.downlinkConverterId,

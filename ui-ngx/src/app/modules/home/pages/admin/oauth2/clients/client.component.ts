@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -55,8 +55,6 @@ import { Subscription } from 'rxjs';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { PageLink } from '@shared/models/page/page-link';
 import { coerceBoolean } from '@app/shared/decorators/coercion';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-client',
@@ -116,9 +114,6 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
     this.oauth2Service.getOAuth2Template().subscribe(templates => {
       this.initTemplates(templates);
     });
-    if (getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
-      this.platformTypes = this.platformTypes.filter(item => item !== PlatformType.WEB);
-    }
   }
 
   ngOnDestroy() {
@@ -218,7 +213,9 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
       additionalInfo?.providerName : defaultProviderName);
 
     this.changeMapperConfigType(this.entityForm, MapperType.BASIC);
-    this.setProviderDefaultValue(defaultProviderName, this.entityForm);
+    if (this.createNewDialog || this.isAdd) {
+      this.setProviderDefaultValue(defaultProviderName, this.entityForm);
+    }
 
     this.subscriptions.push(this.entityForm.get('mapperConfig.type').valueChanges.subscribe((value) => {
       this.changeMapperConfigType(this.entityForm, value);

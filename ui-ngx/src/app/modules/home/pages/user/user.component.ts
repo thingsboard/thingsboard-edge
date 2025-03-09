@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -104,11 +104,11 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
   }
 
   isUserCredentialsEnabled(): boolean {
-      return this.entity.additionalInfo.userCredentialsEnabled === true;
+      return this.entity?.additionalInfo?.userCredentialsEnabled === true;
   }
 
-  isUserCredentialPresent(): boolean {
-    return isDefinedAndNotNull(this.entity?.additionalInfo?.userCredentialsEnabled);
+  isUserActivated(): boolean {
+    return this.entity?.additionalInfo?.userActivated === true;
   }
 
   buildForm(entity: UserInfo): UntypedFormGroup {

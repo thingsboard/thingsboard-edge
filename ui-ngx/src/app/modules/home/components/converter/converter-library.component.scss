@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,60 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.logo {
-  height: 24px;
-  margin-right: 8px;
-}
+.tb-autocomplete.tb-converter-library-autocomplete {
+  .library-model {
+    padding: 6px 0 14px;
+    position: relative;
 
-.link-arrow {
-  color: rgba(0, 0, 0, 0.54);
-  margin: 0;
-}
+    .device-label {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.25px;
+      line-height: 130%;
+    }
 
-.library-model {
-  padding: 6px 0 14px;
-  position: relative;
+    .device-description {
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.38);
+      line-height: 100%;
+    }
 
-  .device-img {
-    height: 40px;
-    width: 40px;
-    margin-right: 8px;
-  }
-
-  .device-label {
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.25px;
-    line-height: 130%;
-  }
-
-  .device-description {
-    font-size: 11px;
-    color: rgba(0, 0, 0, 0.38);
-    line-height: 100%;
-  }
-}
-
-::ng-deep {
-  .tb-autocomplete.tb-model-autocomplete {
-    .mat-mdc-option {
-      &:focus, &:hover {
-        background: transparent;
-
-        &::before {
-          content: "";
-          width: 100%;
-          height: 100%;
-          position: absolute;
-          left: 0;
-          top: 0;
-          background-color: var(--tb-primary-50);
-          opacity: 0.4;
-        }
-      }
+    .link-arrow {
+      color: rgba(0, 0, 0, 0.54);
+      margin: 0;
     }
   }
-  .mat-mdc-option .mdc-list-item__primary-text {
-    width: 100%;
+
+  .mat-mdc-option {
+    &:focus, &:hover {
+      background: transparent;
+
+      &::before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        background-color: var(--tb-primary-50);
+        opacity: 0.4;
+      }
+    }
   }
 }

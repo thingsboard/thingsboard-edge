@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@ import {
 } from '@shared/models/query/query.models';
 import { PopoverPlacement } from '@shared/components/popover.models';
 import { PageComponent } from '@shared/components/page.component';
-import { AfterViewInit, Directive, EventEmitter, Inject, OnInit, Type } from '@angular/core';
+import { AfterViewInit, DestroyRef, Directive, EventEmitter, inject, Inject, OnInit, Type } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
@@ -56,10 +56,12 @@ import { isNotEmptyStr, mergeDeepIgnoreArray } from '@core/utils';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import { ComponentStyle, Font, TimewindowStyle } from '@shared/models/widget-settings.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
-import { HasTenantId, HasVersion } from '@shared/models/entity.models';
+import { EntityInfoData, HasTenantId, HasVersion } from '@shared/models/entity.models';
 import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
 import { TbFunction } from '@shared/models/js-function.models';
+import { FormProperty, jsonFormSchemaToFormProperties } from '@shared/models/dynamic-form.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export enum widgetType {
   timeseries = 'timeseries',
@@ -168,9 +170,9 @@ export interface WidgetTypeDescriptor {
   templateHtml: string;
   templateCss: string;
   controllerScript: TbFunction;
-  settingsSchema?: string | any;
-  dataKeySettingsSchema?: string | any;
-  latestDataKeySettingsSchema?: string | any;
+  settingsForm?: FormProperty[];
+  dataKeySettingsForm?: FormProperty[];
+  latestDataKeySettingsForm?: FormProperty[];
   settingsDirective?: string;
   dataKeySettingsDirective?: string;
   latestDataKeySettingsDirective?: string;
@@ -208,9 +210,9 @@ export interface WidgetTypeParameters {
 
 export interface WidgetControllerDescriptor {
   widgetTypeFunction?: any;
-  settingsSchema?: string | any;
-  dataKeySettingsSchema?: string | any;
-  latestDataKeySettingsSchema?: string | any;
+  settingsForm?: FormProperty[];
+  dataKeySettingsForm?: FormProperty[];
+  latestDataKeySettingsForm?: FormProperty[];
   typeParameters?: WidgetTypeParameters;
   actionSources?: {[actionSourceId: string]: WidgetActionSource};
 }
@@ -250,6 +252,30 @@ export const isValidWidgetFullFqn = (fullFqn: string): boolean => {
   return false;
 };
 
+
+export const migrateWidgetTypeToDynamicForms = <T extends WidgetType>(widgetType: T): T => {
+  const descriptor = widgetType.descriptor;
+  if ((descriptor as any).settingsSchema) {
+    if (!descriptor.settingsForm?.length) {
+      descriptor.settingsForm = jsonFormSchemaToFormProperties((descriptor as any).settingsSchema);
+    }
+    delete (descriptor as any).settingsSchema;
+  }
+  if ((descriptor as any).dataKeySettingsSchema) {
+    if (!descriptor.dataKeySettingsForm?.length) {
+      descriptor.dataKeySettingsForm = jsonFormSchemaToFormProperties((descriptor as any).dataKeySettingsSchema);
+    }
+    delete (descriptor as any).dataKeySettingsSchema;
+  }
+  if ((descriptor as any).latestDataKeySettingsSchema) {
+    if (!descriptor.latestDataKeySettingsForm?.length) {
+      descriptor.latestDataKeySettingsForm = jsonFormSchemaToFormProperties((descriptor as any).latestDataKeySettingsSchema);
+    }
+    delete (descriptor as any).latestDataKeySettingsSchema;
+  }
+  return widgetType;
+}
+
 export interface WidgetType extends BaseWidgetType {
   descriptor: WidgetTypeDescriptor;
 }
@@ -259,6 +285,7 @@ export interface WidgetTypeInfo extends BaseWidgetType {
   description: string;
   tags: string[];
   widgetType: widgetType;
+  bundles?: EntityInfoData[];
 }
 
 export interface WidgetTypeDetails extends WidgetType, ExportableEntity<WidgetTypeId> {
@@ -843,22 +870,10 @@ export interface WidgetInfo extends BaseWidgetInfo {
   deprecated?: boolean;
 }
 
-export interface GroupInfo {
-  formIndex: number;
-  GroupTitle: string;
-}
-
-export interface JsonSchema {
-  type: string;
-  title?: string;
-  properties: {[key: string]: any};
-  required?: string[];
-}
-
-export interface JsonSettingsSchema {
-  schema?: JsonSchema;
-  form?: any[];
-  groupInfoes?: GroupInfo[];
+export interface DynamicFormData {
+  settingsForm?: FormProperty[];
+  model?: any;
+  settingsDirective?: string;
 }
 
 export interface WidgetPosition {
@@ -940,6 +955,8 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
   settingsChangedEmitter = new EventEmitter<WidgetSettings>();
   settingsChanged = this.settingsChangedEmitter.asObservable();
 
+  protected destroyRef = inject(DestroyRef);
+
   protected constructor(@Inject(Store) protected store: Store<AppState>) {
     super(store);
   }
@@ -967,11 +984,15 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
       for (const part of path) {
         control = control.get(part);
       }
-      control.valueChanges.subscribe(() => {
+      control.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateValidators(true, trigger);
       });
     }
-    this.settingsForm().valueChanges.subscribe(() => {
+    this.settingsForm().valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.onSettingsChanged(this.prepareOutputSettings(this.settingsForm().getRawValue()));
     });
   }

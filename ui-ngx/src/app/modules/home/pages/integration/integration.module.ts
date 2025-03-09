@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ import { IntegrationTabsComponent } from '@home/pages/integration/integration-ta
 import { IntegrationRoutingModule } from '@home/pages/integration/integration-routing.module';
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
-import { DebugSettingsButtonComponent } from '@home/components/debug-settings/debug-settings-button.component';
+import { EntityDebugSettingsButtonComponent } from '@home/components/entity/debug/entity-debug-settings-button.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +51,7 @@ import { DebugSettingsButtonComponent } from '@home/components/debug-settings/de
     HomeComponentsModule,
     IntegrationRoutingModule,
     IntegrationComponentModule,
-    DebugSettingsButtonComponent,
+    EntityDebugSettingsButtonComponent,
   ],
   providers: [DurationLeftPipe]
 })

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -77,7 +77,7 @@ export class MobileAppService {
   }
 
   public updateOauth2Clients(id: string, oauth2ClientIds: Array<string>, config?: RequestConfig) {
-    return this.http.put(`/api/mobile/bundle/${id}/oauth2Clients`, oauth2ClientIds, defaultHttpOptionsFromConfig(config));
+    return this.http.put(`/api/mobile/bundle/${id}/oauth2Clients`, oauth2ClientIds ?? [], defaultHttpOptionsFromConfig(config));
   }
 
   public getTenantMobileAppBundleInfos(pageLink: PageLink, config?: RequestConfig): Observable<PageData<MobileAppBundleInfo>> {

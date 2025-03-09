@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,6 @@ import {
   baseUrl,
   createLabelFromDatasource,
   deepClone,
-  deleteNullProperties,
   guid,
   hashCode,
   isDefined,
@@ -56,7 +55,6 @@ import { DataKeyType, SharedTelemetrySubscriber } from '@app/shared/models/telem
 import { alarmFields, alarmSeverityTranslations, alarmStatusTranslations } from '@shared/models/alarm.models';
 import { materialColors } from '@app/shared/models/material.models';
 import { WidgetInfo } from '@home/models/widget-component.models';
-import jsonSchemaDefaults from 'json-schema-defaults';
 import { Observable } from 'rxjs';
 import { publishReplay, refCount } from 'rxjs/operators';
 import { WidgetContext } from '@app/modules/home/models/widget-component.models';
@@ -66,6 +64,7 @@ import { DatePipe, DOCUMENT } from '@angular/common';
 import { entityTypeTranslations } from '@shared/models/entity-type.models';
 import cssjs from '@core/css/css';
 import { isNotEmptyTbFunction } from '@shared/models/js-function.models';
+import { defaultFormProperties, FormProperty } from '@shared/models/dynamic-form.models';
 
 const i18nRegExp = new RegExp(`{${i18nPrefix}:[^{}]+}`, 'g');
 
@@ -159,10 +158,10 @@ export class UtilsService {
     return predefinedFunctions[func];
   }
 
-  public getDefaultDatasource(dataKeySchema: any): Datasource {
+  public getDefaultDatasource(dataKeyForm: FormProperty[]): Datasource {
     const datasource = deepClone(this.defaultDatasource);
-    if (isDefined(dataKeySchema)) {
-      datasource.dataKeys[0].settings = this.generateObjectFromJsonSchema(dataKeySchema);
+    if (dataKeyForm?.length) {
+      datasource.dataKeys[0].settings = defaultFormProperties(dataKeyForm);
     }
     return datasource;
   }
@@ -208,12 +207,6 @@ export class UtilsService {
       return value;
     }
     return '';
-  }
-
-  public generateObjectFromJsonSchema(schema: any): any {
-    const obj = jsonSchemaDefaults(schema);
-    deleteNullProperties(obj);
-    return obj;
   }
 
   public processWidgetException(exception: any): ExceptionData {

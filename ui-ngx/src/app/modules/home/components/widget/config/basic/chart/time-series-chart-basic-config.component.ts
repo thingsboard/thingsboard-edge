@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -67,6 +67,7 @@ import {
   TimeSeriesChartYAxisId
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { TimeSeriesChartTooltipTrigger } from '@home/components/widget/lib/chart/time-series-chart-tooltip.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-time-series-chart-basic-config',
@@ -219,7 +220,9 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
     if (this.chartType === TimeSeriesChartType.state) {
       this.timeSeriesChartWidgetConfigForm.addControl('states', this.fb.control(settings.states, []));
     }
-    this.timeSeriesChartWidgetConfigForm.get('comparisonEnabled').valueChanges.subscribe(() => this.updateSeriesState());
+    this.timeSeriesChartWidgetConfigForm.get('comparisonEnabled').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.updateSeriesState());
   }
 
   protected prepareOutputConfig(config: any): WidgetConfigComponentData {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALIDATORS,
@@ -49,6 +49,7 @@ import { WidgetService } from '@core/http/widget.service';
 import { IAliasController } from '@core/api/widget-api.models';
 import { EntityService } from '@core/http/entity.service';
 import { TargetDevice } from '@shared/models/widget.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export declare type RpcRetrieveValueMethod = 'none' | 'rpc' | 'attribute' | 'timeseries';
 
@@ -122,7 +123,8 @@ export class SwitchRpcSettingsComponent extends PageComponent implements OnInit,
               private translate: TranslateService,
               private widgetService: WidgetService,
               private entityService: EntityService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -154,13 +156,19 @@ export class SwitchRpcSettingsComponent extends PageComponent implements OnInit,
       requestPersistent: [false, []],
       persistentPollingInterval: [5000, [Validators.min(1000)]],
     });
-    this.switchRpcSettingsFormGroup.get('retrieveValueMethod').valueChanges.subscribe(() => {
+    this.switchRpcSettingsFormGroup.get('retrieveValueMethod').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.switchRpcSettingsFormGroup.get('requestPersistent').valueChanges.subscribe(() => {
+    this.switchRpcSettingsFormGroup.get('requestPersistent').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.switchRpcSettingsFormGroup.valueChanges.subscribe(() => {
+    this.switchRpcSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
     this.updateValidators(false);

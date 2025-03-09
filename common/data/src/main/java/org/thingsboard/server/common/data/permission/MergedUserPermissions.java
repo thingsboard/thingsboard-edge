@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.data.permission;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import org.thingsboard.server.common.data.EntityType;
@@ -39,8 +41,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,11 +64,12 @@ public final class MergedUserPermissions implements Serializable {
 
     @Schema(description = "Map of read entity attributes permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readAttrPermissions;
-
     @Schema(description = "Map of read entity time-series permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readTsPermissions;
 
-    public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions) {
+    @JsonCreator
+    public MergedUserPermissions(@JsonProperty("genericPermissions") Map<Resource, Set<Operation>> genericPermissions,
+                                 @JsonProperty("groupPermissions") Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions) {
         this.genericPermissions = genericPermissions;
         this.groupPermissions = groupPermissions;
         this.readGroupPermissions = new HashMap<>();
@@ -176,4 +177,5 @@ public final class MergedUserPermissions implements Serializable {
         MergedGroupPermissionInfo permissionInfo = groupPermissions.get(entityGroupId);
         return permissionInfo != null && checkOperation(permissionInfo.getOperations(), operation);
     }
+
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,9 +36,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -46,6 +48,8 @@ import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+
+import java.util.UUID;
 
 @DaoSqlTest
 public class RelationEdgeTest extends AbstractEdgeTest {
@@ -73,13 +77,14 @@ public class RelationEdgeTest extends AbstractEdgeTest {
 
         // delete relation
         edgeImitator.expectMessageAmount(1);
-        var deletedRelation = doDelete("/api/v2/relation?" +
-                "fromId=" + relation.getFrom().getId().toString() +
-                "&fromType=" + relation.getFrom().getEntityType().name() +
-                "&relationType=" + relation.getType() +
-                "&relationTypeGroup=" + relation.getTypeGroup().name() +
-                "&toId=" + relation.getTo().getId().toString() +
-                "&toType=" + relation.getTo().getEntityType().name(), EntityRelation.class);
+
+        String deleteUrl = String.format("/api/v2/relation?fromId=%s&fromType=%s&relationType=%s&relationTypeGroup=%s&toId=%s&toType=%s",
+                device.getId().toString(), EntityType.DEVICE.name(), "test",
+                RelationTypeGroup.COMMON.name(), asset.getId().toString(), EntityType.ASSET.name()
+        );
+
+        var deletedRelation = doDelete(deleteUrl, EntityRelation.class);
+
         Assert.assertTrue(edgeImitator.waitForMessages());
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof RelationUpdateMsg);
@@ -109,13 +114,13 @@ public class RelationEdgeTest extends AbstractEdgeTest {
         edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
         Assert.assertTrue(edgeImitator.waitForResponses());
 
-        EntityRelation relation = doGet("/api/relation?" +
-                "&fromId=" + asset.getUuidId() +
-                "&fromType=" + asset.getId().getEntityType().name() +
-                "&relationType=" + "test" +
-                "&relationTypeGroup=" + RelationTypeGroup.COMMON.name() +
-                "&toId=" + device.getUuidId() +
-                "&toType=" + device.getId().getEntityType().name(), EntityRelation.class);
+        String getUrl = String.format("/api/relation?fromId=%s&fromType=%s&relationType=%s&relationTypeGroup=%s&toId=%s&toType=%s",
+                asset.getUuidId(), EntityType.ASSET.name(), "test",
+                RelationTypeGroup.COMMON.name(), device.getUuidId(), EntityType.DEVICE.name()
+        );
+
+        var relation = doGet(getUrl, EntityRelation.class);
+
         Assert.assertNotNull(relation);
     }
 
@@ -169,6 +174,47 @@ public class RelationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, relationUpdateMsg.getMsgType());
     }
 
+    @Test
+    public void testRelationFromEdgeToDevice() throws Exception {
+        // create relation
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+        EdgeId edgeId = new EdgeId(new UUID(edgeImitator.getConfiguration().getEdgeIdMSB(), edgeImitator.getConfiguration().getEdgeIdLSB()));
+        EntityRelation relation = new EntityRelation();
+        relation.setType("test");
+        relation.setFrom(edgeId);
+        relation.setTo(device.getId());
+        relation.setTypeGroup(RelationTypeGroup.COMMON);
+        edgeImitator.expectMessageAmount(1);
+        relation = doPost("/api/v2/relation", relation, EntityRelation.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof RelationUpdateMsg);
+        RelationUpdateMsg relationUpdateMsg = (RelationUpdateMsg) latestMessage;
+        EntityRelation entityRelation = JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
+        Assert.assertNotNull(entityRelation);
+        Assert.assertEquals(relation, entityRelation);
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, relationUpdateMsg.getMsgType());
+
+        // delete relation
+        edgeImitator.expectMessageAmount(1);
+
+        String deleteUrl = String.format("/api/v2/relation?fromId=%s&fromType=%s&relationType=%s&relationTypeGroup=%s&toId=%s&toType=%s",
+                edgeId, EntityType.EDGE.name(), "test",
+                RelationTypeGroup.COMMON.name(), device.getId().toString(), EntityType.DEVICE.name()
+        );
+
+        var deletedRelation = doDelete(deleteUrl, EntityRelation.class);
+
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof RelationUpdateMsg);
+        relationUpdateMsg = (RelationUpdateMsg) latestMessage;
+        entityRelation = JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
+        Assert.assertNotNull(entityRelation);
+        Assert.assertEquals(deletedRelation, entityRelation);
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, relationUpdateMsg.getMsgType());
+    }
+
     private EntityRelation buildEntityRelationForUplinkMsg(DeviceId deviceId, AssetId assetId) {
         EntityRelation relation = new EntityRelation();
         relation.setType("test");
@@ -178,4 +224,5 @@ public class RelationEdgeTest extends AbstractEdgeTest {
         relation.setAdditionalInfo(TextNode.valueOf("{}"));
         return relation;
     }
+
 }

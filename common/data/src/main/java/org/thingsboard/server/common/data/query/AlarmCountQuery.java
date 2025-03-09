@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@ package org.thingsboard.server.common.data.query;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
@@ -44,7 +44,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
+@Data
 @ToString
 public class AlarmCountQuery extends EntityCountQuery {
     private long startTs;
@@ -55,4 +55,9 @@ public class AlarmCountQuery extends EntityCountQuery {
     private List<AlarmSeverity> severityList;
     private boolean searchPropagatedAlarms;
     private UserId assigneeId;
+
+    public AlarmCountQuery(EntityFilter entityFilter) {
+        super(entityFilter);
+    }
+
 }

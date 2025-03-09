@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -168,7 +168,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const form = this.fb.group({
       name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-      debugSettings: [entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true }],
+      debugSettings: [entity?.debugSettings ?? { failuresEnabled: false, allEnabled: false, allEnabledUntil: 0 }],
       configuration: this.fb.group({
         scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
         decoder: [entity?.configuration ? entity.configuration.decoder : null],
@@ -275,7 +275,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.patchValue({
       type: entity.type,
       name: entity?.name ? entity.name : '',
-      debugSettings: entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true },
+      debugSettings: entity?.debugSettings ?? { failuresEnabled: false, allEnabled: false, allEnabledUntil: 0 },
       configuration: {
         scriptLang,
         decoder: entity.configuration ? entity.configuration.decoder : null,

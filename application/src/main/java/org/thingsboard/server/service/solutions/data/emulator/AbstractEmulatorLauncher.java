@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -151,7 +151,13 @@ public abstract class AbstractEmulatorLauncher<T extends GroupEntity<?>> {
         log.debug("[{}] Publishing telemetry: {}", entity.getName(), msgData);
         TbMsgMetaData md = new TbMsgMetaData();
         md.putValue("ts", Long.toString(ts));
-        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, entity.getId(), md, TbMsgDataType.JSON, msgData);
+        TbMsg tbMsg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(entity.getId())
+                .copyMetaData(md)
+                .dataType(TbMsgDataType.JSON)
+                .data(msgData)
+                .build();
         tbClusterService.pushMsgToRuleEngine(entity.getTenantId(), entity.getId(), tbMsg, null);
     }
 }

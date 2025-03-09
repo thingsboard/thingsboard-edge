@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -72,6 +72,7 @@ export class TbWebReportPage {
     private crushed = false;
     private failed = false;
     private closed = false;
+    private requestfailed = false;
 
     constructor(private browser: Browser,
                 public id: number) {
@@ -79,7 +80,7 @@ export class TbWebReportPage {
     }
 
     get hasAnyFailureOccurred(): boolean {
-        return this.crushed || this.failed || this.closed;
+        return this.crushed || this.failed || this.closed || this.requestfailed;
     }
 
     async init(): Promise<void> {
@@ -113,6 +114,7 @@ export class TbWebReportPage {
             });
         }
         this.page.on('requestfailed', msg => {
+            this.requestfailed = true;
             this.logger.error('Request failed: URL: %s, Error %s, Headers: %s', msg.url(), msg.failure()?.errorText, JSON.stringify(msg.headers()));
         });
         this.page.once('crash', () => {
@@ -133,22 +135,6 @@ export class TbWebReportPage {
 
     async destroy(): Promise<void> {
         this.logger.info('Destroy page');
-        if (this.session) {
-            this.logger.info('Detaching the CDPSession from the target');
-            try {
-                await this.session.detach();
-            } catch (e) {
-                this.logger.warn('Failed detaches the CDPSession from the target', e);
-            }
-        }
-        if (this.page) {
-            this.logger.info('Closing web page');
-            try {
-                await this.page.close();
-            } catch (e) {
-                this.logger.warn('Failed to close web page', e);
-            }
-        }
         if (this.context) {
             this.logger.info('Closing browser context');
             try {
@@ -174,7 +160,7 @@ export class TbWebReportPage {
         this.lastReportResult = null;
         const startTime = performance.now();
         if (this.currentBaseUrl !== request.baseUrl) {
-            const dashboardLoadResponse = await this.page.goto(request.baseUrl+'?reportView=true', {waitUntil: 'networkidle'});
+            const dashboardLoadResponse = await this.page.goto(request.baseUrl+'?reportView=true', {waitUntil: 'networkidle', timeout: loadDashboardResourcesTimeout});
             if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
                 const result = await this.waitForReportResult('init page', loadDashboardResourcesTimeout);
                 if (result.success) {

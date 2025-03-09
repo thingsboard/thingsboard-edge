@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -66,9 +66,33 @@ import cssjs from '@core/css/css';
 import { sortItems } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, EMPTY, forkJoin, fromEvent, merge, Observable, of, Subject, Subscription } from 'rxjs';
+import {
+  BehaviorSubject,
+  EMPTY,
+  firstValueFrom,
+  forkJoin,
+  from,
+  fromEvent,
+  merge,
+  Observable,
+  of,
+  Subject,
+  Subscription,
+  switchMap
+} from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
-import { catchError, concatMap, debounceTime, distinctUntilChanged, expand, map, take, takeUntil, tap, toArray } from 'rxjs/operators';
+import {
+  catchError,
+  concatMap,
+  debounceTime,
+  distinctUntilChanged,
+  expand,
+  map,
+  take,
+  takeUntil,
+  tap,
+  toArray
+} from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -1217,7 +1241,9 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
             return EMPTY;
           }
         }),
-        map(data => data.data.map((a, index) => this.alarmDataToExportedData(a, index, exportedColumns))),
+        switchMap(data => data.data.length
+          ? forkJoin(data.data.map((a, index) => from(this.alarmDataToExportedData(a, index, exportedColumns))))
+          : of(data.data)),
         concatMap((data) => data),
         toArray()
       );
@@ -1256,22 +1282,22 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     }
   }
 
-  private alarmDataToExportedData(alarmData: AlarmData,
-                                  index: number,
-                                  columns: EntityColumn[]): {[key: string]: any} {
+  private async alarmDataToExportedData(alarmData: AlarmData,
+                                        index: number,
+                                        columns: EntityColumn[]): Promise<{[key: string]: any}> {
     const alarm = this.alarmsDatasource.alarmDataToInfo(alarmData);
     const dataObj: {[key: string]: any} = {};
-    columns.forEach(column => {
+    for (const column of columns) {
       if (column.name === alarmFields.assignee.value) {
         let displayName = '';
         if (alarmData.assignee) {
           displayName = this.getUserDisplayName(alarmData.assignee);
         }
         dataObj[column.title] = displayName;
-        return;
+      } else {
+        dataObj[column.title] = await firstValueFrom(this.cellContent(alarm, column, index, false, true));
       }
-      dataObj[column.title] = this.cellContent(alarm, column, index, false, true);
-    });
+    }
     return dataObj;
   }
 

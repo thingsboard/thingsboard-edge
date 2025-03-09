@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,11 @@ package org.thingsboard.server.dao.sql.integration;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edqs.fields.IntegrationFields;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -149,6 +151,16 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
     public IntegrationId getExternalIdByInternal(IntegrationId internalId) {
         return Optional.ofNullable(integrationRepository.getExternalIdById(internalId.getId()))
                 .map(IntegrationId::new).orElse(null);
+    }
+
+    @Override
+    public PageData<Integration> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public List<IntegrationFields> findNextBatch(UUID id, int batchSize) {
+        return integrationRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

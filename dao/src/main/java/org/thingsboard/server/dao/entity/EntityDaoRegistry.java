@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@SuppressWarnings({"unchecked"})
 public class EntityDaoRegistry {
 
     private final Map<EntityType, Dao<?>> daos = new EnumMap<>(EntityType.class);
@@ -54,7 +55,6 @@ public class EntityDaoRegistry {
         });
     }
 
-    @SuppressWarnings("unchecked")
     public <T> Dao<T> getDao(EntityType entityType) {
         Dao<T> dao = (Dao<T>) daos.get(entityType);
         if (dao == null) {

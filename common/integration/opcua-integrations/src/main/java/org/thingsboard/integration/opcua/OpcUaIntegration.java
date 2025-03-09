@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -392,7 +392,13 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         tbMsgMetaData.putValue("id", this.configuration.getId().getId().toString());
         tbMsgMetaData.putValue("host", opcUaServerConfiguration.getHost());
         tbMsgMetaData.putValue("port", Integer.toString(opcUaServerConfiguration.getPort()));
-        TbMsg tbMsg = TbMsg.newMsg(messageType, this.configuration.getId(), tbMsgMetaData, TbMsgDataType.JSON, "{}");
+        TbMsg tbMsg = TbMsg.newMsg()
+                .type(messageType)
+                .originator(this.configuration.getId())
+                .copyMetaData(tbMsgMetaData)
+                .dataType(TbMsgDataType.JSON)
+                .data("{}")
+                .build();
 
         if (context != null) {
             context.processCustomMsg(tbMsg, null);

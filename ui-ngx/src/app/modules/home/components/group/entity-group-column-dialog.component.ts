@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -47,6 +47,7 @@ import {
 } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { WidgetService } from '@core/http/widget.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface EntityGroupColumnDialogData {
   isReadOnly: boolean;
@@ -90,7 +91,8 @@ export class EntityGroupColumnDialogComponent extends
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<EntityGroupColumnDialogComponent, EntityGroupColumn>,
               private widgetService: WidgetService,
-              public fb: UntypedFormBuilder) {
+              public fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     this.functionScopeVariables = this.widgetService.getWidgetScopeVariables();
   }
@@ -111,10 +113,14 @@ export class EntityGroupColumnDialogComponent extends
     if (this.isReadOnly) {
       this.columnFormGroup.disable({emitEvent: false});
     } else {
-      this.columnFormGroup.get('useCellStyleFunction').valueChanges.subscribe(() => {
+      this.columnFormGroup.get('useCellStyleFunction').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateDisabledState();
       });
-      this.columnFormGroup.get('useCellContentFunction').valueChanges.subscribe(() => {
+      this.columnFormGroup.get('useCellContentFunction').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateDisabledState();
       });
       this.updateDisabledState();

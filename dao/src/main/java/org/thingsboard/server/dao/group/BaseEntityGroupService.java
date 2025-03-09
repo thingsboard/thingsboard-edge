@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -296,7 +296,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
                                                String description, CustomerId publicCustomerId) {
         log.trace("Executing findOrCreateEntityGroup, parentEntityId [{}], groupType [{}], groupName [{}]", parentEntityId, groupType, groupName);
         try {
-            Optional<EntityGroup> entityGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName);
+            Optional<EntityGroup> entityGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName, false);
             if (entityGroupOptional.isPresent()) {
                 return entityGroupOptional.get();
             } else {
@@ -712,10 +712,15 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
 
     @Override
     public Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
+        return findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, name, true);
+    }
+
+    @Override
+    public Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name, boolean putInCache) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
-        return Optional.ofNullable(cache.getAndPutInTransaction(new EntityGroupCacheKey(parentEntityId, groupType, name),
+        return Optional.ofNullable(cache.getOrFetchFromDB(new EntityGroupCacheKey(parentEntityId, groupType, name),
                 () -> entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
-                        parentEntityId.getEntityType(), groupType, name).orElse(null), true));
+                        parentEntityId.getEntityType(), groupType, name).orElse(null), true, putInCache));
     }
 
     @Override

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,9 +30,17 @@
  */
 package org.thingsboard.server.queue;
 
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+
+import java.util.Set;
+
 public interface TbQueueResponseTemplate<Request extends TbQueueMsg, Response extends TbQueueMsg> {
 
-    void init(TbQueueHandler<Request, Response> handler);
+    void subscribe();
+
+    void subscribe(Set<TopicPartitionInfo> partitions);
+
+    void launch(TbQueueHandler<Request, Response> handler);
 
     void stop();
 }

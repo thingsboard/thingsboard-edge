@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -104,6 +104,7 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
       loadAttributes: [true, []],
       loadRelations: [true, []],
       loadCredentials: [true, []],
+      loadCalculatedFields: [true, []],
       loadPermissions: [true, []],
       loadGroupEntities: [true, []],
       autoGenerateIntegrationKey: [false, []]
@@ -139,6 +140,7 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
         loadRelations: this.entityDataInfo.hasRelations ? this.restoreFormGroup.get('loadRelations').value : false,
         loadAttributes: this.entityDataInfo.hasAttributes ? this.restoreFormGroup.get('loadAttributes').value : false,
         loadCredentials: (this.entityDataInfo.hasCredentials || EntityType.DEVICE === this.groupType) ? this.restoreFormGroup.get('loadCredentials').value : false,
+        loadCalculatedFields: this.entityDataInfo.hasCalculatedFields ? this.restoreFormGroup.get('loadCalculatedFields').value : false,
         loadPermissions: this.entityDataInfo.hasPermissions ? this.restoreFormGroup.get('loadPermissions').value : false,
         autoGenerateIntegrationKey: this.internalEntityId.entityType === EntityType.INTEGRATION ? this.restoreFormGroup.get('loadPermissions').value : false,
         loadGroupEntities: this.entityDataInfo.hasGroupEntities ? this.restoreFormGroup.get('loadGroupEntities').value : false

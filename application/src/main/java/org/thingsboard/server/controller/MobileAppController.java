@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -65,7 +65,6 @@ import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -102,10 +101,7 @@ public class MobileAppController extends BaseController {
                                               @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
                                               @RequestParam PlatformType platform) {
         List<OAuth2ClientLoginInfo> oauth2Clients = oAuth2ClientService.findOAuth2ClientLoginInfosByMobilePkgNameAndPlatformType(pkgName, platform);
-        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false);
-        MobileSelfRegistrationParams selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
-        SignUpSelfRegistrationParams signUpParams = (selfRegistrationParams != null && selfRegistrationParams.getEnabled()) ?
-                selfRegistrationParams.toSignUpSelfRegistrationParams(platform) : null;
+        SignUpSelfRegistrationParams signUpParams = getSignUpParams(pkgName, platform);
         MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform);
         StoreInfo storeInfo = Optional.ofNullable(mobileApp).map(MobileApp::getStoreInfo).orElse(null);
         MobileAppVersionInfo versionInfo = Optional.ofNullable(mobileApp).map(MobileApp::getVersionInfo).orElse(null);
@@ -181,6 +177,14 @@ public class MobileAppController extends BaseController {
         MobileAppId mobileAppId = new MobileAppId(id);
         MobileApp mobileApp = checkMobileAppId(mobileAppId, Operation.DELETE);
         tbMobileAppService.delete(mobileApp, getCurrentUser());
+    }
+
+    private SignUpSelfRegistrationParams getSignUpParams(String pkgName, PlatformType platform) {
+        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false);
+        if (mobileAppBundle == null || mobileAppBundle.getSelfRegistrationParams() == null || !mobileAppBundle.getSelfRegistrationParams().getEnabled()) {
+            return null;
+        }
+        return mobileAppBundle.getSelfRegistrationParams().toSignUpSelfRegistrationParams(platform);
     }
 
     private JsonNode getVisiblePages(MobileAppBundle mobileAppBundle) throws JsonProcessingException {

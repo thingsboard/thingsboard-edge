@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -176,7 +176,6 @@ import * as MaterialIconsDialogComponent from '@shared/components/dialog/materia
 import * as ColorInputComponent from '@shared/components/color-input.component';
 import * as MaterialIconSelectComponent from '@shared/components/material-icon-select.component';
 import * as NodeScriptTestDialogComponent from '@shared/components/dialog/node-script-test-dialog.component';
-import * as JsonFormComponent from '@shared/components/json-form/json-form.component';
 import * as NotificationComponent from '@shared/components/notification/notification.component';
 import * as TemplateAutocompleteComponent from '@shared/components/notification/template-autocomplete.component';
 import * as ImageInputComponent from '@shared/components/image-input.component';
@@ -564,7 +563,6 @@ class ModulesMap implements IModulesMap {
     '@shared/components/color-input.component': ColorInputComponent,
     '@shared/components/material-icon-select.component': MaterialIconSelectComponent,
     '@shared/components/dialog/node-script-test-dialog.component': NodeScriptTestDialogComponent,
-    '@shared/components/json-form/json-form.component': JsonFormComponent,
     '@shared/components/notification/notification.component': NotificationComponent,
     '@shared/components/notification/template-autocomplete.component': TemplateAutocompleteComponent,
     '@shared/components/image-input.component': ImageInputComponent,

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,8 @@ import {
   OnChanges,
   OnDestroy,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  ViewEncapsulation
 } from '@angular/core';
 import {
   ControlValueAccessor,
@@ -52,14 +53,7 @@ import {
   Validators
 } from '@angular/forms';
 import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject } from 'rxjs';
-import {
-  catchError,
-  distinctUntilChanged,
-  map,
-  startWith,
-  switchMap,
-  takeUntil,
-} from 'rxjs/operators';
+import { catchError, distinctUntilChanged, map, startWith, switchMap, takeUntil, } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterLibraryValue, ConverterType, Model, Vendor } from '@shared/models/converter.models';
@@ -83,13 +77,14 @@ import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
       multi: true
     }
   ],
+  encapsulation: ViewEncapsulation.None
 })
 export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges, AfterViewInit, OnDestroy {
 
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
 
-  @ViewChild('modelInput', { static: true }) modelInput: ElementRef;
+  @ViewChild('modelInput') modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
   @ViewChild('dataConverter', { static: true }) dataConverterComponent: ConverterComponent;
 
@@ -123,7 +118,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       switchMap(() => of(this.integrationType)),
       distinctUntilChanged(),
       switchMap(() =>
-        this.converterLibraryService.getVendors(this.integrationType)
+        this.converterLibraryService.getVendors(this.integrationType, this.converterType)
       ),
       shareReplay(1)
     );
@@ -150,10 +145,10 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           if (this.libraryFormGroup.get('vendor').value?.name) {
             return this.converterLibraryService.getModels(this.integrationType, this.libraryFormGroup.get('vendor').value.name, this.converterType);
           }
-          return of([]);
+          return of(null);
         }
       ),
-      map((models: Model[]) => models.map(model => ({ ...model, searchText: (model.name + model.info.description).toLowerCase() }))),
+      map((models: Model[]) => models?.map(model => ({ ...model, searchText: (model.name + model.info.description).toLowerCase() }))),
       shareReplay(1)
     );
 
@@ -180,7 +175,10 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
         ),
         catchError(() => of(null)),
         distinctUntilChanged(),
-        map((converter: Converter) => converter ?? { type: this.converterType } as Converter)
+        map((converter: Converter) => {
+          const debugSettings = { allEnabled: true, failuresEnabled: true };
+          return converter ? { ...converter, debugSettings } : { type: this.converterType, debugSettings } as Converter;
+        })
     );
   }
 
@@ -272,14 +270,11 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   clearVendor(): void {
     this.libraryFormGroup.get('vendor').patchValue('');
+    this.modelInputSubject.next();
     setTimeout(() => {
       this.vendorInput.nativeElement.blur();
       this.vendorInput.nativeElement.focus();
     }, 0);
-  }
-
-  trackByName(_, item: Vendor | Model): string {
-    return item.name;
   }
 
   private updateScriptLangEnable(): void {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { FormGroupDirective, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
@@ -52,6 +52,7 @@ import { TbPopoverComponent } from '@shared/components/popover.component';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-repository-settings',
@@ -92,7 +93,8 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
               private translate: TranslateService,
               private userPermissionsService: UserPermissionsService,
               private cd: ChangeDetectorRef,
-              public fb: UntypedFormBuilder) {
+              public fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -110,10 +112,14 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
       privateKeyPassword: [null, []]
     });
     this.updateValidators(false);
-    this.repositorySettingsForm.get('authMethod').valueChanges.subscribe(() => {
+    this.repositorySettingsForm.get('authMethod').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.repositorySettingsForm.get('privateKeyFileName').valueChanges.subscribe(() => {
+    this.repositorySettingsForm.get('privateKeyFileName').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(false);
     });
     this.store.pipe(

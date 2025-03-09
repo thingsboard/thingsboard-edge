@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,6 +52,7 @@ import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.oauth2.OAuth2ClientDao;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.service.validator.DomainDataValidator;
 
 import java.util.Comparator;
 import java.util.List;
@@ -70,11 +71,14 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     private OAuth2ClientDao oauth2ClientDao;
     @Autowired
     private DomainDao domainDao;
+    @Autowired
+    private DomainDataValidator domainDataValidator;
 
     @Override
     public Domain saveDomain(TenantId tenantId, Domain domain) {
         log.trace("Executing saveDomain [{}]", domain);
         try {
+            domainDataValidator.validate(domain, Domain::getTenantId);
             Domain savedDomain = domainDao.save(tenantId, domain);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedDomain.getId()).entity(savedDomain).build());
             return savedDomain;
@@ -202,4 +206,5 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     public EntityType getEntityType() {
         return EntityType.DOMAIN;
     }
+
 }

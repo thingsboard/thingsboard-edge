@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -114,7 +114,7 @@ export class MobilePageItemRowComponent implements ControlValueAccessor, OnInit,
   mobilePageRowForm = this.fb.group({
     visible: [true, []],
     icon: ['', []],
-    label: ['', []],
+    label: ['', [Validators.pattern(/\S/)]],
     type: [MobilePageType.DEFAULT]
   });
 
@@ -202,7 +202,7 @@ export class MobilePageItemRowComponent implements ControlValueAccessor, OnInit,
       }
     } else {
       this.isCustomMenuItem = true;
-      this.mobilePageRowForm.get('label').setValidators([Validators.required]);
+      this.mobilePageRowForm.get('label').addValidators([Validators.required]);
       this.mobilePageRowForm.get('label').updateValueAndValidity({emitEvent: false});
     }
     this.updateCleanupState();
@@ -286,7 +286,7 @@ export class MobilePageItemRowComponent implements ControlValueAccessor, OnInit,
   private updateModel() {
     this.modelValue.visible = this.mobilePageRowForm.get('visible').value;
     const label = this.mobilePageRowForm.get('label').value;
-    if (label) {
+    if (label?.trim()) {
       this.modelValue.label = label;
     } else {
       delete this.modelValue.label;

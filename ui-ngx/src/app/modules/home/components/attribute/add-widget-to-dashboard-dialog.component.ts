@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -55,6 +55,7 @@ import { AliasesInfo } from '@shared/models/alias.models';
 import { ItemBufferService } from '@core/services/item-buffer.service';
 import { StateObject } from '@core/api/widget-api.models';
 import { FiltersInfo } from '@shared/models/query/query.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface AddWidgetToDashboardDialogData {
   entityId: EntityId;
@@ -98,7 +99,9 @@ export class AddWidgetToDashboardDialogComponent extends
       }
     );
 
-    this.addWidgetFormGroup.get('addToDashboardType').valueChanges.subscribe(
+    this.addWidgetFormGroup.get('addToDashboardType').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe(
       (addToDashboardType: number) => {
         if (addToDashboardType === 0) {
           this.addWidgetFormGroup.get('dashboardId').setValidators([Validators.required]);

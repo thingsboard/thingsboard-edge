@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,11 +32,13 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   EventEmitter,
   forwardRef,
   Input,
   OnInit,
-  Output, ViewChild,
+  Output,
+  ViewChild,
   ViewEncapsulation
 } from '@angular/core';
 import {
@@ -52,11 +54,12 @@ import {
 } from '@angular/forms';
 import { JsFuncModulesComponent } from '@shared/components/js-func-modules.component';
 import { ResourceSubType } from '@shared/models/resource.models';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ResourceAutocompleteComponent } from '@shared/components/resource/resource-autocomplete.component';
 import { HttpClient } from '@angular/common/http';
 import { loadModuleMarkdownDescription, loadModuleMarkdownSourceCode } from '@shared/models/js-function.models';
 import { TranslateService } from '@ngx-translate/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface JsFuncModuleRow {
   alias: string;
@@ -110,14 +113,17 @@ export class JsFuncModuleRowComponent implements ControlValueAccessor, OnInit, V
               private cd: ChangeDetectorRef,
               private modulesComponent: JsFuncModulesComponent,
               private http: HttpClient,
-              private translate: TranslateService) {}
+              private translate: TranslateService,
+              private destroyRef: DestroyRef) {}
 
   ngOnInit() {
     this.moduleRowFormGroup = this.fb.group({
-      alias: [null, [this.moduleAliasValidator()]],
+      alias: [null, [this.moduleAliasValidator(), Validators.pattern(/^[$_\p{ID_Start}][$\p{ID_Continue}]*$/u)]],
       moduleLink: [null, [Validators.required]]
     });
-    this.moduleRowFormGroup.valueChanges.subscribe(
+    this.moduleRowFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
   }
@@ -142,13 +148,19 @@ export class JsFuncModuleRowComponent implements ControlValueAccessor, OnInit, V
 
   public validate(_c: UntypedFormControl) {
     const aliasControl = this.moduleRowFormGroup.get('alias');
-    if (aliasControl.hasError('moduleAliasNotUnique')) {
+    if (aliasControl.hasError('moduleAliasNotUnique') || aliasControl.hasError('pattern')) {
       aliasControl.updateValueAndValidity({onlySelf: false, emitEvent: false});
     }
     if (aliasControl.hasError('moduleAliasNotUnique')) {
       this.moduleRowFormGroup.get('alias').markAsTouched();
       return {
         moduleAliasNotUnique: true
+      };
+    }
+    if (aliasControl.hasError('pattern')) {
+      this.moduleRowFormGroup.get('alias').markAsTouched();
+      return {
+        invalidVariableName: true
       };
     }
     const module: JsFuncModuleRow = {...this.modelValue, ...this.moduleRowFormGroup.value};

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -88,7 +88,7 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
 
     private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) {
         log.trace("[{}][{}] starting processing edge events", tenantId, sessionId);
-        if (isConnected() && isSyncCompleted() && !isHighPriorityProcessing) {
+        if (isConnected() && !isSyncInProgress() && !isHighPriorityProcessing) {
             List<EdgeEvent> edgeEvents = new ArrayList<>();
             for (TbProtoQueueMsg<ToEdgeEventNotificationMsg> msg : msgs) {
                 EdgeEvent edgeEvent = ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg());

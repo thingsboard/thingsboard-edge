@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -97,11 +97,13 @@ export class IntegrationWizardDialogComponent extends
   integrationInfo$: Observable<IntegrationConvertersInfo>;
 
   uplinkConverter = {
-    type: ConverterType.UPLINK
+    type: ConverterType.UPLINK,
+    debugSettings: { allEnabled: true, failuresEnabled: true },
   } as Converter;
 
   downlinkConverter = {
-    type: ConverterType.DOWNLINK
+    type: ConverterType.DOWNLINK,
+    debugSettings: { allEnabled: true, failuresEnabled: true },
   } as Converter;
 
   readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;

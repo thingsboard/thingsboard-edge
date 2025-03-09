@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -57,6 +57,7 @@ import {
 } from '@home/components/widget/lib/settings/common/action/mobile-action-editor.models';
 import { WidgetService } from '@core/http/widget.service';
 import { TbFunction } from '@shared/models/js-function.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-mobile-action-editor',
@@ -96,7 +97,8 @@ export class MobileActionEditorComponent implements ControlValueAccessor, OnInit
   private propagateChange = (_v: any) => { };
 
   constructor(private fb: UntypedFormBuilder,
-              private widgetService: WidgetService) {
+              private widgetService: WidgetService,
+              private destroyRef: DestroyRef) {
     this.functionScopeVariables = this.widgetService.getWidgetScopeVariables();
   }
 
@@ -113,14 +115,18 @@ export class MobileActionEditorComponent implements ControlValueAccessor, OnInit
       handleEmptyResultFunction: [null],
       handleErrorFunction: [null]
     });
-    this.mobileActionFormGroup.get('type').valueChanges.subscribe((type: WidgetMobileActionType) => {
+    this.mobileActionFormGroup.get('type').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((type: WidgetMobileActionType) => {
       let action: WidgetMobileActionDescriptor = this.mobileActionFormGroup.value;
       if (this.mobileActionTypeFormGroup) {
         action = {...action, ...this.mobileActionTypeFormGroup.value};
       }
       this.updateMobileActionType(type, action);
     });
-    this.mobileActionFormGroup.valueChanges.subscribe(() => {
+    this.mobileActionFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -265,7 +271,9 @@ export class MobileActionEditorComponent implements ControlValueAccessor, OnInit
           break;
       }
     }
-    this.mobileActionTypeFormGroup.valueChanges.subscribe(() => {
+    this.mobileActionTypeFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

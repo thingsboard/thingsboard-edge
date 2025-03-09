@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,15 +41,12 @@ import { SentNotificationDialogComponent } from '@home/pages/notification/sent/s
 import {
   RecipientNotificationDialogComponent
 } from '@home/pages/notification/recipient/recipient-notification-dialog.component';
-import { RecipientTableHeaderComponent } from '@home/pages/notification/recipient/recipient-table-header.component';
 import {
   TemplateNotificationDialogComponent
 } from '@home/pages/notification/template/template-notification-dialog.component';
-import { TemplateTableHeaderComponent } from '@home/pages/notification/template/template-table-header.component';
 import { EscalationFormComponent } from '@home/pages/notification/rule/escalation-form.component';
 import { EscalationsComponent } from '@home/pages/notification/rule/escalations.component';
 import { RuleNotificationDialogComponent } from '@home/pages/notification/rule/rule-notification-dialog.component';
-import { RuleTableHeaderComponent } from '@home/pages/notification/rule/rule-table-header.component';
 import { NotificationSettingsComponent } from '@home/pages/notification/settings/notification-settings.component';
 import {
   NotificationSettingFormComponent
@@ -68,13 +65,10 @@ import {
     SentErrorDialogComponent,
     SentNotificationDialogComponent,
     RecipientNotificationDialogComponent,
-    RecipientTableHeaderComponent,
     TemplateNotificationDialogComponent,
-    TemplateTableHeaderComponent,
     EscalationFormComponent,
     EscalationsComponent,
     RuleNotificationDialogComponent,
-    RuleTableHeaderComponent,
     NotificationSettingsComponent,
     NotificationSettingFormComponent,
     NotificationTemplateConfigurationComponent,

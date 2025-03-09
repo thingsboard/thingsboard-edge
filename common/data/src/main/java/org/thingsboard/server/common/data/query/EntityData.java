@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,22 +31,24 @@
 package org.thingsboard.server.common.data.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.Map;
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 public class EntityData {
 
-    private final EntityId entityId;
-    private final boolean readAttrs;
-    private final boolean readTs;
-    private final Map<EntityKeyType, Map<String, TsValue>> latest;
-    private final Map<String, TsValue[]> timeseries;
-    private final Map<Integer, ComparisonTsValue> aggLatest;
+    private EntityId entityId;
+    private boolean readAttrs;
+    private boolean readTs;
+    private Map<EntityKeyType, Map<String, TsValue>> latest;
+    private Map<String, TsValue[]> timeseries;
+    private Map<Integer, ComparisonTsValue> aggLatest;
 
     public EntityData(EntityId entityId, boolean readAttrs, boolean readTs, Map<EntityKeyType, Map<String, TsValue>> latest, Map<String, TsValue[]> timeseries) {
         this(entityId, readAttrs, readTs, latest, timeseries, null);
@@ -61,4 +63,5 @@ public class EntityData {
             aggLatest.clear();
         }
     }
+
 }

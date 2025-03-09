@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -380,5 +380,15 @@ export interface AceHighlightRule {
   next?: string;
 }
 
+export const dotOperatorHighlightRule: AceHighlightRule = {
+  token: 'punctuation.operator',
+  regex: /[.](?![.])/,
+};
+
+export const endGroupHighlightRule: AceHighlightRule = {
+  regex: '',
+  token: 'empty',
+  next: 'no_regex'
+};
 
 

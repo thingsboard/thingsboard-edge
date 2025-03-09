@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -51,6 +51,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation } from '@shared/models/security.models';
 import { EntityGroup, EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface SelectEntityGroupDialogResult {
   groupId: string;
@@ -102,7 +103,8 @@ export class SelectEntityGroupDialogComponent extends
               @Inject(MAT_DIALOG_DATA) public data: SelectEntityGroupDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<SelectEntityGroupDialogComponent, SelectEntityGroupDialogResult>,
-              public fb: UntypedFormBuilder) {
+              public fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     this.ownerId = data.ownerId;
     this.targetGroupType = data.targetGroupType;
@@ -125,7 +127,9 @@ export class SelectEntityGroupDialogComponent extends
     });
     this.updateDisabledState();
     if (this.createEnabled) {
-      this.selectEntityGroupFormGroup.get('addToGroupType').valueChanges.subscribe(
+      this.selectEntityGroupFormGroup.get('addToGroupType').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(
         () => {
           this.updateDisabledState();
         }

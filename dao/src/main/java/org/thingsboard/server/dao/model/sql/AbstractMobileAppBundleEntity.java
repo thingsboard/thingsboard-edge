@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -76,7 +76,7 @@ public abstract class AbstractMobileAppBundleEntity<T extends MobileAppBundle> e
 
     @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.MOBILE_APP_BUNDLE_SELF_REGISTRATION_CONFIG_PROPERTY)
-    private JsonNode selfRegistrationConfig;
+    protected JsonNode selfRegistrationConfig;
 
     @Column(name = ModelConstants.MOBILE_APP_BUNDLE_OAUTH2_ENABLED_PROPERTY)
     private Boolean oauth2Enabled;

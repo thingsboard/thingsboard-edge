@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -235,7 +235,27 @@ import {
 import { EntityChipsComponent } from '@home/components/entity/entity-chips.component';
 import { DashboardViewComponent } from '@home/components/dashboard-view/dashboard-view.component';
 import { ConverterLibraryComponent } from '@home/components/converter/converter-library.component';
-import { DebugSettingsButtonComponent } from '@home/components/debug-settings/debug-settings-button.component';
+import { CalculatedFieldsTableComponent } from '@home/components/calculated-fields/calculated-fields-table.component';
+import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
+import { CalculatedFieldDialogComponent } from '@home/components/calculated-fields/components/dialog/calculated-field-dialog.component';
+import {
+  EntityDebugSettingsButtonComponent
+} from '@home/components/entity/debug/entity-debug-settings-button.component';
+import {
+  CalculatedFieldArgumentsTableComponent
+} from '@home/components/calculated-fields/components/arguments-table/calculated-field-arguments-table.component';
+import {
+  CalculatedFieldArgumentPanelComponent
+} from '@home/components/calculated-fields/components/panel/calculated-field-argument-panel.component';
+import {
+  CalculatedFieldDebugDialogComponent
+} from '@home/components/calculated-fields/components/debug-dialog/calculated-field-debug-dialog.component';
+import {
+  CalculatedFieldScriptTestDialogComponent
+} from '@home/components/calculated-fields/components/test-dialog/calculated-field-script-test-dialog.component';
+import {
+  CalculatedFieldTestArgumentsComponent
+} from '@home/components/calculated-fields/components/test-arguments/calculated-field-test-arguments.component';
 
 @NgModule({
   declarations:
@@ -410,7 +430,14 @@ import { DebugSettingsButtonComponent } from '@home/components/debug-settings/de
       SendNotificationButtonComponent,
       EntityChipsComponent,
       DashboardViewComponent,
-      ConverterLibraryComponent
+      ConverterLibraryComponent,
+      CalculatedFieldsTableComponent,
+      CalculatedFieldDialogComponent,
+      CalculatedFieldArgumentsTableComponent,
+      CalculatedFieldArgumentPanelComponent,
+      CalculatedFieldDebugDialogComponent,
+      CalculatedFieldScriptTestDialogComponent,
+      CalculatedFieldTestArgumentsComponent,
     ],
   imports: [
     CommonModule,
@@ -425,7 +452,7 @@ import { DebugSettingsButtonComponent } from '@home/components/debug-settings/de
     DeviceCredentialsModule,
     DeviceProfileCommonModule,
     IntegrationComponentModule,
-    DebugSettingsButtonComponent
+    EntityDebugSettingsButtonComponent
   ],
   exports: [
     SharedHomeComponentsModule,
@@ -577,7 +604,14 @@ import { DebugSettingsButtonComponent } from '@home/components/debug-settings/de
     IntegrationWizardDialogComponent,
     SendNotificationButtonComponent,
     EntityChipsComponent,
-    DashboardViewComponent
+    DashboardViewComponent,
+    CalculatedFieldsTableComponent,
+    CalculatedFieldDialogComponent,
+    CalculatedFieldArgumentsTableComponent,
+    CalculatedFieldArgumentPanelComponent,
+    CalculatedFieldDebugDialogComponent,
+    CalculatedFieldScriptTestDialogComponent,
+    CalculatedFieldTestArgumentsComponent,
   ],
   providers: [
     WidgetComponentService,
@@ -586,6 +620,7 @@ import { DebugSettingsButtonComponent } from '@home/components/debug-settings/de
     GroupConfigTableConfigService,
     EntityGroupsTableConfigResolver,
     EntityGroupConfigResolver,
+    DurationLeftPipe,
     {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent},
     {provide: COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN, useValue: ComplexFilterPredicateDialogComponent},
     {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent},

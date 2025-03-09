@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,12 +47,13 @@ import {
   CountWidgetSettings, entityCountCardLayoutImages
 } from '@home/components/widget/lib/count/count-widget.models';
 import {PageComponent} from '@shared/components/page.component';
-import {Component, forwardRef, Input, OnInit} from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import {
   valueCardLayoutImages,
   valueCardLayoutTranslations
 } from '@home/components/widget/lib/cards/value-card-widget.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-count-widget-settings',
@@ -85,7 +86,8 @@ export class CountWidgetSettingsComponent extends PageComponent implements OnIni
   countWidgetConfigForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -119,7 +121,9 @@ export class CountWidgetSettingsComponent extends PageComponent implements OnIni
       chevronSizeUnit: [null, []],
       chevronColor: [null, []],
     });
-    this.countWidgetConfigForm.valueChanges.subscribe(() => {
+    this.countWidgetConfigForm.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
     for (const trigger of ['showLabel', 'showIcon', 'showIconBackground', 'showChevron']) {
@@ -128,7 +132,9 @@ export class CountWidgetSettingsComponent extends PageComponent implements OnIni
       for (const part of path) {
         control = this.countWidgetConfigForm.get(part);
       }
-      control.valueChanges.subscribe(() => {
+      control.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateValidators();
       });
     }

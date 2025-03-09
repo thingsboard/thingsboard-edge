@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.script.api.tbel.TbelCfArg;
+import org.thingsboard.script.api.tbel.TbelCfObject;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.stats.StatsCounter;
@@ -293,6 +295,8 @@ public abstract class AbstractScriptInvokeService implements ScriptInvokeService
         for (Object arg : args) {
             if (arg instanceof CharSequence) {
                 totalArgsSize += ((CharSequence) arg).length();
+            } else if (arg instanceof TbelCfObject tbelCfObj) {
+                totalArgsSize += tbelCfObj.memorySize();
             } else {
                 var str = JacksonUtil.toString(arg);
                 if (str != null) {

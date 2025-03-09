@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,7 +41,12 @@ import { WidgetService } from '@core/http/widget.service';
 import { WidgetEditorComponent } from '@home/pages/widget/widget-editor.component';
 import { map } from 'rxjs/operators';
 import { detailsToWidgetInfo, WidgetInfo } from '@home/models/widget-component.models';
-import { widgetType, WidgetTypeDetails, WidgetTypeInfo } from '@app/shared/models/widget.models';
+import {
+  migrateWidgetTypeToDynamicForms,
+  widgetType,
+  WidgetTypeDetails,
+  WidgetTypeInfo
+} from '@app/shared/models/widget.models';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { WidgetTypesTableConfigResolver } from '@home/pages/widget/widget-types-table-config.resolver';
@@ -83,10 +88,13 @@ const widgetEditorDataResolver: ResolveFn<WidgetEditorData> = (route: ActivatedR
     );
   } else {
     return inject(WidgetService).getWidgetTypeById(widgetTypeId).pipe(
-      map((result) => ({
-        widgetTypeDetails: result,
-        widget: detailsToWidgetInfo(result)
-      }))
+      map((result) => {
+        result = migrateWidgetTypeToDynamicForms(result);
+        return {
+          widgetTypeDetails: result,
+          widget: detailsToWidgetInfo(result)
+        };
+      })
     );
   }
 };

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -235,15 +235,16 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
   }
 
   save(): void {
-    this.whiteLabelingParams = {...this.whiteLabelingParams, ...this.wlSettings.value};
-    if (this.whiteLabelingParams.platformName === 'ThingsBoard') {
-      this.whiteLabelingParams.platformName = null;
+    const whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams = {...this.whiteLabelingParams, ...this.wlSettings.value};
+    if (whiteLabelingParams.platformName === 'ThingsBoard') {
+      whiteLabelingParams.platformName = null;
     }
-    if (this.whiteLabelingParams.platformVersion === env.tbVersion) {
-      this.whiteLabelingParams.platformVersion = null;
+    if (whiteLabelingParams.platformVersion === env.tbVersion) {
+      whiteLabelingParams.platformVersion = null;
     }
-    (this.isLoginWl ? this.whiteLabelingService.saveLoginWhiteLabelParams(this.whiteLabelingParams) :
-        this.whiteLabelingService.saveWhiteLabelParams(this.whiteLabelingParams)).subscribe(() => {
+    (this.isLoginWl ? this.whiteLabelingService.saveLoginWhiteLabelParams(whiteLabelingParams) :
+        this.whiteLabelingService.saveWhiteLabelParams(whiteLabelingParams)).subscribe(() => {
+          this.whiteLabelingParams = whiteLabelingParams;
           if (this.isLoginWl) {
             this.loadWhiteLabelingParams();
           } else {

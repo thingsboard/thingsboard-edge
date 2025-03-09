@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -107,7 +107,6 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       tenantNotificationRequestsRateLimit: [null, []],
       tenantNotificationRequestsPerRuleRateLimit: [null, []],
       maxTransportMessages: [null, [Validators.required, Validators.min(0)]],
-      maxDebugModeDurationMinutes: [null, [Validators.min(0)]],
       maxTransportDataPoints: [null, [Validators.required, Validators.min(0)]],
       maxREExecutions: [null, [Validators.required, Validators.min(0)]],
       maxJSExecutions: [null, [Validators.required, Validators.min(0)]],
@@ -118,6 +117,7 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       maxSms: [null, []],
       smsEnabled: [null, []],
       maxCreatedAlarms: [null, [Validators.required, Validators.min(0)]],
+      maxDebugModeDurationMinutes: [null, [Validators.min(0)]],
       defaultStorageTtlDays: [null, [Validators.required, Validators.min(0)]],
       alarmsTtlDays: [null, [Validators.required, Validators.min(0)]],
       rpcTtlDays: [null, [Validators.required, Validators.min(0)]],
@@ -140,7 +140,13 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       edgeEventRateLimits: [null, []],
       edgeEventRateLimitsPerEdge: [null, []],
       edgeUplinkMessagesRateLimits: [null, []],
-      edgeUplinkMessagesRateLimitsPerEdge: [null, []]
+      edgeUplinkMessagesRateLimitsPerEdge: [null, []],
+      maxCalculatedFieldsPerEntity: [null, [Validators.required, Validators.min(0)]],
+      maxArgumentsPerCF: [null, [Validators.required, Validators.min(0)]],
+      maxDataPointsPerRollingArg: [null, [Validators.required, Validators.min(0)]],
+      maxStateSizeInKBytes: [null, [Validators.required, Validators.min(0)]],
+      calculatedFieldDebugEventsRateLimit: [null, []],
+      maxSingleValueArgumentSizeInKBytes: [null, [Validators.required, Validators.min(0)]],
     });
 
     this.defaultTenantProfileConfigurationFormGroup.get('smsEnabled').valueChanges.pipe(
@@ -150,7 +156,9 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       }
     );
 
-    this.defaultTenantProfileConfigurationFormGroup.valueChanges.subscribe(() => {
+    this.defaultTenantProfileConfigurationFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

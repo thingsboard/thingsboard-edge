@@ -1,0 +1,111 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="rabbitMqConfigForm" class="flex flex-col">
+  <mat-form-field class="mat-block">
+    <mat-label translate>rule-node-config.exchange-name-pattern</mat-label>
+    <input matInput formControlName="exchangeNamePattern">
+  </mat-form-field>
+  <mat-form-field class="mat-block">
+    <mat-label translate>rule-node-config.routing-key-pattern</mat-label>
+    <input matInput formControlName="routingKeyPattern">
+  </mat-form-field>
+  <mat-form-field class="mat-block">
+    <mat-label translate>rule-node-config.message-properties</mat-label>
+    <mat-select formControlName="messageProperties">
+      <mat-option *ngFor="let property of messageProperties" [value]="property">
+        {{ property }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div class="gt-sm:flex gt-sm:flex-row gt-sm:gap-2">
+    <mat-form-field class="mat-block gt-sm:max-w-60% gt-sm:flex-full">
+      <mat-label translate>rule-node-config.host</mat-label>
+      <input required matInput formControlName="host">
+      <mat-error *ngIf="rabbitMqConfigForm.get('host').hasError('required')">
+        {{ 'rule-node-config.host-required' | translate }}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="mat-block gt-sm:max-w-40% gt-sm:flex-full">
+      <mat-label translate>rule-node-config.port</mat-label>
+      <input required type="number" step="1" min="1" max="65535" matInput formControlName="port">
+      <mat-error *ngIf="rabbitMqConfigForm.get('port').hasError('required')">
+        {{ 'rule-node-config.port-required' | translate }}
+      </mat-error>
+      <mat-error *ngIf="rabbitMqConfigForm.get('port').hasError('min')">
+        {{ 'rule-node-config.port-range' | translate }}
+      </mat-error>
+      <mat-error *ngIf="rabbitMqConfigForm.get('port').hasError('max')">
+        {{ 'rule-node-config.port-range' | translate }}
+      </mat-error>
+    </mat-form-field>
+  </div>
+  <mat-form-field class="mat-block">
+    <mat-label translate>rule-node-config.virtual-host</mat-label>
+    <input matInput formControlName="virtualHost">
+  </mat-form-field>
+  <mat-form-field class="mat-block">
+    <mat-label translate>rule-node-config.username</mat-label>
+    <input matInput formControlName="username">
+  </mat-form-field>
+  <mat-form-field class="mat-block">
+    <mat-label translate>rule-node-config.password</mat-label>
+    <input type="password" matInput formControlName="password">
+    <tb-toggle-password matSuffix></tb-toggle-password>
+  </mat-form-field>
+  <mat-checkbox formControlName="automaticRecoveryEnabled">
+    {{ 'rule-node-config.automatic-recovery' | translate }}
+  </mat-checkbox>
+  <mat-form-field class="mat-block">
+    <mat-label translate>rule-node-config.connection-timeout-ms</mat-label>
+    <input type="number" step="1" min="0" matInput formControlName="connectionTimeout">
+    <mat-error *ngIf="rabbitMqConfigForm.get('connectionTimeout').hasError('min')">
+      {{ 'rule-node-config.min-connection-timeout-ms-message' | translate }}
+    </mat-error>
+  </mat-form-field>
+  <mat-form-field class="mat-block">
+    <mat-label translate>rule-node-config.handshake-timeout-ms</mat-label>
+    <input type="number" step="1" min="0" matInput formControlName="handshakeTimeout">
+    <mat-error *ngIf="rabbitMqConfigForm.get('handshakeTimeout').hasError('min')">
+      {{ 'rule-node-config.min-handshake-timeout-ms-message' | translate }}
+    </mat-error>
+  </mat-form-field>
+  <label translate class="tb-title">rule-node-config.client-properties</label>
+  <tb-kv-map-config-old
+    required="false"
+    formControlName="clientProperties"
+    keyText="rule-node-config.key"
+    keyRequiredText="rule-node-config.key-required"
+    valText="rule-node-config.value"
+    valRequiredText="rule-node-config.value-required">
+  </tb-kv-map-config-old>
+</section>

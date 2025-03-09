@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALIDATORS,
@@ -65,6 +65,7 @@ import {
 import { extractType } from '@core/utils';
 import { IAliasController } from '@core/api/widget-api.models';
 import { Widget } from '@shared/models/widget.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-map-settings',
@@ -107,7 +108,8 @@ export class MapSettingsComponent extends PageComponent implements OnInit, Contr
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -125,19 +127,29 @@ export class MapSettingsComponent extends PageComponent implements OnInit, Contr
       this.mapSettingsFormGroup.addControl('markerClusteringSettings', this.fb.control(null, []));
     }
     this.mapSettingsFormGroup.addControl('mapEditorSettings', this.fb.control(null, []));
-    this.mapSettingsFormGroup.get('mapProviderSettings').valueChanges.subscribe(() => {
+    this.mapSettingsFormGroup.get('mapProviderSettings').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.mapSettingsFormGroup.get('markersSettings').valueChanges.subscribe(() => {
+    this.mapSettingsFormGroup.get('markersSettings').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.mapSettingsFormGroup.get('polygonSettings').valueChanges.subscribe(() => {
+    this.mapSettingsFormGroup.get('polygonSettings').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.mapSettingsFormGroup.get('circleSettings').valueChanges.subscribe(() => {
+    this.mapSettingsFormGroup.get('circleSettings').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
-    this.mapSettingsFormGroup.valueChanges.subscribe(() => {
+    this.mapSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
     this.updateValidators(false);

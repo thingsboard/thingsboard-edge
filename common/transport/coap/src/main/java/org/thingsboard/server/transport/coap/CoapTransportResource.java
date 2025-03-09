@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,10 @@ import org.eclipse.californium.core.observe.ObserveRelation;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
 import org.eclipse.californium.core.server.resources.ResourceObserver;
+import org.eclipse.californium.elements.EndpointContext;
+import org.eclipse.californium.elements.auth.X509CertPath;
 import org.thingsboard.server.coapserver.CoapServerService;
+import org.thingsboard.server.coapserver.TbCoapDtlsSessionKey;
 import org.thingsboard.server.coapserver.TbCoapDtlsSessionInfo;
 import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.adaptor.JsonConverter;
@@ -66,12 +69,14 @@ import org.thingsboard.server.transport.coap.client.TbCoapClientState;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.security.cert.X509Certificate;
 
 import static org.eclipse.californium.elements.DtlsEndpointContext.KEY_SESSION_ID;
 
@@ -86,7 +91,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
 
     private static final String INTEGRATIONS_RESOURCE_NAME = "i";
 
-    private final ConcurrentMap<InetSocketAddress, TbCoapDtlsSessionInfo> dtlsSessionsMap;
+    private final ConcurrentMap<TbCoapDtlsSessionKey, TbCoapDtlsSessionInfo> dtlsSessionsMap;
     private final long timeout;
     private final long piggybackTimeout;
     private final CoapClientContext clients;
@@ -198,11 +203,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
 
         var dtlsSessionId = request.getSourceContext().get(KEY_SESSION_ID);
         if (dtlsSessionsMap != null && dtlsSessionId != null && !dtlsSessionId.isEmpty()) {
-            TbCoapDtlsSessionInfo tbCoapDtlsSessionInfo = dtlsSessionsMap
-                    .computeIfPresent(request.getSourceContext().getPeerAddress(), (dtlsSessionIdStr, dtlsSessionInfo) -> {
-                        dtlsSessionInfo.setLastActivityTime(System.currentTimeMillis());
-                        return dtlsSessionInfo;
-                    });
+            TbCoapDtlsSessionInfo tbCoapDtlsSessionInfo = this.getCoapDtlsSessionInfo(request.getSourceContext());
             if (tbCoapDtlsSessionInfo != null) {
                 processRequest(exchange, type, request, tbCoapDtlsSessionInfo.getMsg(), tbCoapDtlsSessionInfo.getDeviceProfile());
             } else {
@@ -272,7 +273,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         TransportProtos.SessionInfoProto sessionInfo = clients.getNewSyncSession(clientState);
         UUID sessionId = toSessionId(sessionInfo);
         transportService.process(sessionInfo, clientState.getAdaptor().convertToPostAttributes(sessionId, request,
-                clientState.getConfiguration().getAttributesMsgDescriptor()),
+                        clientState.getConfiguration().getAttributesMsgDescriptor()),
                 new CoapResponseCodeCallback(exchange, CoAP.ResponseCode.CREATED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
     }
 
@@ -280,7 +281,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         TransportProtos.SessionInfoProto sessionInfo = clients.getNewSyncSession(clientState);
         UUID sessionId = toSessionId(sessionInfo);
         transportService.process(sessionInfo, clientState.getAdaptor().convertToPostTelemetry(sessionId, request,
-                clientState.getConfiguration().getTelemetryMsgDescriptor()),
+                        clientState.getConfiguration().getTelemetryMsgDescriptor()),
                 new CoapResponseCodeCallback(exchange, CoAP.ResponseCode.CREATED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
     }
 
@@ -490,4 +491,32 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         }
     }
 
+    private TbCoapDtlsSessionInfo getCoapDtlsSessionInfo(EndpointContext endpointContext) {
+        InetSocketAddress peerAddress = endpointContext.getPeerAddress();
+        String certPemStr = getCertPem(endpointContext);
+        TbCoapDtlsSessionKey tbCoapDtlsSessionKey = StringUtils.isNotBlank(certPemStr) ? new TbCoapDtlsSessionKey(peerAddress, certPemStr) : null;
+        TbCoapDtlsSessionInfo tbCoapDtlsSessionInfo;
+        if (tbCoapDtlsSessionKey != null) {
+            tbCoapDtlsSessionInfo = dtlsSessionsMap
+                    .computeIfPresent(tbCoapDtlsSessionKey, (dtlsSessionIdStr, dtlsSessionInfo) -> {
+                        dtlsSessionInfo.setLastActivityTime(System.currentTimeMillis());
+                        return dtlsSessionInfo;
+                    });
+        } else {
+            tbCoapDtlsSessionInfo = null;
+        }
+        return tbCoapDtlsSessionInfo;
+    }
+
+    private String getCertPem(EndpointContext endpointContext) {
+        try {
+            X509CertPath certPath = (X509CertPath) endpointContext.getPeerIdentity();
+            X509Certificate x509Certificate = (X509Certificate) certPath.getPath().getCertificates().get(0);
+            return Base64.getEncoder().encodeToString(x509Certificate.getEncoded());
+        } catch (Exception e) {
+            log.error("Failed to get cert PEM: [{}]", endpointContext.getPeerAddress(), e);
+            return null;
+        }
+    }
 }
+

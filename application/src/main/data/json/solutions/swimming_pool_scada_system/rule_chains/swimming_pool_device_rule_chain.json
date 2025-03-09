@@ -106,11 +106,13 @@
         "debugAll": false,
         "singletonMode": false,
         "queueName": null,
-        "configurationVersion": 0,
+        "configurationVersion": 1,
         "configuration": {
           "defaultTTL": 0,
-          "skipLatestPersistence": false,
-          "useServerTs": false
+          "useServerTs": false,
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          }
         },
         "additionalInfo": {
           "description": "",
@@ -125,8 +127,11 @@
         "debugAll": false,
         "singletonMode": false,
         "queueName": null,
-        "configurationVersion": 2,
+        "configurationVersion": 3,
         "configuration": {
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          },
           "scope": "SERVER_SCOPE",
           "notifyDevice": false,
           "sendAttributesUpdatedNotification": false,
@@ -263,8 +268,11 @@
         "debugAll": false,
         "singletonMode": false,
         "queueName": null,
-        "configurationVersion": 2,
+        "configurationVersion": 3,
         "configuration": {
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          },
           "scope": "CLIENT_SCOPE",
           "notifyDevice": false,
           "sendAttributesUpdatedNotification": false,
@@ -338,8 +346,11 @@
         "debugAll": false,
         "singletonMode": false,
         "queueName": null,
-        "configurationVersion": 2,
+        "configurationVersion": 3,
         "configuration": {
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          },
           "scope": "SERVER_SCOPE",
           "notifyDevice": false,
           "sendAttributesUpdatedNotification": false,

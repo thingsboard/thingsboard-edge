@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.dao.sql.alarm;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -58,5 +60,7 @@ public interface EntityAlarmRepository extends JpaRepository<EntityAlarmEntity, 
     void deleteByTenantId(@Param("tenantId") UUID tenantId);
 
     List<EntityAlarmEntity> findAllByEntityId(UUID entityId);
+
+    Page<EntityAlarmEntity> findByTenantId(UUID tenantId, Pageable pageable);
 
 }

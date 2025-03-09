@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -46,6 +46,7 @@ export interface DefaultTenantProfileConfiguration {
   maxUsers: number;
   maxDashboards: number;
   maxRuleChains: number;
+  maxEdges: number;
   maxIntegrations: number;
   maxConverters: number;
   maxSchedulerEvents: number;
@@ -59,6 +60,13 @@ export interface DefaultTenantProfileConfiguration {
   transportDeviceMsgRateLimit?: string;
   transportDeviceTelemetryMsgRateLimit?: string;
   transportDeviceTelemetryDataPointsRateLimit?: string;
+
+  transportGatewayMsgRateLimit?: string;
+  transportGatewayTelemetryMsgRateLimit?: string;
+  transportGatewayTelemetryDataPointsRateLimit?: string;
+  transportGatewayDeviceMsgRateLimit?: string;
+  transportGatewayDeviceTelemetryMsgRateLimit?: string;
+  transportGatewayDeviceTelemetryDataPointsRateLimit?: string;
 
   integrationMsgsPerTenantRateLimit?: string;
   integrationMsgsPerDeviceRateLimit?: string;
@@ -81,6 +89,8 @@ export interface DefaultTenantProfileConfiguration {
   smsEnabled: boolean;
   maxCreatedAlarms: number;
 
+  maxDebugModeDurationMinutes: number;
+
   tenantServerRestLimitsConfiguration: string;
   customerServerRestLimitsConfiguration: string;
 
@@ -97,12 +107,24 @@ export interface DefaultTenantProfileConfiguration {
 
   cassandraQueryTenantRateLimitsConfiguration: string;
 
+  edgeEventRateLimits?: string;
+  edgeEventRateLimitsPerEdge?: string;
+  edgeUplinkMessagesRateLimits?: string;
+  edgeUplinkMessagesRateLimitsPerEdge?: string;
+
   defaultStorageTtlDays: number;
   alarmsTtlDays: number;
   rpcTtlDays: number;
   queueStatsTtlDays: number;
   ruleEngineExceptionsTtlDays: number;
   blobEntityTtlDays: number;
+
+  maxCalculatedFieldsPerEntity: number;
+  maxArgumentsPerCF: number;
+  maxDataPointsPerRollingArg: number;
+  maxStateSizeInKBytes: number;
+  maxSingleValueArgumentSizeInKBytes: number;
+  calculatedFieldDebugEventsRateLimit: string;
 }
 
 export type TenantProfileConfigurations = DefaultTenantProfileConfiguration;
@@ -123,6 +145,7 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxUsers: 0,
           maxDashboards: 0,
           maxRuleChains: 0,
+          maxEdges: 0,
           maxIntegrations: 0,
           maxConverters: 0,
           maxSchedulerEvents: 0,
@@ -140,6 +163,7 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxSms: 0,
           smsEnabled: true,
           maxCreatedAlarms: 0,
+          maxDebugModeDurationMinutes: 0,
           tenantServerRestLimitsConfiguration: '',
           customerServerRestLimitsConfiguration: '',
           maxWsSessionsPerTenant: 0,
@@ -158,7 +182,13 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           rpcTtlDays: 0,
           queueStatsTtlDays: 0,
           ruleEngineExceptionsTtlDays: 0,
-          blobEntityTtlDays: 0
+          blobEntityTtlDays: 0,
+          maxCalculatedFieldsPerEntity: 5,
+          maxArgumentsPerCF: 10,
+          maxDataPointsPerRollingArg: 1000,
+          maxStateSizeInKBytes: 32,
+          maxSingleValueArgumentSizeInKBytes: 2,
+          calculatedFieldDebugEventsRateLimit: ''
         };
         configuration = {...defaultConfiguration, type: TenantProfileType.DEFAULT};
         break;

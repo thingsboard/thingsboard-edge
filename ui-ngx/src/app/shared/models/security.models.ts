@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,9 @@ export enum Operation {
   IMPERSONATE = 'IMPERSONATE',
   CLAIM_DEVICES = 'CLAIM_DEVICES',
   SHARE_GROUP = 'SHARE_GROUP',
-  ASSIGN_TO_TENANT = 'ASSIGN_TO_TENANT'
+  ASSIGN_TO_TENANT = 'ASSIGN_TO_TENANT',
+  READ_CALCULATED_FIELD = 'READ_CALCULATED_FIELD',
+  WRITE_CALCULATED_FIELD = 'WRITE_CALCULATED_FIELD'
 }
 
 const operationTypeTranslations = new Map<Operation, string>();
@@ -158,6 +160,9 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.MOBILE_APP_BUNDLE, Resource.MOBILE_APP_BUNDLE],
     [EntityType.DOMAIN, Resource.DOMAIN],
     [EntityType.OAUTH2_CLIENT, Resource.OAUTH2_CLIENT],
+    [EntityType.NOTIFICATION_TARGET, Resource.NOTIFICATION],
+    [EntityType.NOTIFICATION_RULE, Resource.NOTIFICATION],
+    [EntityType.NOTIFICATION_TEMPLATE, Resource.NOTIFICATION],
   ]
 );
 

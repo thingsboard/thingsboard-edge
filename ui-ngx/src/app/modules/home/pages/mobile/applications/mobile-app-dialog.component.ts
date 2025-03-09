@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormGroupDirective, NgForm, UntypedFormControl } from '@angular/forms';
 import { MobileApp } from '@shared/models/mobile-app.models';
-import { MobileAppComponent } from '@home/pages/mobile/applications/mobile-app.component';
+import type { MobileAppComponent } from '@home/pages/mobile/applications/mobile-app.component';
 import { PlatformType } from '@shared/models/oauth2.models';
 import { MobileAppService } from '@core/http/mobile-app.service';
 
@@ -72,6 +72,7 @@ export class MobileAppDialogComponent extends DialogComponent<MobileAppDialogCom
       this.mobileAppComponent.entityForm.markAsDirty();
       this.mobileAppComponent.entityForm.patchValue({platformType: this.data.platformType});
       this.mobileAppComponent.entityForm.get('platformType').disable({emitEvent: false});
+      this.mobileAppComponent.isEdit = true;
     }, 0);
   }
 
