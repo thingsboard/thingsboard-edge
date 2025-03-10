@@ -109,6 +109,11 @@ export class TbGeoMap extends TbMap<GeoMapSettings> {
         if (layers.length) {
           const layer = layers[0];
           layer.layer.addTo(this.map);
+          if (this.ctx.reportService.reportView) {
+            layer.layer.once('load', () => {
+              this.ctx.reportService.onMapLoaded(this.mapUuid);
+            });
+          }
           this.map.attributionControl.setPrefix(layer.attributionPrefix);
           if (layers.length > 1) {
             const sidebar = this.getSidebar();

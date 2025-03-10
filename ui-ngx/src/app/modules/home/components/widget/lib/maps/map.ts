@@ -140,6 +140,8 @@ export abstract class TbMap<S extends BaseMapSettings> {
   protected addPolygonDataLayers: TbLatestMapDataLayer<any>[];
   protected addCircleDataLayers: TbLatestMapDataLayer<any>[];
 
+  protected mapUuid: string;
+
   private readonly mapResize$: ResizeObserver;
 
   private tooltipInstances: TooltipInstancesData[] = [];
@@ -156,6 +158,9 @@ export abstract class TbMap<S extends BaseMapSettings> {
   protected constructor(protected ctx: WidgetContext,
                         protected inputSettings: DeepPartial<S>,
                         protected containerElement: HTMLElement) {
+    if (this.ctx.reportService.reportView) {
+      this.mapUuid = this.ctx.reportService.onWaitForMap();
+    }
     this.ctx.actionsApi.placeMapItem = this.placeMapItem.bind(this);
     this.settings = mergeDeepIgnoreArray({} as S, this.defaultSettings(), this.inputSettings as S);
 
