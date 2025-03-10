@@ -33,7 +33,9 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -52,8 +54,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
+import org.thingsboard.integration.api.converter.DedicatedConverterUtil;
+import org.thingsboard.integration.api.converter.DedicatedUplinkData;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
+import org.thingsboard.integration.api.converter.wrapper.ConverterWrapperFactory;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -459,6 +465,18 @@ public class ConverterController extends AutoCommitController {
         ObjectNode result = JacksonUtil.newObjectNode();
         result.put("output", output);
         result.put("error", errorText);
+
+        if (StringUtils.isNotEmpty(output) && inputParams.has("converter")) {
+            Converter converter = JacksonUtil.treeToValue(inputParams.get("converter"), Converter.class);
+            JsonObject jsonOutput = JsonParser.parseString(output).getAsJsonObject();
+            Integer converterVersion = converter.getConverterVersion();
+            if (converterVersion != null && converterVersion == 2 && ConverterWrapperFactory.getWrapper(converter.getIntegrationType()).isPresent()) {
+                DedicatedConverterConfig config = JacksonUtil.treeToValue(converter.getConfiguration(), DedicatedConverterConfig.class);
+                DedicatedUplinkData uplinkData = DedicatedConverterUtil.parseUplinkData(config, jsonOutput, uplinkMetaData);
+                result.put("outputMsg", JacksonUtil.toString(uplinkData));
+            }
+        }
+
         return result;
     }
 

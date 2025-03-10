@@ -28,31 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api.converter.wrapper;
+package org.thingsboard.integration.api.converter;
 
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import com.google.gson.JsonElement;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
 
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
-public final class ConverterWrapperFactory {
-
-    private static final ConcurrentHashMap<IntegrationType, Optional<ConverterWrapper>> wrappers = new ConcurrentHashMap<>();
-
-    private ConverterWrapperFactory() {}
-
-    public static Optional<ConverterWrapper> getWrapper(IntegrationType integrationType) {
-        if (integrationType == null) {
-            return Optional.empty();
-        }
-
-        return wrappers.computeIfAbsent(integrationType, key ->
-                Optional.ofNullable(switch (integrationType) {
-                    case LORIOT -> new LoriotConverterWrapper();
-                    case CHIRPSTACK -> new ChirpStackConverterWrapper();
-                    case THINGPARK, TPE -> new ThingParkConverterWrapper();
-                    case TTN, TTI -> new ThingsStackConverterWrapper();
-                    default -> null;
-                }));
-    }
+@Builder
+@Data
+public class DedicatedUplinkData {
+    private final EntityType entityType;
+    private final String name;
+    private final String profile;
+    private final String label;
+    private final String customer;
+    private final String group;
+    private final JsonElement telemetry;
+    private final JsonElement attributes;
 }
