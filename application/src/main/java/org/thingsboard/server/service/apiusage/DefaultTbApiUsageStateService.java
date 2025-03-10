@@ -78,7 +78,8 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsgPack;
+import org.thingsboard.server.gen.transport.TransportProtos.UsageStatsServiceMsg;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.UsageStatsKVProto;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
@@ -131,7 +132,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     private final OwnersCacheService ownersCacheService;
     private final TbQueueProducerProvider producerProvider;
     private final NotificationRuleProcessor notificationRuleProcessor;
-    private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsgPack>> msgProducer;
+    private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> msgProducer;
     private final DbCallbackExecutorService dbExecutor;
     private final MailExecutorService mailExecutor;
 
@@ -182,10 +183,30 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     }
 
     @Override
-    public void process(TbProtoQueueMsg<ToUsageStatsServiceMsgPack> msgPack, TbCallback callback) {
-        String serviceId = msgPack.getValue().getServiceId();
-        Map<TopicPartitionInfo, List<ToUsageStatsServiceMsg>> toPropagateStats = new HashMap<>();
-        msgPack.getValue().getMsgsList().forEach(msg -> {
+    public void process(TbProtoQueueMsg<ToUsageStatsServiceMsg> msgPack, TbCallback callback) {
+        ToUsageStatsServiceMsg serviceMsg = msgPack.getValue();
+        String serviceId = serviceMsg.getServiceId();
+        Map<TopicPartitionInfo, List<UsageStatsServiceMsg>> toPropagateStats = new HashMap<>();
+        List<TransportProtos.UsageStatsServiceMsg> msgs;
+
+        //For backward compatibility, remove after release
+        if (serviceMsg.getTenantIdMSB() != 0) {
+            TransportProtos.UsageStatsServiceMsg oldMsg = TransportProtos.UsageStatsServiceMsg.newBuilder()
+                    .setTenantIdMSB(serviceMsg.getTenantIdMSB())
+                    .setTenantIdLSB(serviceMsg.getTenantIdLSB())
+                    .setCustomerIdMSB(serviceMsg.getCustomerIdMSB())
+                    .setCustomerIdLSB(serviceMsg.getCustomerIdLSB())
+                    .setEntityIdMSB(serviceMsg.getEntityIdMSB())
+                    .setEntityIdLSB(serviceMsg.getEntityIdLSB())
+                    .addAllValues(serviceMsg.getValuesList())
+                    .build();
+
+            msgs = List.of(oldMsg);
+        } else {
+            msgs = serviceMsg.getMsgsList();
+        }
+
+        msgs.forEach(msg -> {
             TenantId tenantId = TenantId.fromUUID(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
             EntityId ownerId;
             if (msg.getCustomerIdMSB() != 0 && msg.getCustomerIdLSB() != 0) {
@@ -232,7 +253,14 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
             updatedEntries = new ArrayList<>(ApiUsageRecordKey.values().length);
             Set<ApiFeature> apiFeatures = new HashSet<>();
             for (UsageStatsKVProto statsItem : values) {
-                ApiUsageRecordKey recordKey = ProtoUtils.fromProto(statsItem.getKey());
+                ApiUsageRecordKey recordKey;
+
+                //For backward compatibility, remove after release
+                if (StringUtils.isNotEmpty(statsItem.getKey())) {
+                    recordKey = ApiUsageRecordKey.valueOf(statsItem.getKey());
+                } else {
+                    recordKey = ProtoUtils.fromProto(statsItem.getKeyProto());
+                }
 
                 StatsCalculationResult calculationResult = usageState.calculate(recordKey, statsItem.getValue(), serviceId);
                 if (calculationResult.isValueChanged()) {
@@ -267,11 +295,11 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
         }
     }
 
-    private void propagateStatsToCustomerOwner(ToUsageStatsServiceMsg statsMsg, TenantId tenantId, CustomerId customerId, Map<TopicPartitionInfo, List<ToUsageStatsServiceMsg>> toPropagateStats) {
+    private void propagateStatsToCustomerOwner(UsageStatsServiceMsg statsMsg, TenantId tenantId, CustomerId customerId, Map<TopicPartitionInfo, List<UsageStatsServiceMsg>> toPropagateStats) {
         EntityId owner = ownersCacheService.getOwner(tenantId, customerId);
         if (owner == null || owner.isNullUid() || owner.getEntityType() != EntityType.CUSTOMER) return;
 
-        ToUsageStatsServiceMsg newStatsMsg = ToUsageStatsServiceMsg.newBuilder()
+        UsageStatsServiceMsg newStatsMsg = UsageStatsServiceMsg.newBuilder()
                 .mergeFrom(statsMsg)
                 .setCustomerIdMSB(owner.getId().getMostSignificantBits())
                 .setCustomerIdLSB(owner.getId().getLeastSignificantBits())
@@ -281,11 +309,11 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
         toPropagateStats.computeIfAbsent(tpi, key -> new ArrayList<>()).add(newStatsMsg);
     }
 
-    private List<ToUsageStatsServiceMsgPack> toMsgPack(List<ToUsageStatsServiceMsg> list, String serviceId) {
+    private List<ToUsageStatsServiceMsg> toMsgPack(List<UsageStatsServiceMsg> list, String serviceId) {
         return Lists.partition(list, packSize)
                 .stream()
                 .map(partition ->
-                        ToUsageStatsServiceMsgPack.newBuilder()
+                        ToUsageStatsServiceMsg.newBuilder()
                                 .addAllMsgs(partition)
                                 .setServiceId(serviceId)
                                 .build())
