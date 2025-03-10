@@ -1,0 +1,78 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section class="tb-form-panel">
+  <mat-expansion-panel class="tb-settings" expanded>
+    <mat-expansion-panel-header>
+      {{ 'widgets.maps.map-action.map-action-buttons' | translate }}
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <div class="tb-form-table overflow-y-auto">
+        <div class="tb-form-table-header no-padding-right">
+          <div class="tb-form-table-header-cell min-w-32" style="flex: 1 1 40%" translate>widgets.maps.map-action.label</div>
+          <div class="tb-form-table-header-cell w-10 min-w-10" translate>widgets.maps.map-action.icon</div>
+          <div class="tb-form-table-header-cell w-10 min-w-10" translate>widgets.maps.map-action.color</div>
+          <div class="tb-form-table-header-cell min-w-32" style="flex: 1 1 60%" translate>widgets.maps.map-action.action</div>
+          <div class="tb-form-table-header-cell w-20 min-w-20 xs:w-10 xs:min-w-10"></div>
+        </div>
+        <div class="tb-form-table-body" cdkDropList cdkDropListOrientation="vertical"
+             [cdkDropListDisabled]="!dragEnabled"
+             (cdkDropListDropped)="buttonDrop($event)">
+          @for (mapAction of mapActionButtonsForm.controls; track mapAction) {
+            <div cdkDrag [cdkDragDisabled]="!dragEnabled" class="tb-draggable-form-table-row">
+              <tb-map-action-button-row class="flex-1"
+                                        [formControl]="mapAction"
+                                        (buttonRemoved)="removeButton($event)">
+              </tb-map-action-button-row>
+              <div class="tb-form-table-row-cell-buttons">
+                <button class="xs:!hidden"
+                        [class.tb-hidden]="!dragEnabled"
+                        mat-icon-button
+                        type="button"
+                        cdkDragHandle
+                        matTooltip="{{ 'action.drag' | translate }}"
+                        matTooltipPosition="above">
+                  <mat-icon>drag_indicator</mat-icon>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <span class="tb-prompt flex items-center justify-center">{{ 'widgets.maps.map-action.no-action-buttons-configured' | translate }}</span>
+          }
+        </div>
+      </div>
+      <button type="button" mat-stroked-button color="primary" class="max-w-fit" (click)="addButton()">
+        {{ 'widgets.maps.map-action.add-button' | translate }}
+      </button>
+    </ng-template>
+  </mat-expansion-panel>
+</section>
