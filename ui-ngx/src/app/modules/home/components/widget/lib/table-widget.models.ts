@@ -86,6 +86,7 @@ export interface TableWidgetDataKeySettings {
   defaultColumnVisibility?: ColumnVisibilityOptions;
   columnSelectionToDisplay?: ColumnSelectionOptions;
   columnExportOption?: columnExportOptions;
+  disableSorting?: boolean;
 }
 
 export type ShowCellButtonActionFunction = (ctx: WidgetContext, data: EntityData | AlarmDataInfo | FormattedData) => boolean;
@@ -172,7 +173,7 @@ export function entityDataSortOrderFromString(strSortOrder: string, columns: Ent
   if (!column) {
     column = findColumnByName(property, columns);
   }
-  if (column && column.entityKey) {
+  if (column && column.entityKey && column.sortable) {
     return {key: column.entityKey, direction};
   }
   return null;
