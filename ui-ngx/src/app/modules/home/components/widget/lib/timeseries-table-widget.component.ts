@@ -981,7 +981,13 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               tsRow['Entity Name'] = datasourceData.datasource.entityName;
               sourcesTsRows[tsKey] = tsRow;
               if (!isEmpty(sourcesLatestContentFunc)) {
-                sourcesTsRowsContentFunc[tsKey] = deepClone(sourcesLatestContentFunc[datasourceData.datasource.name]);
+                sourcesTsRowsContentFunc[tsKey] = {};
+                for (const key in sourcesLatestContentFunc[datasourceData.datasource.name]) {
+                  sourcesTsRowsContentFunc[tsKey][key] = {
+                    value: deepClone(sourcesLatestContentFunc[datasourceData.datasource.name][key].value),
+                    contentFunction: sourcesLatestContentFunc[datasourceData.datasource.name][key].contentFunction
+                  };
+                }
               }
             }
             const header = source.header.find(headerValue => headerValue.dataKey.label === key);

@@ -31,7 +31,7 @@
 
 import _ from 'lodash';
 import { Type } from '@angular/core';
-import { from, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { from, isObservable, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { catchError, finalize, share } from 'rxjs/operators';
 import { DataKey, Datasource, DatasourceData, FormattedData, ReplaceInfo } from '@app/shared/models/widget.models';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -356,6 +356,10 @@ function easeInOut(
 
 export function deepClone<T>(target: T, ignoreFields?: string[]): T {
   if (target === null) {
+    return target;
+  }
+  // Observables can't be cloned using the spread operator, because they have non-enumerable methods (like .pipe).
+  if (isObservable(target)) {
     return target;
   }
   if (target instanceof Date) {
