@@ -68,14 +68,12 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.net.URI;
-import java.util.List;
 
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.LOGIN;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.PRIVACY_POLICY;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGISTRATION;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.TERMS_OF_USE;
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
-import static org.thingsboard.server.dao.service.DataValidator.isValidDomain;
 import static org.thingsboard.server.dao.service.DataValidator.isValidUrl;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forTypeAndDomain;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
@@ -300,7 +298,15 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (loginWhiteLabelParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelParams.getBaseUrl())) {
             throw new IncorrectParameterException("Base url " + loginWhiteLabelParams.getBaseUrl() + " is invalid");
         }
+        checkDomainAndPropagateToEdge(tenantId, domain);
         saveLoginWhiteLabelParams(tenantId, customerId, loginWhiteLabelParams);
+    }
+
+    private void checkDomainAndPropagateToEdge(TenantId tenantId, Domain domain) {
+        if (!domain.isPropagateToEdge()) {
+            domain.setPropagateToEdge(true);
+            domainService.saveDomain(tenantId, domain);
+        }
     }
 
     @Override

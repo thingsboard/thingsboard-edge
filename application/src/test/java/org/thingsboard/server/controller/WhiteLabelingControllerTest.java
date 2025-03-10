@@ -41,6 +41,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.domain.DomainInfo;
+import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
@@ -98,10 +100,12 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
         Domain savedTenantDomain = doPost("/api/domain", constructDomain("domain2.com"), Domain.class);
         updateDomainAndVerify(savedTenantDomain);
+        verifyDomainPropagateToEdgeSetToTrue(savedTenantDomain.getId());
 
         loginCustomerAdminUser();
         Domain savedCustomerDomain = doPost("/api/domain", constructDomain("domain3.com"), Domain.class);
         LoginWhiteLabelingParams loginWhiteLabelingParams = updateDomainAndVerify(savedCustomerDomain);
+        verifyDomainPropagateToEdgeSetToTrue(savedCustomerDomain.getId());
 
         //check update settings for registered domain should be prohibited
         loginWhiteLabelingParams.setDomainId(savedTenantDomain.getId());
@@ -113,6 +117,11 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         differentTenantWLParams.setDomainId(savedTenantDomain.getId());
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams)
                 .andExpect(status().isForbidden());
+    }
+
+    private void verifyDomainPropagateToEdgeSetToTrue(DomainId domainId) throws Exception {
+        DomainInfo domainInfo = doGet("/api/domain/info/{id}", DomainInfo.class, domainId.getId());
+        assertThat(domainInfo.isPropagateToEdge()).isTrue();
     }
 
     @Test
@@ -406,7 +415,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         Domain domain = new Domain();
         domain.setName(domainName);
         domain.setOauth2Enabled(true);
-        domain.setPropagateToEdge(true);
+        domain.setPropagateToEdge(false);
         return domain;
     }
 
