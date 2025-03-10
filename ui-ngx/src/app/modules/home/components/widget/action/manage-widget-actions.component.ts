@@ -105,6 +105,8 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   @coerceBoolean()
   outlinedBorder = false;
 
+  @Input() additionalWidgetActionTypes: WidgetActionType[];
+
   innerValue: WidgetActionsData;
 
   displayedColumns: string[];
@@ -267,6 +269,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         actionTypes: this.actionTypes,
         customFunctionArgs: this.customFunctionArgs,
         widgetType: this.widgetType,
+        additionalWidgetActionTypes: this.additionalWidgetActionTypes,
         isEntityGroup: this.isEntityGroup
       }
     }).afterClosed().subscribe(
