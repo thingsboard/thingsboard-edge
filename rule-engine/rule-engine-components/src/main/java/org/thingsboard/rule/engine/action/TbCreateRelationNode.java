@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -78,7 +78,6 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
                 "Useful in GPS tracking use cases where relation acts as a temporary indicator of a tracker presence in specific geofence.</li>" +
                 "<li><strong>Change originator to target entity</strong> - useful when you need to process submitted message as a message from target entity.</li></ul>" +
                 "Output connections: <code>Success</code> - if the relation already exists or successfully created, otherwise <code>Failure</code>.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeCreateRelationConfig",
         icon = "add_circle",
         version = 1

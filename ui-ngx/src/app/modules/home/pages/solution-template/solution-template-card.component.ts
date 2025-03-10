@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
@@ -43,14 +43,14 @@ import {
 } from '@home/components/solution/solution-install-dialog.component';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
-import { ReplaySubject, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'tb-solution-template-card',
   templateUrl: './solution-template-card.component.html',
   styleUrls: ['./solution-template-card.component.scss']
 })
-export class SolutionTemplateCardComponent extends PageComponent implements OnInit {
+export class SolutionTemplateCardComponent extends PageComponent {
 
   @Input()
   solutionTemplate: TenantSolutionTemplateInfo;
@@ -65,9 +65,6 @@ export class SolutionTemplateCardComponent extends PageComponent implements OnIn
               private translate: TranslateService,
               private router: Router) {
     super(store);
-  }
-
-  ngOnInit() {
   }
 
   openSolutionTemplateDetails() {

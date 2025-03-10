@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,12 +35,13 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.TenantEntityDao;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 
 import java.util.List;
 import java.util.Set;
 
-public interface WhiteLabelingDao {
+public interface WhiteLabelingDao extends TenantEntityDao<WhiteLabeling> {
 
     WhiteLabeling save(TenantId tenantId, WhiteLabeling whiteLabeling);
 

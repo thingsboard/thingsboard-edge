@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -145,12 +146,24 @@ public abstract class DataValidator<D extends BaseData<?>> {
         }
     }
 
-    public static void validateCustomTranslation(JsonNode customTranslation) {
+    public static void validateCustomTranslationPatch(JsonNode customTranslation) {
         Streams.stream(customTranslation.fieldNames()).forEach(key -> {
             if (key.endsWith(".")) {
                 throw new DataValidationException("The key can`t end with '.'");
             }
         });
+    }
+
+    public static void validateCustomTranslationKeys(Set<String> defaultLocaleKeys, JsonNode customTranslation) {
+        Set<String> customTranslationKeys = JacksonUtil.extractKeys(customTranslation);
+        customTranslationKeys.removeAll(defaultLocaleKeys);
+        for (String addedKey : customTranslationKeys) {
+            for (String defaultLocaleKey : defaultLocaleKeys) {
+                if (addedKey.startsWith(defaultLocaleKey + ".")) {
+                    throw new DataValidationException("The key [" + addedKey + "] overlaps default key [" + defaultLocaleKey + "]");
+                }
+            }
+        }
     }
 
     public static boolean doValidateLocaleCode(String localeCode) {

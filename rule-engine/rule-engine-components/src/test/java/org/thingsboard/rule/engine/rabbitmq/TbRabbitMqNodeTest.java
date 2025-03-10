@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -118,7 +118,7 @@ public class TbRabbitMqNodeTest {
         assertThat(config.getExchangeNamePattern()).isEqualTo("");
         assertThat(config.getRoutingKeyPattern()).isEqualTo("");
         assertThat(config.getMessageProperties()).isNull();
-        assertThat(config.getHost()).isEqualTo(ConnectionFactory.DEFAULT_HOST);
+        assertThat(config.getHost()).isNull();
         assertThat(config.getPort()).isEqualTo(ConnectionFactory.DEFAULT_AMQP_PORT);
         assertThat(config.getVirtualHost()).isEqualTo(ConnectionFactory.DEFAULT_VHOST);
         assertThat(config.getUsername()).isEqualTo(ConnectionFactory.DEFAULT_USER);

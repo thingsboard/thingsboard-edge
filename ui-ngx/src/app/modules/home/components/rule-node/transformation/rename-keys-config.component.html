@@ -1,0 +1,55 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="renameKeysConfigForm" class="tb-form-panel stroked">
+  <div class="tb-form-panel-title" translate>rule-node-config.rename-keys-in</div>
+  <div class="fx-centered">
+    <div class="fetch-to-data-toggle">
+      <tb-toggle-select class="fetch-to-data-toggle" formControlName="renameIn" appearance="fill">
+        <tb-toggle-option *ngFor="let data of renameIn" [value]="data.value">
+          {{ data.name }}
+        </tb-toggle-option>
+      </tb-toggle-select>
+    </div>
+  </div>
+  <tb-kv-map-config
+    required
+    labelText="{{ translation.get(renameKeysConfigForm.get('renameIn').value) | translate }} {{'rule-node-config.keys-mapping' | translate}}"
+    formControlName="renameKeysMapping"
+    uniqueKeyValuePairValidator
+    requiredText="{{'rule-node-config.attr-mapping-required' | translate}}"
+    keyText="{{'rule-node-config.current-key-name' | translate}}"
+    keyRequiredText="{{'rule-node-config.key-name-required' | translate}}"
+    valText="{{'rule-node-config.new-key-name' | translate}}"
+    valRequiredText="{{'rule-node-config.new-key-name-required' | translate}}">
+  </tb-kv-map-config>
+</section>

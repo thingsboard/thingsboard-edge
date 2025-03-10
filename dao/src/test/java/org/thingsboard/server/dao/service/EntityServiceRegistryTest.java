@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 import org.thingsboard.server.dao.entity.EntityServiceRegistry;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -59,4 +60,8 @@ public class EntityServiceRegistryTest extends AbstractServiceTest {
         Assert.assertTrue(entityServiceRegistry.getServiceByEntityType(EntityType.RULE_NODE) instanceof RuleChainService);
     }
 
+    @Test
+    public void givenCalculatedFieldLinkEntityType_whenGetServiceByEntityTypeCalled_thenReturnedCalculatedFieldService() {
+        Assert.assertTrue(entityServiceRegistry.getServiceByEntityType(EntityType.CALCULATED_FIELD_LINK) instanceof CalculatedFieldService);
+    }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -997,7 +997,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 unSubResults.add((short) MqttReasonCodes.UnsubAck.NO_SUBSCRIPTION_EXISTED.byteValue());
             }
         }
-        if (!activityReported) {
+        if (!activityReported && !deviceSessionCtx.isProvisionOnly()) {
             transportService.recordActivity(deviceSessionCtx.getSessionInfo());
         }
         ctx.writeAndFlush(createUnSubAckMessage(mqttMsg.variableHeader().messageId(), unSubResults));

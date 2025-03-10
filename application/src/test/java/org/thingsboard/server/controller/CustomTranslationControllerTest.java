@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -136,6 +136,16 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
 
         loginSubCustomerAdminUser();
         assertThat(getFullTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    public void shouldNotSaveCustomTranslationWithKeyThatOverlapsWithDefault() throws Exception {
+        loginSysAdmin();
+        JsonNode wrongCustomTranslation = JacksonUtil.toJsonNode("{\"admin.home.customKey\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
+        doPost("/api/translation/custom/" + ES_ES, wrongCustomTranslation).andExpect(status().isBadRequest());
+
+        JsonNode correctCustomTranslation = JacksonUtil.toJsonNode("{\"admin.home\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
+        doPost("/api/translation/custom/" + ES_ES, correctCustomTranslation).andExpect(status().isOk());
     }
 
     @Test

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -151,7 +151,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                 .setConnectRequestMsg(ConnectRequestMsg.newBuilder()
                         .setEdgeRoutingKey(edgeKey)
                         .setEdgeSecret(edgeSecret)
-                        .setEdgeVersion(EdgeVersion.V_3_9_0)
+                        .setEdgeVersion(EdgeVersion.V_4_0_0)
                         .setMaxInboundMessageSize(maxInboundMessageSize)
                         .build())
                 .build());

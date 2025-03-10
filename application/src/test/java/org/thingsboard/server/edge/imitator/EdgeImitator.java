@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -88,7 +88,9 @@ import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
@@ -100,6 +102,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EdgeImitator {
 
+    private static final int MAX_DOWNLINK_FAILS = 2;
     private final String routingKey;
     private final String routingSecret;
 
@@ -115,6 +118,7 @@ public class EdgeImitator {
     private boolean randomFailuresOnTimeseriesDownlink = false;
     @Setter
     private double failureProbability = 0.0;
+    private final Map<Integer, Integer> downlinkFailureCountMap = new HashMap<>();
 
     @Getter
     private EdgeConfiguration configuration;
@@ -266,8 +270,11 @@ public class EdgeImitator {
         if (downlinkMsg.getEntityDataCount() > 0) {
             for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
                 if (randomFailuresOnTimeseriesDownlink) {
-                    if (getRandomBoolean()) {
+                    int downlinkMsgId = downlinkMsg.getDownlinkMsgId();
+
+                    if (getRandomBoolean() && checkFailureThreshold(downlinkMsgId)) {
                         result.add(Futures.immediateFailedFuture(new RuntimeException("Random failure. This is expected error for edge test")));
+                        downlinkFailureCountMap.put(downlinkMsgId, downlinkFailureCountMap.getOrDefault(downlinkMsgId, 0) + 1);
                     } else {
                         result.add(saveDownlinkMsg(entityData));
                     }
@@ -320,15 +327,6 @@ public class EdgeImitator {
             for (EntityGroupUpdateMsg entityGroupUpdateMsg: downlinkMsg.getEntityGroupUpdateMsgList()) {
                 result.add(saveDownlinkMsg(entityGroupUpdateMsg));
             }
-        }
-        if (downlinkMsg.hasSystemCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getSystemCustomTranslationMsg()));
-        }
-        if (downlinkMsg.hasTenantCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getTenantCustomTranslationMsg()));
-        }
-        if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
-            result.add(saveDownlinkMsg(downlinkMsg.getCustomerCustomTranslationMsg()));
         }
         if (downlinkMsg.hasCustomMenuProto()) {
             result.add(saveDownlinkMsg(downlinkMsg.getCustomMenuProto()));
@@ -427,6 +425,12 @@ public class EdgeImitator {
         }
 
         return Futures.allAsList(result);
+    }
+
+    private boolean checkFailureThreshold(int downlinkMsgId) {
+        return failureProbability == 100 ||
+                downlinkFailureCountMap.get(downlinkMsgId) == null ||
+                downlinkFailureCountMap.get(downlinkMsgId) < MAX_DOWNLINK_FAILS;
     }
 
     private boolean getRandomBoolean() {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,22 +30,28 @@
  */
 package org.thingsboard.rule.engine.telemetry;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings;
+
+import static org.thingsboard.rule.engine.telemetry.settings.TimeseriesProcessingSettings.OnEveryMessage;
 
 @Data
 public class TbMsgTimeseriesNodeConfiguration implements NodeConfiguration<TbMsgTimeseriesNodeConfiguration> {
 
     private long defaultTTL;
-    private boolean skipLatestPersistence;
     private boolean useServerTs;
+    @NotNull
+    private TimeseriesProcessingSettings processingSettings;
 
     @Override
     public TbMsgTimeseriesNodeConfiguration defaultConfiguration() {
         TbMsgTimeseriesNodeConfiguration configuration = new TbMsgTimeseriesNodeConfiguration();
         configuration.setDefaultTTL(0L);
-        configuration.setSkipLatestPersistence(false);
         configuration.setUseServerTs(false);
+        configuration.setProcessingSettings(new OnEveryMessage());
         return configuration;
     }
+
 }

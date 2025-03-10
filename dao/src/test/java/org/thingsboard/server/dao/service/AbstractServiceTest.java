@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -102,7 +102,6 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -113,7 +112,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.junit.Assert.assertNotNull;
-
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = AbstractServiceTest.class, loader = AnnotationConfigContextLoader.class)
@@ -172,7 +170,7 @@ public abstract class AbstractServiceTest {
     }
 
     public JsonNode readFromResource(String resourceName) throws IOException {
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream(resourceName)){
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream(resourceName)) {
             return JacksonUtil.fromBytes(Objects.requireNonNull(is).readAllBytes());
         }
     }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -419,6 +419,9 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
     private void scheduleEdgeEventsCheck(EdgeGrpcSession session) {
         EdgeId edgeId = session.getEdge().getId();
         TenantId tenantId = session.getEdge().getTenantId();
+
+        cancelScheduleEdgeEventsCheck(edgeId);
+
         if (sessions.containsKey(edgeId)) {
             ScheduledFuture<?> edgeEventCheckTask = edgeEventProcessingExecutorService.schedule(() -> {
                 try {
@@ -596,7 +599,7 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
                 edgeState.put(ACTIVITY_STATE, false);
                 edgeState.put(LAST_DISCONNECT_TIME, ts);
             }
-            ctx.getNotificationRuleProcessor().process(EdgeConnectionTrigger.builder()
+            ctx.getRuleProcessor().process(EdgeConnectionTrigger.builder()
                     .tenantId(tenantId)
                     .customerId(edge.getCustomerId())
                     .edgeId(edgeId)

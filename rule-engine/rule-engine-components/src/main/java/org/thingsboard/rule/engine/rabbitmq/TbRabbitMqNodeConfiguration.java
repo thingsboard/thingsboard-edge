@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,6 @@ public class TbRabbitMqNodeConfiguration implements NodeConfiguration<TbRabbitMq
         configuration.setExchangeNamePattern("");
         configuration.setRoutingKeyPattern("");
         configuration.setMessageProperties(null);
-        configuration.setHost(ConnectionFactory.DEFAULT_HOST);
         configuration.setPort(ConnectionFactory.DEFAULT_AMQP_PORT);
         configuration.setVirtualHost(ConnectionFactory.DEFAULT_VHOST);
         configuration.setUsername(ConnectionFactory.DEFAULT_USER);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,8 +49,10 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.controller.AbstractControllerTest;
@@ -111,6 +113,10 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         newIntegration.setAllowCreateDevicesOrAssets(true);
         integration = doPost("/api/integration", newIntegration, Integration.class);
         Assert.assertNotNull(integration);
+    }
+
+    public PageData<IntegrationInfo> getIntegrationInfos(PageLink pageLink) throws Exception {
+        return doGetTypedWithPageLink("/api/integrationInfos?", new TypeReference<>() {}, pageLink);
     }
 
     public void enableIntegration() {

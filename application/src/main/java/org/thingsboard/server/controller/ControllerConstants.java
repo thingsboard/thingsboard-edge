@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -148,6 +148,7 @@ public class ControllerConstants {
     protected static final String AUDIT_LOG_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on one of the next properties: entityType, entityName, userName, actionType, actionStatus.";
     protected static final String ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the entity group name.";
     protected static final String ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION = "Whether to include shared entity groups.";
+    protected static final String CF_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the calculated field name.";
     protected static final String SORT_PROPERTY_DESCRIPTION = "Property of entity to sort by";
 
     protected static final String SORT_ORDER_DESCRIPTION = "Sort order. ASC (ASCENDING) or DESC (DESCENDING)";
@@ -575,6 +576,7 @@ public class ControllerConstants {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     protected static final String DEFAULT_DASHBOARD = "defaultDashboardId";
+    protected static final String DEFAULT_DASHBOARD_FULLSCREEN = "defaultDashboardFullscreen";
     protected static final String HOME_DASHBOARD = "homeDashboardId";
 
     protected static final String SINGLE_ENTITY = "\n\n## Single Entity\n\n" +

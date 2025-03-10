@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -60,3 +60,5 @@ CREATE INDEX IF NOT EXISTS idx_integration_debug_event_main
 CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
 
+CREATE INDEX IF NOT EXISTS idx_cf_debug_event_main
+    ON cf_debug_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);

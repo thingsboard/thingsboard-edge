@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -109,6 +109,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.eclipse.jgit.api.ListBranchCommand.ListMode;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NODELETE;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_OTHER_REASON;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED;
 
 @Slf4j
 public class GitRepository {
@@ -378,8 +382,10 @@ public class GitRepository {
         result.forEach(pushResult -> {
             for (RemoteRefUpdate update : pushResult.getRemoteUpdates()) {
                 RemoteRefUpdate.Status status = update.getStatus();
-                if (status != RemoteRefUpdate.Status.OK && status != RemoteRefUpdate.Status.UP_TO_DATE) {
-                    throw new RuntimeException("Failed to push changes: " + Optional.ofNullable(update.getMessage()).orElseGet(status::name));
+                if (status == REJECTED_NONFASTFORWARD || status == REJECTED_NODELETE ||
+                        status == REJECTED_REMOTE_CHANGED || status == REJECTED_OTHER_REASON) {
+                    throw new RuntimeException("Remote repository answered with error: " +
+                            Optional.ofNullable(update.getMessage()).orElseGet(status::name));
                 }
             }
         });
@@ -464,7 +470,7 @@ public class GitRepository {
         }
         ObjectId result = git.getRepository().resolve(rev);
         if (result == null) {
-            throw new IllegalArgumentException("Failed to parse git revision string: \"" + rev + "\"");
+            throw new IllegalArgumentException("Failed to resolve '" + rev + "'");
         }
         return result;
     }

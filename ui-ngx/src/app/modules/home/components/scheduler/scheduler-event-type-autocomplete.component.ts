@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,11 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
-  UntypedFormBuilder,
-  UntypedFormGroup,
+  FormBuilder,
+  FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -42,12 +42,9 @@ import {
 } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, share, startWith, switchMap, tap } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
-import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 interface SchedulerEventTypeInfo {
   name: string;
@@ -68,20 +65,13 @@ interface SchedulerEventTypeInfo {
     multi: true
   }]
 })
-export class SchedulerEventTypeAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit, Validator, OnDestroy {
+export class SchedulerEventTypeAutocompleteComponent implements ControlValueAccessor, OnInit, Validator{
 
-  schedulerEventTypeFormGroup: UntypedFormGroup;
+  schedulerEventTypeFormGroup: FormGroup;
 
-  modelValue: string | null;
-
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  required: boolean;
 
   @Input()
   disabled: boolean;
@@ -89,21 +79,26 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
   @Input()
   schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
 
+  @Input()
+  label = this.translate.instant('scheduler.event-type');
+
+  @Input()
+  placeholder = this.translate.instant('scheduler.select-event-type');
+
   @ViewChild('schedulerEventTypeInput', {static: true}) schedulerEventTypeInput: ElementRef<HTMLInputElement>;
 
   filteredSchedulerEventTypes: Observable<Array<SchedulerEventTypeInfo>>;
-  schedulerEventTypes: Array<SchedulerEventTypeInfo>;
 
   searchText = '';
 
   private dirty = false;
+  private schedulerEventTypes: Array<SchedulerEventTypeInfo>;
+  private modelValue: string | null;
 
-  private propagateChange = (v: any) => { };
+  private propagateChange: (value: any) => void = () => {};
 
-  constructor(private store: Store<AppState>,
-              public translate: TranslateService,
-              private userPermissionsService: UserPermissionsService,
-              private fb: UntypedFormBuilder) {
+  constructor(private translate: TranslateService,
+              private fb: FormBuilder) {
     this.schedulerEventTypeFormGroup = this.fb.group({
       schedulerEventType: [null, Validators.maxLength(255)]
     });
@@ -113,7 +108,7 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   ngOnInit() {
@@ -139,12 +134,6 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
         switchMap(schedulerEventType => this.fetchSchedulerEventTypes(schedulerEventType)),
         share()
       );
-  }
-
-  ngAfterViewInit(): void {
-  }
-
-  ngOnDestroy(): void {
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -188,7 +177,7 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
     }
   }
 
-  updateView(value: SchedulerEventTypeInfo | string | null) {
+  private updateView(value: SchedulerEventTypeInfo | string | null) {
     let res: string;
     if (value && typeof value !== 'string') {
       res = value.value;
@@ -208,7 +197,7 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
     return undefined;
   }
 
-  fetchSchedulerEventTypes(searchText?: string): Observable<Array<SchedulerEventTypeInfo>> {
+  private fetchSchedulerEventTypes(searchText?: string): Observable<Array<SchedulerEventTypeInfo>> {
     this.searchText = searchText;
     let result = this.schedulerEventTypes;
     if (searchText && searchText.length) {

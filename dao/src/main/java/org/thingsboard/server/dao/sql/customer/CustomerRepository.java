@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.customer;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,6 +38,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.edqs.fields.CustomerFields;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
 
@@ -124,4 +126,9 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
     @Query("UPDATE CustomerEntity u SET u.customMenuId = NULL WHERE u.id IN :ids")
     void updateCustomMenuIdToNull(@Param("ids") List<UUID> ids);
 
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.CustomerFields(c.id, c.createdTime, c.tenantId, c.parentCustomerId, " +
+            "c.title, c.version, c.additionalInfo, c.country, c.state, c.city, c.address, c.address2, c.zip, c.phone, c.email) " +
+            "FROM CustomerEntity c WHERE c.id > :id ORDER BY c.id")
+    List<CustomerFields> findNextBatch(@Param("id") UUID id, Limit limit);
 }

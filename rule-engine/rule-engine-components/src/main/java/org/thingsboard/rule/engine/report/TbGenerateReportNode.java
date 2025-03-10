@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -58,7 +58,6 @@ import java.util.UUID;
         configClazz = TbGenerateReportNodeConfiguration.class,
         nodeDescription = "Generates report",
         nodeDetails = "Generates dashboard based reports.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeGenerateReportConfig",
         icon = "description"
 )

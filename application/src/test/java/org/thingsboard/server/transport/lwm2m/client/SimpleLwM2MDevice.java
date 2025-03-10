@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -108,6 +108,7 @@ public class SimpleLwM2MDevice extends BaseInstanceEnabler implements Destroyabl
         try {
             executorService.scheduleWithFixedDelay(() -> {
                         fireResourceChange(9);
+                        fireResourceChange(20);
                     }
                     , 1, 1, TimeUnit.SECONDS); // 2 sec
 //                    , 1800000, 1800000, TimeUnit.MILLISECONDS); // 30 MIN

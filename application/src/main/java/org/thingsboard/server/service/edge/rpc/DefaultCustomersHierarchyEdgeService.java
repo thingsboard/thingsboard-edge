@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -129,8 +129,8 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
         List<Customer> result = new ArrayList<>();
         if (customerId != null && !customerId.isNullUid()) {
             Customer customerById = customerService.findCustomerById(tenantId, customerId);
-            result.add(customerById);
             if (customerById != null) {
+                result.add(customerById);
                 CustomerId parentId = customerById.getParentCustomerId();
                 if (parentId != null) {
                     result.addAll(getCustomersHierarchy(tenantId, parentId));

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,6 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -58,11 +57,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.NotificationType;
-import org.thingsboard.server.common.data.notification.template.EmailDeliveryMethodNotificationTemplate;
-import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
-import org.thingsboard.server.common.data.notification.template.NotificationTemplateConfig;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -79,7 +73,6 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
@@ -88,20 +81,16 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
-import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -162,12 +151,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     JpaExecutorService jpaExecutorService;
 
-    @Autowired
-    private InstallScripts installScripts;
-
-    @Autowired
-    private NotificationTemplateService notificationTemplateService;
-
     @Override
     public void updateData(boolean fromCe) throws Exception {
         log.info("Updating data ...");
@@ -175,10 +158,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             updateDataFromCe();
         } else {
             //TODO: should be cleaned after each release
-            moveMailTemplatesToNotificationCenter(Map.of(
-                    "userActivated", NotificationType.USER_ACTIVATED,
-                    "userRegistered", NotificationType.USER_REGISTERED
-            ));
         }
         log.info("Data updated.");
     }
@@ -700,104 +679,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
             }
         }
         return false;
-    }
-
-    private void moveMailTemplatesToNotificationCenter(Map<String, NotificationType> mailTemplatesNames) {
-        log.info("Migrating mail templates to notification center");
-        if (!hasNotificationTemplates(TenantId.SYS_TENANT_ID, mailTemplatesNames.values())) {
-            JsonNode systemMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
-            moveMailTemplatesToNotificationCenter(TenantId.SYS_TENANT_ID, systemMailTemplates, mailTemplatesNames);
-            boolean updated = removeMailTemplates(systemMailTemplates, mailTemplatesNames.keySet());
-            if (updated) {
-                whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, systemMailTemplates);
-            }
-        }
-        Map<NotificationType, NotificationTemplate> systemNotificationTemplates = new EnumMap<>(NotificationType.class);
-        mailTemplatesNames.values().forEach(notificationType -> {
-            systemNotificationTemplates.put(notificationType, notificationTemplateService.findNotificationTemplateByTenantIdAndType(TenantId.SYS_TENANT_ID, notificationType).get());
-        });
-
-        var tenants = new PageDataIterable<>(tenantService::findTenantsIds, 512);
-        for (TenantId tenantId : tenants) {
-            if (hasNotificationTemplates(tenantId, mailTemplatesNames.values())) {
-                continue;
-            }
-
-            JsonNode tenantMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(tenantId, tenantId);
-            if (tenantMailTemplates == null || tenantMailTemplates.isEmpty() ||
-                    Optional.ofNullable(tenantMailTemplates.get("useSystemMailSettings"))
-                            .map(JsonNode::asBoolean).orElse(true)) {
-                systemNotificationTemplates.values().forEach(notificationTemplate -> {
-                    notificationTemplate.setId(null);
-                    notificationTemplate.setTenantId(tenantId);
-                    log.debug("[{}] Creating {} template from system", tenantId, notificationTemplate.getNotificationType());
-                    notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);
-                });
-            } else {
-                moveMailTemplatesToNotificationCenter(tenantId, tenantMailTemplates, mailTemplatesNames);
-            }
-            boolean updated = removeMailTemplates(tenantMailTemplates, mailTemplatesNames.keySet());
-            if (updated) {
-                whiteLabelingService.saveMailTemplates(tenantId, tenantMailTemplates);
-            }
-        }
-    }
-
-    private void moveMailTemplatesToNotificationCenter(TenantId tenantId, JsonNode mailTemplates, Map<String, NotificationType> mailTemplatesNames) {
-        mailTemplatesNames.forEach((mailTemplateName, notificationType) -> {
-            JsonNode mailTemplate = mailTemplates.get(mailTemplateName);
-            if (mailTemplate == null || mailTemplate.isNull() || !mailTemplate.has("subject") || !mailTemplate.has("body")) {
-                return;
-            }
-
-            String subject = mailTemplate.get("subject").asText();
-            String body = mailTemplate.get("body").asText();
-            body = body.replace("targetEmail", "recipientEmail");
-
-            NotificationTemplate notificationTemplate = null;
-            if (tenantId.isSysTenantId()) {
-                // updating system notification template, not touching tenants' templates
-                notificationTemplate = notificationTemplateService.findNotificationTemplateByTenantIdAndType(tenantId, notificationType).orElse(null);
-            }
-            if (notificationTemplate == null) {
-                log.debug("[{}] Creating {} template", tenantId, notificationType);
-                notificationTemplate = new NotificationTemplate();
-            } else {
-                log.debug("[{}] Updating {} template", tenantId, notificationType);
-            }
-            String name = StringUtils.capitalize(notificationType.name().toLowerCase().replaceAll("_", " ")) + " notification";
-            notificationTemplate.setName(name);
-            notificationTemplate.setTenantId(tenantId);
-            notificationTemplate.setNotificationType(notificationType);
-            NotificationTemplateConfig notificationTemplateConfig = new NotificationTemplateConfig();
-
-            EmailDeliveryMethodNotificationTemplate emailNotificationTemplate = new EmailDeliveryMethodNotificationTemplate();
-            emailNotificationTemplate.setEnabled(true);
-            emailNotificationTemplate.setSubject(subject);
-            emailNotificationTemplate.setBody(body);
-
-            notificationTemplateConfig.setDeliveryMethodsTemplates(Map.of(NotificationDeliveryMethod.EMAIL, emailNotificationTemplate));
-            notificationTemplate.setConfiguration(notificationTemplateConfig);
-            notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);
-        });
-    }
-
-    private boolean removeMailTemplates(JsonNode mailTemplates, Set<String> names) {
-        boolean updated = false;
-        if (mailTemplates != null) {
-            for (String name : names) {
-                updated |= ((ObjectNode) mailTemplates).remove(name) != null;
-            }
-        }
-        return updated;
-    }
-
-    private boolean hasNotificationTemplates(TenantId tenantId, Collection<NotificationType> types) {
-        int existingTemplates = notificationTemplateService.countNotificationTemplatesByTenantIdAndNotificationTypes(tenantId, types);
-        if (existingTemplates > 0) {
-            log.debug("[{}] Already has {} templates", tenantId, types);
-        }
-        return existingTemplates > 0;
     }
 
     public static boolean getEnv(String name, boolean defaultValue) {

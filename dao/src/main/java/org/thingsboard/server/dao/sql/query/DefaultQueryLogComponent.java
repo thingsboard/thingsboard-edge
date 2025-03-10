@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,7 +52,7 @@ public class DefaultQueryLogComponent implements QueryLogComponent {
     private long logQueriesThreshold;
 
     @Override
-    public void logQuery(QueryContext ctx, String query, long duration) {
+    public void logQuery(SqlQueryContext ctx, String query, long duration) {
         if (logSqlQueries && duration > logQueriesThreshold) {
 
             String sqlToUse = substituteParametersInSqlString(query, ctx);

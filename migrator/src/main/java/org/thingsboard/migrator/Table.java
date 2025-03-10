@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ public enum Table {
     QUEUE("queue"),
     RPC("rpc"),
     RULE_CHAIN("rule_chain"),
-    OTA_PACKAGE("ota_package"), // TODO: drop constraint in ota_package for device_profile due to circular reference
+    OTA_PACKAGE("ota_package"),
     RESOURCE("resource"),
     ROLE("role"),
     ENTITY_GROUP("entity_group", Pair.of(
@@ -103,13 +103,14 @@ public enum Table {
     STATS_EVENT("stats_event", true, "ts", "event"),
     DOMAIN("domain"),
     MOBILE_APP("mobile_app"),
+    MOBILE_APP_BUNDLE("mobile_app_bundle"),
     OAUTH2_CLIENT("oauth2_client"),
     DOMAIN_OAUTH2_CLIENT("domain_oauth2_client", Pair.of(
             "oauth2_client_id", of(OAUTH2_CLIENT)
     ), of("domain_id", "oauth2_client_id")),
-    MOBILE_APP_OAUTH2_CLIENT("mobile_app_oauth2_client", Pair.of(
+    MOBILE_APP_BUNDLE_OAUTH2_CLIENT("mobile_app_bundle_oauth2_client", Pair.of(
             "oauth2_client_id", of(OAUTH2_CLIENT)
-    ), of("mobile_app_id", "oauth2_client_id")),
+    ), of("mobile_app_bundle_id", "oauth2_client_id")),
     RULE_NODE_STATE("rule_node_state", Pair.of(
             "entity_id", of(DEVICE)
     )),
@@ -123,7 +124,7 @@ public enum Table {
     WHITE_LABELING("white_labeling", List.of("tenant_id", "customer_id", "type")),
     ALARM_TYPES("alarm_types", null, of("type")),
     CUSTOM_TRANSLATION("custom_translation", List.of("tenant_id", "customer_id", "locale_code")),
-    MOBILE_APP_SETTINGS("mobile_app_settings"),
+    QR_CODE_SETTINGS("qr_code_settings"),
 
     /*
      * data from tables below is exported for each entity separately

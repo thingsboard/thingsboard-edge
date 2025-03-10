@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,7 +68,6 @@ import java.util.Optional;
                 "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
                 "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         inEnabled = false,
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountConfig",
         icon = "functions"
 )

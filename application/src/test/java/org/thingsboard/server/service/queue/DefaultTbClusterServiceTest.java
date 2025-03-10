@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,6 +59,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -123,6 +124,8 @@ public class DefaultTbClusterServiceTest {
     protected TbRuleEngineProducerService ruleEngineProducerService;
     @MockBean
     protected TbTransactionalCache<EdgeId, String> edgeCache;
+    @MockBean
+    protected CalculatedFieldService calculatedFieldService;
 
     @SpyBean
     protected TopicService topicService;

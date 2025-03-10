@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,7 @@ import java.util.UUID;
 /**
  * Created by igor on 3/12/18.
  */
-public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao, ExportableEntityDao<RuleChainId, RuleChain> {
+public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao<RuleChain>, ExportableEntityDao<RuleChainId, RuleChain> {
 
     /**
      * Find rule chains by tenantId and page link.

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,7 @@ import java.util.UUID;
  * The Interface EdgeDao.
  *
  */
-public interface EdgeDao extends Dao<Edge>, TenantEntityDao {
+public interface EdgeDao extends Dao<Edge>, TenantEntityDao<Edge> {
 
     Edge save(TenantId tenantId, Edge edge);
 

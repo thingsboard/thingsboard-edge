@@ -13,8 +13,13 @@
         "allEnabled": true,
         "allEnabledUntil": 0
       },
+      "configurationVersion": 1,
       "configuration": {
-        "defaultTTL": 0
+        "defaultTTL": 0,
+        "useServerTs": false,
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        }
       }
     },
     {
@@ -29,9 +34,15 @@
         "allEnabled": true,
         "allEnabledUntil": 0
       },
+      "configurationVersion": 3,
       "configuration": {
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        },
         "scope": "CLIENT_SCOPE",
-        "notifyDevice": false
+        "notifyDevice": false,
+        "sendAttributesUpdatedNotification": false,
+        "updateAttributesOnlyOnValueChange": false
       }
     },
     {

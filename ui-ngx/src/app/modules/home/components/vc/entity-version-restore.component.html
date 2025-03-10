@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -59,6 +59,9 @@
         </mat-checkbox>
         <mat-checkbox *ngIf="entityDataInfo.hasRelations" formControlName="loadRelations" style="margin-bottom: 16px;">
           {{ 'version-control.load-relations' | translate }}
+        </mat-checkbox>
+        <mat-checkbox *ngIf="entityDataInfo.hasCalculatedFields" formControlName="loadCalculatedFields" class="mb-4">
+          {{ 'version-control.load-calculated-fields' | translate }}
         </mat-checkbox>
       </div>
     </fieldset>

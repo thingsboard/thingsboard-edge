@@ -3542,7 +3542,7 @@
         "sas-key-name-required": "اسم مفتاح SAS مطلوب.",
         "sas-key": "مفتاح SAS",
         "sas-key-required": "مفتاح SAS مطلوب.",
-        "iot-hub-name": "اسم Hub IoT (مطلوب للاتصال الهابط)",
+        "iot-hub-name": "اسم Hub IoT",
         "hostname": "اسم المضيف",
         "hostname-required": "اسم المضيف مطلوب",
         "integration-clazz": "فئة التكامل",

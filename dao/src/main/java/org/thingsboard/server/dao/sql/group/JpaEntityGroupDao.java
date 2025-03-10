@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,10 +32,12 @@ package org.thingsboard.server.dao.sql.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edqs.fields.EntityGroupFields;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -108,7 +110,7 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
         return DaoUtil.toPageData(entityGroupRepository.findAllEntityGroups(
                 parentEntityId,
                 parentEntityType,
-               pageLink.getTextSearch(),
+                pageLink.getTextSearch(),
                 DaoUtil.toPageable(pageLink)));
     }
 
@@ -183,6 +185,16 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
             return jdbcTemplate.queryForList("SELECT id FROM entity_group WHERE owner_id = ? AND id > ? ORDER BY id LIMIT ?",
                     UUID.class, tenantId.getId(), idOffset, limit);
         }
+    }
+
+    @Override
+    public PageData<EntityGroup> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public List<EntityGroupFields> findNextBatch(UUID id, int batchSize) {
+        return entityGroupRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

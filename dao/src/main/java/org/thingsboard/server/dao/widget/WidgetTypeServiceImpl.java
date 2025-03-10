@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -100,6 +100,13 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         log.trace("Executing findWidgetTypeDetailsById [{}]", widgetTypeId);
         Validator.validateId(widgetTypeId, id -> "Incorrect widgetTypeId " + id);
         return widgetTypeDao.findById(tenantId, widgetTypeId.getId());
+    }
+
+    @Override
+    public WidgetTypeInfo findWidgetTypeInfoById(TenantId tenantId, WidgetTypeId widgetTypeId) {
+        log.trace("Executing findWidgetTypeInfoById [{}]", widgetTypeId);
+        Validator.validateId(widgetTypeId, id -> "Incorrect widgetTypeId " + id);
+        return widgetTypeDao.findWidgetTypeInfoById(tenantId, widgetTypeId.getId());
     }
 
     @Override

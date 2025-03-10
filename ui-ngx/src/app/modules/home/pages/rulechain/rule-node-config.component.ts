@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -221,6 +221,10 @@ export class RuleNodeConfigComponent implements ControlValueAccessor, OnDestroy 
       if (this.changeSubscription) {
         this.changeSubscription.unsubscribe();
         this.changeSubscription = null;
+      }
+      if (this.changeScriptSubscription) {
+        this.changeScriptSubscription.unsubscribe();
+        this.changeScriptSubscription = null;
       }
       this.definedConfigContainer.clear();
       const component = this.ruleChainService.getRuleNodeConfigComponent(this.nodeDefinition.configDirective);

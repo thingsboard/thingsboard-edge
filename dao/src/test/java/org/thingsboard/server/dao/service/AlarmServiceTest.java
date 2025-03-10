@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,7 @@ import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EntityDataSortOrder;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
+import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.security.Authority;
@@ -1018,6 +1019,55 @@ public class AlarmServiceTest extends AbstractServiceTest {
                 ).build());
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(0, alarms.getData().size());
+    }
+
+    @Test
+    public void testCountAlarmsForEntities() throws ExecutionException, InterruptedException {
+        AssetId parentId = new AssetId(Uuids.timeBased());
+        AssetId childId = new AssetId(Uuids.timeBased());
+
+        EntityRelation relation = new EntityRelation(parentId, childId, EntityRelation.CONTAINS_TYPE);
+
+        Assert.assertTrue(relationService.saveRelationAsync(tenantId, relation).get());
+
+        long ts = System.currentTimeMillis();
+        AlarmApiCallResult result = alarmService.createAlarm(AlarmCreateOrUpdateActiveRequest.builder()
+                .tenantId(tenantId)
+                .originator(childId)
+                .type(TEST_ALARM)
+                .severity(AlarmSeverity.CRITICAL)
+                .startTs(ts).build());
+        AlarmInfo created = result.getAlarm();
+        created.setPropagate(true);
+        result = alarmService.updateAlarm(AlarmUpdateRequest.fromAlarm(created));
+        created = result.getAlarm();
+
+        EntityListFilter entityListFilter = new EntityListFilter();
+        entityListFilter.setEntityList(List.of(childId.getId().toString(), parentId.getId().toString()));
+        entityListFilter.setEntityType(EntityType.ASSET);
+        AlarmCountQuery countQuery = new AlarmCountQuery(entityListFilter);
+        countQuery.setStartTs(0L);
+        countQuery.setEndTs(System.currentTimeMillis());
+
+        long alarmsCount = alarmService.countAlarmsByQuery(tenantId, null, mergedUserPermissions, countQuery, List.of(childId));
+        Assert.assertEquals(1, alarmsCount);
+
+        countQuery.setSearchPropagatedAlarms(true);
+
+        alarmsCount = alarmService.countAlarmsByQuery(tenantId, null, mergedUserPermissions, countQuery, List.of(parentId));
+        Assert.assertEquals(1, alarmsCount);
+
+        created = alarmService.acknowledgeAlarm(tenantId, created.getId(), System.currentTimeMillis()).getAlarm();
+
+        countQuery.setStatusList(List.of(AlarmSearchStatus.UNACK));
+        alarmsCount = alarmService.countAlarmsByQuery(tenantId, null, mergedUserPermissions, countQuery, List.of(childId));
+        Assert.assertEquals(0, alarmsCount);
+
+        alarmService.clearAlarm(tenantId, created.getId(), System.currentTimeMillis(), null);
+
+        countQuery.setStatusList(List.of(AlarmSearchStatus.CLEARED));
+        alarmsCount = alarmService.countAlarmsByQuery(tenantId, null, mergedUserPermissions, countQuery, List.of(childId));
+        Assert.assertEquals(1, alarmsCount);
     }
 
 }

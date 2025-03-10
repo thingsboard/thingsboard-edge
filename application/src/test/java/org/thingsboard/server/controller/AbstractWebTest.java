@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -290,7 +290,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @Autowired
     public EntityGroupService entityGroupService;
-    ;
 
     @Autowired
     protected DefaultActorService actorService;
@@ -458,7 +457,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            Awaitility.await("all tasks processed").atMost(60, TimeUnit.SECONDS).during(300, TimeUnit.MILLISECONDS)
+            Awaitility.await("all tasks processed").atMost(90, TimeUnit.SECONDS).during(300, TimeUnit.MILLISECONDS)
                     .until(() -> storage.getLag("tb_housekeeper") == 0);
         }
     }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -118,6 +118,13 @@ export interface DefaultTenantProfileConfiguration {
   queueStatsTtlDays: number;
   ruleEngineExceptionsTtlDays: number;
   blobEntityTtlDays: number;
+
+  maxCalculatedFieldsPerEntity: number;
+  maxArgumentsPerCF: number;
+  maxDataPointsPerRollingArg: number;
+  maxStateSizeInKBytes: number;
+  maxSingleValueArgumentSizeInKBytes: number;
+  calculatedFieldDebugEventsRateLimit: string;
 }
 
 export type TenantProfileConfigurations = DefaultTenantProfileConfiguration;
@@ -175,7 +182,13 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           rpcTtlDays: 0,
           queueStatsTtlDays: 0,
           ruleEngineExceptionsTtlDays: 0,
-          blobEntityTtlDays: 0
+          blobEntityTtlDays: 0,
+          maxCalculatedFieldsPerEntity: 5,
+          maxArgumentsPerCF: 10,
+          maxDataPointsPerRollingArg: 1000,
+          maxStateSizeInKBytes: 32,
+          maxSingleValueArgumentSizeInKBytes: 2,
+          calculatedFieldDebugEventsRateLimit: ''
         };
         configuration = {...defaultConfiguration, type: TenantProfileType.DEFAULT};
         break;

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -180,6 +180,7 @@
     <div class="tb-form-row space-between column-lt-md">
       <div translate>widget-config.show-card-buttons</div>
       <mat-chip-listbox multiple formControlName="cardButtons">
+        <mat-chip-option value="dataExport">{{ 'widget-config.data-export' | translate }}</mat-chip-option>
         <mat-chip-option value="fullscreen">{{ 'fullscreen.fullscreen' | translate }}</mat-chip-option>
       </mat-chip-listbox>
     </div>

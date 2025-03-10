@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -74,8 +74,7 @@ import java.util.concurrent.TimeUnit;
         nodeDescription = "Process device messages based on device profile settings",
         nodeDetails = "Create and clear alarms based on alarm rules defined in device profile. The output relation type is either " +
                 "'Alarm Created', 'Alarm Updated', 'Alarm Severity Updated' and 'Alarm Cleared' or simply 'Success' if no alarms were affected.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbDeviceProfileConfig"
+        configDirective = "tbActionNodeDeviceProfileConfig"
 )
 public class TbDeviceProfileNode implements TbNode {
 

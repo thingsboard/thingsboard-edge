@@ -23,8 +23,13 @@
         "name": "Save Timeseries",
         "debugFailures": false,
         "debugAll": false,
+        "configurationVersion": 1,
         "configuration": {
-          "defaultTTL": 0
+          "defaultTTL": 0,
+          "useServerTs": false,
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          }
         },
         "externalId": null
       },
@@ -37,8 +42,15 @@
         "name": "Save Client Attributes",
         "debugFailures": false,
         "debugAll": false,
+        "configurationVersion": 3,
         "configuration": {
-          "scope": "CLIENT_SCOPE"
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          },
+          "scope": "CLIENT_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false,
+          "updateAttributesOnlyOnValueChange": false
         },
         "externalId": null
       },
@@ -128,8 +140,13 @@
         "name": "Save Timeseries",
         "debugFailures": false,
         "debugAll": false,
+        "configurationVersion": 1,
         "configuration": {
-          "defaultTTL": 0
+          "defaultTTL": 0,
+          "useServerTs": false,
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          }
         },
         "externalId": null
       },
@@ -357,10 +374,15 @@
         "name": "Save",
         "debugFailures": false,
         "debugAll": false,
+        "configurationVersion": 3,
         "configuration": {
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          },
           "scope": "SERVER_SCOPE",
           "notifyDevice": false,
-          "sendAttributesUpdatedNotification": false
+          "sendAttributesUpdatedNotification": false,
+          "updateAttributesOnlyOnValueChange": false
         },
         "externalId": null
       },
