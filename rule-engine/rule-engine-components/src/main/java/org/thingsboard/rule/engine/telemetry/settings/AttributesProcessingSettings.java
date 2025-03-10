@@ -28,79 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.rule.engine.telemetry.settings;
 
-.cf-test-dialog-container {
-  .gutter {
-    background-color: #eee;
-    background-repeat: no-repeat;
-    background-position: 50%;
-  }
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.thingsboard.rule.engine.telemetry.strategy.ProcessingStrategy;
 
-  .gutter.gutter-horizontal {
-    cursor: col-resize;
-    background-image: url("../../../../../../../assets/split.js/grips/horizontal.png");
-  }
+import java.util.Objects;
 
-  .gutter.gutter-vertical {
-    cursor: row-resize;
-    background-image: url("../../../../../../../assets/split.js/grips/vertical.png");
-  }
+import static org.thingsboard.rule.engine.telemetry.settings.AttributesProcessingSettings.Advanced;
+import static org.thingsboard.rule.engine.telemetry.settings.AttributesProcessingSettings.Deduplicate;
+import static org.thingsboard.rule.engine.telemetry.settings.AttributesProcessingSettings.OnEveryMessage;
+import static org.thingsboard.rule.engine.telemetry.settings.AttributesProcessingSettings.WebSocketsOnly;
 
-  .block-label {
-    padding: 4px;
-    color: #00acc1;
-    background: rgba(220, 220, 220, .35);
-    border-radius: 5px;
-  }
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = OnEveryMessage.class, name = "ON_EVERY_MESSAGE"),
+        @JsonSubTypes.Type(value = WebSocketsOnly.class, name = "WEBSOCKETS_ONLY"),
+        @JsonSubTypes.Type(value = Deduplicate.class, name = "DEDUPLICATE"),
+        @JsonSubTypes.Type(value = Advanced.class, name = "ADVANCED")
+})
+public sealed interface AttributesProcessingSettings extends ProcessingSettings permits OnEveryMessage, Deduplicate, WebSocketsOnly, Advanced {
 
-  .test-block-content {
-    padding-top: 5px;
-    padding-left: 5px;
-    border: 1px solid #c0c0c0;
-    overflow: scroll;
-  }
+    record Advanced(ProcessingStrategy attributes, ProcessingStrategy webSockets, ProcessingStrategy calculatedFields) implements AttributesProcessingSettings {
 
-  .block-label-container {
-    position: absolute;
-    z-index: 10;
-    font-size: 12px;
-    font-weight: bold;
+        public Advanced {
+            Objects.requireNonNull(attributes);
+            Objects.requireNonNull(webSockets);
+            Objects.requireNonNull(calculatedFields);
+        }
 
-    &.left {
-      right: 112px;
-      top: 9px;
     }
 
-    &.right-bottom {
-      right: 40px;
-      top: 6px;
-    }
-
-    &.right-top {
-      right: 8px;
-      top: 2px;
-    }
-  }
-}
-
-.tb-js-func {
-  .ace_tb {
-    &.ace_calculated-field {
-      &-ctx {
-        color: #C52F00;
-      }
-      &-args {
-        color: #185F2A;
-      }
-      &-key {
-        color: #c24c1a;
-      }
-      &-time-window, &-values, &-func, &-value, &-ts {
-        color: #7214D0;
-      }
-      &-start-ts, &-end-ts {
-        color: #2CAA00;
-      }
-    }
-  }
 }

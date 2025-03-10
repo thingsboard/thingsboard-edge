@@ -28,79 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.rule.engine.telemetry.settings;
 
-.cf-test-dialog-container {
-  .gutter {
-    background-color: #eee;
-    background-repeat: no-repeat;
-    background-position: 50%;
-  }
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.thingsboard.rule.engine.telemetry.strategy.ProcessingStrategy;
 
-  .gutter.gutter-horizontal {
-    cursor: col-resize;
-    background-image: url("../../../../../../../assets/split.js/grips/horizontal.png");
-  }
+sealed interface ProcessingSettings permits TimeseriesProcessingSettings, AttributesProcessingSettings {
 
-  .gutter.gutter-vertical {
-    cursor: row-resize;
-    background-image: url("../../../../../../../assets/split.js/grips/vertical.png");
-  }
+    record OnEveryMessage() implements TimeseriesProcessingSettings, AttributesProcessingSettings {}
 
-  .block-label {
-    padding: 4px;
-    color: #00acc1;
-    background: rgba(220, 220, 220, .35);
-    border-radius: 5px;
-  }
+    record WebSocketsOnly() implements TimeseriesProcessingSettings, AttributesProcessingSettings {}
 
-  .test-block-content {
-    padding-top: 5px;
-    padding-left: 5px;
-    border: 1px solid #c0c0c0;
-    overflow: scroll;
-  }
+    @Getter
+    final class Deduplicate implements TimeseriesProcessingSettings, AttributesProcessingSettings {
 
-  .block-label-container {
-    position: absolute;
-    z-index: 10;
-    font-size: 12px;
-    font-weight: bold;
+        private final int deduplicationIntervalSecs;
 
-    &.left {
-      right: 112px;
-      top: 9px;
+        @JsonIgnore
+        private final ProcessingStrategy processingStrategy;
+
+        @JsonCreator
+        public Deduplicate(@JsonProperty("deduplicationIntervalSecs") int deduplicationIntervalSecs) {
+            this.deduplicationIntervalSecs = deduplicationIntervalSecs;
+            this.processingStrategy = ProcessingStrategy.deduplicate(deduplicationIntervalSecs);
+        }
+
     }
 
-    &.right-bottom {
-      right: 40px;
-      top: 6px;
-    }
-
-    &.right-top {
-      right: 8px;
-      top: 2px;
-    }
-  }
-}
-
-.tb-js-func {
-  .ace_tb {
-    &.ace_calculated-field {
-      &-ctx {
-        color: #C52F00;
-      }
-      &-args {
-        color: #185F2A;
-      }
-      &-key {
-        color: #c24c1a;
-      }
-      &-time-window, &-values, &-func, &-value, &-ts {
-        color: #7214D0;
-      }
-      &-start-ts, &-end-ts {
-        color: #2CAA00;
-      }
-    }
-  }
 }

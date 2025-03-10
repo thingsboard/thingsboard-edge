@@ -28,79 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.rule.engine.api;
 
-.cf-test-dialog-container {
-  .gutter {
-    background-color: #eee;
-    background-repeat: no-repeat;
-    background-position: 50%;
-  }
+import org.junit.jupiter.api.Test;
+import org.thingsboard.common.util.NoOpFutureCallback;
 
-  .gutter.gutter-horizontal {
-    cursor: col-resize;
-    background-image: url("../../../../../../../assets/split.js/grips/horizontal.png");
-  }
+import static org.assertj.core.api.Assertions.assertThat;
 
-  .gutter.gutter-vertical {
-    cursor: row-resize;
-    background-image: url("../../../../../../../assets/split.js/grips/vertical.png");
-  }
+class AttributesDeleteRequestTest {
 
-  .block-label {
-    padding: 4px;
-    color: #00acc1;
-    background: rgba(220, 220, 220, .35);
-    border-radius: 5px;
-  }
+    @Test
+    void testDefaultCallbackIsNoOp() {
+        var request = AttributesDeleteRequest.builder().build();
 
-  .test-block-content {
-    padding-top: 5px;
-    padding-left: 5px;
-    border: 1px solid #c0c0c0;
-    overflow: scroll;
-  }
-
-  .block-label-container {
-    position: absolute;
-    z-index: 10;
-    font-size: 12px;
-    font-weight: bold;
-
-    &.left {
-      right: 112px;
-      top: 9px;
+        assertThat(request.getCallback()).isEqualTo(NoOpFutureCallback.instance());
     }
 
-    &.right-bottom {
-      right: 40px;
-      top: 6px;
+    @Test
+    void testNullCallbackIsNoOp() {
+        var request = AttributesDeleteRequest.builder().callback(null).build();
+
+        assertThat(request.getCallback()).isEqualTo(NoOpFutureCallback.instance());
     }
 
-    &.right-top {
-      right: 8px;
-      top: 2px;
-    }
-  }
-}
-
-.tb-js-func {
-  .ace_tb {
-    &.ace_calculated-field {
-      &-ctx {
-        color: #C52F00;
-      }
-      &-args {
-        color: #185F2A;
-      }
-      &-key {
-        color: #c24c1a;
-      }
-      &-time-window, &-values, &-func, &-value, &-ts {
-        color: #7214D0;
-      }
-      &-start-ts, &-end-ts {
-        color: #2CAA00;
-      }
-    }
-  }
 }
