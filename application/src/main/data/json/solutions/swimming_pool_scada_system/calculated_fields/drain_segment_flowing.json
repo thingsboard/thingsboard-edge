@@ -1,0 +1,43 @@
+{
+  "type": "SCRIPT",
+  "name": "Drain Segment Flowing",
+  "entityId": {
+    "id": "eea395b0-7c0a-11ef-baac-dd7fa92789f4",
+    "entityType": "ASSET"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1740999289221
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SCRIPT",
+    "arguments": {
+      "filterSegmentFlowing": {
+        "refEntityKey": {
+          "key": "filterSegmentFlowing",
+          "type": "ATTRIBUTE",
+          "scope": "SERVER_SCOPE"
+        },
+        "defaultValue": ""
+      },
+      "sandFilterMode": {
+        "refEntityId": {
+          "entityType": "DEVICE",
+          "id": "eead80c0-7c0a-11ef-baac-dd7fa92789f4"
+        },
+        "refEntityKey": {
+          "key": "mode",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      }
+    },
+    "expression": "var drainSegmentFlowing = filterSegmentFlowing && sandFilterMode == 2;\n\nreturn {\n    \"cf_drainSegmentFlowing\": drainSegmentFlowing\n};",
+    "output": {
+      "type": "ATTRIBUTES",
+      "scope": "SERVER_SCOPE"
+    }
+  }
+}
