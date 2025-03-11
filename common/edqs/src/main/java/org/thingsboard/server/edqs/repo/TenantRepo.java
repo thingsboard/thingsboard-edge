@@ -544,7 +544,7 @@ public class TenantRepo {
     }
 
     public RelationsRepo getRelations(RelationTypeGroup relationTypeGroup) {
-        return relations.get(relationTypeGroup);
+        return relations.computeIfAbsent(relationTypeGroup, type -> new RelationsRepo());
     }
 
     public String getOwnerName(EntityId ownerId) {
