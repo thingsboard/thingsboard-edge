@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -198,6 +199,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1396,7 +1398,7 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    protected void provisionCalculatedFields(SolutionInstallContext ctx) throws ThingsboardException {
+    protected void provisionCalculatedFields(SolutionInstallContext ctx) {
         List<CalculatedField> cfs = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "calculated_fields.json", new TypeReference<>() {
         });
         cfs.addAll(loadListOfEntitiesFromDirectory(ctx.getSolutionId(), "calculated_fields", CalculatedField.class));
@@ -1405,6 +1407,7 @@ public class DefaultSolutionService implements SolutionService {
             cf.setId(null);
             cf.setCreatedTime(0L);
             cf.setTenantId(ctx.getTenantId());
+            cf.setDebugSettings(new DebugSettings(true, System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)));
 
             Map<String, String> realIds = ctx.getRealIds();
 

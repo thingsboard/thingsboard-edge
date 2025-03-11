@@ -20,7 +20,7 @@
           "type": "ATTRIBUTE",
           "scope": "SERVER_SCOPE"
         },
-        "defaultValue": ""
+        "defaultValue": "false"
       },
       "filterSegmentFlowing": {
         "refEntityKey": {
@@ -28,7 +28,7 @@
           "type": "ATTRIBUTE",
           "scope": "SERVER_SCOPE"
         },
-        "defaultValue": ""
+        "defaultValue": "false"
       },
       "heatPumpOutgoingValveOpened": {
         "refEntityId": {
@@ -39,7 +39,7 @@
           "key": "opened",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       },
       "heatSegmentFlowing": {
         "refEntityKey": {
@@ -47,7 +47,7 @@
           "type": "ATTRIBUTE",
           "scope": "SERVER_SCOPE"
         },
-        "defaultValue": ""
+        "defaultValue": "false"
       },
       "throughpassValveOpened": {
         "refEntityId": {
@@ -58,10 +58,10 @@
           "key": "opened",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       }
     },
-    "expression": "var phFilterSegmentFlowing = \n    (filterSegmentFlowing && !drainSegmentFlowing && throughpassValveOpened === 1) ||\n    (heatSegmentFlowing && heatPumpOutgoingValveOpened === 1);\n\nreturn {\n    \"cf_phFilterSegmentFlowing\": phFilterSegmentFlowing\n};",
+    "expression": "var phFilterSegmentFlowing = \n    (filterSegmentFlowing && !drainSegmentFlowing && throughpassValveOpened == 1) ||\n    (heatSegmentFlowing && heatPumpOutgoingValveOpened == 1);\n\nreturn {\n    \"phFilterSegmentFlowing\": phFilterSegmentFlowing\n};",
     "output": {
       "type": "ATTRIBUTES",
       "scope": "SERVER_SCOPE"

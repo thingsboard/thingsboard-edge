@@ -23,7 +23,7 @@
           "key": "opened",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       },
       "poolDrainValveOpened": {
         "refEntityId": {
@@ -34,7 +34,7 @@
           "key": "opened",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       },
       "poolWeirValveOpened": {
         "refEntityId": {
@@ -45,7 +45,7 @@
           "key": "opened",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       },
       "waterLevel": {
         "refEntityId": {
@@ -56,7 +56,7 @@
           "key": "waterLevel",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       },
       "waterPumpActive": {
         "refEntityId": {
@@ -68,7 +68,7 @@
           "type": "ATTRIBUTE",
           "scope": "SERVER_SCOPE"
         },
-        "defaultValue": ""
+        "defaultValue": "false"
       },
       "waterPumpOutgoingValveOpened": {
         "refEntityId": {
@@ -79,7 +79,7 @@
           "key": "opened",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       },
       "waterPumpRunning": {
         "refEntityId": {
@@ -90,10 +90,10 @@
           "key": "running",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       }
     },
-    "expression": "var filterSegmentFlowing = waterPumpActive && calculateFilterSegment();\n\nreturn {\n    \"cf_filterSegmentFlowing\": filterSegmentFlowing\n};\n\nfunction calculateFilterSegment() {\n    if (!(waterPumpOutgoingValveOpened == 1 && waterPumpRunning == 1)) {\n        return false;\n    }\n    \n    return (\n        (poolDrainValveOpened == 1 && waterLevel > 0) ||\n        (poolWeirValveOpened == 1 && waterLevel > 88) ||\n        mainIntakeValveOpened == 1\n    );\n}",
+    "expression": "var filterSegmentFlowing = waterPumpActive && calculateFilterSegment();\n\nreturn {\n    \"filterSegmentFlowing\": filterSegmentFlowing\n};\n\nfunction calculateFilterSegment() {\n    if (!(waterPumpOutgoingValveOpened == 1 && waterPumpRunning == 1)) {\n        return false;\n    }\n    \n    return (\n        (poolDrainValveOpened == 1 && waterLevel > 0) ||\n        (poolWeirValveOpened == 1 && waterLevel > 89) ||\n        mainIntakeValveOpened == 1\n    );\n}",
     "output": {
       "type": "ATTRIBUTES",
       "scope": "SERVER_SCOPE"

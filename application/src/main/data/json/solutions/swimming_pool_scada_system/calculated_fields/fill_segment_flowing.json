@@ -20,7 +20,7 @@
           "type": "ATTRIBUTE",
           "scope": "SERVER_SCOPE"
         },
-        "defaultValue": ""
+        "defaultValue": "false"
       },
       "poolIntakeValveOpened": {
         "refEntityId": {
@@ -31,10 +31,10 @@
           "key": "opened",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       }
     },
-    "expression": "var fillSegmentFlowing = phFilterSegmentFlowing && poolIntakeValveOpened == 1;\n\nreturn {\n    \"cf_fillSegmentFlowing\": fillSegmentFlowing\n};",
+    "expression": "var fillSegmentFlowing = phFilterSegmentFlowing && poolIntakeValveOpened == 1;\n\nreturn {\n    \"fillSegmentFlowing\": fillSegmentFlowing\n};",
     "output": {
       "type": "ATTRIBUTES",
       "scope": "SERVER_SCOPE"

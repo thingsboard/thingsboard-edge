@@ -20,7 +20,7 @@
           "type": "ATTRIBUTE",
           "scope": "SERVER_SCOPE"
         },
-        "defaultValue": ""
+        "defaultValue": "false"
       },
       "filterSegmentFlowing": {
         "refEntityKey": {
@@ -28,7 +28,7 @@
           "type": "ATTRIBUTE",
           "scope": "SERVER_SCOPE"
         },
-        "defaultValue": ""
+        "defaultValue": "false"
       },
       "heatPumpIntakeValveOpened": {
         "refEntityId": {
@@ -39,10 +39,10 @@
           "key": "opened",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       }
     },
-    "expression": "var heatSegmentFlowing = filterSegmentFlowing && !drainSegmentFlowing && heatPumpIntakeValveOpened == 1;\n\nreturn {\n    \"cf_heatSegmentFlowing\": heatSegmentFlowing\n};",
+    "expression": "var heatSegmentFlowing = filterSegmentFlowing && !drainSegmentFlowing && heatPumpIntakeValveOpened == 1;\n\nreturn {\n    \"heatSegmentFlowing\": heatSegmentFlowing\n};",
     "output": {
       "type": "ATTRIBUTES",
       "scope": "SERVER_SCOPE"

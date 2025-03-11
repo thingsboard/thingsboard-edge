@@ -20,7 +20,7 @@
           "type": "ATTRIBUTE",
           "scope": "SERVER_SCOPE"
         },
-        "defaultValue": ""
+        "defaultValue": "false"
       },
       "sandFilterMode": {
         "refEntityId": {
@@ -31,10 +31,10 @@
           "key": "mode",
           "type": "TS_LATEST"
         },
-        "defaultValue": ""
+        "defaultValue": "0"
       }
     },
-    "expression": "var drainSegmentFlowing = filterSegmentFlowing && sandFilterMode == 2;\n\nreturn {\n    \"cf_drainSegmentFlowing\": drainSegmentFlowing\n};",
+    "expression": "var drainSegmentFlowing = filterSegmentFlowing && sandFilterMode == 2;\n\nreturn {\n    \"drainSegmentFlowing\": drainSegmentFlowing\n};",
     "output": {
       "type": "ATTRIBUTES",
       "scope": "SERVER_SCOPE"
