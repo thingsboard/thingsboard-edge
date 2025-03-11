@@ -45,6 +45,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import tinycolor from 'tinycolor2';
 import { map, share } from 'rxjs/operators';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { plainColorFromVariable } from '@core/utils';
 
 export interface MarkerIconInfo {
   iconContainer?: MarkerIconContainer;
@@ -130,7 +131,7 @@ export class MarkerIconShapesComponent extends PageComponent implements OnInit {
     this.iconContainers = containersList.map((iconContainer) => {
       return {
         iconContainer,
-        html$: createColorMarkerIconElement(this.iconRegistry, this.domSanitizer, iconContainer, this.icon, tinycolor(this.color)).pipe(
+        html$: createColorMarkerIconElement(this.iconRegistry, this.domSanitizer, iconContainer, this.icon, tinycolor(plainColorFromVariable(this.color))).pipe(
           map((element) => {
             return this.domSanitizer.bypassSecurityTrustHtml(element.outerHTML);
           }),

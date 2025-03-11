@@ -40,7 +40,7 @@ import {
   createLabelFromPattern,
   guid, isDefined,
   mergeDeepIgnoreArray,
-  parseTbFunction,
+  parseTbFunction, plainColorFromVariable,
   safeExecuteTbFunction
 } from '@core/utils';
 import L from 'leaflet';
@@ -120,7 +120,7 @@ export class DataLayerColorProcessor {
     } else {
       color = this.color;
     }
-    return color;
+    return plainColorFromVariable(color);
   }
 
 }

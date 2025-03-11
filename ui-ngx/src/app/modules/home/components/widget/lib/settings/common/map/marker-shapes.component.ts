@@ -45,6 +45,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import tinycolor from 'tinycolor2';
 import { map, share } from 'rxjs/operators';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { plainColorFromVariable } from '@core/utils';
 
 interface MarkerShapeInfo {
   shape: MarkerShape;
@@ -88,7 +89,7 @@ export class MarkerShapesComponent extends PageComponent implements OnInit {
     this.shapes = (this.trip ? tripMarkerShapes : markerShapes).map((shape) => {
       return {
         shape,
-        url$: createColorMarkerShapeURI(this.iconRegistry, this.domSanitizer, shape, tinycolor(this.color)).pipe(
+        url$: createColorMarkerShapeURI(this.iconRegistry, this.domSanitizer, shape, tinycolor(plainColorFromVariable(this.color))).pipe(
           map((url) => {
             return this.domSanitizer.bypassSecurityTrustUrl(url);
           }),

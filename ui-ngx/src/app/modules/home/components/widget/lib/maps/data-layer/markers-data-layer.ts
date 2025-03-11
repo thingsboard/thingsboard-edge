@@ -59,7 +59,7 @@ import {
   isDefined,
   isDefinedAndNotNull,
   isEmptyStr,
-  parseTbFunction,
+  parseTbFunction, plainColorFromVariable,
   safeExecuteTbFunction
 } from '@core/utils';
 import { catchError, map, switchMap } from 'rxjs/operators';
@@ -149,7 +149,7 @@ export class MarkerDataProcessor<S extends MarkersDataLayerSettings = MarkersDat
   }
 
   public createDefaultMarkerIcon(rotationAngle = 0): Observable<MarkerIconInfo> {
-    const color = this.settings.markerShape?.color?.color || '#307FE5';
+    const color = plainColorFromVariable(this.settings.markerShape?.color?.color || '#307FE5');
     return this.createColoredMarkerShape(MarkerShape.markerShape1, tinycolor(color), rotationAngle);
   }
 
@@ -252,7 +252,7 @@ abstract class BaseColorMarkerShapeProcessor<S extends BaseMarkerShapeSettings> 
         })
       );
     } else {
-      const color = tinycolor(colorSettings.color);
+      const color = tinycolor(plainColorFromVariable(colorSettings.color));
       return this.createMarkerShape(color, 0, this.settings.size).pipe(
         map((info) => {
             this.defaultMarkerIconInfo = info;
@@ -268,15 +268,15 @@ abstract class BaseColorMarkerShapeProcessor<S extends BaseMarkerShapeSettings> 
     if (colorSettings.type === DataLayerColorType.function) {
       const functionColor = safeExecuteTbFunction(this.markerColorFunction, [data, dsData]);
       if (isDefinedAndNotNull(functionColor)) {
-        color = tinycolor(functionColor);
+        color = tinycolor(plainColorFromVariable(functionColor));
       } else {
-        color = tinycolor(colorSettings.color);
+        color = tinycolor(plainColorFromVariable(colorSettings.color));
       }
       return this.createMarkerShape(color, rotationAngle, this.settings.size);
     } else if (rotationAngle === 0) {
       return of(this.defaultMarkerIconInfo);
     } else {
-      color = tinycolor(colorSettings.color);
+      color = tinycolor(plainColorFromVariable(colorSettings.color));
       return this.createMarkerShape(color, rotationAngle, this.settings.size);
     }
   }

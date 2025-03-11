@@ -43,7 +43,7 @@ import { forkJoin, Observable } from 'rxjs';
 import { FormattedData, WidgetActionType } from '@shared/models/widget.models';
 import { map } from 'rxjs/operators';
 import L from 'leaflet';
-import { deepClone, isDefined, isUndefined } from '@core/utils';
+import { deepClone, isDefined, isUndefined, plainColorFromVariable } from '@core/utils';
 import { TbMap } from '@home/components/widget/lib/maps/map';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import moment from 'moment/moment';
@@ -534,7 +534,7 @@ export class TbTripsDataLayer extends TbMapDataLayer<TripsDataLayerSettings, TbT
             pixelSize: this.settings.pathDecoratorSymbolSize,
             polygon: false,
             pathOptions: {
-              color: this.settings.pathDecoratorSymbolColor ? this.settings.pathDecoratorSymbolColor : pathStroke,
+              color: this.settings.pathDecoratorSymbolColor ? plainColorFromVariable(this.settings.pathDecoratorSymbolColor) : pathStroke,
               stroke: true
             }
           })

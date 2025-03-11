@@ -64,6 +64,7 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 import {
   MarkerIconShapesComponent
 } from '@home/components/widget/lib/settings/common/map/marker-icon-shapes.component';
+import { plainColorFromVariable } from '@core/utils';
 
 @Component({
   selector: 'tb-marker-shape-settings',
@@ -211,7 +212,7 @@ export class MarkerShapeSettingsComponent implements ControlValueAccessor, OnIni
   }
 
   private updatePreview() {
-    const color = this.modelValue.color.color;
+    const color = plainColorFromVariable(this.modelValue.color.color);
     if (this.markerType === MarkerType.shape) {
       const shape = (this.modelValue as MarkerShapeSettings).shape;
       this.shapePreview$ = createColorMarkerShapeURI(this.iconRegistry, this.domSanitizer, shape, tinycolor(color)).pipe(
