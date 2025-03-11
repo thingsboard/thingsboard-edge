@@ -76,6 +76,7 @@ declare module 'leaflet' {
       attributionPrefix?: string;
       layer: Layer;
       mini: Layer;
+      onAdd?: () => void;
     }
 
     interface LayersControlOptions extends SidebarPaneControlOptions {
