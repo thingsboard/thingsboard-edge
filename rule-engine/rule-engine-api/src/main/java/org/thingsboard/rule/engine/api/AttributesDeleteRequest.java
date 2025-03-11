@@ -36,6 +36,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
+import org.thingsboard.common.util.NoOpFutureCallback;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -44,6 +45,8 @@ import org.thingsboard.server.common.data.msg.TbMsgType;
 
 import java.util.List;
 import java.util.UUID;
+
+import static java.util.Objects.requireNonNullElse;
 
 @Getter
 @ToString
@@ -76,8 +79,7 @@ public class AttributesDeleteRequest implements CalculatedFieldSystemAwareReques
         private TbMsgType tbMsgType;
         private FutureCallback<Void> callback;
 
-        Builder() {
-        }
+        Builder() {}
 
         public Builder tenantId(TenantId tenantId) {
             this.tenantId = tenantId;
@@ -149,7 +151,9 @@ public class AttributesDeleteRequest implements CalculatedFieldSystemAwareReques
         }
 
         public AttributesDeleteRequest build() {
-            return new AttributesDeleteRequest(tenantId, entityId, scope, keys, notifyDevice, previousCalculatedFieldIds, tbMsgId, tbMsgType, callback);
+            return new AttributesDeleteRequest(
+                    tenantId, entityId, scope, keys, notifyDevice, previousCalculatedFieldIds, tbMsgId, tbMsgType, requireNonNullElse(callback, NoOpFutureCallback.instance())
+            );
         }
 
     }

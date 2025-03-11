@@ -198,6 +198,9 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
       this.columnFormGroup.disable({emitEvent: false})
     } else {
       this.columnFormGroup.enable({emitEvent: false})
+      if (this.modelValue?.disableSorting) {
+        this.columnFormGroup.get('sortOrder').disable({emitEvent: false});
+      }
     }
   }
 

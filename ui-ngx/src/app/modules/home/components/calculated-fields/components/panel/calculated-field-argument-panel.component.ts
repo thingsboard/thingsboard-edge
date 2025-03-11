@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Input, OnInit, output } from '@angular/core';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { charsWithNumRegex, noLeadTrailSpacesRegex } from '@shared/models/regex.constants';
+import { charsWithNumRegex, oneSpaceInsideRegex } from '@shared/models/regex.constants';
 import {
   ArgumentEntityType,
   ArgumentEntityTypeParamsMap,
@@ -79,17 +79,17 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit {
   readonly defaultLimit = Math.floor(this.maxDataPointsPerRollingArg / 10);
 
   argumentFormGroup = this.fb.group({
-    argumentName: ['', [Validators.required, this.uniqNameRequired(), Validators.pattern(charsWithNumRegex), Validators.maxLength(255)]],
+    argumentName: ['', [Validators.required, this.uniqNameRequired(), this.notEqualCtxValidator(), Validators.pattern(charsWithNumRegex), Validators.maxLength(255)]],
     refEntityId: this.fb.group({
       entityType: [ArgumentEntityType.Current],
       id: ['']
     }),
     refEntityKey: this.fb.group({
       type: [ArgumentType.LatestTelemetry, [Validators.required]],
-      key: [''],
+      key: ['', [Validators.pattern(oneSpaceInsideRegex)]],
       scope: [{ value: AttributeScope.SERVER_SCOPE, disabled: true }, [Validators.required]],
     }),
-    defaultValue: ['', [Validators.pattern(noLeadTrailSpacesRegex)]],
+    defaultValue: ['', [Validators.pattern(oneSpaceInsideRegex)]],
     limit: [{ value: this.defaultLimit, disabled: !this.maxDataPointsPerRollingArg }],
     timeWindow: [MINUTE * 15],
   });
@@ -157,6 +157,10 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit {
     if (refEntityId.entityType === ArgumentEntityType.Tenant) {
       refEntityId.id = this.tenantId;
     }
+    if (value.defaultValue) {
+      value.defaultValue = value.defaultValue.trim();
+    }
+    value.refEntityKey.key = value.refEntityKey.key.trim();
     this.argumentsDataApplied.emit({ value, index: this.index });
   }
 
@@ -246,6 +250,13 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit {
       typeControl.setValue(null);
       typeControl.markAsTouched();
     }
+  }
+
+  private notEqualCtxValidator(): ValidatorFn {
+    return (control: FormControl) => {
+      const trimmedValue = control.value.trim().toLowerCase();
+      return trimmedValue === 'ctx' ? { equalCtx: true } : null;
+    };
   }
 
   private observeUpdatePosition(): void {

@@ -885,6 +885,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     @Override
     public ListenableFuture<Void> deleteVersionControlSettings(TenantId tenantId) {
+        log.debug("[{}] Deleting version control settings", tenantId);
+        repositorySettingsService.delete(tenantId);
         return gitServiceQueue.clearRepository(tenantId);
     }
 

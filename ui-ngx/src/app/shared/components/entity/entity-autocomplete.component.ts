@@ -30,8 +30,6 @@
 ///
 
 import {
-  AfterViewInit,
-  booleanAttribute,
   Component,
   ElementRef,
   EventEmitter,
@@ -132,11 +130,18 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
   requiredText: string;
 
   @Input()
+  placeholder: string;
+
+  @Input()
   @coerceBoolean()
   useFullEntityId: boolean;
 
   @Input()
   appearance: MatFormFieldAppearance = 'fill';
+
+  @Input()
+  @coerceBoolean()
+  inlineField: boolean;
 
   @Input()
   @coerceBoolean()
@@ -149,12 +154,6 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
   @Input()
   @coerceBoolean()
   allowCreateNew: boolean;
-
-  @Input({ transform: booleanAttribute }) hideLabel = false;
-
-  @Input({ transform: booleanAttribute }) inlineField = false;
-
-  @Input() placeholder: string;
 
   @Input()
   subscriptSizing: SubscriptSizing = 'fixed';

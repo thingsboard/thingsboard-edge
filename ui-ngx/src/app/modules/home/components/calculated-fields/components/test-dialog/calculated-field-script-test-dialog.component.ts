@@ -37,6 +37,7 @@ import {
   Inject,
   OnDestroy,
   ViewChild,
+  ViewEncapsulation,
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -64,6 +65,7 @@ import {
   selector: 'tb-calculated-field-script-test-dialog',
   templateUrl: './calculated-field-script-test-dialog.component.html',
   styleUrls: ['./calculated-field-script-test-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CalculatedFieldScriptTestDialogComponent extends DialogComponent<CalculatedFieldScriptTestDialogComponent,
   string> implements AfterViewInit, OnDestroy {
@@ -85,7 +87,7 @@ export class CalculatedFieldScriptTestDialogComponent extends DialogComponent<Ca
 
   readonly ContentType = ContentType;
   readonly ScriptLanguage = ScriptLanguage;
-  readonly functionArgs = Object.keys(this.data.arguments);
+  readonly functionArgs = ['ctx', ...Object.keys(this.data.arguments)];
 
   private testScriptResize: ResizeObserver;
   private splitObjects: SplitObject[] = [];
