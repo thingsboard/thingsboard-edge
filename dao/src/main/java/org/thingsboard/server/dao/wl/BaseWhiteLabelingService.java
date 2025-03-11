@@ -75,8 +75,8 @@ import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGIS
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.TERMS_OF_USE;
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
 import static org.thingsboard.server.dao.service.DataValidator.isValidUrl;
-import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forTypeAndDomain;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
+import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forTypeAndDomain;
 
 @Service
 @Slf4j
@@ -298,15 +298,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (loginWhiteLabelParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelParams.getBaseUrl())) {
             throw new IncorrectParameterException("Base url " + loginWhiteLabelParams.getBaseUrl() + " is invalid");
         }
-        checkDomainAndPropagateToEdge(tenantId, domain);
         saveLoginWhiteLabelParams(tenantId, customerId, loginWhiteLabelParams);
-    }
-
-    private void checkDomainAndPropagateToEdge(TenantId tenantId, Domain domain) {
-        if (!domain.isPropagateToEdge()) {
-            domain.setPropagateToEdge(true);
-            domainService.saveDomain(tenantId, domain);
-        }
     }
 
     @Override

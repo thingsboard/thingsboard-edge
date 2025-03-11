@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.domain.DomainInfo;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -49,8 +50,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -69,9 +73,11 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
     @Autowired
     protected WhiteLabelingService whiteLabelingService;
 
+    @Autowired
+    protected DomainService domainService;
+
     @Override
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
-        DownlinkMsg result = null;
         try {
             EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
             if (entityId == null) {
@@ -84,14 +90,20 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                 return null;
             }
             WhiteLabelingProto whiteLabelingProto = EdgeMsgConstructorUtils.constructWhiteLabeling(whiteLabeling);
-            result = DownlinkMsg.newBuilder()
+            DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                    .setWhiteLabelingProto(whiteLabelingProto)
-                    .build();
+                    .setWhiteLabelingProto(whiteLabelingProto);
+            if (WhiteLabelingType.LOGIN.equals(whiteLabeling.getType())) {
+                DomainInfo domainInfo = domainService.findDomainInfoById(tenantId, whiteLabeling.getDomainId());
+                OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg =
+                        EdgeMsgConstructorUtils.constructOAuth2DomainUpdateMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, domainInfo);
+                builder.addOAuth2DomainUpdateMsg(oAuth2DomainUpdateMsg);
+            }
+            return builder.build();
         } catch (Exception e) {
             log.error("Can't process white labeling msg [{}]", edgeEvent, e);
+            return null;
         }
-        return result;
     }
 
     private WhiteLabelingType getWhiteLabelingType(EdgeEventType type) {
