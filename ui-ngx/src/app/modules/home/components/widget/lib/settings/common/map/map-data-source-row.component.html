@@ -1,0 +1,95 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div [formGroup]="dataSourceFormGroup" class="tb-form-table-row tb-map-data-source-row">
+  <div class="tb-source-field">
+    <mat-form-field class="tb-ds-type-field tb-inline-field" appearance="outline" subscriptSizing="dynamic">
+      <mat-select formControlName="dsType">
+        <mat-option *ngFor="let type of datasourceTypes" [value]="type">
+          {{ datasourceTypesTranslations.get(type) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field
+      *ngIf="dataSourceFormGroup.get('dsType').value === DatasourceType.function"
+      class="tb-label-field tb-inline-field" appearance="outline" subscriptSizing="dynamic">
+      <input matInput formControlName="dsLabel" placeholder="{{ 'widget-config.set' | translate }}">
+    </mat-form-field>
+    <tb-entity-autocomplete
+      class="tb-device-field"
+      *ngIf="dataSourceFormGroup.get('dsType').value === DatasourceType.device"
+      required
+      inlineField
+      placeholder="{{ 'device.select-device' | translate }}"
+      [entityType]="EntityType.DEVICE"
+      formControlName="dsDeviceId">
+    </tb-entity-autocomplete>
+    <tb-entity-alias-select
+      class="tb-entity-alias-field"
+      *ngIf="dataSourceFormGroup.get('dsType').value === DatasourceType.entity"
+      inlineField
+      tbRequired
+      [aliasController]="context.aliasController"
+      formControlName="dsEntityAliasId"
+      [callbacks]="context.callbacks">
+    </tb-entity-alias-select>
+  </div>
+  <tb-data-keys
+    class="tb-data-keys-field"
+    formControlName="dataKeys"
+    inlineField
+    hideDataKeyColor
+    hideDataKeyDecimals
+    hideDataKeyUnits
+    disableDrag
+    [required]="true"
+    [widgetType]="widgetType.latest"
+    [widget]="context.widget"
+    [datasourceType]="dataSourceFormGroup.get('dsType').value"
+    [entityAliasId]="dataSourceFormGroup.get('dsEntityAliasId').value"
+    [deviceId]="dataSourceFormGroup.get('dsDeviceId').value"
+    [aliasController]="context.aliasController"
+    [callbacks]="context.callbacks"
+    [generateKey]="generateAdditionalDataKey">
+  </tb-data-keys>
+  <div class="tb-form-table-row-cell-buttons">
+    <div class="tb-remove-button">
+      <button type="button"
+              mat-icon-button
+              (click)="dataSourceRemoved.emit()"
+              matTooltip="{{ 'widgets.maps.data-layer.remove-datasource' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

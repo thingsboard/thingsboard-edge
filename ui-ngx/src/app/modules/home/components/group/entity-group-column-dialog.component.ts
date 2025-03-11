@@ -48,6 +48,7 @@ import {
 import { EntityType } from '@shared/models/entity-type.models';
 import { WidgetService } from '@core/http/widget.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
 
 export interface EntityGroupColumnDialogData {
   isReadOnly: boolean;
@@ -103,6 +104,7 @@ export class EntityGroupColumnDialogComponent extends
       key: [null, Validators.required],
       title: [null],
       sortOrder: [null, Validators.required],
+      disableSorting: [null],
       mobileHide: [null],
       useCellStyleFunction: [null],
       cellStyleFunction: [null],
@@ -113,12 +115,11 @@ export class EntityGroupColumnDialogComponent extends
     if (this.isReadOnly) {
       this.columnFormGroup.disable({emitEvent: false});
     } else {
-      this.columnFormGroup.get('useCellStyleFunction').valueChanges.pipe(
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe(() => {
-        this.updateDisabledState();
-      });
-      this.columnFormGroup.get('useCellContentFunction').valueChanges.pipe(
+      merge(
+        this.columnFormGroup.get('useCellStyleFunction').valueChanges,
+        this.columnFormGroup.get('useCellContentFunction').valueChanges,
+        this.columnFormGroup.get('disableSorting').valueChanges
+      ).pipe(
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(() => {
         this.updateDisabledState();
@@ -130,6 +131,7 @@ export class EntityGroupColumnDialogComponent extends
   private updateDisabledState() {
     const useCellStyleFunction: boolean = this.columnFormGroup.get('useCellStyleFunction').value;
     const useCellContentFunction: boolean = this.columnFormGroup.get('useCellContentFunction').value;
+    const disableSorting: boolean = this.columnFormGroup.get('disableSorting').value;
     if (useCellStyleFunction) {
       this.columnFormGroup.get('cellStyleFunction').enable({emitEvent: false});
     } else {
@@ -139,6 +141,12 @@ export class EntityGroupColumnDialogComponent extends
       this.columnFormGroup.get('cellContentFunction').enable({emitEvent: false});
     } else {
       this.columnFormGroup.get('cellContentFunction').disable({emitEvent: false});
+    }
+    if (disableSorting) {
+      this.columnFormGroup.get('sortOrder').setValue(EntityGroupSortOrder.NONE);
+      this.columnFormGroup.get('sortOrder').disable({emitEvent: false});
+    } else {
+      this.columnFormGroup.get('sortOrder').enable({emitEvent: false});
     }
   }
 
@@ -155,7 +163,7 @@ export class EntityGroupColumnDialogComponent extends
   save(): void {
     this.submitted = true;
     if (this.columnFormGroup.valid) {
-      this.column = {...this.column, ...this.columnFormGroup.value};
+      this.column = {...this.column, ...this.columnFormGroup.getRawValue()};
       this.dialogRef.close(this.column);
     }
   }

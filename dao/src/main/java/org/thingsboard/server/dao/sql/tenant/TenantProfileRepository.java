@@ -30,12 +30,14 @@
  */
 package org.thingsboard.server.dao.sql.tenant;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.edqs.fields.TenantProfileFields;
 import org.thingsboard.server.dao.model.sql.TenantProfileEntity;
 
 import java.util.List;
@@ -69,5 +71,9 @@ public interface TenantProfileRepository extends JpaRepository<TenantProfileEnti
     EntityInfo findDefaultTenantProfileInfo();
 
     List<TenantProfileEntity> findByIdIn(List<UUID> ids);
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.TenantProfileFields(t.id, t.createdTime, t.name," +
+            "t.isDefault) FROM TenantProfileEntity t WHERE t.id > :id ORDER BY t.id")
+    List<TenantProfileFields> findNextBatch(@Param("id") UUID id, Limit limit);
 
 }

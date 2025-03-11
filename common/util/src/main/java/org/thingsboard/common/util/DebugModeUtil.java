@@ -83,4 +83,13 @@ public final class DebugModeUtil {
         }
     }
 
+    public static boolean isDebugFailuresAvailable(HasDebugSettings debugSettingsAware) {
+        if (isDebugAllAvailable(debugSettingsAware)) {
+            return true;
+        } else {
+            var debugSettings = debugSettingsAware.getDebugSettings();
+            return debugSettings != null && debugSettings.isFailuresEnabled();
+        }
+    }
+    
 }

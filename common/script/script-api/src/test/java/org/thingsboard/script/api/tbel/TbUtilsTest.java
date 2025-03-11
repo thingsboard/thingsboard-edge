@@ -457,8 +457,9 @@ public class TbUtilsTest {
 
     @Test
     public void parsDouble() {
-        String doubleValStr = "1729.1729";
-        Assertions.assertEquals(java.util.Optional.of(doubleVal).get(), TbUtils.parseDouble(doubleValStr));
+        String doubleValStr = "1.1428250947E8";
+        Assertions.assertEquals(Double.parseDouble(doubleValStr), TbUtils.parseDouble(doubleValStr));
+        doubleValStr = "1729.1729";
         Assertions.assertEquals(0, Double.compare(doubleVal, TbUtils.parseHexToDouble(longValHex)));
         Assertions.assertEquals(0, Double.compare(doubleValRev, TbUtils.parseHexToDouble(longValHex, false)));
         Assertions.assertEquals(0, Double.compare(doubleVal, TbUtils.parseBigEndianHexToDouble(longValHex)));
@@ -945,7 +946,13 @@ public class TbUtilsTest {
     @Test
     public void isDecimal_Test() {
         Assertions.assertEquals(10, TbUtils.isDecimal("4567039"));
+        Assertions.assertEquals(10, TbUtils.isDecimal("1.1428250947E8"));
+        Assertions.assertEquals(10, TbUtils.isDecimal("123.45"));
+        Assertions.assertEquals(10, TbUtils.isDecimal("-1.23E-4"));
+        Assertions.assertEquals(10, TbUtils.isDecimal("1E5"));
         Assertions.assertEquals(-1, TbUtils.isDecimal("C100110"));
+        Assertions.assertEquals(-1, TbUtils.isDecimal("abc"));
+        Assertions.assertEquals(-1, TbUtils.isDecimal(null));
     }
 
     @Test
@@ -1117,7 +1124,7 @@ public class TbUtilsTest {
         String validInput = Base64.getEncoder().encodeToString(new byte[]{1, 2, 3, 4, 5});
         ExecutionArrayList<Byte> actual = TbUtils.base64ToBytesList(ctx, validInput);
         ExecutionArrayList<Byte> expected = new ExecutionArrayList<>(ctx);
-        expected.addAll(List.of((byte) 1, (byte)2, (byte)3, (byte)4, (byte)5));
+        expected.addAll(List.of((byte) 1, (byte) 2, (byte) 3, (byte) 4, (byte) 5));
         Assertions.assertEquals(expected, actual);
 
         String emptyInput = Base64.getEncoder().encodeToString(new byte[]{});
@@ -1131,6 +1138,7 @@ public class TbUtilsTest {
             TbUtils.base64ToBytesList(ctx, null);
         });
     }
+
     @Test
     public void bytesToHex_Test() {
         byte[] bb = {(byte) 0xBB, (byte) 0xAA};
@@ -1142,6 +1150,19 @@ public class TbUtilsTest {
         expected = "BB53";
         actual = TbUtils.bytesToHex(expectedList);
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void toInt() {
+        Assertions.assertEquals(1729, TbUtils.toInt(doubleVal));
+        Assertions.assertEquals(13, TbUtils.toInt(12.8));
+        Assertions.assertEquals(28, TbUtils.toInt(28.0));
+    }
+
+    @Test
+    public void isNaN() {
+        Assertions.assertFalse(TbUtils.isNaN(doubleVal));
+        Assertions.assertTrue(TbUtils.isNaN(Double.NaN));
     }
 
     private static List<Byte> toList(byte[] data) {

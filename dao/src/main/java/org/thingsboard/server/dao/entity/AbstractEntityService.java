@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmService;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.housekeeper.CleanUpService;
@@ -74,6 +75,10 @@ public abstract class AbstractEntityService {
     @Lazy
     @Autowired
     protected EntityGroupService entityGroupService;
+
+    @Lazy
+    @Autowired
+    protected CalculatedFieldService calculatedFieldService;
 
     @Lazy
     @Autowired(required = false)

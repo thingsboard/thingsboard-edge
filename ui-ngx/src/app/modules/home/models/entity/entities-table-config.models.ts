@@ -145,7 +145,11 @@ export class EntityLinkTableColumn<T extends BaseData<HasId>> extends BaseEntity
               public width: string = '0px',
               public cellContentFunction: CellContentFunction<T> = (entity, property) => entity[property] ? entity[property] : '',
               public entityURL: (entity) => string,
-              public sortable: boolean = true) {
+              public sortable: boolean = true,
+              public cellStyleFunction: CellStyleFunction<T> = () => ({}),
+              public headerCellStyleFunction: HeaderCellStyleFunction<T> = () => ({}),
+              public cellTooltipFunction: CellTooltipFunction<T> = () => undefined,
+              public actionCell: CellActionDescriptor<T> = null) {
     super('link', key, title, width, sortable);
   }
 }
@@ -232,6 +236,8 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   displayPagination = true;
   pageMode = true;
   defaultPageSize = 10;
+  pageStepCount = 3;
+  pageStepIncrement: number;
   columns: Array<EntityColumn<L>> = [];
   cellActionDescriptors: Array<CellActionDescriptor<L>> = [];
   groupActionDescriptors: Array<GroupActionDescriptor<L>> = [];

@@ -64,6 +64,7 @@
         <module>transport</module>
         <module>js-executor</module>
         <module>monitoring</module>
+        <module>edqs</module>
         <!-- PE -->
         <module>integration</module>
         <module>web-report</module>

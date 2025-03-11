@@ -1,0 +1,95 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<ng-container [formGroup]="tripTimelineSettingsFormGroup">
+  <div class="tb-form-panel stroked tb-slide-toggle">
+    <mat-expansion-panel class="tb-settings" [expanded]="settingsExpanded"
+                         [disabled]="!tripTimelineSettingsFormGroup.get('showTimelineControl').value">
+      <mat-expansion-panel-header class="flex flex-row flex-wrap">
+        <mat-panel-title>
+          <mat-slide-toggle class="mat-slide flex items-stretch justify-center" formControlName="showTimelineControl" (click)="$event.stopPropagation()">
+            {{ 'widgets.maps.timeline.control-panel' | translate }}
+          </mat-slide-toggle>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <div class="tb-form-row space-between">
+          <div translate>widgets.maps.timeline.time-step</div>
+          <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+            <input matInput type="number" min="1" step="1" formControlName="timeStep" placeholder="{{ 'widget-config.set' | translate }}">
+            <span matSuffix>ms</span>
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row space-between column-xs">
+          <div class="fixed-title-width" translate>widgets.maps.timeline.speed-options</div>
+          <mat-form-field class="flex-1" appearance="outline" subscriptSizing="dynamic">
+            <mat-select formControlName="speedOptions" multiple>
+              <mat-option *ngFor="let speed of [1,5,10,15,25]" [value]="speed">
+                {{ speed }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row column-xs">
+          <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="showTimestamp">
+            {{ 'widgets.maps.timeline.timestamp' | translate }}
+          </mat-slide-toggle>
+          <tb-date-format-select class="flex-1"
+                                 excludeLastUpdateAgo
+                                 formControlName="timestampFormat"></tb-date-format-select>
+        </div>
+        <div class="tb-form-panel tb-slide-toggle stroked">
+          <mat-expansion-panel class="tb-settings" [expanded]="tripTimelineSettingsFormGroup.get('snapToRealLocation').value"
+                               [disabled]="!tripTimelineSettingsFormGroup.get('snapToRealLocation').value">
+            <mat-expansion-panel-header class="flex flex-row flex-wrap">
+              <mat-panel-title>
+                <mat-slide-toggle class="mat-slide flex items-stretch justify-center" formControlName="snapToRealLocation" (click)="$event.stopPropagation()">
+                  {{ 'widgets.maps.timeline.snap-to-real-location' | translate }}
+                </mat-slide-toggle>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <ng-template matExpansionPanelContent>
+              <tb-js-func formControlName="locationSnapFilter"
+                          required
+                          withModules
+                          [globalVariables]="functionScopeVariables"
+                          [functionArgs]="['data', 'dsData']"
+                          functionTitle="{{ 'widgets.maps.timeline.location-snap-filter-function' | translate }}"
+                          helpId="widget/lib/map/trip_point_as_anchor_fn">
+              </tb-js-func>
+            </ng-template>
+          </mat-expansion-panel>
+        </div>
+      </ng-template>
+    </mat-expansion-panel>
+  </div>
+</ng-container>
