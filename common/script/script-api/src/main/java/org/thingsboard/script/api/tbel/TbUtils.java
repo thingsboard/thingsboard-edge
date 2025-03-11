@@ -33,8 +33,6 @@ package org.thingsboard.script.api.tbel;
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.mvel2.ConversionHandler;
-import org.mvel2.DataConversion;
 import org.mvel2.ExecutionContext;
 import org.mvel2.ParserConfiguration;
 import org.mvel2.execution.ExecutionArrayList;
@@ -273,6 +271,8 @@ public class TbUtils {
         parserConfig.addImport("toFixed", new MethodStub(TbUtils.class.getMethod("toFixed",
                 float.class, int.class)));
         parserConfig.addImport("toInt", new MethodStub(TbUtils.class.getMethod("toInt",
+                double.class)));
+        parserConfig.addImport("isNaN", new MethodStub(TbUtils.class.getMethod("isNaN",
                 double.class)));
         parserConfig.addImport("hexToBytes", new MethodStub(TbUtils.class.getMethod("hexToBytes",
                 ExecutionContext.class, String.class)));
@@ -1176,6 +1176,10 @@ public class TbUtils {
 
     public static int toInt(double value) {
         return BigDecimal.valueOf(value).setScale(0, RoundingMode.HALF_UP).intValue();
+    }
+
+    public static boolean isNaN(double value) {
+        return Double.isNaN(value);
     }
 
     public static ExecutionHashMap<String, Object> toFlatMap(ExecutionContext ctx, Map<String, Object> json) {
