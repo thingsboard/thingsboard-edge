@@ -544,7 +544,7 @@ public class TenantRepo {
     }
 
     public RelationsRepo getRelations(RelationTypeGroup relationTypeGroup) {
-        return relations.get(relationTypeGroup);
+        return relations.computeIfAbsent(relationTypeGroup, type -> new RelationsRepo());
     }
 
     public String getOwnerName(EntityId ownerId) {
@@ -556,6 +556,9 @@ public class TenantRepo {
 
     private String getEntityName(EntityId entityId) {
         EntityType entityType = entityId.getEntityType();
+        if (entityType == EntityType.TENANT && entityId.getId().equals(TenantId.NULL_UUID)) {
+            return "";
+        }
         return switch (entityType) {
             case CUSTOMER, TENANT -> getEntityMap(entityType).get(entityId.getId()).getFields().getName();
             default -> throw new RuntimeException("Unsupported entity type: " + entityType);
