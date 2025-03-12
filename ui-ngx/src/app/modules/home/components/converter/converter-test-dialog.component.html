@@ -33,7 +33,7 @@
 <form class="tb-converter-test-dialog"
       [formGroup]="converterTestFormGroup" (ngSubmit)="save()">
   <mat-toolbar class="flex flex-row" color="primary">
-    <h2>{{ (isDecoder ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-tbel') | translate }})</h2>
+    <h2>{{ dialogTitle | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-tbel') | translate }})</h2>
     <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
@@ -41,7 +41,7 @@
       <mat-icon class="material-icons">close</mat-icon>
     </button>
   </mat-toolbar>
-  <div mat-dialog-content class="flex-1" style="position: relative;">
+  <div mat-dialog-content class="relative flex-1">
     <div class="tb-absolute-fill">
       <div #topPanel class="tb-split tb-split-vertical">
         <div #topLeftPanel class="tb-split tb-content">
@@ -50,22 +50,25 @@
               <label>{{ (isDecoder ? 'converter.payload' : 'converter.message') | translate }}</label>
             </div>
             <div formGroupName="payload" class="flex h-full flex-col">
-              <div class="flex flex-row">
-                <mat-form-field *ngIf="isDecoder" class="mat-block" style="margin-bottom: 0px; min-width: 200px;">
-                  <mat-label translate>converter.payload-content-type</mat-label>
-                  <mat-select matInput formControlName="contentType">
-                    <mat-option *ngFor="let type of contentTypes" [value]="type">
-                      {{contentTypesInfoMap.get(type).name | translate}}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field *ngIf="!isDecoder" class="mat-block" style="margin-bottom: 0px; min-width: 300px;">
-                  <mat-label translate>converter.message-type</mat-label>
-                  <input matInput formControlName="msgType" required>
-                  <mat-error *ngIf="converterTestFormGroup.get('payload').get('msgType').hasError('required')">
-                    {{ 'converter.message-type-required' | translate }}
-                  </mat-error>
-                </mat-form-field>
+              <div class="flex">
+                @if (isDecoder) {
+                  <mat-form-field class="mat-block min-w-48" subscriptSizing="dynamic">
+                    <mat-label translate>converter.payload-content-type</mat-label>
+                    <mat-select formControlName="contentType">
+                      <mat-option *ngFor="let type of contentTypes" [value]="type">
+                        {{ contentTypesInfoMap.get(type).name | translate }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                } @else {
+                  <mat-form-field class="mat-block min-w-72">
+                    <mat-label translate>converter.message-type</mat-label>
+                    <input matInput formControlName="msgType" required>
+                    <mat-error *ngIf="converterTestFormGroup.get('payload').get('msgType').hasError('required')">
+                      {{ 'converter.message-type-required' | translate }}
+                    </mat-error>
+                  </mat-form-field>
+                }
               </div>
               <tb-json-content
                 #payloadContent
@@ -109,8 +112,8 @@
             </div>
             <tb-js-func
               formControlName="funcBody"
-              functionName="{{isDecoder ? 'Decoder' : 'Encoder'}}"
-              [functionArgs]="isDecoder ? ['payload', 'metadata'] : ['msg', 'metadata', 'msgType', 'integrationMetadata']"
+              [functionName]="functionName"
+              [functionArgs]="functionArgs"
               [validationArgs]="isDecoder ? [converterTestFormGroup.get('payload').get('payload').value,
                                              converterTestFormGroup.get('metadata').value]
                                           : [converterTestFormGroup.get('payload').get('msg').value,
@@ -120,7 +123,7 @@
               [disableUndefinedCheck]="scriptLang === scriptLanguage.TBEL"
               [scriptLanguage]="scriptLang"
               resultType="object"
-              helpId="{{scriptLang === scriptLanguage.TBEL ? (isDecoder ? 'converter/tbel/decoder_fn' : 'converter/tbel/encoder_fn') : (isDecoder ? 'converter/decoder_fn' : 'converter/encoder_fn')}}"
+              [helpId]="functionHelpId"
               [fillHeight]="true">
             </tb-js-func>
           </div>

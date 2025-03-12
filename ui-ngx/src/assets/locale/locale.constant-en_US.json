@@ -1231,6 +1231,7 @@
         "encoder": "Encoder",
         "test-decoder-fuction": "Test decoder function",
         "test-encoder-fuction": "Test encoder function",
+        "test-payload-decoder": "Test payload decoder",
         "test-with-this-message": "{{test}} with this message",
         "decoder-input-params": "Decoder input parameters",
         "encoder-input-params": "Encoder input parameters",

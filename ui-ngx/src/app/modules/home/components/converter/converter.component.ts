@@ -42,9 +42,13 @@ import {
   ConverterDebugInput,
   ConverterType,
   converterTypeTranslationMap,
+  ConverterVersion,
   DefaultUpdateOnlyKeys,
   DefaultUpdateOnlyKeysValue,
+  getConverterFunctionArgs,
   getConverterFunctionHeldId,
+  getConverterFunctionName,
+  getConverterTestFunctionName,
   getTargetField,
   getTargetTemplateUrl,
   LatestConverterParameters
@@ -131,9 +135,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   ])
 
   readonly converterDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).converterDebugPerTenantLimitsConfiguration;
-
-  private decoderArgs = ['payload', 'metadata'];
-  private encoderArgs = ['msg', 'metadata', 'msgType', 'integrationMetadata'];
 
   private predefinedConverterKeys: StringItemsOption[];
   private integrationsConvertersInfo: IntegrationsConvertersInfo;
@@ -326,7 +327,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   private updatedConverterVersionDisableState() {
-    const converterVersion: number = this.entityForm.get('converterVersion').value;
+    const converterVersion: ConverterVersion = this.entityForm.get('converterVersion').value;
     if (converterVersion === 2 && this.entityForm.enabled) {
       this.entityForm.get('configuration').get('name').enable({emitEvent: false});
     } else {
@@ -360,10 +361,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   private setupDefaultScriptBody(targetField: string, converterType: ConverterType,
                                  scriptLang: ScriptLanguage, integrationType: IntegrationType): void {
-    const scriptBody = this.entityForm.get('configuration').get(targetField).value;
+    const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
+    const converterVersion: ConverterVersion = this.entityForm.get('converterVersion').value;
 
     if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(integrationType)) {
-      const targetTemplateUrl = getTargetTemplateUrl(converterType, scriptLang, integrationType);
+      const targetTemplateUrl = getTargetTemplateUrl(converterType, scriptLang, integrationType, converterVersion);
       this.resourcesService.loadJsonResource(targetTemplateUrl)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(template => {
@@ -437,11 +439,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   get functionName(): string {
-    return this.entityForm.get('type').value === ConverterType.UPLINK ? 'Decoder' : 'Encoder';
+    return getConverterFunctionName(this.entityForm.get('type').value, this.entityForm.get('converterVersion').value);
   }
 
   get functionArgs(): string[] {
-    return this.entityForm.get('type').value === ConverterType.UPLINK ? this.decoderArgs : this.encoderArgs;
+    return getConverterFunctionArgs(this.entityForm.get('type').value);
   }
 
   get functionHelpId(): string {
@@ -451,7 +453,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   get testFunctionButtonLabel(): string {
-    return this.entityForm.get('type').value === ConverterType.UPLINK ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction';
+    return getConverterTestFunctionName(this.entityForm.get('type').value, this.entityForm.get('converterVersion').value);
   }
 
   get fetchLatestKey(): (searchText?: string) => Observable<Array<StringItemsOption>> {
@@ -496,7 +498,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     } else {
       const parameters: LatestConverterParameters = {
         converterType: this.entityForm.get('type').value,
-        integrationType: this.entityForm.get('integrationType').value
+        integrationType: this.entityForm.get('integrationType').value,
+        converterVersion: this.entityForm.get('converterVersion').value
       };
       if (this.integrationName) {
         parameters.integrationName = this.integrationName;
@@ -520,7 +523,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           debugIn,
           isDecoder,
           funcBody,
-          scriptLang
+          scriptLang,
+          converter: this.entityFormValue()
         }
       })
       .afterClosed()

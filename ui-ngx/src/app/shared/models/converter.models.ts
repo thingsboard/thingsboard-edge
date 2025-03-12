@@ -65,7 +65,7 @@ export const jsDefaultConvertersUrl = new Map<ConverterType, string>([
 ]);
 
 export const jsDefaultConvertersV2Url = new Map<ConverterType, string>([
-  [ConverterType.UPLINK, '/assets/converters/js-decoder.raw' ],
+  [ConverterType.UPLINK, '/assets/converters/js-decoder-v2.raw'],
   [ConverterType.DOWNLINK, '/assets/converters/js-encoder.raw'],
 ]);
 
@@ -126,6 +126,7 @@ export interface TestUpLinkInputParams {
   metadata: {[key: string]: string};
   payload: string;
   decoder: string;
+  converter: Converter;
 }
 
 export interface TestDownLinkInputParams {
@@ -137,6 +138,7 @@ export interface TestDownLinkInputParams {
 }
 
 export interface LatestConverterParameters {
+  converterVersion?: ConverterVersion;
   converterType?: ConverterType;
   integrationType?: IntegrationType;
   integrationName?: string;
@@ -264,3 +266,24 @@ export const getConverterFunctionHeldId =
       ? (converterType === ConverterType.UPLINK ? 'converter/tbel/decoder_fn' : 'converter/tbel/encoder_fn')
       : (converterType === ConverterType.UPLINK ? 'converter/decoder_fn' : 'converter/encoder_fn');
   }
+
+
+export const getConverterFunctionName =
+  (converterType: ConverterType, converterVersion: ConverterVersion): string => {
+  return converterType === ConverterType.UPLINK
+    ? converterVersion === 2 ? 'payloadDecoder' : 'decoder'
+    : 'encoder';
+}
+
+export const getConverterTestFunctionName =
+  (converterType: ConverterType, converterVersion: ConverterVersion): string => {
+    return converterType === ConverterType.UPLINK
+      ? converterVersion === 2 ? 'converter.test-payload-decoder' : 'converter.test-decoder-fuction'
+      : 'converter.test-encoder-fuction';
+  }
+
+const decoderArgs = ['payload', 'metadata'];
+const encoderArgs = ['msg', 'metadata', 'msgType', 'integrationMetadata'];
+
+export const getConverterFunctionArgs =
+  (converterType: ConverterType): string[] => converterType === ConverterType.UPLINK ? decoderArgs : encoderArgs;

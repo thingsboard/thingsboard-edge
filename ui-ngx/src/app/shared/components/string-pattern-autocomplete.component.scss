@@ -61,11 +61,13 @@
 :host ::ng-deep {
   .highlighted-text {
     .highlight {
-      text-shadow: 0 0 0.5px var(--mdc-filled-text-field-input-text-color, var(--mat-app-on-surface));
+      color: var(--tb-primary-600);
+      text-shadow: 0 0 0.5px var(--tb-primary-600, var(--mat-app-on-surface));
     }
     &.disabled {
       .highlight {
-        text-shadow: 0 0 0.5px var(--mdc-filled-text-field-disabled-input-text-color);
+        color: var(--tb-primary-300);
+        text-shadow: 0 0 0.5px var(--tb-primary-300, var(--mdc-filled-text-field-disabled-input-text-color));
       }
     }
   }

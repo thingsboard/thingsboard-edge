@@ -124,6 +124,9 @@ export class ConverterService {
       if (parameters.integrationName) {
         params = params.set('integrationName', parameters.integrationName)
       }
+      if (parameters.converterVersion) {
+        params = params.set('converterVersion', parameters.converterVersion)
+      }
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
