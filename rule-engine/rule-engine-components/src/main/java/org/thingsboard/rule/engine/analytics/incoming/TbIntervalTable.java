@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -137,10 +138,10 @@ class TbIntervalTable {
         return Pair.of(intervalStartTs, state);
     }
 
-    ListenableFuture<Integer> saveIntervalState(EntityId entityId, long ts, TbIntervalState state) {
+    ListenableFuture<TimeseriesSaveResult> saveIntervalState(EntityId entityId, long ts, TbIntervalState state) {
         KvEntry kvEntry = new StringDataEntry(DataConstants.RULE_NODE_STATE_PREFIX + ctx.getSelfId(), state.toStateJson(gson));
         TsKvEntry tsKvEntry = new BasicTsKvEntry(calculateIntervalStart(ts), kvEntry);
-        return ctx.getTimeseriesService().save(ctx.getTenantId(), entityId, tsKvEntry);
+        return ctx.getTimeseriesService().saveWithoutLatest(ctx.getTenantId(), entityId, List.of(tsKvEntry), 0L);
     }
 
     Map<EntityId, Map<Long, TbIntervalState>> getStatesToReport(IntervalPersistPolicy intervalPersistPolicy) {

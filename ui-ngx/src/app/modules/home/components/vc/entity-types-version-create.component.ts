@@ -49,7 +49,8 @@ import {
   exportableEntityTypes,
   overrideEntityTypeTranslations,
   SyncStrategy,
-  syncStrategyTranslationMap
+  syncStrategyTranslationMap,
+  typesWithCalculatedFields
 } from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -97,6 +98,8 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
   loading = true;
 
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
+
+  readonly typesWithCalculatedFields = typesWithCalculatedFields;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
@@ -169,6 +172,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
           saveRelations: [config.saveRelations, []],
           saveAttributes: [config.saveAttributes, []],
           saveCredentials: [config.saveCredentials, []],
+          saveCalculatedFields: [config.saveCalculatedFields, []],
           saveGroupEntities: [config.saveGroupEntities, []],
           savePermissions: [config.savePermissions, []],
           allEntities: [config.allEntities, []],
@@ -228,6 +232,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
       saveAttributes: true,
       saveRelations: true,
       saveCredentials: true,
+      saveCalculatedFields: true,
       saveGroupEntities: true,
       savePermissions: true,
       allEntities: true,

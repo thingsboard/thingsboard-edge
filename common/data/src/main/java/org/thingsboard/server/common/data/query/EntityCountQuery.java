@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.query;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.ToString;
@@ -39,6 +40,7 @@ import java.util.List;
 
 @Schema
 @ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityCountQuery {
 
     @Getter

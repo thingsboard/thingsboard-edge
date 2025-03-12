@@ -105,6 +105,10 @@ public class EntitiesImportCtx {
         return getSettings().isSaveCredentials();
     }
 
+    public boolean isSaveCalculatedFields() {
+        return getSettings().isSaveCalculatedFields();
+    }
+
     public boolean isSaveUserGroupPermissions() {
         return getSettings().isSaveUserGroupPermissions();
     }

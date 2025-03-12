@@ -47,6 +47,7 @@ import {
   entityTypesWithoutRelatedData,
   EntityTypeVersionLoadConfig,
   exportableEntityTypes,
+  typesWithCalculatedFields,
   overrideEntityTypeTranslations
 } from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
@@ -93,6 +94,8 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
   loading = true;
 
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
+
+  readonly typesWithCalculatedFields = typesWithCalculatedFields;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
@@ -164,6 +167,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
           loadRelations: [config.loadRelations, []],
           loadAttributes: [config.loadAttributes, []],
           loadCredentials: [config.loadCredentials, []],
+          loadCalculatedFields: [config.loadCalculatedFields, []],
           loadPermissions: [config.loadPermissions, []],
           loadGroupEntities: [config.loadGroupEntities, []],
           autoGenerateIntegrationKey: [config.autoGenerateIntegrationKey, []],
@@ -202,6 +206,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
       loadAttributes: true,
       loadRelations: true,
       loadCredentials: true,
+      loadCalculatedFields: true,
       loadPermissions: true,
       loadGroupEntities: true,
       autoGenerateIntegrationKey: false,

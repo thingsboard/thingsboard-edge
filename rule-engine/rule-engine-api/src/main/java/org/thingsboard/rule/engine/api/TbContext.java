@@ -65,6 +65,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -294,7 +295,7 @@ public interface TbContext {
 
     DeviceCredentialsService getDeviceCredentialsService();
 
-    RuleEngineDeviceStateManager getDeviceStateManager();
+    DeviceStateManager getDeviceStateManager();
 
     String getDeviceStateNodeRateLimitConfig();
 
@@ -372,6 +373,10 @@ public interface TbContext {
 
     SlackService getSlackService();
 
+    CalculatedFieldService getCalculatedFieldService();
+
+    RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService();
+
     boolean isExternalNodeForceAck();
 
     /**
@@ -391,12 +396,6 @@ public interface TbContext {
      * This context is available only in TB PE.
      */
     TbPeContext getPeContext();
-
-    void logJsEvalRequest();
-
-    void logJsEvalResponse();
-
-    void logJsEvalFailure();
 
     String getServiceId();
 

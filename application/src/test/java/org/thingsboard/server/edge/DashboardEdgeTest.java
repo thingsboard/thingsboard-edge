@@ -191,6 +191,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     public void testSendDashboardToCloud() throws Exception {
         Dashboard dashboard = buildDashboardForUplinkMsg();
 
+        // create dashboard on edge
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         DashboardUpdateMsg.Builder dashboardUpdateMsgBuilder = DashboardUpdateMsg.newBuilder();
         dashboardUpdateMsgBuilder.setIdMSB(dashboard.getUuidId().getMostSignificantBits());

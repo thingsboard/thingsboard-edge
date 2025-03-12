@@ -121,6 +121,8 @@ import {
   ExportResourceDialogDialogResult
 } from '@shared/import-export/export-resource-dialog.component';
 import { FormProperty, propertyValid } from '@shared/models/dynamic-form.models';
+import { CalculatedFieldsService } from '@core/http/calculated-fields.service';
+import { CalculatedField } from '@shared/models/calculated-field.models';
 
 export type editMissingAliasesFunction = (widgets: Array<Widget>, isSingleWidget: boolean,
                                           customTitle: string, missingEntityAliases: EntityAliases) => Observable<EntityAliases>;
@@ -152,6 +154,7 @@ export class ImportExportService {
               private imageService: ImageService,
               private utils: UtilsService,
               private itembuffer: ItemBufferService,
+              private calculatedFieldsService: CalculatedFieldsService,
               private dialog: MatDialog) {
 
   }
@@ -204,6 +207,35 @@ export class ImportExportService {
         }
       }),
       catchError(() => of(null))
+    );
+  }
+
+  public exportCalculatedField(calculatedFieldId: string): void {
+    this.calculatedFieldsService.getCalculatedFieldById(calculatedFieldId).subscribe({
+      next: (calculatedField) => {
+        let name = calculatedField.name;
+        name = name.toLowerCase().replace(/\W/g, '_');
+        this.exportToPc(this.prepareCalculatedFieldExport(calculatedField), name);
+      },
+      error: (e) => {
+        this.handleExportError(e, 'calculated-fields.export-failed-error');
+      }
+    });
+  }
+
+  public importCalculatedField(entityId: EntityId): Observable<CalculatedField> {
+    return this.openImportDialog('calculated-fields.import', 'calculated-fields.file').pipe(
+      mergeMap((calculatedField: CalculatedField) => {
+        if (!this.validateImportedCalculatedField({ entityId, ...calculatedField })) {
+          this.store.dispatch(new ActionNotificationShow(
+            {message: this.translate.instant('calculated-fields.invalid-file-error'),
+              type: 'error'}));
+          throw new Error('Invalid calculated field file');
+        } else {
+          return this.calculatedFieldsService.saveCalculatedField(this.prepareImport({ entityId, ...calculatedField }));
+        }
+      }),
+      catchError(() => of(null)),
     );
   }
 
@@ -345,23 +377,23 @@ export class ImportExportService {
                             }
                           }
                           return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
-                            aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize);
+                            aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize, widgetItem.widgetExportInfo);
                         }
                       ));
                     } else {
                       return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
-                        aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize);
+                        aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize, widgetItem.widgetExportInfo);
                     }
                   }
                 )
               );
             } else {
               return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
-                aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize);
+                aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize, widgetItem.widgetExportInfo);
             }
           } else {
             return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
-              aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize);
+              aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize, widgetItem.widgetExportInfo);
           }
         }
       }),
@@ -1136,6 +1168,16 @@ export class ImportExportService {
     }
   }
 
+  private validateImportedCalculatedField(calculatedField: CalculatedField): boolean {
+    const { name, configuration, entityId } = calculatedField;
+    return isNotEmptyStr(name)
+      && isDefined(configuration)
+      && isDefined(entityId?.id)
+      && !!Object.keys(configuration.arguments).length
+      && isDefined(configuration.expression)
+      && isDefined(configuration.output)
+  }
+
   private validateImportedImage(image: ImageExportData): boolean {
     return !(!isNotEmptyStr(image.data)
       || !isNotEmptyStr(image.title)
@@ -1212,11 +1254,11 @@ export class ImportExportService {
                             filtersInfo: FiltersInfo,
                             onAliasesUpdateFunction: () => void,
                             onFiltersUpdateFunction: () => void,
-                            originalColumns: number, originalSize: WidgetSize): Observable<ImportWidgetResult> {
+                            originalColumns: number, originalSize: WidgetSize, widgetExportInfo: any): Observable<ImportWidgetResult> {
     return targetLayoutFunction().pipe(
       mergeMap((targetLayout) => this.itembuffer.addWidgetToDashboard(dashboard, targetState, targetLayout,
           widget, aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction,
-          originalColumns, originalSize, -1, -1).pipe(
+          originalColumns, originalSize, -1, -1, 'default', widgetExportInfo).pipe(
           map(() => ({widget, layoutId: targetLayout} as ImportWidgetResult))
         )
     ));
@@ -1418,6 +1460,11 @@ export class ImportExportService {
     profile = this.prepareExport(profile);
     profile.default = false;
     return profile;
+  }
+
+  private prepareCalculatedFieldExport(calculatedField: CalculatedField): CalculatedField {
+    delete calculatedField.entityId;
+    return this.prepareExport(calculatedField);
   }
 
   private getIncludeResourcesPreference(key: SupportEntityResources): Observable<boolean> {

@@ -190,7 +190,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
                 }
             }
         }
-        consumer.subscribe(event.getPartitionsMap().values().stream().findAny().orElse(Collections.emptySet()));
+        consumer.subscribe(event.getNewPartitions().values().stream().findAny().orElse(Collections.emptySet()));
     }
 
     @Override

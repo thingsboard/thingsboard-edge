@@ -32,10 +32,11 @@ package org.thingsboard.server.dao.ota;
 
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.UUID;
 
-public interface DeviceGroupOtaPackageDao {
+public interface DeviceGroupOtaPackageDao extends TenantEntityDao<DeviceGroupOtaPackage> {
 
     DeviceGroupOtaPackage findDeviceGroupOtaPackageById(UUID id);
 
@@ -44,4 +45,5 @@ public interface DeviceGroupOtaPackageDao {
     DeviceGroupOtaPackage saveDeviceGroupOtaPackage(DeviceGroupOtaPackage deviceGroupOtaPackage);
 
     boolean deleteDeviceGroupOtaPackage(UUID id);
+
 }

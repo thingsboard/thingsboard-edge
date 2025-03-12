@@ -1,0 +1,92 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-map-timeline-panel" [class.col]="column">
+  @if(hasData) {
+    <mat-slider
+      [disabled]="disabled"
+      [min]="minTimeIndex"
+      [max]="maxTimeIndex">
+      <input matSliderThumb [(ngModel)]="index" (input)="onIndexChange(ngSliderThumb.value)" #ngSliderThumb="matSliderThumb">
+    </mat-slider>
+    <div class="tb-timeline-controls">
+      <div class="flex flex-1 flex-row items-center justify-start">
+        <div class="tb-map-timeline-timestamp" *ngIf="settings.showTimestamp" [innerHTML]="timestampFormat.formatted"></div>
+      </div>
+      <div class="tb-timeline-buttons flex flex-1 flex-row items-center justify-center gap-3">
+        <button mat-mini-fab color="primary"
+                [disabled]="index === minTimeIndex"
+                class="tb-timeline-button-32 tb-primary-fill"
+                (click)="fastRewind()">
+          <mat-icon>fast_rewind</mat-icon>
+        </button>
+        <button mat-mini-fab color="primary"
+                [disabled]="index === minTimeIndex"
+                class="tb-timeline-button-32 tb-primary-fill"
+                (click)="movePrev()">
+          <mat-icon>skip_previous</mat-icon>
+        </button>
+        @if(playing) {
+          <button mat-mini-fab color="primary" class="tb-primary-fill" (click)="pause()">
+            <mat-icon>pause</mat-icon>
+          </button>
+        } @else {
+          <button mat-mini-fab color="primary"
+                  [disabled]="index === maxTimeIndex"
+                  class="tb-primary-fill" (click)="play()">
+            <mat-icon>play_arrow</mat-icon>
+          </button>
+        }
+        <button mat-mini-fab color="primary"
+                [disabled]="index === maxTimeIndex"
+                class="tb-timeline-button-32 tb-primary-fill"
+                (click)="moveNext()">
+          <mat-icon>skip_next</mat-icon>
+        </button>
+        <button mat-mini-fab color="primary"
+                [disabled]="index === maxTimeIndex"
+                class="tb-timeline-button-32 tb-primary-fill"
+                (click)="fastForward()">
+          <mat-icon>fast_forward</mat-icon>
+        </button>
+      </div>
+      <div class="flex flex-1 flex-row items-center justify-end">
+        <mat-select class="w-auto" [(ngModel)]="speed" (selectionChange)="speedUpdated()" aria-label="Speed selector">
+          <mat-select-trigger><span style="padding-right: 10px;">{{speed}}x</span></mat-select-trigger>
+          <mat-option [value]="speedValue" *ngFor="let speedValue of settings.speedOptions">{{speedValue}}x</mat-option>
+        </mat-select>
+      </div>
+    </div>
+  } @else {
+    <div class="tb-map-timeline-no-data flex flex-1 items-center justify-center" translate>widgets.maps.timeline.no-trips-data-available</div>
+  }
+</div>

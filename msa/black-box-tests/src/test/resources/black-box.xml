@@ -38,6 +38,7 @@
         <packages>
             <package name="org.thingsboard.server.msa.connectivity"/>
             <package name="org.thingsboard.server.msa.integration"/>
+            <package name="org.thingsboard.server.msa.edqs"/>
         </packages>
     </test>
 </suite>

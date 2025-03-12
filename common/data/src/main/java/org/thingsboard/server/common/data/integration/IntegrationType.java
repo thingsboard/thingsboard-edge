@@ -30,50 +30,64 @@
  */
 package org.thingsboard.server.common.data.integration;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Getter
 public enum IntegrationType {
     OCEANCONNECT(false, null),
-    SIGFOX(false, "Sigfox"),
-    THINGPARK(false, "ThingPark"),
-    TPE(false, "ThingParkEnterprise"),
-    CHIRPSTACK(false, "ChirpStack"),
-    PARTICLE(false, "Particle"),
+    SIGFOX(false),
+    THINGPARK(false),
+    TPE(false),
+    CHIRPSTACK(false),
+    PARTICLE(false),
     TMOBILE_IOT_CDP(false, null),
-    HTTP(false, "HTTP"),
-    MQTT(true, "MQTT"),
-    PUB_SUB(true, "PubSub"),
-    AWS_IOT(true, "AWS IoT"),
-    AWS_SQS(true, "Amazon SQS"),
-    AWS_KINESIS(false, "Amazon Kinesis"),
-    IBM_WATSON_IOT(true, "IBM Watson IoT"),
-    TTN(true, "ThingsStackIndustries"),
-    TTI(true, "ThingsStackIndustries"),
-    AZURE_EVENT_HUB(true, "Azure Event Hub"),
-    OPC_UA(true, "OPC UA"),
+    HTTP(false),
+    MQTT(true),
+    PUB_SUB(true),
+    AWS_IOT(true),
+    AWS_SQS(true),
+    AWS_KINESIS(false),
+    IBM_WATSON_IOT(true),
+    TTN(true),
+    TTI(true),
+    AZURE_EVENT_HUB(true),
+    OPC_UA(true),
     CUSTOM(false, true, null),
-    UDP(false, true, "UDP"),
-    TCP(false, true, "TCP"),
-    KAFKA(true, "Apache Kafka"),
-    AZURE_IOT_HUB(true, "Azure IoT Hub"),
-    APACHE_PULSAR(true, "Apache Pulsar"),
-    RABBITMQ(false, "RabbitMQ"),
-    LORIOT(false, "LORIOT"),
-    COAP(false, "CoAP"),
-    TUYA(true, "Tuya"),
-    AZURE_SERVICE_BUS(true, "Azure Service Bus"),
-    KPN(false, "KPN");
-
+    UDP(false, true),
+    TCP(false, true),
+    KAFKA(true),
+    AZURE_IOT_HUB(true),
+    APACHE_PULSAR(true),
+    RABBITMQ(false),
+    LORIOT(false),
+    COAP(false),
+    TUYA(true),
+    AZURE_SERVICE_BUS(true),
+    KPN(false);
 
     //Identifies if the Integration instance is one per cluster.
     private final boolean singleton;
     private final boolean remoteOnly;
     private final String directory;
 
+    IntegrationType(boolean singleton) {
+        this(singleton, false);
+    }
+
+    IntegrationType(boolean singleton, boolean remoteOnly) {
+       this.singleton = singleton;
+       this.remoteOnly = remoteOnly;
+       this.directory = this.name();
+    }
+
     IntegrationType(boolean singleton, String directory) {
         this(singleton, false, directory);
     }
+
+    IntegrationType(boolean singleton, boolean remoteOnly, String directory) {
+        this.singleton = singleton;
+        this.remoteOnly = remoteOnly;
+        this.directory = directory;
+    }
+
 }

@@ -1,0 +1,91 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.service.cf.ctx.state;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+public class SingleValueArgumentEntryTest {
+
+    private SingleValueArgumentEntry entry;
+
+    private final long ts = System.currentTimeMillis();
+
+    @BeforeEach
+    void setUp() {
+        entry = new SingleValueArgumentEntry(ts, new LongDataEntry("key", 11L), 363L);
+    }
+
+    @Test
+    void testArgumentEntryType() {
+        assertThat(entry.getType()).isEqualTo(ArgumentEntryType.SINGLE_VALUE);
+    }
+
+    @Test
+    void testUpdateEntryWhenRollingEntryPassed() {
+        assertThatThrownBy(() -> entry.updateEntry(new TsRollingArgumentEntry(5, 30000L)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unsupported argument entry type for single value argument entry: " + ArgumentEntryType.TS_ROLLING);
+    }
+
+    @Test
+    void testUpdateEntryWithThaSameTs() {
+        assertThat(entry.updateEntry(new SingleValueArgumentEntry(ts, new LongDataEntry("key", 13L), 363L))).isFalse();
+    }
+
+    @Test
+    void testUpdateEntryWhenNewVersionIsNull() {
+        assertThat(entry.updateEntry(new SingleValueArgumentEntry(ts + 16, new LongDataEntry("key", 13L), null))).isTrue();
+        assertThat(entry.getValue()).isEqualTo(13L);
+        assertThat(entry.getVersion()).isNull();
+    }
+
+    @Test
+    void testUpdateEntryWhenNewVersionIsGreaterThanCurrent() {
+        assertThat(entry.updateEntry(new SingleValueArgumentEntry(ts + 18, new LongDataEntry("key", 18L), 369L))).isTrue();
+        assertThat(entry.getValue()).isEqualTo(18L);
+        assertThat(entry.getVersion()).isEqualTo(369L);
+    }
+
+    @Test
+    void testUpdateEntryWhenNewVersionIsLessThanCurrent() {
+        assertThat(entry.updateEntry(new SingleValueArgumentEntry(ts + 18, new LongDataEntry("key", 18L), 234L))).isFalse();
+    }
+
+    @Test
+    void testUpdateEntryWhenValueWasNotChanged() {
+        assertThat(entry.updateEntry(new SingleValueArgumentEntry(ts + 18, new LongDataEntry("key", 11L), 364L))).isTrue();
+    }
+}

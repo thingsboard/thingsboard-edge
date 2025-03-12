@@ -95,6 +95,8 @@ export interface SchedulerEventsWidgetSettings {
   displayCustomer: boolean;
   displayPagination: boolean;
   defaultPageSize: number;
+  pageStepIncrement: number;
+  pageStepCount: number;
   defaultSortOrder: string;
   noDataDisplayMessage: string;
   enabledViews: 'both' | 'list' | 'calendar';

@@ -35,6 +35,7 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms
 import {
   entityTypesWithoutRelatedData,
   SingleEntityVersionCreateRequest,
+  typesWithCalculatedFields,
   VersionCreateRequestType,
   VersionCreationResult
 } from '@shared/models/vc.models';
@@ -89,6 +90,8 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
 
   private versionCreateResultSubscription: Subscription;
 
+  readonly typesWithCalculatedFields = typesWithCalculatedFields;
+
   constructor(protected store: Store<AppState>,
               private entitiesVersionControlService: EntitiesVersionControlService,
               private cd: ChangeDetectorRef,
@@ -137,6 +140,7 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
             ? this.createVersionFormGroup.get('saveAttributes').value : false,
           saveCredentials: (this.entityId.entityType === EntityType.DEVICE || EntityType.DEVICE === this.groupType) ?
             this.createVersionFormGroup.get('saveCredentials').value : false,
+          saveCalculatedFields: typesWithCalculatedFields.has(this.entityId.entityType) ? this.createVersionFormGroup.get('saveCalculatedFields').value : false,
           savePermissions: this.entityId.entityType === EntityType.ENTITY_GROUP && EntityType.USER === this.groupType ?
             this.createVersionFormGroup.get('savePermissions').value : false,
           saveGroupEntities: this.entityId.entityType === EntityType.ENTITY_GROUP && EntityType.USER !== this.groupType ?
