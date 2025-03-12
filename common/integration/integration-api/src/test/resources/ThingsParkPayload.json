@@ -25,13 +25,13 @@
       "Lrr": []
     },
     "DevLrrCnt": 1,
-    "CustomerID": "100045194",
+    "CustomerID": 100045194,
     "CustomerData": {},
     "BaseStationData": {
       "doms": [],
       "name": "iStation US #6_CDRRC_Summerford"
     },
-    "ModelCfg": "0",
+    "ModelCfg": 0,
     "DriverCfg": {},
     "InstantPER": 0.0,
     "MeanPER": 0.037037,

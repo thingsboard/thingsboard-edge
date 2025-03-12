@@ -30,8 +30,10 @@
  */
 package org.thingsboard.integration.api.converter;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.util.CollectionsUtil;
@@ -49,11 +51,13 @@ public final class DedicatedConverterUtil {
     public static final String ATTRIBUTES = "attributes";
     public static final String DEFAULT_PROFILE = "default";
 
+    private static final Gson GSON = new Gson();
+
     private DedicatedConverterUtil() {
     }
 
     public static DedicatedUplinkData parseUplinkData(DedicatedConverterConfig config, JsonObject src, UplinkMetaData metadata) {
-        Map<String, String> kvMap = new HashMap<>(metadata.getKvMap());
+        Map<String, Object> kvMap = new HashMap<>(metadata.getKvMap());
 
         JsonElement telemetry;
         if (src.has(TELEMETRY)) {
@@ -121,28 +125,34 @@ public final class DedicatedConverterUtil {
         return defaultValue.get();
     }
 
-    private static JsonObject addKvs(JsonObject kvsObj, Map<String, String> kvMap, Set<String> keys) {
+    private static JsonObject addKvs(JsonObject kvsObj, Map<String, Object> kvMap, Set<String> keys) {
         if (CollectionsUtil.isNotEmpty(keys) && !kvMap.isEmpty()) {
             kvMap.entrySet().stream()
                     .filter(e -> keys.contains(e.getKey()) && !kvsObj.has(e.getKey()))
-                    .forEach(e -> kvsObj.addProperty(e.getKey(), e.getValue()));
+                    .forEach(e -> kvsObj.add(e.getKey(), GSON.toJsonTree(e.getValue())));
         }
         return kvsObj;
     }
 
-    private static String processTemplate(String template, Map<String, String> data) {
+    private static String processTemplate(String template, Map<String, Object> data) {
         if (template == null) {
             return null;
         }
         String result = template;
-        for (Map.Entry<String, String> kv : data.entrySet()) {
+        for (Map.Entry<String, Object> kv : data.entrySet()) {
             result = processVar(result, kv.getKey(), kv.getValue());
         }
         return result;
     }
 
-    private static String processVar(String pattern, String key, String val) {
-        return pattern.replace(formatVarTemplate(key), val);
+    private static String processVar(String pattern, String key, Object val) {
+        String stringValue;
+        if (val instanceof String) {
+            stringValue = (String) val;
+        } else {
+            stringValue = JacksonUtil.toString(val);
+        }
+        return pattern.replace(formatVarTemplate(key), stringValue);
     }
 
     private static String formatVarTemplate(String key) {

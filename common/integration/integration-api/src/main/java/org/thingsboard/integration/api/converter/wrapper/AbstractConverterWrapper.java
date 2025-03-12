@@ -46,10 +46,10 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
     protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     @Override
-    public TbPair<byte[], UplinkMetaData> wrap(byte[] payload, UplinkMetaData metadata) throws Exception {
+    public TbPair<byte[], UplinkMetaData<Object>> wrap(byte[] payload, UplinkMetaData metadata) throws Exception {
         JsonNode payloadJson = JacksonUtil.fromBytes(payload);
 
-        Map<String, String> kvMap = new HashMap<>(metadata.getKvMap());
+        Map<String, Object> kvMap = new HashMap<>(metadata.getKvMap());
 
         getKeysMapping().forEach((name, path) -> {
             if (path.isEmpty()) {
@@ -57,13 +57,7 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
             }
             JsonNode value = payloadJson.at(path);
             if (!value.isMissingNode()) {
-                String textValue;
-                if (value.isTextual()) {
-                    textValue = value.textValue();
-                } else {
-                    textValue = value.toString();
-                }
-                kvMap.put(name, textValue);
+                kvMap.put(name, JacksonUtil.convertValue(value, Object.class));
             }
         });
 
@@ -71,18 +65,18 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
 
         kvMap.putAll(metadata.getKvMap());
         TbPair<byte[], ContentType> payloadPair = getPayload(payloadJson);
-        UplinkMetaData mergedMetadata = new UplinkMetaData(payloadPair.getSecond(), kvMap);
+        UplinkMetaData<Object> mergedMetadata = new UplinkMetaData<>(payloadPair.getSecond(), kvMap);
 
         return TbPair.of(payloadPair.getFirst(), mergedMetadata);
     }
 
-    protected void addGatewayAdditionalInfo(Map<String, String> kvMap, JsonNode payloadJson) {
+    protected void addGatewayAdditionalInfo(Map<String, Object> kvMap, JsonNode payloadJson) {
         JsonNode rxMetadataArray = payloadJson.at(getGatewayInfoPath());
         if (!rxMetadataArray.isEmpty()) {
             JsonNode rxMetadata = findByMaxRssi(rxMetadataArray);
             if (rxMetadata != null) {
-                kvMap.put("rssi", rxMetadata.get("rssi").asText());
-                kvMap.put("snr", rxMetadata.get("snr").asText());
+                kvMap.put("rssi", rxMetadata.get("rssi").asInt());
+                kvMap.put("snr", rxMetadata.get("snr").asDouble());
             }
         }
     }

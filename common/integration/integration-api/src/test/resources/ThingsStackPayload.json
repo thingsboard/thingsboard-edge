@@ -6,7 +6,7 @@
     },
     "dev_eui": "70B3D57BA0000BCE",
     "join_eui": "70B3D57ED00006B2",
-    "dev_addr": "27000020"
+    "dev_addr": 27000020
   },
   "correlation_ids": [
     "as:up:01E0CY8V864TP36Q130RSQQJBY"
@@ -45,7 +45,7 @@
       },
       "data_rate_index": 1,
       "coding_rate": "4/5",
-      "frequency": "867700000",
+      "frequency": 867700000,
       "timestamp": 436812492,
       "time": "2020-02-06T09:46:05Z"
     },

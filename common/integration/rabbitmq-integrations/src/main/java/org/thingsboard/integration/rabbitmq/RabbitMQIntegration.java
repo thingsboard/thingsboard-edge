@@ -113,7 +113,7 @@ public class RabbitMQIntegration extends AbstractIntegration<RabbitMQIntegration
     private void doProcess(IntegrationContext context, RabbitMQIntegrationMsg msg) throws Exception {
         byte[] bytes = msg.getMsg().getBytes();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, bytes, new UplinkMetaData(getDefaultUplinkContentType(), mdMap));
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, bytes, new UplinkMetaData<>(getDefaultUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);

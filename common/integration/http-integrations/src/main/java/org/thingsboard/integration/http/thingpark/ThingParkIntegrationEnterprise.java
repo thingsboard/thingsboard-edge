@@ -199,7 +199,7 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
         mdMap.put("AS_ID", params.getAsId());
         mdMap.put("LrnDevEui", params.getLrnDevEui());
         mdMap.put("LrnFPort", params.getLrnFPort());
-        return convertToUplinkDataList(context, data, new UplinkMetaData(getDefaultUplinkContentType(), mdMap));
+        return convertToUplinkDataList(context, data, new UplinkMetaData<>(getDefaultUplinkContentType(), mdMap));
     }
 
     protected void processGetRestToken(DownlinkData downlink, IntegrationContext context, TbMsg msg) {

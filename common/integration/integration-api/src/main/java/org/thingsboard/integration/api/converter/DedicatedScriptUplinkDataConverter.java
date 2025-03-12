@@ -97,7 +97,7 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
 
     @Override
     public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata, ExecutorService callBackExecutorService) throws Exception {
-        TbPair<byte[], UplinkMetaData> wrappedPair = converterWrapper.wrap(data, metadata);
+        TbPair<byte[], UplinkMetaData<Object>> wrappedPair = converterWrapper.wrap(data, metadata);
         return super.convertUplink(context, wrappedPair.getFirst(), wrappedPair.getSecond(), callBackExecutorService);
     }
 

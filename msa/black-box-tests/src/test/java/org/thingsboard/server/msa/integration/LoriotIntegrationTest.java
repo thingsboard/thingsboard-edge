@@ -121,7 +121,7 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
         ObjectNode payloadMsg = JacksonUtil.newObjectNode();
         payloadMsg.put("ts", System.currentTimeMillis());
         payloadMsg.put("data", "2A3F");
-        payloadMsg.put("rssi", "-130");
+        payloadMsg.put("rssi", -130);
         payloadMsg.put("port", 80);
         payloadMsg.put("EUI", "BE7A123456789");
 

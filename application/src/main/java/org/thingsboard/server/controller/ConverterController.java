@@ -444,9 +444,8 @@ public class ConverterController extends AutoCommitController {
         JsonNode metadata = inputParams.get("metadata");
         String decoder = inputParams.get("decoder").asText();
 
-        Map<String, String> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {
-        });
-        UplinkMetaData uplinkMetaData = new UplinkMetaData(ContentType.JSON, metadataMap);
+        Map<String, Object> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {});
+        UplinkMetaData<Object> uplinkMetaData = new UplinkMetaData<>(ContentType.JSON, metadataMap);
 
         String output = "";
         String errorText = "";
