@@ -99,7 +99,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     @Override
     protected CompareResult compare(EntitiesImportCtx ctx, GroupEntityExportData<Dashboard> exportData, Dashboard prepared, Dashboard existing) {
         CompareResult result = super.compare(ctx, exportData, prepared, existing);
-        result.setNeedUpdate(result.isNeedUpdate() || !prepared.getConfiguration().equals(existing.getConfiguration()));
+        result.setUpdateNeeded(result.isUpdateNeeded() || !prepared.getConfiguration().equals(existing.getConfiguration()));
         return result;
     }
 

@@ -143,7 +143,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
 
         CompareResult compareResult = compare(ctx, exportData, prepared, existingEntity);
 
-        if (compareResult.isNeedUpdate()) {
+        if (compareResult.isUpdateNeeded()) {
             boolean changeOwner = false;
             if (existingEntity != null && prepared instanceof HasOwnerId) {
                 EntityId newOwnerId = ((HasOwnerId) prepared).getOwnerId();
@@ -177,8 +177,12 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     @Data
     @AllArgsConstructor
     protected static class CompareResult {
-        private boolean needUpdate;
+        private boolean updateNeeded;
         private boolean externalIdChangedOnly;
+
+        public CompareResult(boolean updateNeeded) {
+            this.updateNeeded = updateNeeded;
+        }
     }
 
     protected boolean updateRelatedEntitiesIfUnmodified(EntitiesImportCtx ctx, E prepared, D exportData, IdProvider idProvider) {
@@ -197,21 +201,17 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         var existingCopy = deepCopy(existing);
         cleanupForComparison(newCopy);
         cleanupForComparison(existingCopy);
-        var needUpdate = !newCopy.equals(existingCopy);
+        var entityChanged = !newCopy.equals(existingCopy);
         boolean externalIdChangedOnly = false;
-        if (needUpdate) {
+        if (entityChanged) {
             log.debug("[{}] Found update.", prepared.getId());
             log.debug("[{}] From: {}", prepared.getId(), newCopy);
             log.debug("[{}] To: {}", prepared.getId(), existingCopy);
-            externalIdChangedOnly = isExternalIdChangedOnly(newCopy, existingCopy);
+            cleanupExternalId(newCopy);
+            cleanupExternalId(existingCopy);
+            externalIdChangedOnly = newCopy.equals(existingCopy);
         }
-        return new CompareResult(existing == null || needUpdate, externalIdChangedOnly);
-    }
-
-    private boolean isExternalIdChangedOnly(E newCopy, E existingCopy) {
-        newCopy.setExternalId(null);
-        existingCopy.setExternalId(null);
-        return newCopy.equals(existingCopy);
+        return new CompareResult(existing == null || entityChanged, externalIdChangedOnly);
     }
 
     protected abstract E deepCopy(E e);
@@ -222,6 +222,10 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         if (e instanceof HasVersion hasVersion) {
             hasVersion.setVersion(null);
         }
+    }
+
+    protected void cleanupExternalId(E e) {
+        e.setExternalId(null);
     }
 
     protected abstract E saveOrUpdate(EntitiesImportCtx ctx, E entity, D exportData, IdProvider idProvider, CompareResult compareResult);
