@@ -1,5 +1,5 @@
 {
-  "title": "SCADA Drilling system",
+  "title": "SCADA Oil & Gas Drilling system",
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
@@ -56845,6 +56845,6 @@
       "dashboardCss": ""
     }
   },
-  "name": "SCADA Drilling system",
+  "name": "SCADA Oil & Gas Drilling system",
   "resources": null
 }
