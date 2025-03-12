@@ -856,9 +856,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             future = gitServiceQueue.getEntity(user.getTenantId(), versionId, customerIds, externalId);
         }
         return Futures.transform(future,
-                entity -> new EntityDataInfo(entity.hasRelations(), entity.hasAttributes(), entity.hasCredentials(), entity.hasPermissions(), entity.hasGroupEntities()), MoreExecutors.directExecutor());
+                entity -> new EntityDataInfo(entity.hasRelations(), entity.hasAttributes(), entity.hasCredentials(), entity.hasCalculatedFields(), entity.hasPermissions(), entity.hasGroupEntities()), MoreExecutors.directExecutor());
     }
-
 
     @Override
     public ListenableFuture<List<BranchInfo>> listBranches(TenantId tenantId) {
