@@ -34,6 +34,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { buildPageStepSizeValues } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-blob-entities-widget-settings',
@@ -43,6 +44,8 @@ import { AppState } from '@core/core.state';
 export class BlobEntitiesWidgetSettingsComponent extends WidgetSettingsComponent {
 
   blobEntitiesWidgetSettingsForm: UntypedFormGroup;
+
+  pageStepSizeValues = [];
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -61,6 +64,8 @@ export class BlobEntitiesWidgetSettingsComponent extends WidgetSettingsComponent
       displayCustomer: true,
       displayPagination: true,
       defaultPageSize: 10,
+      pageStepIncrement: null,
+      pageStepCount: 3,
       defaultSortOrder: 'name',
       noDataDisplayMessage: '',
       forceDefaultType: ''
@@ -75,23 +80,38 @@ export class BlobEntitiesWidgetSettingsComponent extends WidgetSettingsComponent
       displayCustomer: [settings.displayCustomer, []],
       displayPagination: [settings.displayPagination, []],
       defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],
+      pageStepCount: [settings.pageStepCount ?? 3, [Validators.min(1), Validators.max(100),
+        Validators.required, Validators.pattern(/^\d*$/)]],
+      pageStepIncrement: [settings.pageStepIncrement ?? settings.defaultPageSize,
+        [Validators.min(1), Validators.required, Validators.pattern(/^\d*$/)]],
       defaultSortOrder: [settings.defaultSortOrder, []],
       noDataDisplayMessage: [settings.noDataDisplayMessage, []],
       forceDefaultType: [settings.forceDefaultType, []]
     });
+    this.pageStepSizeValues = buildPageStepSizeValues(this.blobEntitiesWidgetSettingsForm.get('pageStepCount').value,
+      this.blobEntitiesWidgetSettingsForm.get('pageStepIncrement').value);
   }
 
   protected validatorTriggers(): string[] {
-    return ['displayPagination'];
+    return ['displayPagination', 'pageStepCount', 'pageStepIncrement'];
   }
 
-  protected updateValidators(emitEvent: boolean) {
+  protected updateValidators(emitEvent: boolean, trigger: string) {
+    if (trigger === 'pageStepCount' || trigger === 'pageStepIncrement') {
+      this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').reset();
+      this.pageStepSizeValues = buildPageStepSizeValues(this.blobEntitiesWidgetSettingsForm.get('pageStepCount').value,
+        this.blobEntitiesWidgetSettingsForm.get('pageStepIncrement').value);
+      return;
+    }
     const displayPagination: boolean = this.blobEntitiesWidgetSettingsForm.get('displayPagination').value;
     if (displayPagination) {
-      this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').enable();
+      this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').enable({emitEvent});
+      this.blobEntitiesWidgetSettingsForm.get('pageStepCount').enable({emitEvent: false});
+      this.blobEntitiesWidgetSettingsForm.get('pageStepIncrement').enable({emitEvent: false});
     } else {
-      this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').disable();
+      this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').disable({emitEvent});
+      this.blobEntitiesWidgetSettingsForm.get('pageStepCount').disable({emitEvent: false});
+      this.blobEntitiesWidgetSettingsForm.get('pageStepIncrement').disable({emitEvent: false});
     }
-    this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').updateValueAndValidity({emitEvent});
   }
 }

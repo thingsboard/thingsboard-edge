@@ -397,12 +397,6 @@ public interface TbContext {
      */
     TbPeContext getPeContext();
 
-    void logJsEvalRequest();
-
-    void logJsEvalResponse();
-
-    void logJsEvalFailure();
-
     String getServiceId();
 
     EventLoopGroup getSharedEventLoop();
