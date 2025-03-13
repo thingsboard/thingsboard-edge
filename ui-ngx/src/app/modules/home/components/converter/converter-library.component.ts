@@ -148,7 +148,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           return of(null);
         }
       ),
-      map((models: Model[]) => models?.map(model => ({ ...model, searchText: (model.name + model.info.description).toLowerCase() }))),
+      map((models: Model[]) => models?.map(model => ({ ...model, searchText: (model.info.label + model.info.description).toLowerCase() }))),
       shareReplay(1)
     );
 
