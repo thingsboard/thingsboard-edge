@@ -120,7 +120,7 @@ public final class DedicatedConverterUtil {
 
     private static String getProperty(JsonObject src, String key, Supplier<String> defaultValue) {
         if (src.has(key)) {
-            src.get(key).getAsString();
+            return src.get(key).getAsString();
         }
         return defaultValue.get();
     }
