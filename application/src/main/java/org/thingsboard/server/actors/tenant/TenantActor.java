@@ -127,7 +127,7 @@ public class TenantActor extends RuleChainManagerActor {
                             cantFindTenant = true;
                         }
                     } else {
-                        log.info("Tenant {} is not managed by current service, skipping rule chains init", tenantId);
+                        log.info("Tenant {} is not managed by current service, skipping rule chains and cf actor init", tenantId);
                     }
                 }
                 log.debug("[{}] Tenant actor started.", tenantId);
