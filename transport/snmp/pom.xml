@@ -21,7 +21,7 @@
 
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.9.0EDGE</version>
+        <version>3.9.1EDGE-RC</version>
         <artifactId>transport</artifactId>
     </parent>
 
