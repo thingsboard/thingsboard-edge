@@ -3049,6 +3049,7 @@
         },
         "column-type-required": "Column type is required.",
         "entity-field": {
+            "additionalInfo": "Additional information",
             "created-time": "Created time",
             "name": "Name",
             "type": "Type",
