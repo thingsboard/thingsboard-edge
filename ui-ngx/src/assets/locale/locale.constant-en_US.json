@@ -4399,6 +4399,7 @@
             "top-fluid-color": "Top fluid color",
             "bottom-fluid-color": "Bottom fluid color",
             "display": "Display",
+            "display-format": "Display format",
             "value": "Value",
             "decimals": "Decimals",
             "units": "Units",
@@ -8231,6 +8232,7 @@
         "URL": "URL",
         "url-required": "URL is required.",
         "mobile": {
+          "device-provision": "Device provision",
           "action-type": "Mobile action type",
           "select-action-type": "Select mobile action type",
           "action-type-required": "Mobile action type is required",
