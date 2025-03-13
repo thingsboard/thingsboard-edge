@@ -13,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.msa.edge;
+package org.thingsboard.server.transport.mqtt;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.thingsboard.server.msa.AbstractContainerTest;
+public interface HashMapObserverMBean {
+    int getSize();
 
-@Slf4j
-public class AdminSettingsClientTest extends AbstractContainerTest {
+    long getGatewayCount(String unused);
 
-    @Test
-    public void testTenantAdminSettings() {
+    long getNonGatewayCount(String unused);
 
-    }
+    String getSessionByUUID(String key);
 
+    String getAllSessions(String key);
+
+    String getSubscribedSessions(String unused);
+
+    String getNonActiveSessions(String unused);
+
+    String getActiveSessions(String unused);
+
+    String getGatewayDeviceSessionContextConnectedSessions(String unused);
+
+    String getDeviceAwareSessionContextNotConnectedSessions(String unused);
 }

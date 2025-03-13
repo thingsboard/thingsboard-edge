@@ -96,6 +96,11 @@ public class DefaultNotificationTemplateService extends AbstractEntityService im
     }
 
     @Override
+    public Optional<NotificationTemplate> findNotificationTemplateByTenantIdAndName(TenantId tenantId, String name) {
+        return Optional.ofNullable(notificationTemplateDao.findByTenantIdAndName(tenantId.getId(), name));
+    }
+
+    @Override
     public int countNotificationTemplatesByTenantIdAndNotificationTypes(TenantId tenantId, Collection<NotificationType> notificationTypes) {
         return notificationTemplateDao.countByTenantIdAndNotificationTypes(tenantId, notificationTypes);
     }

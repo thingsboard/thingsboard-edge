@@ -281,6 +281,9 @@ public abstract class BaseCloudManagerService {
             PageData<CloudEvent> cloudEvents;
             boolean isInterrupted;
             do {
+                if (!isGeneralMsg) {
+                    waitForGeneralProcessingCompleteIfInProgress();
+                }
                 cloudEvents = finder.find(tenantId, queueSeqIdStart, null, pageLink);
                 if (cloudEvents.getData().isEmpty()) {
                     log.info("seqId column of table started new cycle. queueSeqIdStart={}, queueStartTsAttrKey={}, queueSeqIdAttrKey={}, isGeneralMsg={}",
@@ -293,16 +296,22 @@ public abstract class BaseCloudManagerService {
                     try {
                         Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
                         updateQueueStartTsSeqIdOffset(tenantId, queueStartTsAttrKey, queueSeqIdAttrKey, newStartTs, latestCloudEvent.getSeqId());
-                        log.debug("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
+                        log.info("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
                     } catch (Exception e) {
                         log.error("Failed to update queue offset [{}]", latestCloudEvent);
                     }
                 }
                 if (!isInterrupted) {
                     pageLink = pageLink.nextPageLink();
+                    if (cloudEvents.hasNext()) {
+                        String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
+                        int queueSize = pageLink.getPageSize() * (cloudEvents.getTotalPages() - pageLink.getPage());
+                        log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
+                                queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
+                    }
                 }
-                if (!isGeneralMsg && isGeneralProcessInProgress) {
-                    break;
+                if (!isGeneralMsg) {
+                    waitForGeneralProcessingCompleteIfInProgress();
                 }
                 log.trace("processUplinkMessages state isInterrupted={},total={},hasNext={},isGeneralMsg={},isGeneralProcessInProgress={}",
                         isInterrupted, cloudEvents.getTotalElements(), cloudEvents.hasNext(), isGeneralMsg, isGeneralProcessInProgress);
@@ -314,6 +323,20 @@ public abstract class BaseCloudManagerService {
                 isGeneralProcessInProgress = false;
             }
         }
+    }
+
+    private void waitForGeneralProcessingCompleteIfInProgress() {
+        if (!isGeneralProcessInProgress) {
+            return;
+        }
+        do {
+            try {
+                TimeUnit.MILLISECONDS.sleep(25);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        } while (isGeneralProcessInProgress);
     }
 
     protected TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart, String key, CloudEventFinder finder) {
@@ -410,10 +433,7 @@ public abstract class BaseCloudManagerService {
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
-            if (sendUplinkFuture != null) {
-                sendUplinkFuture.cancel(true);
-                sendUplinkFuture = null;
-            }
+            interruptPreviousSendUplinkMsgsTask();
 
             if (reconnectFuture != null) {
                 reconnectFuture.cancel(true);
@@ -692,12 +712,20 @@ public abstract class BaseCloudManagerService {
     }
 
     private void interruptPreviousSendUplinkMsgsTask() {
-        if (sendUplinkFutureResult != null && !sendUplinkFutureResult.isDone()) {
-            log.debug("[{}] Stopping send uplink future now!", tenantId);
-            sendUplinkFutureResult.set(true);
+        if (sendUplinkFutureResult != null) {
+            try {
+                // wait before interrupting sending previous uplink pack
+                sendUplinkFutureResult.get(10, TimeUnit.SECONDS);
+            } catch (Exception ignored) {}
+
+            if (!sendUplinkFutureResult.isDone()) {
+                log.debug("[{}] Stopping send uplink future now!", tenantId);
+                sendUplinkFutureResult.set(true);
+            }
         }
         if (sendUplinkFuture != null && !sendUplinkFuture.isCancelled()) {
             sendUplinkFuture.cancel(true);
+            sendUplinkFuture = null;
         }
     }
 
@@ -711,6 +739,7 @@ public abstract class BaseCloudManagerService {
                 do {
                     log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgMap.values().size());
 
+                    long startTime = System.currentTimeMillis();
                     success = sendUplinkMsgPack(new LinkedBlockingQueue<>(pendingMsgMap.values())) && pendingMsgMap.isEmpty();
 
                     if (!success) {
@@ -725,6 +754,8 @@ public abstract class BaseCloudManagerService {
                         } catch (InterruptedException e) {
                             log.error("Error during sleep between batches or on rate limit violation", e);
                         }
+                    } else {
+                        log.info("Sending of [{}] uplink msg(s) took {} ms.", uplinkMsgPack.size(), System.currentTimeMillis() - startTime);
                     }
 
                     attempt++;

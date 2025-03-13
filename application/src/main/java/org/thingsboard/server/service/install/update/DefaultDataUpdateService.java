@@ -43,7 +43,6 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
-import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
 import java.util.ArrayList;
@@ -67,9 +66,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     JpaExecutorService jpaExecutorService;
 
-    @Autowired
-    private InstallScripts installScripts;
-
     // edge-only: for case "edge" in updateData
     @Autowired
     private TenantService tenantService;
@@ -84,8 +80,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     public void updateData() throws Exception {
         log.info("Updating data ...");
         //TODO: should be cleaned after each release
-
-        installScripts.updateResourcesUsage();
 
         // Edge-only: always run next config:
 
