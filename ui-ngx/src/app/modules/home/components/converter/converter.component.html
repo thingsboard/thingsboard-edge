@@ -173,13 +173,13 @@
                       </tb-string-pattern-autocomplete>
                     </section>
                     <tb-string-items-list label="{{ 'converter.telemetry' | translate }}"
-                                          placeholder="{{ 'converter.add-key' | translate }}"
+                                          placeholder="{{ 'action.add' | translate }}"
                                           formControlName="telemetry"
                                           [fetchOptionsFn]="fetchLatestKey"
                     >
                     </tb-string-items-list>
                     <tb-string-items-list label="{{ 'converter.attributes' | translate }}"
-                                          placeholder="{{ 'converter.add-key' | translate }}"
+                                          placeholder="{{ 'action.add' | translate }}"
                                           formControlName="attributes"
                                           [fetchOptionsFn]="fetchLatestKey"
                     >
@@ -188,7 +188,7 @@
                   <tb-string-items-list subscriptSizing="dynamic"
                                         label="{{ 'converter.update-only-keys-list' | translate }}"
                                         hint="{{ 'converter.update-only-keys-list-hint' | translate }}"
-                                        placeholder="{{ 'converter.add-key' | translate }}"
+                                        placeholder="{{ 'action.add' | translate }}"
                                         formControlName="updateOnlyKeys"
                                         [fetchOptionsFn]="fetchLatestKey"
                   >
