@@ -30,6 +30,8 @@
  */
 package org.thingsboard.integration.api.converter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.google.gson.JsonElement;
 import lombok.Builder;
 import lombok.Data;
@@ -46,4 +48,24 @@ public class DedicatedUplinkData {
     private final String group;
     private final JsonElement telemetry;
     private final JsonElement attributes;
+
+    @JsonRawValue
+    public String getTelemetry() {
+        return telemetry.toString();
+    }
+
+    @JsonRawValue
+    public String getAttributes() {
+        return attributes.toString();
+    }
+
+    @JsonIgnore
+    public JsonElement getTelemetryJson() {
+        return telemetry;
+    }
+
+    @JsonIgnore
+    public JsonElement getAttributesJson() {
+        return attributes;
+    }
 }

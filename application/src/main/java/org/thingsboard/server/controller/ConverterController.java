@@ -472,7 +472,7 @@ public class ConverterController extends AutoCommitController {
             if (converterVersion != null && converterVersion == 2 && ConverterWrapperFactory.getWrapper(converter.getIntegrationType()).isPresent()) {
                 DedicatedConverterConfig config = JacksonUtil.treeToValue(converter.getConfiguration(), DedicatedConverterConfig.class);
                 DedicatedUplinkData uplinkData = DedicatedConverterUtil.parseUplinkData(config, jsonOutput, uplinkMetaData);
-                result.put("outputMsg", JacksonUtil.toString(uplinkData));
+                result.set("outputMsg", JacksonUtil.valueToTree(uplinkData));
             }
         }
 

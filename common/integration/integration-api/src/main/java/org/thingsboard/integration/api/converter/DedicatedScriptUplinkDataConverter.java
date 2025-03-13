@@ -140,13 +140,13 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
         Map<String, String> currentOnValueTelemetryUpdate = this.currentUpdateOnlyTelemetryPerEntity.getOrDefault(name, new ConcurrentHashMap<>());
         Map<String, String> currentOnValueAttributesUpdate = this.currentUpdateOnlyAttributesPerEntity.getOrDefault(name, new ConcurrentHashMap<>());
 
-        TransportProtos.PostTelemetryMsg parsedTelemetry = parseTelemetry(uplinkData.getTelemetry());
+        TransportProtos.PostTelemetryMsg parsedTelemetry = parseTelemetry(uplinkData.getTelemetryJson());
         if (!this.updateOnlyKeys.isEmpty()) {
             parsedTelemetry = filterTelemetryOnKeyValueUpdateAndUpdateMap(parsedTelemetry, currentOnValueTelemetryUpdate);
         }
         builder.telemetry(parsedTelemetry);
 
-        TransportProtos.PostAttributeMsg parsedAttributes = parseAttributesUpdate(uplinkData.getAttributes());
+        TransportProtos.PostAttributeMsg parsedAttributes = parseAttributesUpdate(uplinkData.getAttributesJson());
         if (!this.updateOnlyKeys.isEmpty()) {
             parsedAttributes = filterAttributeOnKeyValueUpdateAndUpdateMap(parsedAttributes, currentOnValueAttributesUpdate);
         }
