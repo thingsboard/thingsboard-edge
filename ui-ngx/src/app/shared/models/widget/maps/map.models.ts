@@ -56,7 +56,7 @@ import { Observable, Observer, of, switchMap } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ImagePipe } from '@shared/pipe/image.pipe';
 import { MarkerIconContainer, MarkerShape } from '@shared/models/widget/maps/marker-shape.models';
-import { DateFormatSettings, simpleDateFormat } from '@shared/models/widget-settings.models';
+import { ColorRange, DateFormatSettings, simpleDateFormat } from '@shared/models/widget-settings.models';
 
 export enum MapType {
   geoMap = 'geoMap',
@@ -248,12 +248,15 @@ export enum MarkerType {
 
 export enum DataLayerColorType {
   constant = 'constant',
+  range = 'range',
   function = 'function'
 }
 
 export interface DataLayerColorSettings {
   type: DataLayerColorType;
   color: string;
+  rangeKey?: DataKey;
+  range?: ColorRange[];
   colorFunction?: TbFunction;
 }
 
