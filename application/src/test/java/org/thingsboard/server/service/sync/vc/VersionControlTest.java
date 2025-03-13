@@ -146,9 +146,9 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.californium.elements.config.Configuration.DEFAULT_FILE_NAME;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.controller.TbResourceControllerTest.TEST_DATA;
+import static org.thingsboard.server.controller.TbResourceControllerTest.JS_TEST_FILE_NAME;
 
 @DaoSqlTest
 @TestPropertySource(properties = {
@@ -1483,7 +1483,7 @@ public class VersionControlTest extends AbstractControllerTest {
         TbResource resource = new TbResource();
         resource.setResourceType(ResourceType.JKS);
         resource.setTitle(name);
-        resource.setFileName(DEFAULT_FILE_NAME);
+        resource.setFileName(JS_TEST_FILE_NAME);
         resource.setEncodedData(TEST_DATA);
 
         return saveTbResource(resource);
