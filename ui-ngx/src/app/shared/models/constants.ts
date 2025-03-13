@@ -104,6 +104,7 @@ export const HelpLinks = {
   linksMap: {
     docs: `${helpBaseUrl}/docs${docPlatformPrefix}`,
     outgoingMailSettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/mail-settings`,
+    mailTemplates: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/mail-templates/`,
     smsProviderSettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/sms-provider-settings`,
     slackSettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/slack-settings`,
     securitySettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/security-settings`,
