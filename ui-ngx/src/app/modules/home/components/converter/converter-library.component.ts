@@ -83,6 +83,11 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
+  @Input() set interacted(interacted: boolean) {
+    if (interacted) {
+      this.libraryFormGroup.markAllAsTouched();
+    }
+  }
 
   @ViewChild('modelInput') modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
