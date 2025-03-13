@@ -49064,7 +49064,7 @@
                 {
                   "name": "targetTemperature",
                   "type": "timeseries",
-                  "label": "targetTemperature",
+                  "label": "Target",
                   "color": "#00A24F",
                   "settings": {
                     "yAxisId": "default",
@@ -49142,7 +49142,7 @@
                 {
                   "name": "currentInTemperature",
                   "type": "timeseries",
-                  "label": "currentInTemperature",
+                  "label": "Current In",
                   "color": "#8D99E8",
                   "settings": {
                     "yAxisId": "default",
@@ -49220,7 +49220,7 @@
                 {
                   "name": "currentOutTemperature",
                   "type": "timeseries",
-                  "label": "currentOutTemperature",
+                  "label": "Current Out",
                   "color": "#F1877F",
                   "settings": {
                     "yAxisId": "default",
@@ -49298,7 +49298,7 @@
                 {
                   "name": "ambientTemperature",
                   "type": "timeseries",
-                  "label": "ambientTemperature",
+                  "label": "Ambient",
                   "color": "#D288F5",
                   "settings": {
                     "yAxisId": "default",
@@ -49531,7 +49531,7 @@
             },
             "yAxes": {
               "default": {
-                "units": null,
+                "units": "°C",
                 "decimals": 0,
                 "show": true,
                 "label": "",

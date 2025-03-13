@@ -162,7 +162,7 @@ public class ProtoUtils {
             builder.setName(msg.getName());
         }
         if (msg.getOldName() != null) {
-            builder.setName(msg.getOldName());
+            builder.setOldName(msg.getOldName());
         }
         return builder.build();
     }

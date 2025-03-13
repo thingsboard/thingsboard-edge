@@ -39,12 +39,13 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface RoleDao extends Dao<Role>, ExportableEntityDao<RoleId, Role> {
+public interface RoleDao extends Dao<Role>, TenantEntityDao<Role>, ExportableEntityDao<RoleId, Role> {
 
     Role save(TenantId tenantId, Role role);
 

@@ -49,7 +49,7 @@ import java.util.UUID;
  * The Interface ConverterDao.
  *
  */
-public interface ConverterDao extends Dao<Converter>, TenantEntityDao, ExportableEntityDao<ConverterId, Converter> {
+public interface ConverterDao extends Dao<Converter>, TenantEntityDao<Converter>, ExportableEntityDao<ConverterId, Converter> {
 
     /**
      * Find all (core and edge template) converters by tenantId and page link.

@@ -30,12 +30,14 @@
  */
 package org.thingsboard.server.dao.sql.converter;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.edqs.fields.ConverterFields;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.ConverterEntity;
@@ -82,4 +84,9 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
     UUID getExternalIdById(@Param("id") UUID id);
 
     boolean existsByTenantIdAndType(UUID tenantId, ConverterType type);
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.ConverterFields(c.id, c.createdTime, c.tenantId, " +
+            "c.name, c.version, c.type, c.additionalInfo) FROM ConverterEntity c WHERE c.id > :id ORDER BY c.id")
+    List<ConverterFields> findNextBatch(@Param("id") UUID id, Limit limit);
+
 }

@@ -132,7 +132,8 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
         log.info("Received application ready event. Starting polling for events.");
-        integrationApiTemplate.init(this);
+        integrationApiTemplate.subscribe();
+        integrationApiTemplate.launch(this);
     }
 
     @PreDestroy

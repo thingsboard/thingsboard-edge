@@ -31,7 +31,7 @@
 
 import { EntityId } from '@shared/models/id/entity-id';
 import { DataKey, FormattedData, WidgetActionDescriptor, WidgetConfig } from '@shared/models/widget.models';
-import { getDescendantProp, isDefined, isNotEmptyStr } from '@core/utils';
+import { getDescendantProp, isDefined, isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { AlarmDataInfo, alarmFields } from '@shared/models/alarm.models';
 import tinycolor from 'tinycolor2';
 import { Direction } from '@shared/models/page/sort-order';
@@ -68,6 +68,8 @@ export interface TableWidgetSettings {
   enableStickyHeader: boolean;
   displayPagination: boolean;
   defaultPageSize: number;
+  pageStepIncrement: number;
+  pageStepCount: number;
   useRowStyleFunction: boolean;
   rowStyleFunction?: TbFunction;
   reserveSpaceForHiddenAction?: boolean;
@@ -84,6 +86,7 @@ export interface TableWidgetDataKeySettings {
   defaultColumnVisibility?: ColumnVisibilityOptions;
   columnSelectionToDisplay?: ColumnSelectionOptions;
   columnExportOption?: columnExportOptions;
+  disableSorting?: boolean;
 }
 
 export type ShowCellButtonActionFunction = (ctx: WidgetContext, data: EntityData | AlarmDataInfo | FormattedData) => boolean;
@@ -170,7 +173,7 @@ export function entityDataSortOrderFromString(strSortOrder: string, columns: Ent
   if (!column) {
     column = findColumnByName(property, columns);
   }
-  if (column && column.entityKey) {
+  if (column && column.entityKey && column.sortable) {
     return {key: column.entityKey, direction};
   }
   return null;
@@ -587,4 +590,15 @@ export function getHeaderTitle(dataKey: DataKey, keySettings: TableWidgetDataKey
     return utils.customTranslation(keySettings.customTitle, keySettings.customTitle);
   }
   return dataKey.label;
+}
+
+export function buildPageStepSizeValues(pageStepCount: number, pageStepIncrement: number): Array<number> {
+  const pageSteps: Array<number> = [];
+  if (isDefinedAndNotNull(pageStepCount) && pageStepCount > 0 && pageStepCount <= 100 &&
+    isDefinedAndNotNull(pageStepIncrement) && pageStepIncrement > 0) {
+    for (let i = 1; i <= pageStepCount; i++) {
+      pageSteps.push(pageStepIncrement * i);
+    }
+  }
+  return pageSteps;
 }

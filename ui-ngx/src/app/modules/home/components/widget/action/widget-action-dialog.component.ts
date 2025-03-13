@@ -76,6 +76,7 @@ export interface WidgetActionDialogData {
   customFunctionArgs: string[];
   action?: WidgetActionDescriptorInfo;
   widgetType: widgetType;
+  additionalWidgetActionTypes?: WidgetActionType[];
   isEntityGroup?: boolean;
 }
 

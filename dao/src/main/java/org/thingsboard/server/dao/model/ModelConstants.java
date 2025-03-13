@@ -334,7 +334,6 @@ public class ModelConstants {
     public static final String INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
 
     public static final String INTEGRATION_VIEW_NAME = "integration_info";
-    public static final String INTEGRATION_VIEW_STATS_PROPERTY = "stats";
     public static final String INTEGRATION_VIEW_STATUS_PROPERTY = "status";
 
     /**
@@ -923,7 +922,6 @@ public class ModelConstants {
     public static final String CALCULATED_FIELD_CONFIGURATION_VERSION = "configuration_version";
     public static final String CALCULATED_FIELD_CONFIGURATION = "configuration";
     public static final String CALCULATED_FIELD_VERSION = "version";
-    public static final String CALCULATED_FIELD_EXTERNAL_ID = "external_id";
 
     /**
      * Calculated field links constants.
@@ -990,4 +988,5 @@ public class ModelConstants {
             "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
             "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
             "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
+
 }

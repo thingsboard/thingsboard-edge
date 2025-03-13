@@ -295,7 +295,7 @@ public interface TbContext {
 
     DeviceCredentialsService getDeviceCredentialsService();
 
-    RuleEngineDeviceStateManager getDeviceStateManager();
+    DeviceStateManager getDeviceStateManager();
 
     String getDeviceStateNodeRateLimitConfig();
 
@@ -375,6 +375,8 @@ public interface TbContext {
 
     CalculatedFieldService getCalculatedFieldService();
 
+    RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService();
+
     boolean isExternalNodeForceAck();
 
     /**
@@ -394,12 +396,6 @@ public interface TbContext {
      * This context is available only in TB PE.
      */
     TbPeContext getPeContext();
-
-    void logJsEvalRequest();
-
-    void logJsEvalResponse();
-
-    void logJsEvalFailure();
 
     String getServiceId();
 

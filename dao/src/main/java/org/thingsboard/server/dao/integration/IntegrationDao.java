@@ -47,7 +47,7 @@ import java.util.UUID;
  * The Interface IntegrationDao.
  *
  */
-public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, ExportableEntityDao<IntegrationId, Integration> {
+public interface IntegrationDao extends Dao<Integration>, TenantEntityDao<Integration>, ExportableEntityDao<IntegrationId, Integration> {
 
     /**
      * Find all (core and edge template) integrations by tenantId and page link.
@@ -114,4 +114,5 @@ public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, Expor
     PageData<Integration> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
 
     Long countCoreIntegrations();
+
 }

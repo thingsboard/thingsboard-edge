@@ -79,6 +79,7 @@ export interface CalculatedFieldOutput {
   type: OutputType;
   name: string;
   scope?: AttributeScope;
+  decimalsByDefault?: number;
 }
 
 export enum ArgumentEntityType {
@@ -241,7 +242,7 @@ export interface CalculatedFieldLatestTelemetryArgumentValue<ValueType = unknown
 }
 
 export interface CalculatedFieldRollingTelemetryArgumentValue<ValueType = unknown> extends CalculatedFieldArgumentValueBase {
-  timeWindow: { startTs: number; endTs: number; limit: number };
+  timeWindow: { startTs: number; endTs: number; };
   values: CalculatedFieldSingleArgumentValue<ValueType>[];
 }
 
@@ -251,10 +252,10 @@ export type CalculatedFieldArgumentEventValue<ValueType = unknown> = CalculatedF
 
 export type CalculatedFieldEventArguments<ValueType = unknown> = Record<string, CalculatedFieldArgumentEventValue<ValueType>>;
 
-export const CalculatedFieldLatestTelemetryArgumentAutocomplete = {
+export const CalculatedFieldCtxLatestTelemetryArgumentAutocomplete = {
   meta: 'object',
   type: '{ ts: number; value: any; }',
-  description: 'Calculated field latest telemetry value argument.',
+  description: 'Calculated field context latest telemetry value argument.',
   children: {
     ts: {
       meta: 'number',
@@ -269,10 +270,10 @@ export const CalculatedFieldLatestTelemetryArgumentAutocomplete = {
   },
 };
 
-export const CalculatedFieldAttributeValueArgumentAutocomplete = {
+export const CalculatedFieldCtxAttributeValueArgumentAutocomplete = {
   meta: 'object',
   type: '{ ts: number; value: any; }',
-  description: 'Calculated field attribute value argument.',
+  description: 'Calculated field context attribute value argument.',
   children: {
     ts: {
       meta: 'number',
@@ -286,10 +287,23 @@ export const CalculatedFieldAttributeValueArgumentAutocomplete = {
     }
   },
 };
+
+export const CalculatedFieldLatestTelemetryArgumentAutocomplete = {
+  meta: 'any',
+  type: 'any',
+  description: 'Calculated field latest telemetry argument value.',
+};
+
+export const CalculatedFieldAttributeValueArgumentAutocomplete = {
+  meta: 'any',
+  type: 'any',
+  description: 'Calculated field attribute argument value.',
+};
+
 export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
   max: {
     meta: 'function',
-    description: 'Computes the maximum value in the list of rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
+    description: 'Returns the maximum value of the rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
     args: [
       {
         name: 'ignoreNaN',
@@ -305,7 +319,7 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
   },
   min: {
     meta: 'function',
-    description: 'Computes the minimum value in the list of rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
+    description: 'Returns the minimum value of the rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
     args: [
       {
         name: 'ignoreNaN',
@@ -321,7 +335,7 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
   },
   mean: {
     meta: 'function',
-    description: 'Computes the mean value of the rolling argument values list. Returns NaN if any value is NaN and ignoreNaN is false.',
+    description: 'Computes the mean value of the rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
     args: [
       {
         name: 'ignoreNaN',
@@ -335,9 +349,25 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
       type: 'number'
     }
   },
+  avg: {
+    meta: 'function',
+    description: 'Computes the average value of the rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
+    args: [
+      {
+        name: 'ignoreNaN',
+        description: 'Whether to ignore NaN values. Equals true by default.',
+        type: 'boolean',
+        optional: true,
+      }
+    ],
+    return: {
+      description: 'The average value, or NaN if applicable',
+      type: 'number'
+    }
+  },
   std: {
     meta: 'function',
-    description: 'Computes the standard deviation in the list of rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
+    description: 'Computes the standard deviation of the rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
     args: [
       {
         name: 'ignoreNaN',
@@ -353,7 +383,7 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
   },
   median: {
     meta: 'function',
-    description: 'Computes the median value of the rolling argument values list. Returns NaN if any value is NaN and ignoreNaN is false.',
+    description: 'Computes the median value of the rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
     args: [
       {
         name: 'ignoreNaN',
@@ -369,7 +399,7 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
   },
   count: {
     meta: 'function',
-    description: 'Counts values in the list of rolling argument values. Counts non-NaN values if ignoreNaN is true, otherwise - total size.',
+    description: 'Counts values of the rolling argument. Counts non-NaN values if ignoreNaN is true, otherwise - total size.',
     args: [
       {
         name: 'ignoreNaN',
@@ -385,7 +415,7 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
   },
   last: {
     meta: 'function',
-    description: 'Returns the last non-NaN value in the list of rolling argument values if ignoreNaN is true, otherwise - the last value.',
+    description: 'Returns the last non-NaN value of the rolling argument values if ignoreNaN is true, otherwise - the last value.',
     args: [
       {
         name: 'ignoreNaN',
@@ -401,7 +431,7 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
   },
   first: {
     meta: 'function',
-    description: 'Returns the first non-NaN value in the list of rolling argument values if ignoreNaN is true, otherwise - the first value.',
+    description: 'Returns the first non-NaN value of the rolling argument values if ignoreNaN is true, otherwise - the first value.',
     args: [
       {
         name: 'ignoreNaN',
@@ -417,7 +447,7 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
   },
   sum: {
     meta: 'function',
-    description: 'Computes the sum of values in the list of rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
+    description: 'Computes the sum of rolling argument values. Returns NaN if any value is NaN and ignoreNaN is false.',
     args: [
       {
         name: 'ignoreNaN',
@@ -430,12 +460,56 @@ export const CalculatedFieldRollingValueArgumentFunctionsAutocomplete = {
       description: 'The sum of values, or NaN if applicable',
       type: 'number'
     }
+  },
+  merge: {
+    meta: 'function',
+    description: 'Merges current object with other time series rolling argument into a single object by aligning their timestamped values. Supports optional configurable settings.',
+    args: [
+      {
+        name: 'other',
+        description: "A time series rolling argument to be merged with the current object.",
+        type: "object",
+        optional: true
+      },
+      {
+        name: "settings",
+        description: "Optional settings controlling the merging process. Supported keys: 'ignoreNaN' (boolean, equals true by default) to determine whether NaN values should be ignored; 'timeWindow' (object, empty by default) to apply time window filtering.",
+        type: "object",
+        optional: true
+      }
+    ],
+    return: {
+      description: 'A new object containing merged timestamped values from all provided arguments, aligned based on timestamps and filtered according to settings.',
+      type: '{ values: { ts: number; values: number[]; }[]; timeWindow: { startTs: number; endTs: number } }; }',
+    }
+  },
+  mergeAll: {
+    meta: 'function',
+    description: 'Merges current object with other time series rolling arguments into a single object by aligning their timestamped values. Supports optional configurable settings.',
+    args: [
+      {
+        name: 'others',
+        description: "A list of time series rolling arguments to be merged with the current object.",
+        type: "object[]",
+        optional: true
+      },
+      {
+        name: "settings",
+        description: "Optional settings controlling the merging process. Supported keys: 'ignoreNaN' (boolean, equals true by default) to determine whether NaN values should be ignored; 'timeWindow' (object, empty by default) to apply time window filtering.",
+        type: "object",
+        optional: true
+      }
+    ],
+    return: {
+      description: 'A new object containing merged timestamped values from all provided arguments, aligned based on timestamps and filtered according to settings.',
+      type: '{ values: { ts: number; values: number[]; }[]; timeWindow: { startTs: number; endTs: number } }; }',
+    }
   }
 };
 
 export const CalculatedFieldRollingValueArgumentAutocomplete = {
   meta: 'object',
-  type: '{ values: { ts: number; value: any; }[]; timeWindow: { startTs: number; endTs: number; limit: number } }; }',
+  type: '{ values: { ts: number; value: number; }[]; timeWindow: { startTs: number; endTs: number } }; }',
   description: 'Calculated field rolling value argument.',
   children: {
     ...CalculatedFieldRollingValueArgumentFunctionsAutocomplete,
@@ -446,7 +520,7 @@ export const CalculatedFieldRollingValueArgumentAutocomplete = {
     },
     timeWindow: {
       meta: 'object',
-      type: '{ startTs: number; endTs: number; limit: number }',
+      type: '{ startTs: number; endTs: number }',
       description: 'Time window configuration',
       children: {
         startTs: {
@@ -458,11 +532,6 @@ export const CalculatedFieldRollingValueArgumentAutocomplete = {
           meta: 'number',
           type: 'number',
           description: 'End time stamp',
-        },
-        limit: {
-          meta: 'number',
-          type: 'number',
-          description: 'Limit',
         }
       }
     }
@@ -474,34 +543,83 @@ export const getCalculatedFieldArgumentsEditorCompleter = (argumentsObj: Record<
     switch (argumentsObj[key].refEntityKey.type) {
       case ArgumentType.Attribute:
         acc[key] = CalculatedFieldAttributeValueArgumentAutocomplete;
+        acc.ctx.children.args.children[key] = CalculatedFieldCtxAttributeValueArgumentAutocomplete;
         break;
       case ArgumentType.LatestTelemetry:
         acc[key] = CalculatedFieldLatestTelemetryArgumentAutocomplete;
+        acc.ctx.children.args.children[key] = CalculatedFieldCtxLatestTelemetryArgumentAutocomplete;
         break;
       case ArgumentType.Rolling:
         acc[key] = CalculatedFieldRollingValueArgumentAutocomplete;
+        acc.ctx.children.args.children[key] = CalculatedFieldRollingValueArgumentAutocomplete;
         break;
     }
     return acc;
-  }, {}));
+  }, {
+    ctx: {
+      meta: 'object',
+      type: '{ args: { [key: string]: object } }',
+      description: 'Calculated field context.',
+      children: {
+        args: {
+          meta: 'object',
+          type: '{ [key: string]: object }',
+          description: 'Calculated field context arguments.',
+          children: {}
+        }
+      }
+    }
+  }));
 }
 
 export const getCalculatedFieldArgumentsHighlights = (
   argumentsObj: Record<string, CalculatedFieldArgument>
 ): AceHighlightRules => {
+  const calculatedFieldArgumentsKeys = Object.keys(argumentsObj).map(key => ({
+    token: 'tb.calculated-field-key',
+    regex: `\\b${key}\\b`,
+    next: argumentsObj[key].refEntityKey.type === ArgumentType.Rolling
+      ? 'calculatedFieldRollingArgumentValue'
+      : 'start'
+  }));
+  const calculatedFieldCtxArgumentsHighlightRules = {
+    calculatedFieldCtxArgs: [
+      dotOperatorHighlightRule,
+      ...calculatedFieldArgumentsKeys.map(argumentRule => argumentRule.next === 'start' ? {...argumentRule, next: 'calculatedFieldSingleArgumentValue' } : argumentRule),
+      endGroupHighlightRule
+    ]
+  };
+
   return {
-    start: Object.keys(argumentsObj).map(key => ({
-      token: 'tb.calculated-field-key',
-      regex: `\\b${key}\\b`,
-      next: argumentsObj[key].refEntityKey.type === ArgumentType.Rolling
-        ? 'calculatedFieldRollingArgumentValue'
-        : 'calculatedFieldSingleArgumentValue'
-    })),
+    start: [
+      calculatedFieldArgumentsContextHighlightRules,
+      ...calculatedFieldArgumentsKeys,
+    ],
+    ...calculatedFieldArgumentsContextValueHighlightRules,
+    ...calculatedFieldCtxArgumentsHighlightRules,
     ...calculatedFieldSingleArgumentValueHighlightRules,
     ...calculatedFieldRollingArgumentValueHighlightRules,
     ...calculatedFieldTimeWindowArgumentValueHighlightRules
   };
 };
+
+const calculatedFieldArgumentsContextHighlightRules: AceHighlightRule = {
+  token: 'tb.calculated-field-ctx',
+  regex: /ctx/,
+  next: 'calculatedFieldCtxValue'
+}
+
+const calculatedFieldArgumentsContextValueHighlightRules: AceHighlightRules = {
+  calculatedFieldCtxValue: [
+    dotOperatorHighlightRule,
+    {
+      token: 'tb.calculated-field-args',
+      regex: /args/,
+      next: 'calculatedFieldCtxArgs'
+    },
+    endGroupHighlightRule
+  ]
+}
 
 const calculatedFieldSingleArgumentValueHighlightRules: AceHighlightRules = {
   calculatedFieldSingleArgumentValue: [
@@ -521,7 +639,7 @@ const calculatedFieldSingleArgumentValueHighlightRules: AceHighlightRules = {
 }
 
 const calculatedFieldRollingArgumentValueFunctionsHighlightRules: Array<AceHighlightRule> =
-  ['max', 'min', 'mean', 'std', 'median', 'count', 'last', 'first', 'sum'].map(funcName => ({
+  ['max', 'min', 'avg', 'mean', 'std', 'median', 'count', 'last', 'first', 'sum', 'merge', 'mergeAll'].map(funcName => ({
     token: 'tb.calculated-field-func',
     regex: `\\b${funcName}\\b`,
     next: 'no_regex'
@@ -558,11 +676,11 @@ const calculatedFieldTimeWindowArgumentValueHighlightRules: AceHighlightRules = 
       regex: /endTs/,
       next: 'no_regex'
     },
-    {
-      token: 'tb.calculated-field-limit',
-      regex: /limit/,
-      next: 'no_regex'
-    },
     endGroupHighlightRule
   ]
 }
+
+export const calculatedFieldDefaultScript = 'return {\n' +
+  '    // Convert Fahrenheit to Celsius\n' +
+  '    "temperatureCelsius": (temperature - 32) / 1.8\n' +
+  '};'

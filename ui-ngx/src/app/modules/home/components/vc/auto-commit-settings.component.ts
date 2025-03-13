@@ -43,6 +43,7 @@ import { Observable, of } from 'rxjs';
 import {
   EntityTypeVersionCreateConfig,
   exportableEntityTypes,
+  typesWithCalculatedFields,
   overrideEntityTypeTranslations
 } from '@shared/models/vc.models';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
@@ -68,6 +69,8 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
 
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE);
   allowDelete = this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.DELETE);
+
+  readonly typesWithCalculatedFields = typesWithCalculatedFields;
 
   constructor(protected store: Store<AppState>,
               private adminService: AdminService,
@@ -135,6 +138,7 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
       saveAttributes: true,
       saveRelations: false,
       saveCredentials: true,
+      saveCalculatedFields: true,
       savePermissions: true,
       saveGroupEntities: true
     };
@@ -240,6 +244,7 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
           saveRelations: [config.saveRelations, []],
           saveAttributes: [config.saveAttributes, []],
           saveCredentials: [config.saveCredentials, []],
+          saveCalculatedFields: [config.saveCalculatedFields, []],
           savePermissions: [config.savePermissions, []],
           saveGroupEntities: [config.saveGroupEntities, []]
         })

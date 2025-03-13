@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -94,9 +93,6 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     @Column(name = ModelConstants.INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY)
     private Boolean edgeTemplate;
 
-    @Column(name = ModelConstants.INTEGRATION_VIEW_STATS_PROPERTY)
-    private String stats;
-
     @Column(name = ModelConstants.INTEGRATION_VIEW_STATUS_PROPERTY)
     private String status;
 
@@ -117,7 +113,6 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         this.isRemote = isRemote;
         this.allowCreateDevicesOrAssets = allowCreateDevicesOrAssets;
         this.edgeTemplate = edgeTemplate;
-        this.stats = stats;
         this.status = status;
     }
 
@@ -152,8 +147,6 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
         integration.setEdgeTemplate(edgeTemplate);
-        integration.setStats(StringUtils.isEmpty(stats) ?
-                JacksonUtil.newArrayNode() : JacksonUtil.fromString(stats, ArrayNode.class));
 
         if (StringUtils.isNotEmpty(status)) {
             integration.setStatus(JacksonUtil.fromString(status, ObjectNode.class));

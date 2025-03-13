@@ -141,7 +141,7 @@ class TbIntervalTable {
     ListenableFuture<TimeseriesSaveResult> saveIntervalState(EntityId entityId, long ts, TbIntervalState state) {
         KvEntry kvEntry = new StringDataEntry(DataConstants.RULE_NODE_STATE_PREFIX + ctx.getSelfId(), state.toStateJson(gson));
         TsKvEntry tsKvEntry = new BasicTsKvEntry(calculateIntervalStart(ts), kvEntry);
-        return ctx.getTimeseriesService().save(ctx.getTenantId(), entityId, tsKvEntry);
+        return ctx.getTimeseriesService().saveWithoutLatest(ctx.getTenantId(), entityId, List.of(tsKvEntry), 0L);
     }
 
     Map<EntityId, Map<Long, TbIntervalState>> getStatesToReport(IntervalPersistPolicy intervalPersistPolicy) {

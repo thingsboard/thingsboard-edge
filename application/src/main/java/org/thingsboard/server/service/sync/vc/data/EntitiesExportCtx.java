@@ -92,6 +92,7 @@ public abstract class EntitiesExportCtx<R extends VersionCreateRequest> {
                 .exportRelations(config.isSaveRelations())
                 .exportAttributes(config.isSaveAttributes())
                 .exportCredentials(config.isSaveCredentials())
+                .exportCalculatedFields(config.isSaveCalculatedFields())
                 .exportGroupEntities(config.isSaveGroupEntities())
                 .exportPermissions(config.isSavePermissions())
                 .build();
