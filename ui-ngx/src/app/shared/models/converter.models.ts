@@ -148,6 +148,7 @@ export type TestConverterInputParams = TestUpLinkInputParams & TestDownLinkInput
 
 export interface TestConverterResult {
   output: string;
+  outputMsg?: Record<string, any>;
   error: string;
 }
 

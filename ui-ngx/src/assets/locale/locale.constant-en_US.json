@@ -1295,7 +1295,9 @@
         "asset-group-name": "Asset group name",
         "telemetry": "Telemetry",
         "attributes": "Attributes",
-        "integration-type": "Integration type"
+        "integration-type": "Integration type",
+        "decoder-output": "Decoder output",
+        "converter-output": "Converter output"
     },
     "content-type": {
         "json": "Json",

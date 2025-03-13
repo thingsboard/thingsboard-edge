@@ -47,7 +47,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
-import { combineLatest, NEVER, Observable, of } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { ContentType, contentTypesMap } from '@shared/models/constants';
@@ -61,7 +61,8 @@ import {
   getConverterFunctionHeldId,
   getConverterFunctionName,
   getConverterTestFunctionName,
-  TestConverterInputParams
+  TestConverterInputParams,
+  TestConverterResult
 } from '@shared/models/converter.models';
 import { base64toString, isObject, stringToBase64 } from '@core/utils';
 import { ConverterService } from '@core/http/converter.service';
@@ -77,6 +78,11 @@ export interface ConverterTestDialogData {
   debugIn: ConverterDebugInput;
   converter: Converter;
 }
+
+type TestConverterResultData = {
+  output: Observable<string>;
+  outputMsg?: Observable<string>;
+};
 
 @Component({
   selector: 'tb-converter-test-dialog',
@@ -114,13 +120,12 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
   converterTestFormGroup: FormGroup = null;
 
   isDecoder: boolean;
-
+  isPayload: boolean;
   submitted = false;
+  outputFullscreen = false;
 
   contentType = ContentType;
-
   contentTypes: ContentType[] = Object.values(ContentType);
-
   contentTypesInfoMap = contentTypesMap;
 
   scriptLanguage = ScriptLanguage;
@@ -143,6 +148,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
               private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     this.isDecoder = this.data.isDecoder;
+    this.isPayload = this.data.converter.converterVersion === 2;
     this.initConstant()
     this.init();
   }
@@ -215,18 +221,19 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
 
     this.converterTestFormGroup = this.fb.group({
       payload: this.fb.group({
-        stringContent: [null, []],
-        contentType: [contentType, []]
+        stringContent: [null],
+        contentType: [contentType]
       }),
       metadata: [metadata],
-      funcBody: [this.data.funcBody, []],
-      output: ['', []]
+      funcBody: [this.data.funcBody],
+      output: ['']
     });
     const payloadFormGroup = this.converterTestFormGroup.get('payload') as FormGroup;
     if (this.isDecoder) {
-      payloadFormGroup.addControl(
-        'payload', this.fb.control(null, [])
-      );
+      if (this.data.converter.converterVersion === 2) {
+        this.converterTestFormGroup.addControl('outputMsg', this.fb.control(''));
+      }
+      payloadFormGroup.addControl('payload', this.fb.control(null));
       payloadFormGroup.get('contentType').valueChanges.pipe(
         takeUntilDestroyed(this.destroyRef)
       ).subscribe((newVal: ContentType) => {
@@ -251,15 +258,9 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         }
       });
     } else {
-      payloadFormGroup.addControl(
-        'msg', this.fb.control(null, [])
-      );
-      payloadFormGroup.addControl(
-        'msgType', this.fb.control(msgType, [Validators.required])
-      );
-      this.converterTestFormGroup.addControl(
-        'integrationMetadata', this.fb.control(integrationMetadata, [])
-      );
+      payloadFormGroup.addControl('msg', this.fb.control(null));
+      payloadFormGroup.addControl('msgType', this.fb.control(msgType, [Validators.required]));
+      this.converterTestFormGroup.addControl('integrationMetadata', this.fb.control(integrationMetadata));
     }
     const inputContentTriggers: [Observable<string>, Observable<ContentType>?] = [
       payloadFormGroup.get('stringContent').valueChanges.pipe(startWith(''))
@@ -375,16 +376,25 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
   }
 
   test(): void {
-    this.testConverter().subscribe((output) => {
-      beautifyJs(output, {indent_size: 4}).subscribe(
-        (newOutput) => {
-          this.converterTestFormGroup.get('output').setValue(newOutput);
+    this.testConverter().pipe(
+      mergeMap(data => {
+        const result: TestConverterResultData = {
+          output: beautifyJs(data.output, {indent_size: 4})
+        };
+        if (data.outputMsg) {
+          result.outputMsg = beautifyJs(JSON.stringify(data.outputMsg), {indent_size: 4});
         }
-      );
+        return forkJoin(result)
+      })
+    ).subscribe((output) => {
+      this.converterTestFormGroup.get('output').setValue(output.output);
+      if (output.outputMsg) {
+        this.converterTestFormGroup.get('outputMsg').setValue(output.outputMsg);
+      }
     });
   }
 
-  private testConverter(): Observable<string> {
+  private testConverter(): Observable<TestConverterResult> {
     if (this.checkInputParamErrors()) {
       const metadata: Record<string, string> = this.converterTestFormGroup.get('metadata').value;
       Object.keys(metadata).forEach(function (key) {
@@ -405,9 +415,10 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         inputParams.integrationMetadata = this.converterTestFormGroup.get('integrationMetadata').value;
         inputParams.encoder = this.converterTestFormGroup.get('funcBody').value;
       }
-      const testObservable = this.isDecoder ? this.converterService.testUpLink(inputParams, this.scriptLang) :
-        this.converterService.testDownLink(inputParams, this.scriptLang);
-      return testObservable.pipe(
+      const testObservable$ = this.isDecoder
+        ? this.converterService.testUpLink(inputParams, this.scriptLang)
+        : this.converterService.testDownLink(inputParams, this.scriptLang);
+      return testObservable$.pipe(
         mergeMap((result) => {
           if (result.error) {
             this.store.dispatch(new ActionNotificationShow(
@@ -415,14 +426,14 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
                 message: result.error,
                 type: 'error'
               }));
-            return NEVER;
+            return EMPTY;
           } else {
-            return of(result.output);
+            return of(result);
           }
         })
       );
     } else {
-      return NEVER;
+      return EMPTY;
     }
   }
 
