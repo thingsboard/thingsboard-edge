@@ -44,7 +44,9 @@ import org.mockito.Mockito;
 import org.springframework.data.util.Pair;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
 import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -69,10 +71,19 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTI_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTN_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
@@ -676,34 +687,78 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testTTIDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"deviceName\":\"eui-1000000000000001 1000000000000001\",\"deviceType\":\"application-tti-name\"," +
-                "\"attributes\":{\"eui\":\"1000000000000001\",\"fPort\":85,\"devAddr\":\"20000001\"}," +
-                "\"telemetry\":[{\"ts\":1684398325906,\"values\":{}}]}";
-        testDecoder("tbel-tti-decoder.raw", DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tti-name\"," +
+                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("eui-$eui");
+        config.setProfile("$applicationId");
+        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
+
+        Converter converter = new Converter();
+        converter.setIntegrationType(IntegrationType.TTI);
+        converter.setConverterVersion(2);
+        converter.setConfiguration(JacksonUtil.valueToTree(config));
+
+        testDecoder("tbel-tti-decoder.raw", DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TTI_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
     public void testTTNDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"deviceName\":\"eui-1000000000000001 1000000000000001\",\"deviceType\":\"application-tts-name\",\"" +
-                "attributes\":{\"eui\":\"1000000000000001\",\"fPort\":85,\"devAddr\":\"20000001\"},\"" +
-                "telemetry\":[{\"ts\":1684474415641,\"values\":{}}]}";
-        testDecoder("tbel-ttn-decoder.raw", DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tts-name\"," +
+                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("eui-$eui");
+        config.setProfile("$applicationId");
+        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
+
+        Converter converter = new Converter();
+        converter.setIntegrationType(IntegrationType.TTN);
+        converter.setConverterVersion(2);
+        converter.setConfiguration(JacksonUtil.valueToTree(config));
+
+        testDecoder("tbel-ttn-decoder.raw", DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TTN_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
     public void testChirpstackDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"deviceName\":\"Device name 1000000000000001\",\"deviceType\":\"Chirpstack default device profile\",\"" +
-                "attributes\":{\"eui\":\"1000000000000001\",\"devAddr\":\"20000001\",\"fPort\":85},\"" +
-                "telemetry\":[{\"ts\":1684741625404,\"values\":{}}]}";
-        testDecoder("tbel-chirpstack-decoder.raw", DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\",\"profile\":\"Chirpstack default device profile\"," +
+                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("Device name $eui");
+        config.setProfile("$deviceProfileName");
+        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
+
+        Converter converter = new Converter();
+        converter.setIntegrationType(IntegrationType.CHIRPSTACK);
+        converter.setConverterVersion(2);
+        converter.setConfiguration(JacksonUtil.valueToTree(config));
+
+        testDecoder("tbel-chirpstack-decoder.raw", DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
     public void testLoriotDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "[{\"deviceName\":\"Device name 1000000000000001\",\"deviceType\":\"Device type\",\"" +
-                "attributes\":{\"eui\":\"1000000000000001\",\"fPort\":85},\"" +
-                "telemetry\":[{\"ts\":1684478801936,\"values\":{}}]}]";
-        testDecoder("tbel-loriot-decoder.raw", DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\"," +
+                "\"profile\":\"Device type\",\"telemetry\":[],\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("Device name $eui");
+        config.setProfile("Device type");
+        config.setAttributes(Set.of("eui", "fPort"));
+
+        Converter converter = new Converter();
+        converter.setIntegrationType(IntegrationType.LORIOT);
+        converter.setConverterVersion(2);
+        converter.setConfiguration(JacksonUtil.valueToTree(config));
+
+        testDecoder("tbel-loriot-decoder.raw", DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD, DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
@@ -742,16 +797,29 @@ public class ConverterControllerTest extends AbstractControllerTest {
     }
 
     public void testDecoder(String decoderFileName, String payloadExample, String expectedResult) throws IOException {
+        testDecoder(decoderFileName, payloadExample, "{}", expectedResult, null);
+    }
+
+    public void testDecoder(String decoderFileName, String payloadExample, String metadata, String expectedResult, Converter converter) throws IOException {
         byte[] bytes = IOUtils.toByteArray(ConverterControllerTest.class.getClassLoader().getResourceAsStream("converters/" + decoderFileName));
         String base64Payload = Base64.getEncoder().encodeToString(payloadExample.getBytes(StandardCharsets.UTF_8));
 
         ObjectNode inputParams = JacksonUtil.newObjectNode();
         inputParams.set("decoder", new TextNode(new String(bytes)));
         inputParams.set("payload", new TextNode(base64Payload));
-        inputParams.set("metadata", JacksonUtil.newObjectNode());
+        inputParams.set("metadata", JacksonUtil.toJsonNode(metadata));
+
+        if (converter != null) {
+            inputParams.set("converter", JacksonUtil.valueToTree(converter));
+        }
 
         JsonNode response = doPost("/api/converter/testUpLink?scriptLang=TBEL", inputParams, JsonNode.class);
-        String output = response.get("output").asText();
+        String output;
+        if (converter != null) {
+            output = response.get("outputMsg").toString();
+        } else {
+            output = response.get("output").asText();
+        }
         assertThat(output).isEqualTo(expectedResult);
     }
 
