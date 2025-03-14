@@ -28,36 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.actors.shared;
+package org.thingsboard.server.transport.lwm2m.rpc;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.actors.ActorSystemContext;
-import org.thingsboard.server.actors.TbActorCtx;
-import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+@DaoSqlTest
+public abstract class AbstractRpcLwM2MIntegrationObserve_Ver_1_0_Test extends AbstractRpcLwM2MIntegrationTest{
 
-@Slf4j
-public abstract class AbstractContextAwareMsgProcessor {
-
-    protected final ActorSystemContext systemContext;
-
-    protected AbstractContextAwareMsgProcessor(ActorSystemContext systemContext) {
-        super();
-        this.systemContext = systemContext;
+    public AbstractRpcLwM2MIntegrationObserve_Ver_1_0_Test() {
+        String[] RESOURCES_RPC_VER_1_1 = new String[]{"3-1_0.xml", "5.xml", "6.xml", "9.xml", "19.xml"};
+        setResources(RESOURCES_RPC_VER_1_1);
     }
-
-    private ScheduledExecutorService getScheduler() {
-        return systemContext.getScheduler();
-    }
-
-    protected ScheduledFuture<?> schedulePeriodicMsgWithDelay(TbActorCtx ctx, TbActorMsg msg, long delayInMs, long periodInMs) {
-        return systemContext.schedulePeriodicMsgWithDelay(ctx, msg, delayInMs, periodInMs);
-    }
-
-    protected void scheduleMsgWithDelay(TbActorCtx ctx, TbActorMsg msg, long delayInMs) {
-        systemContext.scheduleMsgWithDelay(ctx, msg, delayInMs);
-    }
-
 }
+

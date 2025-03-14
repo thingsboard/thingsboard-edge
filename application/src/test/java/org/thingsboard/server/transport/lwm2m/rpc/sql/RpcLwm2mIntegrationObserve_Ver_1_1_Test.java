@@ -28,36 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.actors.shared;
+package org.thingsboard.server.transport.lwm2m.rpc.sql;
 
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.actors.ActorSystemContext;
-import org.thingsboard.server.actors.TbActorCtx;
-import org.thingsboard.server.common.msg.TbActorMsg;
-
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import org.junit.Before;
+import org.junit.Test;
+import org.thingsboard.server.transport.lwm2m.rpc.AbstractRpcLwM2MIntegrationObserve_Ver_1_1_Test;
+import static org.junit.Assert.assertTrue;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.RESOURCE_ID_NAME_3_9;
 
 @Slf4j
-public abstract class AbstractContextAwareMsgProcessor {
+public class RpcLwm2mIntegrationObserve_Ver_1_1_Test extends AbstractRpcLwM2MIntegrationObserve_Ver_1_1_Test {
 
-    protected final ActorSystemContext systemContext;
-
-    protected AbstractContextAwareMsgProcessor(ActorSystemContext systemContext) {
-        super();
-        this.systemContext = systemContext;
+    @Before
+    public void setupObserveTest() throws Exception {
+        awaitObserveReadAll(4,lwM2MTestClient.getDeviceIdStr());
     }
 
-    private ScheduledExecutorService getScheduler() {
-        return systemContext.getScheduler();
+    /**
+     * Observe "3_1.1/0/9"
+     * @throws Exception
+     */
+    @Test
+    public void testObserveOneResource_Result_CONTENT_Value_Count_3_After_Cancel_Count_2() throws Exception {
+        long initSendTelemetryAtCount = countSendParametersOnThingsboardTelemetryResource(RESOURCE_ID_NAME_3_9);
+        sendObserveCancelAllWithAwait(lwM2MTestClient.getDeviceIdStr());
+        sendRpcObserveWithContainsLwM2mSingleResource(idVer_3_0_9);
+        updateRegAtLeastOnceAfterAction();
+        long lastSendTelemetryAtCount = countSendParametersOnThingsboardTelemetryResource(RESOURCE_ID_NAME_3_9);
+        assertTrue(lastSendTelemetryAtCount > initSendTelemetryAtCount);
     }
-
-    protected ScheduledFuture<?> schedulePeriodicMsgWithDelay(TbActorCtx ctx, TbActorMsg msg, long delayInMs, long periodInMs) {
-        return systemContext.schedulePeriodicMsgWithDelay(ctx, msg, delayInMs, periodInMs);
-    }
-
-    protected void scheduleMsgWithDelay(TbActorCtx ctx, TbActorMsg msg, long delayInMs) {
-        systemContext.scheduleMsgWithDelay(ctx, msg, delayInMs);
-    }
-
 }
