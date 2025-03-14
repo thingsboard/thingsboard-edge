@@ -40,7 +40,7 @@ import {
   CalculatedField,
   CalculatedFieldConfiguration,
   calculatedFieldDefaultScript,
-  CalculatedFieldDialogData,
+  CalculatedFieldTestScriptFn,
   CalculatedFieldType,
   CalculatedFieldTypeTranslations,
   getCalculatedFieldArgumentsEditorCompleter,
@@ -56,6 +56,21 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { CalculatedFieldsService } from '@core/http/calculated-fields.service';
 import { Observable } from 'rxjs';
+import { EntityId } from '@shared/models/id/entity-id';
+import { AdditionalDebugActionConfig } from '@home/components/entity/debug/entity-debug-settings.model';
+
+export interface CalculatedFieldDialogData {
+  value?: CalculatedField;
+  buttonTitle: string;
+  entityId: EntityId;
+  debugLimitsConfiguration: string;
+  tenantId: string;
+  entityName?: string;
+  additionalDebugActionConfig: AdditionalDebugActionConfig<(calculatedField: CalculatedField) => void>;
+  getTestScriptDialogFn: CalculatedFieldTestScriptFn;
+  isDirty?: boolean;
+  readonly: boolean;
+}
 
 @Component({
   selector: 'tb-calculated-field-dialog',
