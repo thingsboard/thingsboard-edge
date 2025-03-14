@@ -32,7 +32,8 @@
 import { Injectable } from '@angular/core';
 import {
   checkBoxCell,
-  DateEntityTableColumn, defaultEntityTablePermissions,
+  DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';

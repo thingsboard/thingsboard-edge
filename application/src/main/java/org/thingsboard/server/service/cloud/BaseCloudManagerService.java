@@ -319,7 +319,7 @@ public abstract class BaseCloudManagerService {
                     try {
                         Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
                         updateQueueStartTsSeqIdOffset(tenantId, queueStartTsAttrKey, queueSeqIdAttrKey, newStartTs, latestCloudEvent.getSeqId());
-                        log.debug("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
+                        log.info("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
                     } catch (Exception e) {
                         log.error("Failed to update queue offset [{}]", latestCloudEvent);
                     }
@@ -328,7 +328,9 @@ public abstract class BaseCloudManagerService {
                     pageLink = pageLink.nextPageLink();
                     if (cloudEvents.hasNext()) {
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
-                        log.info("[{}] Uplink Processing Lag Stats: current page = [{}], total pages = [{}]", queueName, pageLink.getPage(), cloudEvents.getTotalPages());
+                        int queueSize = pageLink.getPageSize() * (cloudEvents.getTotalPages() - pageLink.getPage());
+                        log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
+                                queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
                     }
                 }
                 if (!isGeneralMsg) {

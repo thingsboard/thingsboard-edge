@@ -508,7 +508,9 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
   }
 
   deleteEnabled(image?: ImageResourceInfo): boolean {
-    return this.authUser.authority === Authority.SYS_ADMIN || !this.isSystem(image);
+    // return this.authUser.authority === Authority.SYS_ADMIN || !this.isSystem(image);
+    // edge-only: images can't be deleted from edge
+    return false;
   }
 
   deleteImage($event: Event, image: ImageResourceInfo, itemIndex = -1) {

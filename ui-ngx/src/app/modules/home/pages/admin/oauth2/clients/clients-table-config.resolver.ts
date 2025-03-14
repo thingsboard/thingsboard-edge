@@ -83,6 +83,12 @@ export class ClientsTableConfigResolver  {
     this.config.loadEntity = id => this.oauth2Service.getOAuth2ClientById(id.id);
     this.config.saveEntity = client => this.oauth2Service.saveOAuth2Client(client);
     this.config.deleteEntity = id => this.oauth2Service.deleteOauth2Client(id.id);
+
+    // edge-only: allow to read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
   }
 
   resolve(): EntityTableConfig<OAuth2Client, PageLink, OAuth2ClientInfo> {

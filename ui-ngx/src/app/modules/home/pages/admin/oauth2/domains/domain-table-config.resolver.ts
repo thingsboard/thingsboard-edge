@@ -120,6 +120,12 @@ export class DomainTableConfigResolver  {
       );
     };
     this.config.deleteEntity = id => this.domainService.deleteDomain(id.id);
+
+    // edge-only: allow to read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
   }
 
   resolve(_route: ActivatedRouteSnapshot): EntityTableConfig<DomainInfo> {
