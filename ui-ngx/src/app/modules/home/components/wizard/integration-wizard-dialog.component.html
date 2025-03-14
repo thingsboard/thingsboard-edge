@@ -102,15 +102,15 @@
                                      labelText="integration.uplink-converter"
                                      requiredText="integration.uplink-converter-required"
                                      [converterType]="converterType.UPLINK"
+                                     [integrationType]="integrationWizardForm.get('type').value"
                                      [useFullEntityId]="true"
                                      [isEdgeTemplate]="isEdgeTemplate">
           </tb-converter-autocomplete>
           <tb-converter #uplinkDataConverter
                         [class.!hidden]="uplinkConverterForm.get('converterType').value !== ConverterSourceType.NEW"
-                        hideType="true"
-                        [integrationType]="integrationWizardForm.get('type').value"
+                        hideTypes="true"
                         [integrationName]="integrationWizardForm.get('name').value"
-                        [convertorName]="createConvertorName(converterType.UPLINK)"
+                        [converterName]="createConvertorName(converterType.UPLINK)"
                         isEdit="true"
                         [entity]="uplinkConverter"
           ></tb-converter>
@@ -140,15 +140,15 @@
                                      *ngIf="downlinkConverterForm.get('converterType').value === ConverterSourceType.EXISTING"
                                      labelText="integration.downlink-converter"
                                      [converterType]="converterType.DOWNLINK"
+                                     [integrationType]="integrationWizardForm.get('type').value"
                                      [useFullEntityId]="true"
                                      [isEdgeTemplate]="isEdgeTemplate">
           </tb-converter-autocomplete>
           <tb-converter #downlinkDataConverter
                         [class.!hidden]="downlinkConverterForm.get('converterType').value !== ConverterSourceType.NEW"
-                        [integrationType]="integrationWizardForm.get('type').value"
                         [integrationName]="integrationWizardForm.get('name').value"
-                        [convertorName]="createConvertorName(converterType.DOWNLINK)"
-                        hideType="true"
+                        [converterName]="createConvertorName(converterType.DOWNLINK)"
+                        hideTypes="true"
                         isEdit="true"
                         [entity]="downlinkConverter"
           ></tb-converter>

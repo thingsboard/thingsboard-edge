@@ -46,16 +46,25 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
-import { combineLatest, NEVER, Observable, of } from 'rxjs';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { combineLatest, EMPTY, forkJoin, Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { ContentType, contentTypesMap } from '@shared/models/constants';
 import { JsonContentComponent } from '@shared/components/json-content.component';
 import { mergeMap, startWith } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { ConverterDebugInput, TestConverterInputParams } from '@shared/models/converter.models';
-import { base64toString, isEqual, stringToBase64 } from '@core/utils';
+import {
+  Converter,
+  ConverterDebugInput,
+  getConverterFunctionArgs,
+  getConverterFunctionHeldId,
+  getConverterFunctionName,
+  getConverterTestFunctionName,
+  TestConverterInputParams,
+  TestConverterResult
+} from '@shared/models/converter.models';
+import { base64toString, isObject, stringToBase64 } from '@core/utils';
 import { ConverterService } from '@core/http/converter.service';
 import { beautifyJs } from '@shared/models/beautify.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
@@ -67,7 +76,13 @@ export interface ConverterTestDialogData {
   funcBody: string;
   scriptLang?: ScriptLanguage;
   debugIn: ConverterDebugInput;
+  converter: Converter;
 }
+
+type TestConverterResultData = {
+  output: Observable<string>;
+  outputMsg?: Observable<string>;
+};
 
 @Component({
   selector: 'tb-converter-test-dialog',
@@ -102,42 +117,56 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
 
   @ViewChild('payloadContent', {static: true}) payloadContent: JsonContentComponent;
 
-  converterTestFormGroup: UntypedFormGroup;
+  converterTestFormGroup: FormGroup = null;
 
   isDecoder: boolean;
-
+  isPayload: boolean;
   submitted = false;
+  outputFullscreen = false;
 
   contentType = ContentType;
-
-  contentTypes = Object.keys(ContentType);
-
+  contentTypes: ContentType[] = Object.values(ContentType);
   contentTypesInfoMap = contentTypesMap;
 
   scriptLanguage = ScriptLanguage;
 
-  scriptLang = this.data.scriptLang ? this.data.scriptLang : ScriptLanguage.JS;
+  scriptLang: ScriptLanguage;
+  functionName: string;
+  functionArgs: string[];
+  functionHelpId: string;
+
+  dialogTitle: string;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: ConverterTestDialogData,
+              protected dialogRef: MatDialogRef<ConverterTestDialogComponent, string>,
+              @Inject(MAT_DIALOG_DATA) private data: ConverterTestDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public dialogRef: MatDialogRef<ConverterTestDialogComponent, string>,
-              public fb: UntypedFormBuilder,
+              private fb: FormBuilder,
               public wl: WhiteLabelingService,
               private converterService: ConverterService,
               private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     this.isDecoder = this.data.isDecoder;
+    this.isPayload = this.data.converter.converterVersion === 2;
+    this.initConstant()
     this.init();
   }
 
-  init(): void {
+  private initConstant() {
+    this.functionName = getConverterFunctionName(this.data.converter.type, this.data.converter.converterVersion);
+    this.scriptLang = this.data.scriptLang ? this.data.scriptLang : ScriptLanguage.JS;
+    this.functionArgs = getConverterFunctionArgs(this.data.converter.type);
+    this.functionHelpId = getConverterFunctionHeldId(this.data.converter.type, this.data.scriptLang);
+    this.dialogTitle = getConverterTestFunctionName(this.data.converter.type, this.data.converter.converterVersion);
+  }
+
+  private init(): void {
     const debugIn = this.data.debugIn;
     let contentType: ContentType;
     let msgType: string;
-    let metadata: any;
-    let integrationMetadata: any;
+    let metadata: Record<string, string>;
+    let integrationMetadata: Record<string, any>;
     if (debugIn) {
       if (debugIn.inContentType) {
         contentType = debugIn.inContentType;
@@ -145,7 +174,12 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
       if (debugIn.inMetadata) {
         try {
           metadata = JSON.parse(debugIn.inMetadata);
-        } catch (e) {}
+          Object.keys(metadata).forEach(function (key) {
+            if (isObject(metadata[key])) {
+              metadata[key] = JSON.stringify(metadata[key]);
+            }
+          });
+        } catch (e) { /* empty */ }
       }
       if (!this.isDecoder) {
         if (debugIn.inMsgType) {
@@ -154,7 +188,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         if (debugIn.inIntegrationMetadata) {
           try {
             integrationMetadata = JSON.parse(debugIn.inIntegrationMetadata);
-          } catch (e) {}
+          } catch (e) { /* empty */ }
         }
       }
     }
@@ -187,22 +221,25 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
 
     this.converterTestFormGroup = this.fb.group({
       payload: this.fb.group({
-        stringContent: [null, []],
-        contentType: [contentType, []]
+        stringContent: [null],
+        contentType: [contentType]
       }),
       metadata: [metadata],
-      funcBody: [this.data.funcBody, []],
-      output: ['', []]
+      funcBody: [this.data.funcBody],
+      output: ['']
     });
-    const payloadFormGroup: UntypedFormGroup = this.converterTestFormGroup.get('payload') as UntypedFormGroup;
+    const payloadFormGroup = this.converterTestFormGroup.get('payload') as FormGroup;
     if (this.isDecoder) {
-      payloadFormGroup.addControl(
-        'payload', this.fb.control(null, [])
-      );
-      payloadFormGroup.get('contentType').valueChanges.subscribe((newVal) => {
-        const prevVal = payloadFormGroup.value.contentType;
-        if (newVal && !isEqual(newVal, prevVal)) {
-          const content = payloadFormGroup.get('stringContent').value;
+      if (this.data.converter.converterVersion === 2) {
+        this.converterTestFormGroup.addControl('outputMsg', this.fb.control(''));
+      }
+      payloadFormGroup.addControl('payload', this.fb.control(null));
+      payloadFormGroup.get('contentType').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe((newVal: ContentType) => {
+        const prevVal: ContentType = payloadFormGroup.value.contentType;
+        if (newVal && newVal != prevVal) {
+          const content: string = payloadFormGroup.get('stringContent').value;
           if (prevVal === ContentType.BINARY) {
             this.convertContent(content, newVal).subscribe(
               (newContent) => {
@@ -221,27 +258,20 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         }
       });
     } else {
-      payloadFormGroup.addControl(
-        'msg', this.fb.control(null, [])
-      );
-      payloadFormGroup.addControl(
-        'msgType', this.fb.control(msgType, [Validators.required])
-      );
-      this.converterTestFormGroup.addControl(
-        'integrationMetadata', this.fb.control(integrationMetadata, [])
-      );
+      payloadFormGroup.addControl('msg', this.fb.control(null));
+      payloadFormGroup.addControl('msgType', this.fb.control(msgType, [Validators.required]));
+      this.converterTestFormGroup.addControl('integrationMetadata', this.fb.control(integrationMetadata));
     }
-    const inputContentTriggers: Observable<any>[] = [
+    const inputContentTriggers: [Observable<string>, Observable<ContentType>?] = [
       payloadFormGroup.get('stringContent').valueChanges.pipe(startWith(''))
     ];
     if (this.isDecoder) {
       inputContentTriggers.push(payloadFormGroup.get('contentType').valueChanges.pipe(startWith('')));
     }
-    this.updateInputContent();
     combineLatest(inputContentTriggers).pipe(
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => {
-      this.updateInputContent();
+    ).subscribe((value) => {
+      this.updateInputContent(value[0], value[1]);
     });
     this.prepareStringContent(debugIn).subscribe(
       (stringContent) => {
@@ -251,18 +281,17 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
   }
 
   private prepareStringContent(debugIn: ConverterDebugInput): Observable<string> {
-    if (debugIn) {
-      if (debugIn.inContentType) {
-        if (debugIn.inContent) {
-          if (debugIn.inContentType === ContentType.JSON) {
-            return beautifyJs(debugIn.inContent, {indent_size: 4});
-          } else {
-            return of(debugIn.inContent);
-          }
-        }
+    if (debugIn?.inContentType && debugIn?.inContent) {
+      if (debugIn.inContentType === ContentType.JSON) {
+        return beautifyJs(debugIn.inContent, {indent_size: 4});
+      } else {
+        return of(debugIn.inContent);
       }
     }
     if (this.isDecoder) {
+      if (this.data.converter.converterVersion === 2) {
+        return of('AXVeAwABBAAB');
+      }
       return beautifyJs(JSON.stringify({devName: 'devA', param1: 1, param2: 'test'}), {indent_size: 4});
     } else {
       const msg = {
@@ -280,20 +309,16 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         const stringContent = base64toString(content);
         if (contentType === ContentType.JSON) {
           return beautifyJs(stringContent, {indent_size: 4});
-        } else {
-          return of(stringContent);
         }
-      } else {
-        return of(content);
+        return of(stringContent);
       }
+      return of(content);
     }
     return of('');
   }
 
-  private updateInputContent() {
-    const stringContent = this.converterTestFormGroup.get('payload').get('stringContent').value;
+  private updateInputContent(stringContent: string, contentType?: ContentType) {
     if (this.isDecoder) {
-      const contentType = this.converterTestFormGroup.get('payload').get('contentType').value;
       if (contentType === ContentType.BINARY) {
         this.converterTestFormGroup.get('payload').get('payload').patchValue(stringContent, {emitEvent: false});
       } else {
@@ -340,7 +365,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
     });
   }
 
-  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;
@@ -351,32 +376,49 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
   }
 
   test(): void {
-    this.testConverter().subscribe((output) => {
-      beautifyJs(output, {indent_size: 4}).subscribe(
-        (newOutput) => {
-          this.converterTestFormGroup.get('output').setValue(newOutput);
+    this.testConverter().pipe(
+      mergeMap(data => {
+        const result: TestConverterResultData = {
+          output: beautifyJs(data.output, {indent_size: 4})
+        };
+        if (data.outputMsg) {
+          result.outputMsg = beautifyJs(JSON.stringify(data.outputMsg), {indent_size: 4});
         }
-      );
+        return forkJoin(result)
+      })
+    ).subscribe((output) => {
+      this.converterTestFormGroup.get('output').setValue(output.output);
+      if (output.outputMsg) {
+        this.converterTestFormGroup.get('outputMsg').setValue(output.outputMsg);
+      }
     });
   }
 
-  private testConverter(): Observable<string> {
+  private testConverter(): Observable<TestConverterResult> {
     if (this.checkInputParamErrors()) {
+      const metadata: Record<string, string> = this.converterTestFormGroup.get('metadata').value;
+      Object.keys(metadata).forEach(function (key) {
+        try {
+          metadata[key] = JSON.parse(metadata[key]);
+        } catch (e) { /* empty */ }
+      });
       const inputParams = {
-        metadata: this.converterTestFormGroup.get('metadata').value
+        metadata
       } as TestConverterInputParams;
       if (this.isDecoder) {
         inputParams.payload = this.converterTestFormGroup.get('payload').get('payload').value;
         inputParams.decoder = this.converterTestFormGroup.get('funcBody').value;
+        inputParams.converter = this.data.converter;
       } else {
         inputParams.msg = this.converterTestFormGroup.get('payload').get('msg').value;
         inputParams.msgType = this.converterTestFormGroup.get('payload').get('msgType').value;
         inputParams.integrationMetadata = this.converterTestFormGroup.get('integrationMetadata').value;
         inputParams.encoder = this.converterTestFormGroup.get('funcBody').value;
       }
-      const testObservable = this.isDecoder ? this.converterService.testUpLink(inputParams, this.scriptLang) :
-        this.converterService.testDownLink(inputParams, this.scriptLang);
-      return testObservable.pipe(
+      const testObservable$ = this.isDecoder
+        ? this.converterService.testUpLink(inputParams, this.scriptLang)
+        : this.converterService.testDownLink(inputParams, this.scriptLang);
+      return testObservable$.pipe(
         mergeMap((result) => {
           if (result.error) {
             this.store.dispatch(new ActionNotificationShow(
@@ -384,23 +426,20 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
                 message: result.error,
                 type: 'error'
               }));
-            return NEVER;
+            return EMPTY;
           } else {
-            return of(result.output);
+            return of(result);
           }
         })
       );
     } else {
-      return NEVER;
+      return EMPTY;
     }
   }
 
   private checkInputParamErrors(): boolean {
     this.payloadContent.validateOnSubmit();
-    if (!this.converterTestFormGroup.get('payload').valid) {
-      return false;
-    }
-    return true;
+    return this.converterTestFormGroup.get('payload').valid;
   }
 
   save(): void {

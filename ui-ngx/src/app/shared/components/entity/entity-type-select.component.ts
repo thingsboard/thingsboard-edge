@@ -86,6 +86,9 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
   showLabel: boolean;
 
   @Input()
+  label = this.translate.instant('entity.type');
+
+  @Input()
   @coerceBoolean()
   required: boolean;
 

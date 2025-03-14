@@ -58,6 +58,7 @@ import { PageData } from '@shared/models/page/page-data';
 import { isUndefined } from '@core/utils';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
+import { integrationTypeInfoMap } from '@shared/models/integration.models';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 import { EntityDebugSettings } from '@shared/models/entity.models';
 import { catchError, switchMap } from 'rxjs/operators';
@@ -66,6 +67,7 @@ import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { MINUTE } from '@shared/models/time/time.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { PageLink } from '@shared/models/page/page-link';
 
 @Injectable()
 export class ConvertersTableConfigResolver  {
@@ -97,18 +99,24 @@ export class ConvertersTableConfigResolver  {
         return getConverterHelpLink(entity);
       }
     };
-    this.config.addDialogStyle = {width: '600px'};
+    this.config.addDialogStyle = {width: '750px'};
 
     this.config.entityTitle = (converter) => converter ?
       this.utils.customTranslation(converter.name, converter.name) : '';
 
     this.config.columns.push(
       new DateEntityTableColumn<Converter>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Converter>('name', 'converter.name', '33%', this.config.entityTitle),
-      new EntityTableColumn<Converter>('type', 'converter.type', '33%', (converter) => {
+      new EntityTableColumn<Converter>('name', 'converter.name', '35%', this.config.entityTitle),
+      new EntityTableColumn<Converter>('type', 'converter.type', '20%', (converter) => {
         return this.translate.instant(converterTypeTranslationMap.get(converter.type));
       }),
-      new EntityTableColumn<Converter>('description', 'converter.description', '33%',
+      new EntityTableColumn<Converter>('integrationType', 'converter.integration-type', '20%', (converter) => {
+        if (integrationTypeInfoMap.has(converter.integrationType)) {
+          return this.translate.instant(integrationTypeInfoMap.get(converter.integrationType).name);
+        }
+        return '';
+      }),
+      new EntityTableColumn<Converter>('description', 'converter.description', '25%',
         (converter) => this.customTranslate.transform(converter.additionalInfo?.description || ''),
         () => ({}), false),
     );
@@ -167,7 +175,7 @@ export class ConvertersTableConfigResolver  {
     return this.config;
   }
 
-  private configureEntityFunctions(converterScope: string): (pageLink) => Observable<PageData<Converter>> {
+  private configureEntityFunctions(converterScope: string): (pageLink: PageLink) => Observable<PageData<Converter>> {
     if (converterScope === 'tenant') {
       return pageLink => this.converterService.getConverters(pageLink);
     } else if (converterScope === 'edges') {
@@ -194,9 +202,9 @@ export class ConvertersTableConfigResolver  {
       $event.stopPropagation();
     }
     if (this.config.componentsData.converterScope === 'edges') {
-      this.router.navigateByUrl(`edgeManagement/converters/${converter.id.id}`);
+      this.router.navigateByUrl(`edgeManagement/converters/${converter.id.id}`).then(() => {});
     } else {
-      this.router.navigateByUrl(`converters/${converter.id.id}`);
+      this.router.navigateByUrl(`converters/${converter.id.id}`).then(() => {});
     }
   }
 
@@ -227,7 +235,7 @@ export class ConvertersTableConfigResolver  {
     this.importExport.exportConverter(converter.id.id);
   }
 
-  importConverter($event: Event) {
+  importConverter(_$event: Event) {
     this.importExport.importConverter().subscribe(
       (converter) => {
         if (converter) {

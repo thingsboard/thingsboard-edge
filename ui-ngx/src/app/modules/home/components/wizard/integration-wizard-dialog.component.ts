@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, Inject, ViewChild } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
 import {
   getIntegrationHelpLink,
@@ -47,8 +47,8 @@ import { AddEntityDialogData } from '@home/models/entity/entity-component.models
 import { MatStepper, StepperOrientation } from '@angular/material/stepper';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { filter, map, mergeMap, takeUntil, tap } from 'rxjs/operators';
-import { forkJoin, Observable, of, shareReplay, Subject, combineLatest } from 'rxjs';
+import { filter, map, mergeMap, tap } from 'rxjs/operators';
+import { combineLatest, forkJoin, Observable, of, shareReplay } from 'rxjs';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -60,6 +60,7 @@ import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface IntegrationWizardData<T> extends AddEntityDialogData<T>{
   edgeTemplate: boolean;
@@ -72,7 +73,7 @@ export interface IntegrationWizardData<T> extends AddEntityDialogData<T>{
   providers: []
 })
 export class IntegrationWizardDialogComponent extends
-  DialogComponent<IntegrationWizardDialogComponent, Integration> implements AfterViewInit, OnDestroy {
+  DialogComponent<IntegrationWizardDialogComponent, Integration> implements AfterViewInit {
 
   @ViewChild('addIntegrationWizardStepper', {static: true}) addIntegrationWizardStepper: MatStepper;
   @ViewChild('uplinkDataConverter', {static: true}) uplinkDataConverterComponent: ConverterComponent;
@@ -99,17 +100,18 @@ export class IntegrationWizardDialogComponent extends
   uplinkConverter = {
     type: ConverterType.UPLINK,
     debugSettings: { allEnabled: true, failuresEnabled: true },
+    integrationType: null,
   } as Converter;
 
   downlinkConverter = {
     type: ConverterType.DOWNLINK,
     debugSettings: { allEnabled: true, failuresEnabled: true },
+    integrationType: null,
   } as Converter;
 
   readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
 
   private checkConnectionAllow = false;
-  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -119,7 +121,8 @@ export class IntegrationWizardDialogComponent extends
               private converterService: ConverterService,
               private integrationService: IntegrationService,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
 
     this.isEdgeTemplate = this.data.edgeTemplate;
@@ -136,7 +139,7 @@ export class IntegrationWizardDialogComponent extends
     });
 
     this.integrationWizardForm.get('type').valueChanges.pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe((value: IntegrationType) => {
       if (integrationTypeInfoMap.has(value)) {
         this.integrationType = this.translate.instant(integrationTypeInfoMap.get(value).name);
@@ -152,9 +155,13 @@ export class IntegrationWizardDialogComponent extends
           this.integrationConfigurationForm.get('remote').enable({emitEvent: true});
           this.integrationConfigurationForm.get('remote').setValue(false, {emitEvent: true});
         }
+        this.uplinkConverter = {...this.uplinkConverter, integrationType: value};
+        this.downlinkConverter = {...this.downlinkConverter, integrationType: value};
       } else {
         this.integrationWizardForm.get('name').patchValue('', {emitEvent: false});
         this.integrationType = '';
+        this.uplinkConverter = {...this.uplinkConverter, integrationType: null};
+        this.downlinkConverter = {...this.downlinkConverter, integrationType: null};
       }
       this.integrationConfigurationForm.get('configuration').setValue(null);
     });
@@ -194,7 +201,7 @@ export class IntegrationWizardDialogComponent extends
     });
 
     this.uplinkConverterForm.get('converterType').valueChanges.pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe((value) => {
       switch (value) {
         case ConverterSourceType.EXISTING:
@@ -216,7 +223,7 @@ export class IntegrationWizardDialogComponent extends
     });
 
     this.downlinkConverterForm.get('converterType').valueChanges.pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe((value) => {
       switch (value) {
         case ConverterSourceType.EXISTING:
@@ -261,12 +268,6 @@ export class IntegrationWizardDialogComponent extends
       convertorType: type.charAt(0) + type.slice(1).toLowerCase(),
       integrationName: name
     }) : '';
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   add(): void {

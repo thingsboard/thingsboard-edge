@@ -309,9 +309,11 @@ public class ModelConstants {
     public static final String CONVERTER_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String CONVERTER_NAME_PROPERTY = "name";
     public static final String CONVERTER_TYPE_PROPERTY = "type";
+    public static final String CONVERTER_INTEGRATION_TYPE_PROPERTY = "integration_type";
     public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
+    public static final String CONVERTER_VERSION_PROPERTY = "converter_version";
 
     /**
      * Integration constants.

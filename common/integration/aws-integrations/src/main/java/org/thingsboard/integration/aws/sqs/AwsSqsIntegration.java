@@ -139,7 +139,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
         String status = "OK";
         Exception exception = null;
         try {
-            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), message.getDeviceMetadata()));
+            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData<>(getDefaultUplinkContentType(), message.getDeviceMetadata()));
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);

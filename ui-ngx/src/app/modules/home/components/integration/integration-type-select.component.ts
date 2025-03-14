@@ -30,7 +30,7 @@
 ///
 
 import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { isNotEmptyStr, isString } from '@core/utils';
 import { IntegrationType, IntegrationTypeInfo, integrationTypeInfoMap } from '@shared/models/integration.models';
@@ -38,6 +38,7 @@ import { Observable, of } from 'rxjs';
 import { distinctUntilChanged, map, mergeMap, share, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { FloatLabelType } from '@angular/material/form-field';
 
 type IntegrationInfo = IntegrationTypeInfo & {type: IntegrationType};
 
@@ -53,7 +54,7 @@ type IntegrationInfo = IntegrationTypeInfo & {type: IntegrationType};
 })
 export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnInit {
 
-  integrationTypeFormGroup: UntypedFormGroup;
+  integrationTypeFormGroup: FormGroup;
   searchText = '';
 
   filteredIntegrationTypes: Observable<Array<IntegrationInfo>>;
@@ -86,9 +87,15 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
   @Input()
   disabled: boolean;
 
+  @Input()
+  floatLabel: FloatLabelType = 'auto'
+
+  @Input()
+  placeholder = this.translate.instant('integration.select-integration-type');
+
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: UntypedFormBuilder,
+  constructor(private fb: FormBuilder,
               private translate: TranslateService) {
     this.integrationTypeFormGroup = this.fb.group({
       type: ['']
@@ -130,7 +137,7 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any) {
+  registerOnTouched(_fn: any) {
   }
 
   setDisabledState(isDisabled: boolean) {

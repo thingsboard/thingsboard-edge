@@ -222,6 +222,7 @@ import { MaterialIconsComponent } from '@shared/components/material-icons.compon
 import { ColorPickerPanelComponent } from '@shared/components/color-picker/color-picker-panel.component';
 import { TbIconComponent } from '@shared/components/icon.component';
 import { HintTooltipIconComponent } from '@shared/components/hint-tooltip-icon.component';
+import { StringPatternAutocompleteComponent } from '@shared/components/string-pattern-autocomplete.component';
 import { StringAutocompleteComponent } from '@shared/components/string-autocomplete.component';
 import { ImagePipe } from '@shared/pipe/image.pipe';
 import { ImportExportService } from '@shared/import-export/import-export.service';
@@ -468,6 +469,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ToggleOption,
     ToggleSelectComponent,
     UnitInputComponent,
+    StringPatternAutocompleteComponent,
     StringAutocompleteComponent,
     MaterialIconsComponent,
     RuleChainSelectComponent,
@@ -752,6 +754,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ToggleOption,
     ToggleSelectComponent,
     UnitInputComponent,
+    StringPatternAutocompleteComponent,
     StringAutocompleteComponent,
     MaterialIconsComponent,
     RuleChainSelectComponent,

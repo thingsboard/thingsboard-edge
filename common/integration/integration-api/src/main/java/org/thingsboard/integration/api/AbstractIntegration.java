@@ -81,7 +81,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected IntegrationContext context;
     protected TBUplinkDataConverter uplinkConverter;
     protected TBDownlinkDataConverter downlinkConverter;
-    protected UplinkMetaData metadataTemplate;
+    protected UplinkMetaData<String> metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
 
     @Override
@@ -97,7 +97,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             Map.Entry<String, JsonNode> md = it.next();
             mdMap.put(md.getKey(), md.getValue().asText());
         }
-        this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
+        this.metadataTemplate = new UplinkMetaData<>(getDefaultUplinkContentType(), mdMap);
 
         if (integrationStatistics == null) {
             this.integrationStatistics = new IntegrationStatistics(context);
@@ -334,7 +334,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     //Please, prefer async method convertToUplinkDataListAsync
-    protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
+    protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData<String> md) throws Exception {
         try {
             return convertToUplinkDataListAsync(context, data, md).get();
         } catch (ExecutionException e) {

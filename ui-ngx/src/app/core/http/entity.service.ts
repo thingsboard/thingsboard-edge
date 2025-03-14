@@ -592,7 +592,7 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.converterService.getConvertersByEdgeTemplate(pageLink, false, config);
+        entitiesObservable = this.converterService.getConvertersByEdgeTemplate(pageLink, false, null, config);
         break;
       case EntityType.INTEGRATION:
         pageLink.sortOrder.property = 'name';

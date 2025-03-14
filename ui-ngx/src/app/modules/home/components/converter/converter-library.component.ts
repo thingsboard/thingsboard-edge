@@ -181,8 +181,22 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
         catchError(() => of(null)),
         distinctUntilChanged(),
         map((converter: Converter) => {
-          const debugSettings = { allEnabled: true, failuresEnabled: true };
-          return converter ? { ...converter, debugSettings } : { type: this.converterType, debugSettings } as Converter;
+          const defaultDebugSettings = { allEnabled: true, failuresEnabled: true };
+          const defaultConverter = {
+            type: this.converterType,
+            integrationType: this.integrationType,
+            converterVersion: 1,
+            debugSettings: defaultDebugSettings
+          } as Converter;
+
+          if (converter) {
+            return {
+              ...defaultConverter,
+              ...converter,
+              debugSettings: defaultDebugSettings
+            };
+          }
+          return defaultConverter;
         })
     );
   }
@@ -237,7 +251,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     this.onChange = fn;
   }
 
-  registerOnTouched(_): void {
+  registerOnTouched(_: any): void {
   }
 
   writeValue(converterLibraryValue: ConverterLibraryValue): void {

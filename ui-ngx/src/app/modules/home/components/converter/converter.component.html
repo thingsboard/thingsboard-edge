@@ -52,7 +52,7 @@
   <div class="flex flex-row xs:flex-col">
     <button mat-raised-button
             ngxClipboard
-            (cbOnSuccess)="onConverterIdCopied($event)"
+            (cbOnSuccess)="onConverterIdCopied()"
             [cbContent]="entity?.id?.id"
             [class.!hidden]="isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
@@ -60,134 +60,172 @@
     </button>
   </div>
 </div>
-<div class="mat-padding flex flex-col">
+<div class="mat-padding">
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
-      <div class="flex gap-2">
-        <mat-form-field class="flex-1">
-          <mat-label translate>converter.name</mat-label>
-          <input matInput formControlName="name" required>
-          <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
-            {{ 'converter.name-required' | translate }}
-          </mat-error>
-          <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
-            {{ 'converter.name-max-length' | translate }}
-          </mat-error>
-        </mat-form-field>
-        <tb-entity-debug-settings-button
-          class="mb-5 flex items-center"
-          formControlName="debugSettings"
-          [entityLabel]="'debug-settings.converter' | translate"
-          [debugLimitsConfiguration]="converterDebugPerTenantLimitsConfiguration"
-        />
-      </div>
-      <mat-form-field class="mat-block" *ngIf="!hideType">
-        <mat-label translate>converter.type</mat-label>
-        <mat-select formControlName="type" required>
-          <mat-option *ngFor="let type of converterTypes" [value]="type">
-            {{converterTypeTranslations.get(type) | translate}}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="entityForm.get('type').hasError('required')">
-          {{ 'converter.type-required' | translate }}
-        </mat-error>
-      </mat-form-field>
-      <div formGroupName="configuration" class="flex flex-col">
-        <tb-script-lang formControlName="scriptLang" *ngIf="tbelEnabled"></tb-script-lang>
-        <section *ngIf="entityForm.get('type').value === converterType.UPLINK">
+      <section class="tb-form-panel no-padding no-border">
+        @if (hideTypes) {
+          <ng-container *ngTemplateOutlet="converterNameAndDebug"></ng-container>
+        } @else {
+          <div class="tb-form-panel stroked no-gap no-padding-bottom">
+            <div class="mb-4 flex items-center justify-between">
+              <div class="tb-form-panel-title" translate>converter.converter-short-name</div>
+              <tb-toggle-select formControlName="type" appearance="fill">
+                @for (type of converterTypes; track type) {
+                  <tb-toggle-option [value]="type">{{converterTypeTranslations.get(type) | translate}}</tb-toggle-option>
+                }
+              </tb-toggle-select>
+            </div>
+            <tb-integration-type-select
+              formControlName="integrationType"
+              placeholder="{{ 'converter.all' | translate }}"
+              floatLabel="always">
+            </tb-integration-type-select>
+            <ng-container *ngTemplateOutlet="converterNameAndDebug"></ng-container>
+          </div>
+        }
+        <div class="tb-form-panel stroked no-gap" formGroupName="configuration">
+          <div class="tb-form-panel-title mb-4">{{ mainConfigurationTitle | translate }}</div>
+          @if (entityForm.get('type').value === converterType.UPLINK && entityForm.get('converterVersion').value === 2) {
+            <div class="flex gap-3">
+              <tb-entity-type-select
+                showLabel
+                [allowedEntityTypes]="[EntityType.DEVICE, EntityType.ASSET]"
+                label="{{ 'entity.entity-type' | translate }}"
+                formControlName="type"
+                class="flex-1">
+              </tb-entity-type-select>
+              <tb-string-pattern-autocomplete class="flex-1"
+                                              [predefinedValues]="predefinedKeys"
+                                              formControlName="name"
+                                              required
+                                              [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name'] | translate"
+                                              [errorText]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name-require'] | translate">
+              </tb-string-pattern-autocomplete>
+            </div>
+          }
           <tb-js-func
-            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.JS"
-            formControlName="decoder"
-            functionName="Decoder"
-            [functionArgs]="['payload', 'metadata']"
-            helpId="converter/decoder_fn"
+            [formControl]="functionFormControl"
+            [functionName]="functionName"
+            [functionArgs]="functionArgs"
+            [scriptLanguage]="entityForm.get('configuration.scriptLang').value"
+            [disableUndefinedCheck]="entityForm.get('configuration.scriptLang').value === scriptLanguage.TBEL"
+            [helpId]="functionHelpId"
             noValidate>
-              <button toolbarSuffixButton
-                      mat-icon-button
-                      matTooltip="{{ 'converter.test-decoder-fuction' | translate }}"
-                      matTooltipPosition="above"
-                      class="tb-mat-32"
-                      (click)="openConverterTestDialog()">
-                <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
-              </button>
-          </tb-js-func>
-          <tb-js-func
-            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
-            formControlName="tbelDecoder"
-            functionName="Decoder"
-            [functionArgs]="['payload', 'metadata']"
-            [disableUndefinedCheck]="true"
-            [scriptLanguage]="scriptLanguage.TBEL"
-            helpId="converter/tbel/decoder_fn"
-            noValidate>
-              <button toolbarSuffixButton
-                      mat-icon-button
-                      matTooltip="{{ 'converter.test-decoder-fuction' | translate }}"
-                      matTooltipPosition="above"
-                      class="tb-mat-32"
-                      (click)="openConverterTestDialog()">
-                <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
-              </button>
-          </tb-js-func>
-        </section>
-        <section *ngIf="entityForm.get('type').value === converterType.DOWNLINK">
-          <tb-js-func
-            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.JS"
-            formControlName="encoder"
-            functionName="Encoder"
-            [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
-            helpId="converter/encoder_fn"
-            noValidate>
+            <tb-toggle-select toolbarPrefixButton formControlName="scriptLang"
+                              appearance="fill" class="editor-lang-selector min-w-16 gt-sm:min-w-30"
+                              selectMediaBreakpoint="lt-md">
+              <tb-toggle-option [value]="scriptLanguage.TBEL">
+                {{ 'rulenode.script-lang-tbel' | translate }}
+              </tb-toggle-option>
+              <tb-toggle-option [value]="scriptLanguage.JS">
+                {{ 'rulenode.script-lang-js' | translate }}
+              </tb-toggle-option>
+            </tb-toggle-select>
             <button toolbarSuffixButton
                     mat-icon-button
-                    matTooltip="{{ 'converter.test-encoder-fuction' | translate }}"
+                    matTooltip="{{ testFunctionButtonLabel | translate }}"
                     matTooltipPosition="above"
-                    class="tb-mat-32"
+                    class="tb-mat-32 xs:!hidden"
+                    [disabled]="!isEdit || (isLoading$ | async)"
                     (click)="openConverterTestDialog()">
               <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
             </button>
           </tb-js-func>
-          <tb-js-func
-            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
-            [scriptLanguage]="scriptLanguage.TBEL"
-            formControlName="tbelEncoder"
-            functionName="Encoder"
-            [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
-            [disableUndefinedCheck]="true"
-            helpId="converter/tbel/encoder_fn"
-            noValidate>
-            <button toolbarSuffixButton
-                    mat-icon-button
-                    matTooltip="{{ 'converter.test-encoder-fuction' | translate }}"
-                    matTooltipPosition="above"
-                    class="tb-mat-32"
-                    (click)="openConverterTestDialog()">
-              <mat-icon class="material-icons" color="primary">bug_report</mat-icon>
-            </button>
-          </tb-js-func>
-        </section>
-        <div class="flex flex-row" style="padding-bottom: 16px;">
-          <button [class.!hidden]="!isEdit"
+          <button class="w-max" [class.!hidden]="!isEdit"
                   [disabled]="isLoading$ | async"
                   type="button" mat-button mat-raised-button color="primary"
                   (click)="openConverterTestDialog()">
-            {{ (entityForm.get('type').value === converterType.UPLINK ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }}
+            {{ testFunctionButtonLabel | translate }}
           </button>
         </div>
-        <tb-string-items-list *ngIf="entityForm.get('type').value === converterType.UPLINK" style="margin-bottom: 16px;"
-                              subscriptSizing="dynamic"
-                              label="{{ 'converter.update-only-keys-list' | translate }}"
-                              hint="{{ 'converter.update-only-keys-list-hint' | translate }}"
-                              placeholder="{{ 'converter.add-key' | translate }}"
-                              formControlName="updateOnlyKeys">
-        </tb-string-items-list>
-      </div>
-      <div formGroupName="additionalInfo" class="flex flex-col">
-        <mat-form-field class="mat-block">
-          <mat-label translate>converter.description</mat-label>
-          <textarea matInput formControlName="description" rows="2"></textarea>
-        </mat-form-field>
-      </div>
+        @if (entityForm.get('type').value === converterType.UPLINK) {
+          <div class="tb-form-panel stroked no-gap">
+            <mat-expansion-panel class="tb-settings" formGroupName="configuration" expanded>
+              <mat-expansion-panel-header>
+                {{ 'converter.advanced-decoding-parameters' | translate }}
+              </mat-expansion-panel-header>
+              <ng-template matExpansionPanelContent>
+                <div class="flex flex-1 flex-col">
+                  @if (entityForm.get('converterVersion').value === 2) {
+                    <section class="flex gap-3 xs:flex-col">
+                      <tb-string-pattern-autocomplete class="flex-1"
+                                                      formControlName="profile"
+                                                      [predefinedValues]="predefinedKeys"
+                                                      [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['profile'] | translate">
+                      </tb-string-pattern-autocomplete>
+                      <tb-string-pattern-autocomplete class="flex-1"
+                                                      formControlName="label"
+                                                      [predefinedValues]="predefinedKeys"
+                                                      [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['label'] | translate">
+                      </tb-string-pattern-autocomplete>
+                    </section>
+                    <section class="flex gap-3 xs:flex-col">
+                      <tb-string-pattern-autocomplete class="flex-1"
+                                                      formControlName="customer"
+                                                      [predefinedValues]="predefinedKeys"
+                                                      [label]="'converter.customer-name' | translate">
+                      </tb-string-pattern-autocomplete>
+                      <tb-string-pattern-autocomplete class="flex-1"
+                                                      formControlName="group"
+                                                      [predefinedValues]="predefinedKeys"
+                                                      [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['group'] | translate">
+                      </tb-string-pattern-autocomplete>
+                    </section>
+                    <tb-string-items-list label="{{ 'converter.telemetry' | translate }}"
+                                          placeholder="{{ 'action.add' | translate }}"
+                                          formControlName="telemetry"
+                                          [fetchOptionsFn]="fetchLatestKey"
+                    >
+                    </tb-string-items-list>
+                    <tb-string-items-list label="{{ 'converter.attributes' | translate }}"
+                                          placeholder="{{ 'action.add' | translate }}"
+                                          formControlName="attributes"
+                                          [fetchOptionsFn]="fetchLatestKey"
+                    >
+                    </tb-string-items-list>
+                  }
+                  <tb-string-items-list subscriptSizing="dynamic"
+                                        label="{{ 'converter.update-only-keys-list' | translate }}"
+                                        hint="{{ 'converter.update-only-keys-list-hint' | translate }}"
+                                        placeholder="{{ 'action.add' | translate }}"
+                                        formControlName="updateOnlyKeys"
+                                        [fetchOptionsFn]="fetchLatestKey"
+                  >
+                  </tb-string-items-list>
+                </div>
+              </ng-template>
+            </mat-expansion-panel>
+          </div>
+        }
+        <div formGroupName="additionalInfo" class="flex flex-col">
+          <mat-form-field class="mat-block">
+            <mat-label translate>converter.description</mat-label>
+            <textarea matInput formControlName="description" rows="1"></textarea>
+          </mat-form-field>
+        </div>
+      </section>
     </fieldset>
   </form>
 </div>
+
+<ng-template #converterNameAndDebug>
+  <div class="flex gap-4" [formGroup]="entityForm">
+    <mat-form-field class="flex-1">
+      <mat-label translate>converter.name</mat-label>
+      <input matInput formControlName="name" required>
+      <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
+        {{ 'converter.name-required' | translate }}
+      </mat-error>
+      <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+        {{ 'converter.name-max-length' | translate }}
+      </mat-error>
+    </mat-form-field>
+    <tb-entity-debug-settings-button
+      class="mb-5 flex items-center"
+      formControlName="debugSettings"
+      [entityLabel]="'debug-settings.converter' | translate"
+      [debugLimitsConfiguration]="converterDebugPerTenantLimitsConfiguration"
+    />
+  </div>
+</ng-template>
