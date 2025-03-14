@@ -31,6 +31,7 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.google.gson.JsonElement;
 import lombok.Builder;
@@ -39,6 +40,7 @@ import org.thingsboard.server.common.data.EntityType;
 
 @Builder
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DedicatedUplinkData {
     private final EntityType entityType;
     private final String name;
