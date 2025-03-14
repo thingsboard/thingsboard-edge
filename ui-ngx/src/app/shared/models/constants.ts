@@ -227,6 +227,7 @@ export const HelpLinks = {
     mobileBundle: `${helpBaseUrl}/docs${docPlatformPrefix}/mobile-center/mobile-center/`,
     mobileQrCode: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/mobile-qr-code/`,
     calculatedField: `${helpBaseUrl}/docs${docPlatformPrefix}/`,
+    timewindowSettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/dashboards/#time-window`,
     converters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#data-converters`,
     uplinkConverters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#uplink-data-converter`,
     downlinkConverters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#downlink-data-converter`,
