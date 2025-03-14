@@ -742,6 +742,15 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.edge_instances, () => false
+  ],
+  [
+    MenuId.mobile_center, () => false
+  ],
+  [
+    MenuId.mobile_apps, () => false
+  ],
+  [
+    MenuId.mobile_bundles, () => false
   ]
 ]);
 
