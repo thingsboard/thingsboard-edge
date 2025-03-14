@@ -96,6 +96,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.TENANT;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -375,6 +376,14 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     public ListenableFuture<RuleChain> findRuleChainByIdAsync(TenantId tenantId, RuleChainId ruleChainId) {
         Validator.validateId(ruleChainId, "Incorrect rule chain id for search request.");
         return ruleChainDao.findByIdAsync(tenantId, ruleChainId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<RuleChain>> findRuleChainsByIdsAsync(TenantId tenantId, List<RuleChainId> ruleChainIds) {
+        log.trace("Executing findRuleChainsByIdsAsync, tenantId [{}], ruleChainIds [{}]", tenantId, ruleChainIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(ruleChainIds, ids -> "Incorrect ruleChainIds " + ids);
+        return ruleChainDao.findRuleChainsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(ruleChainIds));
     }
 
     @Override
