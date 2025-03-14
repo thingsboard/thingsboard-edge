@@ -83,6 +83,11 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
+  @Input() set interacted(interacted: boolean) {
+    if (interacted) {
+      this.libraryFormGroup.markAllAsTouched();
+    }
+  }
 
   @ViewChild('modelInput') modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
@@ -148,7 +153,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           return of(null);
         }
       ),
-      map((models: Model[]) => models?.map(model => ({ ...model, searchText: (model.name + model.info.description).toLowerCase() }))),
+      map((models: Model[]) => models?.map(model => ({ ...model, searchText: (model.info.label + model.info.description).toLowerCase() }))),
       shareReplay(1)
     );
 

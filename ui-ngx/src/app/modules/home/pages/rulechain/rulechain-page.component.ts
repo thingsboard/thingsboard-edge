@@ -400,7 +400,7 @@ export class RuleChainPageComponent extends PageComponent
   private initHotKeys(): void {
     if (!this.hotKeys.length) {
       this.hotKeys.push(
-        new Hotkey('ctrl+a', (event: KeyboardEvent) => {
+        new Hotkey(['ctrl+a', 'meta+a'], (event: KeyboardEvent) => {
             if (this.enableHotKeys) {
               event.preventDefault();
               this.ruleChainCanvas.modelService.selectAll();
@@ -411,7 +411,7 @@ export class RuleChainPageComponent extends PageComponent
           this.translate.instant('rulenode.select-all-objects'))
       );
       this.hotKeys.push(
-        new Hotkey('ctrl+c', (event: KeyboardEvent) => {
+        new Hotkey(['ctrl+c', 'meta+c'], (event: KeyboardEvent) => {
             if (this.enableHotKeys) {
               event.preventDefault();
               this.copyRuleNodes();
@@ -422,7 +422,7 @@ export class RuleChainPageComponent extends PageComponent
           this.translate.instant('rulenode.copy-selected'))
       );
       this.hotKeys.push(
-        new Hotkey('ctrl+v', (event: KeyboardEvent) => {
+        new Hotkey(['ctrl+v', 'meta+v'], (event: KeyboardEvent) => {
             if (this.enableHotKeys) {
               event.preventDefault();
               if (this.itembuffer.hasRuleNodes()) {
@@ -447,7 +447,7 @@ export class RuleChainPageComponent extends PageComponent
           this.translate.instant('rulenode.deselect-all-objects'))
       );
       this.hotKeys.push(
-        new Hotkey('ctrl+s', (event: KeyboardEvent) => {
+        new Hotkey(['ctrl+s', 'meta+s'], (event: KeyboardEvent) => {
             if (this.enableHotKeys) {
               event.preventDefault();
               this.saveRuleChain();
@@ -458,7 +458,7 @@ export class RuleChainPageComponent extends PageComponent
           this.translate.instant('action.apply'))
       );
       this.hotKeys.push(
-        new Hotkey('ctrl+z', (event: KeyboardEvent) => {
+        new Hotkey(['ctrl+z', 'meta+z'], (event: KeyboardEvent) => {
             if (this.enableHotKeys) {
               event.preventDefault();
               this.revertRuleChain();
@@ -480,7 +480,7 @@ export class RuleChainPageComponent extends PageComponent
           this.translate.instant('rulenode.delete-selected-objects'))
       );
       this.hotKeys.push(
-        new Hotkey('ctrl+r', (event: KeyboardEvent) => {
+        new Hotkey(['ctrl+r', 'meta+r'], (event: KeyboardEvent) => {
             if (this.enableHotKeys && this.canCreateNestedRuleChain()) {
               event.preventDefault();
               this.createNestedRuleChain();

@@ -219,6 +219,11 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     keyName: 'ownerType',
     name: 'entity-field.owner-type',
     value: 'ownerType'
+  },
+  additionalInfo: {
+    keyName: 'additionalInfo',
+    name: 'entity-field.additional-info',
+    value: 'additionalInfo'
   }
 };
 
@@ -243,11 +248,6 @@ export interface EntityDebugSettings {
 export interface EntityTestScriptResult {
   output: string;
   error: string;
-}
-
-export interface AdditionalDebugActionConfig<Action = (...args: unknown[]) => void> {
-  action: Action;
-  title: string;
 }
 
 export type VersionedEntity = EntityInfoData & HasVersion | RuleChainMetaData;

@@ -787,6 +787,9 @@ class MapLibreGLLayer extends L.Layer implements TB.MapLibreGL.MapLibreGLLayer {
       attributionControl: false
     });
     this._glMap = new MapLibreGLMap(options);
+    this._glMap.once('load', () => {
+      this.fire('load');
+    });
     this._glMap.setMaxBounds(null);
     this._transformGL(this._glMap);
     this._actualCanvas = this._glMap._canvas;

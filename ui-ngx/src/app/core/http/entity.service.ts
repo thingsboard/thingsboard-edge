@@ -467,6 +467,9 @@ export class EntityService {
       case EntityType.OAUTH2_CLIENT:
         observable = this.oauth2Service.findTenantOAuth2ClientInfosByIds(entityIds, config);
         break;
+      case EntityType.RULE_CHAIN:
+        observable = this.ruleChainService.getRuleChainsByIds(entityIds, config);
+        break;
     }
     return observable;
   }

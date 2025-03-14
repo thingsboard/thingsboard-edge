@@ -223,18 +223,8 @@ export class ImportExportService {
     });
   }
 
-  public importCalculatedField(entityId: EntityId): Observable<CalculatedField> {
+  public openCalculatedFieldImportDialog(): Observable<CalculatedField> {
     return this.openImportDialog('calculated-fields.import', 'calculated-fields.file').pipe(
-      mergeMap((calculatedField: CalculatedField) => {
-        if (!this.validateImportedCalculatedField({ entityId, ...calculatedField })) {
-          this.store.dispatch(new ActionNotificationShow(
-            {message: this.translate.instant('calculated-fields.invalid-file-error'),
-              type: 'error'}));
-          throw new Error('Invalid calculated field file');
-        } else {
-          return this.calculatedFieldsService.saveCalculatedField(this.prepareImport({ entityId, ...calculatedField }));
-        }
-      }),
       catchError(() => of(null)),
     );
   }
@@ -1166,16 +1156,6 @@ export class ImportExportService {
     } else {
       return !properties.some(p => !propertyValid(p));
     }
-  }
-
-  private validateImportedCalculatedField(calculatedField: CalculatedField): boolean {
-    const { name, configuration, entityId } = calculatedField;
-    return isNotEmptyStr(name)
-      && isDefined(configuration)
-      && isDefined(entityId?.id)
-      && !!Object.keys(configuration.arguments).length
-      && isDefined(configuration.expression)
-      && isDefined(configuration.output)
   }
 
   private validateImportedImage(image: ImageExportData): boolean {

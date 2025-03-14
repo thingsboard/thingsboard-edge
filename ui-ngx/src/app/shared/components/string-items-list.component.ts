@@ -44,7 +44,7 @@ import { FloatLabelType, MatFormFieldAppearance, SubscriptSizing } from '@angula
 import { coerceArray, coerceBoolean } from '@shared/decorators/coercion';
 import { Observable, of } from 'rxjs';
 import { filter, mergeMap, share, tap } from 'rxjs/operators';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { isDefined } from '@core/utils';
 
 export interface StringItemsOption {
@@ -257,6 +257,11 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
 
   displayValueFn(values?: StringItemsOption): string | undefined {
     return values ? values.name : undefined;
+  }
+
+  selected(event: MatAutocompleteSelectedEvent) {
+    this.stringItemInput.nativeElement.value = '';
+    this.add(event.option.value)
   }
 
   private add(item: StringItemsOption) {

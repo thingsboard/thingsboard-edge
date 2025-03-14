@@ -63,6 +63,7 @@
   </mat-chip-grid>
   <mat-autocomplete #stringItemAutocomplete="matAutocomplete"
                     [displayWith]="displayValueFn"
+                    (optionSelected)="selected($event)"
                     class="tb-autocomplete">
     <mat-option *ngFor="let value of filteredValues | async" [value]="value">
       <span [innerHTML]="value.name | highlight:searchText"></span>
