@@ -6,7 +6,7 @@ Follow the instructions in the official [Docker Compose installation guide](http
 
 ##### Step 2: Launch the Modbus Pool Emulator
 
-To simulate a comprehensive swimming pool system, this Docker command launches a Modbus pool emulator containing 14 separate devices that function as a unified system and communicate via ModBus. 
+To simulate a comprehensive swimming pool system, this Docker command launches a Modbus pool emulator containing 14 separate devices that function as a unified system and communicate via Modbus. 
 Execute the following command in your terminal: 
 
 ```bash
