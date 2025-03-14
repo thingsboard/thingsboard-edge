@@ -29,26 +29,20 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.component';
-import { ConverterRoutingModule } from '@home/pages/converter/converter-routing.module';
-import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
+import { EntityDebugSettings } from '@shared/models/entity.models';
 
-@NgModule({
-  declarations: [
-    ConverterTabsComponent,
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
-    ConverterRoutingModule
-  ],
-  providers: [EntityDebugSettingsService]
-})
-export class ConverterModule { }
+export interface AdditionalDebugActionConfig<Action = (...args: unknown[]) => void> {
+  action: Action;
+  title: string;
+}
+
+export interface EntityDebugSettingPanelConfig {
+  debugSettings: EntityDebugSettings;
+  debugConfig: {
+    maxDebugModeDuration: number;
+    debugLimitsConfiguration: string;
+    entityLabel?: string;
+    additionalActionConfig?: AdditionalDebugActionConfig;
+  }
+  onSettingsAppliedFn: (settings: EntityDebugSettings) => void;
+}
