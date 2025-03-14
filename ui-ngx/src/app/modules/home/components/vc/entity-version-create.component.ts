@@ -108,6 +108,7 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
       saveRelations: [false, []],
       saveAttributes: [true, []],
       saveCredentials: [true, []],
+      saveCalculatedFields: [true, []],
       savePermissions: [true, []],
       saveGroupEntities: [true, []]
     });
