@@ -65,7 +65,7 @@ import {
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { ConverterInfo, IntegrationsConvertersInfo, IntegrationType } from '@shared/models/integration.models';
-import { deepClone, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
+import { capitalize, deepClone, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { map } from 'rxjs/operators';
 import { forkJoin, Observable, of } from 'rxjs';
@@ -186,6 +186,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       this.updateConverterVersion();
       this.onSetDefaultScriptBody(this.entityForm.get('type').value);
       this.updateDefaultConfiguration(value);
+    });
+    this.entityForm.get('configuration.type').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((type: EntityType) => {
+      this.updateConfigurationEntityName(type);
     });
     this.checkIsNewConverter(this.entity, this.entityForm);
   }
@@ -332,6 +337,16 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       this.entityForm.get('configuration').get('name').enable({emitEvent: false});
     } else {
       this.entityForm.get('configuration').get('name').disable({emitEvent: false});
+    }
+  }
+
+  private updateConfigurationEntityName(type: EntityType) {
+    const prevEntityType: EntityType = this.entityForm.value.configuration.type;
+    const nameControl = this.entityForm.get('configuration').get('name');
+    if (this.entity && !this.entity.id && nameControl.pristine) {
+      let nameControlValue: string = nameControl.value;
+      nameControlValue = nameControlValue.replace(new RegExp(prevEntityType, "i"), capitalize(type));
+      nameControl.setValue(nameControlValue, {emitEvent: false});
     }
   }
 
