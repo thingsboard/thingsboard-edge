@@ -28,36 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.script.api;
+package org.thingsboard.server.common.stats;
 
-import com.google.common.util.concurrent.FutureCallback;
-import jakarta.annotation.Nullable;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.stats.Counter;
-import org.thingsboard.server.common.stats.StatsCounter;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import java.util.concurrent.TimeoutException;
+public class LocalCounter implements Counter {
 
-@Slf4j
-@AllArgsConstructor
-public class ScriptStatCallback<T> implements FutureCallback<T> {
-
-    private final Counter successMsgs;
-    private final Counter timeoutMsgs;
-    private final Counter failedMsgs;
+    private final AtomicInteger counter = new AtomicInteger(0);
 
     @Override
-    public void onSuccess(@Nullable T result) {
-        successMsgs.increment();
+    public int getAndClear() {
+        return counter.getAndSet(0);
     }
 
     @Override
-    public void onFailure(Throwable t) {
-        if (t instanceof TimeoutException || (t.getCause() != null && t.getCause() instanceof TimeoutException)) {
-            timeoutMsgs.increment();
-        } else {
-            failedMsgs.increment();
-        }
+    public void increment() {
+        counter.incrementAndGet();
     }
 }
