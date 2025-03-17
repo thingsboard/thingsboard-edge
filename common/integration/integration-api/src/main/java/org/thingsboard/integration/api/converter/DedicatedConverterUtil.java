@@ -36,6 +36,7 @@ import com.google.gson.JsonObject;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.util.CollectionsUtil;
 
 import java.util.HashMap;
@@ -120,7 +121,10 @@ public final class DedicatedConverterUtil {
 
     private static String getProperty(JsonObject src, String key, Supplier<String> defaultValue) {
         if (src.has(key)) {
-            return src.get(key).getAsString();
+            String value = src.get(key).getAsString();
+            if (StringUtils.isNotEmpty(value)) {
+                return value;
+            }
         }
         return defaultValue.get();
     }
@@ -135,14 +139,14 @@ public final class DedicatedConverterUtil {
     }
 
     private static String processTemplate(String template, Map<String, Object> data) {
-        if (template == null) {
-            return null;
+        if (StringUtils.isNotEmpty(template)) {
+            String result = template;
+            for (Map.Entry<String, Object> kv : data.entrySet()) {
+                result = processVar(result, kv.getKey(), kv.getValue());
+            }
+            return result;
         }
-        String result = template;
-        for (Map.Entry<String, Object> kv : data.entrySet()) {
-            result = processVar(result, kv.getKey(), kv.getValue());
-        }
-        return result;
+        return null;
     }
 
     private static String processVar(String pattern, String key, Object val) {
