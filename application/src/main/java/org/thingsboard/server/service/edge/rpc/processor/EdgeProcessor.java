@@ -45,7 +45,6 @@ public interface EdgeProcessor {
     default DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         return null;
     }
-
     default EdgeEventType getEdgeEventType() {
         return null;
     }

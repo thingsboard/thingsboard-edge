@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2025 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.edge;
 
@@ -19,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.action.TbChangeOwnerNode;
+import org.thingsboard.rule.engine.action.TbChangeOwnerNodeConfiguration;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNode;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
@@ -33,7 +50,6 @@ import org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
-import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
@@ -43,26 +59,29 @@ import java.util.List;
 import java.util.Map;
 
 import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.MISSING_NODES_IN_VERSION_37;
-import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.NODE_TO_IGNORE_PARAM_FOR_OLD_EDGE_VERSION;
+import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.NODE_TO_IGNORED_PARAM_FOR_OLD_EDGE_VERSION;
+import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0;
 
 @Slf4j
 public class EdgeMsgConstructorUtilsTest {
     private static final int CONFIGURATION_VERSION = 5;
 
-    public static final List<EdgeVersion> TEST_SUPPORTED_EDGE_VERSIONS = Arrays.asList(
+    public static final List<EdgeVersion> SUPPORTED_EDGE_VERSIONS_FOR_TESTS = Arrays.asList(
             EdgeVersion.V_4_0_0, EdgeVersion.V_3_9_0, EdgeVersion.V_3_8_0, EdgeVersion.V_3_7_0
     );
 
     private static final Map<NodeConfiguration, String> CONFIG_TO_NODE_NAME = Map.of(
             new TbMsgTimeseriesNodeConfiguration(), TbMsgTimeseriesNode.class.getName(),
             new TbMsgAttributesNodeConfiguration(), TbMsgAttributesNode.class.getName(),
-            new TbSaveToCustomCassandraTableNodeConfiguration(), TbSaveToCustomCassandraTableNode.class.getName()
+            new TbSaveToCustomCassandraTableNodeConfiguration(), TbSaveToCustomCassandraTableNode.class.getName(),
+            new TbChangeOwnerNodeConfiguration(), TbChangeOwnerNode.class.getName()
     );
 
     private static final Map<String, Integer> NODE_TO_CONFIG_PARAMS_COUNT = Map.of(
             TbMsgTimeseriesNode.class.getName(), 3,
             TbMsgAttributesNode.class.getName(), 5,
-            TbSaveToCustomCassandraTableNode.class.getName(), 3
+            TbSaveToCustomCassandraTableNode.class.getName(), 3,
+            TbChangeOwnerNode.class.getName(), 4
     );
 
     private static final Map<NodeConfiguration, String> CONFIG_TO_MISS_NODE_FOR_OLD_EDGE = Map.of(
@@ -75,12 +94,12 @@ public class EdgeMsgConstructorUtilsTest {
         // GIVEN
         RuleChainMetaData metaData = createMetadataWithProblemNodes(CONFIG_TO_NODE_NAME);
 
-        TEST_SUPPORTED_EDGE_VERSIONS.forEach(edgeVersion -> {
+        SUPPORTED_EDGE_VERSIONS_FOR_TESTS.forEach(edgeVersion -> {
             // WHEN
-            List<RuleNode> ruleNodes = getRuleNodesFromUpdateMsg(metaData, edgeVersion);
+            List<RuleNode> ruleNodes = extractRuleNodesFromUpdateMsg(metaData, edgeVersion);
 
             // THEN
-            validateRuleNodeConfig(ruleNodes, edgeVersion);
+            assertRuleNodeConfig(ruleNodes, edgeVersion);
         });
     }
 
@@ -89,12 +108,12 @@ public class EdgeMsgConstructorUtilsTest {
         // GIVEN
         RuleChainMetaData metaData = createMetadataWithProblemNodes(CONFIG_TO_MISS_NODE_FOR_OLD_EDGE);
 
-        TEST_SUPPORTED_EDGE_VERSIONS.forEach(edgeVersion -> {
+        SUPPORTED_EDGE_VERSIONS_FOR_TESTS.forEach(edgeVersion -> {
             // WHEN
-            List<RuleNode> ruleNodes = getRuleNodesFromUpdateMsg(metaData, edgeVersion);
+            List<RuleNode> ruleNodes = extractRuleNodesFromUpdateMsg(metaData, edgeVersion);
 
             // THEN
-            boolean isOldEdge = EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0);
+            boolean isOldEdge = EdgeVersionUtils.isEdgeOlderThan_3_8_0(edgeVersion);
 
             if (isOldEdge) {
                 Assert.assertTrue("Rule Node must be empty", ruleNodes.isEmpty());
@@ -108,13 +127,13 @@ public class EdgeMsgConstructorUtilsTest {
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         List<RuleNode> ruleNodes = new ArrayList<>();
 
-        nodeMap.entrySet().forEach(configToNodeName -> {
+        nodeMap.forEach((key, value) -> {
             RuleNode ruleNode = new RuleNode();
 
-            ruleNode.setName(configToNodeName.getValue());
-            ruleNode.setType(configToNodeName.getValue());
+            ruleNode.setName(value);
+            ruleNode.setType(value);
             ruleNode.setConfigurationVersion(CONFIGURATION_VERSION);
-            ruleNode.setConfiguration(JacksonUtil.valueToTree(configToNodeName.getKey().defaultConfiguration()));
+            ruleNode.setConfiguration(JacksonUtil.valueToTree(key.defaultConfiguration()));
 
             ruleNodes.add(ruleNode);
         });
@@ -125,33 +144,37 @@ public class EdgeMsgConstructorUtilsTest {
         return ruleChainMetaData;
     }
 
-    private List<RuleNode> getRuleNodesFromUpdateMsg(RuleChainMetaData metaData, EdgeVersion edgeVersion) {
-        RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg =
-                EdgeMsgConstructorUtils.constructRuleChainMetadataUpdatedMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, metaData, edgeVersion);
+    private List<RuleNode> extractRuleNodesFromUpdateMsg(RuleChainMetaData metaData, EdgeVersion edgeVersion) {
+        String ruleChainMetadataUpdateMsg =
+                EdgeMsgConstructorUtils.constructRuleChainMetadataUpdatedMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, metaData, edgeVersion).getEntity();
 
-        RuleChainMetaData ruleChainMetaData = JacksonUtil.fromString(ruleChainMetadataUpdateMsg.getEntity(), RuleChainMetaData.class, true);
+        RuleChainMetaData ruleChainMetaData = JacksonUtil.fromString(ruleChainMetadataUpdateMsg, RuleChainMetaData.class, true);
         Assert.assertNotNull("RuleChainMetaData is null", ruleChainMetaData);
 
         return ruleChainMetaData.getNodes();
     }
 
-    private void validateRuleNodeConfig(List<RuleNode> ruleNodes, EdgeVersion edgeVersion) {
+    private void assertRuleNodeConfig(List<RuleNode> ruleNodes, EdgeVersion edgeVersion) {
+
         ruleNodes.forEach(ruleNode -> {
-            int ruleNodeConfigAmount = NODE_TO_CONFIG_PARAMS_COUNT.get(ruleNode.getName());
+            int configParamCount = NODE_TO_CONFIG_PARAMS_COUNT.get(ruleNode.getName());
 
-            boolean isOldEdge = EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_9_0);
-            int expectedConfigAmount = isOldEdge ? ruleNodeConfigAmount - 1 : ruleNodeConfigAmount;
-            boolean includeConfigParam = !isOldEdge;
+            boolean isLegacyEdgeVersion = (EdgeVersionUtils.isEdgeOlderThan_3_8_0(edgeVersion) && NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0.containsKey(ruleNode.getName())) ||
+                    (EdgeVersionUtils.isEdgeOlderThan_3_9_0(edgeVersion) && !NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0.containsKey(ruleNode.getName()));
 
-            validateParams(ruleNode, expectedConfigAmount, includeConfigParam);
+            int expectedConfigAmount = isLegacyEdgeVersion ? configParamCount - 1 : configParamCount;
+            boolean includeConfigParam = !isLegacyEdgeVersion;
+
+            assertParams(ruleNode, expectedConfigAmount, includeConfigParam, edgeVersion);
         });
     }
 
-    private void validateParams(RuleNode ruleNode, int expectedConfigAmount, boolean includeConfigParam) {
-        String ignoreConfigParam = NODE_TO_IGNORE_PARAM_FOR_OLD_EDGE_VERSION.get(ruleNode.getName());
+    private void assertParams(RuleNode ruleNode, int expectedConfigAmount, boolean includeConfigParam, EdgeVersion edgeVersion) {
+        String ignoreConfigParam = NODE_TO_IGNORED_PARAM_FOR_OLD_EDGE_VERSION.getOrDefault(ruleNode.getName(),
+                NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0.get(ruleNode.getName()));
 
         Assert.assertEquals(
-                String.format("Expected %d config params for ruleNode '%s', but found %d", expectedConfigAmount, ruleNode.getName(), ruleNode.getConfiguration().size()),
+                String.format("Expected %d config params for ruleNode '%s', but found %d for edgeVersion - %s", expectedConfigAmount, ruleNode.getName(), ruleNode.getConfiguration().size(), edgeVersion),
                 expectedConfigAmount, ruleNode.getConfiguration().size()
         );
 

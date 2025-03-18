@@ -41,6 +41,7 @@ import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.action.TbChangeOwnerNode;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNode;
 import org.thingsboard.rule.engine.aws.lambda.TbAwsLambdaNode;
 import org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode;
@@ -170,7 +171,11 @@ import java.util.UUID;
 
 @Slf4j
 public class EdgeMsgConstructorUtils {
-    public static final Map<String, String> NODE_TO_IGNORE_PARAM_FOR_OLD_EDGE_VERSION = Map.of(
+    public static final Map<String, String> NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0 = Map.of(
+            TbChangeOwnerNode.class.getName(), "createOwnerOnOriginatorLevel"
+    );
+
+    public static final Map<String, String> NODE_TO_IGNORED_PARAM_FOR_OLD_EDGE_VERSION = Map.of(
             TbMsgTimeseriesNode.class.getName(), "processingSettings",
             TbMsgAttributesNode.class.getName(), "processingSettings",
             TbSaveToCustomCassandraTableNode.class.getName(), "defaultTtl"
@@ -283,7 +288,7 @@ public class EdgeMsgConstructorUtils {
     }
 
     public static DeviceUpdateMsg constructDeviceDeleteMsg(DeviceId deviceId, EntityGroupId entityGroupId) {
-        DeviceUpdateMsg.Builder builder =  DeviceUpdateMsg.newBuilder()
+        DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(deviceId.getId().getMostSignificantBits())
                 .setIdLSB(deviceId.getId().getLeastSignificantBits());
@@ -541,20 +546,22 @@ public class EdgeMsgConstructorUtils {
         JsonNode jsonNode = JacksonUtil.valueToTree(ruleChainMetaData);
         JsonNode nodes = jsonNode.get("nodes");
 
-        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0)) {
+        if (EdgeVersionUtils.isEdgeOlderThan_3_8_0(edgeVersion)) {
             Iterator<JsonNode> iterator = nodes.iterator();
             while (iterator.hasNext()) {
                 JsonNode node = iterator.next();
-
                 String type = node.get("type").asText();
+
                 if (MISSING_NODES_IN_VERSION_37.contains(type)) {
                     iterator.remove();
+                } else if (NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0.containsKey(type)) {
+                    changeRuleNodeConfigForOldEdgeVersion(NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0, node);
                 }
             }
         }
 
-        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_9_0)) {
-            nodes.forEach(EdgeMsgConstructorUtils::changeRuleNodeConfigForOldEdgeVersion);
+        if (EdgeVersionUtils.isEdgeOlderThan_3_9_0(edgeVersion)) {
+            nodes.forEach(node -> changeRuleNodeConfigForOldEdgeVersion(NODE_TO_IGNORED_PARAM_FOR_OLD_EDGE_VERSION, node));
 
             return JacksonUtil.toString(jsonNode);
         } else {
@@ -562,12 +569,12 @@ public class EdgeMsgConstructorUtils {
         }
     }
 
-    private static void changeRuleNodeConfigForOldEdgeVersion(JsonNode node) {
+    private static void changeRuleNodeConfigForOldEdgeVersion(Map<String, String> nodeToIgnoreParam, JsonNode node) {
         if (node.isObject()) {
-            JsonNode configurationNode = node.get("configuration");
-            if (configurationNode != null && configurationNode.isObject() &&
-                    NODE_TO_IGNORE_PARAM_FOR_OLD_EDGE_VERSION.containsKey(node.get("type").asText())) {
-                ((ObjectNode) configurationNode).remove(NODE_TO_IGNORE_PARAM_FOR_OLD_EDGE_VERSION.get(node.get("type").asText()));
+            String nodeType = node.get("type").asText();
+
+            if (node.isObject() && node.has("configuration") && nodeToIgnoreParam.containsKey(nodeType)) {
+                ((ObjectNode) node.get("configuration")).remove(nodeToIgnoreParam.get(nodeType));
             }
         }
     }
