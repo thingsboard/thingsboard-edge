@@ -9,7 +9,7 @@ A JavaScript function performing custom action.
 
 **Parameters:**
 
-<ul>
+<ul style="max-width: 800px">
   {% include entity_group/action/custom_action_args %}
 </ul>
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -72,7 +72,6 @@ public class TbKafkaAdmin implements TbQueueAdmin {
         String numPartitionsStr = topicConfigs.get(TbKafkaTopicConfigs.NUM_PARTITIONS_SETTING);
         if (numPartitionsStr != null) {
             numPartitions = Integer.parseInt(numPartitionsStr);
-            topicConfigs.remove("partitions");
         } else {
             numPartitions = 1;
         }
@@ -86,7 +85,9 @@ public class TbKafkaAdmin implements TbQueueAdmin {
             return;
         }
         try {
-            NewTopic newTopic = new NewTopic(topic, numPartitions, replicationFactor).configs(PropertyUtils.getProps(topicConfigs, properties));
+            Map<String, String> configs = PropertyUtils.getProps(topicConfigs, properties);
+            configs.remove(TbKafkaTopicConfigs.NUM_PARTITIONS_SETTING);
+            NewTopic newTopic = new NewTopic(topic, numPartitions, replicationFactor).configs(configs);
             createTopic(newTopic).values().get(topic).get();
             topics.add(topic);
         } catch (ExecutionException ee) {
@@ -105,7 +106,7 @@ public class TbKafkaAdmin implements TbQueueAdmin {
     @Override
     public void deleteTopic(String topic) {
         Set<String> topics = getTopics();
-        if (topics.contains(topic)) {
+        if (topics.remove(topic)) {
             settings.getAdminClient().deleteTopics(Collections.singletonList(topic));
         } else {
             try {
@@ -203,6 +204,9 @@ public class TbKafkaAdmin implements TbQueueAdmin {
 
     public boolean isTopicEmpty(String topic) {
         try {
+            if (!getTopics().contains(topic)) {
+                return true;
+            }
             TopicDescription topicDescription = settings.getAdminClient().describeTopics(Collections.singletonList(topic)).topicNameValues().get(topic).get();
             List<TopicPartition> partitions = topicDescription.partitions().stream().map(partitionInfo -> new TopicPartition(topic, partitionInfo.partition())).toList();
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ import java.util.Map;
 
 public interface ConverterLibraryService {
 
-    List<Vendor> getVendors(IntegrationType integrationType);
+    List<Vendor> getVendors(IntegrationType integrationType, String converterType);
 
     List<Model> getVendorModels(IntegrationType integrationType, String converterType, String vendorName);
 

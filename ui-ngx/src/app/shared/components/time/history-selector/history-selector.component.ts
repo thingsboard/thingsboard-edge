@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { interval } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { HistorySelectSettings } from '@app/modules/home/components/widget/lib/maps/map-models';
+import { HistorySelectSettings } from '@app/modules/home/components/widget/lib/maps-legacy/map-models';
 
 @Component({
   selector: 'tb-history-selector',

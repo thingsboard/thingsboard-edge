@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,10 +53,10 @@ public interface TenantDao extends Dao<Tenant> {
      * @return saved tenant object
      */
     Tenant save(TenantId tenantId, Tenant tenant);
-    
+
     /**
      * Find tenants by page link.
-     * 
+     *
      * @param pageLink the page link
      * @return the list of tenant objects
      */
@@ -75,4 +75,5 @@ public interface TenantDao extends Dao<Tenant> {
     PageData<TenantId> findTenantsIds(PageLink pageLink);
 
     List<TenantId> findTenantIdsByTenantProfileId(TenantProfileId tenantProfileId);
+
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -169,7 +169,7 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
 
     @Override
     public Resource createGatewayDockerComposeFile(String baseUrl, Device device) throws URISyntaxException {
-        DockerComposeParams params = new DockerComposeParams(true, true, true, true, true);
+        DockerComposeParams params = new DockerComposeParams(true, "tb-gateway", true, true, true, true);
         return createGatewayDockerComposeFile(baseUrl, device, params);
     }
 

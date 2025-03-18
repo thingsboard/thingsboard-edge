@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -114,7 +114,7 @@ export class MobilePageItemRowComponent implements ControlValueAccessor, OnInit,
   mobilePageRowForm = this.fb.group({
     visible: [true, []],
     icon: ['', []],
-    label: ['', [Validators.pattern(/\S/)]],
+    label: ['', [Validators.pattern(/\S/), Validators.maxLength(255)]],
     type: [MobilePageType.DEFAULT]
   });
 

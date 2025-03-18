@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,13 @@
  */
 package org.thingsboard.server.dao.sql.widget;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.edqs.fields.WidgetTypeFields;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.WidgetTypeDetailsEntity;
 import org.thingsboard.server.dao.model.sql.WidgetTypeEntity;
@@ -84,12 +86,6 @@ public interface WidgetTypeRepository extends JpaRepository<WidgetTypeDetailsEnt
 
     WidgetTypeDetailsEntity findByTenantIdAndFqn(UUID tenantId, String fqn);
 
-    @Query(value = "SELECT name FROM widget_type wt " +
-            "WHERE wt.tenant_id = :tenantId AND cast(wt.descriptor as json) ->> 'resources' LIKE concat('%', :resourceLink, '%')",
-            nativeQuery = true)
-    List<String> findNamesByTenantIdAndResourceLink(@Param("tenantId") UUID tenantId,
-                                                    @Param("resourceLink") String resourceLink);
-
     @Query("SELECT externalId FROM WidgetTypeDetailsEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
 
@@ -99,4 +95,7 @@ public interface WidgetTypeRepository extends JpaRepository<WidgetTypeDetailsEnt
     @Query("SELECT w.id FROM WidgetTypeDetailsEntity w WHERE w.tenantId = :tenantId")
     Page<UUID> findIdsByTenantId(@Param("tenantId") UUID tenantId, Pageable pageable);
 
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.WidgetTypeFields(w.id, w.createdTime, w.tenantId," +
+            "w.name, w.version) FROM WidgetTypeEntity w WHERE w.id > :id ORDER BY w.id")
+    List<WidgetTypeFields> findNextBatch(@Param("id") UUID id, Limit limit);
 }

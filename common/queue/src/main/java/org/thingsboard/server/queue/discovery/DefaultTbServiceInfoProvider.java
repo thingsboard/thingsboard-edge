@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.util.CollectionsUtil;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
+import org.thingsboard.server.queue.edqs.EdqsConfig;
 import org.thingsboard.server.queue.util.AfterContextReady;
 
 import java.net.InetAddress;
@@ -56,12 +57,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.common.util.SystemUtil.getCpuCount;
-import static org.thingsboard.common.util.SystemUtil.getCpuUsage;
-import static org.thingsboard.common.util.SystemUtil.getDiscSpaceUsage;
-import static org.thingsboard.common.util.SystemUtil.getMemoryUsage;
-import static org.thingsboard.common.util.SystemUtil.getTotalDiscSpace;
-import static org.thingsboard.common.util.SystemUtil.getTotalMemory;
+import static org.thingsboard.common.util.SystemUtil.*;
 
 
 @Component
@@ -89,6 +85,9 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     private Set<UUID> assignedTenantProfiles;
 
     @Autowired
+    private EdqsConfig edqsConfig;
+
+    @Autowired
     private ApplicationContext applicationContext;
 
     private List<ServiceType> serviceTypes;
@@ -111,6 +110,11 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
         }
         if (!serviceTypes.contains(ServiceType.TB_RULE_ENGINE) || assignedTenantProfiles == null) {
             assignedTenantProfiles = Collections.emptySet();
+        }
+        if (serviceTypes.contains(ServiceType.EDQS)) {
+            if (StringUtils.isBlank(edqsConfig.getLabel())) {
+                edqsConfig.setLabel(serviceId);
+            }
         }
 
         generateNewServiceInfoWithCurrentSystemInfo();
@@ -189,6 +193,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
         if (CollectionsUtil.isNotEmpty(assignedTenantProfiles)) {
             builder.addAllAssignedTenantProfiles(assignedTenantProfiles.stream().map(UUID::toString).collect(Collectors.toList()));
         }
+        builder.setLabel(edqsConfig.getLabel());
         return serviceInfo = builder.build();
     }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -899,5 +899,65 @@ class TbDateTest {
         String serializedTbDate = JacksonUtil.toJsonNode(JacksonUtil.toString(Map.of("date", expectedDate))).get("date").asText();
         Assertions.assertNotNull(serializedTbDate);
         Assertions.assertEquals(expectedDate.toString(), serializedTbDate);
+    }
+
+    @Test
+    void testAddFunctions() {
+        TbDate d = new TbDate(2024, 1, 1, 10, 0, 0, 0);
+        testResultChangeDateTime(d);
+
+        d.addYears(1);
+        testResultChangeDateTime(d);
+
+        d.addYears(-2);
+        testResultChangeDateTime(d);
+
+        d.addMonths(2);
+        testResultChangeDateTime(d);
+
+        d.addMonths(10);
+        testResultChangeDateTime(d);
+
+        d.addMonths(-13);
+        testResultChangeDateTime(d);
+
+        d.addWeeks(4);
+        testResultChangeDateTime(d);
+
+        d.addWeeks(-5);
+        testResultChangeDateTime(d);
+
+        d.addDays(6);
+        testResultChangeDateTime(d);
+
+        d.addDays(45);
+        testResultChangeDateTime(d);
+
+        d.addDays(-50);
+        testResultChangeDateTime(d);
+
+        d.addHours(23);
+        testResultChangeDateTime(d);
+
+        d.addHours(-47);
+        testResultChangeDateTime(d);
+
+        d.addMinutes(59);
+        testResultChangeDateTime(d);
+
+        d.addMinutes(-60);
+        testResultChangeDateTime(d);
+
+        d.addSeconds(59);
+        testResultChangeDateTime(d);
+
+        d.addSeconds(-60);
+        testResultChangeDateTime(d);
+
+        d.addNanos(999999);
+        testResultChangeDateTime(d);
+
+        d.addNanos(-1000000);
+        testResultChangeDateTime(d);
     }
 }

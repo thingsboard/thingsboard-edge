@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -201,4 +201,15 @@ public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, Das
     public List<DashboardInfo> findByImageLink(String imageLink, int limit) {
         return DaoUtil.convertDataList(dashboardInfoRepository.findByImageLink(imageLink, limit));
     }
+
+    @Override
+    public List<DashboardInfo> findByTenantIdAndResourceLink(TenantId tenantId, String url, int limit) {
+        return DaoUtil.convertDataList(dashboardInfoRepository.findDashboardInfosByTenantIdAndResourceLink(tenantId.getId(), url, limit));
+    }
+
+    @Override
+    public List<DashboardInfo> findByResourceLink(String link, int limit) {
+        return DaoUtil.convertDataList(dashboardInfoRepository.findDashboardInfosByResourceLink(link, limit));
+    }
+
 }

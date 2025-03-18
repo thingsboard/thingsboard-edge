@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -196,7 +196,7 @@ public class BasicHttpIntegration<T extends HttpIntegrationMsg<?>> extends Abstr
                 }
         );
 
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData(msg.getContentType(), mdMap));
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData<>(msg.getContentType(), mdMap));
         if (uplinkDataList != null && !uplinkDataList.isEmpty()) {
             Map<String, UplinkData> result = new HashMap<>();
             for (UplinkData uplinkData : uplinkDataList) {

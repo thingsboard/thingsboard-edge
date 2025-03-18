@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -457,5 +457,7 @@ public interface AlarmRepository extends JpaRepository<AlarmEntity, UUID> {
                                           @Param("alarmTypes") List<String> alarmTypes,
                                           @Param("alarmSeverities") List<String> alarmSeverities,
                                           int limit);
+
+    Page<AlarmEntity> findByTenantId(UUID tenantId, Pageable pageable);
 
 }

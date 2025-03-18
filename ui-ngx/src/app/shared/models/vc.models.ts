@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,7 @@ export interface VersionCreateConfig {
   saveRelations: boolean;
   saveAttributes: boolean;
   saveCredentials: boolean;
+  saveCalculatedFields: boolean;
   savePermissions: boolean;
   saveGroupEntities: boolean;
 }
@@ -129,6 +130,7 @@ export function createDefaultEntityTypesVersionCreate(): {[entityType: string]: 
       syncStrategy: null,
       saveAttributes: !entityTypesWithoutRelatedData.has(entityType),
       saveRelations: !entityTypesWithoutRelatedData.has(entityType),
+      saveCalculatedFields: typesWithCalculatedFields.has(entityType),
       saveCredentials: true,
       savePermissions: true,
       saveGroupEntities: true,
@@ -143,6 +145,7 @@ export interface VersionLoadConfig {
   loadRelations: boolean;
   loadAttributes: boolean;
   loadCredentials: boolean;
+  loadCalculatedFields: boolean;
   loadPermissions: boolean;
   loadGroupEntities: boolean;
   autoGenerateIntegrationKey: boolean;
@@ -183,6 +186,7 @@ export function createDefaultEntityTypesVersionLoad(): {[entityType: string]: En
       loadAttributes: !entityTypesWithoutRelatedData.has(entityType),
       loadRelations: !entityTypesWithoutRelatedData.has(entityType),
       loadCredentials: true,
+      loadCalculatedFields: typesWithCalculatedFields.has(entityType),
       loadPermissions: true,
       loadGroupEntities: true,
       autoGenerateIntegrationKey: false,
@@ -296,6 +300,7 @@ export interface EntityDataInfo {
   hasRelations: boolean;
   hasAttributes: boolean;
   hasCredentials: boolean;
+  hasCalculatedFields: boolean;
   hasPermissions: boolean;
   hasGroupEntities: boolean;
 }
@@ -308,3 +313,5 @@ export const overrideEntityTypeTranslations = new Map<EntityType | AliasEntityTy
     ]
   ]
 );
+
+export const typesWithCalculatedFields = new Set<EntityType | AliasEntityType>([EntityType.DEVICE, EntityType.ASSET, EntityType.ASSET_PROFILE, EntityType.DEVICE_PROFILE]);

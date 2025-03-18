@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,13 +45,10 @@ import org.thingsboard.server.common.msg.TbMsg;
  */
 public class ScriptDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
-    private final LogSettingsComponent logSettings;
-
     private ScriptDownlinkEvaluator evaluator;
 
     public ScriptDownlinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
-        super(jsInvokeService, tbelInvokeService);
-        this.logSettings = logSettings;
+        super(jsInvokeService, tbelInvokeService, logSettings);
     }
 
     @Override
@@ -81,8 +78,4 @@ public class ScriptDownlinkDataConverter extends AbstractDownlinkDataConverter {
         return evaluator.execute(msg, metadata);
     }
 
-    @Override
-    boolean isExceptionStackTraceEnabled() {
-        return logSettings.isExceptionStackTraceEnabled();
-    }
 }

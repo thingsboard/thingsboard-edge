@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -451,6 +451,9 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
         if (converter.getDebugSettings() != null) {
             builder.setDebugSettings(JacksonUtil.toString(converter.getDebugSettings()));
+        }
+        if (converter.getIntegrationType() != null) {
+            builder.setIntegrationType(converter.getIntegrationType().toString());
         }
         return builder.build();
     }

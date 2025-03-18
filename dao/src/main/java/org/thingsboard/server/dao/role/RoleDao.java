@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,12 +39,13 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface RoleDao extends Dao<Role>, ExportableEntityDao<RoleId, Role> {
+public interface RoleDao extends Dao<Role>, TenantEntityDao<Role>, ExportableEntityDao<RoleId, Role> {
 
     Role save(TenantId tenantId, Role role);
 

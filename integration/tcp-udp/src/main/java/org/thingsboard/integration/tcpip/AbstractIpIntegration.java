@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -301,7 +301,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(uplinkContentType, metadataMap));
+        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData<>(uplinkContentType, metadataMap));
     }
 
     private void processUplinkData(IntegrationContext context, List<UplinkData> uplinkDataList) throws Exception {

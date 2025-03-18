@@ -6,7 +6,7 @@ Follow the instructions in the official [Docker Compose installation guide](http
 
 ##### Step 2: Launch the Modbus Pool Emulator
 
-To simulate a comprehensive swimming pool system, this Docker command launches a Modbus pool emulator containing 14 separate devices that function as a unified system and communicate via ModBus. 
+To simulate a comprehensive swimming pool system, this Docker command launches a Modbus pool emulator containing 14 separate devices that function as a unified system and communicate via Modbus. 
 Execute the following command in your terminal: 
 
 ```bash
@@ -40,4 +40,4 @@ This dashboard allows you to:
 
 For further customization of the <a href="${MAIN_DASHBOARD_URL}" target="_blank">Swimming Pool SCADA system</a> dashboard refer to the <a href="${DOCS_BASE_URL}/user-guide/dashboards/" target="_blank">dashboard development guide</a>.
 
-For real-time monitoring of device data received from Modbus servers, you can access the <a href="${GATEWAYS_DASHBOARD_URL}" target="_blank">ThingsBoard IoT Gateways</a> dashboard to view the status and data of connected devices.
+For real-time monitoring of device data received from Modbus servers, you can access the <a href="${GATEWAYS_URL}" target="_blank">Gateways</a> page to view the status and data of connected devices.

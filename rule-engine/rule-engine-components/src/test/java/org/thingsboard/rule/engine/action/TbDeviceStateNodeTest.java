@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceStateManager;
+import org.thingsboard.rule.engine.api.DeviceStateManager;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
@@ -81,7 +81,7 @@ public class TbDeviceStateNodeTest {
     @Mock
     private TbContext ctxMock;
     @Mock
-    private RuleEngineDeviceStateManager deviceStateManagerMock;
+    private DeviceStateManager deviceStateManagerMock;
     @Captor
     private ArgumentCaptor<TbCallback> callbackCaptor;
     private TbDeviceStateNode node;
@@ -278,7 +278,7 @@ public class TbDeviceStateNodeTest {
 
     @ParameterizedTest
     @MethodSource
-    public void givenSupportedEventAndDeviceOriginator_whenOnMsg_thenCorrectEventIsSentWithCorrectCallback(TbMsgType supportedEventType, BiConsumer<RuleEngineDeviceStateManager, ArgumentCaptor<TbCallback>> actionVerification) {
+    public void givenSupportedEventAndDeviceOriginator_whenOnMsg_thenCorrectEventIsSentWithCorrectCallback(TbMsgType supportedEventType, BiConsumer<DeviceStateManager, ArgumentCaptor<TbCallback>> actionVerification) {
         // GIVEN
         given(ctxMock.getTenantId()).willReturn(TENANT_ID);
         given(ctxMock.getDeviceStateNodeRateLimitConfig()).willReturn("1:1");
@@ -312,10 +312,10 @@ public class TbDeviceStateNodeTest {
 
     private static Stream<Arguments> givenSupportedEventAndDeviceOriginator_whenOnMsg_thenCorrectEventIsSentWithCorrectCallback() {
         return Stream.of(
-                Arguments.of(TbMsgType.CONNECT_EVENT, (BiConsumer<RuleEngineDeviceStateManager, ArgumentCaptor<TbCallback>>) (deviceStateManagerMock, callbackCaptor) -> then(deviceStateManagerMock).should().onDeviceConnect(eq(TENANT_ID), eq(DEVICE_ID), eq(METADATA_TS), callbackCaptor.capture())),
-                Arguments.of(TbMsgType.ACTIVITY_EVENT, (BiConsumer<RuleEngineDeviceStateManager, ArgumentCaptor<TbCallback>>) (deviceStateManagerMock, callbackCaptor) -> then(deviceStateManagerMock).should().onDeviceActivity(eq(TENANT_ID), eq(DEVICE_ID), eq(METADATA_TS), callbackCaptor.capture())),
-                Arguments.of(TbMsgType.DISCONNECT_EVENT, (BiConsumer<RuleEngineDeviceStateManager, ArgumentCaptor<TbCallback>>) (deviceStateManagerMock, callbackCaptor) -> then(deviceStateManagerMock).should().onDeviceDisconnect(eq(TENANT_ID), eq(DEVICE_ID), eq(METADATA_TS), callbackCaptor.capture())),
-                Arguments.of(TbMsgType.INACTIVITY_EVENT, (BiConsumer<RuleEngineDeviceStateManager, ArgumentCaptor<TbCallback>>) (deviceStateManagerMock, callbackCaptor) -> then(deviceStateManagerMock).should().onDeviceInactivity(eq(TENANT_ID), eq(DEVICE_ID), eq(METADATA_TS), callbackCaptor.capture()))
+                Arguments.of(TbMsgType.CONNECT_EVENT, (BiConsumer<DeviceStateManager, ArgumentCaptor<TbCallback>>) (deviceStateManagerMock, callbackCaptor) -> then(deviceStateManagerMock).should().onDeviceConnect(eq(TENANT_ID), eq(DEVICE_ID), eq(METADATA_TS), callbackCaptor.capture())),
+                Arguments.of(TbMsgType.ACTIVITY_EVENT, (BiConsumer<DeviceStateManager, ArgumentCaptor<TbCallback>>) (deviceStateManagerMock, callbackCaptor) -> then(deviceStateManagerMock).should().onDeviceActivity(eq(TENANT_ID), eq(DEVICE_ID), eq(METADATA_TS), callbackCaptor.capture())),
+                Arguments.of(TbMsgType.DISCONNECT_EVENT, (BiConsumer<DeviceStateManager, ArgumentCaptor<TbCallback>>) (deviceStateManagerMock, callbackCaptor) -> then(deviceStateManagerMock).should().onDeviceDisconnect(eq(TENANT_ID), eq(DEVICE_ID), eq(METADATA_TS), callbackCaptor.capture())),
+                Arguments.of(TbMsgType.INACTIVITY_EVENT, (BiConsumer<DeviceStateManager, ArgumentCaptor<TbCallback>>) (deviceStateManagerMock, callbackCaptor) -> then(deviceStateManagerMock).should().onDeviceInactivity(eq(TENANT_ID), eq(DEVICE_ID), eq(METADATA_TS), callbackCaptor.capture()))
         );
     }
 

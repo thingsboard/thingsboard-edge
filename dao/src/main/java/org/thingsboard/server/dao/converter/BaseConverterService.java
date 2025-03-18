@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -87,6 +88,9 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Override
     public Converter saveConverter(Converter converter) {
         log.trace("Executing saveConverter [{}]", converter);
+        if (converter.getConverterVersion() == null) {
+            converter.setConverterVersion(1);
+        }
         converterValidator.validate(converter, Converter::getTenantId);
         TenantId tenantId = converter.getTenantId();
 
@@ -146,19 +150,19 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
-    public PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink) {
+    public PageData<Converter> findTenantConverters(TenantId tenantId, IntegrationType integrationType, PageLink pageLink) {
         log.trace("Executing findTenantConverters, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
-        return converterDao.findCoreConvertersByTenantId(tenantId.getId(), pageLink);
+        return converterDao.findCoreConvertersByTenantId(tenantId.getId(), integrationType, pageLink);
     }
 
     @Override
-    public PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, PageLink pageLink) {
+    public PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, IntegrationType integrationType, PageLink pageLink) {
         log.trace("Executing findTenantEdgeTemplateConverters, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
-        return converterDao.findEdgeTemplateConvertersByTenantId(tenantId.getId(), pageLink);
+        return converterDao.findEdgeTemplateConvertersByTenantId(tenantId.getId(), integrationType, pageLink);
     }
 
     @Override

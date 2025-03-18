@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -90,6 +90,7 @@ public class CleanUpService {
         submitTask(HousekeeperTask.deleteTelemetry(tenantId, entityId));
         submitTask(HousekeeperTask.deleteEvents(tenantId, entityId));
         submitTask(HousekeeperTask.deleteAlarms(tenantId, entityId));
+        submitTask(HousekeeperTask.deleteCalculatedFields(tenantId, entityId));
     }
 
     public void removeTenantEntities(TenantId tenantId, EntityType... entityTypes) {

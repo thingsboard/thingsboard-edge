@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -108,6 +108,7 @@ export class AliasesEntitySelectComponent implements OnInit, OnDestroy {
           setTimeout(() => {
             this.updateDisplayValue();
             this.updateEntityAliasesInfo();
+            this.cd.detectChanges();
           }, 0);
         }
       ));
@@ -116,6 +117,7 @@ export class AliasesEntitySelectComponent implements OnInit, OnDestroy {
           setTimeout(() => {
             this.updateDisplayValue();
             this.updateEntityAliasesInfo();
+            this.cd.detectChanges();
           }, 0);
         }
       ));
@@ -199,7 +201,6 @@ export class AliasesEntitySelectComponent implements OnInit, OnDestroy {
       displayValue = this.translate.instant('entity.entities');
     }
     this.displayValue = displayValue;
-    this.cd.detectChanges();
   }
 
   private updateEntityAliasesInfo() {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,12 +38,19 @@ import org.thingsboard.server.queue.common.DefaultTbQueueMsgHeaders;
 import java.util.UUID;
 
 public class KafkaTbQueueMsg implements TbQueueMsg {
+
+    private static final int UUID_LENGTH = 36;
+
     private final UUID key;
     private final TbQueueMsgHeaders headers;
     private final byte[] data;
 
     public KafkaTbQueueMsg(ConsumerRecord<String, byte[]> record) {
-        this.key = UUID.fromString(record.key());
+        if (record.key().length() <= UUID_LENGTH) {
+            this.key = UUID.fromString(record.key());
+        } else {
+            this.key = UUID.randomUUID();
+        }
         TbQueueMsgHeaders headers = new DefaultTbQueueMsgHeaders();
         record.headers().forEach(header -> {
             headers.put(header.key(), header.value());

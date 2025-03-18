@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@ import java.util.UUID;
 /**
  * The Interface DashboardDao.
  */
-public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao, ExportableCustomerEntityDao<Dashboard, DashboardId> {
+public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao<Dashboard>, ExportableCustomerEntityDao<Dashboard, DashboardId> {
 
     /**
      * Save or update dashboard object

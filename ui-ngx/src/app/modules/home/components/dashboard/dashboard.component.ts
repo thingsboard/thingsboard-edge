@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -423,7 +423,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
 
   onDashboardMouseDown($event: MouseEvent) {
     if (this.callbacks && this.callbacks.onDashboardMouseDown) {
-      if ($event) {
+      if ($event && this.isEdit) {
         $event.stopPropagation();
       }
       this.callbacks.onDashboardMouseDown($event);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,10 @@
  */
 package org.thingsboard.server.dao.sqlts.dictionary;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.thingsboard.server.dao.model.sqlts.dictionary.KeyDictionaryCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.dictionary.KeyDictionaryEntry;
 
@@ -40,5 +43,7 @@ public interface KeyDictionaryRepository extends JpaRepository<KeyDictionaryEntr
 
     Optional<KeyDictionaryEntry> findByKeyId(int keyId);
 
+    @Query("SELECT e FROM KeyDictionaryEntry e ORDER BY e.keyId ASC")
+    Page<KeyDictionaryEntry> findAll(Pageable pageable);
 
 }

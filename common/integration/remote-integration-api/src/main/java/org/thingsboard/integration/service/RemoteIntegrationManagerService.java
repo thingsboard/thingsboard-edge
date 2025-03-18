@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,6 +46,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.api.converter.DedicatedScriptUplinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDataConverter;
@@ -322,8 +323,10 @@ public class RemoteIntegrationManagerService {
     }
 
     private TBUplinkDataConverter createUplinkConverter(ConverterConfigurationProto uplinkConverter) throws IOException {
-        ScriptUplinkDataConverter uplinkDataConverter = new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
         Converter converter = constructConverter(uplinkConverter, ConverterType.UPLINK);
+        TBUplinkDataConverter uplinkDataConverter = converter.isDedicated() ?
+                new DedicatedScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent) :
+                new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
         uplinkConverterId = converter.getId();
         uplinkDataConverter.init(converter);
         return uplinkDataConverter;
@@ -349,6 +352,10 @@ public class RemoteIntegrationManagerService {
         if (converterProto.hasDebugSettings()) {
             converter.setDebugSettings(JacksonUtil.fromString(converterProto.getDebugSettings(), DebugSettings.class));
         }
+        if (converterProto.hasIntegrationType()) {
+            converter.setIntegrationType(IntegrationType.valueOf(converterProto.getIntegrationType()));
+        }
+        converter.setConverterVersion(converterProto.getConverterVersion());
         converter.setConfiguration(JacksonUtil.toJsonNode(converterProto.getConfiguration()));
         converter.setAdditionalInfo(JacksonUtil.toJsonNode(converterProto.getAdditionalInfo()));
         return converter;

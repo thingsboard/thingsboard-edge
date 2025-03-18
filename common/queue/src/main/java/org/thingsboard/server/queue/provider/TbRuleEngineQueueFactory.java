@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,9 @@ import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldStateProto;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
@@ -43,6 +46,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateSer
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
+import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
@@ -53,7 +57,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
  * Responsible for initialization of various Producers and Consumers used by TB Core Node.
  * Implementation Depends on the queue queue.type from yml or TB_QUEUE_TYPE environment variable
  */
-public interface TbRuleEngineQueueFactory extends TbUsageStatsClientQueueFactory, HousekeeperClientQueueFactory {
+public interface TbRuleEngineQueueFactory extends TbUsageStatsClientQueueFactory, HousekeeperClientQueueFactory, EdqsClientQueueFactory {
 
     /**
      * Used to push messages to instances of TB Transport Service
@@ -140,11 +144,24 @@ public interface TbRuleEngineQueueFactory extends TbUsageStatsClientQueueFactory
     }
 
     /**
-     * Used to consume high priority messages by TB Core Service
+     * Used to consume high priority messages by TB Rule Engine Service
      *
      * @return
      */
     TbQueueConsumer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> createToRuleEngineNotificationsMsgConsumer();
 
     TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate();
+
+    TbQueueConsumer<TbProtoQueueMsg<ToCalculatedFieldMsg>> createToCalculatedFieldMsgConsumer();
+
+    TbQueueAdmin getCalculatedFieldQueueAdmin();
+
+    TbQueueProducer<TbProtoQueueMsg<ToCalculatedFieldMsg>> createToCalculatedFieldMsgProducer();
+
+    TbQueueConsumer<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> createToCalculatedFieldNotificationsMsgConsumer();
+
+    TbQueueConsumer<TbProtoQueueMsg<CalculatedFieldStateProto>> createCalculatedFieldStateConsumer();
+
+    TbQueueProducer<TbProtoQueueMsg<CalculatedFieldStateProto>> createCalculatedFieldStateProducer();
+
 }

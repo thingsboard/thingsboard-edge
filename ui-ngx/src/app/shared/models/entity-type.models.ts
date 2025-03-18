@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -71,7 +71,8 @@ export enum EntityType {
   OAUTH2_CLIENT = 'OAUTH2_CLIENT',
   DOMAIN = 'DOMAIN',
   MOBILE_APP_BUNDLE = 'MOBILE_APP_BUNDLE',
-  MOBILE_APP = 'MOBILE_APP'
+  MOBILE_APP = 'MOBILE_APP',
+  CALCULATED_FIELD = 'CALCULATED_FIELD',
 }
 
 export enum AliasEntityType {
@@ -625,6 +626,18 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         noEntities: 'mobile.no-bundles',
         search: 'mobile.search-bundles'
       }
+    ],
+    [
+      EntityType.CALCULATED_FIELD,
+      {
+        type: 'entity.type-calculated-field',
+        typePlural: 'entity.type-calculated-fields',
+        list: 'calculated-fields.list',
+        add: 'action.add',
+        noEntities: 'calculated-fields.no-found',
+        search: 'action.search',
+        selectedEntities: 'calculated-fields.selected-fields'
+      }
     ]
   ]
 );
@@ -794,7 +807,7 @@ export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.RULE_CHAIN, '/ruleChains'],
   [EntityType.EDGE, '/edgeManagement/instances/all'],
   [EntityType.ENTITY_VIEW, '/entities/entityViews/all'],
-  [EntityType.ROLE, '/roles'],
+  [EntityType.ROLE, '/security-settings/roles'],
   [EntityType.TB_RESOURCE, '/resources/resources-library'],
   [EntityType.OTA_PACKAGE, '/features/otaUpdates'],
   [EntityType.QUEUE, '/settings/queues'],

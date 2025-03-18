@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -81,13 +81,18 @@ public class DeviceImportService extends BaseGroupEntityImportService<DeviceId, 
 
     @Override
     protected Device saveOrUpdate(EntitiesImportCtx ctx, Device device, DeviceExportData exportData, IdProvider idProvider) {
+        Device savedDevice;
         if (exportData.getCredentials() != null && ctx.isSaveCredentials()) {
             exportData.getCredentials().setId(null);
             exportData.getCredentials().setDeviceId(null);
-            return deviceService.saveDeviceWithCredentials(device, exportData.getCredentials());
+            savedDevice = deviceService.saveDeviceWithCredentials(device, exportData.getCredentials());
         } else {
-            return deviceService.saveDevice(device);
+            savedDevice = deviceService.saveDevice(device);
         }
+        if (ctx.isFinalImportAttempt() || ctx.getCurrentImportResult().isUpdatedAllExternalIds()) {
+            importCalculatedFields(ctx, savedDevice, exportData, idProvider);
+        }
+        return savedDevice;
     }
 
     @Override

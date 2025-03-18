@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,10 @@ package org.thingsboard.server.dao;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edqs.fields.EntityFields;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Collection;
@@ -62,6 +65,10 @@ public interface Dao<T> {
     List<UUID> findIdsByTenantIdAndIdOffset(TenantId tenantId, UUID idOffset, int limit);
 
     List<TbPair<UUID, UUID>> findIdsByTenantProfileIdAndIdOffsetAndExpired(UUID tenantProfileId, UUID idOffset, int limit, long ttl);
+
+    default List<? extends EntityFields> findNextBatch(UUID id, int batchSize) {
+        throw new UnsupportedOperationException();
+    }
 
     default EntityType getEntityType() {
         return null;

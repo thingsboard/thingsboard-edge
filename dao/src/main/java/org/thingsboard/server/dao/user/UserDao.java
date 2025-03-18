@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,7 @@ import org.thingsboard.server.dao.TenantEntityDao;
 import java.util.List;
 import java.util.UUID;
 
-public interface UserDao extends Dao<User>, TenantEntityDao {
+public interface UserDao extends Dao<User>, TenantEntityDao<User> {
 
     /**
      * Save or update user object

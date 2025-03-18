@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -104,6 +104,8 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   @Input()
   @coerceBoolean()
   outlinedBorder = false;
+
+  @Input() additionalWidgetActionTypes: WidgetActionType[];
 
   innerValue: WidgetActionsData;
 
@@ -267,6 +269,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         actionTypes: this.actionTypes,
         customFunctionArgs: this.customFunctionArgs,
         widgetType: this.widgetType,
+        additionalWidgetActionTypes: this.additionalWidgetActionTypes,
         isEntityGroup: this.isEntityGroup
       }
     }).afterClosed().subscribe(

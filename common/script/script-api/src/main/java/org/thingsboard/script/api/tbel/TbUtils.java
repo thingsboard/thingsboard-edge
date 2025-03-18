@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -270,6 +270,10 @@ public class TbUtils {
                 double.class, int.class)));
         parserConfig.addImport("toFixed", new MethodStub(TbUtils.class.getMethod("toFixed",
                 float.class, int.class)));
+        parserConfig.addImport("toInt", new MethodStub(TbUtils.class.getMethod("toInt",
+                double.class)));
+        parserConfig.addImport("isNaN", new MethodStub(TbUtils.class.getMethod("isNaN",
+                double.class)));
         parserConfig.addImport("hexToBytes", new MethodStub(TbUtils.class.getMethod("hexToBytes",
                 ExecutionContext.class, String.class)));
         parserConfig.addImport("hexToBytesArray", new MethodStub(TbUtils.class.getMethod("hexToBytesArray",
@@ -1170,6 +1174,14 @@ public class TbUtils {
         return BigDecimal.valueOf(value).setScale(precision, RoundingMode.HALF_UP).floatValue();
     }
 
+    public static int toInt(double value) {
+        return BigDecimal.valueOf(value).setScale(0, RoundingMode.HALF_UP).intValue();
+    }
+
+    public static boolean isNaN(double value) {
+        return Double.isNaN(value);
+    }
+
     public static ExecutionHashMap<String, Object> toFlatMap(ExecutionContext ctx, Map<String, Object> json) {
         return toFlatMap(ctx, json, new ArrayList<>(), true);
     }
@@ -1314,7 +1326,7 @@ public class TbUtils {
         if (str == null || str.isEmpty()) {
             return -1;
         }
-        return str.matches("[+-]?\\d+(\\.\\d+)?") ? DEC_RADIX : -1;
+        return str.matches("[+-]?\\d+(\\.\\d+)?([eE][+-]?\\d+)?") ? DEC_RADIX : -1;
     }
 
     public static int isHexadecimal(String str) {
@@ -1521,5 +1533,6 @@ public class TbUtils {
         }
         return hex;
     }
+
 }
 

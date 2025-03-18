@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -198,13 +198,12 @@ public class DeviceProfileServiceImpl extends CachedVersionedEntityService<Devic
         try {
             imageService.replaceBase64WithImageUrl(deviceProfile, "device profile");
             savedDeviceProfile = deviceProfileDao.saveAndFlush(deviceProfile.getTenantId(), deviceProfile);
+
             publishEvictEvent(new DeviceProfileEvictEvent(savedDeviceProfile.getTenantId(), savedDeviceProfile.getName(),
                     oldDeviceProfile != null ? oldDeviceProfile.getName() : null, savedDeviceProfile.getId(), savedDeviceProfile.isDefault(),
                     oldDeviceProfile != null ? oldDeviceProfile.getProvisionDeviceKey() : null, savedDeviceProfile));
-            if (publishSaveEvent) {
-                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDeviceProfile.getTenantId()).entityId(savedDeviceProfile.getId())
-                        .entity(savedDeviceProfile).oldEntity(oldDeviceProfile).created(oldDeviceProfile == null).build());
-            }
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDeviceProfile.getTenantId()).entityId(savedDeviceProfile.getId())
+                    .entity(savedDeviceProfile).oldEntity(oldDeviceProfile).created(oldDeviceProfile == null).broadcastEvent(publishSaveEvent).build());
         } catch (Exception t) {
             handleEvictEvent(new DeviceProfileEvictEvent(deviceProfile.getTenantId(), deviceProfile.getName(),
                     oldDeviceProfile != null ? oldDeviceProfile.getName() : null, null, deviceProfile.isDefault(),

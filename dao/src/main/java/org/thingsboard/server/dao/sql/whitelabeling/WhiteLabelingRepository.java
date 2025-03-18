@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -65,5 +65,7 @@ public interface WhiteLabelingRepository extends JpaRepository<WhiteLabelingEnti
 
     @Query("SELECT w FROM WhiteLabelingEntity w WHERE w.type IN :types")
     Page<WhiteLabelingEntity> findAllByTypeIn(@Param("types") Set<WhiteLabelingType> types, Pageable pageable);
+
+    Page<WhiteLabelingEntity> findByTenantId(UUID tenantId, Pageable pageable);
 
 }

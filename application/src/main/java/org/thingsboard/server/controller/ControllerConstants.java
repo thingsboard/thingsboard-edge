@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -148,6 +148,7 @@ public class ControllerConstants {
     protected static final String AUDIT_LOG_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on one of the next properties: entityType, entityName, userName, actionType, actionStatus.";
     protected static final String ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the entity group name.";
     protected static final String ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION = "Whether to include shared entity groups.";
+    protected static final String CF_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the calculated field name.";
     protected static final String SORT_PROPERTY_DESCRIPTION = "Property of entity to sort by";
 
     protected static final String SORT_ORDER_DESCRIPTION = "Sort order. ASC (ASCENDING) or DESC (DESCENDING)";
@@ -575,6 +576,7 @@ public class ControllerConstants {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     protected static final String DEFAULT_DASHBOARD = "defaultDashboardId";
+    protected static final String DEFAULT_DASHBOARD_FULLSCREEN = "defaultDashboardFullscreen";
     protected static final String HOME_DASHBOARD = "homeDashboardId";
 
     protected static final String SINGLE_ENTITY = "\n\n## Single Entity\n\n" +
@@ -2413,6 +2415,32 @@ public class ControllerConstants {
             "    \"humidity\":80\n" +
             "  }\n" +
             "}\n";
+
+    private static final String DEFAULT_DEDICATED_PAYLOAD = "AXVeAwABBAAB";
+
+    static final String DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
+
+    static final String DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
+
+    static final String DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
+
+    static final String DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
+
+    static final String DEDICATED_THINGSPARK_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
+
+    static final String DEDICATED_TPE_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
+
+    static final String DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA = "{\"rssi\":-21,\"seqno\":3040,\"fPort\":85,\"data\":\"01755e030001040001\",\"toa\":206,\"ack\":false,\"battery\":94,\"dr\":\"SF9 BW125 4/5\",\"frequency\":867500000,\"offline\":false,\"snr\":10,\"eui\":\"1000000000000001\",\"cmd\":\"rx\",\"fСnt\":2,\"ts\":1684478801936}\n";
+
+    static final String DEDICATED_TTI_UPLINK_CONVERTER_METADATA = "{\"devAddr\":\"20000001\",\"rssi\":-24,\"fPort\":85,\"data\":\"AXVeAwABBAAB\",\"rxMetadata\":[{\"gateway_ids\":{\"gateway_id\":\"eui-6A7E111A10000000\",\"eui\":\"6A7E111A10000000\"},\"time\":\"2023-05-18T08:25:25.885310Z\",\"timestamp\":818273765,\"rssi\":-24,\"channel_rssi\":-24,\"snr\":12,\"frequency_offset\":671,\"uplink_token\":\"CiIKIAoUZXVpLTZBN0UxMTFBMTAwMDAwMDASCCThJP/+9k6eEOW7l4YDGgwI9cGXowYQ5KPhrwMgiI2rp+jpOA=\",\"channel_index\":2,\"received_at\":\"2023-05-18T08:25:25.869324983Z\"},{\"gateway_ids\":{\"gateway_id\":\"packetbroker\"},\"packet_broker\":{\"message_id\":\"01H0PZDG4MF9AYSMNY44MAVTDH\",\"forwarder_net_id\":\"000013\",\"forwarder_tenant_id\":\"ttn\",\"forwarder_cluster_id\":\"eu1.cloud.thethings.network\",\"forwarder_gateway_eui\":\"6A7E111A10000000\",\"forwarder_gateway_id\":\"eui-6a7e111a10000000\",\"home_network_net_id\":\"000013\",\"home_network_tenant_id\":\"tenant\",\"home_network_cluster_id\":\"eu1.cloud.thethings.industries\"},\"time\":\"2023-05-18T08:25:25.885310Z\",\"rssi\":-24,\"channel_rssi\":-24,\"snr\":12,\"frequency_offset\":\"671\",\"uplink_token\":\"eyJnIjoiWlhsS2FHSkhZMmxQYVVwQ1RWUkpORkl3VGs1VE1XTnBURU5LYkdKdFRXbFBhVXBDVFZSSk5GSXdUazVKYVhkcFlWaFphVTlwU201a01uaGhWVlJvZDFSWFVuRmlSM1JtVFcxT2RVbHBkMmxrUjBadVNXcHZhV05ZY0RKT1IyeExaREpSZVZwR1pIUmpNRXBLVlVoR2RFNVZkR3BWVTBvNUxua3paVVJTWVRaM1lXOU1kbTQwVm5sdmIyWmlPWGN1ZUhCZmVrcElaa3hIWlZadGRVUlFVeTVuYlRaVlZXRXdkakpHV0VKMGJUUjZaMjVXUkVoeGVHRjRaMlJKTlVkS1VsbERhemc1VDNCbk5rVk1iM1JDUkVZM1VWbHdZbEJDTkdOblNqWjBlbkphYUV4MFRVMHhZMVZFTTFac01XdExURUo0YURaMFExTnhhMVJsWWw4eE5FdHlVVXcyZUhsRWFFbEhlakJITXpoTE0xaFdlRzR5VUVjMk4wNUViME5WTkhoTmRrazFZVk5oWkUwd2FXVnFjR294VGtoMFduZHlZMDFxVlVGNmRsbERUazlNY2s5eFdVeFpWMk5XTG1WVFFYVkpNVkptT1U5NWRqUTNhSEoxTUZoalYxRT0iLCJhIjp7ImZuaWQiOiIwMDAwMTMiLCJmdGlkIjoidHRuIiwiZmNpZCI6ImV1MS5jbG91ZC50aGV0aGluZ3MubmV0d29yayJ9fQ==\",\"received_at\":\"2023-05-18T08:25:25.906038642Z\"}],\"bandwidth\":125000,\"netId\":\"000013\",\"clusterId\":\"eu1\",\"receivedAt\":\"2023-05-18T08:25:26.112483370Z\",\"fCnt\":5017,\"deviceId\":\"eui-1000000000000001\",\"frequency\":\"868500000\",\"consumedAirtime\":\"0.097536s\",\"spreadingFactor\":7,\"joinEui\":\"2000000000000001\",\"snr\":12.0,\"correlationIds\":[\"as:up:01H0PZDGB1NW6NAPD815NGHPF6\",\"gs:conn:01H0FJRSXSYT7VKNYXJ89F95XT\",\"gs:up:host:01H0FJRSY3MZMGPPFBQ4FZV4T8\",\"gs:uplink:01H0PZDG4HHGFRTXRTXD4PFTH7\",\"ns:uplink:01H0PZDG4JZ3BM0K6J89EQK1J7\",\"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0PZDG4J02F85RYFPCNSNXCR\",\"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0PZDGB081PMP806BJHNHX1A\"],\"eui\":\"1000000000000001\",\"tenantId\":\"tenant\",\"uplinkMessageReceivedAt\":\"2023-05-18T08:25:25.906399073Z\",\"time\":\"2023-05-18T08:25:25.885310Z\",\"applicationId\":\"application-tti-name\",\"sessionKeyId\":\"AYfg8rhha5n+FWx0ZaAprA==\",\"timestamp\":818273765}\n";
+
+    static final String DEDICATED_TTN_UPLINK_CONVERTER_METADATA = "{\"devAddr\":\"20000001\",\"rssi\":-35,\"fPort\":85,\"data\":\"AXVeAwABBAAB\",\"rxMetadata\":[{\"gateway_ids\":{\"gateway_id\":\"eui-6a7e111a10000000\",\"eui\":\"6A7E111A10000000\"},\"time\":\"2023-05-19T05:33:35.608982Z\",\"timestamp\":3893546133,\"rssi\":-35,\"channel_rssi\":-35,\"snr\":13.2,\"frequency_offset\":69,\"uplink_token\":\"CiIKIAoUZXVpLTZhN2UxMTFhMTAwMDAwMDASCCThJP/+9k6eEJWZy8AOGgwIr5ScowYQvNbUsQIgiMy8y6jwpwE=\",\"channel_index\":3,\"received_at\":\"2023-05-19T05:33:35.607383681Z\"}],\"bandwidth\":125000,\"netId\":\"000013\",\"clusterId\":\"eu1\",\"receivedAt\":\"2023-05-19T05:33:35.848446463Z\",\"fCnt\":10335,\"deviceId\":\"eui-1000000000000001\",\"frequency\":\"867100000\",\"consumedAirtime\":\"0.056576s\",\"spreadingFactor\":7,\"joinEui\":\"2000000000000001\",\"snr\":13.2,\"correlationIds\":[\"as:up:01H0S7ZJQ9MQPMVY49FT3SE07M\",\"gs:conn:01H03BQZ9342X3Y86DJ2P704E5\",\"gs:up:host:01H03BQZ99EGAM52KK1300GFKN\",\"gs:uplink:01H0S7ZJGS6D9TJSKJN8XNTMAV\",\"ns:uplink:01H0S7ZJGS9KKD4HTTPKFEMWCV\",\"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0S7ZJGSF3M38ZRZVTM38DEC\",\"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0S7ZJQ8R2EH5AA269AKM8DX\"],\"eui\":\"1000000000000001\",\"tenantId\":\"ttn\",\"uplinkMessageReceivedAt\":\"2023-05-19T05:33:35.641841782Z\",\"time\":\"2023-05-19T05:33:35.608982Z\",\"applicationId\":\"application-tts-name\",\"sessionKeyId\":\"AYfqmb0pc/1uRZv9xUydgQ==\",\"timestamp\":3893546133}\n";
+
+    static final String DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA = "{\"devAddr\":\"20000001\",\"fPort\":85,\"data\":\"AXVdAwABBAAA\",\"deviceProfileId\":\"605d08d4-65f5-4d2c-8a5a-3d2457662f79\",\"fCnt\":4,\"deviceName\":\"Device name\",\"confirmed\":false,\"dr\":5,\"frequency\":868500000,\"rxInfo\":[{\"gatewayId\":\"6a7e111a10000000\",\"uplinkId\":24022,\"time\":\"2023-05-22T07:47:05.404859+00:00\",\"rssi\":-35,\"snr\":11.5,\"channel\":2,\"rfChain\":1,\"location\":{},\"context\":\"EFwMtA==\",\"metadata\":{\"region_common_name\":\"EU868\",\"region_config_id\":\"eu868\"},\"crcStatus\":\"CRC_OK\"}],\"tenantName\":\"ChirpStack\",\"applicationName\":\"Chirpstack application\",\"deviceProfileName\":\"Chirpstack default device profile\",\"rssi\":-35,\"bandwidth\":125000,\"deduplicationId\":\"57433366-50a6-4dc2-8145-2df1bbc70d9e\",\"adr\":true,\"tags\":{},\"codeRate\":\"CR_4_5\",\"spreadingFactor\":7,\"snr\":11.5,\"tenantId\":\"52f14cd4-c6f1-4fbd-8f87-4025e1d49242\",\"eui\":\"1000000000000001\",\"time\":\"2023-05-22T07:47:05.404859+00:00\",\"applicationId\":\"ca739e26-7b67-4f14-b69e-d568c22a5a75\"}\n";
+
+    static final String DEDICATED_THINGSPARK_UPLINK_CONVERTER_METADATA = "{\"lrrId\":\"100019D4\",\"devAddr\":\"00FDA112\",\"esp\":-115.2547,\"fPort\":1,\"data\":\"01755e030001040001\",\"latitude\":32.516357,\"channel\":\"LC1\",\"baseStationData\":{\"doms\":[],\"name\":\"iStation US #6_CDRRC_Summerford\"},\"customerData\":{\"loc\":{\"lat\":32.592782,\"lon\":-106.927742},\"alr\":{\"pro\":\"DL/TBRG\",\"ver\":1},\"tags\":[\"EnvironSens\",\"RainGauge\",\"CDRRC\"],\"doms\":[],\"name\":\"RainGauge 5483_Test\"},\"fCnt\":26,\"devLrrCnt\":1,\"frequency\":902.5,\"txPower\":18,\"driverCfg\":{\"mod\":{\"pId\":\"dl\",\"mId\":\"dl-tbrg\",\"ver\":1},\"app\":{\"pId\":\"dl\",\"mId\":\"dl-tbrg\",\"ver\":1}},\"late\":0,\"lostUplinksAs\":0,\"customerId\":100045194,\"lrcid\":\"00000211\",\"longitude\":-106.824348,\"micHex\":\"e7214986\",\"rssi\":-114,\"modelCfg\":0,\"dynamicClass\":\"A\",\"bandwidth\":\"G0\",\"nbTrans\":2,\"lrr\":[{\"Lrrid\":\"100019D4\",\"Chain\":0,\"LrrRSSI\":-114,\"LrrSNR\":4.75,\"LrrESP\":-115.2547}],\"adr\":1,\"mType\":2,\"meanPer\":0.037037,\"spreadingFactor\":9,\"snr\":4.75,\"instantPer\":0,\"eui\":\"70B3D57BA000156B\",\"time\":\"2024-11-28T21:08:22.138+00:00\",\"fCntDn\":2}\n";
+
+    static final String DEDICATED_TPE_UPLINK_CONVERTER_METADATA = "{\"lrrId\":\"100019D4\",\"devAddr\":\"00FDA112\",\"esp\":-115.2547,\"fPort\":1,\"data\":\"01755e030001040001\",\"latitude\":32.516357,\"channel\":\"LC1\",\"baseStationData\":{\"doms\":[],\"name\":\"iStation US #6_CDRRC_Summerford\"},\"customerData\":{\"loc\":{\"lat\":32.592782,\"lon\":-106.927742},\"alr\":{\"pro\":\"DL/TBRG\",\"ver\":1},\"tags\":[\"EnvironSens\",\"RainGauge\",\"CDRRC\"],\"doms\":[],\"name\":\"RainGauge 5483_Test\"},\"fCnt\":26,\"devLrrCnt\":1,\"frequency\":902.5,\"txPower\":18,\"driverCfg\":{\"mod\":{\"pId\":\"dl\",\"mId\":\"dl-tbrg\",\"ver\":1},\"app\":{\"pId\":\"dl\",\"mId\":\"dl-tbrg\",\"ver\":1}},\"late\":0,\"lostUplinksAs\":0,\"customerId\":100045194,\"lrcid\":\"00000211\",\"longitude\":-106.824348,\"micHex\":\"e7214986\",\"rssi\":-114,\"modelCfg\":0,\"dynamicClass\":\"A\",\"bandwidth\":\"G0\",\"nbTrans\":2,\"lrr\":[{\"Lrrid\":\"100019D4\",\"Chain\":0,\"LrrRSSI\":-114,\"LrrSNR\":4.75,\"LrrESP\":-115.2547}],\"adr\":1,\"mType\":2,\"meanPer\":0.037037,\"spreadingFactor\":9,\"snr\":4.75,\"instantPer\":0,\"eui\":\"70B3D57BA000156B\",\"time\":\"2024-11-28T21:08:22.138+00:00\",\"fCntDn\":2}\n";
 
     // Default converter uplinks messages
 

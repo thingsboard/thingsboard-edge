@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -79,7 +79,7 @@ import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-co
 import { calculateIntervalStartEndTime, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
-import { isDefined, isEqual, isNotEmptyStr, isUndefined } from '@core/utils';
+import { isDefined, isDefinedAndNotNull, isEqual, isNotEmptyStr, isNumber, isUndefined } from '@core/utils';
 import { HasUUID } from '@shared/models/id/has-uuid';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { EntitiesTableAction, IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
@@ -117,10 +117,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   selectionEnabled;
 
-  defaultPageSize = 10;
+  defaultPageSize;
   displayPagination = true;
   hidePageSize = false;
-  pageSizeOptions;
+  pageSizeOptions = [];
   pageLink: PageLink;
   pageMode = true;
   textSearchMode = false;
@@ -276,8 +276,26 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     }
 
     this.displayPagination = this.entitiesTableConfig.displayPagination;
-    this.defaultPageSize = this.entitiesTableConfig.defaultPageSize;
-    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+    const pageSize = this.entitiesTableConfig.defaultPageSize;
+    let pageStepIncrement = this.entitiesTableConfig.pageStepIncrement;
+    let pageStepCount = this.entitiesTableConfig.pageStepCount;
+
+    if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
+      this.defaultPageSize = pageSize;
+    }
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
+      pageStepCount = 3;
+    }
+
+    for (let i = 1; i <= pageStepCount; i++) {
+      this.pageSizeOptions.push(pageStepIncrement * i);
+    }
 
     if (this.entitiesTableConfig.useTimePageLink) {
       this.timewindow = this.entitiesTableConfig.defaultTimewindowInterval;
@@ -712,7 +730,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   }
 
   cellTooltip(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
-    if (column instanceof EntityTableColumn) {
+    if (column instanceof EntityTableColumn || column instanceof EntityLinkTableColumn) {
       const col = this.entitiesTableConfig.columns.indexOf(column);
       const index = row * this.entitiesTableConfig.columns.length + col;
       let res = this.cellTooltipCache[index];

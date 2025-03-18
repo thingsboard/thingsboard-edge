@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,12 +44,10 @@ import org.thingsboard.server.common.data.script.ScriptLanguage;
  */
 public class ScriptUplinkDataConverter extends AbstractUplinkDataConverter {
 
-    private final LogSettingsComponent logSettings;
     private ScriptUplinkEvaluator evaluator;
 
     public ScriptUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
-        super(jsInvokeService, tbelInvokeService);
-        this.logSettings = logSettings;
+        super(jsInvokeService, tbelInvokeService, logSettings);
     }
 
     @Override
@@ -77,11 +75,6 @@ public class ScriptUplinkDataConverter extends AbstractUplinkDataConverter {
     @Override
     public ListenableFuture<String> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
         return evaluator.execute(data, metadata);
-    }
-
-    @Override
-    boolean isExceptionStackTraceEnabled() {
-        return logSettings.isExceptionStackTraceEnabled();
     }
 
 }

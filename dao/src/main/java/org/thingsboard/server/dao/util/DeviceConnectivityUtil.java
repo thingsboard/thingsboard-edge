@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -119,7 +119,7 @@ public class DeviceConnectivityUtil {
         dockerComposeBuilder.append("  # ThingsBoard IoT Gateway Service Configuration\n");
         dockerComposeBuilder.append("  tb-gateway:\n");
         dockerComposeBuilder.append("    image: thingsboard/tb-gateway\n");
-        dockerComposeBuilder.append("    container_name: tb-gateway\n");
+        dockerComposeBuilder.append("    container_name: ").append(params.containerName()).append("\n");
         dockerComposeBuilder.append("    restart: always\n");
         if (params.includePortBindings()) {
             dockerComposeBuilder.append("\n");

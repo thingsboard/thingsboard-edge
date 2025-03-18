@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -51,8 +51,7 @@ import { IntegrationsTableConfig } from '@home/pages/integration/integrations-ta
 import { PageLink } from '@shared/models/page/page-link';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
-import { TbPopoverService } from '@shared/components/popover.service';
+import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 
 @Injectable()
 export class IntegrationsTableConfigResolver  {
@@ -66,8 +65,7 @@ export class IntegrationsTableConfigResolver  {
               private utils: UtilsService,
               private dialogService: DialogService,
               private store: Store<AppState>,
-              private durationLeft: DurationLeftPipe,
-              private popoverService: TbPopoverService,
+              private entityDebugSettingsService: EntityDebugSettingsService,
               private destroyRef: DestroyRef,
               private dialog: MatDialog) {
   }
@@ -88,8 +86,7 @@ export class IntegrationsTableConfigResolver  {
       this.dialogService,
       this.dialog,
       this.store,
-      this.durationLeft,
-      this.popoverService,
+      this.entityDebugSettingsService,
       this.destroyRef,
       params
     );

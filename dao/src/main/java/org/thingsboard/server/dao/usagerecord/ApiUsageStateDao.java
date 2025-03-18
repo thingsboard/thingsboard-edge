@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,10 +34,11 @@ import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.UUID;
 
-public interface ApiUsageStateDao extends Dao<ApiUsageState> {
+public interface ApiUsageStateDao extends Dao<ApiUsageState>, TenantEntityDao<ApiUsageState> {
 
     /**
      * Save or update usage record object
@@ -65,4 +66,5 @@ public interface ApiUsageStateDao extends Dao<ApiUsageState> {
     void deleteApiUsageStateByTenantId(TenantId tenantId);
 
     void deleteApiUsageStateByEntityId(EntityId entityId);
+
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.Arrays;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
@@ -44,8 +45,9 @@ import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
 import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
+import org.thingsboard.rule.engine.api.RuleEngineCalculatedFieldQueueService;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceStateManager;
+import org.thingsboard.rule.engine.api.DeviceStateManager;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
@@ -88,7 +90,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -105,6 +106,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -212,7 +214,7 @@ public class DefaultTbContext implements TbContext, TbPeContext {
                 .resetRuleNodeId()
                 .build();
         tbMsg.pushToStack(nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
-        TopicPartitionInfo tpi = mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getQueueName(), getTenantId(), tbMsg.getOriginator());
+        TopicPartitionInfo tpi = resolvePartition(msg);
         doEnqueue(tpi, tbMsg, new SimpleTbQueueCallback(md -> ack(msg), t -> tellFailure(msg, t)));
     }
 
@@ -229,8 +231,7 @@ public class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public void enqueue(TbMsg tbMsg, Runnable onSuccess, Consumer<Throwable> onFailure) {
-        TopicPartitionInfo tpi = mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getQueueName(), getTenantId(), tbMsg.getOriginator());
-        enqueue(tpi, tbMsg, onFailure, onSuccess);
+        enqueue(tbMsg, tbMsg.getQueueName(), onSuccess, onFailure);
     }
 
     @Override
@@ -702,27 +703,6 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public void logJsEvalRequest() {
-        if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeStats().incrementRequests();
-        }
-    }
-
-    @Override
-    public void logJsEvalResponse() {
-        if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeStats().incrementResponses();
-        }
-    }
-
-    @Override
-    public void logJsEvalFailure() {
-        if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeStats().incrementFailures();
-        }
-    }
-
-    @Override
     public String getServiceId() {
         return mainCtx.getServiceInfoProvider().getServiceId();
     }
@@ -773,7 +753,7 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public RuleEngineDeviceStateManager getDeviceStateManager() {
+    public DeviceStateManager getDeviceStateManager() {
         return mainCtx.getDeviceStateManager();
     }
 
@@ -939,6 +919,16 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public SlackService getSlackService() {
         return mainCtx.getSlackService();
+    }
+
+    @Override
+    public CalculatedFieldService getCalculatedFieldService() {
+        return mainCtx.getCalculatedFieldService();
+    }
+
+    @Override
+    public RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService() {
+        return mainCtx.getCalculatedFieldQueueService();
     }
 
     @Override

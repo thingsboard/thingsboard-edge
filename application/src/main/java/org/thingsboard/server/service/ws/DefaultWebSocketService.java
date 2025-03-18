@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -249,6 +249,7 @@ public class DefaultWebSocketService implements WebSocketService {
             } catch (TbRateLimitsException e) {
                 log.debug("{} Failed to handle WS cmd: {}", sessionRef, cmd, e);
             } catch (Exception e) {
+                sendError(sessionRef, cmd.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR, e.getMessage());
                 log.error("{} Failed to handle WS cmd: {}", sessionRef, cmd, e);
             }
         }

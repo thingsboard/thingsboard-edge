@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -106,10 +106,17 @@ export interface IWidgetUtils {
   getEntityDetailsPageURL: (id: string, entityType: EntityType) => string;
 }
 
+export interface PlaceMapItemActionData {
+  action: WidgetAction;
+  additionalParams?: any;
+  afterPlaceItemCallback: ($event: Event, descriptor: WidgetAction, entityId?: EntityId, entityName?: string,
+                           additionalParams?: any, entityLabel?: string) => void;
+}
+
 export interface WidgetActionsApi {
   actionDescriptorsBySourceId: {[sourceId: string]: Array<WidgetActionDescriptor>};
   getActionDescriptors: (actionSourceId: string) => Array<WidgetActionDescriptor>;
-  handleWidgetAction: ($event: Event, descriptor: WidgetActionDescriptor,
+  handleWidgetAction: ($event: Event, descriptor: WidgetAction,
                        entityId?: EntityId, entityName?: string, additionalParams?: any, entityLabel?: string) => void;
   onWidgetAction: ($event: Event, action: WidgetAction) => void;
   elementClick: ($event: Event) => void;
@@ -122,6 +129,7 @@ export interface WidgetActionsApi {
                                 hideDashboardToolbar?: boolean, preferredPlacement?: PopoverPlacement,
                                 hideOnClickOutside?: boolean, popoverWidth?: string,
                                 popoverHeight?: string, popoverStyle?: { [klass: string]: any }) => void;
+  placeMapItem: (action: PlaceMapItemActionData) => void;
 }
 
 export interface AliasInfo {

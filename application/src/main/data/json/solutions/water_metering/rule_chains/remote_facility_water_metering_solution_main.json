@@ -67,8 +67,15 @@
         "name": "Save Client Attributes",
         "debugFailures": false,
         "debugAll": false,
+        "configurationVersion": 3,
         "configuration": {
-          "scope": "CLIENT_SCOPE"
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          },
+          "scope": "CLIENT_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false,
+          "updateAttributesOnlyOnValueChange": false
         },
         "externalId": null
       },
@@ -86,7 +93,7 @@
         "configuration": {
           "defaultTTL": 0,
           "useServerTs": false,
-          "persistenceSettings": {
+          "processingSettings": {
             "type": "ON_EVERY_MESSAGE"
           }
         },

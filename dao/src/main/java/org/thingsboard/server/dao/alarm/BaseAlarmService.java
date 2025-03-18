@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -387,8 +387,13 @@ public class BaseAlarmService extends AbstractCachedEntityService<TenantId, Page
 
     @Override
     public long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query) {
+        return countAlarmsByQuery(tenantId, customerId, mergedUserPermissions, query, null);
+    }
+
+    @Override
+    public long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query, Collection<EntityId> orderedEntityIds) {
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        return alarmDao.countAlarmsByQuery(tenantId, customerId, mergedUserPermissions, query);
+        return alarmDao.countAlarmsByQuery(tenantId, customerId, mergedUserPermissions, query, orderedEntityIds);
     }
 
     @Override

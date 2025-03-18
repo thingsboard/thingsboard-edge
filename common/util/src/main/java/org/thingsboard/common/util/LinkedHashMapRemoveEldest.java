@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,10 +49,10 @@ import java.util.function.BiConsumer;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class LinkedHashMapRemoveEldest<K, V> extends LinkedHashMap<K, V> {
-    final long maxEntries;
+    final int maxEntries;
     final BiConsumer<K, V> removalConsumer;
 
-    public LinkedHashMapRemoveEldest(long maxEntries, BiConsumer<K, V> removalConsumer) {
+    public LinkedHashMapRemoveEldest(int maxEntries, BiConsumer<K, V> removalConsumer) {
         this.maxEntries = maxEntries;
         this.removalConsumer = removalConsumer;
     }

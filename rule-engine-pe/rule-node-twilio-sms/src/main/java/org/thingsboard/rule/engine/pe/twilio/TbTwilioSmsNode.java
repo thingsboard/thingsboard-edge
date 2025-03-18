@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,6 +57,7 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         configClazz = TbTwilioSmsNodeConfiguration.class,
         nodeDescription = "Sends SMS message via Twilio.",
         nodeDetails = "Will send message payload as SMS message via Twilio.",
+        uiResources = {"static/rulenode/twilio-config.js"},
         configDirective = "tbExternalNodeTwilioSmsConfig",
         icon = "sms",
         docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-sms-node"

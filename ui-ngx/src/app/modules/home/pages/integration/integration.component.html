@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -86,6 +86,7 @@
       <tb-converter-autocomplete class="flex-1" formControlName="defaultConverterId" required
                                  labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
                                  [converterType]="converterType.UPLINK"
+                                 [integrationType]="entityForm.get('type').value"
                                  [showDetailsPageLink]="true"
                                  [useFullEntityId]="true"
                                  [addNewConverter]="true"
@@ -95,6 +96,7 @@
                                  labelText="integration.downlink-converter"
                                  *ngIf="showDownlinkConvector"
                                  [converterType]="converterType.DOWNLINK"
+                                 [integrationType]="entityForm.get('type').value"
                                  [showDetailsPageLink]="true"
                                  [useFullEntityId]="true"
                                  [addNewConverter]="true"

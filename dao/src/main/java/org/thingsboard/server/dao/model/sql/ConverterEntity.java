@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,17 +45,20 @@ import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_INTEGRATION_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_VERSION_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 
 @Data
@@ -74,6 +77,10 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
     @Column(name = CONVERTER_TYPE_PROPERTY)
     private ConverterType type;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = CONVERTER_INTEGRATION_TYPE_PROPERTY)
+    private IntegrationType integrationType;
+
     @Column(name = ModelConstants.DEBUG_SETTINGS)
     private String debugSettings;
 
@@ -91,6 +98,9 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
     @Column(name = CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY)
     private boolean edgeTemplate;
 
+    @Column(name = CONVERTER_VERSION_PROPERTY)
+    private Integer converterVersion;
+
     public ConverterEntity() {
         super();
     }
@@ -102,6 +112,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
         }
         this.name = converter.getName();
         this.type = converter.getType();
+        this.integrationType = converter.getIntegrationType();
         this.debugSettings = JacksonUtil.toString(converter.getDebugSettings());
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
@@ -109,6 +120,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
             this.externalId = converter.getExternalId().getId();
         }
         this.edgeTemplate = converter.isEdgeTemplate();
+        this.converterVersion = converter.getConverterVersion();
     }
 
     @Override
@@ -121,6 +133,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
         }
         converter.setName(name);
         converter.setType(type);
+        converter.setIntegrationType(integrationType);
         converter.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
@@ -128,6 +141,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
             converter.setExternalId(new ConverterId(externalId));
         }
         converter.setEdgeTemplate(edgeTemplate);
+        converter.setConverterVersion(converterVersion);
         return converter;
     }
 

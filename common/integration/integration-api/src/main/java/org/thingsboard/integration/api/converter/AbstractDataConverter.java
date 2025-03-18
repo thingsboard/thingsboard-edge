@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.integration.api.converter;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.util.ExceptionUtil;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
@@ -47,13 +48,16 @@ import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
  */
 @Slf4j
 public abstract class AbstractDataConverter implements TBDataConverter {
+
+    private final LogSettingsComponent logSettings;
     private final JsInvokeService jsInvokeService;
     private final TbelInvokeService tbelInvokeService;
     protected Converter configuration;
 
-    public AbstractDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
+    public AbstractDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
         this.jsInvokeService = jsInvokeService;
         this.tbelInvokeService = tbelInvokeService;
+        this.logSettings = logSettings;
     }
 
     protected ScriptInvokeService getScriptInvokeService(Converter configuration) {
@@ -84,7 +88,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     }
 
     protected String toString(Exception e) {
-        return ExceptionUtil.toString(e, configuration.getId(), isExceptionStackTraceEnabled());
+        return ExceptionUtil.toString(e, configuration.getId(),  logSettings.isExceptionStackTraceEnabled());
     }
 
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
@@ -120,5 +124,4 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         }
     }
 
-    abstract boolean isExceptionStackTraceEnabled();
 }

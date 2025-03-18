@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -118,7 +118,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     this.selfRegistrationFormGroup = this.fb.group({
       domainId: [null, [Validators.required]],
       captcha: this.fb.group({
-        version: ['v3'],
+        version: ['v3', Validators.required],
         siteKey: ['', Validators.required],
         secretKey: ['', Validators.required],
         logActionName: ['']
@@ -171,7 +171,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
         this.selfRegistrationService.deleteSelfRegistrationParams().subscribe(() => {
           this.onSelfRegistrationParamsLoaded(null);
           this.registerLink = '';
-          form.resetForm();
+          form.resetForm({captcha: {version: 'v3'}});
         });
       }
     })

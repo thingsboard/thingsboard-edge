@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,22 @@
 ///
 
 import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormGroup, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
 import { AttributeScope, telemetryTypeTranslations } from '@app/shared/models/telemetry/telemetry.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  maxDeduplicateTimeSecs,
+  ProcessingSettings,
+  ProcessingSettingsForm,
+  ProcessingType,
+  ProcessingTypeTranslationMap
+} from '@home/components/rule-node/action/timeseries-config.models';
+import {
+  AttributeNodeConfiguration,
+  AttributeNodeConfigurationForm,
+  defaultAttributeAdvancedProcessingStrategy
+} from '@home/components/rule-node/action/attributes-config.model';
 
 @Component({
   selector: 'tb-action-node-attributes-config',
@@ -46,6 +58,12 @@ export class AttributesConfigComponent extends RuleNodeConfigurationComponent {
   attributeScopes = Object.keys(AttributeScope);
   telemetryTypeTranslationsMap = telemetryTypeTranslations;
 
+  ProcessingType = ProcessingType;
+  processingStrategies = [ProcessingType.ON_EVERY_MESSAGE, ProcessingType.DEDUPLICATE, ProcessingType.WEBSOCKETS_ONLY];
+  ProcessingTypeTranslationMap = ProcessingTypeTranslationMap;
+
+  maxDeduplicateTime = maxDeduplicateTimeSecs;
+
   attributesConfigForm: UntypedFormGroup;
 
   constructor(private fb: UntypedFormBuilder) {
@@ -56,8 +74,64 @@ export class AttributesConfigComponent extends RuleNodeConfigurationComponent {
     return this.attributesConfigForm;
   }
 
+  protected validatorTriggers(): string[] {
+    return ['processingSettings.isAdvanced', 'processingSettings.type'];
+  }
+
+  protected prepareInputConfig(config: AttributeNodeConfiguration): AttributeNodeConfigurationForm {
+    let processingSettings: ProcessingSettingsForm;
+    if (config?.processingSettings) {
+      const isAdvanced = config?.processingSettings?.type === ProcessingType.ADVANCED;
+      processingSettings = {
+        type: isAdvanced ? ProcessingType.ON_EVERY_MESSAGE : config.processingSettings.type,
+        isAdvanced: isAdvanced,
+        deduplicationIntervalSecs: config.processingSettings?.deduplicationIntervalSecs ?? 60,
+        advanced: isAdvanced ? config.processingSettings : defaultAttributeAdvancedProcessingStrategy
+      }
+    } else {
+      processingSettings = {
+        type: ProcessingType.ON_EVERY_MESSAGE,
+        isAdvanced: false,
+        deduplicationIntervalSecs: 60,
+        advanced: defaultAttributeAdvancedProcessingStrategy
+      };
+    }
+    return {
+      ...config,
+      processingSettings: processingSettings
+    }
+  }
+
+  protected prepareOutputConfig(config: AttributeNodeConfigurationForm): AttributeNodeConfiguration {
+    let processingSettings: ProcessingSettings;
+    if (config.processingSettings.isAdvanced) {
+      processingSettings = {
+        ...config.processingSettings.advanced,
+        type: ProcessingType.ADVANCED
+      };
+    } else {
+      processingSettings = {
+        type: config.processingSettings.type,
+        deduplicationIntervalSecs: config.processingSettings?.deduplicationIntervalSecs
+      };
+    }
+    return {
+      ...config,
+      processingSettings
+    };
+  }
+
   protected onConfigurationSet(configuration: RuleNodeConfiguration) {
     this.attributesConfigForm = this.fb.group({
+      processingSettings: this.fb.group({
+        isAdvanced: [configuration?.processingSettings?.isAdvanced ?? false],
+        type: [configuration?.processingSettings?.type ?? ProcessingType.ON_EVERY_MESSAGE],
+        deduplicationIntervalSecs: [
+          {value: configuration?.processingSettings?.deduplicationIntervalSecs ?? 60, disabled: true},
+          [Validators.required, Validators.max(maxDeduplicateTimeSecs)]
+        ],
+        advanced: [{value: null, disabled: true}]
+      }),
       scope: [configuration ? configuration.scope : null, [Validators.required]],
       notifyDevice: [configuration ? configuration.notifyDevice : true, []],
       sendAttributesUpdatedNotification: [configuration ? configuration.sendAttributesUpdatedNotification : false, []],
@@ -77,4 +151,19 @@ export class AttributesConfigComponent extends RuleNodeConfigurationComponent {
     });
   }
 
+  protected updateValidators(emitEvent: boolean, _trigger?: string) {
+    const processingForm = this.attributesConfigForm.get('processingSettings') as FormGroup;
+    const isAdvanced: boolean = processingForm.get('isAdvanced').value;
+    const type: ProcessingType = processingForm.get('type').value;
+    if (!isAdvanced && type === ProcessingType.DEDUPLICATE) {
+      processingForm.get('deduplicationIntervalSecs').enable({emitEvent});
+    } else {
+      processingForm.get('deduplicationIntervalSecs').disable({emitEvent});
+    }
+    if (isAdvanced) {
+      processingForm.get('advanced').enable({emitEvent});
+    } else {
+      processingForm.get('advanced').disable({emitEvent});
+    }
+  }
 }

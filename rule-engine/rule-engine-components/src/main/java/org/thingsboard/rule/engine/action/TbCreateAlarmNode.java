@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -133,15 +133,11 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         ListenableFuture<JsonNode> asyncDetails;
         boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();
         if (buildDetails) {
-            ctx.logJsEvalRequest();
             asyncDetails = buildAlarmDetails(msg, null);
         } else {
             asyncDetails = Futures.immediateFuture(null);
         }
         ListenableFuture<Alarm> asyncAlarm = Futures.transform(asyncDetails, details -> {
-            if (buildDetails) {
-                ctx.logJsEvalResponse();
-            }
             Alarm newAlarm;
             if (msgAlarm != null) {
                 newAlarm = msgAlarm;
@@ -162,15 +158,11 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         ListenableFuture<JsonNode> asyncDetails;
         boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();
         if (buildDetails) {
-            ctx.logJsEvalRequest();
             asyncDetails = buildAlarmDetails(msg, existingAlarm.getDetails());
         } else {
             asyncDetails = Futures.immediateFuture(null);
         }
         ListenableFuture<AlarmApiCallResult> asyncUpdated = Futures.transform(asyncDetails, details -> {
-            if (buildDetails) {
-                ctx.logJsEvalResponse();
-            }
             if (msgAlarm != null) {
                 existingAlarm.setSeverity(msgAlarm.getSeverity());
                 existingAlarm.setPropagate(msgAlarm.isPropagate());

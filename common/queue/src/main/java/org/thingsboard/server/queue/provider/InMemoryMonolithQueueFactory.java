@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,16 +45,24 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldStateProto;
+import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
+import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
+import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.TopicService;
+import org.thingsboard.server.queue.edqs.EdqsConfig;
+import org.thingsboard.server.queue.edqs.EdqsQueue;
 import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
+import org.thingsboard.server.queue.settings.TbQueueCalculatedFieldSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
@@ -75,6 +83,7 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     private final TopicService topicService;
     private final TbQueueCoreSettings coreSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
+    private final TbQueueAdmin queueAdmin;
     private final TbQueueRuleEngineSettings ruleEngineSettings;
     private final TbQueueVersionControlSettings vcSettings;
     private final TbQueueTransportApiSettings transportApiSettings;
@@ -82,6 +91,8 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     private final TbQueueEdgeSettings edgeSettings;
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
+    private final TbQueueCalculatedFieldSettings calculatedFieldSettings;
+    private final EdqsConfig edqsConfig;
     private final InMemoryStorage storage;
 
     @Override
@@ -152,6 +163,36 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     @Override
     public TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate() {
         throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCalculatedFieldMsg>> createToCalculatedFieldMsgConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, topicService.buildTopicName(calculatedFieldSettings.getEventTopic()));
+    }
+
+    @Override
+    public TbQueueAdmin getCalculatedFieldQueueAdmin() {
+        return queueAdmin;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCalculatedFieldMsg>> createToCalculatedFieldMsgProducer() {
+        return new InMemoryTbQueueProducer<>(storage, topicService.buildTopicName(calculatedFieldSettings.getEventTopic()));
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCalculatedFieldNotificationMsg>> createToCalculatedFieldNotificationsMsgConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, topicService.getCalculatedFieldNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<CalculatedFieldStateProto>> createCalculatedFieldStateConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, topicService.buildTopicName(calculatedFieldSettings.getStateTopic()));
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<CalculatedFieldStateProto>> createCalculatedFieldStateProducer() {
+        return new InMemoryTbQueueProducer<>(storage, topicService.buildTopicName(calculatedFieldSettings.getStateTopic()));
     }
 
     @Override
@@ -253,6 +294,31 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToEdgeEventNotificationMsg>> createEdgeEventMsgProducer() {
         return null;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCalculatedFieldNotificationMsg>> createToCalculatedFieldNotificationMsgProducer() {
+        return new InMemoryTbQueueProducer<>(storage, topicService.buildTopicName(calculatedFieldSettings.getEventTopic()));
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsMsgProducer(EdqsQueue queue) {
+        return new InMemoryTbQueueProducer<>(storage, queue.getTopic());
+    }
+
+    @Override
+    public TbQueueRequestTemplate<TbProtoQueueMsg<ToEdqsMsg>, TbProtoQueueMsg<FromEdqsMsg>> createEdqsRequestTemplate() {
+        TbQueueProducer<TbProtoQueueMsg<ToEdqsMsg>> requestProducer = new InMemoryTbQueueProducer<>(storage, edqsConfig.getRequestsTopic());
+        TbQueueConsumer<TbProtoQueueMsg<FromEdqsMsg>> responseConsumer = new InMemoryTbQueueConsumer<>(storage, edqsConfig.getResponsesTopic());
+
+        return DefaultTbQueueRequestTemplate.<TbProtoQueueMsg<ToEdqsMsg>, TbProtoQueueMsg<FromEdqsMsg>>builder()
+                .queueAdmin(queueAdmin)
+                .requestTemplate(requestProducer)
+                .responseTemplate(responseConsumer)
+                .maxPendingRequests(edqsConfig.getMaxPendingRequests())
+                .maxRequestTimeout(edqsConfig.getMaxRequestTimeout())
+                .pollInterval(edqsConfig.getPollInterval())
+                .build();
     }
 
     @Scheduled(fixedRateString = "${queue.in_memory.stats.print-interval-ms:60000}")
