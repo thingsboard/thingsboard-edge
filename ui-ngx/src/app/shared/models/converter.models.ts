@@ -268,6 +268,10 @@ export const getConverterFunctionHeldId =
       : (converterType === ConverterType.UPLINK ? 'converter/decoder_fn' : 'converter/encoder_fn');
   }
 
+export const getConverterFunctionHeldPopupStyle =
+  (converterType: ConverterType): Record<string, string> => {
+    return converterType === ConverterType.DOWNLINK ? {width: '700px'} : {width: '1300px'};
+  }
 
 export const getConverterFunctionName =
   (converterType: ConverterType, converterVersion: ConverterVersion): string => {

@@ -59,6 +59,7 @@ import {
   ConverterDebugInput,
   getConverterFunctionArgs,
   getConverterFunctionHeldId,
+  getConverterFunctionHeldPopupStyle,
   getConverterFunctionName,
   getConverterTestFunctionName,
   TestConverterInputParams,
@@ -134,6 +135,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
   functionName: string;
   functionArgs: string[];
   functionHelpId: string;
+  functionHelpPopupStyle: Record<string, string>;
 
   dialogTitle: string;
 
@@ -158,6 +160,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
     this.scriptLang = this.data.scriptLang ? this.data.scriptLang : ScriptLanguage.JS;
     this.functionArgs = getConverterFunctionArgs(this.data.converter.type);
     this.functionHelpId = getConverterFunctionHeldId(this.data.converter.type, this.data.scriptLang);
+    this.functionHelpPopupStyle = getConverterFunctionHeldPopupStyle(this.data.converter.type);
     this.dialogTitle = getConverterTestFunctionName(this.data.converter.type, this.data.converter.converterVersion);
   }
 
@@ -266,7 +269,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
       payloadFormGroup.get('stringContent').valueChanges.pipe(startWith(''))
     ];
     if (this.isDecoder) {
-      inputContentTriggers.push(payloadFormGroup.get('contentType').valueChanges.pipe(startWith('')));
+      inputContentTriggers.push(payloadFormGroup.get('contentType').valueChanges.pipe(startWith(contentType)));
     }
     combineLatest(inputContentTriggers).pipe(
       takeUntilDestroyed(this.destroyRef)
