@@ -197,7 +197,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
             addWsCallback(resultFuture, success -> onTimeSeriesUpdate(tenantId, entityId, request.getEntries()));
         }
         if (strategy.saveLatest() && entityId.getEntityType().isOneOf(EntityType.DEVICE, EntityType.ASSET)) {
-            addMainCallback(saveFuture, __ -> copyLatestToEntityViews(tenantId, entityId, request.getEntries()));
+            addMainCallback(resultFuture, __ -> copyLatestToEntityViews(tenantId, entityId, request.getEntries()));
         }
         return resultFuture;
     }
