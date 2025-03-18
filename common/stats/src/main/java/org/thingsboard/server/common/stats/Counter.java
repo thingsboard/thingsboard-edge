@@ -28,22 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.cf;
+package org.thingsboard.server.common.stats;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.ToCalculatedFieldSystemMsg;
-import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+public interface Counter {
 
-@Data
-public class CalculatedFieldEntityLifecycleMsg implements ToCalculatedFieldSystemMsg {
+    int getAndClear();
 
-    private final TenantId tenantId;
-    private final ComponentLifecycleMsg data;
-
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.CF_ENTITY_LIFECYCLE_MSG;
-    }
+    void increment();
 }

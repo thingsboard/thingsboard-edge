@@ -28,22 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.cf;
+package org.thingsboard.server.common.stats;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.ToCalculatedFieldSystemMsg;
-import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+import java.util.concurrent.atomic.AtomicInteger;
 
-@Data
-public class CalculatedFieldEntityLifecycleMsg implements ToCalculatedFieldSystemMsg {
+public class LocalCounter implements Counter {
 
-    private final TenantId tenantId;
-    private final ComponentLifecycleMsg data;
+    private final AtomicInteger counter = new AtomicInteger(0);
 
     @Override
-    public MsgType getMsgType() {
-        return MsgType.CF_ENTITY_LIFECYCLE_MSG;
+    public int getAndClear() {
+        return counter.getAndSet(0);
+    }
+
+    @Override
+    public void increment() {
+        counter.incrementAndGet();
     }
 }
