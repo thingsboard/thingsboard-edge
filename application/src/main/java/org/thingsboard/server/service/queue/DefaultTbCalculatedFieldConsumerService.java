@@ -57,7 +57,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldLinke
 import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldTelemetryMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
-import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.common.consumer.PartitionedQueueConsumerManager;
@@ -98,7 +97,6 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerSer
     private long packProcessingTimeout;
 
     private final TbRuleEngineQueueFactory queueFactory;
-    private final TbQueueAdmin queueAdmin;
     private final CalculatedFieldStateService stateService;
 
     public DefaultTbCalculatedFieldConsumerService(TbRuleEngineQueueFactory tbQueueFactory,
@@ -111,12 +109,10 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerSer
                                                    ApplicationEventPublisher eventPublisher,
                                                    JwtSettingsService jwtSettingsService,
                                                    CalculatedFieldCache calculatedFieldCache,
-                                                   TbQueueAdmin queueAdmin,
                                                    CalculatedFieldStateService stateService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService,
                 eventPublisher, jwtSettingsService);
         this.queueFactory = tbQueueFactory;
-        this.queueAdmin = queueAdmin;
         this.stateService = stateService;
     }
 
@@ -131,7 +127,7 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerSer
                 .pollInterval(pollInterval)
                 .msgPackProcessor(this::processMsgs)
                 .consumerCreator((config, partitionId) -> queueFactory.createToCalculatedFieldMsgConsumer())
-                .queueAdmin(queueAdmin)
+                .queueAdmin(queueFactory.getCalculatedFieldQueueAdmin())
                 .consumerExecutor(consumersExecutor)
                 .scheduler(scheduler)
                 .taskExecutor(mgmtExecutor)

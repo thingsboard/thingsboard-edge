@@ -68,7 +68,6 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.EdqsEventMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
-import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueHandler;
 import org.thingsboard.server.queue.TbQueueResponseTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
@@ -107,7 +106,6 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
     private final EdqsPartitionService partitionService;
     private final ConfigurableApplicationContext applicationContext;
     private final EdqsStateService stateService;
-    private final TbQueueAdmin queueAdmin;
 
     private PartitionedQueueConsumerManager<TbProtoQueueMsg<ToEdqsMsg>> eventConsumer;
     private TbQueueResponseTemplate<TbProtoQueueMsg<ToEdqsMsg>, TbProtoQueueMsg<FromEdqsMsg>> responseTemplate;
@@ -158,7 +156,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
                     consumer.commit();
                 })
                 .consumerCreator((config, partitionId) -> queueFactory.createEdqsMsgConsumer(EdqsQueue.EVENTS))
-                .queueAdmin(queueAdmin)
+                .queueAdmin(queueFactory.getEdqsQueueAdmin())
                 .consumerExecutor(consumersExecutor)
                 .taskExecutor(taskExecutor)
                 .scheduler(scheduler)
