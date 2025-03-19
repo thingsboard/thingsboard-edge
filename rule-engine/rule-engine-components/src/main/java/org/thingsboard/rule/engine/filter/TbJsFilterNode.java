@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,6 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
                 "Message metadata can be accessed via <code>metadata</code> property. For example <code>metadata.customerName === 'John';</code><br/>" +
                 "Message type can be accessed via <code>msgType</code> property.<br><br>" +
                 "Output connections: <code>True</code>, <code>False</code>, <code>Failure</code>",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbFilterNodeScriptConfig"
 )
 public class TbJsFilterNode implements TbNode {
@@ -76,15 +75,12 @@ public class TbJsFilterNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        ctx.logJsEvalRequest();
         withCallback(scriptEngine.executeFilterAsync(msg),
                 filterResult -> {
-                    ctx.logJsEvalResponse();
                     ctx.tellNext(msg, filterResult ? TbNodeConnectionType.TRUE : TbNodeConnectionType.FALSE);
                 },
                 t -> {
                     ctx.tellFailure(msg, t);
-                    ctx.logJsEvalFailure();
                 }, ctx.getDbCallbackExecutor());
     }
 

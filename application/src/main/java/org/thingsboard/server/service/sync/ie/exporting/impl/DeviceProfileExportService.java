@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,6 @@ public class DeviceProfileExportService extends BaseEntityExportService<DevicePr
         deviceProfile.setDefaultDashboardId(getExternalIdOrElseInternal(ctx, deviceProfile.getDefaultDashboardId()));
         deviceProfile.setDefaultRuleChainId(getExternalIdOrElseInternal(ctx, deviceProfile.getDefaultRuleChainId()));
         deviceProfile.setDefaultEdgeRuleChainId(getExternalIdOrElseInternal(ctx, deviceProfile.getDefaultEdgeRuleChainId()));
-        imageService.inlineImage(deviceProfile);
     }
 
     @Override

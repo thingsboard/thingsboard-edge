@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -61,6 +61,7 @@ import { Observable } from 'rxjs';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { map } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface AddDeviceProfileDialogData {
   deviceProfileName: string;
@@ -140,7 +141,9 @@ export class AddDeviceProfileDialogComponent extends
           [Validators.required]]
       }
     );
-    this.transportConfigFormGroup.get('transportType').valueChanges.subscribe(() => {
+    this.transportConfigFormGroup.get('transportType').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe(() => {
       this.deviceProfileTransportTypeChanged();
     });
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -50,11 +50,12 @@ import {
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { mergeDeep } from '@core/utils';
 import { IAliasController } from '@core/api/widget-api.models';
-import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeysCallbacks } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import { DataKey, Datasource, WidgetConfig } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { ValueSourceType } from '@shared/models/widget-settings.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-time-series-chart-thresholds-panel',
@@ -102,14 +103,17 @@ export class TimeSeriesChartThresholdsPanelComponent implements ControlValueAcce
 
   private propagateChange = (_val: any) => {};
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit() {
     this.thresholdsFormGroup = this.fb.group({
       thresholds: [this.fb.array([]), []]
     });
-    this.thresholdsFormGroup.valueChanges.subscribe(
+    this.thresholdsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => {
         let thresholds: TimeSeriesChartThreshold[] = this.thresholdsFormGroup.get('thresholds').value;
         if (thresholds) {

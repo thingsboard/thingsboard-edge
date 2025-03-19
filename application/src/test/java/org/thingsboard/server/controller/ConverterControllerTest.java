@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,9 @@ import org.mockito.Mockito;
 import org.springframework.data.util.Pair;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
 import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -69,10 +71,19 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTI_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTN_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
@@ -93,8 +104,10 @@ public class ConverterControllerTest extends AbstractControllerTest {
     private Tenant savedTenant;
     private User tenantAdmin;
 
-    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
+    private static final JsonNode CUSTOM_UPLINK_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
             .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+    private static final JsonNode CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
+            .put("encoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
 
     @Before
     public void beforeTest() throws Exception {
@@ -126,7 +139,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -158,7 +171,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
         Converter foundConverter = doGet("/api/converter/" + savedConverter.getId().getId().toString(), Converter.class);
         Assert.assertNotNull(foundConverter);
@@ -170,7 +183,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -205,6 +218,105 @@ public class ConverterControllerTest extends AbstractControllerTest {
         testNotifyEntityEqualsOneTimeServiceNeverError(converter,
                 savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED,
                 new DataValidationException(msgError));
+    }
+
+    @Test
+    public void testUpdateConverterType() throws Exception {
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        converter.setType(ConverterType.UPLINK);
+        Converter savedConverter = doPost("/api/converter", converter, Converter.class);
+
+        savedConverter.setType(ConverterType.DOWNLINK);
+        savedConverter.setConfiguration(CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION);
+
+        String msgError = "Converter type cannot be changed!";
+        doPost("/api/converter", savedConverter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+    }
+
+    @Test
+    public void testSaveConverterEnsuresUniqueNameAndType() throws Exception {
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        converter.setType(ConverterType.UPLINK);
+        converter.setTenantId(savedTenant.getId());
+        doPost("/api/converter", converter, Converter.class);
+
+        String msgError = "Converter with such name and type already exists!";
+        doPost("/api/converter", converter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+    }
+
+    @Test
+    public void testUpdateConverterEnsuresUniqueNameAndType() throws Exception {
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        converter.setType(ConverterType.UPLINK);
+        converter.setTenantId(savedTenant.getId());
+        doPost("/api/converter", converter, Converter.class);
+
+        converter.setName("My converter 2");
+        Converter savedConverter =  doPost("/api/converter", converter , Converter.class);
+
+        savedConverter.setName("My converter");
+        String msgError = "Converter with such name and type already exists!";
+        doPost("/api/converter", converter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+    }
+
+    @Test
+    public void testSaveConvertersWithSameNameDifferentType() {
+        Converter uplinkConverter = new Converter();
+        uplinkConverter.setName("My converter");
+        uplinkConverter.setType(ConverterType.UPLINK);
+        uplinkConverter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        uplinkConverter.setTenantId(savedTenant.getId());
+        Converter savedUplinkConverter = doPost("/api/converter", uplinkConverter, Converter.class);
+        Assert.assertNotNull(savedUplinkConverter);
+        Assert.assertNotNull(savedUplinkConverter.getId());
+
+        Converter downlinkConverter = new Converter();
+        downlinkConverter.setName("My converter");
+        downlinkConverter.setType(ConverterType.DOWNLINK);
+        downlinkConverter.setConfiguration(CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION);
+        downlinkConverter.setTenantId(savedTenant.getId());
+        Converter savedDownlinkConverter = doPost("/api/converter", downlinkConverter, Converter.class);
+        Assert.assertNotNull(savedDownlinkConverter);
+        Assert.assertNotNull(savedDownlinkConverter.getId());
+    }
+
+    @Test
+    public void testUpdateConverterWithSameNameDifferentType() {
+        Converter uplinkConverter = new Converter();
+        uplinkConverter.setName("My converter");
+        uplinkConverter.setType(ConverterType.UPLINK);
+        uplinkConverter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+        uplinkConverter.setTenantId(savedTenant.getId());
+        Converter savedUplinkConverter = doPost("/api/converter", uplinkConverter, Converter.class);
+        Assert.assertNotNull(savedUplinkConverter);
+        Assert.assertNotNull(savedUplinkConverter.getId());
+
+        Converter downlinkConverter = new Converter();
+        downlinkConverter.setName("Another converter");
+        downlinkConverter.setType(ConverterType.DOWNLINK);
+        downlinkConverter.setConfiguration(CUSTOM_DOWNLINK_CONVERTER_CONFIGURATION);
+        downlinkConverter.setTenantId(savedTenant.getId());
+        Converter savedDownlinkConverter = doPost("/api/converter", downlinkConverter, Converter.class);
+        Assert.assertNotNull(savedDownlinkConverter);
+        Assert.assertNotNull(savedDownlinkConverter.getId());
+
+        savedDownlinkConverter.setName("My converter");
+        Converter updatedDownlinkConverter = doPost("/api/converter", savedDownlinkConverter, Converter.class);
+        Assert.assertNotNull(updatedDownlinkConverter);
+        Assert.assertEquals("My converter", updatedDownlinkConverter.getName());
+        Assert.assertEquals(ConverterType.DOWNLINK, updatedDownlinkConverter.getType());
     }
 
     @Test
@@ -256,7 +368,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
             Converter converter = new Converter();
             converter.setName("Converter" + i);
             converter.setType(ConverterType.UPLINK);
-            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
 
@@ -284,6 +396,72 @@ public class ConverterControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testFindTenantConvertersByIntegrationType() throws Exception {
+        int mqttCntEntity = 27;
+        for (int i = 0; i < mqttCntEntity; i++) {
+            Converter converter = new Converter();
+            converter.setName("Mqtt converter" + i);
+            converter.setType(ConverterType.UPLINK);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+            converter.setIntegrationType(IntegrationType.MQTT);
+            doPost("/api/converter", converter, Converter.class);
+        }
+
+        int httpCntEntity = 35;
+        for (int i = 0; i < httpCntEntity; i++) {
+            Converter converter = new Converter();
+            converter.setName("Http converter" + i);
+            converter.setType(ConverterType.UPLINK);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
+            converter.setIntegrationType(IntegrationType.HTTP);
+            doPost("/api/converter", converter, Converter.class);
+        }
+
+        List<Converter> loadedConverters = new ArrayList<>();
+        PageLink pageLink = new PageLink(23);
+        PageData<Converter> pageData;
+        do {
+            pageData = doGetTypedWithPageLink("/api/converters?",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Assert.assertEquals(mqttCntEntity + httpCntEntity, loadedConverters.size());
+
+        List<Converter> loadedMqttConverters = new ArrayList<>();
+        pageLink = new PageLink(23);
+        do {
+            pageData = doGetTypedWithPageLink("/api/converters?integrationType=MQTT&",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedMqttConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Assert.assertEquals(mqttCntEntity, loadedMqttConverters.size());
+
+        List<Converter> loadedHttpConverters = new ArrayList<>();
+        pageLink = new PageLink(23);
+        do {
+            pageData = doGetTypedWithPageLink("/api/converters?integrationType=HTTP&",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedHttpConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Assert.assertEquals(httpCntEntity, loadedHttpConverters.size());
+    }
+
+    @Test
     public void testFindTenantConvertersBySearchText() throws Exception {
         String title1 = "Converter title 1";
         List<Converter> converters = new ArrayList<>();
@@ -294,7 +472,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
             converter.setType(ConverterType.UPLINK);
-            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
         String title2 = "Converter title 2";
@@ -306,7 +484,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             converter.setName(name);
             converter.setType(ConverterType.UPLINK);
-            converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+            converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
             converters1.add(doPost("/api/converter", converter, Converter.class));
         }
 
@@ -381,7 +559,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter uplinkConverter = new Converter();
         uplinkConverter.setName("UP");
         uplinkConverter.setType(ConverterType.UPLINK);
-        uplinkConverter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        uplinkConverter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
         uplinkConverter = doPost("/api/converter", uplinkConverter, Converter.class);
 
         Converter downlinkConverter = new Converter();
@@ -509,34 +687,78 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testTTIDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"deviceName\":\"eui-1000000000000001 1000000000000001\",\"deviceType\":\"application-tti-name\"," +
-                "\"attributes\":{\"eui\":\"1000000000000001\",\"fPort\":85,\"devAddr\":\"20000001\"}," +
-                "\"telemetry\":[{\"ts\":1684398325906,\"values\":{}}]}";
-        testDecoder("tbel-tti-decoder.raw", DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tti-name\"," +
+                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("eui-$eui");
+        config.setProfile("$applicationId");
+        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
+
+        Converter converter = new Converter();
+        converter.setIntegrationType(IntegrationType.TTI);
+        converter.setConverterVersion(2);
+        converter.setConfiguration(JacksonUtil.valueToTree(config));
+
+        testDecoder("tbel-tti-decoder.raw", DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TTI_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
     public void testTTNDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"deviceName\":\"eui-1000000000000001 1000000000000001\",\"deviceType\":\"application-tts-name\",\"" +
-                "attributes\":{\"eui\":\"1000000000000001\",\"fPort\":85,\"devAddr\":\"20000001\"},\"" +
-                "telemetry\":[{\"ts\":1684474415641,\"values\":{}}]}";
-        testDecoder("tbel-ttn-decoder.raw", DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tts-name\"," +
+                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("eui-$eui");
+        config.setProfile("$applicationId");
+        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
+
+        Converter converter = new Converter();
+        converter.setIntegrationType(IntegrationType.TTN);
+        converter.setConverterVersion(2);
+        converter.setConfiguration(JacksonUtil.valueToTree(config));
+
+        testDecoder("tbel-ttn-decoder.raw", DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TTN_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
     public void testChirpstackDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"deviceName\":\"Device name 1000000000000001\",\"deviceType\":\"Chirpstack default device profile\",\"" +
-                "attributes\":{\"eui\":\"1000000000000001\",\"devAddr\":\"20000001\",\"fPort\":85},\"" +
-                "telemetry\":[{\"ts\":1684741625404,\"values\":{}}]}";
-        testDecoder("tbel-chirpstack-decoder.raw", DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\",\"profile\":\"Chirpstack default device profile\"," +
+                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("Device name $eui");
+        config.setProfile("$deviceProfileName");
+        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
+
+        Converter converter = new Converter();
+        converter.setIntegrationType(IntegrationType.CHIRPSTACK);
+        converter.setConverterVersion(2);
+        converter.setConfiguration(JacksonUtil.valueToTree(config));
+
+        testDecoder("tbel-chirpstack-decoder.raw", DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
     public void testLoriotDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "[{\"deviceName\":\"Device name 1000000000000001\",\"deviceType\":\"Device type\",\"" +
-                "attributes\":{\"eui\":\"1000000000000001\",\"fPort\":85},\"" +
-                "telemetry\":[{\"ts\":1684478801936,\"values\":{}}]}]";
-        testDecoder("tbel-loriot-decoder.raw", DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE, expectedDecodedMessage);
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\"," +
+                "\"profile\":\"Device type\",\"telemetry\":[],\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+
+        DedicatedConverterConfig config = new DedicatedConverterConfig();
+        config.setType(EntityType.DEVICE);
+        config.setName("Device name $eui");
+        config.setProfile("Device type");
+        config.setAttributes(Set.of("eui", "fPort"));
+
+        Converter converter = new Converter();
+        converter.setIntegrationType(IntegrationType.LORIOT);
+        converter.setConverterVersion(2);
+        converter.setConfiguration(JacksonUtil.valueToTree(config));
+
+        testDecoder("tbel-loriot-decoder.raw", DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD, DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
@@ -575,16 +797,29 @@ public class ConverterControllerTest extends AbstractControllerTest {
     }
 
     public void testDecoder(String decoderFileName, String payloadExample, String expectedResult) throws IOException {
+        testDecoder(decoderFileName, payloadExample, "{}", expectedResult, null);
+    }
+
+    public void testDecoder(String decoderFileName, String payloadExample, String metadata, String expectedResult, Converter converter) throws IOException {
         byte[] bytes = IOUtils.toByteArray(ConverterControllerTest.class.getClassLoader().getResourceAsStream("converters/" + decoderFileName));
         String base64Payload = Base64.getEncoder().encodeToString(payloadExample.getBytes(StandardCharsets.UTF_8));
 
         ObjectNode inputParams = JacksonUtil.newObjectNode();
         inputParams.set("decoder", new TextNode(new String(bytes)));
         inputParams.set("payload", new TextNode(base64Payload));
-        inputParams.set("metadata", JacksonUtil.newObjectNode());
+        inputParams.set("metadata", JacksonUtil.toJsonNode(metadata));
+
+        if (converter != null) {
+            inputParams.set("converter", JacksonUtil.valueToTree(converter));
+        }
 
         JsonNode response = doPost("/api/converter/testUpLink?scriptLang=TBEL", inputParams, JsonNode.class);
-        String output = response.get("output").asText();
+        String output;
+        if (converter != null) {
+            output = response.get("outputMsg").toString();
+        } else {
+            output = response.get("output").asText();
+        }
         assertThat(output).isEqualTo(expectedResult);
     }
 
@@ -593,7 +828,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         converter.setName(name);
         converter.setType(ConverterType.UPLINK);
         converter.setEdgeTemplate(edgeTemplate);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
         return converter;
     }
 

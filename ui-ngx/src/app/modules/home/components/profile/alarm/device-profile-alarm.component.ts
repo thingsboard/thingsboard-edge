@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
 import {
   ControlValueAccessor,
   UntypedFormBuilder,
@@ -46,6 +46,7 @@ import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { EntityId } from '@shared/models/id/entity-id';
 import { UtilsService } from '@core/services/utils.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-device-profile-alarm',
@@ -89,7 +90,8 @@ export class DeviceProfileAlarmComponent implements ControlValueAccessor, OnInit
 
   constructor(private dialog: MatDialog,
               private utils: UtilsService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   registerOnChange(fn: any): void {
@@ -117,7 +119,9 @@ export class DeviceProfileAlarmComponent implements ControlValueAccessor, OnInit
       propagateToOwnerHierarchy: [null],
       propagateToTenant: [null]
     }, { validators: deviceProfileAlarmValidator });
-    this.alarmFormGroup.valueChanges.subscribe(() => {
+    this.alarmFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -263,7 +263,7 @@ public class TbRuleEngineStrategyTest {
     }
 
     private static TbMsg createRandomMsg() {
-        return TbMsg.builder()
+        return TbMsg.newMsg()
                 .id(UUID.randomUUID())
                 .type("test type")
                 .originator(deviceId)

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -100,6 +100,7 @@ public class AuthControllerTest extends AbstractControllerTest {
         assertThat(user.getEmail()).isEqualTo(CUSTOMER_USER_EMAIL);
         user = getUser(customerUserId);
         assertThat(user.getAdditionalInfo().get("userCredentialsEnabled").asBoolean()).isTrue();
+        assertThat(user.getAdditionalInfo().get("userActivated").asBoolean()).isTrue();
         assertThat(user.getAdditionalInfo().get("lastLoginTs").asLong()).isCloseTo(System.currentTimeMillis(), within(10000L));
         UserInfo userInfo = getUserInfo(customerUserId);
         assertThat(userInfo.getAdditionalInfo().get("lastLoginTs").asLong()).isCloseTo(System.currentTimeMillis(), within(10000L));
@@ -263,6 +264,7 @@ public class AuthControllerTest extends AbstractControllerTest {
         user.setAuthority(Authority.TENANT_ADMIN);
         user.setEmail("tenant-admin-2@thingsboard.org");
         user = doPost("/api/user", user, User.class);
+        assertThat(getUser(user.getId()).getAdditionalInfo().get("userActivated").asBoolean()).isFalse();
 
         UserCredentials userCredentials = userCredentialsDao.findByUserId(tenantId, user.getUuidId());
         assertThat(userCredentials.getActivateTokenExpTime()).isCloseTo(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(ttl), Offset.offset(120000L));
@@ -309,6 +311,7 @@ public class AuthControllerTest extends AbstractControllerTest {
         doPost("/api/noauth/activate", JacksonUtil.newObjectNode()
                 .put("activateToken", newActivationToken)
                 .put("password", "wefewe")).andExpect(status().isOk());
+        assertThat(getUser(user.getId()).getAdditionalInfo().get("userActivated").asBoolean()).isTrue();
     }
 
     @Test

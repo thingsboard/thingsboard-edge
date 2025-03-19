@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -338,7 +338,13 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                         }
                     }
                     TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
-                    TbMsg tbMsg = TbMsg.newMsg(msgType, originatorId, tbMsgMD, TbMsgDataType.JSON, getMsgBody(event.getConfiguration()));
+                    TbMsg tbMsg = TbMsg.newMsg()
+                            .type(msgType)
+                            .originator(originatorId)
+                            .metaData(tbMsgMD)
+                            .dataType(TbMsgDataType.JSON)
+                            .data(getMsgBody(event.getConfiguration()))
+                            .build();
                     log.debug("pushing message to the rule engine tenant {}, originator {}, msg {}", tenantId, originatorId, tbMsg);
                     clusterService.pushMsgToRuleEngine(tenantId, originatorId, tbMsg, null);
                 } catch (Exception e) {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -45,8 +45,8 @@ import {
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import {
   Datasource,
-  DatasourceType, datasourceValid,
-  JsonSettingsSchema,
+  DatasourceType,
+  datasourceValid,
   WidgetConfigMode,
   widgetType
 } from '@shared/models/widget.models';
@@ -54,9 +54,11 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { deepClone } from '@core/utils';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { UtilsService } from '@core/services/utils.service';
-import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { FormProperty } from '@shared/models/dynamic-form.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-datasources',
@@ -146,6 +148,10 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
 
   @Input()
   @coerceBoolean()
+  hideAlarmFilter = false;
+
+  @Input()
+  @coerceBoolean()
   forceSingleDatasource = false;
 
   @Input()
@@ -164,7 +170,8 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
   constructor(private fb: UntypedFormBuilder,
               private utils: UtilsService,
               public translate: TranslateService,
-              private widgetConfigComponent: WidgetConfigComponent) {
+              private widgetConfigComponent: WidgetConfigComponent,
+              private destroyRef: DestroyRef) {
   }
 
   registerOnChange(fn: any): void {
@@ -192,7 +199,9 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
     this.datasourcesFormGroup = this.fb.group({
       datasources: this.fb.array([])
     });
-    this.datasourcesFormGroup.valueChanges.subscribe(
+    this.datasourcesFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => {
         this.datasourcesUpdated(this.datasourcesFormGroup.get('datasources').value);
       }
@@ -351,8 +360,8 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
   public addDatasource(emitEvent = true) {
     let newDatasource: Datasource;
     if (this.widgetConfigComponent.functionsOnly) {
-      newDatasource = deepClone(this.utils.getDefaultDatasource(this.dataKeySettingsSchema.schema));
-      newDatasource.dataKeys = [this.dataKeysCallbacks.generateDataKey('Sin', DataKeyType.function, this.dataKeySettingsSchema,
+      newDatasource = deepClone(this.utils.getDefaultDatasource(this.dataKeySettingsForm));
+      newDatasource.dataKeys = [this.dataKeysCallbacks.generateDataKey('Sin', DataKeyType.function, this.dataKeySettingsForm,
         false, this.dataKeySettingsFunction)];
     } else {
       const type = this.basicMode ? this.datasourcesMode : DatasourceType.entity;
@@ -366,8 +375,8 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
     this.datasourcesFormArray.push(this.fb.control(newDatasource, []), {emitEvent});
   }
 
-  private get dataKeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.dataKeySettingsSchema;
+  private get dataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.dataKeySettingsForm;
   }
 
   private get dataKeySettingsFunction(): DataKeySettingsFunction {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -41,6 +41,10 @@ import {
   EntityGroupSettings,
   groupSettingsDefaults
 } from '@shared/models/entity-group.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { buildPageStepSizeValues } from '@home/components/widget/lib/table-widget.models';
+import { pairwise } from 'rxjs';
+import { startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-entity-group-settings',
@@ -58,6 +62,8 @@ export class EntityGroupSettingsComponent extends PageComponent implements Contr
 
   settingsFormGroup: UntypedFormGroup;
 
+  pageStepSizeValues = [];
+
   @Input()
   entityType: EntityType;
 
@@ -70,14 +76,39 @@ export class EntityGroupSettingsComponent extends PageComponent implements Contr
   entityTypes = EntityType;
 
   constructor(protected store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
   ngOnInit() {
     this.settingsFormGroup = this.fb.group(groupSettingsDefaults(this.entityType, {} as EntityGroupSettings));
-    this.settingsFormGroup.get('defaultPageSize').setValidators([Validators.min(5)]);
-    this.settingsFormGroup.valueChanges.subscribe(() => {
+    this.settingsFormGroup.get('defaultPageSize').setValidators([Validators.min(1)]);
+    this.settingsFormGroup.get('pageStepCount').setValidators([Validators.min(1), Validators.max(100),
+      Validators.required, Validators.pattern(/^\d*$/)]);
+    this.settingsFormGroup.get('pageStepIncrement').setValidators([Validators.min(1), Validators.required,
+      Validators.pattern(/^\d*$/)]);
+    this.pageStepSizeValues = buildPageStepSizeValues(this.settingsFormGroup.get('pageStepCount').value,
+      this.settingsFormGroup.get('pageStepIncrement').value);
+    this.settingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      startWith(this.settingsFormGroup.getRawValue()),
+      pairwise(),
+    ).subscribe(([prev, curr]) => {
+      if (prev.pageStepCount !== curr.pageStepCount || prev.pageStepIncrement !== curr.pageStepIncrement) {
+        this.settingsFormGroup.get('defaultPageSize').reset();
+        this.pageStepSizeValues = buildPageStepSizeValues(this.settingsFormGroup.get('pageStepCount').value,
+          this.settingsFormGroup.get('pageStepIncrement').value);
+      }
+      if (prev.displayPagination !== curr.displayPagination) {
+        if (curr.displayPagination) {
+          this.settingsFormGroup.get('pageStepCount').enable();
+          this.settingsFormGroup.get('pageStepIncrement').enable();
+        } else {
+          this.settingsFormGroup.get('pageStepCount').disable();
+          this.settingsFormGroup.get('pageStepIncrement').disable();
+        }
+      }
       this.updateModel();
     });
   }
@@ -107,6 +138,8 @@ export class EntityGroupSettingsComponent extends PageComponent implements Contr
   writeValue(value: EntityGroupSettings | null): void {
     this.modelValue = groupSettingsDefaults(this.entityType, value || {} as EntityGroupSettings);
     this.settingsFormGroup.reset(this.modelValue,{emitEvent: false});
+    this.pageStepSizeValues = buildPageStepSizeValues(this.settingsFormGroup.get('pageStepCount').value,
+      this.settingsFormGroup.get('pageStepIncrement').value);
   }
 
   private propagateChange = (v: any) => { };

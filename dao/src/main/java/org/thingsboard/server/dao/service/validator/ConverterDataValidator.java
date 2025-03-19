@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,8 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
+import java.util.Objects;
+
 @Component
 public class ConverterDataValidator extends DataValidator<Converter> {
 
@@ -56,27 +58,23 @@ public class ConverterDataValidator extends DataValidator<Converter> {
         if (!converter.isEdgeTemplate()) {
             validateNumberOfEntitiesPerTenant(tenantId, EntityType.CONVERTER);
         }
-        converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType()).ifPresent(
-                d -> {
-                    throw new DataValidationException("Converter with such name already exists!");
-                }
-        );
     }
 
     @Override
     protected Converter validateUpdate(TenantId tenantId, Converter converter) {
-        var oldConverter = converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType());
-        oldConverter.ifPresent(
-                d -> {
-                    if (!d.getId().equals(converter.getId())) {
-                        throw new DataValidationException("Converter with such name already exists!");
-                    }
-                    if (!d.getType().equals(converter.getType())) {
-                        throw new DataValidationException("Converter type can not be changed!");
-                    }
-                }
-        );
-        return oldConverter.orElse(null);
+        Converter existingConverter = converterDao.findById(converter.getTenantId(), converter.getUuidId());
+        if (existingConverter != null) {
+            if (!converter.getType().equals(existingConverter.getType())) {
+                throw new DataValidationException("Converter type cannot be changed!");
+            }
+            if (!Objects.equals(converter.getIntegrationType(), existingConverter.getIntegrationType())) {
+                throw new DataValidationException("Integration type cannot be changed!");
+            }
+            if (!Objects.equals(converter.getConverterVersion(), existingConverter.getConverterVersion())) {
+                throw new DataValidationException("Converter version cannot be changed!");
+            }
+        }
+        return existingConverter;
     }
 
     @Override
@@ -101,11 +99,21 @@ public class ConverterDataValidator extends DataValidator<Converter> {
                 if (!converter.getConfiguration().has("decoder")) {
                     throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
                 }
+                if (converter.getConverterVersion() == null) {
+                    throw new DataValidationException("Converter 'version' should be specified!");
+                }
+                if (converter.getConverterVersion() == 2 && converter.getIntegrationType() == null) {
+                    throw new DataValidationException("Converter 'integrationType' should be specified!");
+                }
             } else {
                 if (!converter.getConfiguration().has("encoder")) {
                     throw new DataValidationException("Converter 'encoder' field should be specified in configuration!");
                 }
             }
         }
+        if (converterDao.existsByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType(), converter.getUuidId())) {
+            throw new DataValidationException("Converter with such name and type already exists!");
+        }
     }
+
 }

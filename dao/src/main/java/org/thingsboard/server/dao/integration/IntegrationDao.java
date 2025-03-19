@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,7 @@ import java.util.UUID;
  * The Interface IntegrationDao.
  *
  */
-public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, ExportableEntityDao<IntegrationId, Integration> {
+public interface IntegrationDao extends Dao<Integration>, TenantEntityDao<Integration>, ExportableEntityDao<IntegrationId, Integration> {
 
     /**
      * Find all (core and edge template) integrations by tenantId and page link.
@@ -114,4 +114,5 @@ public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, Expor
     PageData<Integration> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
 
     Long countCoreIntegrations();
+
 }

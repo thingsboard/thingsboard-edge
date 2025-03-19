@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -467,6 +467,9 @@ export class EntityService {
       case EntityType.OAUTH2_CLIENT:
         observable = this.oauth2Service.findTenantOAuth2ClientInfosByIds(entityIds, config);
         break;
+      case EntityType.RULE_CHAIN:
+        observable = this.ruleChainService.getRuleChainsByIds(entityIds, config);
+        break;
     }
     return observable;
   }
@@ -589,7 +592,7 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.converterService.getConvertersByEdgeTemplate(pageLink, false, config);
+        entitiesObservable = this.converterService.getConvertersByEdgeTemplate(pageLink, false, null, config);
         break;
       case EntityType.INTEGRATION:
         pageLink.sortOrder.property = 'name';

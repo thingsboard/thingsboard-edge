@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,4 +30,10 @@
  */
 package org.thingsboard.server.common.data;
 
-public record ConvertersInfo(boolean library, boolean existing) {}
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.util.Set;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record ConvertersInfo(boolean library, boolean existing, Set<String> keys) {
+}

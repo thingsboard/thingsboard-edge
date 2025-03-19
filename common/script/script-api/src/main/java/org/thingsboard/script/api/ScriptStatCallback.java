@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,29 +34,30 @@ import com.google.common.util.concurrent.FutureCallback;
 import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.stats.Counter;
+import org.thingsboard.server.common.stats.StatsCounter;
 
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @AllArgsConstructor
 public class ScriptStatCallback<T> implements FutureCallback<T> {
 
-    private final AtomicInteger successMsgs;
-    private final AtomicInteger timeoutMsgs;
-    private final AtomicInteger failedMsgs;
+    private final Counter successMsgs;
+    private final Counter timeoutMsgs;
+    private final Counter failedMsgs;
 
     @Override
     public void onSuccess(@Nullable T result) {
-        successMsgs.incrementAndGet();
+        successMsgs.increment();
     }
 
     @Override
     public void onFailure(Throwable t) {
         if (t instanceof TimeoutException || (t.getCause() != null && t.getCause() instanceof TimeoutException)) {
-            timeoutMsgs.incrementAndGet();
+            timeoutMsgs.increment();
         } else {
-            failedMsgs.incrementAndGet();
+            failedMsgs.increment();
         }
     }
 }

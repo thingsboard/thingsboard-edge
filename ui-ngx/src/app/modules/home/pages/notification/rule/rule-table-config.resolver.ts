@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -41,8 +42,6 @@ import { NotificationRule, TriggerTypeTranslationMap } from '@shared/models/noti
 import { NotificationService } from '@core/http/notification.service';
 import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
-import { EntityAction } from '@home/models/entity/entity-component.models';
-import { RuleTableHeaderComponent } from '@home/pages/notification/rule/rule-table-header.component';
 import {
   RuleNotificationDialogComponent,
   RuleNotificationDialogData
@@ -51,6 +50,7 @@ import { ActivatedRouteSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
+import { Observable } from 'rxjs';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
@@ -68,11 +68,13 @@ export class RuleTableConfigResolver  {
 
     this.config.entityType = EntityType.NOTIFICATION_RULE;
     this.config.detailsPanelEnabled = false;
-    this.config.addEnabled = false;
+    this.config.addAsTextButton = true;
     this.config.rowPointer = true;
 
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.NOTIFICATION_RULE);
     this.config.entityResources = {} as EntityTypeResource<NotificationRule>;
+
+    this.config.addEntity = () => this.notificationRuleDialog(null, true);
 
     this.config.entitiesFetchFunction = pageLink => this.notificationService.getNotificationRules(pageLink);
 
@@ -83,10 +85,7 @@ export class RuleTableConfigResolver  {
     this.config.deleteEntity = id => this.notificationService.deleteNotificationRule(id.id);
 
     this.config.cellActionDescriptors = this.configureCellActions();
-    this.config.headerComponent = RuleTableHeaderComponent;
-    this.config.onEntityAction = action => this.onTargetAction(action);
 
-    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
     this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
@@ -109,7 +108,8 @@ export class RuleTableConfigResolver  {
     );
   }
 
-  resolve(route: ActivatedRouteSnapshot): EntityTableConfig<NotificationRule> {
+  resolve(_route: ActivatedRouteSnapshot): EntityTableConfig<NotificationRule> {
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 
@@ -119,7 +119,7 @@ export class RuleTableConfigResolver  {
       nameFunction: (entity) =>
         this.translate.instant(entity.enabled ? 'notification.rule-disable' : 'notification.rule-enable'),
       icon: 'mdi:toggle-switch',
-      isEnabled: () => true,
+      isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
       iconFunction: (entity) => entity.enabled ? 'mdi:toggle-switch' : 'mdi:toggle-switch-off-outline',
       onAction: ($event, entity) => this.toggleEnableMode($event, entity)
     },
@@ -127,15 +127,17 @@ export class RuleTableConfigResolver  {
       name: this.translate.instant('notification.copy-rule'),
       icon: 'content_copy',
       isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
-      onAction: ($event, entity) => this.editRule($event, entity, false, true)
+      onAction: ($event, entity) => this.editRule($event, entity, true)
     }];
   }
 
-  private editRule($event: Event, rule: NotificationRule, isAdd = false, isCopy = false) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialog.open<RuleNotificationDialogComponent, RuleNotificationDialogData,
+  private editRule($event: Event, rule: NotificationRule, isCopy = false): void{
+    $event?.stopPropagation();
+    this.notificationRuleDialog(rule, false, isCopy).subscribe(res => res ? this.config.updateData() : null);
+  }
+
+  private notificationRuleDialog(rule: NotificationRule, isAdd = false, isCopy = false): Observable<NotificationRule> {
+    return this.dialog.open<RuleNotificationDialogComponent, RuleNotificationDialogData,
       NotificationRule>(RuleNotificationDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
@@ -145,21 +147,7 @@ export class RuleTableConfigResolver  {
         rule,
         readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
-    }).afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.config.updateData();
-        }
-      });
-  }
-
-  private onTargetAction(action: EntityAction<NotificationRule>): boolean {
-    switch (action.action) {
-      case 'add':
-        this.editRule(action.event, action.entity, true);
-        return true;
-    }
-    return false;
+    }).afterClosed();
   }
 
   private toggleEnableMode($event: Event, rule: NotificationRule): void {

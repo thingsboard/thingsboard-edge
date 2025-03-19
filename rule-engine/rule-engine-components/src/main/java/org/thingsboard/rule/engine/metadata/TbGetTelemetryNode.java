@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -73,7 +73,6 @@ import java.util.stream.Collectors;
                 "instead of fetching just the latest telemetry or if you need to get the closest telemetry to the fetch interval start or end. " +
                 "Also, this node can be used for telemetry aggregation within configured fetch interval.<br><br>" +
                 "Output connections: <code>Success</code>, <code>Failure</code>.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbEnrichmentNodeGetTelemetryFromDatabase")
 public class TbGetTelemetryNode implements TbNode {
 
@@ -130,7 +129,9 @@ public class TbGetTelemetryNode implements TbNode {
         ListenableFuture<List<TsKvEntry>> list = ctx.getTimeseriesService().findAll(ctx.getTenantId(), msg.getOriginator(), buildQueries(interval, keys));
         DonAsynchron.withCallback(list, data -> {
             var metaData = updateMetadata(data, msg, keys);
-            ctx.tellSuccess(TbMsg.transformMsgMetadata(msg, metaData));
+            ctx.tellSuccess(msg.transform()
+                    .metaData(metaData)
+                    .build());
         }, error -> ctx.tellFailure(msg, error), ctx.getDbCallbackExecutor());
     }
 

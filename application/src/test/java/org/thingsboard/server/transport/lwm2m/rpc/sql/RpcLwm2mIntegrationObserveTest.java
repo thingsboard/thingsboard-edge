@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@ import org.eclipse.leshan.server.registration.Registration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.thingsboard.server.transport.lwm2m.rpc.AbstractRpcLwM2MIntegrationObserveTest;
+import org.thingsboard.server.transport.lwm2m.rpc.AbstractRpcLwM2MIntegrationTest;
 
 import static org.eclipse.leshan.core.LwM2mId.ACCESS_CONTROL;
 import static org.junit.Assert.assertEquals;
@@ -56,7 +56,7 @@ import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.RESOURCE_ID
 import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.fromVersionedIdToObjectId;
 
 @Slf4j
-public class RpcLwm2mIntegrationObserveTest extends AbstractRpcLwM2MIntegrationObserveTest {
+public class RpcLwm2mIntegrationObserveTest extends AbstractRpcLwM2MIntegrationTest {
 
     @Before
     public void setupObserveTest() throws Exception {
@@ -88,13 +88,13 @@ public class RpcLwm2mIntegrationObserveTest extends AbstractRpcLwM2MIntegrationO
      * @throws Exception
      */
     @Test
-    public void testObserveOneObjectInstance_Result_CONTENT_Value_Count_3_After_Cancel_Count_2() throws Exception {
+    public void testObserveOneObjectInstance_Result_CONTENT_Value_Count_Equal_Greater_3_After_Cancel_Count_2() throws Exception {
         sendObserveCancelAllWithAwait(lwM2MTestClient.getDeviceIdStr());
         String idVer_3_0 = objectInstanceIdVer_3;
         sendRpcObserveWithContainsLwM2mSingleResource(idVer_3_0);
 
         int cntUpdate = 3;
-        verify(defaultUplinkMsgHandlerTest, timeout(10000).times(cntUpdate))
+        verify(defaultUplinkMsgHandlerTest, timeout(10000).atLeast(cntUpdate))
                 .updateAttrTelemetry(Mockito.any(Registration.class), eq(idVer_3_0_9), eq(null));
     }
 
@@ -103,13 +103,13 @@ public class RpcLwm2mIntegrationObserveTest extends AbstractRpcLwM2MIntegrationO
      * @throws Exception
      */
     @Test
-    public void testObserveOneObject_Result_CONTENT_Value_Count_3_After_Cancel_Count_2() throws Exception {
+    public void testObserveOneObject_Result_CONTENT_Value_Count_Equal_Greater_3_After_Cancel_Count_2() throws Exception {
         sendObserveCancelAllWithAwait(lwM2MTestClient.getDeviceIdStr());
         String idVer_3_0 = objectInstanceIdVer_3;
         sendRpcObserveWithContainsLwM2mSingleResource(idVer_3_0);
 
         int cntUpdate = 3;
-        verify(defaultUplinkMsgHandlerTest, timeout(10000).times(cntUpdate))
+        verify(defaultUplinkMsgHandlerTest, timeout(10000).atLeast(cntUpdate))
                 .updateAttrTelemetry(Mockito.any(Registration.class), eq(idVer_3_0_9), eq(null));
     }
 

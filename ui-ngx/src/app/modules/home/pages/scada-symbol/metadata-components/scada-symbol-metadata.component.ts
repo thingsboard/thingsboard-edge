@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 
 import {
   Component,
+  DestroyRef,
   forwardRef,
   Input,
   OnChanges,
@@ -69,6 +70,7 @@ import {
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { IAliasController } from '@core/api/widget-api.models';
 import { WidgetActionCallbacks } from '@home/components/widget/action/manage-widget-actions.component.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
@@ -106,7 +108,7 @@ export class ScadaSymbolMetadataComponent extends PageComponent implements OnIni
   @Input()
   tags: string[];
 
-  private modelValue: ScadaSymbolMetadata;
+  modelValue: ScadaSymbolMetadata;
 
   private propagateChange = null;
 
@@ -143,6 +145,7 @@ export class ScadaSymbolMetadataComponent extends PageComponent implements OnIni
               private fb: UntypedFormBuilder,
               private translate: TranslateService,
               private customTranslate: CustomTranslatePipe,
+              private destroyRef: DestroyRef,
               private wl: WhiteLabelingService) {
     super(store);
   }
@@ -161,7 +164,9 @@ export class ScadaSymbolMetadataComponent extends PageComponent implements OnIni
     });
     this.updateFunctionCompleters(emptyMetadata());
 
-    this.metadataFormGroup.valueChanges.subscribe(() => {
+    this.metadataFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

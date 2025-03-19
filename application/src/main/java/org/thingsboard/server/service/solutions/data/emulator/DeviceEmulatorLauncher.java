@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,9 +34,11 @@ import com.google.common.util.concurrent.FutureCallback;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.thingsboard.rule.engine.api.AttributesSaveRequest;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -66,8 +68,12 @@ public class DeviceEmulatorLauncher extends AbstractEmulatorLauncher<Device> {
     @Override
     protected void postProcessEntity(Device entity) {
         if (this.emulatorDefinition.getActivityPeriodInMillis() > 0) {
-            tsSubService.saveAttrAndNotify(entity.getTenantId(), entity.getId(), AttributeScope.SERVER_SCOPE,
-                    DefaultDeviceStateService.INACTIVITY_TIMEOUT, this.emulatorDefinition.getActivityPeriodInMillis(), new FutureCallback<>() {
+            tsSubService.saveAttributes(AttributesSaveRequest.builder()
+                    .tenantId(entity.getTenantId())
+                    .entityId(entity.getId())
+                    .scope(AttributeScope.SERVER_SCOPE)
+                    .entry(new LongDataEntry(DefaultDeviceStateService.INACTIVITY_TIMEOUT, this.emulatorDefinition.getActivityPeriodInMillis()))
+                    .callback(new FutureCallback<>() {
                         @Override
                         public void onSuccess(@Nullable Void unused) {
                             TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, entity.getTenantId(), entity.getId());
@@ -97,7 +103,8 @@ public class DeviceEmulatorLauncher extends AbstractEmulatorLauncher<Device> {
                         @Override
                         public void onFailure(Throwable throwable) {
                         }
-                    });
+                    })
+                    .build());
         }
     }
 }

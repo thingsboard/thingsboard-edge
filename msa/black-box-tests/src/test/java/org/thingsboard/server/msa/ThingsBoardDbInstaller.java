@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -71,6 +71,7 @@ public class ThingsBoardDbInstaller {
     private final static String TB_COAP_INTEGRATION_LOG_VOLUME = "tb-coap-integration-log-test-volume";
     private final static String TB_TCP_INTEGRATION_LOG_VOLUME = "tb-tcp-integration-log-test-volume";
     private final static String TB_UDP_INTEGRATION_LOG_VOLUME = "tb-udp-integration-log-test-volume";
+    private final static String TB_EDQS_LOG_VOLUME = "tb-edqs-log-test-volume";
     private final static String JAVA_OPTS = "-Xmx512m";
 
     private final DockerComposeExecutor dockerCompose;
@@ -94,6 +95,7 @@ public class ThingsBoardDbInstaller {
     private final String tbCoapIntegrationLogVolume;
     private final String tbTcpIntegrationLogVolume;
     private final String tbUdpIntegrationLogVolume;
+    private final String tbEdqsLogVolume;
 
     private final Map<String, String> env;
 
@@ -139,6 +141,7 @@ public class ThingsBoardDbInstaller {
         tbCoapIntegrationLogVolume = project + "_" + TB_COAP_INTEGRATION_LOG_VOLUME;
         tbTcpIntegrationLogVolume = project + "_" + TB_TCP_INTEGRATION_LOG_VOLUME;
         tbUdpIntegrationLogVolume = project + "_" + TB_UDP_INTEGRATION_LOG_VOLUME;
+        tbEdqsLogVolume = project + "_" + TB_EDQS_LOG_VOLUME;
 
         dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
@@ -166,6 +169,7 @@ public class ThingsBoardDbInstaller {
         env.put("TB_COAP_INTEGRATION_VOLUME", tbCoapIntegrationLogVolume);
         env.put("TB_TCP_INTEGRATION_VOLUME", tbTcpIntegrationLogVolume);
         env.put("TB_UDP_INTEGRATION_VOLUME", tbUdpIntegrationLogVolume);
+        env.put("TB_EDQS_LOG_VOLUME", tbEdqsLogVolume);
 
         if (IS_REDIS_CLUSTER) {
             for (int i = 0; i < 6; i++) {
@@ -264,6 +268,9 @@ public class ThingsBoardDbInstaller {
             dockerCompose.withCommand("volume create " + tbUdpIntegrationLogVolume);
             dockerCompose.invokeDocker();
 
+            dockerCompose.withCommand("volume create " + tbEdqsLogVolume);
+            dockerCompose.invokeDocker();
+
             StringBuilder additionalServices = new StringBuilder();
             if (IS_HYBRID_MODE) {
                 additionalServices.append(" cassandra");
@@ -321,6 +328,7 @@ public class ThingsBoardDbInstaller {
         copyLogs(tbCoapIntegrationLogVolume, "./target/tb-coap_integration-logs/");
         copyLogs(tbTcpIntegrationLogVolume, "./target/tb-tcp_integration-logs/");
         copyLogs(tbUdpIntegrationLogVolume, "./target/tb-udp_integration-logs/");
+        copyLogs(tbEdqsLogVolume, "./target/tb-edqs-logs/");
 
         StringJoiner rmVolumesCommand = new StringJoiner(" ")
                 .add("volume rm -f")
@@ -338,7 +346,8 @@ public class ThingsBoardDbInstaller {
                 .add(tbMqttIntegrationLogVolume)
                 .add(tbCoapIntegrationLogVolume)
                 .add(tbTcpIntegrationLogVolume)
-                .add(tbUdpIntegrationLogVolume);
+                .add(tbUdpIntegrationLogVolume)
+                .add(tbEdqsLogVolume);
 
         if (IS_HYBRID_MODE) {
             rmVolumesCommand.add(cassandraDataVolume);

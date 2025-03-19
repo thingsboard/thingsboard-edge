@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,11 +40,15 @@ import { Converter, ConverterType, getConverterHelpLink } from '@shared/models/c
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterService } from '@core/http/converter.service';
+import { IntegrationType } from '@shared/models/integration.models';
+import { isNotEmptyStr } from '@core/utils';
 
 export interface AddConverterDialogData  {
   name: string;
   edgeTemplate?: boolean;
   type: ConverterType;
+  integrationType?: IntegrationType;
+  disabledIntegrationType?: boolean
 }
 
 @Component({
@@ -68,13 +72,17 @@ export class AddConverterDialogComponent extends DialogComponent<AddConverterDia
     super(store, router, dialogRef);
   }
 
-  ngOnInit(): void {
-    this.converter = {...this.data as Converter};
+  ngOnInit() {
+    const {disabledIntegrationType, ...converterInfo} = this.data
+    this.converter = converterInfo as Converter;
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
       this.converterComponent.entityForm.get('type').disable({emitEvent: false});
+      if (isNotEmptyStr(this.data.integrationType) || this.data.disabledIntegrationType) {
+        this.converterComponent.entityForm.get('integrationType').disable({emitEvent: false});
+      }
       this.converterComponent.entityForm.patchValue(this.converter);
     }, 0);
   }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,33 +32,42 @@
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
 import { EntityType, EntityTypeResource, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { Direction } from '@shared/models/page/sort-order';
-import { NotificationTemplate, NotificationTemplateTypeTranslateMap } from '@shared/models/notification.models';
+import {
+  NotificationTemplate,
+  NotificationTemplateTypeTranslateMap,
+  singleNotificationTypeTemplate
+} from '@shared/models/notification.models';
 import { NotificationService } from '@core/http/notification.service';
-import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
 import {
   TemplateNotificationDialogComponent,
   TemplateNotificationDialogData
 } from '@home/pages/notification/template/template-notification-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
-import { TemplateTableHeaderComponent } from '@home/pages/notification/template/template-table-header.component';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { Observable } from 'rxjs';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { Authority } from '@shared/models/authority.enum';
 
 @Injectable()
 export class TemplateTableConfigResolver  {
 
   private readonly config: EntityTableConfig<NotificationTemplate> = new EntityTableConfig<NotificationTemplate>();
 
-  constructor(private notificationService: NotificationService,
+  constructor(private store: Store<AppState>,
+              private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
               private datePipe: DatePipe,
@@ -66,11 +75,13 @@ export class TemplateTableConfigResolver  {
 
     this.config.entityType = EntityType.NOTIFICATION_TEMPLATE;
     this.config.detailsPanelEnabled = false;
-    this.config.addEnabled = false;
+    this.config.addAsTextButton = true;
     this.config.rowPointer = true;
 
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.NOTIFICATION_TEMPLATE);
     this.config.entityResources = {} as EntityTypeResource<NotificationTemplate>;
+
+    this.config.addEntity = () => this.notificationTemplateDialog(null, true);
 
     this.config.entitiesFetchFunction = pageLink => this.notificationService.getNotificationTemplates(pageLink);
 
@@ -82,10 +93,6 @@ export class TemplateTableConfigResolver  {
 
     this.config.cellActionDescriptors = this.configureCellActions();
 
-    this.config.headerComponent = TemplateTableHeaderComponent;
-    this.config.onEntityAction = action => this.onTemplateAction(action);
-
-    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
     this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
@@ -103,7 +110,15 @@ export class TemplateTableConfigResolver  {
     );
   }
 
-  resolve(route: ActivatedRouteSnapshot): EntityTableConfig<NotificationTemplate> {
+  resolve(_route: ActivatedRouteSnapshot): EntityTableConfig<NotificationTemplate> {
+    const authority = getCurrentAuthUser(this.store).authority;
+    if (authority === Authority.SYS_ADMIN) {
+      this.config.deleteEnabled = (template) =>
+        this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE) &&
+          !singleNotificationTypeTemplate(template.notificationType);
+    } else {
+      defaultEntityTablePermissions(this.userPermissionsService, this.config);
+    }
     return this.config;
   }
 
@@ -112,17 +127,22 @@ export class TemplateTableConfigResolver  {
       {
         name: this.translate.instant('notification.copy-template'),
         icon: 'content_copy',
-        isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
-        onAction: ($event, entity) => this.editTemplate($event, entity, false, true)
+        isEnabled: (template) => {
+          return this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
+            && !singleNotificationTypeTemplate(template.notificationType)
+        },
+        onAction: ($event, entity) => this.editTemplate($event, entity, true)
       }
     ];
   }
 
-  private editTemplate($event: Event, template: NotificationTemplate, isAdd = false, isCopy = false) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialog.open<TemplateNotificationDialogComponent, TemplateNotificationDialogData,
+  private editTemplate($event: Event, template: NotificationTemplate, isCopy = false) {
+    $event?.stopPropagation();
+    this.notificationTemplateDialog(template, false, isCopy).subscribe((res) => res ? this.config.updateData() : null);
+  }
+
+  private notificationTemplateDialog(template: NotificationTemplate, isAdd = false, isCopy = false): Observable<NotificationTemplate> {
+    return this.dialog.open<TemplateNotificationDialogComponent, TemplateNotificationDialogData,
       NotificationTemplate>(TemplateNotificationDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
@@ -132,21 +152,6 @@ export class TemplateTableConfigResolver  {
         template,
         readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
-    }).afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.config.updateData();
-        }
-      });
+    }).afterClosed();
   }
-
-  private onTemplateAction(action: EntityAction<NotificationTemplate>): boolean {
-    switch (action.action) {
-      case 'add':
-        this.editTemplate(action.event, action.entity, true);
-        return true;
-    }
-    return false;
-  }
-
 }

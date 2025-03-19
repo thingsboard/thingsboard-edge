@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { AliasFilterType, EntityAliasFilter } from '@shared/models/alias.models';
 import { AliasEntityType, EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
+import { defaultSchedulerEventConfigTypes } from '@home/components/scheduler/scheduler-event-config.models';
 
 @Component({
   selector: 'tb-entity-filter-view',
@@ -307,8 +308,12 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
           break;
         case AliasFilterType.schedulerEvent:
           if (this.filter.eventType) {
+            let eventTypeName = this.filter.eventType;
+            if (defaultSchedulerEventConfigTypes[this.filter.eventType]) {
+              eventTypeName = defaultSchedulerEventConfigTypes[this.filter.eventType].name;
+            }
             const interpolateParams = {
-              eventType: this.filter.eventType
+              eventType: eventTypeName
             };
             if (this.filter.originator || this.filter.originatorStateEntity) {
               this.filterDisplayValue = this.translate.instant('alias.filter-type-scheduler-event-type-originator-description',

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -250,8 +250,13 @@ public class TbAlarmsCountNodeV2Test extends AbstractRuleNodeUpgradeTest {
             alarm.setOriginator(entityId);
             alarm.setPropagate(true);
             try {
-                TbMsg alarmMsg = TbMsg.newMsg(type, entityId, TbMsgMetaData.EMPTY,
-                        TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
+                TbMsg alarmMsg = TbMsg.newMsg()
+                        .type(type)
+                        .originator(entityId)
+                        .copyMetaData(TbMsgMetaData.EMPTY)
+                        .dataType(TbMsgDataType.JSON)
+                        .data(JacksonUtil.toString(alarm))
+                        .build();
                 node.onMsg(ctx, alarmMsg);
             } catch (Exception e) {
                 log.error("Exception occurred during onMsg processing: ", e);
@@ -311,8 +316,13 @@ public class TbAlarmsCountNodeV2Test extends AbstractRuleNodeUpgradeTest {
                 parentEntityIds.add(alarm.getOriginator());
                 when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
                 try {
-                    TbMsg alarmMsg = TbMsg.newMsg(TbMsgType.ALARM, entityId, TbMsgMetaData.EMPTY,
-                            TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
+                    TbMsg alarmMsg = TbMsg.newMsg()
+                            .type(TbMsgType.ALARM)
+                            .originator(entityId)
+                            .copyMetaData(TbMsgMetaData.EMPTY)
+                            .dataType(TbMsgDataType.JSON)
+                            .data(JacksonUtil.toString(alarm))
+                            .build();
                     node.onMsg(ctx, alarmMsg);
                 } catch (Exception e) {
                     log.error("Exception occurred during onMsg processing: ", e);
@@ -372,8 +382,13 @@ public class TbAlarmsCountNodeV2Test extends AbstractRuleNodeUpgradeTest {
                 parentEntityIds.add(parentEntityId);
                 when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
                 try {
-                    TbMsg alarmMsg = TbMsg.newMsg(TbMsgType.ALARM, entityId, TbMsgMetaData.EMPTY,
-                            TbMsgDataType.JSON, JacksonUtil.toString(alarm), null, null);
+                    TbMsg alarmMsg = TbMsg.newMsg()
+                            .type(TbMsgType.ALARM)
+                            .originator(entityId)
+                            .copyMetaData(TbMsgMetaData.EMPTY)
+                            .dataType(TbMsgDataType.JSON)
+                            .data(JacksonUtil.toString(alarm))
+                            .build();
                     node.onMsg(ctx, alarmMsg);
                 } catch (Exception e) {
                     log.error("Exception occurred during onMsg processing: ", e);

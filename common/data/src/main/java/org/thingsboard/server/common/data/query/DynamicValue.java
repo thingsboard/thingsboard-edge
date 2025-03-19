@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.data.query;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.validation.NoXss;
@@ -41,7 +40,6 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class DynamicValue<T> implements Serializable {
 
-    @JsonIgnore
     private T resolvedValue;
 
     private final DynamicValueSourceType sourceType;

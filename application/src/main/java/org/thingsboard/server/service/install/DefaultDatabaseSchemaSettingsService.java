@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,6 @@ package org.thingsboard.server.service.install;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -46,12 +45,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSettingsService {
 
-    private static final String CURRENT_PRODUCT = "PE";
     // This list should include all versions which are compatible for the upgrade.
     // The compatibility cycle usually breaks when we have some scripts written in Java that may not work after new release.
-    private static final List<String> SUPPORTED_VERSIONS_FOR_UPGRADE = List.of("3.8.0", "3.8.1");
+    private static final List<String> SUPPORTED_VERSIONS_FOR_UPGRADE = List.of("3.9.0", "3.9.1");
 
-    private final BuildProperties buildProperties;
+    private final ProjectInfo projectInfo;
     private final JdbcTemplate jdbcTemplate;
 
     private String packageSchemaVersion;
@@ -59,16 +57,12 @@ public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSetti
 
     @Override
     public void validateSchemaSettings(boolean updateFromCE) {
-        //TODO: remove after release (3.9.0)
-        createProductIfNotExists();
-
-        String dbSchemaVersion = getDbSchemaVersion();
-
         if (DefaultDataUpdateService.getEnv("SKIP_SCHEMA_VERSION_CHECK", false)) {
             log.info("Skipped DB schema version check due to SKIP_SCHEMA_VERSION_CHECK set to 'true'.");
             return;
         }
 
+        String dbSchemaVersion = getDbSchemaVersion();
         if (updateFromCE) {
             if (!dbSchemaVersion.equals(getPackageSchemaVersion())) {
                 onSchemaSettingsError("Upgrade failed: transitioning from CE to PE requires the database to first be upgraded to version '"
@@ -76,8 +70,8 @@ public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSetti
             }
         } else {
             String product = getProductFromDb();
-            if (!CURRENT_PRODUCT.equals(product)) {
-                onSchemaSettingsError(String.format("Upgrade failed: can't upgrade ThingsBoard %s database using ThingsBoard %s.", product, CURRENT_PRODUCT));
+            if (!projectInfo.getProductType().equals(product)) {
+                onSchemaSettingsError(String.format("Upgrade failed: can't upgrade ThingsBoard %s database using ThingsBoard %s.", product, projectInfo.getProductType()));
             }
 
             if (dbSchemaVersion.equals(getPackageSchemaVersion())) {
@@ -92,31 +86,23 @@ public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSetti
         }
     }
 
-    @Deprecated(forRemoval = true, since = "3.9.0")
-    private void createProductIfNotExists() {
-        boolean isCommunityEdition = jdbcTemplate.queryForList(
-                "SELECT 1 FROM information_schema.tables WHERE table_name = 'integration'", Integer.class).isEmpty();
-        String product = isCommunityEdition ? "CE" : "PE";
-        jdbcTemplate.execute("ALTER TABLE tb_schema_settings ADD COLUMN IF NOT EXISTS product varchar(2) DEFAULT '" + product + "'");
-    }
-
     @Override
     public void createSchemaSettings() {
         Long schemaVersion = getSchemaVersionFromDb();
         if (schemaVersion == null) {
-            jdbcTemplate.execute("INSERT INTO tb_schema_settings (schema_version, product) VALUES (" + getPackageSchemaVersionForDb() + ", '" + CURRENT_PRODUCT + "')");
+            jdbcTemplate.execute("INSERT INTO tb_schema_settings (schema_version, product) VALUES (" + getPackageSchemaVersionForDb() + ", '" + projectInfo.getProductType() + "')");
         }
     }
 
     @Override
     public void updateSchemaVersion() {
-        jdbcTemplate.execute("UPDATE tb_schema_settings SET schema_version = " + getPackageSchemaVersionForDb() + ", product = '" + CURRENT_PRODUCT + "'");
+        jdbcTemplate.execute("UPDATE tb_schema_settings SET schema_version = " + getPackageSchemaVersionForDb() + ", product = '" + projectInfo.getProductType() + "'");
     }
 
     @Override
     public String getPackageSchemaVersion() {
         if (packageSchemaVersion == null) {
-            packageSchemaVersion = buildProperties.getVersion().replaceAll("[^\\d.]", "");
+            packageSchemaVersion = projectInfo.getProjectVersion();
         }
         return packageSchemaVersion;
     }

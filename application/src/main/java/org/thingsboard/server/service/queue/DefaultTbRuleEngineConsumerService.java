@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -61,6 +62,7 @@ import org.thingsboard.server.queue.discovery.QueueKey;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.util.TbRuleEngineComponent;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+import org.thingsboard.server.service.cf.CalculatedFieldCache;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
@@ -98,8 +100,9 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
                                               TbApiUsageStateService apiUsageStateService,
                                               PartitionService partitionService,
                                               ApplicationEventPublisher eventPublisher,
-                                              JwtSettingsService jwtSettingsService) {
-        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, apiUsageStateService, partitionService, eventPublisher, jwtSettingsService);
+                                              JwtSettingsService jwtSettingsService,
+                                              CalculatedFieldCache calculatedFieldCache) {
+        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService, eventPublisher, jwtSettingsService);
         this.ctx = ctx;
         this.tbDeviceRpcService = tbDeviceRpcService;
         this.queueService = queueService;
@@ -119,7 +122,10 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        event.getPartitionsMap().forEach((queueKey, partitions) -> {
+        event.getNewPartitions().forEach((queueKey, partitions) -> {
+            if (DataConstants.CF_QUEUE_NAME.equals(queueKey.getQueueName()) || DataConstants.CF_STATES_QUEUE_NAME.equals(queueKey.getQueueName())) {
+                return;
+            }
             if (partitionService.isManagedByCurrentService(queueKey.getTenantId())) {
                 var consumer = getConsumer(queueKey).orElseGet(() -> {
                     Queue config = queueService.findQueueByTenantIdAndName(queueKey.getTenantId(), queueKey.getQueueName());
@@ -242,7 +248,7 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
             if (event.getEvent() == ComponentLifecycleEvent.DELETED) {
                 List<QueueKey> toRemove = consumers.keySet().stream()
                         .filter(queueKey -> queueKey.getTenantId().equals(event.getTenantId()))
-                        .collect(Collectors.toList());
+                        .toList();
                 toRemove.forEach(queueKey -> {
                     removeConsumer(queueKey).ifPresent(consumer -> consumer.delete(false));
                 });

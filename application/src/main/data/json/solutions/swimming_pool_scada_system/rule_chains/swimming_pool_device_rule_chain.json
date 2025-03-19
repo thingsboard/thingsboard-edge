@@ -11,13 +11,12 @@
     }
   },
   "metadata": {
-    "firstNodeIndex": 6,
+    "firstNodeIndex": 3,
     "nodes": [
       {
         "type": "org.thingsboard.rule.engine.filter.TbDeviceTypeSwitchNode",
         "name": "switch by device profile",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 0,
@@ -26,15 +25,14 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 480,
+          "layoutX": 413,
           "layoutY": 414
         }
       },
       {
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "message type switch",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 0,
@@ -43,106 +41,34 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 32,
-          "layoutY": 341
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
-        "name": "add device name as prefix",
-        "debugFailures": false,
-        "debugAll": false,
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "scriptLang": "TBEL",
-          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-          "tbelScript": "var newMsg = {};\nvar prefix = metadata.deviceName; \nprefix = toCamelCase(prefix);\n\nif (msg.opened != null) {\n    newMsg[prefix + 'Opened'] = msg.opened;\n}\nif (msg.running != null) {\n    newMsg[prefix + 'Running'] = msg.running;\n}\nif (msg.mode != null) {\n    newMsg[prefix + 'Mode'] = msg.mode;\n}\nif (msg.waterLevel != null) {\n    newMsg.waterLevel =  msg.waterLevel;\n}\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};\n\nfunction toCamelCase(str) {\n    var arr = str.split(\" \");\n    var result = arr[0].toLowerCase();\n    for(var i = 1; i < arr.length; i++) {\n        var ch = arr[i].substring(0, 1).toUpperCase();\n        result += ch + arr[i].substring(1).toLowerCase();\n    }\n    return result;\n}"
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 404,
-          "layoutY": 554
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
-        "name": "change originator to asset",
-        "debugFailures": false,
-        "debugAll": false,
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 1,
-        "configuration": {
-          "originatorSource": "RELATED",
-          "preserveOriginatorIfCustomer": false,
-          "entityType": null,
-          "entityNamePattern": null,
-          "relationsQuery": {
-            "fetchLastLevelOnly": false,
-            "direction": "TO",
-            "maxLevel": 1,
-            "filters": [
-              {
-                "relationType": "Contains",
-                "entityTypes": [
-                  "ASSET"
-                ]
-              }
-            ]
-          }
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 401,
-          "layoutY": 646
+          "layoutX": 357,
+          "layoutY": 177
         }
       },
       {
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "save time series",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
-        "configurationVersion": 0,
+        "configurationVersion": 1,
         "configuration": {
           "defaultTTL": 0,
-          "skipLatestPersistence": false,
-          "useServerTs": false
+          "useServerTs": false,
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          }
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 212,
-          "layoutY": 412
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
-        "name": "save asset attributes",
-        "debugFailures": false,
-        "debugAll": false,
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 2,
-        "configuration": {
-          "scope": "SERVER_SCOPE",
-          "notifyDevice": false,
-          "sendAttributesUpdatedNotification": false,
-          "updateAttributesOnlyOnValueChange": true
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 402,
-          "layoutY": 741
+          "layoutX": 417,
+          "layoutY": 326
         }
       },
       {
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "device profile",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 1,
@@ -152,15 +78,14 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 245,
-          "layoutY": 55
+          "layoutX": 153,
+          "layoutY": 277
         }
       },
       {
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "rpc request to device",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 0,
@@ -169,15 +94,14 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 720,
-          "layoutY": 56
+          "layoutX": 947,
+          "layoutY": 177
         }
       },
       {
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "turn on rpc",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 0,
@@ -188,15 +112,14 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 757,
-          "layoutY": 232
+          "layoutX": 753,
+          "layoutY": 560
         }
       },
       {
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "fetch time series from heat pump",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 1,
@@ -216,51 +139,14 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 484,
-          "layoutY": 325
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.filter.TbDeviceTypeSwitchNode",
-        "name": "filter water pump events",
-        "debugFailures": false,
-        "debugAll": false,
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "version": 0
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 82,
-          "layoutY": 554
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
-        "name": "check device activity",
-        "debugFailures": false,
-        "debugAll": false,
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "scriptLang": "TBEL",
-          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-          "tbelScript": "var newMsg = {};\n\nnewMsg.waterPumpActive = msg.?active;\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 84,
-          "layoutY": 654
+          "layoutX": 412,
+          "layoutY": 508
         }
       },
       {
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Attributes",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 2,
@@ -271,91 +157,14 @@
           "updateAttributesOnlyOnValueChange": true
         },
         "additionalInfo": {
-          "layoutX": 484,
-          "layoutY": 55
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
-        "name": "fetch asset attributes",
-        "debugFailures": false,
-        "debugAll": false,
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 1,
-        "configuration": {
-          "tellFailureIfAbsent": true,
-          "fetchTo": "DATA",
-          "clientAttributeNames": [],
-          "sharedAttributeNames": [],
-          "serverAttributeNames": [
-            "mainIntakeValveOpened",
-            "throughpassValveOpened",
-            "heatPumpIntakeValveOpened",
-            "heatPumpOutgoingValveOpened",
-            "poolIntakeValveOpened",
-            "poolWeirValveOpened",
-            "poolDrainValveOpened",
-            "waterPumpOutgoingValveOpened",
-            "drainValveOpened",
-            "waterPumpRunning",
-            "waterLevel",
-            "sandFilterMode",
-            "waterPumpActive"
-          ],
-          "latestTsKeyNames": [],
-          "getLatestValueWithTs": false
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 403,
-          "layoutY": 825
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
-        "name": "calculate segment attributes values",
-        "debugFailures": false,
-        "debugAll": false,
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "scriptLang": "TBEL",
-          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-          "tbelScript": "var filterSegmentFlowing = msg.?ss_waterPumpActive == true && calculateFilterSegment();\nvar drainSegmentFlowing = filterSegmentFlowing && msg.?ss_sandFilterMode == 2;\nvar heatSegmentFlowing = filterSegmentFlowing && !drainSegmentFlowing && msg.?ss_heatPumpIntakeValveOpened == 1;\nvar phFilterSegmentFlowing = calculatePhFilterSegment();\nvar fillSegmentFlowing = phFilterSegmentFlowing && msg.?ss_poolIntakeValveOpened == 1;\n\nvar newMsg = {};\n\nnewMsg.put(\"filterSegmentFlowing\", filterSegmentFlowing);\nnewMsg.put(\"drainSegmentFlowing\", drainSegmentFlowing);\nnewMsg.put(\"heatSegmentFlowing\", heatSegmentFlowing);\nnewMsg.put(\"phFilterSegmentFlowing\", phFilterSegmentFlowing);\nnewMsg.put(\"fillSegmentFlowing\", fillSegmentFlowing);\n\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};\n\nfunction calculateFilterSegment() {\n    if (!(msg.?ss_waterPumpOutgoingValveOpened == 1 && msg.?ss_waterPumpRunning == 1)) {\n        return false;\n    }\n    if (msg.?ss_poolDrainValveOpened == 1 && msg.?ss_waterLevel > 0) {\n        return true;\n    } \n    if (msg.?ss_poolWeirValveOpened == 1 && msg.?ss_waterLevel > 88) {\n        return true;\n    }\n    if (msg.?ss_mainIntakeValveOpened == 1) {\n        return true;\n    }\n    return false;\n}\n\nfunction calculatePhFilterSegment() {\n    if (filterSegmentFlowing && !drainSegmentFlowing && msg.?ss_throughpassValveOpened == 1) {\n        return true;\n    }\n    if (heatSegmentFlowing && msg.?ss_heatPumpOutgoingValveOpened == 1) {\n        return true;\n    }\n    return false;\n}\n\n\n"
-        },
-        "additionalInfo": {
-          "description": "Main calculation script to determine the state of the system",
-          "layoutX": 403,
-          "layoutY": 907
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
-        "name": "save segment values attributes",
-        "debugFailures": false,
-        "debugAll": false,
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 2,
-        "configuration": {
-          "scope": "SERVER_SCOPE",
-          "notifyDevice": false,
-          "sendAttributesUpdatedNotification": false,
-          "updateAttributesOnlyOnValueChange": true
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 407,
-          "layoutY": 991
+          "layoutX": 939,
+          "layoutY": 77
         }
       },
       {
         "type": "org.thingsboard.rule.engine.filter.TbJsSwitchNode",
         "name": "Determine RPC state",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 0,
@@ -366,15 +175,14 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 483,
-          "layoutY": 251
+          "layoutX": 410,
+          "layoutY": 605
         }
       },
       {
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "turn off rpc",
-        "debugFailures": false,
-        "debugAll": false,
+        "debugSettings": null,
         "singletonMode": false,
         "queueName": null,
         "configurationVersion": 0,
@@ -385,130 +193,65 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 757,
-          "layoutY": 295
+          "layoutX": 698,
+          "layoutY": 479
         }
       }
     ],
     "connections": [
       {
         "fromIndex": 0,
-        "toIndex": 2,
-        "type": "Sand filter"
-      },
-      {
-        "fromIndex": 0,
-        "toIndex": 2,
-        "type": "Valve"
-      },
-      {
-        "fromIndex": 0,
-        "toIndex": 2,
-        "type": "Water pump"
-      },
-      {
-        "fromIndex": 0,
-        "toIndex": 2,
-        "type": "Water sensor"
-      },
-      {
-        "fromIndex": 0,
-        "toIndex": 9,
+        "toIndex": 6,
         "type": "Heat pump"
       },
       {
         "fromIndex": 1,
-        "toIndex": 4,
+        "toIndex": 2,
         "type": "Post telemetry"
       },
       {
         "fromIndex": 1,
-        "toIndex": 7,
+        "toIndex": 4,
         "type": "RPC Request to Device"
       },
       {
         "fromIndex": 1,
-        "toIndex": 10,
-        "type": "Activity Event"
-      },
-      {
-        "fromIndex": 1,
-        "toIndex": 10,
-        "type": "Inactivity Event"
-      },
-      {
-        "fromIndex": 1,
-        "toIndex": 12,
+        "toIndex": 7,
         "type": "Post attributes"
       },
       {
         "fromIndex": 2,
-        "toIndex": 3,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 3,
-        "toIndex": 5,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 4,
         "toIndex": 0,
         "type": "Success"
       },
       {
-        "fromIndex": 5,
-        "toIndex": 13,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 6,
+        "fromIndex": 3,
         "toIndex": 1,
         "type": "Success"
       },
       {
-        "fromIndex": 8,
-        "toIndex": 7,
+        "fromIndex": 5,
+        "toIndex": 4,
         "type": "Success"
       },
       {
-        "fromIndex": 9,
-        "toIndex": 16,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 10,
-        "toIndex": 11,
-        "type": "Water pump"
-      },
-      {
-        "fromIndex": 11,
-        "toIndex": 3,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 13,
-        "toIndex": 14,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 14,
-        "toIndex": 15,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 16,
+        "fromIndex": 6,
         "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 5,
         "type": "turnOn"
       },
       {
-        "fromIndex": 16,
-        "toIndex": 17,
+        "fromIndex": 8,
+        "toIndex": 9,
         "type": "turnOff"
       },
       {
-        "fromIndex": 17,
-        "toIndex": 7,
+        "fromIndex": 9,
+        "toIndex": 4,
         "type": "Success"
       }
     ],

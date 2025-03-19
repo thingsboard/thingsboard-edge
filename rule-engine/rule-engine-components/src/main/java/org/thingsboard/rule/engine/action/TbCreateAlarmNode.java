@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,7 +66,6 @@ import java.util.List;
                         "If alarm was not created, original message is returned. Otherwise new Message returned with type 'ALARM', Alarm object in 'msg' property and 'metadata' will contains one of those properties 'isNewAlarm/isExistingAlarm'. " +
                         "Message payload can be accessed via <code>msg</code> property. For example <code>'temperature = ' + msg.temperature ;</code>. " +
                         "Message metadata can be accessed via <code>metadata</code> property. For example <code>'name = ' + metadata.customerName;</code>.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeCreateAlarmConfig",
         icon = "notifications_active"
 )
@@ -134,15 +133,11 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         ListenableFuture<JsonNode> asyncDetails;
         boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();
         if (buildDetails) {
-            ctx.logJsEvalRequest();
             asyncDetails = buildAlarmDetails(msg, null);
         } else {
             asyncDetails = Futures.immediateFuture(null);
         }
         ListenableFuture<Alarm> asyncAlarm = Futures.transform(asyncDetails, details -> {
-            if (buildDetails) {
-                ctx.logJsEvalResponse();
-            }
             Alarm newAlarm;
             if (msgAlarm != null) {
                 newAlarm = msgAlarm;
@@ -163,15 +158,11 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         ListenableFuture<JsonNode> asyncDetails;
         boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();
         if (buildDetails) {
-            ctx.logJsEvalRequest();
             asyncDetails = buildAlarmDetails(msg, existingAlarm.getDetails());
         } else {
             asyncDetails = Futures.immediateFuture(null);
         }
         ListenableFuture<AlarmApiCallResult> asyncUpdated = Futures.transform(asyncDetails, details -> {
-            if (buildDetails) {
-                ctx.logJsEvalResponse();
-            }
             if (msgAlarm != null) {
                 existingAlarm.setSeverity(msgAlarm.getSeverity());
                 existingAlarm.setPropagate(msgAlarm.isPropagate());

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -165,7 +165,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         mdMap.put("topic", msg.getTopic());
 
         var stopWatch = TbStopWatch.create();
-        ListenableFuture<List<UplinkData>> uplinkDataListFuture = convertToUplinkDataListAsync(context, msg.getPayload(), new UplinkMetaData(msg.getContentType(), mdMap));
+        ListenableFuture<List<UplinkData>> uplinkDataListFuture = convertToUplinkDataListAsync(context, msg.getPayload(), new UplinkMetaData<>(msg.getContentType(), mdMap));
         ListenableFuture<Void> future = Futures.transform(uplinkDataListFuture, (uplinkDataList) -> {
             if (log.isDebugEnabled()) {
                 log.debug("convertToUplinkDataList took {}ms for integration {}", stopWatch.stopAndGetTotalTimeMillis(), configuration.getName());

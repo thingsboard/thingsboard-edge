@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@
             <div class="details-buttons flex flex-row items-center justify-start gap-4">
               <div tb-help="scadaSymbolDev"></div>
               <button mat-stroked-button
+                      *ngIf="showCreateWidgetButton"
                       [disabled]="scadaSymbolFormGroup.invalid"
                       (click)="createWidget()">
                 {{ 'scada.create-widget' | translate }}

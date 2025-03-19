@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,9 +66,9 @@ public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfo
     @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.tenantId = :tenantId " +
             "AND ii.edgeTemplate = :isEdgeTemplate " +
             "AND (:searchText IS NULL OR ilike(ii.name, CONCAT('%', :searchText, '%')) = true)")
-    Page<IntegrationInfoEntity> findAllIntegrationInfosWithStats(@Param("tenantId") UUID tenantId,
-                                                                 @Param("searchText") String searchText,
-                                                                 @Param("isEdgeTemplate") boolean isEdgeTemplate,
-                                                                 Pageable pageable);
+    Page<IntegrationInfoEntity> findAllIntegrationInfos(@Param("tenantId") UUID tenantId,
+                                                        @Param("searchText") String searchText,
+                                                        @Param("isEdgeTemplate") boolean isEdgeTemplate,
+                                                        Pageable pageable);
 
 }

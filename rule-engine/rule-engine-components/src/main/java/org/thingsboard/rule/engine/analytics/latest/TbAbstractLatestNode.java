@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -117,8 +117,13 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                 aggregateFuturesMap.forEach((originatorId, aggregateFutures) -> aggregateFutures.forEach(aggregateFuture -> {
                     ListenableFuture<Optional<JsonObject>>
                             aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
-                        TbMsg msg = TbMsg.newMsg(queueName, outMsgType,
-                                originatorId, TbMsgMetaData.EMPTY, TbMsg.EMPTY_STRING);
+                        TbMsg msg = TbMsg.newMsg()
+                                .queueName(queueName)
+                                .type(outMsgType)
+                                .originator(originatorId)
+                                .copyMetaData(TbMsgMetaData.EMPTY)
+                                .data(TbMsg.EMPTY_STRING)
+                                .build();
                         ctx.enqueueForTellFailure(msg, e.getMessage());
                         return Optional.empty();
                     }, MoreExecutors.directExecutor());
@@ -127,8 +132,13 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                             TbMsgMetaData metaData = new TbMsgMetaData();
                             metaData.putValue("ts", dataTs);
                             JsonObject messageData = element.get();
-                            TbMsg msg = TbMsg.newMsg(queueName, outMsgType,
-                                    originatorId, metaData, gson.toJson(messageData));
+                            TbMsg msg = TbMsg.newMsg()
+                                    .queueName(queueName)
+                                    .type(outMsgType)
+                                    .originator(originatorId)
+                                    .copyMetaData(metaData)
+                                    .data(gson.toJson(messageData))
+                                    .build();
                             ctx.enqueueForTellNext(msg, SUCCESS);
                             return msg;
                         } else {

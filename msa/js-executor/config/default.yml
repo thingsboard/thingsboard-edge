@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -58,23 +58,6 @@ kafka:
   confluent:
     sasl:
       mechanism: "PLAIN"
-
-pubsub:
-  queue_properties: "ackDeadlineInSec:30;messageRetentionInSec:604800"
-
-aws_sqs:
-  queue_properties: "VisibilityTimeout:30;MaximumMessageSize:262144;MessageRetentionPeriod:604800"
-
-rabbitmq:
-  host: "localhost"
-  port: "5672"
-  virtual_host: "/"
-  username: "admin"
-  password: "password"
-  queue_properties: "x-max-length-bytes:1048576000;x-message-ttl:604800000"
-
-service_bus:
-  queue_properties: "lockDurationInSec:30;maxSizeInMb:1024;messageTimeToLiveInSec:604800"
 
 logger:
   level: "info"

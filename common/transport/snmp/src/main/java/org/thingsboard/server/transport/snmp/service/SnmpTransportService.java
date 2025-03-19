@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -82,6 +82,7 @@ import org.thingsboard.server.transport.snmp.session.DeviceSessionContext;
 import org.thingsboard.server.transport.snmp.session.ScheduledTask;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -112,8 +113,10 @@ public class SnmpTransportService implements TbTransportService, CommandResponde
     private final Map<SnmpCommunicationSpec, ResponseDataMapper> responseDataMappers = new EnumMap<>(SnmpCommunicationSpec.class);
     private final Map<SnmpCommunicationSpec, ResponseProcessor> responseProcessors = new EnumMap<>(SnmpCommunicationSpec.class);
 
-    @Value("${transport.snmp.bind_port:1620}")
+    @Value("${transport.snmp.bind_port:0}")
     private Integer snmpBindPort;
+    @Value("${transport.snmp.bind_address:0.0.0.0}")
+    private String snmpBindAddress;
     @Value("${transport.snmp.response_processing.parallelism_level:4}")
     private int responseProcessingThreadPoolSize;
     @Value("${transport.snmp.scheduler_thread_pool_size:4}")
@@ -149,10 +152,10 @@ public class SnmpTransportService implements TbTransportService, CommandResponde
         TransportMapping<?> transportMapping;
         switch (snmpUnderlyingProtocol) {
             case "udp":
-                transportMapping = new DefaultUdpTransportMapping(new UdpAddress(snmpBindPort));
+                transportMapping = new DefaultUdpTransportMapping(new UdpAddress(InetAddress.getByName(snmpBindAddress), snmpBindPort));
                 break;
             case "tcp":
-                transportMapping = new DefaultTcpTransportMapping(new TcpAddress(snmpBindPort));
+                transportMapping = new DefaultTcpTransportMapping(new TcpAddress(InetAddress.getByName(snmpBindAddress), snmpBindPort));
                 break;
             default:
                 throw new IllegalArgumentException("Underlying protocol " + snmpUnderlyingProtocol + " for SNMP is not supported");

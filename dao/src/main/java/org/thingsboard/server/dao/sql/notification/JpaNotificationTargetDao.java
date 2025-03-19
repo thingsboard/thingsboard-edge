@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -114,6 +114,11 @@ public class JpaNotificationTargetDao extends JpaAbstractDao<NotificationTargetE
     @Override
     public NotificationTargetId getExternalIdByInternal(NotificationTargetId internalId) {
         return DaoUtil.toEntityId(notificationTargetRepository.getExternalIdByInternal(internalId.getId()), NotificationTargetId::new);
+    }
+
+    @Override
+    public PageData<NotificationTarget> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override

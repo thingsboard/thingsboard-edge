@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -100,7 +100,13 @@ public class DefaultRuleEngineCallServiceTest {
         metaData.put("serviceId", "core");
         metaData.put("requestUUID", requestId.toString());
         metaData.put("expirationTime", Long.toString(expTime));
-        TbMsg msg = TbMsg.newMsg(DataConstants.MAIN_QUEUE_NAME, TbMsgType.REST_API_REQUEST, TENANT_ID, new TbMsgMetaData(metaData), "{\"key\":\"value\"}");
+        TbMsg msg = TbMsg.newMsg()
+                .queueName(DataConstants.MAIN_QUEUE_NAME)
+                .type(TbMsgType.REST_API_REQUEST)
+                .originator(TENANT_ID)
+                .copyMetaData(new TbMsgMetaData(metaData))
+                .data("{\"key\":\"value\"}")
+                .build();
 
         Consumer<TbMsg> anyConsumer = TbMsg::getData;
         doAnswer(invocation -> {
@@ -128,7 +134,13 @@ public class DefaultRuleEngineCallServiceTest {
         metaData.put("serviceId", "core");
         metaData.put("requestUUID", requestId.toString());
         metaData.put("expirationTime", Long.toString(expTime));
-        TbMsg msg = TbMsg.newMsg(DataConstants.MAIN_QUEUE_NAME, TbMsgType.REST_API_REQUEST, TENANT_ID, new TbMsgMetaData(metaData), "{\"key\":\"value\"}");
+        TbMsg msg = TbMsg.newMsg()
+                .queueName(DataConstants.MAIN_QUEUE_NAME)
+                .type(TbMsgType.REST_API_REQUEST)
+                .originator(TENANT_ID)
+                .copyMetaData(new TbMsgMetaData(metaData))
+                .data("{\"key\":\"value\"}")
+                .build();
 
         Consumer<TbMsg> anyConsumer = TbMsg::getData;
         doAnswer(invocation -> {

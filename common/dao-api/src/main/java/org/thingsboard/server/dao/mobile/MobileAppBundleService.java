@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,9 +60,9 @@ public interface MobileAppBundleService extends EntityDaoService {
 
     MobileSelfRegistrationParams getMobileSelfRegistrationParams(TenantId tenantId, String pkgName, PlatformType platformType);
 
-    JsonNode getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
+    String getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
 
-    JsonNode getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType);
+    String getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType);
 
     void deleteMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 

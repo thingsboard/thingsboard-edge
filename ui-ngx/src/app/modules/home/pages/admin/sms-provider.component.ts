@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+import { Component, DestroyRef } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
@@ -46,6 +46,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-sms-provider',
@@ -68,7 +69,8 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
               private notificationService: NotificationService,
               private dialog: MatDialog,
               private userPermissionsService: UserPermissionsService,
-              public fb: FormBuilder) {
+              public fb: FormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
     this.buildSmsProviderForm();
     this.buildGeneralServerSettingsForm();
@@ -148,7 +150,9 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
       }
     }
     if (this.isTenantAdmin()) {
-      this.smsProvider.get('useSystemSmsSettings').valueChanges.subscribe(
+      this.smsProvider.get('useSystemSmsSettings').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(
         () => {
           this.updateValidators();
         }
@@ -226,7 +230,9 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
       })
     }
     if (this.isTenantAdmin()) {
-      this.notificationSettingsForm.get('deliveryMethodsConfigs.MOBILE_APP.useSystemSettings').valueChanges.subscribe(
+      this.notificationSettingsForm.get('deliveryMethodsConfigs.MOBILE_APP.useSystemSettings').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(
         (value: boolean) => {
           this.updatedNotificationSettings(value);
         }

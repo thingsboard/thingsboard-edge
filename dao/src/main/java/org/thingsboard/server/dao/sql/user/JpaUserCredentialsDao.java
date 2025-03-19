@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,8 +35,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.TenantEntityDao;
 import org.thingsboard.server.dao.model.sql.UserCredentialsEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.user.UserCredentialsDao;
@@ -49,7 +52,7 @@ import java.util.UUID;
  */
 @Component
 @SqlDao
-public class JpaUserCredentialsDao extends JpaAbstractDao<UserCredentialsEntity, UserCredentials> implements UserCredentialsDao {
+public class JpaUserCredentialsDao extends JpaAbstractDao<UserCredentialsEntity, UserCredentials> implements UserCredentialsDao, TenantEntityDao<UserCredentials> {
 
     @Autowired
     private UserCredentialsRepository userCredentialsRepository;
@@ -97,6 +100,11 @@ public class JpaUserCredentialsDao extends JpaAbstractDao<UserCredentialsEntity,
     @Override
     public void setFailedLoginAttempts(TenantId tenantId, UserId userId, int failedLoginAttempts) {
         userCredentialsRepository.updateFailedLoginAttemptsByUserId(userId.getId(), failedLoginAttempts);
+    }
+
+    @Override
+    public PageData<UserCredentials> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(userCredentialsRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
     }
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,7 +55,6 @@ public class WidgetsBundleExportService extends BaseEntityExportService<WidgetsB
         if (widgetsBundle.getTenantId() == null || widgetsBundle.getTenantId().isNullUid()) {
             throw new IllegalArgumentException("Export of system Widget Bundles is not allowed");
         }
-        imageService.inlineImage(widgetsBundle);
 
         List<String> fqns = widgetTypeService.findWidgetFqnsByWidgetsBundleId(ctx.getTenantId(), widgetsBundle.getId());
         exportData.setFqns(fqns);

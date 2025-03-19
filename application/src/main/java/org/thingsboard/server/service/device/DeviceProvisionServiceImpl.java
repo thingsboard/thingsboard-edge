@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -268,7 +268,13 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
     private void pushProvisionEventToRuleEngine(ProvisionRequest request, Device device, TbMsgType type) {
         try {
             JsonNode entityNode = JacksonUtil.valueToTree(request);
-            TbMsg msg = TbMsg.newMsg(type, device.getId(), device.getCustomerId(), createTbMsgMetaData(device), JacksonUtil.toString(entityNode));
+            TbMsg msg = TbMsg.newMsg()
+                    .type(type)
+                    .originator(device.getId())
+                    .customerId(device.getCustomerId())
+                    .copyMetaData(createTbMsgMetaData(device))
+                    .data(JacksonUtil.toString(entityNode))
+                    .build();
             sendToRuleEngine(device.getTenantId(), msg, null);
         } catch (IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), type, e);
@@ -278,7 +284,13 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
     private void pushDeviceCreatedEventToRuleEngine(Device device) {
         try {
             ObjectNode entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(device);
-            TbMsg msg = TbMsg.newMsg(TbMsgType.ENTITY_CREATED, device.getId(), device.getCustomerId(), createTbMsgMetaData(device), JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode));
+            TbMsg msg = TbMsg.newMsg()
+                    .type(TbMsgType.ENTITY_CREATED)
+                    .originator(device.getId())
+                    .customerId(device.getCustomerId())
+                    .copyMetaData(createTbMsgMetaData(device))
+                    .data(JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode))
+                    .build();
             sendToRuleEngine(device.getTenantId(), msg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), TbMsgType.ENTITY_CREATED.name(), e);

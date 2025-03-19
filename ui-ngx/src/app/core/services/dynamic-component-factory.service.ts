@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,10 @@
 ///
 
 import { Component, Injectable, Type, ɵComponentDef, ɵNG_COMP_DEF } from '@angular/core';
-import { forkJoin, from, Observable, of } from 'rxjs';
+import { from, Observable, of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { mergeMap } from 'rxjs/operators';
 import { guid } from '@core/utils';
-import { getFlexLayoutModule } from '@shared/legacy/flex-layout.models';
 
 @Injectable({
     providedIn: 'root'
@@ -50,9 +49,9 @@ export class DynamicComponentFactoryService {
                      imports?: Type<any>[],
                      preserveWhitespaces?: boolean,
                      styles?: string[]): Observable<Type<T>> {
-    return forkJoin({flexLayoutModule: getFlexLayoutModule(), compiler: from(import('@angular/compiler'))}).pipe(
-      mergeMap((data) => {
-        let componentImports: Type<any>[] = [CommonModule, data.flexLayoutModule];
+    return from(import('@angular/compiler')).pipe(
+      mergeMap(() => {
+        let componentImports: Type<any>[] = [CommonModule];
         if (imports) {
           componentImports = [...componentImports, ...imports];
         }

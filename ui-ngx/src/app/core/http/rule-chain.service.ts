@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ import {
   LinkLabel,
   RuleNodeComponentDescriptor,
   RuleNodeConfiguration,
+  RuleNodeConfigurationComponent,
   ScriptLanguage,
   TestScriptInputParams,
   TestScriptResult
@@ -59,6 +60,7 @@ import { deepClone, snakeCase } from '@core/utils';
 import { DebugRuleNodeEventBody } from '@app/shared/models/event.models';
 import { Edge } from '@shared/models/edge.models';
 import { IModulesMap } from '@modules/common/modules-map.models';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 
 @Injectable({
   providedIn: 'root'
@@ -68,7 +70,6 @@ export class RuleChainService {
   private ruleNodeComponentsMap: Map<RuleChainType, Array<RuleNodeComponentDescriptor>> =
     new Map<RuleChainType, Array<RuleNodeComponentDescriptor>>();
   private ruleNodeConfigComponents: {[directive: string]: Type<IRuleNodeConfigurationComponent>} = {};
-  private ruleNodeComponentsType: string = '';
 
   constructor(
     private http: HttpClient,
@@ -81,6 +82,13 @@ export class RuleChainService {
                        config?: RequestConfig): Observable<PageData<RuleChain>> {
     return this.http.get<PageData<RuleChain>>(`/api/ruleChains${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public getRuleChainsByIds(ruleChainIds: Array<string>, config?: RequestConfig): Observable<Array<RuleChain>> {
+    return this.http.get<Array<RuleChain>>(`/api/ruleChains?ruleChainIds=${ruleChainIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((converters) => sortEntitiesByIds(converters, ruleChainIds))
+    );
   }
 
   public getRuleChain(ruleChainId: string, config?: RequestConfig): Observable<RuleChain> {
@@ -122,7 +130,6 @@ export class RuleChainService {
      if (this.ruleNodeComponentsMap.get(ruleChainType)) {
        return of(this.ruleNodeComponentsMap.get(ruleChainType));
      } else {
-       this.ruleNodeComponentsType = ruleChainType;
        return this.loadRuleNodeComponents(ruleChainType, config).pipe(
         mergeMap((components) => {
           return this.resolveRuleNodeComponentsUiResources(components, modulesMap).pipe(
@@ -197,6 +204,10 @@ export class RuleChainService {
     return this.http.post<TestScriptResult>(url, inputParams, defaultHttpOptionsFromConfig(config));
   }
 
+  public registerSystemRuleNodeConfigModule(module: any) {
+    Object.assign(this.ruleNodeConfigComponents, this.resourcesService.extractComponentsFromModule<IRuleNodeConfigurationComponent>(module, RuleNodeConfigurationComponent, true));
+  }
+
   private loadRuleNodeComponents(ruleChainType: RuleChainType, config?: RequestConfig): Observable<Array<RuleNodeComponentDescriptor>> {
     return this.componentDescriptorService.getComponentDescriptorsByTypes(ruleNodeTypeComponentTypes, ruleChainType, config).pipe(
       map((components) => {
@@ -228,7 +239,7 @@ export class RuleChainService {
     Observable<RuleNodeComponentDescriptor> {
     const nodeDefinition = component.configurationDescriptor.nodeDefinition;
     const uiResources = nodeDefinition.uiResources;
-    if (uiResources && uiResources.length) {
+    if (!this.ruleNodeConfigComponents[nodeDefinition.configDirective] && uiResources && uiResources.length) {
       const commonResources = uiResources.filter((resource) => !resource.endsWith('.js'));
       const moduleResource = uiResources.find((resource) => resource.endsWith('.js'));
       const tasks: Observable<any>[] = [];

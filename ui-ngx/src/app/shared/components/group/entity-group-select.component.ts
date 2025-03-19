@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -43,6 +43,7 @@ import { EntityInfoData } from '@shared/models/entity.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { of } from 'rxjs';
 import { MatFormFieldAppearance } from '@angular/material/form-field';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-entity-group-select',
@@ -121,7 +122,8 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
               private entityService: EntityService,
               private entityGroupService: EntityGroupService,
               public translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   registerOnChange(fn: any): void {
@@ -167,12 +169,16 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
 
     this.currentGroupType.next(this.defaultGroupType);
 
-    this.entityGroupSelectFormGroup.get('groupType').valueChanges.subscribe(
+    this.entityGroupSelectFormGroup.get('groupType').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       (value) => {
         this.currentGroupType.next(value);
       }
     );
-    this.entityGroupSelectFormGroup.get('groupId').valueChanges.subscribe(
+    this.entityGroupSelectFormGroup.get('groupId').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       (groupId) => {
         this.updateView(groupId);
       }

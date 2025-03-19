@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,13 @@
  */
 package org.thingsboard.server.dao.sql.dashboard;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.edqs.fields.DashboardFields;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.DashboardEntity;
 
@@ -69,4 +71,7 @@ public interface DashboardRepository extends JpaRepository<DashboardEntity, UUID
     @Query("SELECT d.id FROM DashboardEntity d")
     Page<UUID> findAllIds(Pageable pageable);
 
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.DashboardFields(d.id, d.createdTime, d.tenantId, " +
+            "d.customerId, d.title, d.version) FROM DashboardEntity d WHERE d.id > :id ORDER BY d.id")
+    List<DashboardFields> findNextBatch(@Param("id") UUID id, Limit limit);
 }

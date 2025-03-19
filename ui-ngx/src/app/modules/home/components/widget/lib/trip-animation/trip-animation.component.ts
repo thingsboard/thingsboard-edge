@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,7 @@ import {
   defaultTripAnimationSettings,
   MapProviders,
   WidgetUnitedTripAnimationSettings
-} from '@home/components/widget/lib/maps/map-models';
+} from '@home/components/widget/lib/maps-legacy/map-models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { WidgetContext } from '@app/modules/home/models/widget-component.models';
 import {
@@ -54,7 +54,7 @@ import {
   getRatio,
   interpolateOnLineSegment,
   parseWithTranslation
-} from '@home/components/widget/lib/maps/common-maps-utils';
+} from '@home/components/widget/lib/maps-legacy/common-maps-utils';
 import { FormattedData, WidgetConfig } from '@shared/models/widget.models';
 import moment from 'moment';
 import {
@@ -66,7 +66,7 @@ import {
   parseTbFunction,
   safeExecuteTbFunction
 } from '@core/utils';
-import { MapWidgetInterface } from '@home/components/widget/lib/maps/map-widget.interface';
+import { MapWidgetInterface } from '@home/components/widget/lib/maps-legacy/map-widget.interface';
 import { firstValueFrom, from } from 'rxjs';
 
 interface DataMap {
@@ -138,7 +138,7 @@ export class TripAnimationComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngAfterViewInit() {
-    import('@home/components/widget/lib/maps/map-widget2').then(
+    import('@home/components/widget/lib/maps-legacy/map-widget2').then(
       (mod) => {
         this.mapWidget = new mod.MapWidgetController(MapProviders.openstreet, false, this.ctx, this.mapContainer.nativeElement, false,
           () => {
@@ -393,4 +393,4 @@ export class TripAnimationComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 }
 
-export let TbTripAnimationWidget = TripAnimationComponent;
+export const TbTripAnimationWidget = TripAnimationComponent;

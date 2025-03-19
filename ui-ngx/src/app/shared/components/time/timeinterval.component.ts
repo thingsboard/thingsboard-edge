@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -206,8 +206,7 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor, OnCh
     if (typeof this.modelValue !== 'undefined') {
       const min = this.timeService.boundMinInterval(this.minValue);
       const max = this.timeService.boundMaxInterval(this.maxValue);
-      if (this.allowedIntervals?.length ||
-            IntervalMath.numberValue(this.modelValue) >= min && IntervalMath.numberValue(this.modelValue) <= max) {
+      if (IntervalMath.numberValue(this.modelValue) >= min && IntervalMath.numberValue(this.modelValue) <= max) {
         const advanced = this.allowedIntervals?.length
           ? !this.allowedIntervals.includes(this.modelValue)
           : !this.timeService.matchesExistingInterval(this.minValue, this.maxValue, this.modelValue,

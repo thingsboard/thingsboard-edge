@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit, Renderer2, ViewContainerRef } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit, Renderer2, ViewContainerRef } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -47,6 +47,7 @@ import {
   entityTypesWithoutRelatedData,
   EntityTypeVersionLoadConfig,
   exportableEntityTypes,
+  typesWithCalculatedFields,
   overrideEntityTypeTranslations
 } from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
@@ -56,6 +57,7 @@ import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.m
 import { MatCheckbox } from '@angular/material/checkbox';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { RemoveOtherEntitiesConfirmComponent } from '@home/components/vc/remove-other-entities-confirm.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { entityGroupTypes } from '@shared/models/entity-group.models';
 
 @Component({
@@ -93,12 +95,15 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
 
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
+  readonly typesWithCalculatedFields = typesWithCalculatedFields;
+
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private viewContainerRef: ViewContainerRef,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -106,7 +111,9 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
     this.entityTypesVersionLoadFormGroup = this.fb.group({
       entityTypes: this.fb.array([], [])
     });
-    this.entityTypesVersionLoadFormGroup.valueChanges.subscribe(() => {
+    this.entityTypesVersionLoadFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -160,6 +167,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
           loadRelations: [config.loadRelations, []],
           loadAttributes: [config.loadAttributes, []],
           loadCredentials: [config.loadCredentials, []],
+          loadCalculatedFields: [config.loadCalculatedFields, []],
           loadPermissions: [config.loadPermissions, []],
           loadGroupEntities: [config.loadGroupEntities, []],
           autoGenerateIntegrationKey: [config.autoGenerateIntegrationKey, []],
@@ -198,6 +206,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
       loadAttributes: true,
       loadRelations: true,
       loadCredentials: true,
+      loadCalculatedFields: true,
       loadPermissions: true,
       loadGroupEntities: true,
       autoGenerateIntegrationKey: false,

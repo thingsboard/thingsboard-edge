@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, forwardRef, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnInit,
+  Output,
+  ViewEncapsulation
+} from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -52,6 +61,7 @@ import {
 import { mergeDeep } from '@core/utils';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-time-series-chart-y-axes-panel',
@@ -91,14 +101,17 @@ export class TimeSeriesChartYAxesPanelComponent implements ControlValueAccessor,
 
   private propagateChange = (_val: any) => {};
 
-  constructor(private fb: UntypedFormBuilder) {
+  constructor(private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit() {
     this.yAxesFormGroup = this.fb.group({
       axes: [this.fb.array([]), []]
     });
-    this.yAxesFormGroup.valueChanges.subscribe(
+    this.yAxesFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => {
         let axes: TimeSeriesChartYAxisSettings[] = this.yAxesFormGroup.get('axes').value;
         for (let i = 0; i < axes.length; i++) {

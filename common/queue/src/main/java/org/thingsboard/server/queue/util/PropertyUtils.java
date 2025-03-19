@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -58,9 +58,8 @@ public class PropertyUtils {
     }
 
     public static Map<String, String> getProps(Map<String, String> defaultProperties, String propertiesStr, Function<String, Map<String, String>> parser) {
-        Map<String, String> properties = defaultProperties;
+        Map<String, String> properties = new HashMap<>(defaultProperties);
         if (StringUtils.isNotBlank(propertiesStr)) {
-            properties = new HashMap<>(properties);
             properties.putAll(parser.apply(propertiesStr));
         }
         return properties;

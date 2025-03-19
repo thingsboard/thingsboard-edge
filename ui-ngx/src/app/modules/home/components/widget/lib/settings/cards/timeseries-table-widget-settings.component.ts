@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.m
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { columnExportOptions } from '@home/components/widget/lib/table-widget.models';
+import { buildPageStepSizeValues, columnExportOptions } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-timeseries-table-widget-settings',
@@ -44,6 +44,7 @@ import { columnExportOptions } from '@home/components/widget/lib/table-widget.mo
 export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsComponent {
 
   timeseriesTableWidgetSettingsForm: UntypedFormGroup;
+  pageStepSizeValues = [];
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -68,6 +69,8 @@ export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsCompon
       displayPagination: true,
       useEntityLabel: false,
       defaultPageSize: 10,
+      pageStepIncrement: null,
+      pageStepCount: 3,
       hideEmptyLines: false,
       disableStickyHeader: false,
       useRowStyleFunction: false,
@@ -95,32 +98,46 @@ export class TimeseriesTableWidgetSettingsComponent extends WidgetSettingsCompon
       displayPagination: [settings.displayPagination, []],
       useEntityLabel: [settings.useEntityLabel, []],
       defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],
+      pageStepCount: [settings.pageStepCount ?? 3, [Validators.min(1), Validators.max(100),
+        Validators.required, Validators.pattern(/^\d*$/)]],
+      pageStepIncrement: [settings.pageStepIncrement ?? settings.defaultPageSize,
+        [Validators.min(1), Validators.required, Validators.pattern(/^\d*$/)]],
       hideEmptyLines: [settings.hideEmptyLines, []],
       disableStickyHeader: [settings.disableStickyHeader, []],
       useRowStyleFunction: [settings.useRowStyleFunction, []],
       rowStyleFunction: [settings.rowStyleFunction, [Validators.required]]
     });
+    this.pageStepSizeValues = buildPageStepSizeValues(this.timeseriesTableWidgetSettingsForm.get('pageStepCount').value,
+      this.timeseriesTableWidgetSettingsForm.get('pageStepIncrement').value);
   }
 
   protected validatorTriggers(): string[] {
-    return ['useRowStyleFunction', 'displayPagination'];
+    return ['useRowStyleFunction', 'displayPagination', 'pageStepCount', 'pageStepIncrement'];
   }
 
-  protected updateValidators(emitEvent: boolean) {
+  protected updateValidators(emitEvent: boolean, trigger: string) {
+    if (trigger === 'pageStepCount' || trigger === 'pageStepIncrement') {
+      this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').reset();
+      this.pageStepSizeValues = buildPageStepSizeValues(this.timeseriesTableWidgetSettingsForm.get('pageStepCount').value,
+        this.timeseriesTableWidgetSettingsForm.get('pageStepIncrement').value);
+      return;
+    }
     const useRowStyleFunction: boolean = this.timeseriesTableWidgetSettingsForm.get('useRowStyleFunction').value;
     const displayPagination: boolean = this.timeseriesTableWidgetSettingsForm.get('displayPagination').value;
     if (useRowStyleFunction) {
-      this.timeseriesTableWidgetSettingsForm.get('rowStyleFunction').enable();
+      this.timeseriesTableWidgetSettingsForm.get('rowStyleFunction').enable({emitEvent});
     } else {
-      this.timeseriesTableWidgetSettingsForm.get('rowStyleFunction').disable();
+      this.timeseriesTableWidgetSettingsForm.get('rowStyleFunction').disable({emitEvent});
     }
     if (displayPagination) {
-      this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').enable();
+      this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').enable({emitEvent});
+      this.timeseriesTableWidgetSettingsForm.get('pageStepCount').enable({emitEvent: false});
+      this.timeseriesTableWidgetSettingsForm.get('pageStepIncrement').enable({emitEvent: false});
     } else {
-      this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').disable();
+      this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').disable({emitEvent});
+      this.timeseriesTableWidgetSettingsForm.get('pageStepCount').disable({emitEvent: false});
+      this.timeseriesTableWidgetSettingsForm.get('pageStepIncrement').disable({emitEvent: false});
     }
-    this.timeseriesTableWidgetSettingsForm.get('rowStyleFunction').updateValueAndValidity({emitEvent});
-    this.timeseriesTableWidgetSettingsForm.get('defaultPageSize').updateValueAndValidity({emitEvent});
   }
 
 }

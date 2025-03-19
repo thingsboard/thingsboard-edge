@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -113,7 +113,7 @@ public class RabbitMQIntegration extends AbstractIntegration<RabbitMQIntegration
     private void doProcess(IntegrationContext context, RabbitMQIntegrationMsg msg) throws Exception {
         byte[] bytes = msg.getMsg().getBytes();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, bytes, new UplinkMetaData(getDefaultUplinkContentType(), mdMap));
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, bytes, new UplinkMetaData<>(getDefaultUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);

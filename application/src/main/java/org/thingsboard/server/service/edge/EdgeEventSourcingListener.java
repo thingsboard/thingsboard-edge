@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -102,6 +102,11 @@ public class EdgeEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(SaveEntityEvent<?> event) {
+        if (Boolean.FALSE.equals(event.getBroadcastEvent())) {
+            log.trace("Ignoring event {}", event);
+            return;
+        }
+
         try {
             if (!isValidSaveEntityEventForEdgeProcessing(event)) {
                 return;
@@ -153,6 +158,9 @@ public class EdgeEventSourcingListener {
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(ActionEntityEvent<?> event) {
         if (event.getEntityId() != null && EntityType.DEVICE.equals(event.getEntityId().getEntityType()) && ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {
+            return;
+        }
+        if (EntityType.ALARM.equals(event.getEntityId().getEntityType())) {
             return;
         }
         try {

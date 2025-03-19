@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   EventEmitter,
   forwardRef,
   Input,
@@ -53,21 +54,14 @@ import {
 } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
-import {
-  DataKey,
-  DataKeyConfigMode,
-  DatasourceType,
-  JsonSettingsSchema,
-  Widget,
-  widgetType
-} from '@shared/models/widget.models';
+import { DataKey, DataKeyConfigMode, DatasourceType, Widget, widgetType } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeySettingsFunction } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import { merge } from 'rxjs';
 import {
   DataKeyConfigDialogComponent,
   DataKeyConfigDialogData
-} from '@home/components/widget/config/data-key-config-dialog.component';
+} from '@home/components/widget/lib/settings/common/key/data-key-config-dialog.component';
 import { deepClone } from '@core/utils';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { IAliasController } from '@core/api/widget-api.models';
@@ -81,6 +75,8 @@ import {
   TimeSeriesChartYAxisId
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
+import { FormProperty } from '@shared/models/dynamic-form.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export const dataKeyValid = (key: DataKey): boolean => !!key && !!key.type && !!key.name;
 
@@ -97,7 +93,7 @@ export const dataKeyRowValidator = (control: AbstractControl): ValidationErrors 
 @Component({
   selector: 'tb-data-key-row',
   templateUrl: './data-key-row.component.html',
-  styleUrls: ['./data-key-row.component.scss', '../../data-keys.component.scss'],
+  styleUrls: ['./data-key-row.component.scss', '../../../lib/settings/common/key/data-keys.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -212,16 +208,16 @@ export class DataKeyRowComponent implements ControlValueAccessor, OnInit, OnChan
     return this.widgetConfigComponent.aliasController;
   }
 
-  get dataKeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.dataKeySettingsSchema;
+  get dataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.dataKeySettingsForm;
   }
 
   get dataKeySettingsDirective(): string {
     return this.widgetConfigComponent.modelValue?.dataKeySettingsDirective;
   }
 
-  get latestDataKeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.latestDataKeySettingsSchema;
+  get latestDataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.latestDataKeySettingsForm;
   }
 
   get latestDataKeySettingsDirective(): string {
@@ -249,7 +245,8 @@ export class DataKeyRowComponent implements ControlValueAccessor, OnInit, OnChan
   constructor(private fb: UntypedFormBuilder,
               private dialog: MatDialog,
               private cd: ChangeDetectorRef,
-              private widgetConfigComponent: WidgetConfigComponent) {
+              private widgetConfigComponent: WidgetConfigComponent,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit() {
@@ -267,7 +264,9 @@ export class DataKeyRowComponent implements ControlValueAccessor, OnInit, OnChan
       this.keyRowFormGroup.addControl('yAxis', this.fb.control(null));
       this.keyRowFormGroup.addControl('timeSeriesType', this.fb.control(null));
     }
-    merge(this.keyFormControl.valueChanges, this.keyRowFormGroup.valueChanges).subscribe(
+    merge(this.keyFormControl.valueChanges, this.keyRowFormGroup.valueChanges).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
   }
@@ -340,7 +339,7 @@ export class DataKeyRowComponent implements ControlValueAccessor, OnInit, OnChan
         data: {
           dataKey: deepClone(this.modelValue),
           dataKeyConfigMode: advanced ? DataKeyConfigMode.advanced : DataKeyConfigMode.general,
-          dataKeySettingsSchema: this.isLatestDataKeys ? this.latestDataKeySettingsSchema : this.dataKeySettingsSchema,
+          dataKeySettingsForm: this.isLatestDataKeys ? this.latestDataKeySettingsForm : this.dataKeySettingsForm,
           dataKeySettingsDirective: this.isLatestDataKeys ? this.latestDataKeySettingsDirective : this.dataKeySettingsDirective,
           dashboard: this.dashboard,
           aliasController: this.aliasController,
@@ -374,7 +373,7 @@ export class DataKeyRowComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   private _generateDataKey(key: DataKey): DataKey {
-    key = this.callbacks.generateDataKey(key.name, key.type, this.dataKeySettingsSchema, this.isLatestDataKeys,
+    key = this.callbacks.generateDataKey(key.name, key.type, this.dataKeySettingsForm, this.isLatestDataKeys,
       this.dataKeySettingsFunction);
     if (!this.keyRowFormGroup.get('label').value) {
       this.keyRowFormGroup.get('label').patchValue(key.label, {emitEvent: false});

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -139,7 +139,7 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
             "  OR e.label ILIKE CONCAT('%', :searchText, '%') " +
             "  OR e.type ILIKE CONCAT('%', :searchText, '%') " +
             "  OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
-            countQuery = "SELECT count(es.id) FROM asset e " +
+            countQuery = "SELECT count(e.id) FROM asset e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND e.asset_profile_id = :assetProfileId " +

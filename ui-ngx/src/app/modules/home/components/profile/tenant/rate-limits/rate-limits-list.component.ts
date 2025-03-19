@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -71,7 +71,6 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
 
   rateLimitsArray: Array<RateLimits>;
 
-  private valueChangeSubscription: Subscription = null;
   private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
@@ -81,7 +80,7 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
     this.rateLimitsListFormGroup = this.fb.group({
       rateLimits: this.fb.array([])
     });
-    this.valueChangeSubscription = this.rateLimitsListFormGroup.valueChanges
+    this.rateLimitsListFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((value) => {
         this.updateView(value?.rateLimits);

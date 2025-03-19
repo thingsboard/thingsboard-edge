@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,10 +38,10 @@ import java.util.Map;
  * Created by ashvayka on 04.12.17.
  */
 @Data
-public class UplinkMetaData {
+public class UplinkMetaData<T> {
 
     private final ContentType contentType;
 
-    private final Map<String, String> kvMap;
+    private final Map<String, T> kvMap;
 
 }

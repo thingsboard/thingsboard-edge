@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -766,4 +766,8 @@ export interface NotificationUserSettings {
 export interface NotificationUserSetting {
   enabled: boolean;
   enabledDeliveryMethods: {[key: string]: boolean};
+}
+
+export const singleNotificationTypeTemplate = (type: NotificationType) => {
+  return type === NotificationType.USER_ACTIVATED || type === NotificationType.USER_REGISTERED;
 }

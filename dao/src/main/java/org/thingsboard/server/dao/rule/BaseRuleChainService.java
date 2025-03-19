@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -96,6 +96,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.TENANT;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -134,16 +135,24 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     @Override
     @Transactional
     public RuleChain saveRuleChain(RuleChain ruleChain, boolean publishSaveEvent) {
-        ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
+        return saveRuleChain(ruleChain, publishSaveEvent, true);
+    }
+
+    @Override
+    @Transactional
+    public RuleChain saveRuleChain(RuleChain ruleChain, boolean publishSaveEvent, boolean doValidate) {
+        log.trace("Executing doSaveRuleChain [{}]", ruleChain);
+        if (doValidate) {
+            ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
+        }
         try {
             RuleChain savedRuleChain = ruleChainDao.saveAndFlush(ruleChain.getTenantId(), ruleChain);
             if (ruleChain.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(ruleChain.getTenantId(), EntityType.RULE_CHAIN);
             }
-            if (publishSaveEvent) {
-                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedRuleChain.getTenantId())
-                        .entity(savedRuleChain).entityId(savedRuleChain.getId()).created(ruleChain.getId() == null).build());
-            }
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedRuleChain.getTenantId())
+                    .entity(savedRuleChain).entityId(savedRuleChain.getId()).created(ruleChain.getId() == null)
+                    .broadcastEvent(publishSaveEvent).build());
             return savedRuleChain;
         } catch (Exception e) {
             checkConstraintViolation(e, "rule_chain_external_id_unq_key", "Rule Chain with such external id already exists!");
@@ -305,9 +314,8 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             relationService.saveRelations(tenantId, relations);
         }
         ruleChain = ruleChainDao.save(tenantId, ruleChain);
-        if (publishSaveEvent) {
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(ruleChain).entityId(ruleChain.getId()).build());
-        }
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(ruleChain)
+                .entityId(ruleChain.getId()).broadcastEvent(publishSaveEvent).build());
         return RuleChainUpdateResult.successful(updatedRuleNodes);
     }
 
@@ -368,6 +376,14 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     public ListenableFuture<RuleChain> findRuleChainByIdAsync(TenantId tenantId, RuleChainId ruleChainId) {
         Validator.validateId(ruleChainId, "Incorrect rule chain id for search request.");
         return ruleChainDao.findByIdAsync(tenantId, ruleChainId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<RuleChain>> findRuleChainsByIdsAsync(TenantId tenantId, List<RuleChainId> ruleChainIds) {
+        log.trace("Executing findRuleChainsByIdsAsync, tenantId [{}], ruleChainIds [{}]", tenantId, ruleChainIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(ruleChainIds, ids -> "Incorrect ruleChainIds " + ids);
+        return ruleChainDao.findRuleChainsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(ruleChainIds));
     }
 
     @Override

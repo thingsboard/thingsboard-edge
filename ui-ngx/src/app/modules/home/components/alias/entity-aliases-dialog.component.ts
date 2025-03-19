@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -55,6 +55,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { deepClone, isUndefined } from '@core/utils';
 import { EntityAliasDialogComponent, EntityAliasDialogData } from './entity-alias-dialog.component';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface EntityAliasesDialogData {
   entityAliases: EntityAliases;
@@ -95,7 +96,8 @@ export class EntityAliasesDialogComponent extends DialogComponent<EntityAliasesD
               private dashboardUtils: DashboardUtilsService,
               private translate: TranslateService,
               private dialogs: DialogService,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     this.title = data.customTitle ? data.customTitle : 'entity.aliases';
     this.disableAdd = this.data.disableAdd;
@@ -166,7 +168,9 @@ export class EntityAliasesDialogComponent extends DialogComponent<EntityAliasesD
       filter: [entityAlias ? entityAlias.filter : null],
       resolveMultiple: [entityAlias ? entityAlias.filter.resolveMultiple : false]
     });
-    aliasFormControl.get('resolveMultiple').valueChanges.subscribe((resolveMultiple: boolean) => {
+    aliasFormControl.get('resolveMultiple').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((resolveMultiple: boolean) => {
       (aliasFormControl.get('filter').value as EntityAliasFilter).resolveMultiple = resolveMultiple;
     });
     return aliasFormControl;

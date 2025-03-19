@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -164,6 +164,7 @@ const routes: Routes = [
           import: false,
           ruleChainType: RuleChainType.CORE
         },
+        loadChildren: () => import('./rulechain-page.module').then(m => m.RuleChainPageModule),
         resolve: {
           ruleChain: RuleChainResolver,
           ruleChainMetaData: RuleChainMetaDataResolver,
@@ -186,6 +187,7 @@ const routes: Routes = [
           import: true,
           ruleChainType: RuleChainType.CORE
         },
+        loadChildren: () => import('./rulechain-page.module').then(m => m.RuleChainPageModule),
         resolve: {
           ruleNodeComponents: RuleNodeComponentsResolver,
           tooltipster: TooltipsterResolver

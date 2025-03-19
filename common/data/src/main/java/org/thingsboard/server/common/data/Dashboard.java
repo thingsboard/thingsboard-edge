@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 @Schema
 @EqualsAndHashCode(callSuper = true)
 @JsonPropertyOrder({"title", "image", "mobileHide", "mobileOrder", "configuration", "name", "resources"})
-public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId>, HasImage, HasVersion {
+public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasCustomerId, HasTitle, ExportableEntity<DashboardId>, HasImage, HasVersion {
 
     private static final long serialVersionUID = 872682138346187503L;
 

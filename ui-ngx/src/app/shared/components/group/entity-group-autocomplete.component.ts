@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -217,16 +217,22 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  writeValue(value: string | EntityInfoData | null): void {
+  writeValue(value: string | EntityInfoData | EntityId | null): void {
     this.searchText = '';
     if (value !== null) {
-      if ((value as EntityInfoData).id) {
+      if ((value as EntityInfoData)?.id?.id) {
         const entityGroup = value as EntityInfoData;
         this.modelValue = this.useFullEntityId ? entityGroup.id : entityGroup.id.id;
         this.selectEntityGroupFormGroup.get('entityGroup').patchValue(entityGroup, {emitEvent: false});
         this.entityGroupLoaded.next(entityGroup);
       } else {
-        this.entityGroupService.getEntityGroup(value as string, {ignoreLoading: true}).subscribe({
+        let groupId: string;
+        if (typeof value === 'string') {
+          groupId = value;
+        } else {
+          groupId = (value as EntityId).id;
+        }
+        this.entityGroupService.getEntityGroup(groupId, {ignoreLoading: true}).subscribe({
           next: ({ name, id, ownerId, type }) => {
             const entityGroup = { name, id };
             this.modelValue = this.useFullEntityId ? id : id.id;

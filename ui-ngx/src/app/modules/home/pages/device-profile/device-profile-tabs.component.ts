@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+import { Component, DestroyRef } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
@@ -39,6 +39,7 @@ import {
   deviceTransportTypeHintMap,
   deviceTransportTypeTranslationMap
 } from '@shared/models/device.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-device-profile-tabs',
@@ -55,13 +56,16 @@ export class DeviceProfileTabsComponent extends EntityTabsComponent<DeviceProfil
 
   isTransportTypeChanged = false;
 
-  constructor(protected store: Store<AppState>) {
+  constructor(protected store: Store<AppState>,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.detailsForm.get('transportType').valueChanges.subscribe(() => {
+    this.detailsForm.get('transportType').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.isTransportTypeChanged = true;
     });
   }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -51,6 +51,6 @@ export class EntityGroupResolver<T>  {
 }
 
 export const groupEntitiesLabelFunction: BreadCrumbLabelFunction<GroupEntitiesTableComponent> =
-  (route, translate, component, data) => {
-    return component.entityGroup.name;
+  (route, translate, component, data, utils) => {
+    return utils ? utils.customTranslation(component.entityGroup.name, component.entityGroup.name) : component.entityGroup.name;
   };

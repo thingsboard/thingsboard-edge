@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
@@ -96,8 +97,6 @@ import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 @Slf4j
 public class BaseImageService extends BaseResourceService implements ImageService {
 
-    private static final int MAX_ENTITIES_TO_FIND = 10;
-
     public static Map<String, String> DASHBOARD_BASE64_MAPPING = new HashMap<>();
     public static Map<String, String> WIDGET_TYPE_BASE64_MAPPING = new HashMap<>();
 
@@ -133,8 +132,6 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     private final AssetProfileDao assetProfileDao;
     private final DeviceProfileDao deviceProfileDao;
     private final WidgetsBundleDao widgetsBundleDao;
-    private final WidgetTypeDao widgetTypeDao;
-    private final DashboardInfoDao dashboardInfoDao;
     private final WhiteLabelingDao whiteLabelingDao;
     private final DomainDao domainDao;
     private final Map<EntityType, ImageContainerDao<?>> imageContainerDaoMap = new HashMap<>();
@@ -142,12 +139,10 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     public BaseImageService(TbResourceDao resourceDao, TbResourceInfoDao resourceInfoDao, ResourceDataValidator resourceValidator,
                             AssetProfileDao assetProfileDao, DeviceProfileDao deviceProfileDao, WidgetsBundleDao widgetsBundleDao,
                             WidgetTypeDao widgetTypeDao, DashboardInfoDao dashboardInfoDao, WhiteLabelingDao whiteLabelingDao, DomainDao domainDao) {
-        super(resourceDao, resourceInfoDao, resourceValidator);
+        super(resourceDao, resourceInfoDao, resourceValidator, widgetTypeDao, dashboardInfoDao);
         this.assetProfileDao = assetProfileDao;
         this.deviceProfileDao = deviceProfileDao;
         this.widgetsBundleDao = widgetsBundleDao;
-        this.widgetTypeDao = widgetTypeDao;
-        this.dashboardInfoDao = dashboardInfoDao;
         this.whiteLabelingDao = whiteLabelingDao;
         this.domainDao = domainDao;
     }
@@ -160,7 +155,6 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         imageContainerDaoMap.put(EntityType.ASSET_PROFILE, assetProfileDao);
         imageContainerDaoMap.put(EntityType.DASHBOARD, dashboardInfoDao);
     }
-
 
     @Override
     @SneakyThrows
@@ -368,7 +362,8 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             }
         }
         if (success) {
-            deleteResource(tenantId, imageId, force);
+            success = deleteResource(tenantId, imageId, true)
+                    .isSuccess();
         }
         return result.success(success).build();
     }
@@ -474,6 +469,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             JsonNode defaultConfig = widgetTypeDetails.getDefaultConfig();
             if (defaultConfig != null) {
                 updated |= convertToImageUrlsByMapping(tenantId, null, WIDGET_TYPE_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), defaultConfig, imagesLinks);
+                updated |= convertToImageUrls(tenantId, null, prefix, defaultConfig, imagesLinks);
                 widgetTypeDetails.setDefaultConfig(defaultConfig);
             }
         }
@@ -621,9 +617,16 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     }
 
     @Override
-    public void inlineImage(HasImage entity) {
+    public <T extends HasImage> T inlineImage(T entity) {
         log.trace("Executing inlineImage [{}] [{}] [{}]", entity.getTenantId(), entity.getClass().getSimpleName(), entity.getName());
+        if (StringUtils.isEmpty(entity.getImage())) {
+            return entity;
+        }
+        if (cache instanceof CaffeineTbTransactionalCache) {
+            entity = JacksonUtil.clone(entity); // cloning the entity to avoid updating the cached one
+        }
         entity.setImage(inlineImage(entity.getTenantId(), "image", entity.getImage(), true));
+        return entity;
     }
 
     @Override

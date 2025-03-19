@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,13 +32,16 @@ package org.thingsboard.server.dao.sql.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.edqs.fields.ConverterFields;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -68,22 +71,24 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     }
 
     @Override
-    public PageData<Converter> findCoreConvertersByTenantId(UUID tenantId, PageLink pageLink) {
+    public PageData<Converter> findCoreConvertersByTenantId(UUID tenantId, IntegrationType integrationType, PageLink pageLink) {
         return DaoUtil.toPageData(
                 converterRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
                         pageLink.getTextSearch(),
                         false,
+                        integrationType,
                         DaoUtil.toPageable(pageLink)));
     }
 
     @Override
-    public PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, PageLink pageLink) {
+    public PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, IntegrationType integrationType, PageLink pageLink) {
         return DaoUtil.toPageData(
                 converterRepository.findByTenantIdAndIsEdgeTemplate(
                         tenantId,
                         pageLink.getTextSearch(),
                         true,
+                        integrationType,
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -91,6 +96,11 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     public Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name) {
         Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndName(tenantId, name));
         return Optional.ofNullable(converter);
+    }
+
+    @Override
+    public boolean existsByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type, UUID skippedId) {
+        return converterRepository.existsByTenantIdAndNameAndTypeAndIdNot(tenantId, name,  type, skippedId);
     }
 
     @Override
@@ -138,6 +148,16 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     public ConverterId getExternalIdByInternal(ConverterId internalId) {
         return Optional.ofNullable(converterRepository.getExternalIdById(internalId.getId()))
                 .map(ConverterId::new).orElse(null);
+    }
+
+    @Override
+    public PageData<Converter> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public List<ConverterFields> findNextBatch(UUID id, int batchSize) {
+        return converterRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

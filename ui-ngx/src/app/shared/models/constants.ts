@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -104,6 +104,7 @@ export const HelpLinks = {
   linksMap: {
     docs: `${helpBaseUrl}/docs${docPlatformPrefix}`,
     outgoingMailSettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/mail-settings`,
+    mailTemplates: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/mail-templates/`,
     smsProviderSettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/sms-provider-settings`,
     slackSettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/slack-settings`,
     securitySettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/security-settings`,
@@ -221,9 +222,12 @@ export const HelpLinks = {
     scada: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada`,
     scadaSymbolDev: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada/scada-symbols-dev-guide/`,
     scadaSymbolDevAnimation: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada/scada-symbols-dev-guide/#scadasymbolanimation`,
-    mobileApplication: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/mobile-qr-code/`,
-    mobileBundle: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/mobile-qr-code/`,
+    domains: `${helpBaseUrl}/docs${docPlatformPrefix}/domains`,
+    mobileApplication: `${helpBaseUrl}/docs${docPlatformPrefix}/mobile-center/applications/`,
+    mobileBundle: `${helpBaseUrl}/docs${docPlatformPrefix}/mobile-center/mobile-center/`,
     mobileQrCode: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/ui/mobile-qr-code/`,
+    calculatedField: `${helpBaseUrl}/docs${docPlatformPrefix}/`,
+    timewindowSettings: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/dashboards/#time-window`,
     converters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#data-converters`,
     uplinkConverters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#uplink-data-converter`,
     downlinkConverters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#downlink-data-converter`,
@@ -253,7 +257,7 @@ export const HelpLinks = {
     integrationKafka:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/kafka`,
     integrationRabbitmq:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/rabbitmq`,
     integrationApachePulsar:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/apache-pulsar`,
-    integrationPubsub:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/pubsub`,
+    integrationPubsub:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations`,
     integrationCoAP:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/coap`,
     integrationKpn:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/kpn-things`,
     integrationCustom:  `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/custom`,

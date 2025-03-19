@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -51,6 +61,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { EntityFilter, singleEntityFilterFromDeviceId } from '@shared/models/query/query.models';
 import { AliasFilterType } from '@shared/models/alias.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-device-key-autocomplete',
@@ -116,7 +127,8 @@ export class DeviceKeyAutocompleteComponent extends PageComponent implements OnI
 
   constructor(protected store: Store<AppState>,
               private entityService: EntityService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -124,7 +136,9 @@ export class DeviceKeyAutocompleteComponent extends PageComponent implements OnI
     this.deviceKeyFormGroup = this.fb.group({
       key: [null, this.required ? [Validators.required] : []]
     });
-    this.deviceKeyFormGroup.valueChanges.subscribe(() => {
+    this.deviceKeyFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
 

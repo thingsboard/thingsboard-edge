@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -93,7 +93,7 @@ public class HttpClientTest extends AbstractContainerTest {
         assertThat(accessToken).isNotNull();
 
         JsonNode sharedAttribute = JacksonUtil.toJsonNode(createPayload().toString());
-        testRestClient.postTelemetryAttribute(DEVICE, device.getId(), SHARED_SCOPE, sharedAttribute);
+        testRestClient.postTelemetryAttribute(device.getId(), SHARED_SCOPE, sharedAttribute);
 
         JsonNode clientAttribute = JacksonUtil.toJsonNode(createPayload().toString());
         testRestClient.postAttribute(accessToken, clientAttribute);

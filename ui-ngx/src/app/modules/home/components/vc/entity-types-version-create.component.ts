@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -49,13 +49,15 @@ import {
   exportableEntityTypes,
   overrideEntityTypeTranslations,
   SyncStrategy,
-  syncStrategyTranslationMap
+  syncStrategyTranslationMap,
+  typesWithCalculatedFields
 } from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { entityGroupTypes } from '@shared/models/entity-group.models';
 
 @Component({
@@ -97,9 +99,12 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
 
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
+  readonly typesWithCalculatedFields = typesWithCalculatedFields;
+
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -107,7 +112,9 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
     this.entityTypesVersionCreateFormGroup = this.fb.group({
       entityTypes: this.fb.array([], [])
     });
-    this.entityTypesVersionCreateFormGroup.valueChanges.subscribe(() => {
+    this.entityTypesVersionCreateFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -165,6 +172,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
           saveRelations: [config.saveRelations, []],
           saveAttributes: [config.saveAttributes, []],
           saveCredentials: [config.saveCredentials, []],
+          saveCalculatedFields: [config.saveCalculatedFields, []],
           saveGroupEntities: [config.saveGroupEntities, []],
           savePermissions: [config.savePermissions, []],
           allEntities: [config.allEntities, []],
@@ -173,10 +181,14 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
       }
     );
     this.updateEntityTypeValidators(entityTypeControl);
-    entityTypeControl.get('config.allEntities').valueChanges.subscribe(() => {
+    entityTypeControl.get('config.allEntities').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateEntityTypeValidators(entityTypeControl);
     });
-    entityTypeControl.get('entityType').valueChanges.subscribe(() => {
+    entityTypeControl.get('entityType').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       entityTypeControl.get('config').get('entityIds').patchValue([], {emitEvent: false});
     });
     return entityTypeControl;
@@ -220,6 +232,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
       saveAttributes: true,
       saveRelations: true,
       saveCredentials: true,
+      saveCalculatedFields: true,
       saveGroupEntities: true,
       savePermissions: true,
       allEntities: true,

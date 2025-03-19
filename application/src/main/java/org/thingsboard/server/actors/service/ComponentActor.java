@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,9 @@ import org.thingsboard.server.common.msg.TbActorStopReason;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 
+import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
+
 /**
  * @author Andrew Shvayka
  */
@@ -56,6 +59,7 @@ public abstract class ComponentActor<T extends EntityId, P extends ComponentMsgP
     protected P processor;
     private long messagesProcessed;
     private long errorsOccurred;
+    ScheduledFuture<?> statsScheduledFuture = null;
 
     public ComponentActor(ActorSystemContext systemContext, TenantId tenantId, T id) {
         super(systemContext);
@@ -88,9 +92,9 @@ public abstract class ComponentActor<T extends EntityId, P extends ComponentMsgP
         }
     }
 
-    private void scheduleStatsPersistTick() {
+    void scheduleStatsPersistTick() {
         try {
-            processor.scheduleStatsPersistTick(ctx, systemContext.getStatisticsPersistFrequency());
+            this.statsScheduledFuture = processor.scheduleStatsPersistTick(ctx, systemContext.getStatisticsPersistFrequency());
         } catch (Exception e) {
             log.error("[{}][{}] Failed to schedule statistics store message. No statistics is going to be stored: {}", tenantId, id, e.getMessage());
             logAndPersist("onScheduleStatsPersistMsg", e);
@@ -105,6 +109,8 @@ public abstract class ComponentActor<T extends EntityId, P extends ComponentMsgP
                 processor.stop(ctx);
             }
             logLifecycleEvent(ComponentLifecycleEvent.STOPPED);
+            Optional.ofNullable(statsScheduledFuture).ifPresent(x -> x.cancel(false));
+            statsScheduledFuture = null;
         } catch (Exception e) {
             log.warn("[{}][{}] Failed to stop {} processor: {}", tenantId, id, id.getEntityType(), e.getMessage());
             logAndPersist("OnStop", e, true);

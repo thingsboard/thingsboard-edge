@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,6 +61,8 @@ public interface RuleChainService extends EntityDaoService {
 
     RuleChain saveRuleChain(RuleChain ruleChain, boolean publishSaveEvent);
 
+    RuleChain saveRuleChain(RuleChain ruleChain, boolean publishSaveEvent, boolean doValidate);
+
     boolean setRootRuleChain(TenantId tenantId, RuleChainId ruleChainId);
 
     RuleChainUpdateResult saveRuleChainMetaData(TenantId tenantId, RuleChainMetaData ruleChainMetaData, Function<RuleNode, RuleNode> ruleNodeUpdater);
@@ -74,6 +76,8 @@ public interface RuleChainService extends EntityDaoService {
     RuleNode findRuleNodeById(TenantId tenantId, RuleNodeId ruleNodeId);
 
     ListenableFuture<RuleChain> findRuleChainByIdAsync(TenantId tenantId, RuleChainId ruleChainId);
+
+    ListenableFuture<List<RuleChain>> findRuleChainsByIdsAsync(TenantId tenantId, List<RuleChainId> ruleChainIds);
 
     ListenableFuture<RuleNode> findRuleNodeByIdAsync(TenantId tenantId, RuleNodeId ruleNodeId);
 

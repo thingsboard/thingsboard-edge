@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -121,6 +121,8 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
     this.selectionEnabled = this.settings.enableSelection;
     this.displayPagination = this.settings.displayPagination;
     this.defaultPageSize = this.settings.defaultPageSize;
+    this.pageStepCount = this.settings.pageStepCount ?? 3;
+    this.pageStepIncrement = this.settings.pageStepIncrement ?? this.settings.defaultPageSize;
     this.detailsPanelEnabled = this.settings.detailsMode !== EntityGroupDetailsMode.disabled;
     this.deleteEnabled = () => this.settings.enableDelete;
     this.addDialogOwnerAndGroupWizard = this.settings.addDialogOwnerAndGroupWizard;

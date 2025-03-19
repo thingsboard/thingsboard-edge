@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
@@ -52,6 +53,7 @@ import java.util.List;
 public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
 
     private final EntityGroupService entityGroupService;
+    @Getter
     private final EntityType groupType;
 
     @Override
@@ -61,7 +63,7 @@ public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
 
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
-        log.trace("[{}] start fetching edge events [{}], pageLink {}", tenantId, edge.getId(), pageLink);
+        log.trace("[{}] start fetching edge events [{}], groupType {}, pageLink {}", tenantId, edge.getId(), groupType, pageLink);
         PageData<EntityGroup> pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, edge.getId(), groupType, pageLink);
         List<EdgeEvent> result = new ArrayList<>();
         if (!pageData.getData().isEmpty()) {

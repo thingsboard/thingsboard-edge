@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
@@ -41,6 +41,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { genericRolePermissionsValidator, Role } from '@shared/models/role.models';
 import { RoleType, roleTypeTranslationMap } from '@shared/models/security.models';
 import { isEqual } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-role',
@@ -61,7 +62,8 @@ export class RoleComponent extends EntityComponent<Role> {
               @Inject('entity') protected entityValue: Role,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Role>,
               protected fb: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef) {
+              protected cd: ChangeDetectorRef,
+              private destroyRef: DestroyRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
@@ -92,7 +94,9 @@ export class RoleComponent extends EntityComponent<Role> {
       }
     );
     this.updateValidators(form);
-    form.get('type').valueChanges.subscribe((newVal) => {
+    form.get('type').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((newVal) => {
       this.roleTypeChanged(form, newVal);
     });
     return form;

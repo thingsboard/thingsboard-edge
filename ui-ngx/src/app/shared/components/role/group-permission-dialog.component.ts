@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -42,6 +42,7 @@ import { RoleService } from '@core/http/role.service';
 import { RoleType, roleTypeTranslationMap } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType } from '@shared/models/entity-type.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface GroupPermissionDialogData {
   isUserGroup: boolean;
@@ -80,7 +81,8 @@ export class GroupPermissionDialogComponent
               private userPermissionsService: UserPermissionsService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<GroupPermissionDialogComponent, boolean | GroupPermission>,
-              public fb: UntypedFormBuilder) {
+              public fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     if (this.isUserGroup) {
       if (this.groupPermission.role && this.groupPermission.role.type !== RoleType.GROUP) {
@@ -118,7 +120,9 @@ export class GroupPermissionDialogComponent
     this.groupPermissionFormGroup.reset(this.groupPermission, {emitEvent: false});
     this.updateEnabledState();
     if (this.isUserGroup) {
-      this.groupPermissionFormGroup.get('role.type').valueChanges.subscribe(() => {
+      this.groupPermissionFormGroup.get('role.type').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateEnabledState();
       });
     }

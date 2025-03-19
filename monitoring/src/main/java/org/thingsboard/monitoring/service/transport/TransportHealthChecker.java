@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -160,7 +160,7 @@ public abstract class TransportHealthChecker<C extends TransportMonitoringConfig
             profileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());
             deviceProfile.setProfileData(profileData);
         } else {
-            tbClient.getResources(new PageLink(1, 0, "LwM2M Monitoring id=3 v1.0")).getData()
+            tbClient.getResources(new PageLink(1, 0, "LwM2M Monitoring")).getData()
                     .stream().findFirst()
                     .orElseGet(() -> {
                         TbResource newResource = ResourceUtils.getResource("lwm2m/resource.json", TbResource.class);

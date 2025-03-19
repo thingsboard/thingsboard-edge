@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -104,9 +104,12 @@ class TbAddToGroupNodeTest {
         when(entityGroupServiceMock.findEntityGroupByTypeAndNameAsync(any(), any(), any(), any()))
                 .thenReturn(Futures.immediateFuture(Optional.of(new EntityGroup(ENTITY_GROUP_ID))));
 
-        TbMsg msg = TbMsg.newMsg(
-                TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
-                new TbMsgMetaData(Map.of("groupName", "Device Group")), TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(new TbMsgMetaData(Map.of("groupName", "Device Group")))
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
@@ -128,9 +131,12 @@ class TbAddToGroupNodeTest {
                 .thenReturn(Futures.immediateFuture(Optional.empty()));
         when(entityGroupServiceMock.saveEntityGroup(any(), any(), any())).thenReturn(new EntityGroup(ENTITY_GROUP_ID));
 
-        TbMsg msg = TbMsg.newMsg(
-                TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
-                new TbMsgMetaData(Map.of("groupName", "Another Device Group")), TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(new TbMsgMetaData(Map.of("groupName", "Another Device Group")))
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
@@ -165,9 +171,12 @@ class TbAddToGroupNodeTest {
         when(entityGroupServiceMock.findEntityGroupByTypeAndNameAsync(any(), any(), any(), eq(EntityGroup.GROUP_ALL_NAME)))
                 .thenReturn(Futures.immediateFuture(Optional.of(new EntityGroup(currentEntityGroupId))));
 
-        TbMsg msg = TbMsg.newMsg(
-                TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
-                new TbMsgMetaData(Map.of("groupName", "Device Group")), TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(new TbMsgMetaData(Map.of("groupName", "Device Group")))
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         node.onMsg(ctxMock, msg);
 
         verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);

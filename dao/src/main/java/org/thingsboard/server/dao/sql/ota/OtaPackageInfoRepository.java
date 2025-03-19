@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -106,4 +106,5 @@ public interface OtaPackageInfoRepository extends JpaRepository<OtaPackageInfoEn
                                                                                 @Param("type") OtaPackageType type,
                                                                                 @Param("searchText") String searchText,
                                                                                 Pageable pageable);
+
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,8 @@ import { MobileAppBundleId } from '@shared/models/id/mobile-app-bundle-id';
 import { HasTenantId } from '@shared/models/entity.models';
 import { deepClone, isNotEmptyStr } from '@core/utils';
 import { MobileSelfRegistrationParams } from '@shared/models/self-register.models';
+
+export const WEB_URL_REGEX = /^(https?:\/\/)?(localhost|([\p{L}\p{M}\w-]+\.)+[\p{L}\p{M}\w-]+)(:\d+)?(\/[\w\-._~:/?#[\]@!$&'()*+,;=%\p{L}\p{N}]*)?$/u;
 
 export interface QrCodeSettings extends HasTenantId {
   useSystemSettings: boolean;

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -49,6 +49,7 @@ import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { EntityId, entityIdEquals } from '@app/shared/models/id/entity-id';
 import { entityGroupsTitle } from '@shared/models/entity-group.models';
 import { TranslateService } from '@ngx-translate/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-owner-entity-group-list',
@@ -85,7 +86,8 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -93,7 +95,9 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
     this.ownerEntityGroupListFormGroup = this.fb.group({
       ownerEntityGroups: this.fb.array([], [])
     });
-    this.ownerEntityGroupListFormGroup.valueChanges.subscribe(() => {
+    this.ownerEntityGroupListFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
   }

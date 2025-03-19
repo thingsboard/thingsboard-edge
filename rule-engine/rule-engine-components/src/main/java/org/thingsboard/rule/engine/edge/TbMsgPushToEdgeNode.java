@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -76,7 +76,6 @@ import static org.thingsboard.server.dao.edge.BaseRelatedEdgesService.RELATED_ED
                 "<br><code>ALARM</code><br><br>" +
                 "Message will be routed via <b>Failure</b> route if node was not able to save edge event to database or unsupported message type arrived. " +
                 "In case successful storage edge event to database message will be routed via <b>Success</b> route.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodePushToEdgeConfig",
         icon = "cloud_download",
         ruleChainTypes = RuleChainType.CORE

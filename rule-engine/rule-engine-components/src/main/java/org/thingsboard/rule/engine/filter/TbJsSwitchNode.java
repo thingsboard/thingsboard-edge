@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,7 +61,6 @@ import java.util.Set;
                 "Message metadata can be accessed via <code>metadata</code> property. For example <code>metadata.customerName === 'John';</code><br/>" +
                 "Message type can be accessed via <code>msgType</code> property.<br><br>" +
                 "Output connections: <i>Custom connection(s) defined by switch node</i> or <code>Failure</code>",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbFilterNodeSwitchConfig")
 public class TbJsSwitchNode implements TbNode {
 
@@ -77,17 +76,14 @@ public class TbJsSwitchNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        ctx.logJsEvalRequest();
         Futures.addCallback(scriptEngine.executeSwitchAsync(msg), new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Set<String> result) {
-                ctx.logJsEvalResponse();
                 processSwitch(ctx, msg, result);
             }
 
             @Override
             public void onFailure(Throwable t) {
-                ctx.logJsEvalFailure();
                 ctx.tellFailure(msg, t);
             }
         }, MoreExecutors.directExecutor()); //usually runs in a callbackExecutor

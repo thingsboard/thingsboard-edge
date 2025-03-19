@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -56,6 +56,7 @@ import {
 } from '@home/components/widget/lib/settings/chart/label-data-key.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { defaultLegendConfig, widgetType } from '@shared/models/widget.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export const flotDefaultSettings = (chartType: ChartType): Partial<TbFlotSettings> => {
   const settings: Partial<TbFlotSettings> = {
@@ -155,7 +156,8 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -253,34 +255,50 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
       this.flotSettingsFormGroup.addControl('dataKeysListForLabels', this.fb.control(this.fb.array([]), []));
     }
 
-    this.flotSettingsFormGroup.get('showTooltip').valueChanges.subscribe(() => {
+    this.flotSettingsFormGroup.get('showTooltip').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
 
-    this.flotSettingsFormGroup.get('xaxis.showLabels').valueChanges.subscribe(() => {
+    this.flotSettingsFormGroup.get('xaxis.showLabels').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
 
-    this.flotSettingsFormGroup.get('yaxis.showLabels').valueChanges.subscribe(() => {
+    this.flotSettingsFormGroup.get('yaxis.showLabels').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators(true);
     });
 
     if (this.chartType === 'graph' || this.chartType === 'bar') {
-      this.flotSettingsFormGroup.get('showLegend').valueChanges.subscribe(() => {
+      this.flotSettingsFormGroup.get('showLegend').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateValidators(true);
       });
-      this.flotSettingsFormGroup.get('comparisonEnabled').valueChanges.subscribe(() => {
+      this.flotSettingsFormGroup.get('comparisonEnabled').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateValidators(true);
       });
-      this.flotSettingsFormGroup.get('timeForComparison').valueChanges.subscribe(() => {
+      this.flotSettingsFormGroup.get('timeForComparison').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateValidators(true);
       });
-      this.flotSettingsFormGroup.get('customLegendEnabled').valueChanges.subscribe(() => {
+      this.flotSettingsFormGroup.get('customLegendEnabled').valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateValidators(true);
       });
     }
 
-    this.flotSettingsFormGroup.valueChanges.subscribe(() => {
+    this.flotSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
 

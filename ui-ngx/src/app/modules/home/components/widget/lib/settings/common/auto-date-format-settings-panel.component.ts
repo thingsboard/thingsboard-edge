@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import {
   AutoDateFormatSettings, defaultAutoDateFormatSettings,
@@ -42,6 +42,7 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { DatePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-auto-date-format-settings-panel',
@@ -74,7 +75,8 @@ export class AutoDateFormatSettingsPanelComponent extends PageComponent implemen
 
   constructor(private date: DatePipe,
               private fb: UntypedFormBuilder,
-              protected store: Store<AppState>) {
+              protected store: Store<AppState>,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -83,7 +85,9 @@ export class AutoDateFormatSettingsPanelComponent extends PageComponent implemen
     for (const unit of formatTimeUnits) {
       this.autoDateFormatFormGroup.addControl(unit,
         this.fb.control(this.autoDateFormatSettings[unit] || this.defaultValues[unit], [Validators.required]));
-      this.autoDateFormatFormGroup.get(unit).valueChanges.subscribe((value: string) => {
+      this.autoDateFormatFormGroup.get(unit).valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe((value: string) => {
         this.previewText[unit] = this.date.transform(Date.now(), value);
       });
       this.previewText[unit] = this.date.transform(Date.now(), this.autoDateFormatSettings[unit] || this.defaultValues[unit]);

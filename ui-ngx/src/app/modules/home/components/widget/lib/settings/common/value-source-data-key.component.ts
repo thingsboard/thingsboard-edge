@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -44,13 +44,14 @@ import { AppState } from '@core/core.state';
 import { IAliasController } from '@core/api/widget-api.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { DataKey, Datasource, DatasourceType } from '@app/shared/models/widget.models';
-import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeysCallbacks } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import {
   ValueSourceConfig,
   ValueSourceType,
   ValueSourceTypes,
   ValueSourceTypeTranslation
 } from '@shared/models/widget-settings.models';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-value-source-data-key',
@@ -96,7 +97,8 @@ export class ValueSourceDataKeyComponent extends PageComponent implements OnInit
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -108,16 +110,24 @@ export class ValueSourceDataKeyComponent extends PageComponent implements OnInit
     });
     this.latestKeyFormControl = this.fb.control(null, [Validators.required]);
     this.entityKeyFormControl = this.fb.control(null, [Validators.required]);
-    this.valueSourceFormGroup.valueChanges.subscribe(
+    this.valueSourceFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
-    this.latestKeyFormControl.valueChanges.subscribe(
+    this.latestKeyFormControl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
-    this.entityKeyFormControl.valueChanges.subscribe(
+    this.entityKeyFormControl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
-    this.valueSourceFormGroup.get('type').valueChanges.subscribe(() => {
+    this.valueSourceFormGroup.get('type').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
   }

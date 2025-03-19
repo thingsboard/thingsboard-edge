@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ import { DashboardState } from '@app/shared/models/dashboard.models';
 import { DashboardStateInfo } from '@home/components/dashboard-page/states/manage-dashboard-states-dialog.component.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface DashboardStateDialogData {
   states: {[id: string]: DashboardState };
@@ -104,11 +105,15 @@ export class DashboardStateDialogComponent extends
       root: [this.state.root, []],
     });
 
-    this.stateFormGroup.get('name').valueChanges.subscribe((name: string) => {
+    this.stateFormGroup.get('name').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe((name: string) => {
       this.checkStateName(name);
     });
 
-    this.stateFormGroup.get('id').valueChanges.subscribe((id: string) => {
+    this.stateFormGroup.get('id').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe((id: string) => {
       this.stateIdTouched = true;
     });
   }

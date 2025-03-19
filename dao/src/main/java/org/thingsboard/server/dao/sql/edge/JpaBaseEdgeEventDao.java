@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -149,7 +149,7 @@ public class JpaBaseEdgeEventDao extends JpaPartitionedAbstractDao<EdgeEventEnti
 
     @Override
     public ListenableFuture<Void> saveAsync(EdgeEvent edgeEvent) {
-        log.debug("Save edge event [{}] ", edgeEvent);
+        log.debug("Saving EdgeEvent [{}] ", edgeEvent);
         if (edgeEvent.getId() == null) {
             UUID timeBased = Uuids.timeBased();
             edgeEvent.setId(new EdgeEventId(timeBased));
@@ -171,7 +171,7 @@ public class JpaBaseEdgeEventDao extends JpaPartitionedAbstractDao<EdgeEventEnti
     }
 
     private ListenableFuture<Void> save(EdgeEventEntity entity) {
-        log.debug("Save edge event [{}] ", entity);
+        log.debug("Saving EdgeEventEntity [{}] ", entity);
         if (entity.getTenantId() == null) {
             log.trace("Save system edge event with predefined id {}", systemTenantId);
             entity.setTenantId(systemTenantId);

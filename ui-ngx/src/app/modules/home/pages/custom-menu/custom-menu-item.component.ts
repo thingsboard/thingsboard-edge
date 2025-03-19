@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALIDATORS,
@@ -56,6 +56,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-custom-menu-item',
@@ -107,7 +108,8 @@ export class CustomMenuItemComponent implements ControlValueAccessor, OnInit, Va
   private propagateChange = (_val: any) => {};
 
   constructor(private fb: UntypedFormBuilder,
-              private store: Store<AppState>) {
+              private store: Store<AppState>,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit() {
@@ -127,10 +129,15 @@ export class CustomMenuItemComponent implements ControlValueAccessor, OnInit, Va
     this.linkTypeEditable = authUser.authority !== Authority.SYS_ADMIN && this.scope !== CMScope.SYSTEM;
 
     merge(this.menuItemFormGroup.get('menuItemType').valueChanges,
-      this.menuItemFormGroup.get('linkType').valueChanges).subscribe(() => {
+      this.menuItemFormGroup.get('linkType').valueChanges
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateValidators();
     });
-    this.menuItemFormGroup.valueChanges.subscribe(
+    this.menuItemFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(
       () => this.updateModel()
     );
   }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -295,7 +295,12 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         dataNode.set("data", writeValuesNode);
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(new HashMap<>());
 
-        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.ATTRIBUTES_UPDATED, originatorId, tbMsgMetaData, writeValueNode.toString());
+        TbMsg tbMsg = TbMsg.newMsg()
+                .type(TbMsgType.ATTRIBUTES_UPDATED)
+                .originator(originatorId)
+                .copyMetaData(tbMsgMetaData)
+                .data(writeValueNode.toString())
+                .build();
         return TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())

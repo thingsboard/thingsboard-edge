@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -43,13 +43,7 @@ case $i in
 esac
 done
 
-if [[ -z "${FROM_VERSION// }" ]]; then
-    echo "--fromVersion parameter is invalid or unspecified!"
-    echo "Usage: upgrade_dev_db.sh --fromVersion={VERSION}"
-    exit 1
-else
-    fromVersion="${FROM_VERSION// }"
-fi
+fromVersion="${FROM_VERSION// }"
 
 BASE=${project.basedir}/target
 CONF_FOLDER=${BASE}/conf

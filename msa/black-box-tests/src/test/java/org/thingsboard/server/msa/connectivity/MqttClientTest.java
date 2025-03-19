@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -227,7 +227,7 @@ public class MqttClientTest extends AbstractContainerTest {
         String sharedAttributeValue = StringUtils.randomAlphanumeric(8);
         sharedAttributes.addProperty("sharedAttr", sharedAttributeValue);
         JsonNode sharedAttribute = JacksonUtil.toJsonNode(sharedAttributes.toString());
-        testRestClient.postTelemetryAttribute(DataConstants.DEVICE, device.getId(), SHARED_SCOPE, sharedAttribute);
+        testRestClient.postTelemetryAttribute(device.getId(), SHARED_SCOPE, sharedAttribute);
 
         // Subscribe to attributes response
         mqttClient.on("v1/devices/me/attributes/response/+", listener, MqttQoS.AT_LEAST_ONCE).get();
@@ -270,7 +270,7 @@ public class MqttClientTest extends AbstractContainerTest {
         sharedAttributes.addProperty(sharedAttributeName, sharedAttributeValue);
         JsonNode sharedAttribute = JacksonUtil.toJsonNode(sharedAttributes.toString());
 
-        testRestClient.postTelemetryAttribute(DataConstants.DEVICE, device.getId(), SHARED_SCOPE, sharedAttribute);
+        testRestClient.postTelemetryAttribute(device.getId(), SHARED_SCOPE, sharedAttribute);
 
         MqttEvent event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
         assertThat(JacksonUtil.fromString(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText())
@@ -280,7 +280,7 @@ public class MqttClientTest extends AbstractContainerTest {
         JsonObject updatedSharedAttributes = new JsonObject();
         String updatedSharedAttributeValue = StringUtils.randomAlphanumeric(8);
         updatedSharedAttributes.addProperty(sharedAttributeName, updatedSharedAttributeValue);
-        testRestClient.postTelemetryAttribute(DEVICE, device.getId(), SHARED_SCOPE, JacksonUtil.toJsonNode(updatedSharedAttributes.toString()));
+        testRestClient.postTelemetryAttribute(device.getId(), SHARED_SCOPE, JacksonUtil.toJsonNode(updatedSharedAttributes.toString()));
 
         event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
         assertThat(JacksonUtil.fromString(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText())

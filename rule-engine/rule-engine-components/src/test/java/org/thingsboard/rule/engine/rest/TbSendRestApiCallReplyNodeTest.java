@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -104,7 +104,12 @@ public class TbSendRestApiCallReplyNodeTest {
         Map<String, String> metadata = Map.of(
                 requestIdAttribute, requestUUIDStr,
                 serviceIdAttribute, serviceIdStr);
-        TbMsg msg = TbMsg.newMsg(TbMsgType.REST_API_REQUEST, DEVICE_ID, new TbMsgMetaData(metadata), data);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.REST_API_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(new TbMsgMetaData(metadata))
+                .data(data)
+                .build();
 
         node.onMsg(ctxMock, msg);
 
@@ -124,7 +129,12 @@ public class TbSendRestApiCallReplyNodeTest {
     @ParameterizedTest
     @MethodSource
     public void givenInvalidRequest_whenOnMsg_thenTellFailure(TbMsgMetaData metaData, String data, String errorMsg) {
-        TbMsg msg = TbMsg.newMsg(TbMsgType.REST_API_REQUEST, DEVICE_ID, metaData, data);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.REST_API_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(metaData)
+                .data(data)
+                .build();
 
         node.onMsg(ctxMock, msg);
 

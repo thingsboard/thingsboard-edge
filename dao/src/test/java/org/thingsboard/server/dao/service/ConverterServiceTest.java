@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -196,7 +196,7 @@ public class ConverterServiceTest extends AbstractServiceTest {
         PageLink pageLink = new PageLink(23);
         PageData<Converter> pageData;
         do {
-            pageData = converterService.findTenantConverters(tenantId, pageLink);
+            pageData = converterService.findTenantConverters(tenantId, null, pageLink);
             loadedConverters.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -212,7 +212,7 @@ public class ConverterServiceTest extends AbstractServiceTest {
         converterService.deleteConvertersByTenantId(tenantId);
 
         pageLink = new PageLink(33);
-        pageData = converterService.findTenantConverters(tenantId, pageLink);
+        pageData = converterService.findTenantConverters(tenantId, null, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
 

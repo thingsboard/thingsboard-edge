@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,26 +30,26 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section class="flex flex-row items-start justify-start gap-4">
-  <mat-form-field>
-    <mat-label *ngIf="showLabel">{{ dateText | translate }}</mat-label>
-    <mat-datetimepicker-toggle [for]="datePicker" matPrefix></mat-datetimepicker-toggle>
-    <mat-datetimepicker #datePicker type="date" openOnFocus="true"></mat-datetimepicker>
-    <input [min]="minDateValue" [max]="maxDateValue"
-           [disabled]="disabled"
-           [required]="required"
-           matInput [(ngModel)]="date"
-           [matDatetimepicker]="datePicker" (ngModelChange)="onDateChange()">
-  </mat-form-field>
-  <mat-form-field>
-    <mat-label *ngIf="showLabel">{{ timeText | translate }}</mat-label>
-    <mat-datetimepicker-toggle [for]="timePicker" matPrefix></mat-datetimepicker-toggle>
-    <mat-datetimepicker #timePicker type="time" openOnFocus="true"></mat-datetimepicker>
-    <input [min]="minDateValue" [max]="maxDateValue"
-           [disabled]="disabled"
-           [required]="required"
-           matInput
-           [(ngModel)]="date"
-           [matDatetimepicker]="timePicker" (ngModelChange)="onDateChange()">
-  </mat-form-field>
-</section>
+<mat-form-field [class]="fieldClass"
+                [class.tb-datetime-field]="!fieldClass && type === 'datetime'"
+                [class.tb-date-field]="!fieldClass && type === 'date'"
+                [class.tb-time-field]="!fieldClass && type === 'time'"
+                [class.with-clear]="allowClear"
+                [subscriptSizing]="subscriptSizing" [appearance]="appearance" [floatLabel]="floatLabel">
+  <mat-label *ngIf="showLabel">{{ dateText }}</mat-label>
+  <div matSuffix class="mat-mdc-form-field-icon-suffix flex flex-row">
+    <button *ngIf="allowClear && date && !disabled"
+            type="button"
+            mat-icon-button aria-label="Clear"
+            (click)="clear($event)">
+      <mat-icon>close</mat-icon>
+    </button>
+    <mat-datetimepicker-toggle [for]="datePicker"></mat-datetimepicker-toggle>
+  </div>
+  <mat-datetimepicker #datePicker [type]="type" openOnFocus="true"></mat-datetimepicker>
+  <input [min]="minDateValue" [max]="maxDateValue"
+         [disabled]="disabled"
+         [required]="required"
+         matInput [(ngModel)]="date"
+         [matDatetimepicker]="datePicker" (ngModelChange)="onDateChange()">
+</mat-form-field>

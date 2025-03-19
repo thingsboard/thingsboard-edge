@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  DestroyRef,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
 import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -50,6 +60,7 @@ import {
   EntityGroupColumnDialogData
 } from '@home/components/group/entity-group-column-dialog.component';
 import { deepClone } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-entity-group-column',
@@ -94,7 +105,8 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
 
   constructor(protected store: Store<AppState>,
               private dialog: MatDialog,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     super(store);
   }
 
@@ -106,10 +118,14 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
       sortOrder: [null, Validators.required],
       mobileHide: [null]
     });
-    this.columnFormGroup.get('sortOrder').valueChanges.subscribe((sortOrder: EntityGroupSortOrder) => {
+    this.columnFormGroup.get('sortOrder').valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((sortOrder: EntityGroupSortOrder) => {
       this.defaultSortOrderChanged.emit(sortOrder);
     });
-    this.columnFormGroup.valueChanges.subscribe(() => {
+    this.columnFormGroup.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
       this.updateModel();
     });
     switch (this.entityType) {
@@ -182,6 +198,9 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
       this.columnFormGroup.disable({emitEvent: false})
     } else {
       this.columnFormGroup.enable({emitEvent: false})
+      if (this.modelValue?.disableSorting) {
+        this.columnFormGroup.get('sortOrder').disable({emitEvent: false});
+      }
     }
   }
 

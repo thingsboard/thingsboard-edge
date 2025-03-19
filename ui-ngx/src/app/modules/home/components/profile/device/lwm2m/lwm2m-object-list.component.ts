@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ import { Direction } from '@shared/models/page/sort-order';
 import { isDefined, isDefinedAndNotNull, isObject, isString } from '@core/utils';
 import { PageLink } from '@shared/models/page/page-link';
 import { TruncatePipe } from '@shared/pipe/truncate.pipe';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-profile-lwm2m-object-list',
@@ -105,7 +106,9 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
       objectsList: [this.objectsList],
       objectLwm2m: ['']
     });
-    this.lwm2mListFormGroup.get('objectsList').valueChanges.subscribe((value) => {
+    this.lwm2mListFormGroup.get('objectsList').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe((value) => {
       if (!value.length || (value.length && isObject(value[0]))) {
         let formValue = null;
         if (this.lwm2mListFormGroup.valid) {
@@ -202,7 +205,7 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
   private fetchListObjects = (searchText: string): Observable<Array<ObjectLwM2M>> =>  {
     this.searchText = searchText;
     const pageLink = new PageLink(PAGE_SIZE_LIMIT, 0, this.searchText, {
-      property: 'id',
+      property: 'resourceKey',
       direction: Direction.ASC
     });
     return this.deviceProfileService.getLwm2mObjectsPage(pageLink);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.event.ConverterDebugEvent;
+import org.thingsboard.server.common.data.event.CalculatedFieldDebugEvent;
 import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.EventFilter;
@@ -125,6 +126,11 @@ public class BaseEventService implements EventService {
                 truncateField(iEvent, IntegrationDebugEvent::getStatus, IntegrationDebugEvent::setStatus);
                 truncateField(iEvent, IntegrationDebugEvent::getError, IntegrationDebugEvent::setError);
                 break;
+            case DEBUG_CALCULATED_FIELD:
+                CalculatedFieldDebugEvent cfEvent = (CalculatedFieldDebugEvent) event;
+                truncateField(cfEvent, CalculatedFieldDebugEvent::getArguments, CalculatedFieldDebugEvent::setArguments);
+                truncateField(cfEvent, CalculatedFieldDebugEvent::getResult, CalculatedFieldDebugEvent::setResult);
+                truncateField(cfEvent, CalculatedFieldDebugEvent::getError, CalculatedFieldDebugEvent::setError);
         }
     }
 

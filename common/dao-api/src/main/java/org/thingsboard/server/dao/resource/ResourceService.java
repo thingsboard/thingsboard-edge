@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,8 +33,10 @@ package org.thingsboard.server.dao.resource;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.ResourceExportData;
+import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.TbResourceDeleteResult;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResourceInfoFilter;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -84,9 +86,7 @@ public interface ResourceService extends EntityDaoService {
 
     PageData<TbResource> findTenantResourcesByResourceTypeAndPageLink(TenantId tenantId, ResourceType lwm2mModel, PageLink pageLink);
 
-    void deleteResource(TenantId tenantId, TbResourceId resourceId);
-
-    void deleteResource(TenantId tenantId, TbResourceId resourceId, boolean force);
+    TbResourceDeleteResult deleteResource(TenantId tenantId, TbResourceId resourceId, boolean force);
 
     void deleteResourcesByTenantId(TenantId tenantId);
 
@@ -104,6 +104,6 @@ public interface ResourceService extends EntityDaoService {
 
     Collection<TbResourceInfo> getUsedResources(TenantId tenantId, WidgetTypeDetails widgetTypeDetails);
 
-    TbResource createOrUpdateSystemResource(ResourceType resourceType, String resourceKey, byte[] data);
+    TbResource createOrUpdateSystemResource(ResourceType resourceType, ResourceSubType resourceSubType, String resourceKey, byte[] data);
 
 }

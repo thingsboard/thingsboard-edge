@@ -1568,7 +1568,7 @@
     "sas-key-name-required": "SAS atslēgas nosaukums ir nepieciešams.",
     "sas-key": "SAS atslēga",
     "sas-key-required": "SAS atslēga ir nepieciešama.",
-    "iot-hub-name": "IoT Hub nosaukums (nepieciešams priekš lejupielādes)",
+    "iot-hub-name": "IoT Hub nosaukums",
     "metadata": "Metadata",
     "type": "Tips",
     "type-required": "Tips ir nepieciešams.",
@@ -1858,8 +1858,7 @@
     "metadata-required": "Metadatu ievadi nevar būt tukši.",
     "output": "Izeja",
     "test": "Tests",
-    "help": "Palīdzība",
-    "reset-debug-mode": "Atiestatīt atkļūdošanu visās nodēs"
+    "help": "Palīdzība"
   },
   "role": {
     "role": "Loma",

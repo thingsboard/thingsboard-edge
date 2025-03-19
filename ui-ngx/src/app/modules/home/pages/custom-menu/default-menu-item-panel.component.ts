@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import {
   CMScope,
   DefaultMenuItem,
@@ -48,6 +48,7 @@ import { AppState } from '@core/core.state';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { isDefinedAndNotNull } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-default-menu-item-panel',
@@ -92,7 +93,8 @@ export class DefaultMenuItemPanelComponent implements OnInit {
 
   constructor(private fb: UntypedFormBuilder,
               private store: Store<AppState>,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private destroyRef: DestroyRef) {
   }
 
   ngOnInit(): void {
@@ -124,7 +126,9 @@ export class DefaultMenuItemPanelComponent implements OnInit {
       this.homeTypeChanged();
       if (!this.disabled) {
         if (this.isHomeTypeEditable) {
-          this.menuItemFormGroup.get('homeType').valueChanges.subscribe(() => {
+          this.menuItemFormGroup.get('homeType').valueChanges.pipe(
+            takeUntilDestroyed(this.destroyRef)
+          ).subscribe(() => {
             this.homeTypeChanged();
           });
         } else {
@@ -136,7 +140,9 @@ export class DefaultMenuItemPanelComponent implements OnInit {
     if (this.disabled) {
       this.menuItemFormGroup.disable({emitEvent: false});
     } else {
-      this.menuItemFormGroup.valueChanges.subscribe(() => {
+      this.menuItemFormGroup.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
         this.updateModel();
       });
       this.updateCleanupState();

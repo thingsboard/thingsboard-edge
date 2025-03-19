@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -87,7 +87,6 @@ import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
         nodeDetails = "Performs aggregation of attributes or latest time-series fetched from related entities. " +
                 "Generates outgoing message with aggregated values. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
                 "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAggregateLatestV2Config",
         icon = "functions"
 )
@@ -287,7 +286,13 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         }
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(queueName, config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), TbNodeConnectionType.SUCCESS);
+        ctx.enqueueForTellNext(TbMsg.newMsg()
+                .queueName(queueName)
+                .type(config.getOutMsgType())
+                .originator(msg.getOriginator())
+                .copyMetaData(metaData)
+                .data(gson.toJson(result))
+                .build(), TbNodeConnectionType.SUCCESS);
         ctx.ack(msg);
     }
 

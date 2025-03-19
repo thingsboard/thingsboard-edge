@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,8 @@ public class DefaultActorService extends TbApplicationEventListener<PartitionCha
     public static final String TENANT_DISPATCHER_NAME = "tenant-dispatcher";
     public static final String DEVICE_DISPATCHER_NAME = "device-dispatcher";
     public static final String RULE_DISPATCHER_NAME = "rule-dispatcher";
+    public static final String CF_MANAGER_DISPATCHER_NAME = "cf-manager-dispatcher";
+    public static final String CF_ENTITY_DISPATCHER_NAME = "cf-entity-dispatcher";
 
     @Autowired
     private ActorSystemContext actorContext;
@@ -93,6 +95,13 @@ public class DefaultActorService extends TbApplicationEventListener<PartitionCha
     @Value("${actors.system.rule_dispatcher_pool_size:8}")
     private int ruleDispatcherSize;
 
+    @Value("${actors.system.cfm_dispatcher_pool_size:2}")
+    private int calculatedFieldManagerDispatcherSize;
+
+    @Value("${actors.system.cfe_dispatcher_pool_size:8}")
+    private int calculatedFieldEntityDispatcherSize;
+
+
     @PostConstruct
     public void initActorSystem() {
         log.info("Initializing actor system.");
@@ -104,6 +113,8 @@ public class DefaultActorService extends TbApplicationEventListener<PartitionCha
         system.createDispatcher(TENANT_DISPATCHER_NAME, initDispatcherExecutor(TENANT_DISPATCHER_NAME, tenantDispatcherSize));
         system.createDispatcher(DEVICE_DISPATCHER_NAME, initDispatcherExecutor(DEVICE_DISPATCHER_NAME, deviceDispatcherSize));
         system.createDispatcher(RULE_DISPATCHER_NAME, initDispatcherExecutor(RULE_DISPATCHER_NAME, ruleDispatcherSize));
+        system.createDispatcher(CF_MANAGER_DISPATCHER_NAME, initDispatcherExecutor(CF_MANAGER_DISPATCHER_NAME, calculatedFieldManagerDispatcherSize));
+        system.createDispatcher(CF_ENTITY_DISPATCHER_NAME, initDispatcherExecutor(CF_ENTITY_DISPATCHER_NAME, calculatedFieldEntityDispatcherSize));
 
         actorContext.setActorSystem(system);
 

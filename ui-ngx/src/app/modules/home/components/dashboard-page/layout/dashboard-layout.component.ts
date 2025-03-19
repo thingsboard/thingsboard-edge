@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -189,66 +189,71 @@ export class DashboardLayoutComponent extends PageComponent implements ILayoutCo
 
   private initHotKeys(): void {
     this.hotKeys.push(
-      new Hotkey('ctrl+c', (event: KeyboardEvent) => {
+      new Hotkey(['ctrl+c', 'meta+c'], (event: KeyboardEvent) => {
           if (this.isEdit && !this.isEditingWidget && !this.widgetEditMode) {
             const widget = this.dashboard.getSelectedWidget();
             if (widget) {
               event.preventDefault();
               this.copyWidget(event, widget);
             }
+            return false;
           }
-          return false;
+          return true;
         }, null,
         this.translate.instant('action.copy'))
     );
     this.hotKeys.push(
-      new Hotkey('ctrl+r', (event: KeyboardEvent) => {
+      new Hotkey(['ctrl+r', 'meta+r'], (event: KeyboardEvent) => {
           if (this.isEdit && !this.isEditingWidget && !this.widgetEditMode) {
             const widget = this.dashboard.getSelectedWidget();
             if (widget) {
               event.preventDefault();
               this.copyWidgetReference(event, widget);
             }
+            return false;
           }
-          return false;
+          return true;
         }, null,
         this.translate.instant('action.copy-reference'))
     );
     this.hotKeys.push(
-      new Hotkey('ctrl+v', (event: KeyboardEvent) => {
+      new Hotkey(['ctrl+v', 'meta+v'], (event: KeyboardEvent) => {
           if (this.isEdit && !this.isEditingWidget && !this.widgetEditMode) {
             if (this.itembuffer.hasWidget()) {
               event.preventDefault();
               this.pasteWidget(event);
             }
+            return false;
           }
-          return false;
+          return true;
         }, null,
         this.translate.instant('action.paste'))
     );
     this.hotKeys.push(
-      new Hotkey('ctrl+i', (event: KeyboardEvent) => {
+      new Hotkey(['ctrl+i', 'meta+i'], (event: KeyboardEvent) => {
           if (this.isEdit && !this.isEditingWidget && !this.widgetEditMode) {
             if (this.itembuffer.canPasteWidgetReference(this.dashboardCtx.getDashboard(),
               this.dashboardCtx.state, this.layoutCtx.id, this.layoutCtx.breakpoint)) {
               event.preventDefault();
               this.pasteWidgetReference(event);
             }
+            return false;
           }
-          return false;
+          return true;
         }, null,
         this.translate.instant('action.paste-reference'))
     );
     this.hotKeys.push(
-      new Hotkey('ctrl+x', (event: KeyboardEvent) => {
+      new Hotkey(['ctrl+x', 'meta+x'], (event: KeyboardEvent) => {
           if (this.isEdit && !this.isEditingWidget && !this.widgetEditMode) {
             const widget = this.dashboard.getSelectedWidget();
             if (widget) {
               event.preventDefault();
               this.layoutCtx.dashboardCtrl.removeWidget(event, this.layoutCtx, widget);
             }
+            return false;
           }
-          return false;
+          return true;
         }, null,
         this.translate.instant('action.delete'))
     );
