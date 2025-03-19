@@ -218,6 +218,7 @@ export class IntegrationWizardDialogComponent extends
           this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
           this.uplinkConverterForm.get('newUplinkConverter').enable({emitEvent: false});
           this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
+          this.downlinkDataConverterComponent.updatedValidators();
           break;
       }
     });
@@ -240,6 +241,7 @@ export class IntegrationWizardDialogComponent extends
           this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
           this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
           this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+          this.downlinkDataConverterComponent.updatedValidators();
           break;
         default:
           this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
