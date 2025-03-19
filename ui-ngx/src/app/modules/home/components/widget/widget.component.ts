@@ -60,6 +60,7 @@ import {
   WidgetActionType,
   WidgetComparisonSettings,
   WidgetExportType,
+  WidgetHeaderActionButtonType,
   WidgetMobileActionDescriptor,
   WidgetMobileActionType,
   WidgetResource,
@@ -114,7 +115,7 @@ import {
   modulesWithComponentsToTypes,
   ResourcesService
 } from '@core/services/resources.service';
-import { catchError, map, switchMap, take, mergeMap } from 'rxjs/operators';
+import { catchError, map, mergeMap, switchMap, take } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TimeService } from '@core/services/time.service';
 import { DeviceService } from '@app/core/http/device.service';
@@ -324,10 +325,13 @@ export class WidgetComponent extends PageComponent implements OnInit, OnChanges,
             buttonType: descriptor.buttonType,
             showIcon: descriptor.showIcon,
             icon: descriptor.icon,
-            buttonColor: descriptor.buttonColor,
-            buttonFillColor: descriptor.buttonFillColor,
-            buttonBorderColor: descriptor.buttonBorderColor,
-            customButtonStyle: descriptor.customButtonStyle,
+            customButtonStyle: this.headerButtonStyle(
+              descriptor.buttonType,
+              descriptor.customButtonStyle,
+              descriptor.buttonColor,
+              descriptor.buttonFillColor,
+              descriptor.buttonBorderColor
+            ),
             descriptor,
             useShowWidgetHeaderActionFunction,
             showWidgetHeaderActionFunction,
@@ -381,6 +385,39 @@ export class WidgetComponent extends PageComponent implements OnInit, OnChanges,
     } else {
       this.noDataDisplayMessageText = this.translate.instant('widget.no-data');
     }
+  }
+
+  headerButtonStyle(buttonType: WidgetHeaderActionButtonType = WidgetHeaderActionButtonType.icon,
+                    customButtonStyle:{[key: string]: string},
+                    buttonColor: string = 'rgba(0,0,0,0.87)',
+                    backgroundColor: string,
+                    borderColor: string) {
+    const buttonStyle = {};
+    switch (buttonType) {
+      case WidgetHeaderActionButtonType.basic:
+        buttonStyle['--mdc-text-button-label-text-color'] = buttonColor;
+        break;
+      case WidgetHeaderActionButtonType.raised:
+        buttonStyle['--mdc-protected-button-label-text-color'] = buttonColor;
+        buttonStyle['--mdc-protected-button-container-color'] = backgroundColor;
+        break;
+      case WidgetHeaderActionButtonType.stroked:
+        buttonStyle['--mdc-outlined-button-label-text-color'] = buttonColor;
+        buttonStyle['--mdc-outlined-button-outline-color'] = borderColor;
+        break;
+      case WidgetHeaderActionButtonType.flat:
+        buttonStyle['--mdc-filled-button-label-text-color'] = buttonColor;
+        buttonStyle['--mdc-filled-button-container-color'] = backgroundColor;
+        break;
+      case WidgetHeaderActionButtonType.miniFab:
+        buttonStyle['--mat-fab-small-foreground-color'] = buttonColor;
+        buttonStyle['--mdc-fab-small-container-color'] = backgroundColor;
+        break;
+      default:
+        buttonStyle['--mat-icon-color'] = buttonColor;
+        break;
+    }
+    return {...buttonStyle, ...customButtonStyle};
   }
 
   ngOnChanges(changes: SimpleChanges): void {
