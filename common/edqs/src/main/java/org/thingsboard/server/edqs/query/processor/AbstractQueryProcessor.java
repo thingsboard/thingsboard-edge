@@ -32,6 +32,8 @@ package org.thingsboard.server.edqs.query.processor;
 
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edqs.DataPoint;
 import org.thingsboard.server.common.data.permission.QueryContext;
 import org.thingsboard.server.common.data.query.EntityFilter;
 import org.thingsboard.server.edqs.data.EntityData;
@@ -49,7 +51,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.thingsboard.server.edqs.util.RepositoryUtils.checkFilters;
-import static org.thingsboard.server.edqs.util.RepositoryUtils.getSortValue;
 
 public abstract class AbstractQueryProcessor<T extends EntityFilter> implements EntityQueryProcessor {
 
@@ -103,7 +104,8 @@ public abstract class AbstractQueryProcessor<T extends EntityFilter> implements 
 
     protected SortableEntityData toSortData(EntityData<?> ed, boolean readAttrs, boolean readTs) {
         SortableEntityData sortData = new SortableEntityData(ed);
-        sortData.setSortValue(getSortValue(ed, sortKey));
+        DataPoint sortValue = ed.getDataPoint(sortKey, ctx);
+        sortData.setSortValue(sortValue);
         sortData.setReadAttrs(readAttrs);
         sortData.setReadTs(readTs);
         return sortData;
