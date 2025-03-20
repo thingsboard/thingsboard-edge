@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.action.TbChangeOwnerNode;
+import org.thingsboard.rule.engine.action.TbChangeOwnerNodeConfiguration;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNode;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
