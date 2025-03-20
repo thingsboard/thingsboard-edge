@@ -176,6 +176,8 @@ export class TbTimeSeriesChart {
 
   private latestData: FormattedData[] = [];
 
+  private onParentScroll = this._onParentScroll.bind(this);
+
   yMin$ = this.yMinSubject.asObservable();
   yMax$ = this.yMaxSubject.asObservable();
 
@@ -373,6 +375,7 @@ export class TbTimeSeriesChart {
     this.yMinSubject.complete();
     this.yMaxSubject.complete();
     this.darkModeObserver?.disconnect();
+    this.ctx.dashboard.gridster.el.removeEventListener('scroll', this.onParentScroll);
   }
 
   public resize(): void {
@@ -626,6 +629,7 @@ export class TbTimeSeriesChart {
     this.timeSeriesChart = echarts.init(this.chartElement,  null, {
       renderer: 'svg'
     });
+    this.ctx.dashboard.gridster.el.addEventListener('scroll', this.onParentScroll);
     this.timeSeriesChartOptions = {
       darkMode: this.darkMode,
       backgroundColor: 'transparent',
@@ -850,6 +854,14 @@ export class TbTimeSeriesChart {
 
   private minBottomOffset(): number {
     return this.settings.dataZoom ? 45 : 5;
+  }
+
+  private _onParentScroll() {
+    if (this.timeSeriesChart) {
+      this.timeSeriesChart.dispatchAction({
+        type: 'hideTip'
+      });
+    }
   }
 
   private onResize() {
