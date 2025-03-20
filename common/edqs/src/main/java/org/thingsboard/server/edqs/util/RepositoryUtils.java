@@ -399,7 +399,10 @@ public class RepositoryUtils {
     }
 
     public static DataPoint getSortValue(EntityData entity, DataKey sortKey, QueryContext queryContext) {
-        return entity.getDataPoint(sortKey, queryContext);
+        if (sortKey == null) {
+            return null;
+        }
+       return entity.getDataPoint(sortKey, queryContext);
     }
 
     public static boolean checkFilters(EdqsQuery query, EntityData entity) {
