@@ -34,8 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.action.TbChangeOwnerNode;
-import org.thingsboard.rule.engine.action.TbChangeOwnerNodeConfiguration;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNode;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
@@ -51,16 +49,14 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.MISSING_NODES_IN_VERSION_37;
-import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.NODE_TO_IGNORED_PARAM_FOR_OLD_EDGE_VERSION;
-import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0;
+import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.VERSION_TO_IGNORED_PARAM;
+import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.VERSION_TO_MISSING_NODES;
 
 @Slf4j
 public class EdgeMsgConstructorUtilsTest {
@@ -113,13 +109,11 @@ public class EdgeMsgConstructorUtilsTest {
             List<RuleNode> ruleNodes = extractRuleNodesFromUpdateMsg(metaData, edgeVersion);
 
             // THEN
-            boolean isOldEdge = EdgeVersionUtils.isEdgeOlderThan_3_8_0(edgeVersion);
+            int leftNode = VERSION_TO_MISSING_NODES.containsKey(edgeVersion) ?
+                    CONFIG_TO_MISS_NODE_FOR_OLD_EDGE.size() - VERSION_TO_MISSING_NODES.get(edgeVersion).size() :
+                    CONFIG_TO_MISS_NODE_FOR_OLD_EDGE.size();
 
-            if (isOldEdge) {
-                Assert.assertTrue("Rule Node must be empty", ruleNodes.isEmpty());
-            } else {
-                Assert.assertEquals(MISSING_NODES_IN_VERSION_37.size(), ruleNodes.size());
-            }
+            Assert.assertEquals(leftNode, ruleNodes.size());
         });
     }
 
@@ -149,6 +143,7 @@ public class EdgeMsgConstructorUtilsTest {
                 EdgeMsgConstructorUtils.constructRuleChainMetadataUpdatedMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, metaData, edgeVersion).getEntity();
 
         RuleChainMetaData ruleChainMetaData = JacksonUtil.fromString(ruleChainMetadataUpdateMsg, RuleChainMetaData.class, true);
+
         Assert.assertNotNull("RuleChainMetaData is null", ruleChainMetaData);
 
         return ruleChainMetaData.getNodes();
@@ -157,32 +152,18 @@ public class EdgeMsgConstructorUtilsTest {
     private void assertRuleNodeConfig(List<RuleNode> ruleNodes, EdgeVersion edgeVersion) {
 
         ruleNodes.forEach(ruleNode -> {
-            int configParamCount = NODE_TO_CONFIG_PARAMS_COUNT.get(ruleNode.getName());
+            int configParamCount = NODE_TO_CONFIG_PARAMS_COUNT.get(ruleNode.getType());
 
-            boolean isLegacyEdgeVersion = (EdgeVersionUtils.isEdgeOlderThan_3_8_0(edgeVersion) && NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0.containsKey(ruleNode.getName())) ||
-                    (EdgeVersionUtils.isEdgeOlderThan_3_9_0(edgeVersion) && !NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0.containsKey(ruleNode.getName()));
+            boolean isOldEdgeVersion = VERSION_TO_IGNORED_PARAM.keySet().stream()
+                    .anyMatch(version -> version.equals(edgeVersion));
+            int expectedConfigAmount = isOldEdgeVersion ? configParamCount - 1 : configParamCount;
 
-            int expectedConfigAmount = isLegacyEdgeVersion ? configParamCount - 1 : configParamCount;
-            boolean includeConfigParam = !isLegacyEdgeVersion;
-
-            assertParams(ruleNode, expectedConfigAmount, includeConfigParam, edgeVersion);
+            Assert.assertEquals(
+                    String.format("Expected %d config params for ruleNode '%s', but found %d",
+                            expectedConfigAmount, ruleNode.getName(), ruleNode.getConfiguration().size()),
+                    expectedConfigAmount, ruleNode.getConfiguration().size()
+            );
         });
-    }
-
-    private void assertParams(RuleNode ruleNode, int expectedConfigAmount, boolean includeConfigParam, EdgeVersion edgeVersion) {
-        String ignoreConfigParam = NODE_TO_IGNORED_PARAM_FOR_OLD_EDGE_VERSION.getOrDefault(ruleNode.getName(),
-                NODE_TO_IGNORED_PARAM_FOR_VERSION_3_7_0.get(ruleNode.getName()));
-
-        Assert.assertEquals(
-                String.format("Expected %d config params for ruleNode '%s', but found %d for edgeVersion - %s", expectedConfigAmount, ruleNode.getName(), ruleNode.getConfiguration().size(), edgeVersion),
-                expectedConfigAmount, ruleNode.getConfiguration().size()
-        );
-
-        boolean hasIgnoredField = ruleNode.getConfiguration().has(ignoreConfigParam);
-        Assert.assertEquals(
-                String.format("Field '%s' for ruleNode '%s' should %s be present", ignoreConfigParam, ruleNode.getName(), includeConfigParam ? "not" : ""),
-                includeConfigParam, hasIgnoredField
-        );
     }
 
 }
