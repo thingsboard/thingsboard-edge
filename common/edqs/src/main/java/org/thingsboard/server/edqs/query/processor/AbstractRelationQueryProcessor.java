@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.edqs.util.RepositoryUtils.getSortValue;
 
@@ -141,7 +142,7 @@ public abstract class AbstractRelationQueryProcessor<T extends EntityFilter> ext
                             permissions.isReadEntity(), permissions.isReadAttrs(), permissions.isReadTs(), permissions.getGroupPermissions());
                     if (combinedPermissions.isRead()) {
                         SortableEntityData sortData = new SortableEntityData(ed);
-                        sortData.setSortValue(getSortValue(ed, sortKey));
+                        sortData.setSortValue(getSortValue(ed, sortKey, ctx));
                         sortData.setReadAttrs(combinedPermissions.isReadAttrs());
                         sortData.setReadTs(combinedPermissions.isReadTs());
                         result.add(sortData);
@@ -164,7 +165,7 @@ public abstract class AbstractRelationQueryProcessor<T extends EntityFilter> ext
                 boolean isReadEntity = permissions.isReadEntity() && ed.getCustomerId() != null && customerIds.contains(ed.getCustomerId());
                 if (permissions.isHasGroups()) {
                     SortableEntityData sortData = new SortableEntityData(ed);
-                    sortData.setSortValue(getSortValue(ed, sortKey));
+                    sortData.setSortValue(getSortValue(ed, sortKey, ctx));
                     CombinedPermissions combinedPermissions = getCombinedPermissions(ed.getId(),
                             isReadEntity,
                             permissions.isReadAttrs(), permissions.isReadTs(), permissions.getGroupPermissions());
