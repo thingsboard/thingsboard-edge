@@ -47,6 +47,7 @@ import {
   DefaultUpdateOnlyKeysValue,
   getConverterFunctionArgs,
   getConverterFunctionHeldId,
+  getConverterFunctionHeldPopupStyle,
   getConverterFunctionName,
   getConverterTestFunctionName,
   getTargetField,
@@ -245,6 +246,10 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       delete value.configuration.telemetry;
     }
     return super.prepareFormValue(value);
+  }
+
+  updatedValidators() {
+    this.updatedConverterVersionDisableState();
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
@@ -465,6 +470,10 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration.scriptLang').value;
     const converterType: ConverterType = this.entityForm.get('type').value;
     return getConverterFunctionHeldId(converterType, scriptLang);
+  }
+
+  get functionHelpPopupStyle(): Record<string, string> {
+    return getConverterFunctionHeldPopupStyle(this.entityForm.get('type').value);
   }
 
   get testFunctionButtonLabel(): string {

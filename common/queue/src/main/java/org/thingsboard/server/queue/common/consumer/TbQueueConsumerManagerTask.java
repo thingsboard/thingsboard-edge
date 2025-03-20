@@ -75,4 +75,11 @@ public interface TbQueueConsumerManagerTask {
         }
     }
 
+    record DeletePartitionsTask(Set<TopicPartitionInfo> partitions) implements TbQueueConsumerManagerTask {
+        @Override
+        public QueueTaskType getType() {
+            return QueueTaskType.REMOVE_PARTITIONS;
+        }
+    }
+
 }

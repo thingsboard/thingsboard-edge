@@ -117,7 +117,6 @@ public class TenantRepo {
     private final ConcurrentMap<EntityType, Set<EntityData<?>>> entitySetByType = new ConcurrentHashMap<>();
     private final ConcurrentMap<EntityType, ConcurrentMap<UUID, EntityData<?>>> entityMapByType = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, Set<UUID>> customersHierarchy = new ConcurrentHashMap<>();
-    private final ConcurrentMap<UUID, EntityGroupData> entityGroups = new ConcurrentHashMap<>();
     private final ConcurrentMap<RelationTypeGroup, RelationsRepo> relations = new ConcurrentHashMap<>();
 
     private final Lock entityUpdateLock = new ReentrantLock();
@@ -177,9 +176,7 @@ public class TenantRepo {
                 }
             } else if (RelationTypeGroup.FROM_ENTITY_GROUP.equals(entity.getTypeGroup())) {
                 var eg = getEntityGroup(entity.getFrom().getId());
-                if (eg != null) {
-                    eg.addOrUpdate(getOrCreate(entity.getTo()));
-                }
+                eg.addOrUpdate(getOrCreate(entity.getTo()));
             }
         } finally {
             entityUpdateLock.unlock();
@@ -227,7 +224,6 @@ public class TenantRepo {
                         entityData.setCustomerId(ownerId);
                         ((CustomerData) getEntityMap(EntityType.CUSTOMER).computeIfAbsent(ownerId, CustomerData::new)).addOrUpdate(entityData);
                     }
-                    entityGroups.put(fields.getId(), (EntityGroupData) entityData);
                 }
                 case CUSTOMER -> {
                     CustomerFields customerFields = (CustomerFields) fields;
@@ -279,9 +275,6 @@ public class TenantRepo {
                 edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.DELETED));
             }
             switch (entityType) {
-                case ENTITY_GROUP -> {
-                    entityGroups.remove(entityId);
-                }
                 case CUSTOMER -> {
                     customersHierarchy.remove(entityId);
                 }
@@ -491,7 +484,7 @@ public class TenantRepo {
                     SingleEntityFilter seFilter = (SingleEntityFilter) filter;
                     EntityId entityId = seFilter.getSingleEntity();
                     if (entityId != null && entityId.getEntityType().equals(EntityType.ENTITY_GROUP)) {
-                        EntityGroupData entityGroupData = entityGroups.get(entityId.getId());
+                        EntityGroupData entityGroupData = getEntityGroup(entityId.getId());
                         if (entityGroupData != null) {
                             queryContext = new QueryContext(tenantId, customerId, EntityType.ENTITY_GROUP, userPermissions, filter, entityGroupData.getEntityType(), ignorePermissionCheck);
                         } else {
@@ -535,26 +528,19 @@ public class TenantRepo {
     }
 
     public boolean contains(UUID entityGroupID, UUID entityId) {
-        var groupData = entityGroups.get(entityGroupID);
+        var groupData = getEntityGroup(entityGroupID);
         return groupData != null && groupData.getEntity(entityId) != null;
     }
 
     public EntityGroupData getEntityGroup(UUID groupId) {
-        return entityGroups.get(groupId);
+        return (EntityGroupData) getOrCreate(EntityType.ENTITY_GROUP, groupId);
     }
 
     public RelationsRepo getRelations(RelationTypeGroup relationTypeGroup) {
         return relations.computeIfAbsent(relationTypeGroup, type -> new RelationsRepo());
     }
 
-    public String getOwnerName(EntityId ownerId) {
-        if (ownerId == null || (ownerId.getEntityType() == EntityType.CUSTOMER && ownerId.isNullUid())) {
-            return getOwnerEntityName(tenantId);
-        }
-        return getOwnerEntityName(ownerId);
-    }
-
-    private String getOwnerEntityName(EntityId entityId) {
+    public String getOwnerEntityName(EntityId entityId) {
         EntityType entityType = entityId.getEntityType();
         return switch (entityType) {
             case CUSTOMER, TENANT -> {

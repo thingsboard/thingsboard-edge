@@ -243,6 +243,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     } else {
       this.libraryFormGroup.enable({emitEvent: false});
       this.updateScriptLangEnable();
+      this.dataConverterComponent.updatedValidators();
       this.libraryFormGroup.updateValueAndValidity();
     }
   }

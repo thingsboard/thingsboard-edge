@@ -111,6 +111,7 @@
             [scriptLanguage]="entityForm.get('configuration.scriptLang').value"
             [disableUndefinedCheck]="entityForm.get('configuration.scriptLang').value === scriptLanguage.TBEL"
             [helpId]="functionHelpId"
+            [helpPopupStyle]="functionHelpPopupStyle"
             noValidate>
             <tb-toggle-select toolbarPrefixButton formControlName="scriptLang"
                               appearance="fill" class="editor-lang-selector min-w-16 gt-sm:min-w-30"
@@ -175,14 +176,12 @@
                     <tb-string-items-list label="{{ 'converter.telemetry' | translate }}"
                                           placeholder="{{ 'action.add' | translate }}"
                                           formControlName="telemetry"
-                                          [fetchOptionsFn]="fetchLatestKey"
-                    >
+                                          [fetchOptionsFn]="fetchLatestKey">
                     </tb-string-items-list>
                     <tb-string-items-list label="{{ 'converter.attributes' | translate }}"
                                           placeholder="{{ 'action.add' | translate }}"
                                           formControlName="attributes"
-                                          [fetchOptionsFn]="fetchLatestKey"
-                    >
+                                          [fetchOptionsFn]="fetchLatestKey">
                     </tb-string-items-list>
                   }
                   <tb-string-items-list subscriptSizing="dynamic"
@@ -190,8 +189,7 @@
                                         hint="{{ 'converter.update-only-keys-list-hint' | translate }}"
                                         placeholder="{{ 'action.add' | translate }}"
                                         formControlName="updateOnlyKeys"
-                                        [fetchOptionsFn]="fetchLatestKey"
-                  >
+                                        [fetchOptionsFn]="fetchLatestKey">
                   </tb-string-items-list>
                 </div>
               </ng-template>

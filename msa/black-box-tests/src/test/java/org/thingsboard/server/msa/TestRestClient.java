@@ -44,6 +44,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -59,12 +60,14 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -173,6 +176,14 @@ public class TestRestClient {
                 .as(ObjectNode.class);
     }
 
+    public CalculatedField postCalculatedField(CalculatedField calculatedField) {
+        return given().spec(requestSpec).body(calculatedField)
+                .post("/api/calculatedField")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(CalculatedField.class);
+    }
 
     public Device getDeviceByName(String deviceName) {
         return given().spec(requestSpec).pathParam("deviceName", deviceName)
@@ -239,9 +250,16 @@ public class TestRestClient {
                 .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
     }
 
-    public ValidatableResponse postTelemetryAttribute(String entityType, DeviceId deviceId, String scope, JsonNode attribute) {
+    public ValidatableResponse deleteCalculatedFieldIfExists(CalculatedFieldId calculatedFieldId) {
+        return given().spec(requestSpec)
+                .delete("/api/calculatedField/{calculatedFieldId}", calculatedFieldId.getId())
+                .then()
+                .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
+    }
+
+    public ValidatableResponse postTelemetryAttribute(EntityId entityId, String scope, JsonNode attribute) {
         return given().spec(requestSpec).body(attribute)
-                .post("/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", entityType, deviceId.getId(), scope)
+                .post("/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", entityId.getEntityType(), entityId.getId(), scope)
                 .then()
                 .statusCode(HTTP_OK);
     }
@@ -268,6 +286,15 @@ public class TestRestClient {
                 .queryParam("clientKeys", clientKeys)
                 .queryParam("sharedKeys", sharedKeys)
                 .get("/api/v1/{accessToken}/attributes", accessToken)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(JsonNode.class);
+    }
+
+    public JsonNode getAttributes(EntityId entityId, AttributeScope scope, String keys) {
+        return given().spec(requestSpec)
+                .get("/api/plugins/telemetry/{entityType}/{entityId}/values/attributes/{scope}?keys={keys}", entityId.getEntityType(), entityId.getId(), scope, keys)
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
@@ -1054,11 +1081,11 @@ public class TestRestClient {
                 .get("/api/tenant/devices?deviceName={deviceName}")
                 .then()
                 .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
-        if(((ValidatableResponseImpl) response).extract().response().getStatusCode()==HTTP_OK){
-            return   response.extract()
+        if (((ValidatableResponseImpl) response).extract().response().getStatusCode() == HTTP_OK) {
+            return response.extract()
                     .as(Device.class);
         } else {
-            return  null;
+            return null;
         }
     }
 

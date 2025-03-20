@@ -34,7 +34,7 @@ import io.micrometer.core.instrument.Counter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class StatsCounter extends DefaultCounter {
+public class StatsCounter extends DefaultCounter implements org.thingsboard.server.common.stats.Counter {
     private final String name;
 
     public StatsCounter(AtomicInteger aiCounter, Counter micrometerCounter, String name) {
