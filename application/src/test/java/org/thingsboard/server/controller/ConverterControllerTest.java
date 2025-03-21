@@ -129,6 +129,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     private static final String TTI_UPLINK_DECODER = "converter/tti_uplink_decoder.raw";
     private static final String DEFAULT_TTN_UPLINK_DECODER = "converters/tbel-ttn-decoder.raw";
     private static final String TTN_UPLINK_DECODER = "converter/ttn_uplink_decoder.raw";
+    private static final String LORIOT_UPLINK_DECODER_RETURN_ARRAY = "converter/loriot_uplink_decoder_array.raw";
 
     @Before
     public void beforeTest() throws Exception {
@@ -836,6 +837,17 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.LORIOT, 2);
 
         testDecoder(LORIOT_UPLINK_DECODER, DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD, DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
+    }
+
+    @Test
+    public void testLoriotDecoderThatReturnArray() throws IOException {
+        String expectedDecodedMessage = "[{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\"," +
+                "\"profile\":\"Device type\",\"telemetry\":[{\"ts\":1684478801936,\"values\":{\"battery\":94}}],\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}]";
+
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device name $eui", "Device type", Set.of("eui", "fPort"));
+        Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.LORIOT, 2);
+
+        testDecoder(LORIOT_UPLINK_DECODER_RETURN_ARRAY, DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD, DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
     @Test
