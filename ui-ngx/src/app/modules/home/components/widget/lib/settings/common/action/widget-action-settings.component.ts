@@ -138,7 +138,7 @@ export class WidgetActionSettingsComponent implements OnInit, ControlValueAccess
       };
       const widgetActionSettingsPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
         this.viewContainerRef, WidgetActionSettingsPanelComponent,
-        ['leftTopOnly', 'leftOnly', 'leftBottomOnly'], true, null,
+        ['leftTopOnly', 'leftOnly', 'leftBottomOnly'], false, null,
         ctx,
         {},
         {}, {}, true);

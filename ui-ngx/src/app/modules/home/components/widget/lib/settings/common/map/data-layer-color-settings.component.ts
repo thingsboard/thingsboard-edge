@@ -121,7 +121,7 @@ export class DataLayerColorSettingsComponent implements ControlValueAccessor {
         helpId: this.helpId
       };
       const colorSettingsPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, DataLayerColorSettingsPanelComponent, 'left', true, null,
+        this.viewContainerRef, DataLayerColorSettingsPanelComponent, 'left', false, null,
         ctx,
         {},
         {}, {}, true);
