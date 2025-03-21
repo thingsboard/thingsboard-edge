@@ -53,7 +53,7 @@
     "canvas-gauges": "^2.1.7",
     "core-js": "^3.39.0",
     "dayjs": "1.11.13",
-    "echarts": "https://github.com/thingsboard/echarts/archive/5.5.0-TB.tar.gz",
+    "echarts": "https://github.com/thingsboard/echarts/archive/5.5.1-TB.tar.gz",
     "exceljs": "~4.4.0",
     "flag-icons": "^7.2.3",
     "flot": "https://github.com/thingsboard/flot.git#0.9-work",
