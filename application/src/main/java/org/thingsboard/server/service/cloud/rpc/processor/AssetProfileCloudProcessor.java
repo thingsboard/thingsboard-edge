@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -38,16 +39,17 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructor;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.asset.profile.BaseAssetProfileProcessor;
 
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
 
     public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
@@ -135,15 +137,15 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
         });
     }
 
-    public UplinkMsg convertAssetProfileEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
+    @Override
+    public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         AssetProfileId assetProfileId = new AssetProfileId(cloudEvent.getEntityId());
-        var msgConstructor = (AssetMsgConstructor) edgeCtx.getAssetMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED -> {
                 AssetProfile assetProfile = edgeCtx.getAssetProfileService().findAssetProfileById(cloudEvent.getTenantId(), assetProfileId);
                 if (assetProfile != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(assetProfile.getName())) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    AssetProfileUpdateMsg assetProfileUpdateMsg = msgConstructor.constructAssetProfileUpdatedMsg(msgType, assetProfile);
+                    AssetProfileUpdateMsg assetProfileUpdateMsg = EdgeMsgConstructorUtils.constructAssetProfileUpdatedMsg(msgType, assetProfile);
                     return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
@@ -152,18 +154,13 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 }
             }
             case DELETED -> {
-                AssetProfileUpdateMsg assetProfileUpdateMsg = msgConstructor.constructAssetProfileDeleteMsg(assetProfileId);
+                AssetProfileUpdateMsg assetProfileUpdateMsg = EdgeMsgConstructorUtils.constructAssetProfileDeleteMsg(assetProfileId);
                 return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
             }
         }
         return null;
-    }
-
-    @Override
-    protected AssetProfile constructAssetProfileFromUpdateMsg(TenantId tenantId, AssetProfileId assetProfileId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
-        return JacksonUtil.fromString(assetProfileUpdateMsg.getEntity(), AssetProfile.class, true);
     }
 
     @Override
@@ -189,6 +186,11 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
             dashboard = edgeCtx.getDashboardService().findDashboardInfoById(tenantId, defaultDashboardId);
         }
         assetProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.ASSET_PROFILE;
     }
 
 }

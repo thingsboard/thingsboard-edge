@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,30 +17,27 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.relation.RelationMsgConstructorFactory;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.relation.BaseRelationProcessor;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class RelationCloudProcessor extends BaseRelationProcessor {
-
-    @Autowired
-    private RelationMsgConstructorFactory relationMsgConstructorFactory;
 
     public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {
@@ -65,12 +62,12 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
         return builder.build();
     }
 
-    public UplinkMsg convertRelationEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
+    @Override
+    public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
         EntityRelation entityRelation = JacksonUtil.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
         if (entityRelation != null) {
-            RelationUpdateMsg relationUpdateMsg = ((RelationMsgConstructor) relationMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
-                    .constructRelationUpdatedMsg(msgType, entityRelation);
+            RelationUpdateMsg relationUpdateMsg = EdgeMsgConstructorUtils.constructRelationUpdatedMsg(msgType, entityRelation);
             return UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addRelationUpdateMsg(relationUpdateMsg).build();
@@ -79,8 +76,8 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
     }
 
     @Override
-    protected EntityRelation constructEntityRelationFromUpdateMsg(RelationUpdateMsg relationUpdateMsg) {
-        return JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.RELATION;
     }
 
 }

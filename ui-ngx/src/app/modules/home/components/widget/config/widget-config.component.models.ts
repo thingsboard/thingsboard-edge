@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2024 The Thingsboard Authors
+/// Copyright © 2016-2025 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -209,7 +209,7 @@ export abstract class BasicWidgetConfigComponent extends PageComponent implement
   protected constructDataKey(configData: WidgetConfigComponentData, key: DataKey, isLatestKey: boolean): DataKey {
     const dataKey =
       this.widgetConfigComponent.widgetConfigCallbacks.generateDataKey(key.name, key.type,
-        configData.dataKeySettingsSchema, isLatestKey, configData.dataKeySettingsFunction);
+        configData.dataKeySettingsForm, isLatestKey, configData.dataKeySettingsFunction);
     if (key.label) {
       dataKey.label = key.label;
     }

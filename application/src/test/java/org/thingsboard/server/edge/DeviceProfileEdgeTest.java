@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -405,7 +405,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
         transportConfiguration.setBootstrapServerUpdateEnable(true);
 
         TelemetryMappingConfiguration observeAttrConfiguration =
-                JacksonUtil.fromString(AbstractLwM2MIntegrationTest.OBSERVE_ATTRIBUTES_WITH_PARAMS, TelemetryMappingConfiguration.class);
+                JacksonUtil.fromString(AbstractLwM2MIntegrationTest.TELEMETRY_WITHOUT_OBSERVE, TelemetryMappingConfiguration.class);
         transportConfiguration.setObserveAttr(observeAttrConfiguration);
 
         List<LwM2MBootstrapServerCredential> bootstrap = new ArrayList<>();

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,14 +91,62 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         }
         return getRepository().save(entity);
         // ... edge-only
+
+//        boolean flushed = false;
+//        EntityManager entityManager = getEntityManager();
+//        if (isNew) {
+//            entityManager.persist(entity);
+//            if (entity instanceof HasVersion versionedEntity) {
+//                versionedEntity.setVersion(1L);
+//            }
+//        } else {
+//            if (entity instanceof HasVersion versionedEntity) {
+//                if (versionedEntity.getVersion() == null) {
+//                    HasVersion existingEntity = entityManager.find(versionedEntity.getClass(), entity.getUuid());
+//                    if (existingEntity != null) {
+//                        /*
+//                         * manually resetting the version to latest to allow force overwrite of the entity
+//                         * */
+//                        versionedEntity.setVersion(existingEntity.getVersion());
+//                    } else {
+//                        return doSave(entity, true, flush);
+//                    }
+//                }
+//                versionedEntity = entityManager.merge(versionedEntity);
+//                entity = (E) versionedEntity;
+//                /*
+//                 * by default, Hibernate doesn't issue an update query and thus version increment
+//                 * if the entity was not modified. to bypass this and always increment the version, we do it manually
+//                 * */
+//                versionedEntity.setVersion(versionedEntity.getVersion() + 1);
+//            } else {
+//                entity = entityManager.merge(entity);
+//            }
+//        }
+//        if (entity instanceof HasVersion versionedEntity) {
+//            /*
+//             * flushing and then removing the entity from the persistence context so that it is not affected
+//             * by next flushes (e.g. when a transaction is committed) to avoid double version increment
+//             * */
+//            entityManager.flush();
+//            entityManager.detach(versionedEntity);
+//            flushed = true;
+//        }
+//        if (flush && !flushed) {
+//            entityManager.flush();
+//        }
+//        return entity;
     }
 
     @Override
     @Transactional
     public D saveAndFlush(TenantId tenantId, D domain) {
+        // edge-only ...
         D d = save(tenantId, domain);
         getRepository().flush();
         return d;
+        // ... edge-only
+//        return save(tenantId, domain, true);
     }
 
     @Override

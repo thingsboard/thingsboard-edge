@@ -1,6 +1,6 @@
 <!--
 
-    Copyright © 2016-2024 The Thingsboard Authors
+    Copyright © 2016-2025 The Thingsboard Authors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
     <div class="tb-rulechain-layout flex flex-1 flex-row">
       <mat-drawer-container class="size-full">
         <mat-drawer class="tb-rulechain-library mat-elevation-z4 flex flex-col"
-                    *ngIf="!readonly"
                     disableClose="true"
                     mode="side"
                     #drawer
@@ -95,7 +94,7 @@
                               (ruleNodeTypeDescriptorsMap.get(editingRuleNode.component.type).name | translate)
                               + ' - ' + editingRuleNode.component.name
                             }}"
-                            [isReadOnly]="selectedRuleNodeTabIndex > 0 || readonly"
+                            [isReadOnly]="selectedRuleNodeTabIndex > 0"
                             [isAlwaysEdit]="true"
                             (closeDetails)="onEditRuleNodeClosed()"
                             (toggleDetailsEditMode)="onRevertRuleNodeEdit()"
@@ -110,7 +109,6 @@
                               [ruleNode]="editingRuleNode"
                               [ruleChainId]="ruleChain.id?.id"
                               [ruleChainType]="ruleChainType"
-                              [disabled]="readonly"
                               (initRuleNode)="onRuleNodeInit()"
                               (changeScript)="switchToFirstTab()">
                 </tb-rule-node>
@@ -141,7 +139,7 @@
           <tb-details-panel *ngIf="editingRuleNodeLink" class="flex-1"
                             headerTitle="{{editingRuleNodeLink.label}}"
                             headerSubtitle="{{'rulenode.link-details' | translate}}"
-                            [isReadOnly]="readonly"
+                            [isReadOnly]="false"
                             [isAlwaysEdit]="true"
                             (closeDetails)="onEditRuleNodeLinkClosed()"
                             (toggleDetailsEditMode)="onRevertRuleNodeLinkEdit()"
@@ -153,7 +151,6 @@
             <tb-rule-node-link
               class="flex-1"
               #tbRuleNodeLink
-              [disabled]="readonly"
               [(ngModel)]="editingRuleNodeLink"
               [allowedLabels]="editingRuleNodeLinkLabels"
               [allowCustom]="editingRuleNodeAllowCustomLabels"
@@ -162,13 +159,13 @@
           </tb-details-panel>
         </mat-drawer>
         <mat-drawer-content class="tb-rulechain-graph-content">
-          <button color="primary" *ngIf="!readonly"
+          <button color="primary"
                   mat-mini-fab
                   class="tb-library-node-btn"
-                  (click)="drawer?.toggle();"
-                  matTooltip="{{ (drawer?.opened ? 'rulenode.close-node-library' : 'rulenode.open-node-library') | translate }}"
+                  (click)="drawer.toggle();"
+                  matTooltip="{{ (drawer.opened ? 'rulenode.close-node-library' : 'rulenode.open-node-library') | translate }}"
                   matTooltipPosition="above">
-            <mat-icon class="tb-library-node-btn-icon" [class.tb-library-node-btn-icon-toggled]="drawer?.opened">chevron_right</mat-icon>
+            <mat-icon class="tb-library-node-btn-icon" [class.tb-library-node-btn-icon-toggled]="drawer.opened">chevron_right</mat-icon>
           </button>
           <!-- Edge-only:  merge comment
           <button #versionControlButton
@@ -235,7 +232,7 @@
                        [userCallbacks]="editCallbacks">
             </fc-canvas>
           </div>
-          <section *ngIf="!readonly" class="tb-footer-buttons flex flex-row flex-wrap items-end justify-start">
+          <section class="tb-footer-buttons flex flex-row flex-wrap items-end justify-start">
             <button [disabled]="isLoading$ | async"
                     mat-fab color="accent" class="tb-btn-footer"
                     [class.tb-hide]="!objectsSelected()"

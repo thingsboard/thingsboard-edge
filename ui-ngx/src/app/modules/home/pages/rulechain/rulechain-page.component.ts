@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2024 The Thingsboard Authors
+/// Copyright © 2016-2025 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -126,8 +126,6 @@ export class RuleChainPageComponent extends PageComponent
   @ViewChild('ruleChainMenuTrigger', {static: true}) ruleChainMenuTrigger: MatMenuTrigger;
 
   @ViewChild('drawer') drawer: MatDrawer;
-
-  readonly = true;
 
   eventTypes = EventType;
 
@@ -290,15 +288,13 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngOnInit() {
-    if (!this.readonly) {
-      this.ruleNodeTypeSearch.valueChanges.pipe(
-        debounceTime(150),
-        startWith(''),
-        distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
-        skip(1),
-        takeUntil(this.destroy$)
-      ).subscribe(() => this.updateRuleChainLibrary());
-    }
+    this.ruleNodeTypeSearch.valueChanges.pipe(
+      debounceTime(150),
+      startWith(''),
+      distinctUntilChanged((a: string, b: string) => a.trim() === b.trim()),
+      skip(1),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateRuleChainLibrary());
   }
 
   ngAfterViewChecked(){
@@ -306,15 +302,6 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngAfterViewInit() {
-    if (this.readonly) {
-      this.ruleChainCanvas.modelService.isEditable = () => false;
-      this.ruleChainCanvas.modelService.edges.handleEdgeMouseClick = (edge) => {
-        this.openLinkDetails(edge);
-      };
-      const canvas = $(this.ruleChainCanvas.modelService.canvasHtmlElement);
-      const connectorElements  = $('.fc-connector', canvas);
-      connectorElements.attr('draggable', 'false');
-    }
     this.ruleChainCanvas.adjustCanvasSize(true);
   }
 
@@ -528,7 +515,7 @@ export class RuleChainPageComponent extends PageComponent
       }
       model.nodes.push(node);
     });
-    if (this.expansionPanels && !this.readonly) {
+    if (this.expansionPanels) {
       for (let i = 0; i < ruleNodeTypesLibrary.length; i++) {
         const panel = this.expansionPanels.find((item, index) => index === i);
         if (panel) {
@@ -619,7 +606,6 @@ export class RuleChainPageComponent extends PageComponent
         );
       }
       nodes.push(node);
-      node.readonly = this.readonly;
       this.ruleChainModel.nodes.push(node);
     });
     if (this.ruleChainMetaData.firstNodeIndex > -1) {
@@ -674,7 +660,7 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   openRuleChainContextMenu($event: TbContextMenuEvent) {
-    if (this.ruleChainCanvas.modelService && !$event.ctrlKey && !$event.metaKey && !this.readonly) {
+    if (this.ruleChainCanvas.modelService && !$event.ctrlKey && !$event.metaKey) {
       const x = $event.clientX;
       const y = $event.clientY;
       const item = this.ruleChainCanvas.modelService.getItemInfoAtPoint(x, y);
@@ -1106,10 +1092,8 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   onModelChanged() {
-    if (!this.readonly) {
-      this.isDirtyValue = true;
-      this.validate();
-    }
+    this.isDirtyValue = true;
+    this.validate();
   }
 
   helpLinkIdForRuleNodeType(): string {

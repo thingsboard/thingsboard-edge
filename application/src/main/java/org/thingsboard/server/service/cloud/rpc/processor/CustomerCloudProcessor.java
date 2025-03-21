@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,15 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {

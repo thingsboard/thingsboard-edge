@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_UPDATE
                 "<br><code>ALARM</code><br><br>" +
                 "Message will be routed via <b>Failure</b> route if node was not able to save cloud event to database or unsupported originator type/message type arrived. " +
                 "In case successful storage cloud event to database message will be routed via <b>Success</b> route.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodePushToCloudConfig",
         icon = "cloud_upload"
 )

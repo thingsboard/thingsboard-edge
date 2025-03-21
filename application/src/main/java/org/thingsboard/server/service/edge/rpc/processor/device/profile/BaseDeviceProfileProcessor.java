@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.thingsboard.server.service.edge.rpc.processor.device.profile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.StringUtils;
@@ -42,7 +43,7 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
         boolean deviceProfileNameUpdated = false;
         deviceCreationLock.lock();
         try {
-            DeviceProfile deviceProfile = constructDeviceProfileFromUpdateMsg(tenantId, deviceProfileId, deviceProfileUpdateMsg);
+            DeviceProfile deviceProfile = JacksonUtil.fromString(deviceProfileUpdateMsg.getEntity(), DeviceProfile.class, true);
             if (deviceProfile == null) {
                 throw new RuntimeException("[{" + tenantId + "}] deviceProfileUpdateMsg {" + deviceProfileUpdateMsg + "} cannot be converted to device profile");
             }
@@ -104,8 +105,6 @@ public abstract class BaseDeviceProfileProcessor extends BaseEdgeProcessor {
             }
         }
     }
-
-    protected abstract DeviceProfile constructDeviceProfileFromUpdateMsg(TenantId tenantId, DeviceProfileId deviceProfileId, DeviceProfileUpdateMsg deviceProfileUpdateMsg);
 
     protected abstract void setDefaultRuleChainId(TenantId tenantId, DeviceProfile deviceProfile, RuleChainId ruleChainId);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import java.util.UUID;
 
 import static org.thingsboard.server.common.data.msg.TbMsgType.ACTIVITY_EVENT;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_ACK;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_CLEAR;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.CONNECT_EVENT;
@@ -54,8 +56,6 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.TO_SERVER_RPC_REQ
 public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfiguration, S, U> implements TbNode {
 
     protected T config;
-
-    private static final String SCOPE = "scope";
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -82,6 +82,9 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         if (msg.isTypeOf(ALARM)) {
             EdgeEventActionType actionType = getAlarmActionType(msg);
             return buildEvent(ctx.getTenantId(), actionType, getUUIDFromMsgData(msg), getAlarmEventType(), null);
+        } else if (msg.isTypeOneOf(ALARM_ACK, ALARM_CLEAR)) {
+            EdgeEventActionType actionType = EdgeEventActionType.valueOf(msg.getType());
+            return buildEvent(ctx.getTenantId(), actionType, getUUIDFromMsgData(msg), getAlarmEventType(), null);
         } else {
             Map<String, String> metadata = msg.getMetaData().getData();
             EdgeEventActionType actionType = getEdgeEventActionTypeByMsgType(msg);
@@ -90,7 +93,8 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             switch (actionType) {
                 case ATTRIBUTES_UPDATED, POST_ATTRIBUTES -> {
                     entityBody.put("kv", dataJson);
-                    entityBody.put(SCOPE, getScope(metadata));
+                    entityBody.put("ts", msg.getMetaDataTs());
+                    entityBody.put(DataConstants.SCOPE, getScope(metadata));
                     if (EdgeEventActionType.POST_ATTRIBUTES.equals(actionType)) {
                         entityBody.put("isPostAttributes", true);
                     }
@@ -99,7 +103,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
                     List<String> keys = JacksonUtil.convertValue(dataJson.get("attributes"), new TypeReference<>() {
                     });
                     entityBody.put("keys", keys);
-                    entityBody.put(SCOPE, getScope(metadata));
+                    entityBody.put(DataConstants.SCOPE, getScope(metadata));
                 }
                 case TIMESERIES_UPDATED -> {
                     entityBody.put("data", dataJson);
@@ -156,7 +160,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
     }
 
     protected String getScope(Map<String, String> metadata) {
-        String scope = metadata.get(SCOPE);
+        String scope = metadata.get(DataConstants.SCOPE);
         if (StringUtils.isEmpty(scope)) {
             scope = config.getScope();
         }
@@ -176,9 +180,11 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         } else if (msg.isTypeOf(TO_SERVER_RPC_REQUEST)) {
             actionType = EdgeEventActionType.RPC_CALL;
         } else if (msg.isTypeOneOf(CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT)) {
-            String scope = msg.getMetaData().getValue(SCOPE);
+            String scope = msg.getMetaData().getValue(DataConstants.SCOPE);
             actionType = StringUtils.isEmpty(scope) ?
                     EdgeEventActionType.TIMESERIES_UPDATED : EdgeEventActionType.ATTRIBUTES_UPDATED;
+        } else if (msg.isTypeOneOf(ALARM_ACK, ALARM_CLEAR)) {
+            actionType = EdgeEventActionType.valueOf(msg.getType());
         } else {
             String type = msg.getType();
             log.warn("Unsupported msg type [{}]", type);
@@ -189,7 +195,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
 
     protected boolean isSupportedMsgType(TbMsg msg) {
         return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED, ATTRIBUTES_DELETED, TIMESERIES_UPDATED,
-                ALARM, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT, TO_SERVER_RPC_REQUEST);
+                ALARM, ALARM_ACK, ALARM_CLEAR, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT, TO_SERVER_RPC_REQUEST);
     }
 
 }

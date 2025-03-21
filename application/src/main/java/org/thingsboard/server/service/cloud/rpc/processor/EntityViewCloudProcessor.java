@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,37 +18,35 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityViewMsgConstructorFactory;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.entityview.BaseEntityViewProcessor;
 
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
+@TbCoreComponent
 public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
-
-    @Autowired
-    private EntityViewMsgConstructorFactory entityViewMsgConstructorFactory;
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
                                                                 EntityViewUpdateMsg entityViewUpdateMsg) {
@@ -106,15 +104,15 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
     }
 
-    public UplinkMsg convertEntityViewEventToUplink(CloudEvent cloudEvent, EdgeVersion edgeVersion) {
+    @Override
+    public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         EntityViewId entityViewId = new EntityViewId(cloudEvent.getEntityId());
-        var msgConstructor = (EntityViewMsgConstructor) entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         switch (cloudEvent.getAction()) {
             case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
                 EntityView entityView = edgeCtx.getEntityViewService().findEntityViewById(cloudEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    EntityViewUpdateMsg entityViewUpdateMsg = msgConstructor.constructEntityViewUpdatedMsg(msgType, entityView);
+                    EntityViewUpdateMsg entityViewUpdateMsg = EdgeMsgConstructorUtils.constructEntityViewUpdatedMsg(msgType, entityView);
                     return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
@@ -123,7 +121,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 }
             }
             case DELETED -> {
-                EntityViewUpdateMsg entityViewUpdateMsg = msgConstructor.constructEntityViewDeleteMsg(entityViewId);
+                EntityViewUpdateMsg entityViewUpdateMsg = EdgeMsgConstructorUtils.constructEntityViewDeleteMsg(entityViewId);
                 return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
@@ -133,15 +131,15 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
     }
 
     @Override
-    protected EntityView constructEntityViewFromUpdateMsg(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg) {
-        return JacksonUtil.fromString(entityViewUpdateMsg.getEntity(), EntityView.class, true);
-    }
-
-    @Override
     protected void setCustomerId(TenantId tenantId, CustomerId customerId, EntityView entityView, EntityViewUpdateMsg entityViewUpdateMsg) {
         if (isCustomerNotExists(tenantId, entityView.getCustomerId())) {
             entityView.setCustomerId(null);
         }
+    }
+
+    @Override
+    public CloudEventType getCloudEventType() {
+        return CloudEventType.ENTITY_VIEW;
     }
 
 }

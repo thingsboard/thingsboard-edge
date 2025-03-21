@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2024 The Thingsboard Authors
+ * Copyright © 2016-2025 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,13 +69,14 @@ public class CloudEventSourcingListener {
             EntityType.ASSET,
             EntityType.ASSET_PROFILE,
             EntityType.DASHBOARD,
+            EntityType.RULE_CHAIN,
             EntityType.TB_RESOURCE);
 
     private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{
         add(EntityType.ALARM);
     }};
 
-    private final List<EntityType> saveEventSupportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES);
+    private final List<EntityType> baseEventSupportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES);
 
     @PostConstruct
     public void init() {
@@ -88,7 +89,7 @@ public class CloudEventSourcingListener {
             return;
         }
         try {
-            if (event.getEntityId() != null && !saveEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())
+            if (event.getEntityId() != null && !baseEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())
                     && !(event.getEntity() instanceof AlarmComment)) {
                 return;
             }
@@ -130,7 +131,7 @@ public class CloudEventSourcingListener {
             return;
         }
         try {
-            if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())) {
+            if (event.getEntityId() != null && !baseEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())) {
                 return;
             }
             log.trace("ActionEntityEvent called: {}", event);
