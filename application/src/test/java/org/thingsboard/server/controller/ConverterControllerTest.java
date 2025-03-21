@@ -283,7 +283,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
         doPost("/api/converter", converter, Converter.class);
 
         converter.setName("My converter 2");
-        Converter savedConverter =  doPost("/api/converter", converter , Converter.class);
+        Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         savedConverter.setName("My converter");
         String msgError = "Converter with such name and type already exists!";
@@ -711,14 +711,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tti-name\"," +
                 "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("eui-$eui");
-        config.setCustomer("");
-        config.setProfile("$applicationId");
-        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTI, 2);
+
         testDecoder(DEFAULT_TTI_UPLINK_DECODER, DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TTI_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -727,14 +722,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tti-name\"," +
                 "\"telemetry\":[{\"ts\":1684398325906,\"values\":{\"battery\":94}}],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("eui-$eui");
-        config.setLabel("");
-        config.setProfile("$applicationId");
-        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTI, 2);
+
         testDecoder(TTI_UPLINK_DECODER, DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TTI_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -743,14 +733,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tts-name\"," +
                 "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("eui-$eui");
-        config.setGroup("");
-        config.setProfile("$applicationId");
-        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTN, 2);
+
         testDecoder(DEFAULT_TTN_UPLINK_DECODER, DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TTN_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -759,14 +744,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tts-name\"," +
                 "\"telemetry\":[{\"ts\":1684474415641,\"values\":{\"battery\":94}}],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("eui-$eui");
-        config.setGroup("");
-        config.setProfile("$applicationId");
-        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTN, 2);
+
         testDecoder(TTN_UPLINK_DECODER, DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TTN_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -775,13 +755,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
                 "\"telemetry\":[],\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("Device $eui");
-        config.setProfile("");
-        config.setAttributes(Set.of("eui", "mType", "fCntDn"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device $eui", "", Set.of("eui", "mType", "fCntDn"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.CHIRPSTACK, 2);
+
         testDecoder(DEFAULT_THINGPARK_UPLINK_DECODER, DEDICATED_THINGSPARK_UPLINK_CONVERTER_PAYLOAD, DEDICATED_THINGSPARK_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -790,13 +766,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
                 "\"telemetry\":[{\"ts\":1732828102138,\"values\":{\"battery\":94}}],\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("Device $eui");
-        config.setProfile("");
-        config.setAttributes(Set.of("eui", "mType", "fCntDn"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device $eui", "", Set.of("eui", "mType", "fCntDn"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.CHIRPSTACK, 2);
+
         testDecoder(THINGPARK_UPLINK_DECODER, DEDICATED_THINGSPARK_UPLINK_CONVERTER_PAYLOAD, DEDICATED_THINGSPARK_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -805,13 +777,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
                 "\"telemetry\":[],\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("Device $eui");
-        config.setProfile("");
-        config.setAttributes(Set.of("eui", "mType", "fCntDn"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device $eui", "", Set.of("eui", "mType", "fCntDn"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.CHIRPSTACK, 2);
+
         testDecoder(DEFAULT_TPE_UPLINK_DECODER, DEDICATED_TPE_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TPE_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -820,13 +788,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
                 "\"telemetry\":[{\"ts\":1732828102138,\"values\":{\"battery\":94}}],\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("Device $eui");
-        config.setProfile("");
-        config.setAttributes(Set.of("eui", "mType", "fCntDn"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device $eui", "", Set.of("eui", "mType", "fCntDn"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.CHIRPSTACK, 2);
+
         testDecoder(TPE_UPLINK_DECODER, DEDICATED_TPE_UPLINK_CONVERTER_PAYLOAD, DEDICATED_TPE_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -835,13 +799,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"ASSET\",\"name\":\"Asset 1000000000000001\",\"profile\":\"Chirpstack default device profile\"," +
                 "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.ASSET);
-        config.setName("Asset $eui");
-        config.setProfile("$deviceProfileName");
-        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.ASSET, "Asset $eui", "$deviceProfileName", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.CHIRPSTACK, 2);
+
         testDecoder(DEFAULT_CHIRPSTACK_UPLINK_DECODER, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -850,13 +810,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"ASSET\",\"name\":\"Asset 1000000000000001\",\"profile\":\"Chirpstack default device profile\"," +
                 "\"telemetry\":[{\"ts\":1684741625404,\"values\":{\"battery\":94}}],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.ASSET);
-        config.setName("Asset $eui");
-        config.setProfile("$deviceProfileName");
-        config.setAttributes(Set.of("eui", "fPort", "devAddr"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.ASSET, "Asset $eui", "$deviceProfileName", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.CHIRPSTACK, 2);
+
         testDecoder(CHIRPSTACK_UPLINK_DECODER, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -865,13 +821,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\"," +
                 "\"profile\":\"Device type\",\"telemetry\":[],\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("Device name $eui");
-        config.setProfile("Device type");
-        config.setAttributes(Set.of("eui", "fPort"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device name $eui", "Device type", Set.of("eui", "fPort"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.LORIOT, 2);
+
         testDecoder(DEFAULT_LORIOT_UPLINK_DECODER, DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD, DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -880,13 +832,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\"," +
                 "\"profile\":\"Device type\",\"telemetry\":[{\"ts\":1684478801936,\"values\":{\"battery\":94}}],\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
-        DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
-        config.setName("Device name $eui");
-        config.setProfile("Device type");
-        config.setAttributes(Set.of("eui", "fPort"));
-
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device name $eui", "Device type", Set.of("eui", "fPort"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.LORIOT, 2);
+
         testDecoder(LORIOT_UPLINK_DECODER, DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD, DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA, expectedDecodedMessage, converter);
     }
 
@@ -956,12 +904,15 @@ public class ConverterControllerTest extends AbstractControllerTest {
         assertThat(output).isEqualTo(expectedResult);
     }
 
-    public DedicatedConverterConfig createDedicatedConverterConfig(String name, String profile, Set<String> attributes) {
+    public DedicatedConverterConfig createDedicatedConverterConfig(EntityType type, String name, String profile, Set<String> attributes) {
         DedicatedConverterConfig config = new DedicatedConverterConfig();
-        config.setType(EntityType.DEVICE);
+        config.setType(type);
         config.setName(name);
         config.setProfile(profile);
         config.setAttributes(attributes);
+        config.setGroup("");
+        config.setCustomer("");
+        config.setLabel("");
         return config;
     }
 
