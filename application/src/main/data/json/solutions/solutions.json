@@ -44,19 +44,6 @@
     "imageUrls": ["https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-1.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-2.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-3.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-4.png"]
   },
   {
-    "id": "scada_drilling_system",
-    "title": "SCADA Drilling system",
-    "level": "PROTOTYPE",
-    "installTimeoutMs": 0,
-    "previewImageUrl": "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png",
-    "videoPreviewImageUrl": "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png",
-    "previewMp4Url": "https://video.thingsboard.io/usecases/hp-scada-systems-in-drilling.mp4",
-    "previewWebmUrl": "https://video.thingsboard.io/usecases/hp-scada-systems-in-drilling.webm",
-    "imageUrls": ["https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-2.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-3.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-4.png"],
-    "tenantTelemetryKeys": [],
-    "tenantAttributeKeys": []
-  },
-  {
     "id": "swimming_pool_scada_system",
     "title": "Swimming Pool SCADA system",
     "level": "MAKER",
@@ -66,6 +53,19 @@
     "previewMp4Url": "https://video.thingsboard.io/usecases/hp-swimming-pool-scada-system.mp4",
     "previewWebmUrl": "https://video.thingsboard.io/usecases/hp-swimming-pool-scada-system.webm",
     "imageUrls": ["https://img.thingsboard.io/solutions/swimming_pool_scada_system/hp-swimming-pool-1.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/tr-swimming-pool-1.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/hp-swimming-pool-2.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/tr-swimming-pool-2.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/hp-swimming-pool-3.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/tr-swimming-pool-3.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/tr-swimming-pool-4.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
+  },
+  {
+    "id": "scada_drilling_system",
+    "title": "SCADA Oil & Gas Drilling system",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 0,
+    "previewImageUrl": "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png",
+    "videoPreviewImageUrl": "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png",
+    "previewMp4Url": "https://video.thingsboard.io/usecases/hp-drilling-scada-system.mp4",
+    "previewWebmUrl": "https://video.thingsboard.io/usecases/hp-drilling-scada-system.webm",
+    "imageUrls": ["https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-2.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-3.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-4.png"],
     "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []
   },

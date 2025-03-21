@@ -28,20 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .margin-bottom {
-    margin-bottom: 16px;
-  }
+package org.thingsboard.server.common.stats;
 
-  .input-bottom-double-hint {
-    display: inline-flex;
+public interface Counter {
 
-    & .see-example {
-      flex-shrink: 0;
-    }
-  }
+    int getAndClear();
 
-  .text-hint {
-    max-width: 80%;
-  }
+    void increment();
 }

@@ -86,6 +86,7 @@
       <tb-converter-autocomplete class="flex-1" formControlName="defaultConverterId" required
                                  labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
                                  [converterType]="converterType.UPLINK"
+                                 [integrationType]="entityForm.get('type').value"
                                  [showDetailsPageLink]="true"
                                  [useFullEntityId]="true"
                                  [addNewConverter]="true"
@@ -95,6 +96,7 @@
                                  labelText="integration.downlink-converter"
                                  *ngIf="showDownlinkConvector"
                                  [converterType]="converterType.DOWNLINK"
+                                 [integrationType]="entityForm.get('type').value"
                                  [showDetailsPageLink]="true"
                                  [useFullEntityId]="true"
                                  [addNewConverter]="true"

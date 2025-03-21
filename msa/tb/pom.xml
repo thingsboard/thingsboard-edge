@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.0.0PE-SNAPSHOT</version>
+        <version>4.0.0PE-RC</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -237,7 +237,7 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${tb.docker.name}:latest</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64</argument>
+                                        <argument>--platform=linux/amd64</argument>
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>
@@ -258,7 +258,7 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${tb.docker.name}:${project.version}</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64</argument>
+                                        <argument>--platform=linux/amd64</argument>
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>

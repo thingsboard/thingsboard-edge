@@ -165,7 +165,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         mdMap.put("topic", msg.getTopic());
 
         var stopWatch = TbStopWatch.create();
-        ListenableFuture<List<UplinkData>> uplinkDataListFuture = convertToUplinkDataListAsync(context, msg.getPayload(), new UplinkMetaData(msg.getContentType(), mdMap));
+        ListenableFuture<List<UplinkData>> uplinkDataListFuture = convertToUplinkDataListAsync(context, msg.getPayload(), new UplinkMetaData<>(msg.getContentType(), mdMap));
         ListenableFuture<Void> future = Futures.transform(uplinkDataListFuture, (uplinkDataList) -> {
             if (log.isDebugEnabled()) {
                 log.debug("convertToUplinkDataList took {}ms for integration {}", stopWatch.stopAndGetTotalTimeMillis(), configuration.getName());

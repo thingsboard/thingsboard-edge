@@ -85,6 +85,7 @@ export interface IntegrationConvertersInfo {
 export interface ConverterInfo {
   library: boolean;
   existing: boolean;
+  keys?: string[];
 }
 
 export const coapSecurityModeTranslationsMap = new Map<CoapSecurityMode, string>(

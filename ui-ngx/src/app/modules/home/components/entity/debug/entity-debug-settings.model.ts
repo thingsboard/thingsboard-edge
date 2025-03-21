@@ -29,34 +29,20 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import { EntityDebugSettings } from '@shared/models/entity.models';
 
-@Component({
-  selector: 'tb-external-node-twilio-sms-config',
-  templateUrl: './twilio-sms-config.component.html',
-  styleUrls: ['./twilio-config.component.scss']
-})
-export class TwilioSmsConfigComponent extends RuleNodeConfigurationComponent {
+export interface AdditionalDebugActionConfig<Action = (...args: unknown[]) => void> {
+  action: Action;
+  title: string;
+}
 
-  twilioSmsConfigForm: FormGroup;
-
-  constructor(private fb: FormBuilder) {
-    super();
+export interface EntityDebugSettingPanelConfig {
+  debugSettings: EntityDebugSettings;
+  debugConfig: {
+    maxDebugModeDuration: number;
+    debugLimitsConfiguration: string;
+    entityLabel?: string;
+    additionalActionConfig?: AdditionalDebugActionConfig;
   }
-
-  protected configForm(): FormGroup {
-    return this.twilioSmsConfigForm;
-  }
-
-  protected onConfigurationSet(configuration: RuleNodeConfiguration) {
-    this.twilioSmsConfigForm = this.fb.group({
-      numberFrom: [configuration ? configuration.numberFrom : null, [Validators.required]],
-      numbersTo: [configuration ? configuration.numbersTo : null, [Validators.required]],
-      accountSid: [configuration ? configuration.accountSid : null, [Validators.required]],
-      accountToken: [configuration ? configuration.accountToken : null, [Validators.required]]
-    });
-  }
-
+  onSettingsAppliedFn: (settings: EntityDebugSettings) => void;
 }

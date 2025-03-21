@@ -89,7 +89,7 @@ class RemoteJsInvokeServiceTest {
         remoteJsInvokeService.requestTemplate = jsRequestTemplate;
         StatsFactory statsFactory = mock(StatsFactory.class);
         when(statsFactory.createStatsCounter(any(), any())).thenReturn(mock(StatsCounter.class));
-        ReflectionTestUtils.setField(remoteJsInvokeService, "statsFactory",statsFactory);
+        ReflectionTestUtils.setField(remoteJsInvokeService, "statsFactory",Optional.of(statsFactory));
         remoteJsInvokeService.init();
     }
 

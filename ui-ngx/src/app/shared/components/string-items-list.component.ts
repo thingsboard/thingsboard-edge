@@ -44,7 +44,8 @@ import { FloatLabelType, MatFormFieldAppearance, SubscriptSizing } from '@angula
 import { coerceArray, coerceBoolean } from '@shared/decorators/coercion';
 import { Observable, of } from 'rxjs';
 import { filter, mergeMap, share, tap } from 'rxjs/operators';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { isDefined } from '@core/utils';
 
 export interface StringItemsOption {
   name: string;
@@ -131,6 +132,9 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
   @coerceArray()
   predefinedValues: StringItemsOption[];
 
+  @Input()
+  fetchOptionsFn: (searchText?: string) => Observable<Array<StringItemsOption>>;
+
   get itemsControl(): AbstractControl {
     return this.stringItemsForm.get('items');
   }
@@ -151,7 +155,7 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
   }
 
   ngOnInit() {
-    if (this.predefinedValues) {
+    if (this.predefinedValues || isDefined(this.fetchOptionsFn)) {
       this.filteredValues = this.itemControl.valueChanges
         .pipe(
           tap((value) => {
@@ -162,7 +166,8 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
             }
           }),
           filter((value) => typeof value === 'string'),
-          mergeMap(name => this.fetchValues(name)),
+          tap(name => this.searchText = name),
+          mergeMap(name => this.fetchOptionsFn ? this.fetchOptionsFn(name) : this.fetchValues(name)),
           share()
         );
     }
@@ -254,6 +259,11 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
     return values ? values.name : undefined;
   }
 
+  selected(event: MatAutocompleteSelectedEvent) {
+    this.stringItemInput.nativeElement.value = '';
+    this.add(event.option.value)
+  }
+
   private add(item: StringItemsOption) {
     if (!this.modelValue || this.modelValue.indexOf(item.value) === -1) {
       if (!this.modelValue) {
@@ -271,7 +281,6 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
     if (!this.predefinedValues?.length) {
       return of([]);
     }
-    this.searchText = searchText;
     let result = this.predefinedValues;
     if (searchText && searchText.length) {
       result = this.predefinedValues.filter(option => option.name.toLowerCase().includes(searchText.toLowerCase()));

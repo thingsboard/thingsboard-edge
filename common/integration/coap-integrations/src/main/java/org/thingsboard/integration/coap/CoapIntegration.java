@@ -243,7 +243,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         if (StringUtils.isNotEmpty(options.getUriString())) {
             metadataMap.put("Option:uri", options.getUriString());
         }
-        return convertToUplinkDataList(context, msg.getPayloadBytes(), new UplinkMetaData(msg.getContentType(), metadataMap));
+        return convertToUplinkDataList(context, msg.getPayloadBytes(), new UplinkMetaData<>(msg.getContentType(), metadataMap));
     }
 
     private List<String> getResourceHierarchy(String path) {

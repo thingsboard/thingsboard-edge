@@ -38,10 +38,10 @@ import java.util.Map;
  * Created by ashvayka on 04.12.17.
  */
 @Data
-public class UplinkMetaData {
+public class UplinkMetaData<T> {
 
     private final ContentType contentType;
 
-    private final Map<String, String> kvMap;
+    private final Map<String, T> kvMap;
 
 }

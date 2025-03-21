@@ -31,8 +31,8 @@
 
 -->
 <mat-form-field [formGroup]="entityTypeFormGroup" [appearance]="appearance">
-  <mat-label *ngIf="showLabel">{{ 'entity.type' | translate }}</mat-label>
-  <mat-select [required]="required" matInput formControlName="entityType">
+  <mat-label *ngIf="showLabel">{{ label }}</mat-label>
+  <mat-select [required]="required" formControlName="entityType">
     <mat-option *ngFor="let type of entityTypes" [value]="type">
       {{ displayEntityTypeFn(type) }}
     </mat-option>

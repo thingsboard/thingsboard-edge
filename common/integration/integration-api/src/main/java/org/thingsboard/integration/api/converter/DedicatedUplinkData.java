@@ -28,27 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .tb-form-panel {
-    .tb-flex {
-      display: flex;
-      flex: 1;
-      gap: 8px;
-      &.row {
-        flex-direction: row;
-      }
+package org.thingsboard.integration.api.converter;
 
-      .flex-1 {
-        flex: 1;
-      }
-    }
-  }
-}
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.google.gson.JsonElement;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
 
-:host ::ng-deep {
-  .mat-mdc-form-field {
-    .mat-mdc-form-field-infix {
-      width: 100%;
+@Builder
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class DedicatedUplinkData {
+    private final EntityType entityType;
+    private final String name;
+    private final String profile;
+    private final String label;
+    private final String customer;
+    private final String group;
+    private final JsonElement telemetry;
+    private final JsonElement attributes;
+
+    @JsonRawValue
+    public String getTelemetry() {
+        return telemetry.toString();
     }
-  }
+
+    @JsonRawValue
+    public String getAttributes() {
+        return attributes.toString();
+    }
+
+    @JsonIgnore
+    public JsonElement getTelemetryJson() {
+        return telemetry;
+    }
+
+    @JsonIgnore
+    public JsonElement getAttributesJson() {
+        return attributes;
+    }
 }
