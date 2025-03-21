@@ -61,7 +61,7 @@ public class Ota5LwM2MIntegrationTest extends AbstractOtaLwM2MIntegrationTest {
         device.setFirmwareId(createFirmware("5.1", deviceProfile.getId()).getId());
         final Device savedDevice = doPost("/api/device", device, Device.class);
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         assertThat(savedDevice).as("saved device").isNotNull();
         assertThat(getDeviceFromAPI(device.getId().getId())).as("fetched device").isEqualTo(savedDevice);

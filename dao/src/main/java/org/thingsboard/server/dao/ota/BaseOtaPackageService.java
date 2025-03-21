@@ -72,11 +72,18 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
 
     @Override
     public OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo, boolean isUrl) {
+        return saveOtaPackageInfo(otaPackageInfo, isUrl, true);
+    }
+
+    @Override
+    public OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo, boolean isUrl, boolean doValidate) {
         log.trace("Executing saveOtaPackageInfo [{}]", otaPackageInfo);
         if (isUrl && (StringUtils.isEmpty(otaPackageInfo.getUrl()) || otaPackageInfo.getUrl().trim().length() == 0)) {
             throw new DataValidationException("Ota package URL should be specified!");
         }
-        otaPackageInfoValidator.validate(otaPackageInfo, OtaPackageInfo::getTenantId);
+        if (doValidate) {
+            otaPackageInfoValidator.validate(otaPackageInfo, OtaPackageInfo::getTenantId);
+        }
         OtaPackageId otaPackageId = otaPackageInfo.getId();
         try {
             OtaPackageInfo result = otaPackageInfoDao.save(otaPackageInfo.getTenantId(), otaPackageInfo);
@@ -101,8 +108,15 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
 
     @Override
     public OtaPackage saveOtaPackage(OtaPackage otaPackage) {
+        return saveOtaPackage(otaPackage, true);
+    }
+
+    @Override
+    public OtaPackage saveOtaPackage(OtaPackage otaPackage, boolean doValidate) {
         log.trace("Executing saveOtaPackage [{}]", otaPackage);
-        otaPackageValidator.validate(otaPackage, OtaPackageInfo::getTenantId);
+        if (doValidate) {
+            otaPackageValidator.validate(otaPackage, OtaPackageInfo::getTenantId);
+        }
         OtaPackageId otaPackageId = otaPackage.getId();
         try {
             var result = otaPackageDao.save(otaPackage.getTenantId(), otaPackage);

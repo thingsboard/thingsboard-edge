@@ -26,12 +26,10 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.dao.exception.DataValidationException;
 
 import java.util.EnumSet;
 import java.util.NoSuchElementException;
@@ -78,6 +76,7 @@ public abstract class TbAbstractCustomerActionNode<C extends TbAbstractCustomerA
         var customerService = ctx.getCustomerService();
         var customerByTitleFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, customerTitle);
         if (createCustomerIfNotExists()) {
+            /* edge-only: customers are not created on the edge at the moment
             return Futures.transform(customerByTitleFuture, customerOpt -> {
                 if (customerOpt.isPresent()) {
                     return customerOpt.get().getId();
@@ -99,6 +98,7 @@ public abstract class TbAbstractCustomerActionNode<C extends TbAbstractCustomerA
                     throw new RuntimeException("Failed to create customer with title '" + customerTitle + "' due to: ", e);
                 }
             }, MoreExecutors.directExecutor());
+             */
         }
         return Futures.transform(customerByTitleFuture, customerOpt -> {
             if (customerOpt.isEmpty()) {

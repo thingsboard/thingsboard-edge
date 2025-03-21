@@ -84,11 +84,13 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
 
   @Input()
   @coerceBoolean()
-  editProfileEnabled = true;
+  // edge-only: allow to read-only
+  editProfileEnabled = false;
 
   @Input()
   @coerceBoolean()
-  addNewProfile = true;
+  // edge-only: allow to read-only
+  addNewProfile = false;
 
   @Input()
   showDetailsPageLink = false;

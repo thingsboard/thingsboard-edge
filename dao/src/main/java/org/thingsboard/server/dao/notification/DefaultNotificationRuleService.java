@@ -46,7 +46,7 @@ public class DefaultNotificationRuleService extends AbstractEntityService implem
     public NotificationRule saveNotificationRule(TenantId tenantId, NotificationRule notificationRule) {
         if (notificationRule.getId() != null) {
             NotificationRule oldNotificationRule = findNotificationRuleById(tenantId, notificationRule.getId());
-            if (notificationRule.getTriggerType() != oldNotificationRule.getTriggerType()) {
+            if (oldNotificationRule != null && notificationRule.getTriggerType() != oldNotificationRule.getTriggerType()) {
                 throw new IllegalArgumentException("Notification rule trigger type cannot be updated");
             }
         }
@@ -86,6 +86,11 @@ public class DefaultNotificationRuleService extends AbstractEntityService implem
     @Override
     public List<NotificationRule> findEnabledNotificationRulesByTenantIdAndTriggerType(TenantId tenantId, NotificationRuleTriggerType triggerType) {
         return notificationRuleDao.findByTenantIdAndTriggerTypeAndEnabled(tenantId, triggerType, true);
+    }
+
+    @Override
+    public Optional<NotificationRule> findNotificationRuleByTenantIdAndName(TenantId tenantId, String name) {
+        return Optional.ofNullable(notificationRuleDao.findByTenantIdAndName(tenantId.getId(), name));
     }
 
     @Override

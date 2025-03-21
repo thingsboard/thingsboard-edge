@@ -17,6 +17,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -45,6 +46,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Test
+    @Ignore("*EdgeTests are ignored on Edge side")
     public void testCreateUpdateDeleteTenantUser() throws Exception {
         // create user
         edgeImitator.expectMessageAmount(3);
@@ -118,6 +120,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore("*EdgeTests are ignored on Edge side")
     public void testCreateUpdateDeleteCustomerUser() throws Exception {
         // create customer
         edgeImitator.expectMessageAmount(1);
@@ -205,6 +208,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendUserCredentialsRequestToCloud() throws Exception {
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         UserCredentialsRequestMsg.Builder userCredentialsRequestMsgBuilder = UserCredentialsRequestMsg.newBuilder();
@@ -230,6 +234,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void sendUserCredentialsRequest() throws Exception {
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         UserCredentialsRequestMsg.Builder userCredentialsRequestMsgBuilder = UserCredentialsRequestMsg.newBuilder();

@@ -61,12 +61,14 @@
             [queueType]="serviceType"
             formControlName="defaultQueueName">
           </tb-queue-autocomplete>
+          <!-- Edge-only: not visible on edge
           <tb-rule-chain-autocomplete
             labelText="device-profile.default-edge-rule-chain"
             formControlName="defaultEdgeRuleChainId"
             [ruleChainType]="edgeRuleChainType">
             <span tb-hint>{{'device-profile.default-edge-rule-chain-hint' | translate}}</span>
           </tb-rule-chain-autocomplete>
+          -->
           <mat-form-field class="mat-block !hidden">
             <mat-label translate>device-profile.type</mat-label>
             <mat-select formControlName="type" required>

@@ -336,6 +336,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Override
     public void loadDemoData() throws Exception {
+        /* Edge-only: no ability to load demo data on Edge
         Tenant demoTenant = new Tenant();
         demoTenant.setRegion("Global");
         demoTenant.setTitle("Tenant");
@@ -520,6 +521,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
         installScripts.loadDashboards(demoTenant.getId(), null);
         installScripts.createDefaultTenantDashboards(demoTenant.getId(), null);
+         */
     }
 
     @Override

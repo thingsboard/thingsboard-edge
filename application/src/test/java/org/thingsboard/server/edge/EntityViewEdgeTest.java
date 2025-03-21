@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -50,6 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class EntityViewEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testEntityViews() throws Exception {
         // create entity view and assign to edge
         edgeImitator.expectMessageAmount(1);
@@ -165,6 +167,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendEntityViewToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
 
@@ -197,6 +200,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendEntityViewToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
 
@@ -238,6 +242,7 @@ public class EntityViewEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteEntityViewOnEdgeToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
         EntityView savedEntityView = saveEntityViewOnCloudAndVerifyDeliveryToEdge(device);

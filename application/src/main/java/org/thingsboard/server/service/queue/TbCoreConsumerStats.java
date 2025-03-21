@@ -36,6 +36,7 @@ public class TbCoreConsumerStats {
     public static final String DEVICE_CLAIMS = "claimDevice";
     public static final String DEVICE_STATES = "deviceState";
     public static final String SUBSCRIPTION_MSGS = "subMsgs";
+    public static final String CLOUD_NOTIFICATIONS = "cloudNfs";
     public static final String DEVICE_CONNECTS = "deviceConnect";
     public static final String DEVICE_ACTIVITIES = "deviceActivity";
     public static final String DEVICE_DISCONNECTS = "deviceDisconnect";
@@ -62,6 +63,7 @@ public class TbCoreConsumerStats {
     private final StatsCounter claimDeviceCounter;
     private final StatsCounter deviceStateCounter;
     private final StatsCounter subscriptionMsgCounter;
+    private final StatsCounter cloudNotificationMsgCounter;
     private final StatsCounter deviceConnectsCounter;
     private final StatsCounter deviceActivitiesCounter;
     private final StatsCounter deviceDisconnectsCounter;
@@ -93,6 +95,7 @@ public class TbCoreConsumerStats {
         this.claimDeviceCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_CLAIMS));
         this.deviceStateCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_STATES));
         this.subscriptionMsgCounter = register(statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS));
+        this.cloudNotificationMsgCounter = register(statsFactory.createStatsCounter(statsKey, CLOUD_NOTIFICATIONS));
         this.deviceConnectsCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_CONNECTS));
         this.deviceActivitiesCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_ACTIVITIES));
         this.deviceDisconnectsCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_DISCONNECTS));
@@ -144,6 +147,11 @@ public class TbCoreConsumerStats {
     public void log(TransportProtos.DeviceStateServiceMsgProto msg) {
         totalCounter.increment();
         deviceStateCounter.increment();
+    }
+
+    public void log(TransportProtos.CloudNotificationMsgProto msg) {
+        totalCounter.increment();
+        cloudNotificationMsgCounter.increment();
     }
 
     public void log(TransportProtos.DeviceConnectProto msg) {

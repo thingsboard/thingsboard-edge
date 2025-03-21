@@ -132,6 +132,12 @@ public class DataConstants {
 
     public static final String LAST_CONNECTED_GATEWAY = "lastConnectedGateway";
 
+    // edge constants
+    public static final String CLOUD_MSG_SOURCE = "cloud";
+    public static final String EDGE_SETTINGS_ATTR_KEY = "edgeSettings";
+
+    public static final String ENTITY_CREATION_ON_EDGE_NOT_SUPPORTED_WARNING = "Please create it on the cloud and assign to edge - " +
+            "creation of this entity type is not supported on the edge at the moment!";
     public static final String MQTT_TOPIC = "mqttTopic";
 
     public static final String MAIN_QUEUE_NAME = "Main";

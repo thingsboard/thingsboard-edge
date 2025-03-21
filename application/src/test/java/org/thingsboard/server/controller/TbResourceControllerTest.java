@@ -735,6 +735,9 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
         Mockito.reset(tbClusterService, auditLogService);
 
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
+
         TbResource resource = new TbResource();
         resource.setResourceType(ResourceType.JS_MODULE);
         resource.setTitle("Js resource");

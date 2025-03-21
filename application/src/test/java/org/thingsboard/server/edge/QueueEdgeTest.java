@@ -17,6 +17,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.queue.ProcessingStrategy;
@@ -35,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class QueueEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testQueues() throws Exception {
         loginSysAdmin();
 

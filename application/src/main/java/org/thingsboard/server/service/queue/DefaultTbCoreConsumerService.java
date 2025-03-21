@@ -86,6 +86,7 @@ import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cf.CalculatedFieldCache;
+import org.thingsboard.server.service.cloud.CloudNotificationService;
 import org.thingsboard.server.service.notification.NotificationSchedulerService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
@@ -140,6 +141,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbLocalSubscriptionService localSubscriptionService;
     private final SubscriptionManagerService subscriptionManagerService;
     private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
+    private final CloudNotificationService cloudNotificationService;
     private final OtaPackageStateService firmwareStateService;
     private final GitVersionControlQueueService vcQueueService;
     private final NotificationSchedulerService notificationSchedulerService;
@@ -170,6 +172,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbApiUsageStateService apiUsageStateService,
                                         OtaPackageStateService firmwareStateService,
                                         GitVersionControlQueueService vcQueueService,
+                                        CloudNotificationService cloudNotificationService,
                                         PartitionService partitionService,
                                         ApplicationEventPublisher eventPublisher,
                                         JwtSettingsService jwtSettingsService,
@@ -185,6 +188,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.localSubscriptionService = localSubscriptionService;
         this.subscriptionManagerService = subscriptionManagerService;
         this.tbCoreDeviceRpcService = tbCoreDeviceRpcService;
+        this.cloudNotificationService = cloudNotificationService;
         this.stats = new TbCoreConsumerStats(statsFactory);
         this.statsService = statsService;
         this.firmwareStateService = firmwareStateService;
@@ -281,10 +285,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                     } else if (toCoreMsg.hasDeviceStateServiceMsg()) {
                         log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceStateServiceMsg());
                         forwardToStateService(toCoreMsg.getDeviceStateServiceMsg(), callback);
+                    } else if (toCoreMsg.hasCloudNotificationMsg()) {
+                        log.trace("[{}] Forwarding message to cloud service {}", id, toCoreMsg.getCloudNotificationMsg());
+                        forwardToCloudNotificationService(toCoreMsg.getCloudNotificationMsg(), callback);
                     } else if (toCoreMsg.hasDeviceConnectMsg()) {
                         log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceConnectMsg());
                         forwardToStateService(toCoreMsg.getDeviceConnectMsg(), callback);
-                    } else if (toCoreMsg.hasDeviceActivityMsg()) {
+                    }  else if (toCoreMsg.hasDeviceActivityMsg()) {
                         log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceActivityMsg());
                         forwardToStateService(toCoreMsg.getDeviceActivityMsg(), callback);
                     } else if (toCoreMsg.hasDeviceDisconnectMsg()) {
@@ -610,6 +617,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         stateService.onQueueMsg(deviceStateServiceMsg, callback);
     }
 
+    private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, TbCallback callback) {
+        if (statsEnabled) {
+            stats.log(toDeviceActorMsg);
+        }
+        actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback));
+    }
+
     void forwardToStateService(TransportProtos.DeviceConnectProto deviceConnectMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.log(deviceConnectMsg);
@@ -696,11 +710,11 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         }
     }
 
-    private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, TbCallback callback) {
+    private void forwardToCloudNotificationService(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback) {
         if (statsEnabled) {
-            stats.log(toDeviceActorMsg);
+            stats.log(cloudNotificationMsg);
         }
-        actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback));
+        cloudNotificationService.pushNotificationToCloud(cloudNotificationMsg, callback);
     }
 
     private void forwardToEventService(ErrorEventProto eventProto, TbCallback callback) {

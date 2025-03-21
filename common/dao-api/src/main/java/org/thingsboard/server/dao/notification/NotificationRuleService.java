@@ -24,6 +24,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NotificationRuleService {
 
@@ -38,6 +39,8 @@ public interface NotificationRuleService {
     PageData<NotificationRule> findNotificationRulesByTenantId(TenantId tenantId, PageLink pageLink);
 
     List<NotificationRule> findEnabledNotificationRulesByTenantIdAndTriggerType(TenantId tenantId, NotificationRuleTriggerType triggerType);
+
+    Optional<NotificationRule> findNotificationRuleByTenantIdAndName(TenantId tenantId, String name);
 
     void deleteNotificationRuleById(TenantId tenantId, NotificationRuleId id);
 

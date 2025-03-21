@@ -101,6 +101,58 @@ server:
       # Limit that prohibits resetting the password for the user too often. The value of the rate limit. By default, no more than 5 requests per hour
       reset_password_per_user: "${RESET_PASSWORD_PER_USER_RATE_LIMIT_CONFIGURATION:5:3600}"
 
+# Cloud configuration
+cloud:
+  # Routing key for edge instance, typically a UUID
+  routingKey: "${CLOUD_ROUTING_KEY:}"
+  # Secret key for secure communication with the cloud
+  secret: "${CLOUD_ROUTING_SECRET:}"
+  # Reconnection timeout in milliseconds if cloud connectivity is lost
+  reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}"
+  # Timeout in seconds for packaging uplink data to the cloud
+  uplink_pack_timeout_sec: "${CLOUD_UPLINK_PACK_TIMEOUT_SEC:60}"
+  rpc:
+    # Hostname or IP of the ThingsBoard platform, e.g. thingsboard.cloud, demo.thingsboard.io, X.X.X.X or localhost
+    host: "${CLOUD_RPC_HOST:localhost}"
+    # Port for RPC communication with the ThingsBoard server
+    port: "${CLOUD_RPC_PORT:7070}"
+    # Timeout in seconds for terminating an RPC channel
+    timeout: "${CLOUD_RPC_TIMEOUT:5}"
+    # Specifies the amount of time in seconds the client waits in idle (with no read operations on the connection) before sending a keepalive ping to the server.
+    # This setting is crucial for ensuring that the connection remains alive during periods of inactivity and helps prevent the server from closing the connection due to a timeout.
+    # It's used to probe the server periodically to check if it is still responsive and maintain the connection through potential network devices that might drop inactive connections (like NATs and load balancers).
+    keep_alive_time_sec: "${CLOUD_RPC_KEEP_ALIVE_TIME_SEC:10}"
+    # Specifies how long the client will wait for a response to its keepalive ping.
+    # If the ping isn't acknowledged within this timeframe, the client assumes the connection is dead or unreachable.
+    # This timeout is essential for detecting when the server side might have issues or when there might be network failures preventing communication.
+    # If the server does not respond to a keepalive ping within this period, the client will consider the connection as lost and may attempt to reconnect or take other recovery actions.
+    keep_alive_timeout_sec: "${CLOUD_RPC_KEEP_ALIVE_TIMEOUT_SEC:5}"
+    ssl:
+      # Enables TLS for secure communication
+      enabled: "${CLOUD_RPC_SSL_ENABLED:false}"
+      # Path to the TLS certificate for secure communication
+      cert: "${CLOUD_RPC_SSL_CERT:}"
+    storage:
+      # Maximum number of cloud event records to read from the local DB for sending
+      max_read_records_count: "${CLOUD_RPC_STORAGE_MAX_READ_RECORDS_COUNT:50}"
+      # Interval in milliseconds to check for new cloud events in the local DB
+      no_read_records_sleep: "${CLOUD_RPC_NO_READ_RECORDS_SLEEP:1000}"
+      # Interval in milliseconds to retry sending a failed batch of cloud events
+      sleep_between_batches: "${CLOUD_RPC_SLEEP_BETWEEN_BATCHES:1000}"
+    # Maximum size in bytes of inbound messages from the cloud
+    max_inbound_message_size: "${CLOUD_RPC_MAX_INBOUND_MESSAGE_SIZE:4194304}"
+    proxy:
+      # Enable or disable the use of a proxy server
+      enabled: "${CLOUD_RPC_PROXY_ENABLED:false}"
+      # Hostname or IP of the proxy server
+      host: "${CLOUD_RPC_PROXY_HOST:}"
+      # Port number of the proxy server
+      port: "${CLOUD_RPC_PROXY_PORT:0}"
+      # Username for proxy server authentication
+      username: "${CLOUD_RPC_PROXY_USERNAME:}"
+      # Password for proxy server authentication
+      password: "${CLOUD_RPC_PROXY_PASSWORD:}"
+
 # Application info parameters
 app:
   # Application version
@@ -208,7 +260,7 @@ ui:
   # Help parameters
   help:
     # Base URL for UI help assets
-    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-ui-help/release-4.0}"
+    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-ui-help/release-3.9}"
 
 # Database telemetry parameters
 database:
@@ -220,9 +272,9 @@ database:
 
 # Cassandra driver configuration parameters
 cassandra:
-  # Thingsboard cluster name
-  cluster_name: "${CASSANDRA_CLUSTER_NAME:Thingsboard Cluster}"
-  # Thingsboard keyspace name
+  # Thingsboard Edge cluster name
+  cluster_name: "${CASSANDRA_CLUSTER_NAME:Thingsboard Edge Cluster}"
+  # Thingsboard Edge keyspace name
   keyspace_name: "${CASSANDRA_KEYSPACE_NAME:thingsboard}"
   # Specify node list
   url: "${CASSANDRA_URL:127.0.0.1:9042}"
@@ -353,19 +405,24 @@ sql:
     batch_threads: "${SQL_TS_LATEST_BATCH_THREADS:3}" # batch thread count has to be a prime number like 3 or 5 to gain perfect hash distribution
     update_by_latest_ts: "${SQL_TS_UPDATE_BY_LATEST_TIMESTAMP:true}" # Update latest values only if the timestamp of the new record is greater or equals the timestamp of the previously saved latest value. The latest values are stored separately from historical values for fast lookup from DB. Insert of historical value happens in any case
   events:
-    batch_size: "${SQL_EVENTS_BATCH_SIZE:10000}" # Batch size for persisting latest telemetry updates
-    batch_max_delay: "${SQL_EVENTS_BATCH_MAX_DELAY_MS:100}" # Max timeout for latest telemetry entries queue polling. The value set in milliseconds
-    stats_print_interval_ms: "${SQL_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing latest telemetry updates statistic
+    batch_size: "${SQL_EVENTS_BATCH_SIZE:10000}" # Batch size for persisting events inserts
+    batch_max_delay: "${SQL_EVENTS_BATCH_MAX_DELAY_MS:100}" # Max timeout for events entries queue polling. The value set in milliseconds
+    stats_print_interval_ms: "${SQL_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing events insert statistic
     batch_threads: "${SQL_EVENTS_BATCH_THREADS:3}" # batch thread count has to be a prime number like 3 or 5 to gain perfect hash distribution
     partition_size: "${SQL_EVENTS_REGULAR_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the events. The current value corresponds to one week.
     debug_partition_size: "${SQL_EVENTS_DEBUG_PARTITION_SIZE_HOURS:1}" # Number of hours to partition the debug events. The current value corresponds to one hour.
   edge_events:
-    batch_size: "${SQL_EDGE_EVENTS_BATCH_SIZE:1000}" # Batch size for persisting latest telemetry updates
-    batch_max_delay: "${SQL_EDGE_EVENTS_BATCH_MAX_DELAY_MS:100}" # Max timeout for latest telemetry entries queue polling. The value set in milliseconds
-    stats_print_interval_ms: "${SQL_EDGE_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing latest telemetry updates statistic
-    partition_size: "${SQL_EDGE_EVENTS_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the events. The current value corresponds to one week.
+    batch_size: "${SQL_EDGE_EVENTS_BATCH_SIZE:1000}" # Batch size for persisting edge events inserts
+    batch_max_delay: "${SQL_EDGE_EVENTS_BATCH_MAX_DELAY_MS:100}" # Max timeout for edge events entries queue polling. The value set in milliseconds
+    stats_print_interval_ms: "${SQL_EDGE_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing edge events insert statistic
+    partition_size: "${SQL_EDGE_EVENTS_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the edge events. The current value corresponds to one week.
   audit_logs:
     partition_size: "${SQL_AUDIT_LOGS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
+  cloud_events:
+    batch_size: "${SQL_CLOUD_EVENTS_BATCH_SIZE:1000}"  # Batch size for persisting cloud events inserts
+    batch_max_delay: "${SQL_CLOUD_EVENTS_BATCH_MAX_DELAY_MS:100}"  # Max timeout for cloud events entries queue polling. The value set in milliseconds
+    stats_print_interval_ms: "${SQL_CLOUD_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing cloud events insert statistic
+    partition_size: "${SQL_CLOUD_EVENTS_PARTITION_SIZE_HOURS:24}" # Number of hours to partition the cloud events. The current value corresponds to one week.
   alarm_comments:
     partition_size: "${SQL_ALARM_COMMENTS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   notifications:
@@ -419,6 +476,10 @@ sql:
       enabled: "${SQL_TTL_AUDIT_LOGS_ENABLED:true}" # Enable/disable TTL (Time To Live) for audit log records
       ttl: "${SQL_TTL_AUDIT_LOGS_SECS:0}" # Disabled by default. The accuracy of the cleanup depends on the sql.audit_logs.partition_size
       checking_interval_ms: "${SQL_TTL_AUDIT_LOGS_CHECKING_INTERVAL_MS:86400000}" # Default value - 1 day
+    cloud_events:
+      enabled: "${SQL_TTL_CLOUD_EVENTS_ENABLED:true}"  # Enable/disable TTL (Time To Live) for cloud event records
+      execution_interval_ms: "${SQL_TTL_CLOUD_EVENTS_EXECUTION_INTERVAL:86400000}" # Number of milliseconds. The current value corresponds to one day
+      cloud_events_ttl: "${SQL_TTL_CLOUD_EVENTS_TTL:2628000}" # Number of seconds. The current value corresponds to one month
     notifications:
       enabled: "${SQL_TTL_NOTIFICATIONS_ENABLED:true}" # Enable/disable TTL (Time To Live) for notification center records
       ttl: "${SQL_TTL_NOTIFICATIONS_SECS:2592000}" # Default value - 30 days
@@ -802,7 +863,7 @@ spring:
     # Database driver for Spring JPA - org.postgresql.Driver
     driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.postgresql.Driver}"
     # Database connection URL
-    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/thingsboard}"
+    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tb_edge}"
     # Database user name
     username: "${SPRING_DATASOURCE_USERNAME:postgres}"
     # Database user password
@@ -1280,7 +1341,7 @@ transport:
     dashboard:
       sync:
         # Enable/disable gateways dashboard sync with git repository
-        enabled: "${TB_GATEWAY_DASHBOARD_SYNC_ENABLED:true}"
+        enabled: "${TB_GATEWAY_DASHBOARD_SYNC_ENABLED:false}"
         # URL of gateways dashboard repository
         repository_url: "${TB_GATEWAY_DASHBOARD_SYNC_REPOSITORY_URL:https://github.com/thingsboard/gateway-management-extensions-dist.git}"
         # Branch of gateways dashboard repository to work with
@@ -1425,7 +1486,7 @@ device:
 # Edges parameters
 edges:
   # Enable/disable Edge instance
-  enabled: "${EDGES_ENABLED:true}"
+  enabled: "false" # must be disabled on edge
   rpc:
     # RPC port bind
     port: "${EDGES_RPC_PORT:7070}"
@@ -1602,6 +1663,16 @@ queue:
         - key: max.poll.records
           # Amount of records to be returned in a single poll. For Housekeeper reprocessing topic, we should consume messages (tasks) one by one
           value: "${TB_QUEUE_KAFKA_HOUSEKEEPER_REPROCESSING_MAX_POLL_RECORDS:1}"
+      tb_cloud_event:
+        # Consumer properties for Kafka tb_cloud_event topic
+        - key: max.poll.records
+          # Amount of records to be returned in a single poll for cloud event topic
+          value: "${TB_QUEUE_KAFKA_CLOUD_EVENT_MAX_POLL_RECORDS:50}"
+      tb_cloud_event_ts:
+        # Consumer properties for Kafka tb_cloud_event_ts topic
+        - key: max.poll.records
+          # Amount of records to be returned in a single poll for cloud event timeseries topic
+          value: "${TB_QUEUE_KAFKA_CLOUD_EVENT_TS_MAX_POLL_RECORDS:50}"
       edqs.events:
         # Key-value properties for Kafka consumer for edqs.events topic
         - key: max.poll.records
@@ -1641,6 +1712,10 @@ queue:
       edge: "${TB_QUEUE_KAFKA_EDGE_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
       # Kafka properties for Edge event topic
       edge-event: "${TB_QUEUE_KAFKA_EDGE_EVENT_TOPIC_PROPERTIES:retention.ms:2592000000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      # Kafka properties for CloudEvent topic
+      cloud_event: "${TB_QUEUE_KAFKA_CLOUD_EVENT_TOPIC_PROPERTIES:retention.ms:2678400000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      # Kafka properties for TsCloudEvent topic
+      cloud_event_ts: "${TB_QUEUE_KAFKA_CLOUD_EVENT_TS_TOPIC_PROPERTIES:retention.ms:2678400000;segment.bytes:52428800;retention.bytes:10485760000;partitions:1;min.insync.replicas:1}"
       # Kafka properties for Calculated Field topics
       calculated-field: "${TB_QUEUE_KAFKA_CF_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
       # Kafka properties for Calculated Field State topics
@@ -1823,7 +1898,7 @@ queue:
     # Thread pool size for processing of the incoming messages
     pool_size: "${TB_QUEUE_CF_POOL_SIZE:8}"
     # RocksDB path for storing CF states
-    rocks_db_path: "${TB_QUEUE_CF_ROCKS_DB_PATH:${user.home}/.rocksdb/cf_states}"
+    rocks_db_path: "${TB_QUEUE_CF_ROCKS_DB_PATH:${user.home}/.rocksdb/edge_cf_states}"
   transport:
     # For high-priority notifications that require minimum latency and processing time
     notifications_topic: "${TB_QUEUE_TRANSPORT_NOTIFICATIONS_TOPIC:tb_transport.notifications}"
@@ -1851,6 +1926,16 @@ queue:
       enabled: "${TB_QUEUE_EDGE_STATS_ENABLED:true}"
       # Statistics printing interval for Edge services
       print-interval-ms: "${TB_QUEUE_EDGE_STATS_PRINT_INTERVAL_MS:60000}"
+  cloud-event:
+    # Default topic name for Kafka, RabbitMQ, etc.
+    topic: "${TB_QUEUE_CLOUD_EVENT_TOPIC:tb_cloud_event}"
+    # Poll interval for topics related to Cloud Event services
+    poll-interval: "${TB_QUEUE_CLOUD_EVENT_POLL_INTERVAL_MS:25}"
+  cloud-event-ts:
+    # Default topic name for Kafka, RabbitMQ, etc.
+    topic: "${TB_QUEUE_CLOUD_EVENT_TS_TOPIC:tb_cloud_event_ts}"
+    # Poll interval for topics related to Cloud Event services
+    poll-interval: "${TB_QUEUE_CLOUD_EVENT_TS_POLL_INTERVAL_MS:25}"
 
 # Event configuration parameters
 event:

@@ -38,6 +38,8 @@ import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
 import { VcModule } from '@home/pages/vc/vc.module';
 import { AssetProfileModule } from '@home/pages/asset-profile/asset-profile.module';
 import { ProfilesModule } from '@home/pages/profiles/profiles.module';
+import { CloudEventModule } from '@home/pages/cloud-event/cloud-event.module';
+import { EdgeStatusModule } from '@home/pages/edge-status/edge-status.module';
 import { AlarmModule } from '@home/pages/alarm/alarm.module';
 import { EntitiesModule } from '@home/pages/entities/entities.module';
 import { FeaturesModule } from '@home/pages/features/features.module';
@@ -78,7 +80,9 @@ import { MobileModule } from '@home/pages/mobile/mobile.module';
     UserModule,
     VcModule,
     AccountModule,
-    ScadaSymbolModule
+    ScadaSymbolModule,
+    CloudEventModule,
+    EdgeStatusModule
   ]
 })
 export class HomePagesModule { }

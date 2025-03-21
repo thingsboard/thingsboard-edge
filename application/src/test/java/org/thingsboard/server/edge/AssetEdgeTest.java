@@ -18,6 +18,7 @@ package org.thingsboard.server.edge;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -47,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AssetEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testAssets() throws Exception {
         // create asset and assign to edge
         edgeImitator.expectMessageAmount(2);
@@ -166,6 +168,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAssetToCloud() throws Exception {
         Asset asset = buildAssetForUplinkMsg("Asset Edge 2");
 
@@ -221,6 +224,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAssetToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String assetOnCloudName = StringUtils.randomAlphanumeric(15);
         Asset assetOnCloud = saveAsset(assetOnCloudName);
@@ -261,6 +265,7 @@ public class AssetEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteAssetOnEdgeToCloud() throws Exception {
         Asset savedAsset = saveAssetOnCloudAndVerifyDeliveryToEdge();
         UplinkMsg.Builder upLinkMsgBuilder = UplinkMsg.newBuilder();

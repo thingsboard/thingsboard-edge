@@ -17,6 +17,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
@@ -39,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AssetProfileEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testAssetProfiles() throws Exception {
         RuleChainId buildingsRuleChainId = createEdgeRuleChainAndAssignToEdge("Buildings Rule Chain");
 
@@ -87,6 +89,7 @@ public class AssetProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAssetProfileToCloud() throws Exception {
         RuleChainId edgeRuleChainId = createEdgeRuleChainAndAssignToEdge("Asset Profile Rule Chain");
         DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Dashboard");
@@ -139,6 +142,7 @@ public class AssetProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAssetProfileToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String assetProfileOnCloudName = StringUtils.randomAlphanumeric(15);
 

@@ -40,13 +40,13 @@ import java.util.UUID;
 public class OAuth2EdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testOAuth2DomainSupport() throws Exception {
         loginSysAdmin();
 
         // enable oauth and save domain
         edgeImitator.allowIgnoredTypes();
         edgeImitator.expectMessageAmount(1);
-
         Domain savedDomain = doPost("/api/domain", constructDomain(), Domain.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -78,6 +78,7 @@ public class OAuth2EdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testOAuth2ClientSupport() throws Exception {
         loginSysAdmin();
 

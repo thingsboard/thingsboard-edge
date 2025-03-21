@@ -16,17 +16,31 @@
 package org.thingsboard.rule.engine.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.CloudUtils;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
+
+import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.POST_ATTRIBUTES_REQUEST;
+import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_REQUEST;
+import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_DELETED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_UPDATED;
 
 @Slf4j
 @RuleNode(
@@ -47,31 +61,34 @@ import java.util.UUID;
                 "Message will be routed via <b>Failure</b> route if node was not able to save cloud event to database or unsupported originator type/message type arrived. " +
                 "In case successful storage cloud event to database message will be routed via <b>Success</b> route.",
         configDirective = "tbActionNodePushToCloudConfig",
-        icon = "cloud_upload",
-        ruleChainTypes = RuleChainType.EDGE
+        icon = "cloud_upload"
 )
-public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloudNodeConfiguration, Object, Object> {
-
-    // Implementation of this node is done on the Edge
+public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloudNodeConfiguration, CloudEvent, CloudEventType> {
 
     @Override
-    Object buildEvent(TenantId tenantId, EdgeEventActionType eventAction, UUID entityId, Object eventType, JsonNode entityBody) {
-        return null;
+    CloudEvent buildEvent(TenantId tenantId, EdgeEventActionType eventAction, UUID entityId, CloudEventType eventType, JsonNode entityBody) {
+        CloudEvent cloudEvent = new CloudEvent();
+        cloudEvent.setTenantId(tenantId);
+        cloudEvent.setAction(eventAction);
+        cloudEvent.setEntityId(entityId);
+        cloudEvent.setType(eventType);
+        cloudEvent.setEntityBody(entityBody);
+        return cloudEvent;
     }
 
     @Override
-    Object getEventTypeByEntityType(EntityType entityType) {
-        return null;
+    CloudEventType getEventTypeByEntityType(EntityType entityType) {
+        return CloudUtils.getCloudEventTypeByEntityType(entityType);
     }
 
     @Override
-    Object getAlarmEventType() {
-        return null;
+    CloudEventType getAlarmEventType() {
+        return CloudEventType.ALARM;
     }
 
     @Override
     String getIgnoredMessageSource() {
-        return null;
+        return DataConstants.CLOUD_MSG_SOURCE;
     }
 
     @Override
@@ -81,6 +98,30 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
 
     @Override
     void processMsg(TbContext ctx, TbMsg msg) {
+        try {
+            CloudEvent cloudEvent = buildEvent(msg, ctx);
+            ListenableFuture<Void> saveFuture = isTimeseriesCloudEvent(msg)
+                    ? ctx.getCloudEventService().saveTsKvAsync(cloudEvent)
+                    : ctx.getCloudEventService().saveAsync(cloudEvent);
+            Futures.addCallback(saveFuture, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable Void unused) {
+                    ctx.tellSuccess(msg);
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    ctx.tellFailure(msg, throwable);
+                }
+            }, ctx.getDbCallbackExecutor());
+        } catch (Exception e) {
+            log.error("Failed to build cloud event", e);
+            ctx.tellFailure(msg, e);
+        }
+    }
+
+    private boolean isTimeseriesCloudEvent(TbMsg msg) {
+        return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, TIMESERIES_UPDATED, TIMESERIES_DELETED, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED, ATTRIBUTES_DELETED);
     }
 
 }

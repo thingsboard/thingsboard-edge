@@ -3732,6 +3732,19 @@ public class RestClient implements Closeable {
         ).getBody();
     }
 
+    public Optional<TbResource> getResourceById(TbResourceId tbResourceId) {
+        try {
+            ResponseEntity<TbResource> tbResourceOpt = restTemplate.getForEntity(baseURL + "/api/resource/{resourceId}", TbResource.class, tbResourceId.getId());
+            return Optional.ofNullable(tbResourceOpt.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
     public TbResource saveResource(TbResource resource) {
         return restTemplate.postForEntity(
                 baseURL + "/api/resource",
@@ -3754,7 +3767,7 @@ public class RestClient implements Closeable {
     }
 
     public void deleteResource(TbResourceId resourceId) {
-        restTemplate.delete("/api/resource/{resourceId}", resourceId.getId().toString());
+        restTemplate.delete(baseURL + "/api/resource/{resourceId}", resourceId.getId().toString());
     }
 
     public TbResourceInfo getImageInfo(String type, String key) {
@@ -3905,7 +3918,7 @@ public class RestClient implements Closeable {
         return restTemplate.postForEntity(baseURL + "/api/otaPackage?isUrl={isUrl}", otaPackageInfo, OtaPackageInfo.class, params).getBody();
     }
 
-    public OtaPackageInfo saveOtaPackageData(OtaPackageId otaPackageId, String checkSum, ChecksumAlgorithm checksumAlgorithm, String fileName, byte[] fileBytes) throws Exception {
+    public OtaPackageInfo saveOtaPackageData(OtaPackageId otaPackageId, String checkSum, ChecksumAlgorithm checksumAlgorithm, String fileName, byte[] fileBytes) {
         HttpEntity<MultiValueMap<String, Object>> requestEntity = createMultipartRequest(fileName, fileBytes, null, Collections.emptyMap());
 
         Map<String, String> params = new HashMap<>();

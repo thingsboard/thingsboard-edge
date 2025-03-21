@@ -194,14 +194,27 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Override
     public Edge saveEdge(Edge edge) {
+        return saveEdge(edge, true);
+    }
+
+    @Override
+    public Edge saveEdge(Edge edge, boolean doValidate) {
         log.trace("Executing saveEdge [{}]", edge);
-        Edge oldEdge = edgeValidator.validate(edge, Edge::getTenantId);
+        Edge oldEdge = null;
+        if (doValidate) {
+            oldEdge = edgeValidator.validate(edge, Edge::getTenantId);
+        } else if (edge.getId() != null) {
+            oldEdge = findEdgeById(edge.getTenantId(), edge.getId());
+        }
         EdgeCacheEvictEvent evictEvent = new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), oldEdge != null ? oldEdge.getName() : null);
         try {
             Edge savedEdge = edgeDao.save(edge.getTenantId(), edge);
             publishEvictEvent(evictEvent);
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
-                    .entityId(savedEdge.getId()).entity(savedEdge).created(edge.getId() == null).build());
+            // edge-only: event should be published on the Cloud
+            if (edgesEnabled) {
+                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
+                        .entityId(savedEdge.getId()).entity(savedEdge).created(edge.getId() == null).build());
+            }
             if (edge.getId() == null) {
                 countService.publishCountEntityEvictEvent(savedEdge.getTenantId(), EntityType.EDGE);
             }
@@ -259,8 +272,11 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         edgeDao.removeById(tenantId, edgeId.getId());
 
         publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
+        // edge-only: event should be published on the Cloud
+        if (edgesEnabled) {
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
+        }
         countService.publishCountEntityEvictEvent(tenantId, EntityType.EDGE);
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
     }
 
     @Override

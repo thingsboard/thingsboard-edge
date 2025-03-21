@@ -23,8 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
+import org.thingsboard.server.common.data.CloudUtils;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -51,6 +54,8 @@ import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.entity.EntityDaoRegistry;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -75,6 +80,8 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
 
     protected static final Lock deviceCreationLock = new ReentrantLock();
     protected static final Lock assetCreationLock = new ReentrantLock();
+    protected static final Lock widgetCreationLock = new ReentrantLock();
+    protected static final Lock customerCreationLock = new ReentrantLock();
 
     @Lazy
     @Autowired
@@ -85,6 +92,12 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
 
     @Autowired
     protected EdgeSynchronizationManager edgeSynchronizationManager;
+
+    @Autowired
+    protected CloudSynchronizationManager cloudSynchronizationManager;
+
+    @Autowired
+    protected CloudEventService cloudEventService;
 
     @Autowired
     protected DbCallbackExecutorService dbCallbackExecutorService;
@@ -325,6 +338,17 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
         return entityDaoRegistry.getDao(entityId.getEntityType()).existsById(tenantId, entityId.getId());
     }
 
+    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, EntityId entityId) {
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
+        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+        log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
+        futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null));
+        futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                EdgeEventActionType.RELATION_REQUEST, entityId, null));
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
     protected void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(edgeId);
@@ -365,6 +389,14 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
                 log.warn("[{}] Failed to send ENTITY_CREATED EVENT to rule engine [{}]", tenantId, msgData, t);
             }
         });
+    }
+
+    protected boolean isCustomerNotExists(TenantId tenantId, CustomerId customerId) {
+        if (customerId == null || EntityId.NULL_UUID.equals(customerId.getId())) {
+            return false;
+        }
+        Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
+        return customerById == null;
     }
 
 }

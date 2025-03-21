@@ -127,6 +127,13 @@ export class OtaUpdateTableConfigResolve  {
 
   resolve(): EntityTableConfig<OtaPackage, PageLink, OtaPackageInfo> {
     this.config.tableTitle = this.translate.instant('ota-update.packages-repository');
+
+    // edge-only: allow to read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
+
     return this.config;
   }
 

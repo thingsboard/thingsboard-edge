@@ -102,7 +102,7 @@ public class ThingsboardInstallService {
                     databaseSchemaVersionService.validateSchemaSettings();
                     String fromVersion = databaseSchemaVersionService.getDbSchemaVersion();
                     String toVersion = databaseSchemaVersionService.getPackageSchemaVersion();
-                    log.info("Upgrading ThingsBoard from version {} to {} ...", fromVersion, toVersion);
+                    log.info("Upgrading ThingsBoard Edge from version {} to {} ...", fromVersion, toVersion);
                     cacheCleanupService.clearCache();
                     // Apply the schema_update.sql script. The script may include DDL statements to change structure
                     // of *existing* tables and DML statements to manipulate the DB records.
@@ -120,17 +120,18 @@ public class ThingsboardInstallService {
                     // Runs upgrade scripts that are not possible in plain SQL.
                     dataUpdateService.updateData();
                     log.info("Updating system data...");
-                    dataUpdateService.upgradeRuleNodes();
-                    systemDataLoaderService.loadSystemWidgets();
-                    installScripts.loadSystemLwm2mResources();
+                    // dataUpdateService.upgradeRuleNodes();
+                    // installScripts.loadSystemResources();
+                    // systemDataLoaderService.loadSystemWidgets();
                     installScripts.loadSystemImagesAndResources();
                     databaseSchemaVersionService.updateSchemaVersion();
                 }
+
                 log.info("Upgrade finished successfully!");
 
             } else {
 
-                log.info("Starting ThingsBoard Installation...");
+                log.info("Starting ThingsBoard Edge Installation...");
 
                 log.info("Installing DataBase schema for entities...");
 
@@ -156,29 +157,29 @@ public class ThingsboardInstallService {
 
                 componentDiscoveryService.discoverComponents();
 
-                systemDataLoaderService.createSysAdmin();
+                // systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createDefaultTenantProfiles();
-                systemDataLoaderService.createAdminSettings();
+                // systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.createRandomJwtSettings();
                 systemDataLoaderService.loadSystemWidgets();
-                systemDataLoaderService.createOAuth2Templates();
-                systemDataLoaderService.createQueues();
-                systemDataLoaderService.createDefaultNotificationConfigs();
+                // systemDataLoaderService.createOAuth2Templates();
+                // systemDataLoaderService.createQueues();
+                // systemDataLoaderService.createDefaultNotificationConfigs();
 
-//                systemDataLoaderService.loadSystemPlugins();
-//                systemDataLoaderService.loadSystemRules();
-                installScripts.loadSystemLwm2mResources();
+                // systemDataLoaderService.loadSystemPlugins();
+                // systemDataLoaderService.loadSystemRules();
+                // installScripts.loadSystemLwm2mResources();
                 installScripts.loadSystemImagesAndResources();
 
                 if (loadDemo) {
-                    log.info("Loading demo data...");
-                    systemDataLoaderService.loadDemoData();
+                    // log.info("Loading demo data...");
+                    // systemDataLoaderService.loadDemoData();
                 }
                 log.info("Installation finished successfully!");
             }
         } catch (Exception e) {
-            log.error("Unexpected error during ThingsBoard installation!", e);
-            throw new ThingsboardInstallException("Unexpected error during ThingsBoard installation!", e);
+            log.error("Unexpected error during ThingsBoard Edge installation!", e);
+            throw new ThingsboardInstallException("Unexpected error during ThingsBoard Edge installation!", e);
         } finally {
             SpringApplication.exit(context);
         }

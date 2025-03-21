@@ -26,7 +26,6 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -150,6 +149,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                 var customerService = ctx.getCustomerService();
                 var customerByTitleOptFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, targetEntityName);
                 if (createEntityIfNotExists) {
+                    /* edge-only: customers are not created on the edge at the moment
                     return Futures.transform(customerByTitleOptFuture, customerOpt -> {
                         if (customerOpt.isPresent()) {
                             return customerOpt.get().getId();
@@ -171,6 +171,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                             throw new RuntimeException("Failed to create customer with title '" + targetEntityName + "' due to: ", e);
                         }
                     }, MoreExecutors.directExecutor());
+                     */
                 }
                 return Futures.transform(customerByTitleOptFuture, customerOpt -> {
                     if (customerOpt.isEmpty()) {

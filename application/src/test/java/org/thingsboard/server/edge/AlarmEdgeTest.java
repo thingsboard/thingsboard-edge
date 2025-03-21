@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -51,6 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AlarmEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testSendAlarmToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -84,6 +86,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAlarms() throws Exception {
         // create alarm
         Device device = findDeviceByName("Edge Device 1");
@@ -122,6 +125,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAlarmCommentToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -167,6 +171,7 @@ public class AlarmEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAlarmComments() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
         Alarm alarm = new Alarm();

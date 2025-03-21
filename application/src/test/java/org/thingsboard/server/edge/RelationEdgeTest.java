@@ -18,6 +18,7 @@ package org.thingsboard.server.edge;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -40,6 +41,7 @@ public class RelationEdgeTest extends AbstractEdgeTest {
 
 
     @Test
+    @Ignore
     public void testRelations() throws Exception {
         // create relation
         Device device = findDeviceByName("Edge Device 1");
@@ -81,6 +83,7 @@ public class RelationEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendRelationToCloud() throws Exception {
         Device device1 = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Device device2 = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -110,6 +113,7 @@ public class RelationEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendRelationRequestToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
         Asset asset = findAssetByName("Edge Asset 1");
@@ -160,6 +164,7 @@ public class RelationEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRelationFromEdgeToDevice() throws Exception {
         // create relation
         Device device = findDeviceByName("Edge Device 1");

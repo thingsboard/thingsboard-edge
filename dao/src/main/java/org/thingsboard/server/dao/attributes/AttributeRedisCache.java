@@ -51,4 +51,15 @@ public class AttributeRedisCache extends VersionedRedisTbCache<AttributeCacheKey
         });
     }
 
+    @Override
+    public Long getVersion(AttributeKvEntry value) {
+        if (value == null) {
+            return 0L;
+        } else if (value.getVersion() != null) {
+            return value.getVersion();
+        } else {
+            return null;
+        }
+    }
+
 }

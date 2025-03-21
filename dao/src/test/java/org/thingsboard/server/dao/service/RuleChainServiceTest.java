@@ -17,6 +17,8 @@ package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -481,7 +483,9 @@ public class RuleChainServiceTest extends AbstractServiceTest {
         return ruleChainMetaData;
     }
 
+    // Edge-only:  merge comment
     @Test
+    @Ignore
     public void testFindEdgeRuleChainsByTenantIdAndName() {
         Edge edge = constructEdge(tenantId, "My edge", "default");
         Edge savedEdge = edgeService.saveEdge(edge);

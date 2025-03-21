@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Sets;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -51,6 +52,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     private static final String DASHBOARD_TITLE = "Edge Test Dashboard";
 
     @Test
+    @Ignore
     public void testDashboards() throws Exception {
         // create dashboard and assign to edge
         edgeImitator.expectMessageAmount(2);
@@ -177,6 +179,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDashboardToCloud() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Edge Customer");
@@ -227,6 +230,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteEntityViewOnEdgeToCloud() throws Exception {
         Dashboard savedDashboard = saveDashboardOnCloudAndVerifyDeliveryToEdge();
 

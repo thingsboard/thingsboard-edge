@@ -52,12 +52,12 @@
           [class.!hidden]="isEdit">
     {{ 'device.connectivity.check-connectivity' | translate }}
   </button>
-  <button mat-raised-button color="primary"
+  <!-- <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'unassignFromEdge')"
           [class.!hidden]="isEdit || deviceScope !== 'edge'">
     {{ 'edge.unassign-from-edge' | translate }}
-  </button>
+  </button> -->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"

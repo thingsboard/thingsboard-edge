@@ -77,6 +77,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     public static final String INCORRECT_ASSET_PROFILE_ID = "Incorrect assetProfileId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_ASSET_ID = "Incorrect assetId ";
+    public static final String TB_SERVICE_QUEUE = "TbServiceQueue";
 
     @Autowired
     private AssetDao assetDao;
@@ -161,7 +162,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             AssetProfile assetProfile;
             if (asset.getAssetProfileId() == null) {
                 if (!StringUtils.isEmpty(asset.getType())) {
-                    assetProfile = this.assetProfileService.findOrCreateAssetProfile(asset.getTenantId(), asset.getType());
+                     assetProfile = this.assetProfileService.findOrCreateAssetProfile(asset.getTenantId(), asset.getType());
                 } else {
                     assetProfile = this.assetProfileService.findDefaultAssetProfile(asset.getTenantId());
                 }

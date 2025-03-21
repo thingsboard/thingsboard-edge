@@ -59,8 +59,15 @@ public class BaseQueueService extends AbstractEntityService implements QueueServ
 
     @Override
     public Queue saveQueue(Queue queue) {
+        return saveQueue(queue, true);
+    }
+
+    @Override
+    public Queue saveQueue(Queue queue, boolean doValidate) {
         log.trace("Executing createOrUpdateQueue [{}]", queue);
-        queueValidator.validate(queue, Queue::getTenantId);
+        if (doValidate) {
+            queueValidator.validate(queue, Queue::getTenantId);
+        }
         Queue savedQueue = queueDao.save(queue.getTenantId(), queue);
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedQueue.getTenantId())
                 .entityId(savedQueue.getId()).entity(savedQueue).created(queue.getId() == null).build());

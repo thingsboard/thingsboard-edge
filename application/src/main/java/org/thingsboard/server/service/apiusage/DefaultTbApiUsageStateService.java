@@ -248,6 +248,15 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
 
     @Override
     public ApiUsageState getApiUsageState(TenantId tenantId) {
+        ApiUsageState apiUsageStateInt = getApiUsageStateInt(tenantId);
+
+        // edge-only: set version for api usage state to avoid null pointer exception
+        apiUsageStateInt.setVersion(1L);
+
+        return apiUsageStateInt;
+    }
+
+    private ApiUsageState getApiUsageStateInt(TenantId tenantId) {
         TenantApiUsageState tenantState = (TenantApiUsageState) myUsageStates.get(tenantId);
         if (tenantState != null) {
             return tenantState.getApiUsageState();
@@ -281,6 +290,9 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     public void onTenantProfileUpdate(TenantProfileId tenantProfileId) {
         log.info("[{}] On Tenant Profile Update", tenantProfileId);
         TenantProfile tenantProfile = tenantProfileCache.get(tenantProfileId);
+        if (tenantProfile == null) {
+            return;
+        }
         updateLock.lock();
         try {
             myUsageStates.values().stream()

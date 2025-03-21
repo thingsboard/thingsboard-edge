@@ -144,6 +144,9 @@ public class DeviceControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
     }
 
     @After
@@ -1381,6 +1384,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignDeviceToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -1453,6 +1457,10 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testBulkImportDeviceWithoutCredentials() throws Exception {
+        // edge only - device profile are not created - uploaded from cloud
+        DeviceProfile deviceProfile = this.createDeviceProfile("some_type");
+        doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+
         String deviceName = "some_device";
         String deviceType = "some_type";
         BulkImportRequest request = new BulkImportRequest();
@@ -1587,6 +1595,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("HasVersion check is ignored for Edge")
     public void testSaveDeviceWithOutdatedVersion() throws Exception {
         Device device = createDevice("Device v1.0");
         assertThat(device.getVersion()).isOne();

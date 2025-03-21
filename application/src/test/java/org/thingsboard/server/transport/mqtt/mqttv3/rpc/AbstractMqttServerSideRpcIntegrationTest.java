@@ -276,6 +276,10 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractM
 
         String setGpioRequest = "{\"method\": \"toggle_gpio\", \"params\": {\"pin\":1}}";
         String deviceId = savedDevice.getId().getId().toString();
+
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
+
         String result = doPostAsync("/api/rpc/oneway/" + deviceId, setGpioRequest, String.class, status().isOk());
         assertTrue(StringUtils.isEmpty(result));
         callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);

@@ -26,6 +26,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -39,6 +40,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cf.CalculatedField;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -825,4 +827,36 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
+    @Override
+    public void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody,
+                                           CloudEventType cloudEventType, EdgeEventActionType cloudEventAction) {
+        if (cloudEventType == null) {
+            if (entityId != null) {
+                cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+            } else {
+                log.trace("[{}] cloud id and type are null. Ignoring this notification", tenantId);
+                return;
+            }
+            if (cloudEventType == null) {
+                log.trace("[{}] cloud event type is null. Ignoring this notification [{}]", tenantId, entityId);
+                return;
+            }
+        }
+        TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
+        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
+        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
+        builder.setCloudEventType(cloudEventType.name());
+        builder.setCloudEventAction(cloudEventAction.name());
+        if (entityId != null) {
+            builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
+            builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
+            builder.setEntityType(entityId.getEntityType().name());
+        }
+        if (entityBody != null) {
+            builder.setEntityBody(entityBody);
+        }
+        TransportProtos.CloudNotificationMsgProto msg = builder.build();
+        pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
+                TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
+    }
 }

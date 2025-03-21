@@ -19,7 +19,8 @@ import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.runner.RunWith;
 import org.thingsboard.server.dao.AbstractNoSqlContainer;
 
-@RunWith(ClasspathSuite.class)
+// edge-only: NoSQL is not supported on edge
+// @RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({
         "org.thingsboard.server.transport.*.telemetry.timeseries.nosql.*Test",
 })

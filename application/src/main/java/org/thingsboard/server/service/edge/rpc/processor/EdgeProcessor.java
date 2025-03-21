@@ -16,10 +16,13 @@
 package org.thingsboard.server.service.edge.rpc.processor;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 public interface EdgeProcessor {
@@ -33,5 +36,15 @@ public interface EdgeProcessor {
     default EdgeEventType getEdgeEventType() {
         return null;
     }
+
+    // Edge-only:
+    default UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
+        return null;
+    }
+
+    default CloudEventType getCloudEventType() {
+        return null;
+    }
+    // ... Edge
 
 }

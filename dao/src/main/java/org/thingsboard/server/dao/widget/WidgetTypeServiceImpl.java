@@ -102,9 +102,11 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     }
 
     @Override
-    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails) {
+    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails, boolean doValidate) {
         log.trace("Executing saveWidgetType [{}]", widgetTypeDetails);
-        widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
+        if (doValidate) {
+            widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
+        }
         try {
             TenantId tenantId = widgetTypeDetails.getTenantId();
             if (CollectionUtils.isNotEmpty(widgetTypeDetails.getResources())) {
@@ -123,6 +125,11 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
             AbstractCachedEntityService.checkConstraintViolation(t, "widget_type_external_id_unq_key", "Widget type with such external id already exists!");
             throw t;
         }
+    }
+
+    @Override
+    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails) {
+        return saveWidgetType(widgetTypeDetails, true);
     }
 
     @Override

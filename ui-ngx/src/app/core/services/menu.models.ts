@@ -104,7 +104,10 @@ export enum MenuId {
   features = 'features',
   otaUpdates = 'otaUpdates',
   version_control = 'version_control',
-  api_usage = 'api_usage'
+  api_usage = 'api_usage',
+  edge = 'edge',
+  edge_status = 'edge_status',
+  cloud_events = 'cloud_events',
 }
 
 declare type MenuFilter = (authState: AuthState) => boolean;
@@ -684,6 +687,36 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       path: '/usage',
       icon: 'insert_chart'
     }
+  ],
+  [
+    MenuId.edge,
+    {
+      id: MenuId.edge,
+      name: 'edge.edge',
+      type: 'toggle',
+      path: '/edge',
+      icon: 'router'
+    }
+  ],
+  [
+    MenuId.edge_status,
+    {
+      id: MenuId.edge_status,
+      name: 'edge.status',
+      type: 'link',
+      path: '/edge/status',
+      icon: 'info'
+    }
+  ],
+  [
+    MenuId.cloud_events,
+    {
+      id: MenuId.cloud_events,
+      name: 'edge.cloud-events',
+      type: 'link',
+      path: '/edge/cloudEvents',
+      icon: 'date_range'
+    }
   ]
 ]);
 
@@ -696,6 +729,28 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.rulechain_templates, (authState) => authState.edgesSupportEnabled
+  ],
+  // merge comment: sections below should not be visible on edge
+  [
+    MenuId.version_control, () => false
+  ],
+  [
+    MenuId.repository_settings, () => false
+  ],
+  [
+    MenuId.auto_commit_settings, () => false
+  ],
+  [
+    MenuId.edge_instances, () => false
+  ],
+  [
+    MenuId.mobile_center, () => false
+  ],
+  [
+    MenuId.mobile_apps, () => false
+  ],
+  [
+    MenuId.mobile_bundles, () => false
   ]
 ]);
 
@@ -769,6 +824,13 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
     Authority.TENANT_ADMIN,
     [
       {id: MenuId.home},
+      {
+        id: MenuId.edge,
+        pages: [
+          {id: MenuId.edge_status},
+          {id: MenuId.cloud_events}
+        ]
+      },
       {id: MenuId.alarms},
       {id: MenuId.dashboards},
       {

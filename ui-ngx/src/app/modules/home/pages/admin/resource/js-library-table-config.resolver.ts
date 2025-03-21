@@ -139,6 +139,11 @@ export class JsLibraryTableConfigResolver  {
     const authUser = getCurrentAuthUser(this.store);
     this.config.entitySelectionEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.detailsReadonly = (resource) => this.detailsReadonly(resource, authUser.authority);
+
+    // edge-only: resources can't be deleted from edge
+    this.config.deleteEnabled = () => false;
+    this.config.entitiesDeleteEnabled = false;
+
     return this.config;
   }
 

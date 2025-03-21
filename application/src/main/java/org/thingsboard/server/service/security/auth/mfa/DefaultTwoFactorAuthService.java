@@ -62,9 +62,13 @@ public class DefaultTwoFactorAuthService implements TwoFactorAuthService {
 
     @Override
     public boolean isTwoFaEnabled(TenantId tenantId, UserId userId) {
+        // edge-only: two factor disabled on edge
+        return false;
+        /*
         return configManager.getAccountTwoFaSettings(tenantId, userId)
                 .map(settings -> !settings.getConfigs().isEmpty())
                 .orElse(false);
+        */
     }
 
     @Override

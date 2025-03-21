@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
@@ -101,6 +102,10 @@ public class DashboardControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+
+
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
     }
 
     @After
@@ -515,6 +520,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignDashboardToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

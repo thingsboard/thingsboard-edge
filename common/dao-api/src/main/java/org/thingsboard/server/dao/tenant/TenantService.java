@@ -37,7 +37,7 @@ public interface TenantService extends EntityDaoService {
 
     Tenant saveTenant(Tenant tenant);
 
-    Tenant saveTenant(Tenant tenant, Consumer<TenantId> defaultEntitiesCreator);
+    Tenant saveTenant(Tenant tenant, Consumer<TenantId> defaultEntitiesCreator, boolean doValidate);
 
     boolean tenantExists(TenantId tenantId);
 

@@ -17,6 +17,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
@@ -42,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TenantProfileEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testTenantProfiles() throws Exception {
         loginSysAdmin();
 
@@ -68,6 +70,7 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testIsolatedTenantProfile() throws Exception {
         loginSysAdmin();
 

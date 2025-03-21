@@ -128,6 +128,7 @@
               <mat-icon>close</mat-icon>{{ 'action.cancel' | translate }}</button>
             <mat-divider class="tb-toolbar-divider" vertical></mat-divider>
           </ng-container>
+          <!-- Edge-only: not visible on edge
           <ng-container *ngIf="currentDashboardId && isEdit && isTenantAdmin()">
             <button class="lt-lg:!hidden gt-lg:!hidden" mat-icon-button
                     #versionControlIconButton
@@ -145,6 +146,7 @@
               {{'version-control.versions' | translate}}
             </button>
           </ng-container>
+          -->
           <ng-container *ngIf="isEdit">
             <button class="gt-lg:!hidden" mat-icon-button
                     matTooltip="{{ 'filter.filters' | translate }}"

@@ -105,6 +105,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testSaveRuleChain() throws Exception {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName("RuleChain");
@@ -253,6 +254,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindEdgeRuleChainsByTenantIdAndName() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -359,6 +361,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("HasVersion check is ignored for Edge")
     public void testSaveRuleChainWithOutdatedVersion() throws Exception {
         RuleChain ruleChain = createRuleChain("My rule chain");
 

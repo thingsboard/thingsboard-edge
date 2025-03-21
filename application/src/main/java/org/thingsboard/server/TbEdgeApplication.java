@@ -18,38 +18,30 @@ package org.thingsboard.server;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
-import org.thingsboard.server.install.ThingsboardInstallService;
+import org.springframework.core.Ordered;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.thingsboard.server.queue.util.AfterStartUp;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-@Slf4j
 @SpringBootConfiguration
-@ComponentScan({"org.thingsboard.server.install",
-        "org.thingsboard.server.service.component",
-        "org.thingsboard.server.service.install",
-        "org.thingsboard.server.service.security.auth.jwt.settings",
-        "org.thingsboard.server.dao",
-        "org.thingsboard.server.common.stats",
-        "org.thingsboard.server.common.transport.config.ssl",
-        "org.thingsboard.server.cache"
-})
-public class ThingsboardInstallApplication {
+@EnableAsync
+@EnableScheduling
+@ComponentScan({"org.thingsboard.server", "org.thingsboard.script", "org.thingsboard.edge"})
+@Slf4j
+public class TbEdgeApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
-    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "thingsboard";
+    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "tb-edge";
+
+    private static long startTs;
 
     public static void main(String[] args) {
-        try {
-            SpringApplication application = new SpringApplication(ThingsboardInstallApplication.class);
-            application.setAdditionalProfiles("install");
-            ConfigurableApplicationContext context = application.run(updateArguments(args));
-            context.getBean(ThingsboardInstallService.class).performInstall();
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            System.exit(1);
-        }
+        startTs = System.currentTimeMillis();
+        SpringApplication.run(TbEdgeApplication.class, updateArguments(args));
     }
 
     private static String[] updateArguments(String[] args) {
@@ -61,4 +53,11 @@ public class ThingsboardInstallApplication {
         }
         return args;
     }
+
+    @AfterStartUp(order = Ordered.LOWEST_PRECEDENCE)
+    public void afterStartUp() {
+        long startupTimeMs = System.currentTimeMillis() - startTs;
+        log.info("Started ThingsBoard in {} seconds", TimeUnit.MILLISECONDS.toSeconds(startupTimeMs));
+    }
+
 }

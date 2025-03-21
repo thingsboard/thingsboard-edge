@@ -22,6 +22,7 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -86,6 +87,7 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testGetEdgeEvents() throws Exception {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);

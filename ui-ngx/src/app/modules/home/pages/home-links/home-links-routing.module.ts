@@ -22,6 +22,9 @@ import { Authority } from '@shared/models/authority.enum';
 import { mergeMap, Observable, of } from 'rxjs';
 import { HomeDashboard } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
+import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
+import { EdgeService } from '@core/http/edge.service';
+import { EdgeSettings } from '@shared/models/edge.models';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { map } from 'rxjs/operators';
@@ -118,6 +121,15 @@ export const homeDashboardResolver: ResolveFn<HomeDashboard> = (
     })
   );
 
+export const edgeSettingsResolver: ResolveFn<EdgeSettings> = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  edgeService = inject(EdgeService)
+): Observable<EdgeSettings> => edgeService.getEdgeSettings();
+
+export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
+  ((route, translate, component) => route.data.edgeSettings.name);
+
 const routes: Routes = [
   {
     path: 'home',
@@ -126,11 +138,15 @@ const routes: Routes = [
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       title: 'home.home',
       breadcrumb: {
+        //         labelFunction: edgeNameResolver,
+        //         icon: 'home'
+        //       } as BreadCrumbConfig<HomeLinksComponent>
         menuId: MenuId.home
       }
     },
     resolve: {
-      homeDashboard: homeDashboardResolver
+      homeDashboard: homeDashboardResolver,
+      edgeSettings: edgeSettingsResolver
     }
   }
 ];

@@ -119,6 +119,10 @@ export class RuleChainsTableConfigResolver  {
       });
       this.config.entitiesDeleteEnabled = false;
     }
+
+    this.config.deleteEnabled = () => false;
+    this.config.entitiesDeleteEnabled = false;
+
     return this.config;
   }
 

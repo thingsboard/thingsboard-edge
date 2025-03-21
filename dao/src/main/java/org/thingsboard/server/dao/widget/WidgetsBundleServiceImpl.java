@@ -82,9 +82,11 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     }
 
     @Override
-    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle) {
+    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle, boolean doValidate) {
         log.trace("Executing saveWidgetsBundle [{}]", widgetsBundle);
-        widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);
+        if (doValidate) {
+            widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);
+        }
         try {
             imageService.replaceBase64WithImageUrl(widgetsBundle, "bundle");
             WidgetsBundle result = widgetsBundleDao.save(widgetsBundle.getTenantId(), widgetsBundle);
@@ -97,6 +99,11 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
             AbstractCachedEntityService.checkConstraintViolation(e, "widgets_bundle_external_id_unq_key", "Widgets Bundle with such external id already exists!");
             throw e;
         }
+    }
+
+    @Override
+    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle) {
+        return saveWidgetsBundle(widgetsBundle, true);
     }
 
     @Override

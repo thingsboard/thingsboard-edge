@@ -1,6 +1,6 @@
 [Unit]
 Description=${pkg.name}
-After=syslog.target
+After=syslog.target network.target
 
 [Service]
 User=${pkg.user}

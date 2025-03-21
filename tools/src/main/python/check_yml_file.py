@@ -117,7 +117,7 @@ def check_yml(total_list, input_yaml_file):
 
 if __name__ == '__main__':
     sys.setrecursionlimit(10000)
-    files_to_check = ["application/src/main/resources/thingsboard.yml",
+    files_to_check = ["application/src/main/resources/tb-edge.yml",
                       "transport/http/src/main/resources/tb-http-transport.yml",
                       "transport/mqtt/src/main/resources/tb-mqtt-transport.yml",
                       "transport/coap/src/main/resources/tb-coap-transport.yml",

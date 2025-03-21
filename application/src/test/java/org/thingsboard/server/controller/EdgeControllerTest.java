@@ -152,6 +152,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testSaveEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
 
@@ -183,6 +184,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testSaveEdgeWithViolationOfLengthValidation() throws Exception {
         Edge edge = constructEdge(StringUtils.randomAlphabetic(300), "default");
         String msgError = msgErrorFieldLength("name");
@@ -220,6 +222,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindEdgeById() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -229,6 +232,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindEdgeTypesByTenantId() throws Exception {
         int cntEntity = 3;
 
@@ -263,6 +267,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testDeleteEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -282,6 +287,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testSaveEdgeWithEmptyType() throws Exception {
         Edge edge = constructEdge("My edge", null);
 
@@ -297,6 +303,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testSaveEdgeWithEmptyName() throws Exception {
         Edge edge = constructEdge(null, "default");
 
@@ -312,6 +319,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignUnassignEdgeToCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -346,6 +354,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignEdgeToNonExistentCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -365,6 +374,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignEdgeToCustomerFromDifferentTenant() throws Exception {
         loginSysAdmin();
 
@@ -407,6 +417,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindTenantEdges() throws Exception {
         int cntEntity = 178;
         futures = new ArrayList<>(cntEntity);
@@ -436,6 +447,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindTenantEdgesByName() throws Exception {
         String title1 = "Edge title 1";
         int cntEntity = 143;
@@ -524,6 +536,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindTenantEdgesByType() throws Exception {
         String title1 = "Edge title 1";
         String type1 = "typeA";
@@ -614,6 +627,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindCustomerEdges() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -658,6 +672,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindCustomerEdgesByName() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -764,6 +779,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindCustomerEdgesByType() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -865,6 +881,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testSyncEdge() throws Exception {
         loginSysAdmin();
         // get jwt settings from yaml config
@@ -1224,13 +1241,14 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testDeleteEdgeWithDeleteRelationsOk() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelationsOk").getId();
         testEntityDaoWithRelationsOk(tenantId, edgeId, "/api/edge/" + edgeId);
     }
 
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testDeleteEdgeExceptionWithRelationsTransactional() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelations Transactional Exception").getId();
         testEntityDaoWithRelationsTransactionalException(edgeDao, tenantId, edgeId, "/api/edge/" + edgeId);
@@ -1248,6 +1266,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testGetEdgeInstallInstructions() throws Exception {
         Edge edge = constructEdge(tenantId, "Edge for Test Docker Install Instructions", "default", "7390c3a6-69b0-9910-d155-b90aca4b772e", "l7q4zsjplzwhk16geqxy");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -1257,6 +1276,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testGetEdgeUpgradeInstructions() throws Exception {
         // UpdateInfo config is updating from Thingsboard Update server
         HashMap<String, EdgeUpgradeInfo> upgradeInfoHashMap = new HashMap<>();
@@ -1270,10 +1290,11 @@ public class EdgeControllerTest extends AbstractControllerTest {
         doPostAsync("/api/plugins/telemetry/EDGE/" + savedEdge.getId().getId() + "/attributes/SERVER_SCOPE", body, String.class, status().isOk());
         String upgradeInstructions = doGet("/api/edge/instructions/upgrade/" + EdgeVersion.V_3_6_0.name() + "/docker", String.class);
         Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.1EDGE"));
-        Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.2EDGE"));
+        Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.3EDGE"));
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testIsEdgeUpgradeAvailable() throws Exception {
         Edge edge = constructEdge("Edge Upgrade Available", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

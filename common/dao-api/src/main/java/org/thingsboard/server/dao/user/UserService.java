@@ -45,17 +45,21 @@ public interface UserService extends EntityDaoService {
 
     User saveUser(TenantId tenantId, User user);
 
+    User saveUser(TenantId tenantId, User user, boolean doValidate);
+
     UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
 
     UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
 
     UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
-    UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
+	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
-    UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
+	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
 
-    UserCredentials requestPasswordReset(TenantId tenantId, String email);
+	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
+
+	UserCredentials requestPasswordReset(TenantId tenantId, String email);
 
     UserCredentials requestExpiredPasswordReset(TenantId tenantId, UserCredentialsId userCredentialsId);
 

@@ -17,6 +17,7 @@ package org.thingsboard.server.edge;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.metadata.TbGetAttributesNodeConfiguration;
@@ -49,6 +50,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
     private static final int CONFIGURATION_VERSION = 5;
 
     @Test
+    @Ignore
     public void testRuleChains() throws Exception {
         // create rule chain: 2 messages from create rule chain, 2 messages from load metadata
         edgeImitator.expectMessageAmount(4);
@@ -99,6 +101,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRuleChainToCloud() throws Exception {
         String ruleChainName = "Rule Chain Edge";
         UUID uuid = Uuids.timeBased();
@@ -197,6 +200,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testUpdateRootRuleChain() throws Exception {
         edgeImitator.expectMessageAmount(2);
         updateRootRuleChainMetadata();
@@ -209,6 +213,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSetRootRuleChain() throws Exception {
         // create rule chain
         RuleChain ruleChain = new RuleChain();

@@ -20,6 +20,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 
 @Getter
 public enum EdgeEventActionType {
+
     ADDED(ActionType.ADDED),
     UPDATED(ActionType.UPDATED),
     DELETED(ActionType.DELETED),
@@ -44,11 +45,18 @@ public enum EdgeEventActionType {
     ASSIGNED_TO_EDGE(ActionType.ASSIGNED_TO_EDGE),
     UNASSIGNED_FROM_EDGE(ActionType.UNASSIGNED_FROM_EDGE),
     CREDENTIALS_REQUEST(null), // deprecated
-    ENTITY_MERGE_REQUEST(null); // deprecated
+    ATTRIBUTES_REQUEST(null),
+    RULE_CHAIN_METADATA_REQUEST(null), // deprecated
+    RELATION_REQUEST(null),
+    WIDGET_BUNDLE_TYPES_REQUEST(null), // deprecated
+    ENTITY_VIEW_REQUEST(null), // deprecated
+    ENTITY_MERGE_REQUEST(null), // deprecated
+    DEVICE_PROFILE_DEVICES_REQUEST(null); // deprecated
 
     private final ActionType actionType;
 
     EdgeEventActionType(ActionType actionType) {
         this.actionType = actionType;
     }
+
 }

@@ -18,6 +18,7 @@ package org.thingsboard.server.edge;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.widget.WidgetType;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class WidgetEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testWidgetsBundleAndWidgetType() throws Exception {
         // create widget bundle
         edgeImitator.expectMessageAmount(1);

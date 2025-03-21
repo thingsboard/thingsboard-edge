@@ -177,6 +177,16 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   @Input()
   entityName: string;
 
+  private readonlyValue: boolean;
+  get readonly(): boolean {
+    return this.readonlyValue;
+  }
+
+  @Input()
+  set readonly(value: boolean) {
+    this.readonlyValue = coerceBooleanProperty(value);
+  }
+
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -335,7 +345,8 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     if ($event) {
       $event.stopPropagation();
     }
-    if (this.isClientSideTelemetryTypeMap.get(this.attributeScope)) {
+    // Edge-only:  merge comment
+    if (this.isClientSideTelemetryTypeMap.get(this.attributeScope) || this.readonly) {
       return;
     }
     const target = $event.target || $event.srcElement || $event.currentTarget;

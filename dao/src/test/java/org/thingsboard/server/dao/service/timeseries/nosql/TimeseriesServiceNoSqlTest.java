@@ -16,6 +16,7 @@
 package org.thingsboard.server.dao.service.timeseries.nosql;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.kv.Aggregation;
@@ -42,6 +43,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @DaoNoSqlTest
+@Ignore("NoSQL is not supported on Edge")
 public class TimeseriesServiceNoSqlTest extends BaseTimeseriesServiceTest {
 
     @Test

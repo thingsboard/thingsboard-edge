@@ -40,7 +40,7 @@
 
     <modules>
         <!--Modules order is important to speedup parallel build and avoid yarn pgk parallel execution-->
-        <module>tb</module>
+        <!-- <module>tb</module>
         <module>web-ui</module>
         <module>vc-executor</module>
         <module>vc-executor-docker</module>
@@ -48,7 +48,8 @@
         <module>transport</module>
         <module>js-executor</module>
         <module>monitoring</module>
-        <module>edqs</module>
+        <module>edqs</module> -->
+        <module>tb-edge</module>
     </modules>
 
     <profiles>
@@ -91,7 +92,7 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${docker.name}:latest</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64</argument>
+                                        <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>
@@ -112,7 +113,7 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${docker.name}:${project.version}</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64</argument>
+                                        <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>

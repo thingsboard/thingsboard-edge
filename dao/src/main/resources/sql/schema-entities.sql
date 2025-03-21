@@ -770,6 +770,34 @@ CREATE TABLE IF NOT EXISTS rpc (
     status varchar(255) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS cloud_event (
+    seq_id INT GENERATED ALWAYS AS IDENTITY,
+    id uuid NOT NULL,
+    created_time bigint NOT NULL,
+    cloud_event_type varchar(255),
+    entity_id uuid,
+    cloud_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id uuid,
+    ts bigint NOT NULL
+) PARTITION BY RANGE(created_time);
+
+ALTER TABLE IF EXISTS cloud_event ALTER COLUMN seq_id SET CYCLE;
+
+CREATE TABLE IF NOT EXISTS ts_kv_cloud_event (
+    seq_id INT GENERATED ALWAYS AS IDENTITY,
+    id uuid NOT NULL,
+    created_time bigint NOT NULL,
+    cloud_event_type varchar(255),
+    entity_id uuid,
+    cloud_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id uuid,
+    ts bigint NOT NULL
+) PARTITION BY RANGE(created_time);
+
+ALTER TABLE IF EXISTS ts_kv_cloud_event ALTER COLUMN seq_id SET CYCLE;
+
 CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
 $$
 BEGIN
@@ -795,7 +823,6 @@ BEGIN
     deleted := ttl_deleted_count;
 END
 $$;
-
 
 CREATE TABLE IF NOT EXISTS user_auth_settings (
     id uuid NOT NULL CONSTRAINT user_auth_settings_pkey PRIMARY KEY,

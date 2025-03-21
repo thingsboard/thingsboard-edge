@@ -49,6 +49,11 @@ public class DefaultTbQueueService extends AbstractTbEntityService implements Tb
     @Override
     public Queue saveQueue(Queue queue) {
         boolean create = queue.getId() == null;
+        return saveQueue(queue, create);
+    }
+
+    @Override
+    public Queue saveQueue(Queue queue, boolean create) {
         Queue oldQueue;
         if (create) {
             oldQueue = null;

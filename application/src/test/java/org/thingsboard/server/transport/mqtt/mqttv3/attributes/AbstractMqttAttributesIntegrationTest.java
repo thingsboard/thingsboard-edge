@@ -155,6 +155,9 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         client.setCallback(onUpdateCallback);
         subscribeAndWait(client, attrSubTopic, savedDevice.getId(), FeatureType.ATTRIBUTES);
 
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
+
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         assertThat(onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
                 .as("await onUpdateCallback").isTrue();
@@ -220,6 +223,9 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         assertNotNull(savedDevice);
 
         subscribeAndCheckSubscription(client, GATEWAY_ATTRIBUTES_TOPIC, savedDevice.getId(), FeatureType.ATTRIBUTES);
+
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
 
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         assertThat(onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))

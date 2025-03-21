@@ -28,7 +28,7 @@ SET installDir=%BASE%\data
 
 PUSHD "%BASE%\conf"
 
-java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication^
+java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication^
                     -Dinstall.data_dir="%installDir%"^
                     -Dinstall.load_demo=%loadDemo%^
                     -Dspring.jpa.hibernate.ddl-auto=none^
@@ -37,15 +37,15 @@ java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.ThingsboardInstallAppl
                     org.springframework.boot.loader.launch.PropertiesLauncher
 
 if errorlevel 1 (
-   @echo ThingsBoard installation failed!
+   @echo ThingsBoard Edge installation failed!
    POPD
    exit /b %errorlevel%
 )
 POPD
 
-"%BASE%"thingsboard.exe install
+"%BASE%"tb-edge.exe install
 
-@ECHO ThingsBoard installed successfully!
+@ECHO ThingsBoard Edge installed successfully!
 
 GOTO END
 

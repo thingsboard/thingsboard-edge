@@ -55,7 +55,7 @@ public class DefaultTbTenantService extends AbstractTbEntityService implements T
             if (!isTestProfile()) {
                 installScripts.createDefaultTenantDashboards(tenantId, null);
             }
-        });
+        }, true);
         tenantProfileCache.evict(savedTenant.getId());
 
         TenantProfile oldTenantProfile = oldTenant != null ? tenantProfileService.findTenantProfileById(TenantId.SYS_TENANT_ID, oldTenant.getTenantProfileId()) : null;

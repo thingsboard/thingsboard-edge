@@ -120,19 +120,21 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     @Transactional
     public Tenant saveTenant(Tenant tenant) {
-        return saveTenant(tenant, null);
+        return saveTenant(tenant, null, true);
     }
 
     @Override
     @Transactional
-    public Tenant saveTenant(Tenant tenant, Consumer<TenantId> defaultEntitiesCreator) {
+    public Tenant saveTenant(Tenant tenant, Consumer<TenantId> defaultEntitiesCreator, boolean doValidate) {
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
         if (tenant.getTenantProfileId() == null) {
             TenantProfile tenantProfile = this.tenantProfileService.findOrCreateDefaultTenantProfile(TenantId.SYS_TENANT_ID);
             tenant.setTenantProfileId(tenantProfile.getId());
         }
-        tenantValidator.validate(tenant, Tenant::getId);
+        if (doValidate) {
+            tenantValidator.validate(tenant, Tenant::getId);
+        }
         boolean create = tenant.getId() == null;
 
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
@@ -217,10 +219,12 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
     @Override
     public boolean tenantExists(TenantId tenantId) {
-        return existsTenantCache.getAndPutInTransaction(tenantId, () -> tenantDao.existsById(tenantId, tenantId.getId()), false);
+        // edge-only: we cannot properly evict cache, because it's only appear on tenant creation
+        // return existsTenantCache.getAndPutInTransaction(tenantId, () -> tenantDao.existsById(tenantId, tenantId.getId()), false);
+       return tenantDao.existsById(tenantId, tenantId.getId());
     }
 
-    private PaginatedRemover<TenantId, Tenant> tenantsRemover = new PaginatedRemover<>() {
+    private final PaginatedRemover<TenantId, Tenant> tenantsRemover = new PaginatedRemover<>() {
 
         @Override
         protected PageData<Tenant> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {

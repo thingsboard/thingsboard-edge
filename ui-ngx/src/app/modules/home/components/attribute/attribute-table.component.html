@@ -33,8 +33,9 @@
           </mat-form-field>
         </div>
         <span class="flex-1"></span>
+        <!-- Edge-ony: !readonly -->
         <button mat-icon-button
-                *ngIf="attributeScope !== attributeScopeTypes.CLIENT_SCOPE"
+                *ngIf="attributeScope !== attributeScopeTypes.CLIENT_SCOPE && !readonly"
                 [disabled]="isLoading$ | async"
                 (click)="addAttribute($event)"
                 matTooltip="{{ 'action.add' | translate }}"
@@ -85,7 +86,8 @@
                 'attribute.selected-telemetry' : 'attribute.selected-attributes') | translate:{count: dataSource.selection.selected.length} }}
         </span>
         <span class="flex-1"></span>
-        <button [class.!hidden]="attributeScope === attributeScopeTypes.CLIENT_SCOPE"
+        <!-- Edge-only:  merge comment -->
+        <button [class.!hidden]="attributeScope === attributeScopeTypes.CLIENT_SCOPE && !readonly"
                 class="button-widget-action"
                 mat-icon-button [disabled]="isLoading$ | async"
                 matTooltip="{{ 'action.delete' | translate }}"
@@ -93,7 +95,9 @@
                 (click)="deleteTelemetry($event)">
           <mat-icon>delete</mat-icon>
         </button>
+        <!-- Edge-only:  merge comment -->
         <button mat-raised-button color="accent"
+                [class.!hidden]="false"
                 class="button-widget-action"
                 [disabled]="isLoading$ | async"
                 matTooltip="{{ 'attribute.show-on-widget' | translate }}"
@@ -117,7 +121,8 @@
                                     (ngModelChange)="onWidgetsBundleChanged($event)">
           </tb-widgets-bundle-select>
         </div>
-        <button mat-raised-button [class.!hidden]="!widgetsList.length"
+        <!-- Edge-only:  merge comment -->
+        <button mat-raised-button [class.!hidden]="!widgetsList.length ?? false"
                 color="accent"
                 class="button-widget-action"
                 [disabled]="isLoading$ | async"
@@ -197,7 +202,8 @@
                 >
                 </tb-copy-button>
               </div>
-              <span [class.!hidden]="isClientSideTelemetryTypeMap.get(attributeScope)">
+              <!-- Edge-only:  merge comment -->
+              <span [class.!hidden]="isClientSideTelemetryTypeMap.get(attributeScope) && !readonly">
                 <mat-icon>edit</mat-icon>
               </span>
               <button mat-icon-button *ngIf="attributeScope === latestTelemetryTypes.LATEST_TELEMETRY"

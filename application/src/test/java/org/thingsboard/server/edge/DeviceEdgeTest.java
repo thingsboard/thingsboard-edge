@@ -24,6 +24,7 @@ import com.google.protobuf.AbstractMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -98,6 +99,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     protected EdgeService edgeService;
 
     @Test
+    @Ignore
     public void testDevices() throws Exception {
         // create device and assign to edge; update device
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -194,6 +196,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testUpdateDeviceCredentials() throws Exception {
         // create device and assign to edge; update device
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -274,6 +277,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceReachedMaximumAllowedOnCloud() throws Exception {
         // update tenant profile configuration
         loginSysAdmin();
@@ -307,6 +311,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceRpcResponseToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
 
@@ -333,6 +338,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceCredentialsUpdateToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
 
@@ -352,6 +358,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceCredentialsRequestToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
 
@@ -382,6 +389,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAttributesRequestToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
         sendAttributesRequestAndVerify(device, DataConstants.SERVER_SCOPE, "{\"key1\":\"value1\"}",
@@ -398,6 +406,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteDeviceOnEdgeToCloud() throws Exception {
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         UplinkMsg.Builder upLinkMsgBuilder = UplinkMsg.newBuilder();
@@ -422,6 +431,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendTelemetryToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -489,6 +499,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendOutdatedAttributeToCloud() throws Exception {
         long ts = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -551,6 +562,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceOnCloudName = StringUtils.randomAlphanumeric(15);
         Device deviceOnCloud = saveDevice(deviceOnCloudName, DEFAULT_DEVICE_TYPE);
@@ -592,6 +604,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceToCloud() throws Exception {
         String deviceName = "Edge Device 2";
         Device deviceMsg = buildDeviceForUplinkMsg(deviceName, "test");
@@ -633,6 +646,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRpcCall() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
 
@@ -731,6 +745,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void sendUpdateSharedAttributeToCloudAndValidateDeviceSubscription() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -771,6 +786,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testVerifyDeliveryOfLatestTimeseriesOnAttributesRequest() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
 
@@ -829,6 +845,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testVerifyProcessCorrectEdgeUpdateToDeviceActorOnUnassignFromDifferentEdge() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 

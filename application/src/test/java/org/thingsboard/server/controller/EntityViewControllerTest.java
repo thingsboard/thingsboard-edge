@@ -122,6 +122,9 @@ public class EntityViewControllerTest extends AbstractControllerTest {
 
         loginTenantAdmin();
 
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
+
         Device device = new Device();
         device.setName("Test device 4view");
         device.setType("default");
@@ -815,6 +818,7 @@ public class EntityViewControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignEntityViewToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

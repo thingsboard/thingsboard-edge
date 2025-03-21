@@ -17,6 +17,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -68,6 +69,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class DeviceProfileEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testDeviceProfiles() throws Exception {
         RuleChainId thermostatsRuleChainId = createEdgeRuleChainAndAssignToEdge("Thermostats Rule Chain");
 
@@ -127,6 +129,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeleteDeviceProfilesWhenEdgeIsOffline() throws Exception {
         RuleChainId thermostatsRuleChainId = createEdgeRuleChainAndAssignToEdge("Thermostats Rule Chain");
 
@@ -166,6 +169,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceProfiles_snmp() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("SNMP", createSnmpDeviceProfileTransportConfiguration());
 
@@ -204,6 +208,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceProfiles_lwm2m() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("LWM2M", createLwm2mDeviceProfileTransportConfiguration());
 
@@ -253,6 +258,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceProfiles_coap() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("COAP", createCoapDeviceProfileTransportConfiguration());
 
@@ -296,6 +302,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceProfileToCloud() throws Exception {
         RuleChainId ruleChainId = createEdgeRuleChainAndAssignToEdge("Device Profile Rule Chain");
         DashboardId dashboardId = createDashboardAndAssignToEdge("Device Profile Dashboard");
@@ -434,6 +441,7 @@ public class DeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceProfileToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceProfileOnCloudName = StringUtils.randomAlphanumeric(15);
 

@@ -217,6 +217,9 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     if (!this.widgetTypeDetails) {
       this.isDirty = true;
     }
+
+    // edge-only: allow to read-only
+    this.isReadOnly = true;
   }
 
   ngOnInit(): void {
@@ -681,9 +684,11 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   }
 
   saveAsDisabled(): boolean {
-    return !this.iframeWidgetEditModeInited
-      || this.saveWidgetPending
-      || this.saveWidgetAsPending;
+    // Edge-only:  edge read-only
+    return true;
+//  return !this.iframeWidgetEditModeInited
+//    || this.saveWidgetPending
+//    || this.saveWidgetAsPending;
   }
 
   beautifyCss(): void {

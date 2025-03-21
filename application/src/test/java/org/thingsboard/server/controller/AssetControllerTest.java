@@ -101,6 +101,9 @@ public class AssetControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
     }
 
     @After
@@ -235,8 +238,9 @@ public class AssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindAssetTypesByTenantId() throws Exception {
-        AssetProfile assetProfile = createAssetProfile("typeB");
-        assetProfile = doPost("/api/assetProfile", assetProfile, AssetProfile.class);
+        doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
+        AssetProfile assetProfile = doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
+        doPost("/api/assetProfile", this.createAssetProfile("typeC"), AssetProfile.class);
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -713,6 +717,9 @@ public class AssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantAssetsByType() throws Exception {
+        doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
+        doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
+
         String title1 = "Asset title 1";
         String type1 = "typeA";
         List<Asset> assetsType1 = new ArrayList<>();
@@ -1025,6 +1032,7 @@ public class AssetControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignAssetToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

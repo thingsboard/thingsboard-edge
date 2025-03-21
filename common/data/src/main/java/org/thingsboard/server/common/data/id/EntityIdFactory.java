@@ -16,6 +16,7 @@
 package org.thingsboard.server.common.data.id;
 
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 
 import java.util.UUID;
@@ -171,6 +172,27 @@ public class EntityIdFactory {
                 return new DomainId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
+    }
+
+    public static EntityId getByCloudEventTypeAndUuid(CloudEventType cloudEventType, UUID uuid) {
+        return switch (cloudEventType) {
+            case EDGE -> new EdgeId(uuid);
+            case TENANT -> TenantId.fromUUID(uuid);
+            case CUSTOMER -> new CustomerId(uuid);
+            case USER -> new UserId(uuid);
+            case DASHBOARD -> new DashboardId(uuid);
+            case DEVICE -> new DeviceId(uuid);
+            case DEVICE_PROFILE -> new DeviceProfileId(uuid);
+            case ASSET -> new AssetId(uuid);
+            case ASSET_PROFILE -> new AssetProfileId(uuid);
+            case ALARM -> new AlarmId(uuid);
+            case RULE_CHAIN -> new RuleChainId(uuid);
+            case ENTITY_VIEW -> new EntityViewId(uuid);
+            case WIDGETS_BUNDLE -> new WidgetsBundleId(uuid);
+            case WIDGET_TYPE -> new WidgetTypeId(uuid);
+            case TB_RESOURCE -> new TbResourceId(uuid);
+            default -> throw new IllegalArgumentException("CloudEventType " + cloudEventType + " is not supported!");
+        };
     }
 
 }

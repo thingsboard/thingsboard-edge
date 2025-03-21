@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
@@ -110,6 +111,7 @@ public class JpaDeviceDaoTest extends AbstractJpaDaoTest {
     }
 
     @Test
+    @Ignore("HasVersion check is ignored for Edge")
     public void testSaveDevice_versionIncrement() {
         Device device = getDevice(tenantId1, customerId1, "1ewfewf2");
         device = saveDevice(tenantId1, device);
@@ -126,6 +128,7 @@ public class JpaDeviceDaoTest extends AbstractJpaDaoTest {
     }
 
     @Test
+    @Ignore("HasVersion check is ignored for Edge")
     public void testSaveDevice_versionIncrement_noChanges() {
         Device device = getDevice(tenantId1, customerId1, "1ewfewf2");
         device = saveDevice(tenantId1, device);

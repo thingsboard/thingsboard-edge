@@ -66,7 +66,10 @@ public @interface RuleNode {
 
     boolean ruleChainNode() default false;
 
-    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
+    // Edge-only: RuleChainType.EDGE exists only on Cloud side
+    //RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
+
+    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE};
 
     int version() default 0;
 

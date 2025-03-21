@@ -220,4 +220,5 @@ public abstract class AbstractOAuth2ClientMapper {
         } while (dashboardsPage.hasNext());
         return Optional.empty();
     }
+
 }

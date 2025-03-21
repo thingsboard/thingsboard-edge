@@ -68,6 +68,7 @@ DROP TABLE IF EXISTS edge;
 DROP TABLE IF EXISTS edge_event;
 DROP TABLE IF EXISTS rpc;
 DROP TABLE IF EXISTS queue;
+DROP TABLE IF EXISTS cloud_event;
 DROP TABLE IF EXISTS notification;
 DROP TABLE IF EXISTS notification_request;
 DROP TABLE IF EXISTS notification_rule;

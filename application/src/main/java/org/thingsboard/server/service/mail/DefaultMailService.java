@@ -115,7 +115,8 @@ public class DefaultMailService implements MailService {
 
     @PostConstruct
     private void init() {
-        updateMailConfiguration();
+        // edge-only: merge comment
+        // updateMailConfiguration();
     }
 
     @PreDestroy

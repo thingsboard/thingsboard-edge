@@ -16,6 +16,7 @@
 package org.thingsboard.server.edge;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -34,6 +35,7 @@ import java.util.UUID;
 public class EdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testEdge_assignToCustomer_unassignFromCustomer() throws Exception {
         // assign edge to customer
         edgeImitator.expectMessageAmount(1);

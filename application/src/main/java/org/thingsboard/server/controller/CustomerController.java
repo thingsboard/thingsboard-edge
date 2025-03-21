@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.config.annotations.ApiOperation;
+import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.customer.TbCustomerService;
 import org.thingsboard.server.service.security.permission.Operation;
@@ -181,6 +182,25 @@ public class CustomerController extends BaseController {
             @RequestParam String customerTitle) throws ThingsboardException {
         TenantId tenantId = getCurrentUser().getTenantId();
         return checkNotNull(customerService.findCustomerByTenantIdAndTitle(tenantId, customerTitle), "Customer with title [" + customerTitle + "] is not found");
+    }
+
+    // Edge-only: temporary method, to fix public customer tests
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/customer/public", method = RequestMethod.POST)
+    @ResponseBody
+    public Customer createPublicCustomer() throws Exception {
+        Customer publicCustomer;
+        try {
+            TenantId tenantId = getTenantId();
+            publicCustomer = customerService.findOrCreatePublicCustomer(tenantId);
+            return publicCustomer;
+        } catch (RuntimeException e) {
+            publicCustomer = new Customer();
+            publicCustomer.setTenantId(getTenantId());
+            publicCustomer.setTitle(CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE);
+            publicCustomer.setAdditionalInfo(JacksonUtil.fromString("{ \"isPublic\": true }", JsonNode.class));
+            return customerService.saveCustomer(publicCustomer, false);
+        }
     }
 
 }

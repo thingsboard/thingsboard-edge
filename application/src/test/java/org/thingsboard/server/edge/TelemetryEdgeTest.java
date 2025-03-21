@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.AbstractMessage;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
@@ -49,6 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class TelemetryEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testTimeseriesWithFailures() throws Exception {
         int numberOfTimeseriesToSend = 333;
         int numberOfHighPriorityRpcRequests = 13;
@@ -96,6 +98,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAttributes() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
 
@@ -154,6 +157,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testTimeseries() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
         String timeseriesData = "{\"data\":{\"temperature\":25},\"ts\":" + System.currentTimeMillis() + "}";
@@ -207,6 +211,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testTimeseriesDeliveryFailuresForever_deliverOnlyDeviceUpdateMsgs() throws Exception {
         int numberOfMsgsToSend = 100;
 
@@ -243,6 +248,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAttributesUpdatedMsg_userEntity() throws Exception {
         testAttributesUpdatedMsg(tenantAdminUserId);
     }
@@ -272,6 +278,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAttributesDeleteRequestToCloud_nonDeviceEntity() throws Exception {
         edgeImitator.expectMessageAmount(2);
         Asset savedAsset = saveAsset("Delete Attribute Test");

@@ -74,12 +74,14 @@ export class AssetProfilesTableConfigResolver  {
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportAssetProfile($event, entity)
       },
+      /* edge-only: not visible on edge
       {
         name: this.translate.instant('asset-profile.set-default'),
         icon: 'flag',
         isEnabled: (assetProfile) => !assetProfile.default,
         onAction: ($event, entity) => this.setDefaultAssetProfile($event, entity)
       }
+       */
     );
 
     this.config.deleteEntityTitle = assetProfile => this.translate.instant('asset-profile.delete-asset-profile-title',
@@ -96,6 +98,12 @@ export class AssetProfilesTableConfigResolver  {
     this.config.deleteEnabled = (assetProfile) => assetProfile && !assetProfile.default;
     this.config.entitySelectionEnabled = (assetProfile) => assetProfile && !assetProfile.default;
     this.config.addActionDescriptors = this.configureAddActions();
+
+    // edge-only: asset profile can't be deleted from edge
+    this.config.deleteEnabled = () => false;
+    this.config.entitiesDeleteEnabled = false;
+
+    this.config.entitySelectionEnabled = (deviceProfile) => false;
   }
 
   resolve(): EntityTableConfig<AssetProfile> {

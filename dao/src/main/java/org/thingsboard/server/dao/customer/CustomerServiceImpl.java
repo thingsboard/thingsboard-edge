@@ -142,7 +142,8 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         return saveCustomer(customer, true);
     }
 
-    private Customer saveCustomer(Customer customer, boolean doValidate) {
+    @Override
+    public Customer saveCustomer(Customer customer, boolean doValidate) {
         log.trace("Executing saveCustomer [{}]", customer);
         String oldCustomerTitle = null;
         if (doValidate) {
@@ -218,6 +219,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         if (publicCustomerOpt.isPresent()) {
             return publicCustomerOpt.get();
         }
+        /* edge-only: public customer should be created on the cloud
         var publicCustomer = new Customer();
         publicCustomer.setTenantId(tenantId);
         publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
@@ -237,6 +239,8 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
             }
             throw new RuntimeException("Failed to create public customer.", e);
         }
+         */
+        throw new RuntimeException("Unable to create public customer on edge - please create it on cloud and click 'Sync Edge' button.");
     }
 
     @Override

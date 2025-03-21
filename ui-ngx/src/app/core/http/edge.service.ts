@@ -18,6 +18,7 @@ import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { CloudEvent, EdgeSettings } from '@shared/models/edge.models';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
@@ -33,6 +34,14 @@ export class EdgeService {
   constructor(
     private http: HttpClient
   ) { }
+
+  getEdgeSettings(config?: RequestConfig): Observable<EdgeSettings> {
+    return this.http.get<EdgeSettings>('/api/edge/settings', defaultHttpOptionsFromConfig(config));
+  }
+
+  getCloudEvents(pageLink: TimePageLink, config?: RequestConfig): Observable<PageData<CloudEvent>> {
+    return this.http.get<PageData<CloudEvent>>(`/api/edge/events${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config))
+  }
 
   public getEdges(edgeIds: Array<string>, config?: RequestConfig): Observable<Array<Edge>> {
     return this.http.get<Array<Edge>>(`/api/edges?edgeIds=${edgeIds.join(',')}`,

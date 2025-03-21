@@ -15,6 +15,7 @@
  */
 package org.thingsboard.rule.engine.edge;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         }
     }
 
-    protected S buildEvent(TbMsg msg, TbContext ctx) {
+    protected S buildEvent(TbMsg msg, TbContext ctx) throws JsonProcessingException {
         if (msg.isTypeOf(ALARM)) {
             EdgeEventActionType actionType = getAlarmActionType(msg);
             return buildEvent(ctx.getTenantId(), actionType, getUUIDFromMsgData(msg), getAlarmEventType(), null);
@@ -108,6 +109,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
                     entityBody.put("data", dataJson);
                     entityBody.put("ts", msg.getMetaDataTs());
                 }
+                case RPC_CALL -> addRpcRequestsDetailsIntoEventBody(entityBody, msg, metadata);
             }
             return buildEvent(ctx.getTenantId(),
                     actionType,
@@ -129,6 +131,15 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             eventAction = EdgeEventActionType.UPDATED;
         }
         return eventAction;
+    }
+
+    private void addRpcRequestsDetailsIntoEventBody(Map<String, Object> entityBody, TbMsg msg, Map<String, String> metadata) throws JsonProcessingException {
+        entityBody.put("requestId", metadata.get("requestId"));
+        entityBody.put("serviceId", metadata.get("serviceId"));
+        entityBody.put("sessionId", metadata.get("sessionId"));
+        JsonNode data = JacksonUtil.toJsonNode(msg.getData());
+        entityBody.put("method", data.get("method").asText());
+        entityBody.put("params", JacksonUtil.toString(data.get("params")));
     }
 
     abstract S buildEvent(TenantId tenantId, EdgeEventActionType eventAction, UUID entityId, U eventType, JsonNode entityBody);
@@ -166,6 +177,8 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             actionType = EdgeEventActionType.POST_ATTRIBUTES;
         } else if (msg.isTypeOf(ATTRIBUTES_DELETED)) {
             actionType = EdgeEventActionType.ATTRIBUTES_DELETED;
+        } else if (msg.isTypeOf(TO_SERVER_RPC_REQUEST)) {
+            actionType = EdgeEventActionType.RPC_CALL;
         } else if (msg.isTypeOneOf(CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT)) {
             String scope = msg.getMetaData().getValue(DataConstants.SCOPE);
             actionType = StringUtils.isEmpty(scope) ?

@@ -1,38 +1,84 @@
-# ThingsBoard 
-[![ThingsBoard Builds Server Status](https://img.shields.io/teamcity/build/e/ThingsBoard_Build?label=TB%20builds%20server&server=https%3A%2F%2Fbuilds.thingsboard.io&logo=data:image/png;base64,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&labelColor=305680)](https://builds.thingsboard.io/viewType.html?buildTypeId=ThingsBoard_Build&guest=1)
+# ThingsBoard Edge
+[![TB Edge Builds Server Status](https://img.shields.io/teamcity/build/e/Edge_Build?server=https%3A%2F%2Fbuilds.thingsboard.io&style=flat&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAACYAAAAmCAYAAACoPemuAAABbmlDQ1BpY2MAACiRdZG9S8NQFMVPW6VaKx10KOKQoYpDC0VBHLUOXYqUWsGqS%2FKatEKShpcUKa6Ci0PBQXTxa%2FA%2F0FVwVRAERRBxdPZrkRLvawot0r5wc3%2Bc987l5QTwZ3Rm2H1JwDAdnkunpNXCmhR8RwhRDIqSmW0tZLMZ9Fw%2Fj%2FCJ%2FpAQs3qf67qGiqrNAN8A8SyzuEM8T5zZcizBe8SjrCwXiU%2BI45wuSHwrdMXjN8Elj78E83xuEfCLmVKpg5UOZmVuEE8Rxwy9ylr3EV8SVs2VZepjVOOwkUMaKUhQUMUmdDhIUDcps%2B6%2BZNO3hAp5GL0t1MDJUUKZvHFSqzRVpa6RrtKjoyZy%2F5%2Bnrc1Me9PDKaD%2F1XU%2FJ4DgPtCou%2B7vqes2zoDAC3Bttv0Vymnum%2FR6W4sdA5Ed4PKmrSkHwNUuEH22ZC43pQCVX9OAjwtguACM3AOhdS%2Br1j7On4D8Nv2iO%2BDwCJik85GNP7aVZ%2BhXE%2FB8AAAACXBIWXMAAA9hAAAPYQGoP6dpAAAEUElEQVRYR8WYW4hOURTHZ9zvdyW5paHIRLmXGkSjlOTBg9L3ICNSxAMexgtvFOVBKUQeCHlxS4wHyaVQ3jTkfhnTuOR%2B%2Ffz%2Bp3U%2B%2B9uzP3O%2B48iu%2F%2Byz19l7rf9Ze%2B%2B11jcVFSlbPp8fCo6DV%2BAu2ADap1SXzTIIdAf3wDuwF5wHaluysZBSCwRyRmSOVPBcCY6A96BdSrVFy9IqGWZarqmvrKzM010H3UH%2FLIil0oFXas1jJ%2BQhMBDcBvdTKQws6pBS0URbt5C%2BCfSU48CilPr%2Bfhle2WTe0o3UWdsHtoHqv9eeUgPGDxipo%2FRpvZ3S%2Bh%2BWQeYr%2BPxfvRPiB6HxoMkw1p%2BDfBDo4coZzwIds3eTpxEjY0PkkNVYHLtDP9ji2w7b%2BnmZEkPpfvADzPC8UETOIWU88iK32wZ76HVjs2ko22iKP9C%2FBpNKkHtpnopJuf3BmBR9Z7CkrG1lsnJfDtQDBc%2BYlG7fKPCwBLnlHpu3jE85smhbjdQZk49L5Domq0pQQvbbMQRRSKAf6ZNjXAOUG9221uYvQNhiL0TurD2vTkTKlChQqkqYA3qCw6Yk522dS251gNRHZH3iNTxv9khvTkzKiKme2usoVO5rBvsC4UDkngS8K9FjMAJ0AwoRvjcLtzUJQVUXr8BwFMU3R9WBcl9LQMFQZAWveO%2BHMFYSVynUCFRpuG00g4siHiKGXIXA70KTgSpPNdVT64GqhC%2BgKPcxrgl4IXbeNx4awBowyHbiWcCzb5AVlUWM54P7Nlde3hoR1B%2BwxTGqSfO98zWgBCmdqxzoa2S0jQvBoRKkpnh6q80JcsY6IOeobSjMM4IDS7hZMehGwNhTIzSddyfBp8AciRQHJwfO7Hbkyr2RXXpVwirTGwsVLFXoD9AcIob8C%2FK54Jb3XjGqCllvIC93Ca1H9hV8Drzrh%2BwdiM6zVcIPeeyfuLRmkS7JFX2YZ2A240vgW8DwG2RLTX6Bj%2FBrtsu8GwAUshSqdHEWg4YSH9hazKI4IaswvOls2WHbhqveNuqgR9tHr9z6Aih9ReTou4Jzga1XsNftb7sxcZopiBIy6OeQ003SWVFOdVudq5kXYxxyk4zUT%2Fo6oDSodJgDfpgpTZDJCrozRcq%2BVpdBaUaK%2FSZPKQir92%2BhyD0HCkdau6JttyScgTKROm1slOzdbRWZqaAKKBMUtjNWj2wC0E3cldBksmkoVJxSixIyvbZVoSQi5RCIybUqmZJZKnMWxrWtSi%2BFxrgT6OWrcjwncjPLNPVvp0NoHFDg%2Ff5vLZWhHTJxSNBB31nG0mynYly5T6FDsW4ZUJwSqZXZWipDG8ZVJSgM6MapnovbqjLUZD8VFg%2BAqgTVVbogcaVQm721hBqNjDy0zgkXyn1q9QnVFE1LnMTbUK4E%2FwEouMaVcBzTHqUhltkaCKnyVFM9pX9%2F6geO%2FjebPPdlxqY4yKoSVpneCPQDRz%2F%2FklUJAUK%2FANSuR8d2qw90AAAAAElFTkSuQmCC&label=TB%20Edge%20server&labelColor=009688)](https://builds.thingsboard.io/buildConfiguration/Edge_Build?mode=builds#all-projects)
 
-ThingsBoard is an open-source IoT platform for data collection, processing, visualization, and device management.
+The **ThingsBoard Edge** is an open source software solution from ThingsBoard designed specifically for edge computing. It is free for both personal and commercial use, and you can deploy it anywhere. 
 
-<img src="./img/logo.png?raw=true" width="100" height="100">
+<img src="./img/thingsboard-e-icon.png?raw=true" width="100" height="100">
+
+The **ThingsBoard Edge** enables users to process and analyze data closer to the source, improving performance and reducing latency. At the same time **ThingsBoard Edge** seamlessly synchronizes with the ThingsBoard Cloud ([ThingsBoard Demo](https://demo.thingsboard.io/) or [ThingsBoard CE](https://github.com/thingsboard/thingsboard)), tailored to meet your specific business needs.
 
 ## Documentation
 
-ThingsBoard documentation is hosted on [thingsboard.io](https://thingsboard.io/docs).
+The **ThingsBoard Edge** documentation is hosted on [thingsboard.io](https://thingsboard.io/docs/edge/).
 
-## IoT use cases
+## ThingsBoard Edge use-cases
 
-[**Smart energy**](https://thingsboard.io/smart-energy/)
-[![Smart energy](https://user-images.githubusercontent.com/8308069/152984256-eb48564a-645c-468d-912b-f554b63104a5.gif "Smart energy")](https://thingsboard.io/smart-energy/)
+- **Autonomous Vehicles**
+<br>Edge computing makes it possible to collect, process and react to road events with almost no latency. Modern autonomous vehicles produces tons of data - between 5 TB and 20 TB a day. 4G or 5G will not able to provide that network throughput, but with ThingsBoard Edge you are able to filter data. Most of this data should be processed locally, and only subset of this data will be pushed to the cloud.
 
-[**Fleet tracking**](https://thingsboard.io/fleet-tracking/)
-[![Fleet tracking](https://user-images.githubusercontent.com/8308069/152984528-0054ed55-8b8b-4cda-ba45-02fe95a81222.gif "Fleet tracking")](https://thingsboard.io/fleet-tracking/)
+- **Smart Farming**
+<br>Quickly react to failures of silo aeration systems on a remote site even if connectivity to the Cloud from on-field location is pure at the moment.
 
-[**Smart farming**](https://thingsboard.io/smart-farming/)
-[![Smart farming](https://user-images.githubusercontent.com/8308069/152984443-a98b7d3d-ff7a-4037-9011-e71e1e6f755f.gif "Smart farming")](https://thingsboard.io/smart-farming/)
+- **Smart Houses**
+<br>Bringing the processing and analyzing data closer to the smart house provides the possibility to secure sensitive user information at the Edge. Additionally, it provides a good user experience because of the low latency of smart house solutions - user will get responses from end devices much faster, comparing to connecting Edge devices to the Cloud to make some decisions. 
 
-[**IoT Rule Engine**](https://thingsboard.io/docs/user-guide/rule-engine-2-0/re-getting-started/)
-[![IoT Rule Engine](https://img.thingsboard.io/demo/send-email-rule-chain.gif "IoT Rule Engine")](https://thingsboard.io/docs/user-guide/rule-engine-2-0/re-getting-started/)
+- **Security Solutions**
+<br>It's necessary to react to security violations and threats within seconds and Edge provides this possibility. You don't need to care about quality of your connectivity to Cloud - decision will be made by local Edge engine on a remote site in real-time. 
 
-[**Smart metering**](https://thingsboard.io/smart-metering/)
-[![Smart metering](https://user-images.githubusercontent.com/8308069/31455788-6888a948-aec1-11e7-9819-410e0ba785e0.gif "Smart metering")](https://thingsboard.io/smart-metering/)
+- **In-hospital Monitoring**
+<br>To secure data privacy in healthcare devices processing of this data must be done on the Edge. Push to the Cloud only required pieces of readings from medical devices, while storing all other sensitive data on the Edge. 
+Additional benefit from Edge processing in this use-case - react to critical medical cases as quickly as possible due to real time processing of data from Edge medical devices.
+
+- **Predictive Maintenance**
+<br>Brings processing and storage of Edge device readings closer to the equipment. Analyze tons of data locally and detect changes in the production lines before a failure occurs. Send to the Cloud only average readings from productions lines according to your business needs.
+
+## ThingsBoard Edge features
+
+Unlock the key benefits of **ThingsBoard Edge**:
+
+ - **Local Deployment and Storage:** Store and process data from Edge devices locally when there is no active connection to the Cloud, and push updates to the Cloud once the connection is restored.
+ 
+   <img src="/img/local-deployment.svg" alt="ALocal Deployment and Storage" width="400" height="300">
+
+ - **Traffic filtering:** Filter data from Edge (local) devices on the **ThingsBoard Edge** service and push only a subset of the data to the Cloud for further processing or storage.
+
+   <img src="/img/data-filtering.svg" alt="Traffic filtering">
+ 
+ - **Local alarms:** React instantly to critical situations on site without requiring connectivity to the Cloud.
+ 
+   <img src="/img/local-alarms.svg" alt="Local alarms" width="400" height="300">
+
+ - **Real-Time and SCADA-like HMI Dashboards:** Monitor local events and time-series data. Remotely access critical mechanical components via Human-Machine Interfaces.
+
+   <img src="/img/dashboard.png" alt="Local alarms" width="600" height="300">
+  
+ - **Batch Update:** Update thousands of Edge configurations in a single click.
+   
+   <img src="/img/batch-update.png" alt="Batch Update" width="500" height="300">
+ 
+**ThingsBoard Edge** inherits features from ThingsBoard Community Edition, delivering the same seamless experience for connecting, managing, and processing data from your devices, ensuring consistency and ease of use across your IoT applications.  
+
+It supports next **ThingsBoard Community Edition** features:
+ * [**Attributes**](https://thingsboard.io/docs/user-guide/attributes/): Easily assign and manage custom attributes for your entities.
+ * [**Telemetry**](https://thingsboard.io/docs/user-guide/telemetry/): Access a powerful API for collecting time-series data from your devices.
+ * [**Entities and relations**](https://thingsboard.io/docs/user-guide/entities-and-relations/): Effortlessly model physical world objects—such as devices and assets—and the relationships between them.
+ * [**Data visualization**](https://thingsboard.io/docs/guides#AnchorIDDataVisualization): Create custom dashboards and widgets tailored to your specific needs.
+ * [**SCADA interactive capabilities**](https://thingsboard.io/docs/user-guide/scada/): Enhance your operational efficiency with the remote access to equipment through interacrive SCADA dashboards.
+ * [**Rule engine**](https://thingsboard.io/docs/user-guide/rule-engine-2-0/re-getting-started/): Effectively manage data processing and automate actions based on incoming telemetry and events.
+ * [**RPC**](https://thingsboard.io/docs/user-guide/rpc/): Seamlessly send remote procedure calls (RPC) **from both the Edge and Cloud** to devices and vice versa.
+ * [**Audit log**](https://thingsboard.io/docs/user-guide/audit-log/): Monitor user activity with precision.
+ * [**API Limits**](https://thingsboard.io/docs/user-guide/api-limits/): Manage and limit the number of API requests from a single host.
 
 ## Getting Started
 
-Collect and Visualize your IoT data in minutes by following this [guide](https://thingsboard.io/docs/getting-started-guides/helloworld/).
+Start to **collect** and **visualize** your **IoT Edge data** in minutes by following this [guide](https://thingsboard.io/docs/edge/getting-started/).
 
-## Support
+## FAQ
 
- - [Q&A forum](https://groups.google.com/forum/#!forum/thingsboard)
+Check the [FAQ](https://thingsboard.io/docs/edge/faq/) section for answers to common questions about **ThingsBoard Edge** and its features.
+
+## Support 
+ - [Contact Us](https://thingsboard.io/docs/contact-us/)
  - [Stackoverflow](http://stackoverflow.com/questions/tagged/thingsboard)
 
 ## Licenses

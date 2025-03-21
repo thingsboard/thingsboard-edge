@@ -92,12 +92,14 @@ export class DeviceProfilesTableConfigResolver  {
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportDeviceProfile($event, entity)
       },
+      /* Edge-only: not visible on edge
       {
         name: this.translate.instant('device-profile.set-default'),
         icon: 'flag',
         isEnabled: (deviceProfile) => !deviceProfile.default,
         onAction: ($event, entity) => this.setDefaultDeviceProfile($event, entity)
       }
+       */
     );
 
     this.config.deleteEntityTitle = deviceProfile => this.translate.instant('device-profile.delete-device-profile-title',
@@ -115,6 +117,12 @@ export class DeviceProfilesTableConfigResolver  {
     this.config.deleteEnabled = (deviceProfile) => deviceProfile && !deviceProfile.default;
     this.config.entitySelectionEnabled = (deviceProfile) => deviceProfile && !deviceProfile.default;
     this.config.addActionDescriptors = this.configureAddActions();
+
+    // edge-only: device profile can't be deleted from edge
+    this.config.deleteEnabled = () => false;
+    this.config.entitiesDeleteEnabled = false;
+
+    this.config.entitySelectionEnabled = (deviceProfile) => false;
   }
 
   resolve(): EntityTableConfig<DeviceProfile> {

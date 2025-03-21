@@ -67,6 +67,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
@@ -316,6 +317,11 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter
     private TbEntityViewService tbEntityViewService;
+
+    @Lazy
+    @Autowired
+    @Getter
+    private CloudEventService cloudEventService;
 
     @Lazy
     @Autowired
