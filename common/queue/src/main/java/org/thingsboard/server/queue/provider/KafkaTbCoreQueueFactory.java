@@ -24,6 +24,7 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
@@ -32,6 +33,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMs
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
@@ -50,6 +52,8 @@ import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.TopicService;
+import org.thingsboard.server.queue.edqs.EdqsConfig;
+import org.thingsboard.server.queue.edqs.EdqsQueue;
 import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
 import org.thingsboard.server.queue.kafka.TbKafkaConsumerStatsService;
 import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
@@ -86,6 +90,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueEdgeSettings edgeSettings;
     private final TbQueueCalculatedFieldSettings calculatedFieldSettings;
+    private final EdqsConfig edqsConfig;
 
     private final TbQueueCloudEventSettings cloudEventSettings;
     private final TbQueueCloudEventTSSettings cloudEventTSSettings;
@@ -104,6 +109,8 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
     private final TbQueueAdmin edgeAdmin;
     private final TbQueueAdmin edgeEventAdmin;
     private final TbQueueAdmin cfAdmin;
+    private final TbQueueAdmin edqsEventsAdmin;
+    private final TbKafkaAdmin edqsRequestsAdmin;
 
     private final TbQueueAdmin cloudEventAdmin;
     private final TbQueueAdmin cloudEventTSAdmin;
@@ -125,6 +132,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
                                    TbQueueCalculatedFieldSettings calculatedFieldSettings,
                                    TbQueueCloudEventSettings cloudEventSettings,
                                    TbQueueCloudEventTSSettings cloudEventTSSettings,
+                                   EdqsConfig edqsConfig,
                                    TbKafkaTopicConfigs kafkaTopicConfigs) {
         this.topicService = topicService;
         this.kafkaSettings = kafkaSettings;
@@ -140,6 +148,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         this.cloudEventSettings = cloudEventSettings;
         this.cloudEventTSSettings = cloudEventTSSettings;
         this.calculatedFieldSettings = calculatedFieldSettings;
+        this.edqsConfig = edqsConfig;
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
@@ -157,6 +166,8 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         this.cloudEventAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCloudEventConfigs());
         this.cloudEventTSAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCloudEventTSConfigs());
         this.cfAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCalculatedFieldConfigs());
+        this.edqsEventsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsEventsConfigs());
+        this.edqsRequestsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsRequestsConfigs());
     }
 
     @Override
@@ -444,7 +455,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
     public TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> createEdgeEventMsgConsumer(TenantId tenantId, EdgeId edgeId) {
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
-        consumerBuilder.topic(topicService.buildTopicName("tb_edge_event.notifications." + tenantId + "." + edgeId));
+        consumerBuilder.topic(topicService.buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edgeId).getTopic());
         consumerBuilder.clientId("tb-core-edge-event-consumer-" + serviceInfoProvider.getServiceId() + "-" + edgeConsumerCount.incrementAndGet());
         consumerBuilder.groupId(topicService.buildTopicName("tb-core-edge-event-consumer"));
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToEdgeEventNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
@@ -533,6 +544,42 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         requestBuilder.defaultTopic(topicService.buildTopicName(calculatedFieldSettings.getEventTopic()));
         requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsMsgProducer(EdqsQueue queue) {
+        return TbKafkaProducerTemplate.<TbProtoQueueMsg<ToEdqsMsg>>builder()
+                .clientId("edqs-producer-" + queue.name().toLowerCase() + "-" + serviceInfoProvider.getServiceId())
+                .settings(kafkaSettings)
+                .admin(edqsEventsAdmin)
+                .build();
+    }
+
+    @Override
+    public TbQueueRequestTemplate<TbProtoQueueMsg<ToEdqsMsg>, TbProtoQueueMsg<FromEdqsMsg>> createEdqsRequestTemplate() {
+        var requestProducer = TbKafkaProducerTemplate.<TbProtoQueueMsg<ToEdqsMsg>>builder()
+                .settings(kafkaSettings)
+                .clientId("edqs-request-" + serviceInfoProvider.getServiceId())
+                .defaultTopic(topicService.buildTopicName(edqsConfig.getRequestsTopic()))
+                .admin(edqsRequestsAdmin);
+
+        var responseConsumer = TbKafkaConsumerTemplate.<TbProtoQueueMsg<FromEdqsMsg>>builder()
+                .settings(kafkaSettings)
+                .topic(topicService.buildTopicName(edqsConfig.getResponsesTopic() + "." + serviceInfoProvider.getServiceId()))
+                .clientId("tb-core-edqs-response-consumer-" + serviceInfoProvider.getServiceId())
+                .groupId(topicService.buildTopicName("tb-core-edqs-response-consumer-" + serviceInfoProvider.getServiceId()))
+                .decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), FromEdqsMsg.parseFrom(msg.getData()), msg.getHeaders()))
+                .admin(edqsRequestsAdmin)
+                .statsService(consumerStatsService);
+
+        return DefaultTbQueueRequestTemplate.<TbProtoQueueMsg<ToEdqsMsg>, TbProtoQueueMsg<FromEdqsMsg>>builder()
+                .queueAdmin(edqsRequestsAdmin)
+                .requestTemplate(requestProducer.build())
+                .responseTemplate(responseConsumer.build())
+                .maxPendingRequests(edqsConfig.getMaxPendingRequests())
+                .maxRequestTimeout(edqsConfig.getMaxRequestTimeout())
+                .pollInterval(edqsConfig.getPollInterval())
+                .build();
     }
 
     @PreDestroy

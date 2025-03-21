@@ -281,7 +281,7 @@ public interface TbContext {
 
     DeviceCredentialsService getDeviceCredentialsService();
 
-    RuleEngineDeviceStateManager getDeviceStateManager();
+    DeviceStateManager getDeviceStateManager();
 
     String getDeviceStateNodeRateLimitConfig();
 
@@ -363,6 +363,8 @@ public interface TbContext {
 
     CalculatedFieldService getCalculatedFieldService();
 
+    RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService();
+
     boolean isExternalNodeForceAck();
 
     /**
@@ -375,12 +377,6 @@ public interface TbContext {
     ScriptEngine createJsScriptEngine(String script, String... argNames);
 
     ScriptEngine createScriptEngine(ScriptLanguage scriptLang, String script, String... argNames);
-
-    void logJsEvalRequest();
-
-    void logJsEvalResponse();
-
-    void logJsEvalFailure();
 
     String getServiceId();
 
