@@ -3,7 +3,6 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
-  "name": "Smart office",
   "configuration": {
     "widgets": {
       "783e83b2-bb20-460b-b4a4-7fbbc08aa27c": {
@@ -164,319 +163,6 @@
         "id": "783e83b2-bb20-460b-b4a4-7fbbc08aa27c",
         "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
-      "17ad8f4c-da3c-6a50-99ae-357e27f0af40": {
-        "type": "latest",
-        "sizeX": 22,
-        "sizeY": 12,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "dataKeys": [
-                {
-                  "name": "temperature",
-                  "type": "timeseries",
-                  "label": "temperature",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.1389647910354801
-                },
-                {
-                  "name": "power",
-                  "type": "timeseries",
-                  "label": "power",
-                  "color": "#3f51b5",
-                  "settings": {},
-                  "_hash": 0.9561344749428415
-                },
-                {
-                  "name": "water",
-                  "type": "timeseries",
-                  "label": "water",
-                  "color": "#e91e63",
-                  "settings": {},
-                  "_hash": 0.07356390203422203
-                },
-                {
-                  "name": "airFlow",
-                  "type": "timeseries",
-                  "label": "airFlow",
-                  "color": "#ffeb3b",
-                  "settings": {},
-                  "_hash": 0.7319416423264777
-                },
-                {
-                  "name": "enabled",
-                  "type": "timeseries",
-                  "label": "enabled",
-                  "color": "#ffeb3b",
-                  "settings": {},
-                  "_hash": 0.012952143478854872
-                },
-                {
-                  "name": "amperage",
-                  "type": "timeseries",
-                  "label": "amperage",
-                  "color": "#03a9f4",
-                  "settings": {},
-                  "_hash": 0.9977180851736969
-                },
-                {
-                  "name": "voltage",
-                  "type": "timeseries",
-                  "label": "voltage",
-                  "color": "#ff9800",
-                  "settings": {},
-                  "_hash": 0.5907646987619091
-                },
-                {
-                  "name": "frequency",
-                  "type": "timeseries",
-                  "label": "frequency",
-                  "color": "#673ab7",
-                  "settings": {},
-                  "_hash": 0.12188283119718779
-                },
-                {
-                  "name": "targetTemperature",
-                  "type": "timeseries",
-                  "label": "targetTemperature",
-                  "color": "#cddc39",
-                  "settings": {},
-                  "_hash": 0.7337733812197624
-                },
-                {
-                  "name": "enabled",
-                  "type": "timeseries",
-                  "label": "enabledText",
-                  "color": "#009688",
-                  "settings": {},
-                  "_hash": 0.7950194373671926,
-                  "postFuncBody": "return value === 'true' ? 'ON' : 'OFF';"
-                },
-                {
-                  "name": "enabled",
-                  "type": "timeseries",
-                  "label": "enabledTextColor",
-                  "color": "#795548",
-                  "settings": {},
-                  "_hash": 0.6090071911452675,
-                  "postFuncBody": "return value === 'true' ? '#43a047' : '#f44336';"
-                },
-                {
-                  "name": "humidity",
-                  "type": "timeseries",
-                  "label": "humidity",
-                  "color": "#00bcd4",
-                  "settings": {},
-                  "_hash": 0.5744184012686038
-                },
-                {
-                  "name": "co2",
-                  "type": "timeseries",
-                  "label": "co2",
-                  "color": "#ff5722",
-                  "settings": {},
-                  "_hash": 0.4484428199566908
-                },
-                {
-                  "name": "tvoc",
-                  "type": "timeseries",
-                  "label": "tvoc",
-                  "color": "#9e9e9e",
-                  "settings": {},
-                  "_hash": 0.7163832277308244
-                },
-                {
-                  "name": "occupancy",
-                  "type": "timeseries",
-                  "label": "occupancyText",
-                  "color": "#2962ff",
-                  "settings": {},
-                  "_hash": 0.3574594042021839,
-                  "postFuncBody": "return value === 'true' ? 'Occupied' : 'Free';"
-                },
-                {
-                  "name": "energy",
-                  "type": "timeseries",
-                  "label": "energy",
-                  "color": "#00c853",
-                  "settings": {},
-                  "_hash": 0.48130961726228816
-                },
-                {
-                  "name": "xPos",
-                  "type": "attribute",
-                  "label": "xPos",
-                  "color": "#ff5722",
-                  "settings": {},
-                  "_hash": 0.046553157420540225
-                },
-                {
-                  "name": "yPos",
-                  "type": "attribute",
-                  "label": "yPos",
-                  "color": "#9e9e9e",
-                  "settings": {},
-                  "_hash": 0.10821421103015472
-                },
-                {
-                  "name": "type",
-                  "type": "attribute",
-                  "label": "type",
-                  "color": "#2962ff",
-                  "settings": {},
-                  "_hash": 0.6203531659263102
-                },
-                {
-                  "name": "type",
-                  "type": "attribute",
-                  "label": "labelColor",
-                  "color": "#d50000",
-                  "settings": {},
-                  "_hash": 0.6251657234134782,
-                  "postFuncBody": "if (value === 'smart-sensor') {\n    return '#ff3d00';\n} else if (value === 'hvac') {\n    return '#008000';\n} else if (value === 'energy-meter') {\n    return '#f68b38';\n} else if (value === 'water-meter') {\n    return '#1b76d2';\n}\nreturn '#000000';"
-                },
-                {
-                  "name": "type",
-                  "type": "attribute",
-                  "label": "friendlyName",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.06074376013993765,
-                  "postFuncBody": "if (value === 'smart-sensor') {\n    return 'Smart Sensor';\n} else if (value === 'hvac') {\n    return 'HVAC';\n} else if (value === 'energy-meter') {\n    return 'Energy Meter';\n} else if (value === 'water-meter') {\n    return 'Water Meter';\n}\nreturn value;"
-                }
-              ],
-              "entityAliasId": "e73f4fd0-3136-89e7-f802-e071e6e19a6d"
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1693821090727,
-                "endTimeMs": 1693907490727
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "showLabel": true,
-            "label": "<div style=\"position: relative; white-space: nowrap; text-align: center; font-size: 16px; top: 5px;\"><span style=\"margin-left: -500%;\"></span><span style=\"border: solid ${labelColor}; border-radius: 10px; color: ${labelColor}; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;\">${friendlyName}</span><span style=\"margin-right: -500%;\"></span></div>",
-            "markerImageSize": 34,
-            "useColorFunction": false,
-            "markerImages": [
-              "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_0.svg",
-              "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_1.svg",
-              "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_2.svg",
-              "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_3.svg",
-              "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_4.svg"
-            ],
-            "useMarkerImageFunction": true,
-            "markerImageFunction": "var type = dsData[dsIndex]['type'];\nif (type == 'smart-sensor') {\n\tvar res = {\n\t    url: images[0],\n\t    size: 60\n\t}\n\treturn res;\n} else if (type == 'hvac') {\n    var enabled = dsData[dsIndex]['enabled'];\n\tvar res = {\n\t    url: enabled === 'true' ? images[2] : images[1],\n\t    size: 60\n\t}\n\treturn res;\n} else if (type == 'energy-meter') {\n    var res = {\n\t    url: images[3],\n\t    size: 60\n\t}\n\treturn res;\n} else if (type == 'water-meter') {\n    var res = {\n\t    url: images[4],\n\t    size: 60\n\t}\n\treturn res;\n}",
-            "color": "#fe7569",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "posFunction": "return {x: origXPos, y: origYPos};",
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "showTooltip": true,
-            "autocloseTooltip": true,
-            "labelFunction": "var deviceType = dsData[dsIndex]['deviceType'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
-            "tooltipFunction": "var deviceType = dsData[dsIndex]['type'];\r\n\r\nvar tooltip = '<b>${friendlyName}</b><br/>${entityName}<br/>';\r\nvar typeTooltip = '';\r\n\r\nif (deviceType == \"smart-sensor\") {\r\n    typeTooltip = '<br/><span style=\"font-weight: 500; color:#666;\">Temperature:</span>&nbsp;<span style=\"color:#f44336; font-weight: 600;\">${temperature:1} °C</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Humidity:</span>&nbsp;<span style=\"color:#1e88e5; font-weight: 600;\">${humidity:1} %</span><br/>';\r\n    typeTooltip += '<br/><b>Air quality</b><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">CO2 level:</span>&nbsp;<span style=\"color:#9f4295; font-weight: 600;\">${co2:0} ppm</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">TVOC level:</span>&nbsp;<span style=\"color:#3d9d9a; font-weight: 600;\">${tvoc:3} ppm</span><br/>';\r\n    typeTooltip += '<br/><span style=\"font-weight: 500; color:#666;\">Occupancy:</span>&nbsp;<span style=\"color:#00897b; font-weight: 600;\">${occupancyText}</span><br/>';\r\n    typeTooltip += '<br/><link-act name=\"smart_sensor\">Smart sensor details</link-act><br/></div>';\r\n} else if (deviceType == \"energy-meter\") {\r\n    typeTooltip = '<br/><span style=\"font-weight: 500; color:#666;\">Energy consumption:</span>&nbsp;<span style=\"color:#673ab7; font-weight: 600;\">${energy:4} kWh</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Power consumption:</span>&nbsp;<span style=\"color:rgb(30, 136, 229); font-weight: 600;\">${power:0} W</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Current (Amperage):</span>&nbsp;<span style=\"color:#f44336; font-weight: 600;\">${amperage:2} A</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Voltage:</span>&nbsp;<span style=\"color:#2196f3; font-weight: 600;\">${voltage:2} V</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Frequency:</span>&nbsp;<span style=\"color:rgb(104, 159, 56); font-weight: 600;\">${frequency:2} Hz</span><br/>';\r\n    typeTooltip += '<br/><link-act name=\"energy_meter\">Energy meter details</link-act><br/></div>';\r\n} else if (deviceType == \"water-meter\") {\r\n    typeTooltip = '<br/><span style=\"font-weight: 500; color:#666;\">Water consumption:</span>&nbsp;<span style=\"color:#01579b; font-weight: 600;\">${water:3} gal</span><br/>';\r\n    typeTooltip += '<br/><link-act name=\"water_meter\">Water meter details</link-act><br/></div>';\r\n} else if (deviceType == \"hvac\") {\r\n    typeTooltip = '<br/><span style=\"font-weight: 500; color:#666;\">State:</span>&nbsp;<span style=\"color:${enabledTextColor}; font-weight: 600;\">${enabledText}</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Target temperature:</span>&nbsp;<span style=\"color:#4caf50; font-weight: 600;\">${targetTemperature:1} °C</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Air flow:</span>&nbsp;<span style=\"color:#2196f3; font-weight: 600;\">${airFlow:1} cfm</span><br/>';\r\n    typeTooltip += '<br/><link-act name=\"hvac\">HVAC details</link-act><br/></div>';\r\n}\r\n\r\nreturn tooltip + typeTooltip;",
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "imageEntityAlias": "Office",
-            "imageUrlAttribute": "floorPlan",
-            "useTooltipFunction": true,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>X Pos:</b> ${xPos:2}<br/><b>Y Pos:</b> ${yPos:2}",
-            "showTooltipAction": "click",
-            "provider": "image-map",
-            "defaultCenterPosition": "0,0",
-            "fitMapBounds": true,
-            "mapPageSize": 16384,
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude"
-          },
-          "title": "Floor  plan",
-          "dropShadow": false,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "20px",
-            "fontWeight": "bold",
-            "opacity": "0.67",
-            "padding": "5px 10px 5px 0px"
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {
-            "borderBottom": "solid 1px #aaa",
-            "borderRight": "solid 1px #aaa"
-          },
-          "actions": {
-            "tooltipAction": [
-              {
-                "id": "16ff2309-875f-6b03-26b9-8ad80980a4cc",
-                "name": "energy_meter",
-                "icon": "more_horiz",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "energy_meter",
-                "setEntityId": true
-              },
-              {
-                "id": "4be8fcdd-794e-3d7d-b2f6-b5251b602699",
-                "name": "hvac",
-                "icon": "more_horiz",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "hvac",
-                "setEntityId": true
-              },
-              {
-                "id": "afd89b03-2da9-14a8-05ba-d459d8a59336",
-                "name": "smart_sensor",
-                "icon": "more_horiz",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "smart_sensor",
-                "setEntityId": true
-              },
-              {
-                "id": "f3bf9c20-eeb6-03e2-812d-d80165a79752",
-                "name": "water_meter",
-                "icon": "more_horiz",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "water_meter",
-                "setEntityId": true
-              }
-            ]
-          },
-          "enableDataExport": true,
-          "displayTimewindow": true,
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "id": "17ad8f4c-da3c-6a50-99ae-357e27f0af40",
-        "typeFullFqn": "system.maps_v2.image_map"
-      },
       "e6421a08-76a7-5fbb-c9be-42d00154a468": {
         "type": "rpc",
         "sizeX": 7,
@@ -580,7 +266,10 @@
               "realtimeType": 1,
               "interval": 300000,
               "timewindowMs": 86400000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -590,7 +279,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -827,7 +520,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -837,7 +533,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -892,7 +592,12 @@
             "animationRule": "linear",
             "title": "Voltage",
             "unitTitle": "Voltage",
-            "defaultColor": "#0277bd"
+            "defaultColor": "#0277bd",
+            "barColor": {
+              "type": "constant",
+              "color": "#0277bd",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';"
+            }
           },
           "title": "New Vertical bar - justGage",
           "dropShadow": false,
@@ -943,7 +648,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -953,7 +661,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1006,7 +718,12 @@
             "animationDuration": 500,
             "animationRule": "linear",
             "title": "Frequency",
-            "unitTitle": "Frequency"
+            "unitTitle": "Frequency",
+            "barColor": {
+              "type": "constant",
+              "color": "rgb(104, 159, 56)",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';"
+            }
           },
           "title": "New Vertical bar - justGage",
           "dropShadow": false,
@@ -1057,7 +774,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1067,7 +787,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1119,7 +843,12 @@
             "timestampFormat": "yyyy-MM-dd HH:mm:ss",
             "showTitle": true,
             "title": "Power",
-            "unitTitle": "Power"
+            "unitTitle": "Power",
+            "barColor": {
+              "type": "constant",
+              "color": "#673ab7",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';"
+            }
           },
           "title": "New Simple neon gauge - justGage",
           "dropShadow": false,
@@ -1287,7 +1016,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1297,7 +1029,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1359,7 +1095,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1369,7 +1108,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1426,7 +1169,22 @@
             "title": "Temperature",
             "unitTitle": "Temperature",
             "roundedLineCap": true,
-            "gaugeColor": "rgba(0, 0, 0, 0)"
+            "gaugeColor": "rgba(0, 0, 0, 0)",
+            "barColor": {
+              "type": "gradient",
+              "color": "#f44336",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';",
+              "gradient": {
+                "advancedMode": false,
+                "gradient": [
+                  "#9575cd",
+                  "#f44336"
+                ],
+                "gradientAdvanced": null,
+                "minValue": 10,
+                "maxValue": 40
+              }
+            }
           },
           "title": "New Simple neon gauge - justGage",
           "dropShadow": false,
@@ -1477,7 +1235,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1487,7 +1248,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1544,7 +1309,22 @@
             "title": "Humidity",
             "unitTitle": "Humidity",
             "roundedLineCap": true,
-            "gaugeColor": "rgba(0, 0, 0, 0)"
+            "gaugeColor": "rgba(0, 0, 0, 0)",
+            "barColor": {
+              "type": "gradient",
+              "color": "#1e88e5",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';",
+              "gradient": {
+                "advancedMode": false,
+                "gradient": [
+                  "#e3f2fd",
+                  "#1565c0"
+                ],
+                "gradientAdvanced": null,
+                "minValue": 0,
+                "maxValue": 100
+              }
+            }
           },
           "title": "New Simple neon gauge - justGage",
           "dropShadow": false,
@@ -1595,7 +1375,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1605,7 +1388,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1662,7 +1449,22 @@
             "title": "CO2",
             "unitTitle": "CO2",
             "roundedLineCap": true,
-            "gaugeColor": "rgba(0, 0, 0, 0)"
+            "gaugeColor": "rgba(0, 0, 0, 0)",
+            "barColor": {
+              "type": "gradient",
+              "color": "#9f4295",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';",
+              "gradient": {
+                "advancedMode": false,
+                "gradient": [
+                  "#f3e5f5",
+                  "#9f4295"
+                ],
+                "gradientAdvanced": null,
+                "minValue": 0,
+                "maxValue": 2500
+              }
+            }
           },
           "title": "New Simple neon gauge - justGage",
           "dropShadow": false,
@@ -1713,7 +1515,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1723,7 +1528,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1780,7 +1589,22 @@
             "title": "TVOC",
             "unitTitle": "TVOC",
             "roundedLineCap": true,
-            "gaugeColor": "rgba(0, 0, 0, 0)"
+            "gaugeColor": "rgba(0, 0, 0, 0)",
+            "barColor": {
+              "type": "gradient",
+              "color": "#3d9d9a",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';",
+              "gradient": {
+                "advancedMode": false,
+                "gradient": [
+                  "#e0f2f1",
+                  "#3d9d9a"
+                ],
+                "gradientAdvanced": null,
+                "minValue": 0,
+                "maxValue": 1
+              }
+            }
           },
           "title": "New Simple neon gauge - justGage",
           "dropShadow": false,
@@ -1831,7 +1655,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1841,7 +1668,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1893,7 +1724,12 @@
             "timestampFormat": "yyyy-MM-dd HH:mm:ss",
             "showTitle": true,
             "title": "Current",
-            "unitTitle": "Current"
+            "unitTitle": "Current",
+            "barColor": {
+              "type": "constant",
+              "color": "#f44336",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';"
+            }
           },
           "title": "New Simple neon gauge - justGage",
           "dropShadow": false,
@@ -1948,7 +1784,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1958,7 +1797,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2025,7 +1868,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2035,7 +1881,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2122,7 +1972,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2132,7 +1985,11 @@
                 "startTimeMs": 1693821090727,
                 "endTimeMs": 1693907490727
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2808,9 +2665,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -3189,9 +3043,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -3992,9 +3843,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -4484,9 +4332,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -5014,9 +4859,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -5544,9 +5386,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -6074,9 +5913,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -6521,9 +6357,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -6916,9 +6749,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -7325,9 +7155,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -7628,6 +7455,701 @@
         "row": 0,
         "col": 0,
         "id": "f50f5e3f-0ac6-aef9-2423-51a5184cd6e1"
+      },
+      "c5d7d9e4-c58e-5c55-a290-944c1db6c22a": {
+        "typeFullFqn": "system.image_map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742728420517,
+                "endTimeMs": 1742814820517
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "image",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "openstreet",
+                "layerType": "OpenStreetMap.Mapnik"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": {
+              "sourceType": "entityKey",
+              "url": null,
+              "entityAliasId": "4dd49440-57ee-0435-5dbd-f72fe063a687",
+              "entityKey": {
+                "name": "floorPlan",
+                "type": "attribute",
+                "label": "floorPlan",
+                "color": "#2196f3",
+                "settings": {},
+                "_hash": 0.30324121145971006
+              }
+            },
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "fe18dacb-77de-1cfd-9583-f76e4708c331",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "amperage",
+                    "type": "timeseries",
+                    "label": "amperage",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.1396060731255302
+                  },
+                  {
+                    "name": "energy",
+                    "type": "timeseries",
+                    "label": "energy",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.052281328652923564
+                  },
+                  {
+                    "name": "frequency",
+                    "type": "timeseries",
+                    "label": "frequency",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.9090134829356982
+                  },
+                  {
+                    "name": "power",
+                    "type": "timeseries",
+                    "label": "power",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.8614365129328407
+                  },
+                  {
+                    "name": "voltage",
+                    "type": "timeseries",
+                    "label": "voltage",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.034817366329332744
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "<div style=\"position: relative; white-space: nowrap; text-align: center; font-size: 16px; top: 5px;\"><span style=\"margin-left: -500%;\"></span><span style=\"border: solid #f68b38; border-radius: 10px; color: #f68b38; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;\">Energy Meter</span><span style=\"margin-right: -500%;\"></span></div>",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>Energy Meter</b><br/>${entityName}<br/><br/><span style=\"font-weight: 500; color:#666;\">Energy consumption:</span>&nbsp;<span style=\"color:#673ab7; font-weight: 600;\">${energy:4} kWh</span><br/>\r\n<span style=\"font-weight: 500; color:#666;\">Power consumption:</span>&nbsp;<span style=\"color:rgb(30, 136, 229); font-weight: 600;\">${power:0} W</span><br/>\r\n<span style=\"font-weight: 500; color:#666;\">Current (Amperage):</span>&nbsp;<span style=\"color:#f44336; font-weight: 600;\">${amperage:2} A</span><br/>\r\n<span style=\"font-weight: 500; color:#666;\">Voltage:</span>&nbsp;<span style=\"color:#2196f3; font-weight: 600;\">${voltage:2} V</span><br/>\r\n<span style=\"font-weight: 500; color:#666;\">Frequency:</span>&nbsp;<span style=\"color:rgb(104, 159, 56); font-weight: 600;\">${frequency:2} Hz</span><br/>\r\n<br/><link-act name=\"energy_meter\">Energy meter details</link-act><br/>",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": null,
+                  "tagActions": [
+                    {
+                      "name": "energy_meter",
+                      "type": "openDashboardState",
+                      "targetDashboardStateId": "energy_meter",
+                      "setEntityId": true,
+                      "stateEntityParamName": null,
+                      "openRightLayout": false,
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": [
+                  "Energy Meters"
+                ],
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "xPos",
+                  "label": "xPos",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "yPos",
+                  "label": "yPos",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "image",
+                  "image": "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_3.svg",
+                  "imageSize": 60
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "positionFunction": "return {x: origXPos, y: origYPos};",
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              },
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "76ebd63e-8763-cdd5-aa37-916755c4df63",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "occupancy",
+                    "type": "timeseries",
+                    "label": "occupancyText",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7674090879752771,
+                    "aggregationType": "NONE",
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === 'true' ? 'Occupied' : 'Free';"
+                  },
+                  {
+                    "name": "humidity",
+                    "type": "timeseries",
+                    "label": "humidity",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.3705636424027301
+                  },
+                  {
+                    "name": "temperature",
+                    "type": "timeseries",
+                    "label": "temperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7878527760087575
+                  },
+                  {
+                    "name": "co2",
+                    "type": "timeseries",
+                    "label": "co2",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4869317080315305
+                  },
+                  {
+                    "name": "tvoc",
+                    "type": "timeseries",
+                    "label": "tvoc",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.5426947176336416
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "<div style=\"position: relative; white-space: nowrap; text-align: center; font-size: 16px; top: 5px;\"><span style=\"margin-left: -500%;\"></span><span style=\"border: solid #ff3d00; border-radius: 10px; color: #ff3d00; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;\">Smart Sensor</span><span style=\"margin-right: -500%;\"></span></div>",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>Smart Sensor</b><br/>${entityName}<br/>\r\n<br/><span style=\"font-weight: 500; color:#666;\">Temperature:</span>&nbsp;<span style=\"color:#f44336; font-weight: 600;\">${temperature:1} °C</span><br/>\r\n<span style=\"font-weight: 500; color:#666;\">Humidity:</span>&nbsp;<span style=\"color:#1e88e5; font-weight: 600;\">${humidity:1} %</span><br/>\r\n<br/><b>Air quality</b><br/>\r\n<span style=\"font-weight: 500; color:#666;\">CO2 level:</span>&nbsp;<span style=\"color:#9f4295; font-weight: 600;\">${co2:0} ppm</span><br/>\r\n<span style=\"font-weight: 500; color:#666;\">TVOC level:</span>&nbsp;<span style=\"color:#3d9d9a; font-weight: 600;\">${tvoc:3} ppm</span><br/>\r\n<br/><span style=\"font-weight: 500; color:#666;\">Occupancy:</span>&nbsp;<span style=\"color:#00897b; font-weight: 600;\">${occupancyText}</span><br/>\r\n<br/><link-act name=\"smart_sensor\">Smart sensor details</link-act><br/>",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": null,
+                  "tagActions": [
+                    {
+                      "name": "smart_sensor",
+                      "type": "openDashboardState",
+                      "targetDashboardStateId": "smart_sensor",
+                      "setEntityId": true,
+                      "stateEntityParamName": null,
+                      "openRightLayout": false,
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": [
+                  "Smart Sensors"
+                ],
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "xPos",
+                  "label": "xPos",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "yPos",
+                  "label": "yPos",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "image",
+                  "image": "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_0.svg",
+                  "imageSize": 60
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "positionFunction": "return {x: origXPos, y: origYPos};",
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              },
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "6b32a7ba-17fc-b47e-0ea8-e1e4726daa39",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "water",
+                    "type": "timeseries",
+                    "label": "water",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.2542580648563233
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "<div style=\"position: relative; white-space: nowrap; text-align: center; font-size: 16px; top: 5px;\"><span style=\"margin-left: -500%;\"></span><span style=\"border: solid #1b76d2; border-radius: 10px; color: #1b76d2; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;\">Water Meter</span><span style=\"margin-right: -500%;\"></span></div>",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>Water Meter</b><br/>${entityName}<br/>\r\n<br/><span style=\"font-weight: 500; color:#666;\">Water consumption:</span>&nbsp;<span style=\"color:#01579b; font-weight: 600;\">${water:3} gal</span><br/>\r\n<br/><link-act name=\"water_meter\">Water meter details</link-act><br/>",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": null,
+                  "tagActions": [
+                    {
+                      "name": "water_meter",
+                      "type": "openDashboardState",
+                      "targetDashboardStateId": "water_meter",
+                      "setEntityId": true,
+                      "stateEntityParamName": null,
+                      "openRightLayout": false,
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": [
+                  "Water Meters"
+                ],
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "xPos",
+                  "label": "xPos",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "yPos",
+                  "label": "yPos",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "image",
+                  "image": "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_4.svg",
+                  "imageSize": 60
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "positionFunction": "return {x: origXPos, y: origYPos};",
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              },
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "e1d6944f-e5b9-224b-9496-a0d48d46f4ce",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "enabled",
+                    "type": "timeseries",
+                    "label": "enabled",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.5453496056859461
+                  },
+                  {
+                    "name": "enabled",
+                    "type": "timeseries",
+                    "label": "enabledTextColor",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.3060664128999888,
+                    "aggregationType": "NONE",
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === 'true' ? '#43a047' : '#f44336';"
+                  },
+                  {
+                    "name": "enabled",
+                    "type": "timeseries",
+                    "label": "enabledText",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.9404715054816306,
+                    "aggregationType": "NONE",
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === 'true' ? 'ON' : 'OFF';"
+                  },
+                  {
+                    "name": "targetTemperature",
+                    "type": "timeseries",
+                    "label": "targetTemperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.9786994177382167
+                  },
+                  {
+                    "name": "airFlow",
+                    "type": "timeseries",
+                    "label": "airFlow",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.36495452489574887
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "<div style=\"position: relative; white-space: nowrap; text-align: center; font-size: 16px; top: 5px;\"><span style=\"margin-left: -500%;\"></span><span style=\"border: solid #008000; border-radius: 10px; color: #008000; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;\">HVAC</span><span style=\"margin-right: -500%;\"></span></div>",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>HVAC</b><br/>${entityName}<br/>\r\n<br/><span style=\"font-weight: 500; color:#666;\">State:</span>&nbsp;<span style=\"color:${enabledTextColor}; font-weight: 600;\">${enabledText}</span><br/>\r\n<span style=\"font-weight: 500; color:#666;\">Target temperature:</span>&nbsp;<span style=\"color:#4caf50; font-weight: 600;\">${targetTemperature:1} °C</span><br/>\r\n<span style=\"font-weight: 500; color:#666;\">Air flow:</span>&nbsp;<span style=\"color:#2196f3; font-weight: 600;\">${airFlow:1} cfm</span><br/>\r\n<br/><link-act name=\"hvac\">HVAC details</link-act><br/>",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": null,
+                  "tagActions": [
+                    {
+                      "name": "hvac",
+                      "type": "openDashboardState",
+                      "targetDashboardStateId": "hvac",
+                      "setEntityId": true,
+                      "stateEntityParamName": null,
+                      "openRightLayout": false,
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": [
+                  "HVAC"
+                ],
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "xPos",
+                  "label": "xPos",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "yPos",
+                  "label": "yPos",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "var enabled = data.enabled;\nvar res = {\n    url: enabled === 'true' ? images[1] : images[0],\n    size: 60\n}\nreturn res;\n",
+                  "images": [
+                    "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_1.svg",
+                    "tb-image;/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_2.svg"
+                  ]
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "positionFunction": "return {x: origXPos, y: origYPos};",
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "8px"
+          },
+          "title": "Floor  plan",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 0px"
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "0px",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": true
+        },
+        "row": 0,
+        "col": 0,
+        "id": "c5d7d9e4-c58e-5c55-a290-944c1db6c22a"
       }
     },
     "states": {
@@ -7727,7 +8249,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 5,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -7812,7 +8335,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 5,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -7905,7 +8429,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 5,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -7966,7 +8491,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 5,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -7977,14 +8503,6 @@
         "layouts": {
           "main": {
             "widgets": {
-              "17ad8f4c-da3c-6a50-99ae-357e27f0af40": {
-                "sizeX": 22,
-                "sizeY": 12,
-                "row": 11,
-                "col": 26,
-                "mobileOrder": 5,
-                "mobileHeight": 6
-              },
               "e6421a08-76a7-5fbb-c9be-42d00154a468": {
                 "sizeX": 7,
                 "sizeY": 3,
@@ -8024,6 +8542,15 @@
                 "mobileHeight": 6,
                 "row": 0,
                 "col": 26
+              },
+              "c5d7d9e4-c58e-5c55-a290-944c1db6c22a": {
+                "sizeX": 22,
+                "sizeY": 12,
+                "mobileOrder": 5,
+                "mobileHeight": 6,
+                "resizable": true,
+                "row": 11,
+                "col": 26
               }
             },
             "gridSettings": {
@@ -8035,7 +8562,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 5,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -8154,10 +8682,53 @@
           "stateEntityParamName": null,
           "defaultStateEntity": null
         }
+      },
+      "76ebd63e-8763-cdd5-aa37-916755c4df63": {
+        "id": "76ebd63e-8763-cdd5-aa37-916755c4df63",
+        "alias": "Smart Sensors",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": {
+            "entityType": "ASSET",
+            "id": "51833d60-60b3-11eb-adab-69485f2f5834"
+          },
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "smart-sensor"
+          ]
+        }
+      },
+      "6b32a7ba-17fc-b47e-0ea8-e1e4726daa39": {
+        "id": "6b32a7ba-17fc-b47e-0ea8-e1e4726daa39",
+        "alias": "Water Meters",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": {
+            "entityType": "ASSET",
+            "id": "51833d60-60b3-11eb-adab-69485f2f5834"
+          },
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "water-meter"
+          ]
+        }
       }
     },
     "timewindow": {
-      "hideInterval": false,
       "hideAggregation": false,
       "hideAggInterval": false,
       "selectedTab": 0,
@@ -8183,18 +8754,8 @@
     },
     "filters": {}
   },
+  "name": "Smart office",
   "resources": [
-    {
-      "link": "/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "title": "\"Air Quality Monitoring\" dashboard widget \"New OpenStreetMap\" map image",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "publicResourceKey": "tqOwYO62300IxbMN7XadhrP23toIW8W4",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
-      "public": true
-    },
     {
       "link": "/api/images/system/smart_office_dashboard_widget_floor_plan_marker_image_0.svg",
       "title": "\"Smart office\" dashboard widget \"Floor  plan\" marker image 0",
