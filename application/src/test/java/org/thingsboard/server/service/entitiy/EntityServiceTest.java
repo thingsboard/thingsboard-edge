@@ -2198,6 +2198,67 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testFindEntityDataByQueryWithoutAttributeReadPermission() throws ExecutionException, InterruptedException {
+        EntityGroup group = new EntityGroup();
+        group.setName("group to share");
+        group.setTenantId(tenantId);
+        group.setType(EntityType.DEVICE);
+        group.setOwnerId(tenantId);
+        group = entityGroupService.saveEntityGroup(tenantId, tenantId, group);
+
+        List<Device> devices = new ArrayList<>();
+        List<Long> temperatures = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device" + i);
+            device.setType("default");
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
+            Device e = deviceService.saveDevice(device);
+            devices.add(e);
+            entityGroupService.addEntityToEntityGroup(tenantId, group.getId(), e.getId());
+            //TO make sure devices have different created time
+            Thread.sleep(1);
+            long temperature = (long) (Math.random() * 100);
+            temperatures.add(temperature);
+        }
+
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        for (int i = 0; i < devices.size(); i++) {
+            Device device = devices.get(i);
+            for (AttributeScope currentScope : AttributeScope.values()) {
+                attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temperatures.get(i), currentScope));
+            }
+        }
+        Futures.allAsList(attributeFutures).get();
+
+        DeviceTypeFilter filter = new DeviceTypeFilter();
+        filter.setDeviceTypes(List.of("default"));
+        filter.setDeviceNameFilter("");
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+        List<EntityKey> latestValues = Collections.singletonList(new EntityKey(ATTRIBUTE, "temperature"));
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, latestValues, null);
+
+        // find by customer user read entity permission only
+        MergedUserPermissions mergedGroupOnlyPermission = new MergedUserPermissions(Collections.emptyMap(), Map.of(group.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ))));
+        PageData<EntityData> result = findByQueryAndCheck(customerId, mergedGroupOnlyPermission, query, 5);
+
+        List<String> loadedNames = result.getData().stream().map(entityData ->
+                entityData.getLatest().get(ENTITY_FIELD).get("name").getValue()).toList();
+        assertThat(loadedNames).containsExactlyInAnyOrderElementsOf(devices.stream().map(Device::getName).collect(Collectors.toList()));
+        List<String> loadedTemperatures = result.getData().stream().map(entityData ->
+                entityData.getLatest().get(ATTRIBUTE).get("temperature").getValue()).toList();
+        assertThat(loadedTemperatures).containsExactlyInAnyOrderElementsOf(List.of("", "", "", "", ""));
+
+        deviceService.deleteDevicesByTenantId(tenantId);
+    }
+
+    @Test
     public void testFindEntityDataByRelationQuery_blobEntity_customerLevel() {
         final int deviceCnt = 2;
         final int relationsCnt = 3;
