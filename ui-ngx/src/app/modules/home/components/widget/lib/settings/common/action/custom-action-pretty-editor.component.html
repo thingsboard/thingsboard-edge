@@ -52,6 +52,7 @@
   <div class="tb-custom-action-editor" [class.tb-fullscreen-editor]="fullscreen">
     <div *ngIf="!fullscreen; else fullscreenEditor">
       <tb-custom-action-pretty-resources-tabs [hasCustomFunction]="true"
+                                              [helpId]="helpId"
                                               [action]="action" (actionUpdated)="onActionUpdated($event ? true : false)">
       </tb-custom-action-pretty-resources-tabs>
     </div>
@@ -59,6 +60,7 @@
       <div class="tb-fullscreen-panel tb-layout-fill flex flex-row">
         <div #leftPanel class="tb-split tb-content">
           <tb-custom-action-pretty-resources-tabs [hasCustomFunction]="false"
+                                                  [helpId]="helpId"
                                                   [action]="action" (actionUpdated)="onActionUpdated($event ? true : false)">
           </tb-custom-action-pretty-resources-tabs>
         </div>
@@ -73,7 +75,7 @@
             [validationArgs]="[]"
             [editorCompleter]="customPrettyActionEditorCompleter"
             functionTitle="{{ 'widget-action.custom-pretty-function' | translate }}"
-            helpId="widget/action/custom_pretty_action_fn">
+            [helpId]="helpId">
           </tb-js-func>
         </div>
       </div>
