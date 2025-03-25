@@ -326,9 +326,13 @@ export class EntityVersionDiffComponent extends PageComponent implements OnInit,
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const restoreVersionPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, EntityVersionRestoreComponent, 'leftTop', false, null,
-        {
+      const restoreVersionPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: EntityVersionRestoreComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'leftTop',
+        context: {
           versionName: this.versionName,
           versionId: this.versionId,
           groupType: this.groupType,
@@ -341,7 +345,10 @@ export class EntityVersionDiffComponent extends PageComponent implements OnInit,
               this.versionRestored.emit();
             }
           }
-        }, {}, {}, {}, false);
+        },
+        showCloseButton: false,
+        isModal: true
+      });
       restoreVersionPopover.tbComponentRef.instance.popoverComponent = restoreVersionPopover;
     }
   }
