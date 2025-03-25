@@ -142,6 +142,7 @@ public class DefaultWebSocketService implements WebSocketService {
     private static final String FAILED_TO_FETCH_DATA = "Failed to fetch data!";
     private static final String FAILED_TO_FETCH_ATTRIBUTES = "Failed to fetch attributes!";
     private static final String SESSION_META_DATA_NOT_FOUND = "Session meta-data not found!";
+    private static final String LATEST_TELEMETRY_SCOPE = "LATEST_TELEMETRY";
 
     private final ConcurrentMap<String, WsSessionMetaData> wsSessionsMap = new ConcurrentHashMap<>();
 
@@ -712,6 +713,7 @@ public class DefaultWebSocketService implements WebSocketService {
                         .queryTs(queryTs)
                         .allKeys(true)
                         .keyStates(subState)
+                        .latestValues(LATEST_TELEMETRY_SCOPE.equals(cmd.getScope()))
                         .build();
 
                 subLock.lock();
@@ -768,6 +770,7 @@ public class DefaultWebSocketService implements WebSocketService {
                         .queryTs(queryTs)
                         .allKeys(false)
                         .keyStates(subState)
+                        .latestValues(LATEST_TELEMETRY_SCOPE.equals(cmd.getScope()))
                         .build();
 
                 subLock.lock();
