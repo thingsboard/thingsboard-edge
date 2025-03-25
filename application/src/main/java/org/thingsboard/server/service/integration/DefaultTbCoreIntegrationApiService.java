@@ -170,28 +170,29 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     }
 
     @Override
-    public void handle(TbProtoQueueMsg<ToCoreIntegrationMsg> envelope, TbCallback callback) {
+    public Runnable handle(TbProtoQueueMsg<ToCoreIntegrationMsg> envelope, TbCallback callback) {
         var msg = envelope.getValue();
         if (msg.hasIntegration()) {
             IntegrationInfo info = ProtoUtils.fromProto(msg.getIntegration());
             if (msg.hasDeviceUplinkProto()) {
-                platformIntegrationService.processUplinkData(info, msg.getDeviceUplinkProto(), new IntegrationApiCallback(callback));
+                return platformIntegrationService.processUplinkData(info, msg.getDeviceUplinkProto(), new IntegrationApiCallback(callback));
             } else if (msg.hasAssetUplinkProto()) {
-                platformIntegrationService.processUplinkData(info, msg.getAssetUplinkProto(), new IntegrationApiCallback(callback));
+                return platformIntegrationService.processUplinkData(info, msg.getAssetUplinkProto(), new IntegrationApiCallback(callback));
             } else if (msg.hasEntityViewDataProto()) {
-                platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
+                return platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
             } else if (!msg.getCustomTbMsg().isEmpty()) {
-                platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(null, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+                return () -> platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(null, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
             } else {
                 callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
             }
         } else if (msg.hasEventProto()) {
-            platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
+            return () -> platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
         } else if (msg.hasTsDataProto()) {
-            platformIntegrationService.processUplinkData(msg.getTsDataProto(), new IntegrationApiCallback(callback));
+            return () -> platformIntegrationService.processUplinkData(msg.getTsDataProto(), new IntegrationApiCallback(callback));
         } else {
             callback.onFailure(new IllegalArgumentException("Unsupported integration msg!"));
         }
+        return () -> {};
     }
 
     private ListenableFuture<IntegrationApiResponseMsg> handleConverterRequest(ConverterRequestProto request) {
