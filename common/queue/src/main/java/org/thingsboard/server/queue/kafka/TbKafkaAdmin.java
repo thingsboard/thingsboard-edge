@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.queue.kafka;
 
+import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
@@ -60,6 +62,7 @@ public class TbKafkaAdmin implements TbQueueAdmin {
 
     private final TbKafkaSettings settings;
     private final Map<String, String> topicConfigs;
+    @Getter
     private final int numPartitions;
     private volatile Set<String> topics;
 
@@ -172,8 +175,7 @@ public class TbKafkaAdmin implements TbQueueAdmin {
         if (partitionId == null) {
             return;
         }
-        Map<TopicPartition, OffsetAndMetadata> oldOffsets =
-                settings.getAdminClient().listConsumerGroupOffsets(fatGroupId).partitionsToOffsetAndMetadata().get(10, TimeUnit.SECONDS);
+        Map<TopicPartition, OffsetAndMetadata> oldOffsets = getConsumerGroupOffsets(fatGroupId);
         if (oldOffsets.isEmpty()) {
             return;
         }
@@ -184,8 +186,7 @@ public class TbKafkaAdmin implements TbQueueAdmin {
                 continue;
             }
             var om = consumerOffset.getValue();
-            Map<TopicPartition, OffsetAndMetadata> newOffsets =
-                    settings.getAdminClient().listConsumerGroupOffsets(newGroupId).partitionsToOffsetAndMetadata().get(10, TimeUnit.SECONDS);
+            Map<TopicPartition, OffsetAndMetadata> newOffsets = getConsumerGroupOffsets(newGroupId);
 
             var existingOffset = newOffsets.get(tp);
             if (existingOffset == null) {
@@ -200,6 +201,11 @@ public class TbKafkaAdmin implements TbQueueAdmin {
             log.info("[{}] altered new consumer groupId {}", tp, newGroupId);
             break;
         }
+    }
+
+    @SneakyThrows
+    public Map<TopicPartition, OffsetAndMetadata> getConsumerGroupOffsets(String groupId) {
+        return settings.getAdminClient().listConsumerGroupOffsets(groupId).partitionsToOffsetAndMetadata().get(10, TimeUnit.SECONDS);
     }
 
     public boolean isTopicEmpty(String topic) {

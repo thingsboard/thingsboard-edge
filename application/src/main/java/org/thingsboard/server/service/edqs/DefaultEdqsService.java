@@ -74,7 +74,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
 import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.TopicService;
-import org.thingsboard.server.queue.edqs.EdqsQueue;
 import org.thingsboard.server.queue.environment.DistributedLock;
 import org.thingsboard.server.queue.environment.DistributedLockService;
 import org.thingsboard.server.queue.provider.EdqsClientQueueFactory;
@@ -111,7 +110,7 @@ public class DefaultEdqsService implements EdqsService {
     private void init() {
         executor = ThingsBoardExecutors.newWorkStealingPool(12, getClass());
         eventsProducer = EdqsProducer.builder()
-                .producer(queueFactory.createEdqsMsgProducer(EdqsQueue.EVENTS))
+                .producer(queueFactory.createEdqsEventsProducer())
                 .partitionService(edqsPartitionService)
                 .build();
         syncLock = distributedLockService.getLock("edqs_sync");
