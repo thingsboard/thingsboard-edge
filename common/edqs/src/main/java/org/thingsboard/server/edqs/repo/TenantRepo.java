@@ -247,7 +247,7 @@ public class TenantRepo {
                         if (oldCustomerId != null) {
                             CustomerData old = (CustomerData) get(EntityType.CUSTOMER, oldCustomerId);
                             if (old != null) {
-                                old.remove(entityData);
+                                old.remove(entityType, entityId);
                             }
                         }
                         if (newCustomerId != null) {
