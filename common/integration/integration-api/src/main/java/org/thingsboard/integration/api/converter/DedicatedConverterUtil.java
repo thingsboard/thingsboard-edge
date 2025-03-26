@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.util.CollectionsUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class DedicatedConverterUtil {
@@ -91,13 +92,7 @@ public final class DedicatedConverterUtil {
 
         addKvs(attributes, kvMap, config.getAttributes());
 
-        EntityType entityType;
-        if (src.has("type")) {
-            entityType = EntityType.valueOf(src.get("type").getAsString());
-        } else {
-            entityType = config.getType();
-        }
-
+        EntityType entityType = getProperty(src, "type", EntityType::valueOf, config::getType);
         String entityName = getProperty(src, "name", () -> processTemplate(config.getName(), kvMap));
         String profile = getProperty(src, "profile", () -> processTemplate(config.getProfile(), kvMap));
         if (profile == null) {
@@ -120,10 +115,15 @@ public final class DedicatedConverterUtil {
     }
 
     private static String getProperty(JsonObject src, String key, Supplier<String> defaultValue) {
-        if (src.has(key)) {
+        return getProperty(src, key, Function.identity(), defaultValue);
+    }
+
+    private static <T> T getProperty(JsonObject src, String key, Function<String, T> mapper, Supplier<T> defaultValue) {
+        JsonElement jsonValue = src.get(key);
+        if (jsonValue != null && !jsonValue.isJsonNull()) {
             String value = src.get(key).getAsString();
             if (StringUtils.isNotEmpty(value)) {
-                return value;
+                return mapper.apply(value);
             }
         }
         return defaultValue.get();

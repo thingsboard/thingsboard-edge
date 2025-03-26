@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.msg.housekeeper.HousekeeperClient;
 import org.thingsboard.server.dao.eventsourcing.ActionCause;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
@@ -72,7 +73,7 @@ public class CleanUpService {
         EntityType entityType = entityId.getEntityType();
         try {
             log.trace("[{}][{}][{}] Handling entity deletion event", tenantId, entityType, entityId.getId());
-            if (!skippedEntities.contains(entityType)) {
+            if (shouldCleanUp(entityType, event.getEntity())) {
                 cleanUpRelatedData(tenantId, entityId);
             }
             if (entityType == EntityType.USER && event.getCause() != ActionCause.TENANT_DELETION) {
@@ -81,6 +82,10 @@ public class CleanUpService {
         } catch (Throwable e) {
             log.error("[{}][{}][{}] Failed to handle entity deletion event", tenantId, entityType, entityId.getId(), e);
         }
+    }
+
+    private boolean shouldCleanUp(EntityType entityType, Object entity) {
+        return !skippedEntities.contains(entityType) && !(EntityType.ENTITY_GROUP.equals(entityType) && entity instanceof DeviceGroupOtaPackage);
     }
 
     public void cleanUpRelatedData(TenantId tenantId, EntityId entityId) {

@@ -248,11 +248,17 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
           ? this.selfRegistrationForm.get('privacyPolicy').value
           : this.selfRegistrationForm.get('termsOfUse').value
       };
-      const editorPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, EditorPanelComponent, ['leftOnly', 'leftBottomOnly', 'leftTopOnly'], true, null,
-        ctx,
-        {},
-        {}, {}, false, () => {}, {padding: '16px 24px'});
+      const editorPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: EditorPanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: ['leftOnly', 'leftBottomOnly', 'leftTopOnly'],
+        context: ctx,
+        showCloseButton: false,
+        popoverContentStyle: {padding: '16px 24px'},
+        isModal: true
+      });
       editorPanelPopover.tbComponentRef.instance.popover = editorPanelPopover;
       editorPanelPopover.tbComponentRef.instance.editorContentApplied.subscribe((content) => {
         editorPanelPopover.hide();

@@ -3,209 +3,8 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
-  "name": "Water Metering User Dashboard",
   "configuration": {
     "widgets": {
-      "2cbc9189-b947-2d31-e748-c928f036ff96": {
-        "type": "latest",
-        "sizeX": 14,
-        "sizeY": 8,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "f7bed459-ea25-5a39-bfc1-a3bb8c941d8d",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.525753975363191
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.8217317221020777
-                },
-                {
-                  "name": "customerDailyConsumptionThresholdExceeded",
-                  "type": "attribute",
-                  "label": "dailyConsumptionThresholdExceeded",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.06040300070054716
-                },
-                {
-                  "name": "customerWeeklyConsumptionThresholdExceeded",
-                  "type": "attribute",
-                  "label": "weeklyConsumptionThresholdExceeded",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.4111575212453731
-                },
-                {
-                  "name": "customerTemperatureUnderThreshold",
-                  "type": "attribute",
-                  "label": "temperatureUnderThreshold",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.4202814614892829
-                },
-                {
-                  "name": "address",
-                  "type": "attribute",
-                  "label": "address",
-                  "color": "#3f51b5",
-                  "settings": {},
-                  "_hash": 0.8220975883869006
-                },
-                {
-                  "name": "weeklyConsumption",
-                  "type": "timeseries",
-                  "label": "weeklyConsumption",
-                  "color": "#e91e63",
-                  "settings": {},
-                  "_hash": 0.12530134493062772,
-                  "units": "",
-                  "postFuncBody": "return value || 0;",
-                  "decimals": null
-                },
-                {
-                  "name": "temperature",
-                  "type": "timeseries",
-                  "label": "temperature",
-                  "color": "#ffeb3b",
-                  "settings": {},
-                  "_hash": 0.28692501330670206,
-                  "postFuncBody": "if (typeof value === 'number') {\n    return value.toFixed(1) +' &#8451;';\n} else {\n    return '';\n}",
-                  "usePostProcessing": true,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null
-                },
-                {
-                  "name": "dailyConsumption",
-                  "type": "timeseries",
-                  "label": "dailyConsumption",
-                  "color": "#e91e63",
-                  "settings": {},
-                  "_hash": 0.616125317169387,
-                  "units": "",
-                  "postFuncBody": "return value || 0;",
-                  "decimals": null
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678090071280,
-                "endTimeMs": 1678176471280
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0",
-          "settings": {
-            "fitMapBounds": true,
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "showLabel": true,
-            "label": "${entityName}",
-            "markerImageSize": 34,
-            "useColorFunction": false,
-            "markerImages": [
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_1.svg",
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_2.svg"
-            ],
-            "useMarkerImageFunction": true,
-            "color": "#fe7569",
-            "mapProvider": "CartoDB.Positron",
-            "showTooltip": true,
-            "autocloseTooltip": true,
-            "defaultCenterPosition": "0,0",
-            "showTooltipAction": "hover",
-            "polygonKeyName": "coordinates",
-            "polygonOpacity": 0.5,
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 1,
-            "showPolygon": false,
-            "markerImage": "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",
-            "markerImageFunction": "var res = {\n    url: images[0],\n    size: 34\n};\nvar dailyConsumptionThresholdExceeded = (dsData[dsIndex]['dailyConsumptionThresholdExceeded'] && dsData[dsIndex]['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (dsData[dsIndex]['weeklyConsumptionThresholdExceeded'] && dsData[dsIndex]['weeklyConsumptionThresholdExceeded'] === 'true');\nvar lowTemperature = (dsData[dsIndex]['temperatureUnderThreshold'] && dsData[dsIndex]['temperatureUnderThreshold'] === 'true');\n\nif (dailyConsumptionThresholdExceeded || weeklyConsumptionThresholdExceeded || \n            lowTemperature) {\n    res.url = images[1];\n}\nreturn res;",
-            "useTooltipFunction": true,
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "zoomOnClick": true,
-            "showCoverageOnHover": true,
-            "animate": true,
-            "maxClusterRadius": 80,
-            "removeOutsideVisibleBounds": true,
-            "tooltipFunction": "var dailyConsumptionThresholdExceeded = (dsData[dsIndex]['dailyConsumptionThresholdExceeded'] && dsData[dsIndex]['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (dsData[dsIndex]['weeklyConsumptionThresholdExceeded'] && dsData[dsIndex]['weeklyConsumptionThresholdExceeded'] === 'true');\nvar lowTemperature = (dsData[dsIndex]['temperatureUnderThreshold'] && dsData[dsIndex]['temperatureUnderThreshold'] === 'true');\n\nvar generalInfo = '<div><b style=\"line-height: 2; font-size: 14px;\">${entityLabel}</b><br/><span style=\"line-height: 2;\">Address: ${address}</span></div>';\nvar telemetryInfo = '<div><span>Consumed per week: ${weeklyConsumption:2} m<sup style=\"font-size: 9px;\">3</sup></span><br/><span>Consumed per day: ${dailyConsumption:2} m<sup style=\"font-size: 9px;\">3</sup></span><br/><span>Temperature: ${temperature:1}</span></div>';\n\nvar alarmsInfo = '';\n\nif (dailyConsumptionThresholdExceeded) {\n    alarmsInfo += '<br/><span>Daily consumption threshold exceeded.</span>';\n} \nif (weeklyConsumptionThresholdExceeded) {\n    alarmsInfo += '<br/><span>Weekly consumption threshold exceeded.</span>';\n}\nif (lowTemperature) {\n    alarmsInfo += '<br/><span>Low temperature.</span>';\n}\n\nvar label = generalInfo + telemetryInfo;\n\nif (alarmsInfo) {\n    label += '<div style=\"margin-top: 8px;\"><span>Alarms:</span>' + alarmsInfo + '</div>';\n}\n\nreturn label;",
-            "provider": "openstreet-map",
-            "mapPageSize": 16384,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}"
-          },
-          "title": "New OpenStreetMap",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {
-            "border": "1px solid #E0E0E0"
-          },
-          "actions": {
-            "markerClick": [
-              {
-                "id": "e2fbb18a-e0b7-67ef-52cb-414b3d606d30",
-                "name": "Device Details",
-                "icon": "more_horiz",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "device_details",
-                "setEntityId": true
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleIcon": null,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "displayTimewindow": true
-        },
-        "id": "2cbc9189-b947-2d31-e748-c928f036ff96",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
-      },
       "80ac9372-6c45-28e7-6c88-baf76fe78318": {
         "type": "alarm",
         "sizeX": 16,
@@ -361,7 +160,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -371,7 +173,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -481,7 +287,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -491,7 +300,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -796,7 +609,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -806,7 +622,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -1055,7 +875,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1065,7 +888,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1137,7 +964,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1147,7 +977,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1219,7 +1053,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1229,7 +1066,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1326,7 +1167,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1336,7 +1180,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1449,7 +1297,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1459,7 +1310,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1540,7 +1395,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1550,7 +1408,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1770,7 +1632,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1780,7 +1645,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1979,7 +1848,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1989,7 +1861,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2187,7 +2063,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2197,7 +2076,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2250,176 +2133,6 @@
         "id": "2b036a6f-052f-46fe-14c6-6dc59416704f",
         "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
-      "629dcd1a-9569-ba67-0ffd-638051f4ea97": {
-        "type": "latest",
-        "sizeX": 11,
-        "sizeY": 7,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.8866239226623536
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.29740195892595755
-                },
-                {
-                  "name": "dailyConsumptionThresholdExceeded",
-                  "type": "attribute",
-                  "label": "dailyConsumptionThresholdExceeded",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.6403512784014922
-                },
-                {
-                  "name": "weeklyConsumptionThresholdExceeded",
-                  "type": "attribute",
-                  "label": "weeklyConsumptionThresholdExceeded",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.7011567596291408
-                },
-                {
-                  "name": "deviceInactive",
-                  "type": "attribute",
-                  "label": "deviceInactive",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.1478100071106343
-                },
-                {
-                  "name": "lowBattery",
-                  "type": "attribute",
-                  "label": "lowBattery",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.0660701423190655
-                },
-                {
-                  "name": "temperatureUnderThreshold",
-                  "type": "attribute",
-                  "label": "temperatureUnderThreshold",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.17324389210027236
-                }
-              ],
-              "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73"
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678090071280,
-                "endTimeMs": 1678176471280
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "fitMapBounds": true,
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "showLabel": true,
-            "label": "${entityName}",
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><br/><link-act name='delete'>Delete</link-act>",
-            "markerImageSize": 34,
-            "useColorFunction": false,
-            "markerImages": [
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_1.svg",
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_2.svg"
-            ],
-            "useMarkerImageFunction": true,
-            "color": "#fe7569",
-            "mapProvider": "CartoDB.Positron",
-            "showTooltip": true,
-            "autocloseTooltip": true,
-            "defaultCenterPosition": [
-              0,
-              0
-            ],
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "showTooltipAction": "click",
-            "polygonKeyName": "coordinates",
-            "polygonOpacity": 0.5,
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 1,
-            "zoomOnClick": true,
-            "showCoverageOnHover": true,
-            "animate": true,
-            "maxClusterRadius": 80,
-            "removeOutsideVisibleBounds": true,
-            "defaultZoomLevel": 5,
-            "markerImageFunction": "var res = {\n    url: images[0],\n    size: 34\n};\nvar dailyConsumptionThresholdExceeded = (dsData[dsIndex]['dailyConsumptionThresholdExceeded'] && dsData[dsIndex]['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (dsData[dsIndex]['weeklyConsumptionThresholdExceeded'] && dsData[dsIndex]['weeklyConsumptionThresholdExceeded'] === 'true');\nvar inactive = (dsData[dsIndex]['deviceInactive'] && dsData[dsIndex]['deviceInactive'] === 'true');\nvar lowBattery = (dsData[dsIndex]['lowBattery'] && dsData[dsIndex]['lowBattery'] === 'true');\nvar lowTemperature = (dsData[dsIndex]['temperatureUnderThreshold'] && dsData[dsIndex]['temperatureUnderThreshold'] === 'true');\n\nif (inactive) {\n    res.url = images[2];\n} else if (dailyConsumptionThresholdExceeded || weeklyConsumptionThresholdExceeded || \n            lowBattery || lowTemperature) {\n    res.url = images[1];\n}\nreturn res;",
-            "draggableMarker": true,
-            "editablePolygon": true
-          },
-          "title": "Drag and drop marker to change location",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {
-            "border": "1px solid #E0E0E0"
-          },
-          "actions": {
-            "tooltipAction": [
-              {
-                "id": "54c293c4-9ca6-e34f-dc6a-0271944c1c66",
-                "name": "delete",
-                "icon": "more_horiz",
-                "type": "custom",
-                "customFunction": "var $rootScope = widgetContext.$scope.$injector.get('$rootScope');\nvar entityDatasource = widgetContext.map.subscription.datasources.filter(\n    function(entity) {\n        return entity.entityId === entityId.id\n    });\n\nwidgetContext.map.saveMarkerLocation(entityDatasource[0],\n    widgetContext.map.locations[0], {\n        \"lat\": null,\n        \"lng\": null\n    }).then(function succes() {\n        $rootScope.$broadcast('widgetForceReInit');\n    });"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleIcon": null,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "displayTimewindow": true,
-          "enableDataExport": false
-        },
-        "id": "629dcd1a-9569-ba67-0ffd-638051f4ea97",
-        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
-      },
       "41f3bd64-9293-91b4-60aa-eeb4971f96bd": {
         "type": "latest",
         "sizeX": 7,
@@ -2451,7 +2164,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2461,7 +2177,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2529,7 +2249,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2539,7 +2262,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2605,7 +2332,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2615,7 +2345,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2681,7 +2415,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2691,7 +2428,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2781,7 +2522,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2791,7 +2535,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2834,177 +2582,6 @@
         "id": "ac8a033a-b659-fe42-f85a-a3c20fd2b0f1",
         "typeFullFqn": "system.input_widgets.update_multiple_attributes"
       },
-      "bcf9f1c1-2fca-dd03-ce69-8045787b05ec": {
-        "type": "latest",
-        "sizeX": 16,
-        "sizeY": 12,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.8866239226623536
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.29740195892595755
-                },
-                {
-                  "name": "dailyConsumptionThresholdExceeded",
-                  "type": "attribute",
-                  "label": "dailyConsumptionThresholdExceeded",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.6403512784014922
-                },
-                {
-                  "name": "weeklyConsumptionThresholdExceeded",
-                  "type": "attribute",
-                  "label": "weeklyConsumptionThresholdExceeded",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.7011567596291408
-                },
-                {
-                  "name": "deviceInactive",
-                  "type": "attribute",
-                  "label": "deviceInactive",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.1478100071106343
-                },
-                {
-                  "name": "lowBattery",
-                  "type": "attribute",
-                  "label": "lowBattery",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.0660701423190655
-                },
-                {
-                  "name": "temperatureUnderThreshold",
-                  "type": "attribute",
-                  "label": "temperatureUnderThreshold",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.17324389210027236
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678090071280,
-                "endTimeMs": 1678176471280
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "fitMapBounds": true,
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "showLabel": true,
-            "label": "${entityName}",
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><br/><link-act name='delete'>Delete</link-act>",
-            "markerImageSize": 34,
-            "useColorFunction": false,
-            "markerImages": [
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_1.svg",
-              "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_2.svg"
-            ],
-            "useMarkerImageFunction": true,
-            "color": "#fe7569",
-            "mapProvider": "CartoDB.Positron",
-            "showTooltip": true,
-            "autocloseTooltip": true,
-            "defaultCenterPosition": "0,0",
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "showTooltipAction": "click",
-            "polygonKeyName": "coordinates",
-            "polygonOpacity": 0.5,
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 1,
-            "zoomOnClick": true,
-            "showCoverageOnHover": true,
-            "animate": true,
-            "maxClusterRadius": 80,
-            "removeOutsideVisibleBounds": true,
-            "defaultZoomLevel": 5,
-            "markerImageFunction": "var res = {\n    url: images[0],\n    size: 34\n};\nvar dailyConsumptionThresholdExceeded = (dsData[dsIndex]['dailyConsumptionThresholdExceeded'] && dsData[dsIndex]['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (dsData[dsIndex]['weeklyConsumptionThresholdExceeded'] && dsData[dsIndex]['weeklyConsumptionThresholdExceeded'] === 'true');\nvar inactive = (dsData[dsIndex]['deviceInactive'] && dsData[dsIndex]['deviceInactive'] === 'true');\nvar lowBattery = (dsData[dsIndex]['lowBattery'] && dsData[dsIndex]['lowBattery'] === 'true');\nvar lowTemperature = (dsData[dsIndex]['temperatureUnderThreshold'] && dsData[dsIndex]['temperatureUnderThreshold'] === 'true');\n\nif (inactive) {\n    res.url = images[2];\n} else if (dailyConsumptionThresholdExceeded || weeklyConsumptionThresholdExceeded || \n            lowBattery || lowTemperature) {\n    res.url = images[1];\n}\nreturn res;",
-            "draggableMarker": true,
-            "editablePolygon": true,
-            "provider": "openstreet-map",
-            "mapPageSize": 16384
-          },
-          "title": "Drag and drop marker to change location",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {
-            "border": "1px solid #E0E0E0"
-          },
-          "actions": {
-            "tooltipAction": [
-              {
-                "id": "54c293c4-9ca6-e34f-dc6a-0271944c1c66",
-                "name": "delete",
-                "icon": "more_horiz",
-                "type": "custom",
-                "customFunction": "var $rootScope = widgetContext.$scope.$injector.get('$rootScope');\nvar entityDatasource = widgetContext.map.subscription.datasources.filter(\n    function(entity) {\n        return entity.entityId === entityId.id\n    });\n\nwidgetContext.map.saveMarkerLocation(entityDatasource[0],\n    widgetContext.map.locations[0], {\n        \"lat\": null,\n        \"lng\": null\n    }).then(function succes() {\n        $rootScope.$broadcast('widgetForceReInit');\n    });"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleIcon": null,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "displayTimewindow": true,
-          "enableDataExport": false
-        },
-        "id": "bcf9f1c1-2fca-dd03-ce69-8045787b05ec",
-        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
-      },
       "7862ed59-3ffa-e2ae-5bd1-c5531ca668cb": {
         "type": "latest",
         "sizeX": 8,
@@ -3040,7 +2617,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -3050,7 +2630,11 @@
                 "startTimeMs": 1678090071280,
                 "endTimeMs": 1678176471280
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -4467,7 +4051,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -4477,7 +4064,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -4603,7 +4194,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -4613,7 +4207,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -4739,7 +4337,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -4749,7 +4350,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -4875,7 +4480,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -4885,7 +4493,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -5011,7 +4623,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -5021,7 +4636,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -5147,7 +4766,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -5157,7 +4779,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -5283,7 +4909,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -5293,7 +4922,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -5419,7 +5052,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -5429,7 +5065,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -5555,7 +5195,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -5565,7 +5208,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -5691,7 +5338,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -5701,7 +5351,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -5827,7 +5481,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -5837,7 +5494,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -5963,7 +5624,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -5973,7 +5637,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -6099,7 +5767,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -6109,7 +5780,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -6235,7 +5910,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -6245,7 +5923,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -6371,7 +6053,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -6381,7 +6066,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -6507,7 +6196,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -6517,7 +6209,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -6643,7 +6339,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -6653,7 +6352,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -6779,7 +6482,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -6789,7 +6495,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -6915,7 +6625,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -6925,7 +6638,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -7051,7 +6768,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -7061,7 +6781,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -7187,7 +6911,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -7197,7 +6924,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -7323,7 +7054,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -7333,7 +7067,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -7459,7 +7197,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -7469,7 +7210,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -7595,7 +7340,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -7605,7 +7353,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -7731,7 +7483,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -7741,7 +7496,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -7867,7 +7626,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -7877,7 +7639,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -8004,7 +7770,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -8014,7 +7783,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -8141,7 +7914,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -8151,7 +7927,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -8278,7 +8058,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -8288,7 +8071,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -8415,7 +8202,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -8425,7 +8215,11 @@
                 "startTimeMs": 1713363593559,
                 "endTimeMs": 1713449993559
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -8537,6 +8331,902 @@
         "row": 0,
         "col": 0,
         "id": "618bd7f6-5a6f-73fb-d135-b89d768b71d5"
+      },
+      "f521b5c8-5329-dc74-ed67-b8674fbb7374": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742747442833,
+                "endTimeMs": 1742833842833
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "openstreet",
+                "layerType": "CartoDB.Positron",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "f7bed459-ea25-5a39-bfc1-a3bb8c941d8d",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "customerDailyConsumptionThresholdExceeded",
+                    "type": "attribute",
+                    "label": "dailyConsumptionThresholdExceeded",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4023250080668883,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "customerWeeklyConsumptionThresholdExceeded",
+                    "type": "attribute",
+                    "label": "weeklyConsumptionThresholdExceeded",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.8180290932354872,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "customerTemperatureUnderThreshold",
+                    "type": "attribute",
+                    "label": "temperatureUnderThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.6270658047697986,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "address",
+                    "type": "attribute",
+                    "label": "address",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.23212279277458947
+                  },
+                  {
+                    "name": "weeklyConsumption",
+                    "type": "timeseries",
+                    "label": "weeklyConsumption",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.13837522272525327,
+                    "aggregationType": "NONE",
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value || 0;"
+                  },
+                  {
+                    "name": "temperature",
+                    "type": "timeseries",
+                    "label": "temperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.12686738860392088,
+                    "aggregationType": "NONE",
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "if (typeof value === 'number') {\n    return value.toFixed(1) +' &#8451;';\n} else {\n    return '';\n}"
+                  },
+                  {
+                    "name": "dailyConsumption",
+                    "type": "timeseries",
+                    "label": "dailyConsumption",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.6022559232796783,
+                    "aggregationType": "NONE",
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value || 0;"
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "${entityName}"
+                },
+                "tooltip": {
+                  "show": true,
+                  "trigger": "hover",
+                  "autoclose": true,
+                  "type": "function",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See tooltip settings for details</small>",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": "var dailyConsumptionThresholdExceeded = (data['dailyConsumptionThresholdExceeded'] && data['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (data['weeklyConsumptionThresholdExceeded'] && data['weeklyConsumptionThresholdExceeded'] === 'true');\nvar lowTemperature = (data['temperatureUnderThreshold'] && data['temperatureUnderThreshold'] === 'true');\n\nvar generalInfo = '<div><b style=\"line-height: 2; font-size: 14px;\">${entityLabel}</b><br/><span style=\"line-height: 2;\">Address: ${address}</span></div>';\nvar telemetryInfo = '<div><span>Consumed per week: ${weeklyConsumption:2} m<sup style=\"font-size: 9px;\">3</sup></span><br/><span>Consumed per day: ${dailyConsumption:2} m<sup style=\"font-size: 9px;\">3</sup></span><br/><span>Temperature: ${temperature:1}</span></div>';\n\nvar alarmsInfo = '';\n\nif (dailyConsumptionThresholdExceeded) {\n    alarmsInfo += '<br/><span>Daily consumption threshold exceeded.</span>';\n} \nif (weeklyConsumptionThresholdExceeded) {\n    alarmsInfo += '<br/><span>Weekly consumption threshold exceeded.</span>';\n}\nif (lowTemperature) {\n    alarmsInfo += '<br/><span>Low temperature.</span>';\n}\n\nvar label = generalInfo + telemetryInfo;\n\nif (alarmsInfo) {\n    label += '<div style=\"margin-top: 8px;\"><span>Alarms:</span>' + alarmsInfo + '</div>';\n}\n\nreturn label;",
+                  "tagActions": null
+                },
+                "click": {
+                  "type": "openDashboardState",
+                  "targetDashboardStateId": "device_details",
+                  "setEntityId": true,
+                  "stateEntityParamName": null,
+                  "openRightLayout": false,
+                  "openInSeparateDialog": false,
+                  "openInPopover": false
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "var res = {\n    url: images[0],\n    size: 34\n};\nvar dailyConsumptionThresholdExceeded = (data['dailyConsumptionThresholdExceeded'] && data['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (data['weeklyConsumptionThresholdExceeded'] && data['weeklyConsumptionThresholdExceeded'] === 'true');\nvar lowTemperature = (data['temperatureUnderThreshold'] && data['temperatureUnderThreshold'] === 'true');\n\nif (dailyConsumptionThresholdExceeded || weeklyConsumptionThresholdExceeded || \n            lowTemperature) {\n    res.url = images[1];\n}\nreturn res;",
+                  "images": [
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_1.svg",
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_2.svg"
+                  ]
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "0"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "border": "1px solid #E0E0E0"
+          },
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "0px",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "f521b5c8-5329-dc74-ed67-b8674fbb7374"
+      },
+      "b5979e4b-a3af-eaa7-f955-21f6fa720815": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742747442833,
+                "endTimeMs": 1742833842833
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "openstreet",
+                "layerType": "CartoDB.Positron",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "dailyConsumptionThresholdExceeded",
+                    "type": "attribute",
+                    "label": "dailyConsumptionThresholdExceeded",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4023250080668883,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "weeklyConsumptionThresholdExceeded",
+                    "type": "attribute",
+                    "label": "weeklyConsumptionThresholdExceeded",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.8180290932354872,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "temperatureUnderThreshold",
+                    "type": "attribute",
+                    "label": "temperatureUnderThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.6270658047697986,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "deviceInactive",
+                    "type": "attribute",
+                    "label": "deviceInactive",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4919605564945897
+                  },
+                  {
+                    "name": "lowBattery",
+                    "type": "attribute",
+                    "label": "lowBattery",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.08023855815659586
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "${entityName}"
+                },
+                "tooltip": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><br/><link-act name='delete'>Delete</link-act>",
+                  "patternFunction": "",
+                  "trigger": "click",
+                  "autoclose": true,
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "tagActions": [
+                    {
+                      "name": "delete",
+                      "type": "custom",
+                      "customFunction": "widgetContext.mapInstance.saveMarkerLocation(additionalParams, null, null).subscribe(function success() {\n        widgetContext.updateAliases();\n});",
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing",
+                  "openInSeparateDialog": false,
+                  "openInPopover": false
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [
+                    "add",
+                    "move",
+                    "remove"
+                  ],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "var res = {\n    url: images[0],\n    size: 34\n};\nvar dailyConsumptionThresholdExceeded = (data['dailyConsumptionThresholdExceeded'] && data['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (data['weeklyConsumptionThresholdExceeded'] && data['weeklyConsumptionThresholdExceeded'] === 'true');\nvar inactive = (data['deviceInactive'] && data['deviceInactive'] === 'true');\nvar lowBattery = (data['lowBattery'] && data['lowBattery'] === 'true');\nvar lowTemperature = (data['temperatureUnderThreshold'] && data['temperatureUnderThreshold'] === 'true');\n\nif (inactive) {\n    res.url = images[2];\n} else if (dailyConsumptionThresholdExceeded || weeklyConsumptionThresholdExceeded || \n            lowBattery || lowTemperature) {\n    res.url = images[1];\n}\nreturn res;",
+                  "images": [
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_1.svg",
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_2.svg"
+                  ]
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "8px"
+          },
+          "title": "Drag and drop marker to change location",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "border": "1px solid #E0E0E0"
+          },
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "0px",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "b5979e4b-a3af-eaa7-f955-21f6fa720815"
+      },
+      "5a5c96a4-69ce-3909-221f-b98fcb51e12e": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742747442833,
+                "endTimeMs": 1742833842833
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "openstreet",
+                "layerType": "CartoDB.Positron",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "dailyConsumptionThresholdExceeded",
+                    "type": "attribute",
+                    "label": "dailyConsumptionThresholdExceeded",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4023250080668883,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "weeklyConsumptionThresholdExceeded",
+                    "type": "attribute",
+                    "label": "weeklyConsumptionThresholdExceeded",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.8180290932354872,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "temperatureUnderThreshold",
+                    "type": "attribute",
+                    "label": "temperatureUnderThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.6270658047697986,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "deviceInactive",
+                    "type": "attribute",
+                    "label": "deviceInactive",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4919605564945897
+                  },
+                  {
+                    "name": "lowBattery",
+                    "type": "attribute",
+                    "label": "lowBattery",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.08023855815659586
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "${entityName}"
+                },
+                "tooltip": {
+                  "show": true,
+                  "type": "pattern",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><br/><link-act name='delete'>Delete</link-act>",
+                  "patternFunction": "",
+                  "trigger": "click",
+                  "autoclose": true,
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "tagActions": [
+                    {
+                      "name": "delete",
+                      "type": "custom",
+                      "customFunction": "widgetContext.mapInstance.saveMarkerLocation(additionalParams, null, null).subscribe(function success() {\n        widgetContext.updateAliases();\n});",
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing",
+                  "openInSeparateDialog": false,
+                  "openInPopover": false
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [
+                    "add",
+                    "move",
+                    "remove"
+                  ],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "var res = {\n    url: images[0],\n    size: 34\n};\nvar dailyConsumptionThresholdExceeded = (data['dailyConsumptionThresholdExceeded'] && data['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (data['weeklyConsumptionThresholdExceeded'] && data['weeklyConsumptionThresholdExceeded'] === 'true');\nvar inactive = (data['deviceInactive'] && data['deviceInactive'] === 'true');\nvar lowBattery = (data['lowBattery'] && data['lowBattery'] === 'true');\nvar lowTemperature = (data['temperatureUnderThreshold'] && data['temperatureUnderThreshold'] === 'true');\n\nif (inactive) {\n    res.url = images[2];\n} else if (dailyConsumptionThresholdExceeded || weeklyConsumptionThresholdExceeded || \n            lowBattery || lowTemperature) {\n    res.url = images[1];\n}\nreturn res;",
+                  "images": [
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_1.svg",
+                    "tb-image;/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image_2.svg"
+                  ]
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "8px"
+          },
+          "title": "Drag and drop marker to change location",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "border": "1px solid #E0E0E0"
+          },
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "0px",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "5a5c96a4-69ce-3909-221f-b98fcb51e12e"
       }
     },
     "states": {
@@ -8546,14 +9236,6 @@
         "layouts": {
           "main": {
             "widgets": {
-              "2cbc9189-b947-2d31-e748-c928f036ff96": {
-                "sizeX": 14,
-                "sizeY": 8,
-                "mobileOrder": 8,
-                "mobileHeight": 4,
-                "row": 1,
-                "col": 0
-              },
               "80ac9372-6c45-28e7-6c88-baf76fe78318": {
                 "sizeX": 16,
                 "sizeY": 6,
@@ -8625,6 +9307,15 @@
                 "col": 24,
                 "mobileOrder": 5,
                 "mobileHeight": 1
+              },
+              "f521b5c8-5329-dc74-ed67-b8674fbb7374": {
+                "sizeX": 14,
+                "sizeY": 8,
+                "mobileOrder": 8,
+                "mobileHeight": 4,
+                "resizable": true,
+                "row": 1,
+                "col": 0
               }
             },
             "gridSettings": {
@@ -8636,7 +9327,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -8729,7 +9421,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -8806,7 +9499,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -8883,7 +9577,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -8968,7 +9663,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -9025,14 +9721,6 @@
                 "row": 11,
                 "col": 23,
                 "mobileOrder": 16,
-                "mobileHeight": 5
-              },
-              "629dcd1a-9569-ba67-0ffd-638051f4ea97": {
-                "sizeX": 9,
-                "sizeY": 5,
-                "row": 11,
-                "col": 0,
-                "mobileOrder": 17,
                 "mobileHeight": 5
               },
               "7862ed59-3ffa-e2ae-5bd1-c5531ca668cb": {
@@ -9094,6 +9782,15 @@
                 "col": 24,
                 "mobileOrder": 5,
                 "mobileHeight": 1
+              },
+              "b5979e4b-a3af-eaa7-f955-21f6fa720815": {
+                "sizeX": 9,
+                "sizeY": 5,
+                "mobileOrder": 17,
+                "mobileHeight": 5,
+                "resizable": true,
+                "row": 11,
+                "col": 0
               }
             },
             "gridSettings": {
@@ -9105,7 +9802,8 @@
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
               "margin": 8,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -9122,9 +9820,10 @@
                 "row": 0,
                 "col": 0
               },
-              "bcf9f1c1-2fca-dd03-ce69-8045787b05ec": {
+              "5a5c96a4-69ce-3909-221f-b98fcb51e12e": {
                 "sizeX": 48,
                 "sizeY": 19,
+                "resizable": true,
                 "row": 3,
                 "col": 0
               }
@@ -9139,7 +9838,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -9208,7 +9908,6 @@
       }
     },
     "timewindow": {
-      "hideInterval": false,
       "hideAggregation": false,
       "hideAggInterval": false,
       "hideTimezone": false,
@@ -9241,6 +9940,7 @@
     },
     "filters": {}
   },
+  "name": "Water Metering User Dashboard",
   "resources": [
     {
       "link": "/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",

@@ -3,7 +3,6 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
-  "name": "Air Quality Monitoring",
   "configuration": {
     "description": "",
     "widgets": {
@@ -20,7 +19,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -30,7 +32,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -277,7 +283,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -287,7 +296,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -504,7 +517,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -514,7 +530,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -614,7 +634,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -624,7 +647,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -665,228 +692,6 @@
         "id": "288a08e7-9b8e-7a8d-6cf4-aab46fbec9a5",
         "typeFullFqn": "system.cards.markdown_card"
       },
-      "5b4c4a0f-3f54-a65d-b381-7fa6643e07f7": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "a73280b2-4444-d1a5-0a90-9bd458f3049e",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.18647525453030322
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.10794540594150837
-                },
-                {
-                  "name": "aqi",
-                  "type": "timeseries",
-                  "label": "aqi",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.5189703672985084,
-                  "aggregationType": "NONE",
-                  "units": null,
-                  "decimals": 0,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.20388660505398382
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "933a567c-928a-6cbc-8c5d-e0bd486d4ef9",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "selectedSensor",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.8355359037262633,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "if (value) {\n    return true;\n} else {\n    return false;\n}"
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678117909802,
-                "endTimeMs": 1678204309802
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "OpenStreetMap.Mapnik",
-            "useCustomProvider": true,
-            "customProviderTileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultCenterPosition": "0,0",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "draggableMarker": false,
-            "showLabel": false,
-            "showTooltip": false,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageFunction": "const aqi = processValue(data['aqi'], 0);\nconst selectedSensor = data['selectedSensor'] === true;\nconst isActive = data['active'] === 'true';\n\nconst legend = [\n    {\n        range: [0, 50],\n        colors: [[128, 186, 60], [176, 214, 72]]\n    },\n    {\n        range: [50, 100],\n        colors: [[176, 214, 72], [245, 189, 51]]\n    },\n    {\n        range: [100, 150],\n        colors: [[245, 189, 51], [235, 117, 51]]\n    },\n    {\n        range: [150, 200],\n        colors: [[235, 117, 51], [248, 76, 57]]\n    },\n    {\n        range: [200, 300],\n        colors: [[248, 76, 57], [188, 52, 53]]\n    },\n    {\n        range: [300],\n        colors: [[188, 52, 53], [128, 27, 49]]\n    }\n];\n\nconst aqiColor = getAqiColor(aqi);\n\nlet svgString = '<svg ' + (selectedSensor ? 'width=\"56\" height=\"56\" viewBox=\"0 0 56 56\"' : 'width=\"32\" height=\"32\" viewBox=\"0 0 32 32\"') + ' xmlns=\"http://www.w3.org/2000/svg\">';\nif (selectedSensor) {\n    svgString += ('<circle opacity=\"0.32\" fill=\"'+ (isActive ? aqiColor : '#B4B4B4') +'\" cx=\"28\" cy=\"28\" r=\"28\" />');\n}\nsvgString += ('<circle fill=\"'+ (isActive ? aqiColor : '#B4B4B4') +'\" '+ (selectedSensor ? 'cx=\"28\" cy=\"28\"' : 'cx=\"16\" cy=\"16\"') +' r=\"16\" />');\nsvgString += ('<text x=\"50%\" y=\"50%\" font-family=\"Arial\" text-anchor=\"middle\" alignment-baseline=\"central\" style=\"fill:#fff;font-size:14px;font-weight:600\">'+ aqi +'</text></svg>');\n\n\nconst encodedSvg = encodeURIComponent(svgString);\nconst svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: selectedSensor ? 56 : 32,\n    markerOffset: selectedSensor ? [28, 44] : [16, 32]\n};\n\nfunction getLegendSegment(value) {\n    if (value === 'N/A') {\n        return null;\n    }\n    for (let i = 0; i < legend.length; i++) {\n        if (i === 0 && value <= 0) {\n            return legend[0];\n        }\n        if (i === legend.length - 1 && value > 300) {\n            return legend[legend.length - 1];\n        }\n        if (value > legend[i].range[0] && value <= legend[i].range[1]) {\n            return legend[i];\n        }\n    }\n}\n\nfunction getAqiColor(value) {\n    const targetSegment = getLegendSegment(value);\n    if (targetSegment) {\n        if (targetSegment.range.length === 1) {\n            return 'rgb(128,27,49)';\n        } else if (value < 0) {\n            return 'rgb(128,186,60)';\n        } else {\n            let ratio1 = (value - targetSegment.range[0]) / ((targetSegment.range[1] + 1) - targetSegment.range[0]);\n            let ratio2 = 1 - ratio1;\n            let colors = targetSegment.colors;\n            return 'rgb(' + (Math.round(colors[0][0] * ratio2 + colors[1][0] * ratio1)) + ', ' \n                          + (Math.round(colors[0][1] * ratio2 + colors[1][1] * ratio1)) + ', ' \n                          + (Math.round(colors[0][2] * ratio2 + colors[1][2] * ratio1)) + ')';\n        }\n    } else {\n        return 'rgb(180,180,180)';\n    }\n}\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
-            "markerImages": [],
-            "showPolygon": false,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": false,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true,
-            "useIconCreateFunction": false
-          },
-          "title": "New OpenStreetMap",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "markerClick": [
-              {
-                "name": "Select sensor",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "custom",
-                "customFunction": "const params = widgetContext.stateController.getStateParams();\nconst selectedSensor = params['selectedSensor'];\nif (selectedSensor && selectedSensor.entityId.id === entityId.id) {\n    params['selectedSensor'] = null;\n} else {\n    params['selectedSensor'] = { entityId: entityId, entityName: entityName, entityLabel: entityLabel };\n}\nwidgetContext.stateController.updateState(null, params);",
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "a1c28266-caf0-78d4-2268-490d0e94c8b3"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "enableDataExport": false,
-          "margin": "0",
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "5b4c4a0f-3f54-a65d-b381-7fa6643e07f7",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
-      },
       "f4a4e04e-efab-f169-1fcc-4ec5cf9cf50f": {
         "type": "latest",
         "sizeX": 5,
@@ -900,7 +705,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -910,7 +718,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -978,7 +790,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -988,7 +803,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1042,7 +861,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1052,7 +874,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1105,7 +931,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1115,7 +944,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1226,9 +1059,6 @@
           ],
           "timewindow": {
             "displayValue": "",
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -1237,7 +1067,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 2,
@@ -1247,7 +1080,11 @@
                 "startTimeMs": 1678117909802,
                 "endTimeMs": 1678204309802
               },
-              "quickInterval": "CURRENT_YEAR_SO_FAR"
+              "quickInterval": "CURRENT_YEAR_SO_FAR",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1364,9 +1201,6 @@
           ],
           "timewindow": {
             "displayValue": "",
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -1375,7 +1209,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 2,
@@ -1385,7 +1222,11 @@
                 "startTimeMs": 1678117909803,
                 "endTimeMs": 1678204309803
               },
-              "quickInterval": "CURRENT_YEAR_SO_FAR"
+              "quickInterval": "CURRENT_YEAR_SO_FAR",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1502,9 +1343,6 @@
           ],
           "timewindow": {
             "displayValue": "",
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -1513,7 +1351,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 2,
@@ -1523,7 +1364,11 @@
                 "startTimeMs": 1678117909803,
                 "endTimeMs": 1678204309803
               },
-              "quickInterval": "CURRENT_YEAR_SO_FAR"
+              "quickInterval": "CURRENT_YEAR_SO_FAR",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1640,9 +1485,6 @@
           ],
           "timewindow": {
             "displayValue": "",
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -1651,7 +1493,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 2,
@@ -1661,7 +1506,11 @@
                 "startTimeMs": 1678117909803,
                 "endTimeMs": 1678204309803
               },
-              "quickInterval": "CURRENT_YEAR_SO_FAR"
+              "quickInterval": "CURRENT_YEAR_SO_FAR",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1778,9 +1627,6 @@
           ],
           "timewindow": {
             "displayValue": "",
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -1789,7 +1635,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 2,
@@ -1799,7 +1648,11 @@
                 "startTimeMs": 1678117909803,
                 "endTimeMs": 1678204309803
               },
-              "quickInterval": "CURRENT_YEAR_SO_FAR"
+              "quickInterval": "CURRENT_YEAR_SO_FAR",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1916,9 +1769,6 @@
           ],
           "timewindow": {
             "displayValue": "",
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -1927,7 +1777,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 2,
@@ -1937,7 +1790,11 @@
                 "startTimeMs": 1678117909803,
                 "endTimeMs": 1678204309803
               },
-              "quickInterval": "CURRENT_YEAR_SO_FAR"
+              "quickInterval": "CURRENT_YEAR_SO_FAR",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -10544,6 +10401,260 @@
         "row": 0,
         "col": 0,
         "id": "264118cd-5fc4-cdfa-2b4f-e20fc3e7b4d3"
+      },
+      "4330f176-0573-3a15-5812-46b835321ac4": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742746488143,
+                "endTimeMs": 1742832888143
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "custom",
+                "tileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "a73280b2-4444-d1a5-0a90-9bd458f3049e",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "aqi",
+                    "type": "timeseries",
+                    "label": "aqi",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.48070618568137213
+                  },
+                  {
+                    "name": "active",
+                    "type": "attribute",
+                    "label": "active",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.8233571024376567
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "${entityName}",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": false,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See tooltip settings for details</small>",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": null,
+                  "tagActions": null
+                },
+                "click": {
+                  "type": "custom",
+                  "customFunction": "const params = widgetContext.stateController.getStateParams();\nconst selectedSensor = params['selectedSensor'];\nif (selectedSensor && selectedSensor.entityId.id === entityId.id) {\n    params['selectedSensor'] = null;\n} else {\n    params['selectedSensor'] = { entityId: entityId, entityName: entityName, entityLabel: entityLabel };\n}\nwidgetContext.stateController.updateState(null, params);",
+                  "openInSeparateDialog": false,
+                  "openInPopover": false
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "const aqi = processValue(data['aqi'], 0);\nconst selectedSensor = dsData.some(d => d.selectedSensor === true && d.entityId === data.entityId);\nconst isActive = data['active'] === 'true';\n\nconst legend = [\n    {\n        range: [0, 50],\n        colors: [[128, 186, 60], [176, 214, 72]]\n    },\n    {\n        range: [50, 100],\n        colors: [[176, 214, 72], [245, 189, 51]]\n    },\n    {\n        range: [100, 150],\n        colors: [[245, 189, 51], [235, 117, 51]]\n    },\n    {\n        range: [150, 200],\n        colors: [[235, 117, 51], [248, 76, 57]]\n    },\n    {\n        range: [200, 300],\n        colors: [[248, 76, 57], [188, 52, 53]]\n    },\n    {\n        range: [300],\n        colors: [[188, 52, 53], [128, 27, 49]]\n    }\n];\n\nconst aqiColor = getAqiColor(aqi);\n\nlet svgString = '<svg ' + (selectedSensor ? 'width=\"56\" height=\"56\" viewBox=\"0 0 56 56\"' : 'width=\"32\" height=\"32\" viewBox=\"0 0 32 32\"') + ' xmlns=\"http://www.w3.org/2000/svg\">';\nif (selectedSensor) {\n    svgString += ('<circle opacity=\"0.32\" fill=\"'+ (isActive ? aqiColor : '#B4B4B4') +'\" cx=\"28\" cy=\"28\" r=\"28\" />');\n}\nsvgString += ('<circle fill=\"'+ (isActive ? aqiColor : '#B4B4B4') +'\" '+ (selectedSensor ? 'cx=\"28\" cy=\"28\"' : 'cx=\"16\" cy=\"16\"') +' r=\"16\" />');\nsvgString += ('<text x=\"50%\" y=\"50%\" font-family=\"Arial\" text-anchor=\"middle\" alignment-baseline=\"central\" style=\"fill:#fff;font-size:14px;font-weight:600\">'+ aqi +'</text></svg>');\n\n\nconst encodedSvg = encodeURIComponent(svgString);\nconst svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: selectedSensor ? 56 : 32,\n    markerOffset: selectedSensor ? [28, 44] : [16, 32]\n};\n\nfunction getLegendSegment(value) {\n    if (value === 'N/A') {\n        return null;\n    }\n    for (let i = 0; i < legend.length; i++) {\n        if (i === 0 && value <= 0) {\n            return legend[0];\n        }\n        if (i === legend.length - 1 && value > 300) {\n            return legend[legend.length - 1];\n        }\n        if (value > legend[i].range[0] && value <= legend[i].range[1]) {\n            return legend[i];\n        }\n    }\n}\n\nfunction getAqiColor(value) {\n    const targetSegment = getLegendSegment(value);\n    if (targetSegment) {\n        if (targetSegment.range.length === 1) {\n            return 'rgb(128,27,49)';\n        } else if (value < 0) {\n            return 'rgb(128,186,60)';\n        } else {\n            let ratio1 = (value - targetSegment.range[0]) / ((targetSegment.range[1] + 1) - targetSegment.range[0]);\n            let ratio2 = 1 - ratio1;\n            let colors = targetSegment.colors;\n            return 'rgb(' + (Math.round(colors[0][0] * ratio2 + colors[1][0] * ratio1)) + ', ' \n                          + (Math.round(colors[0][1] * ratio2 + colors[1][1] * ratio1)) + ', ' \n                          + (Math.round(colors[0][2] * ratio2 + colors[1][2] * ratio1)) + ')';\n        }\n    } else {\n        return 'rgb(180,180,180)';\n    }\n}\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
+                  "images": null
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dataKeys": [
+                  {
+                    "name": "latitude",
+                    "type": "attribute",
+                    "label": "selectedSensor",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4238613850568884,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "if (value) {\n    return true;\n} else {\n    return false;\n}"
+                  }
+                ],
+                "dsEntityAliasId": "933a567c-928a-6cbc-8c5d-e0bd486d4ef9"
+              }
+            ],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "0"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "0px",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "4330f176-0573-3a15-5812-46b835321ac4"
       }
     },
     "states": {
@@ -10569,7 +10680,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10596,7 +10708,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10623,7 +10736,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10650,7 +10764,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10677,7 +10792,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10694,7 +10810,7 @@
                 "row": 0,
                 "col": 0
               },
-              "5b4c4a0f-3f54-a65d-b381-7fa6643e07f7": {
+              "4330f176-0573-3a15-5812-46b835321ac4": {
                 "sizeX": 19,
                 "sizeY": 11,
                 "row": 0,
@@ -10710,7 +10826,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10737,7 +10854,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10764,7 +10882,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10791,7 +10910,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10818,7 +10938,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10845,7 +10966,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10872,7 +10994,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10899,7 +11022,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10926,7 +11050,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10953,7 +11078,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -10980,7 +11106,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11007,7 +11134,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11034,7 +11162,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11061,7 +11190,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11088,7 +11218,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11115,7 +11246,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11142,7 +11274,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11169,7 +11302,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11196,7 +11330,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11223,7 +11358,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11250,7 +11386,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11277,7 +11414,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11304,7 +11442,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11331,7 +11470,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11358,7 +11498,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11385,7 +11526,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11412,7 +11554,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11439,7 +11582,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11466,7 +11610,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11493,7 +11638,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -11558,9 +11704,6 @@
     "filters": {},
     "timewindow": {
       "displayValue": "",
-      "hideInterval": false,
-      "hideLastInterval": false,
-      "hideQuickInterval": false,
       "hideAggregation": false,
       "hideAggInterval": false,
       "hideTimezone": false,
@@ -11603,17 +11746,6 @@
       "dashboardCss": ".tb-dashboard-page .mat-drawer-container, .tb-dashboard-page .tb-progress-cover, .tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n\n\n/* Aqi Components Popup Styles */\n\n.aqi-component-desc-popup {\n    width: 100%;\n    height: 100%;\n    padding: 20px 24px 28px 24px;\n}\n\n.aqi-component-desc-popup .header,\n.aqi-component-desc-popup .component-name-header {\n    font-weight: 600;\n    font-size: 22px;\n    line-height: 28px;\n    letter-spacing: 0.25px;\n    color: #29313C;\n}\n\n.aqi-component-desc-popup .component-name-header {\n    margin-bottom: 4px;\n}\n\n.aqi-component-desc-popup .header {\n    margin-bottom: 16px;\n}\n\n.aqi-component-desc-popup .entity-name-header {\n    margin-bottom: 24px;\n    font-weight: 500;\n    font-size: 18px;\n    line-height: 24px;\n    letter-spacing: 0.25px;\n    color: #9FA6B4;\n}\n\n.aqi-component-desc-popup .history-container {\n    height: 65%;\n    width: 100%;\n    margin-bottom: 40px;\n}\n\n.aqi-component-desc-popup .history-container .history-tabs .mat-mdc-tab-header {\n    border-bottom: none;\n}\n\n.aqi-component-desc-popup .history-container .history-tabs .mat-mdc-tab {\n    height: 40px;\n    min-width: 50px;\n    opacity: 1;\n}\n\n.aqi-component-desc-popup .history-container .history-tabs .mat-mdc-tab .mdc-tab__text-label {\n    font-size: 14px;\n    font-weight: 600;\n    line-height: 20px;\n    color: #9FA6B4;\n}\n\n.aqi-component-desc-popup .history-container .history-tabs .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {\n    color: #29313C;\n}\n\n.aqi-component-desc-popup .history-container .history-tabs .mat-mdc-tab .mdc-tab-indicator__content--underline {\n    border-color: #4B535B;\n}\n\n.aqi-component-desc-popup .history-container .history-tabs {\n    height: 100%;\n}\n\n.aqi-component-desc-popup .history-container .history-tabs .mat-mdc-tab-body-wrapper {\n    height: calc(100% - 40px);\n}\n\n.aqi-component-desc-popup .component-values-container {\n    margin-bottom: 24px;\n}\n\n.aqi-component-desc-popup .component-values-container > div:not(:last-child) {\n    margin-right: 24px;\n}\n\n.aqi-component-desc-popup .component-value-header {\n    margin-bottom: 8px;\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    letter-spacing: 0.25px;\n    color: #9FA6B4;\n}\n\n.aqi-component-desc-popup .component-value-row {\n    display: flex;\n    flex-direction: row;\n    font-size: 14px;\n}\n\n.aqi-component-desc-popup .component-value {\n    margin-right: 4px;\n    line-height: 20px;\n    font-weight: 600;\n    color: #29313C;\n}\n\n.aqi-component-desc-popup .component-unit {\n    font-weight: 400;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    color: #29313C;\n}\n\n.aqi-component-desc-popup .component-desc-text {\n    font-weight: 400;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    color: #29313C;\n}"
     }
   },
-  "resources": [
-    {
-      "link": "/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "title": "\"Air Quality Monitoring\" dashboard widget \"New OpenStreetMap\" map image",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "publicResourceKey": "tqOwYO62300IxbMN7XadhrP23toIW8W4",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
-      "public": true
-    }
-  ]
+  "name": "Air Quality Monitoring",
+  "resources": []
 }
