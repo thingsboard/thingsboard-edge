@@ -54,8 +54,6 @@ public final class DedicatedConverterUtil {
 
     private static final Gson GSON = new Gson();
 
-    private static final Function<String, String> STRING_MAPPER = s -> s;
-
     private DedicatedConverterUtil() {
     }
 
@@ -116,13 +114,13 @@ public final class DedicatedConverterUtil {
     }
 
     private static String getProperty(JsonObject src, String key, Supplier<String> defaultValue) {
-        return getProperty(src, key, STRING_MAPPER, defaultValue);
+        return getProperty(src, key, Function.identity(), defaultValue);
     }
 
     private static <T> T getProperty(JsonObject src, String key, Function<String, T> mapper, Supplier<T> defaultValue) {
         JsonElement value = src.get(key);
         if (value != null && !value.isJsonNull()) {
-            return  mapper.apply(src.get(key).getAsString());
+            return mapper.apply(src.get(key).getAsString());
         }
         return defaultValue.get();
     }
