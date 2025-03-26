@@ -326,6 +326,7 @@ export class TbPopoverDirective implements OnChanges, OnDestroy, AfterViewInit {
       #overlay="cdkConnectedOverlay"
       cdkConnectedOverlay
       [cdkConnectedOverlayHasBackdrop]="hasBackdrop"
+      [cdkConnectedOverlayBackdropClass]="backdropClass"
       [cdkConnectedOverlayOrigin]="origin"
       [cdkConnectedOverlayPositions]="positions"
       [cdkConnectedOverlayScrollStrategy]="scrollStrategy"
@@ -397,6 +398,7 @@ export class TbPopoverComponent<T = any> implements OnDestroy, OnInit {
   tbMouseLeaveDelay?: number;
   tbHideOnClickOutside = true;
   tbShowCloseButton = true;
+  tbModal = false;
 
   tbAnimationState = 'active';
 
@@ -476,7 +478,11 @@ export class TbPopoverComponent<T = any> implements OnDestroy, OnInit {
   }
 
   get hasBackdrop(): boolean {
-    return this.tbTrigger === 'click' ? this.tbBackdrop : false;
+    return this.tbModal || (this.tbTrigger === 'click' && this.tbBackdrop);
+  }
+
+  get backdropClass(): string {
+    return this.tbModal ? 'tb-popover-overlay-backdrop' : '';
   }
 
   preferredPlacement: PopoverPlacement = 'top';
@@ -649,7 +655,7 @@ export class TbPopoverComponent<T = any> implements OnDestroy, OnInit {
   }
 
   onClickOutside(event: MouseEvent): void {
-    if (this.tbHideOnClickOutside && !this.origin.elementRef.nativeElement.contains(event.target) && this.tbTrigger !== null) {
+    if (!this.tbModal && this.tbHideOnClickOutside && !this.origin.elementRef.nativeElement.contains(event.target) && this.tbTrigger !== null) {
       if (!this.isTopOverlay(event.target as Element)) {
         this.hide();
       }
