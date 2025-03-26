@@ -3859,7 +3859,9 @@
               "doubleClick",
               "controlButtons"
             ],
-            "scales": [],
+            "scales": [
+              "metric"
+            ],
             "dragModeButton": false,
             "fitMapBounds": true,
             "useDefaultCenterPosition": false,
@@ -4187,7 +4189,9 @@
               "doubleClick",
               "controlButtons"
             ],
-            "scales": [],
+            "scales": [
+              "metric"
+            ],
             "dragModeButton": false,
             "fitMapBounds": false,
             "useDefaultCenterPosition": false,
@@ -4649,7 +4653,9 @@
               "doubleClick",
               "controlButtons"
             ],
-            "scales": [],
+            "scales": [
+              "metric"
+            ],
             "dragModeButton": false,
             "fitMapBounds": true,
             "useDefaultCenterPosition": false,
