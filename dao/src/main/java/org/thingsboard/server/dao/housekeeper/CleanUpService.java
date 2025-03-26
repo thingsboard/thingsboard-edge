@@ -73,7 +73,7 @@ public class CleanUpService {
         EntityType entityType = entityId.getEntityType();
         try {
             log.trace("[{}][{}][{}] Handling entity deletion event", tenantId, entityType, entityId.getId());
-            if (!skippedEntities.contains(entityType) && !isDeviceGroupOtaPackage(entityType, event.getEntity())) {
+            if (shouldCleanUp(entityType, event.getEntity())) {
                 cleanUpRelatedData(tenantId, entityId);
             }
             if (entityType == EntityType.USER && event.getCause() != ActionCause.TENANT_DELETION) {
@@ -84,8 +84,8 @@ public class CleanUpService {
         }
     }
 
-    private boolean isDeviceGroupOtaPackage(EntityType entityType, Object entity) {
-        return EntityType.ENTITY_GROUP.equals(entityType) && entity instanceof DeviceGroupOtaPackage;
+    private boolean shouldCleanUp(EntityType entityType, Object entity) {
+        return !skippedEntities.contains(entityType) && !(EntityType.ENTITY_GROUP.equals(entityType) && entity instanceof DeviceGroupOtaPackage);
     }
 
     public void cleanUpRelatedData(TenantId tenantId, EntityId entityId) {
