@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.util.CollectionsUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class DedicatedConverterUtil {
@@ -52,6 +53,8 @@ public final class DedicatedConverterUtil {
     public static final String DEFAULT_PROFILE = "default";
 
     private static final Gson GSON = new Gson();
+
+    private static final Function<String, String> STRING_MAPPER = s -> s;
 
     private DedicatedConverterUtil() {
     }
@@ -90,13 +93,7 @@ public final class DedicatedConverterUtil {
 
         addKvs(attributes, kvMap, config.getAttributes());
 
-        EntityType entityType;
-        if (src.has("type")) {
-            entityType = EntityType.valueOf(src.get("type").getAsString());
-        } else {
-            entityType = config.getType();
-        }
-
+        EntityType entityType = getProperty(src, "type", EntityType::valueOf, config::getType);
         String entityName = getProperty(src, "name", () -> processTemplate(config.getName(), kvMap));
         String profile = getProperty(src, "profile", () -> processTemplate(config.getProfile(), kvMap));
         if (profile == null) {
@@ -119,8 +116,13 @@ public final class DedicatedConverterUtil {
     }
 
     private static String getProperty(JsonObject src, String key, Supplier<String> defaultValue) {
-        if (src.has(key)) {
-            return src.get(key).getAsString();
+        return getProperty(src, key, STRING_MAPPER, defaultValue);
+    }
+
+    private static <T> T getProperty(JsonObject src, String key, Function<String, T> mapper, Supplier<T> defaultValue) {
+        JsonElement value = src.get(key);
+        if (value != null && !value.isJsonNull()) {
+            return  mapper.apply(src.get(key).getAsString());
         }
         return defaultValue.get();
     }
