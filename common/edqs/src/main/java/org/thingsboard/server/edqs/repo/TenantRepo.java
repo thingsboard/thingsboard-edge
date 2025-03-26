@@ -101,6 +101,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.query.TsValue.EMPTY;
 import static org.thingsboard.server.edqs.util.RepositoryUtils.SORT_ASC;
 import static org.thingsboard.server.edqs.util.RepositoryUtils.SORT_DESC;
 import static org.thingsboard.server.edqs.util.RepositoryUtils.SYS_ADMIN_PERMISSIONS;
@@ -113,7 +114,6 @@ public class TenantRepo {
     public static final Comparator<EntityData<?>> CREATED_TIME_AND_ID_COMPARATOR = CREATED_TIME_COMPARATOR
             .thenComparing(EntityData::getId);
     public static final Comparator<EntityData<?>> CREATED_TIME_AND_ID_DESC_COMPARATOR = CREATED_TIME_AND_ID_COMPARATOR.reversed();
-    public static final TsValue EMPTY_TS_VALUE = new TsValue(0, "");
 
     private final ConcurrentMap<EntityType, Set<EntityData<?>>> entitySetByType = new ConcurrentHashMap<>();
     private final ConcurrentMap<EntityType, ConcurrentMap<UUID, EntityData<?>>> entityMapByType = new ConcurrentHashMap<>();
@@ -457,7 +457,7 @@ public class TenantRepo {
             for (var key : query.getLatestValues()) {
                 DataPoint dp = entityData.getEntityData().getDataPoint(key, ctx);
                 TsValue v = ((key.type().isAttribute() && entityData.isReadAttrs()) || (key.type() == EntityKeyType.TIME_SERIES && entityData.isReadTs())) ?
-                        RepositoryUtils.toTsValue(ts, dp) : EMPTY_TS_VALUE;
+                        RepositoryUtils.toTsValue(ts, dp) : EMPTY;
                 latest.computeIfAbsent(key.type(), t -> new HashMap<>()).put(KeyDictionary.get(key.keyId()), v);
             }
 
