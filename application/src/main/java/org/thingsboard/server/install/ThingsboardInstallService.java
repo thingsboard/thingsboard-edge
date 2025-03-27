@@ -171,13 +171,13 @@ public class ThingsboardInstallService {
                 // installScripts.loadSystemLwm2mResources();
                 installScripts.loadSystemImagesAndResources();
 
-                /* LoadDemo is not supported on Edge
+                /* loadDemo: not supported on edge
                 if (loadDemo) {
                     log.info("Loading demo data...");
                     systemDataLoaderService.loadDemoData();
                 }
-                log.info("Installation finished successfully!");
                  */
+                log.info("Installation finished successfully!");
             }
         } catch (Exception e) {
             log.error("Unexpected error during ThingsBoard Edge installation!", e);

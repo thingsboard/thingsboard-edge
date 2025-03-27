@@ -183,7 +183,6 @@
         <module>application</module>
         <module>msa</module>
         <module>rest-client</module>
-        <module>msa/tb-edge-node</module>
         <!--        <module>monitoring</module>-->
     </modules>
 
