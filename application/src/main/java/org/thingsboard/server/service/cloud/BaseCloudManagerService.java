@@ -165,6 +165,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private volatile boolean sendingInProgress = false;
     private volatile boolean isRateLimitViolated = false;
     private volatile boolean initInProgress = false;
+    private volatile boolean shouldPerformInitialSync = true;
 
     protected void establishRpcConnection() {
         if (connectFuture != null) {
@@ -418,15 +419,13 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
             interruptPreviousSendUplinkMsgsTask();
-
-            boolean doSync = reconnectFuture == null;
             if (reconnectFuture != null) {
                 reconnectFuture.cancel(true);
                 reconnectFuture = null;
             }
 
             if ("CE".equals(edgeConfiguration.getCloudType())) {
-                initAndUpdateEdgeSettings(edgeConfiguration, doSync);
+                initAndUpdateEdgeSettings(edgeConfiguration);
             } else {
                 new Thread(() -> {
                     log.error("Terminating application. CE edge can be connected only to CE server version...");
@@ -445,7 +444,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         initInProgress = false;
     }
 
-    private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration, boolean doSync) throws Exception {
+    private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
         if (!isSystemTenantPartitionMine()) {
             return;
         }
@@ -475,10 +474,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             cloudCtx.getCustomerProcessor().createCustomerIfNotExists(tenantId, edgeConfiguration);
         }
 
-        if (doSync) {
+        if (shouldPerformInitialSync) {
             log.trace("Sending sync request, fullSyncRequired {}", currentEdgeSettings.isFullSyncRequired());
             edgeRpcClient.sendSyncRequestMsg(currentEdgeSettings.isFullSyncRequired());
             syncInProgress = true;
+            shouldPerformInitialSync = false;
         }
 
         edgeSettingsService.saveEdgeSettings(tenantId, currentEdgeSettings);
@@ -778,7 +778,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             orderedPendingMsgQueue.forEach(this::sendUplinkMsg);
 
             return latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
-         } catch (Exception e) {
+        } catch (Exception e) {
             log.error("Interrupted while waiting for latch, isGeneralProcessInProgress={}", isGeneralProcessInProgress, e);
             for (UplinkMsg value : pendingMsgMap.values()) {
                 log.warn("Message not send due to exception: {}", value);
@@ -809,6 +809,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @FunctionalInterface
     protected interface CloudEventFinder {
         PageData<CloudEvent> find(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+
     }
 
 }
