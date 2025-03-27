@@ -169,5 +169,6 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
     } else {
       this.debugSettingsFormGroup.enable({emitEvent: false});
     }
+    this.cd.markForCheck();
   }
 }

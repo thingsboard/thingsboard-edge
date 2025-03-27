@@ -150,6 +150,7 @@ export abstract class TbMap<S extends BaseMapSettings> {
   private currentEditButton: L.TB.ToolbarButton;
 
   private dragMode = true;
+  private createMapItemActionId: string;
 
   private get isPlacingItem(): boolean {
     return !!this.currentEditButton;
@@ -712,8 +713,13 @@ export abstract class TbMap<S extends BaseMapSettings> {
   }
 
   private createItem(actionData: PlaceMapItemActionData, prepareDrawMode: () => void) {
-    if (this.isPlacingItem) {
+    const actionId = 'id' in actionData.action ? actionData.action.id : 'map-button';
+    if (this.createMapItemActionId === actionId) {
+      this.finishCreatedItem();
       return;
+    }
+    if (isDefined(this.createMapItemActionId)) {
+      this.finishCreatedItem();
     }
     this.updatePlaceItemState(actionData.additionalParams?.button, true);
 
@@ -727,7 +733,7 @@ export abstract class TbMap<S extends BaseMapSettings> {
       // @ts-ignore
       e.layer._pmTempLayer = true;
       e.layer.remove();
-      this.finishAdd();
+      this.finishCreatedItem();
     });
 
     prepareDrawMode();
@@ -740,9 +746,11 @@ export abstract class TbMap<S extends BaseMapSettings> {
         iconClass: 'tb-close',
         title: this.ctx.translate.instant('action.cancel'),
         showText: true,
-        click: this.finishAdd
+        click: this.finishCreatedItem
       }
     ], false);
+
+    this.createMapItemActionId = actionId;
 
     const convertLayerToCoordinates = (type: MapItemType, layer: L.Layer): {x: number; y: number} | TbPolygonRawCoordinates | TbCircleData => {
       switch (type) {
@@ -773,6 +781,11 @@ export abstract class TbMap<S extends BaseMapSettings> {
           return null;
       }
     }
+  }
+
+  private finishCreatedItem = () => {
+    delete this.createMapItemActionId;
+    this.finishAdd();
   }
 
   private finishAdd = () => {
