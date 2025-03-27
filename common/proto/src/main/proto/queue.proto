@@ -372,7 +372,8 @@ message ApiUsageStateProto {
   string emailExecState = 14;
   string smsExecState = 15;
   string alarmExecState = 16;
-  int64 version = 17;
+  // edge only optional
+  optional int64 version = 17;
 }
 
 message RepositorySettingsProto {
