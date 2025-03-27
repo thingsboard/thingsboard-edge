@@ -78,6 +78,7 @@ export interface WidgetActionDialogData {
   customFunctionArgs: string[];
   action?: WidgetActionDescriptorInfo;
   widgetType: widgetType;
+  defaultIconColor?: string;
   additionalWidgetActionTypes?: WidgetActionType[];
   isEntityGroup?: boolean;
 }
@@ -98,6 +99,8 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
 
   customFunctionArgs = this.data.customFunctionArgs;
   widgetActionTypes = this.data.actionTypes;
+
+  defaultIconColor: string;
 
   customActionEditorCompleter = CustomActionEditorCompleter;
 
@@ -129,6 +132,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
               private destroyRef: DestroyRef) {
     super(store, router, dialogRef);
     this.isAdd = data.isAdd;
+    this.defaultIconColor = data.defaultIconColor;
     if (this.isAdd) {
       this.action = {
         id: this.utils.guid(),

@@ -88,6 +88,8 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   @Input() widgetType: widgetType;
 
+  @Input() defaultIconColor: string;
+
   @Input() callbacks: WidgetActionCallbacks;
 
   @Input() actionSources: {[actionSourceId: string]: WidgetActionSource};
@@ -263,8 +265,9 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         actionTypes: this.actionTypes,
         customFunctionArgs: this.customFunctionArgs,
         widgetType: this.widgetType,
+        defaultIconColor: this.defaultIconColor,
         additionalWidgetActionTypes: this.additionalWidgetActionTypes,
-        isEntityGroup: this.isEntityGroup
+        isEntityGroup: this.isEntityGroup,
       }
     }).afterClosed().subscribe(
       (res) => {

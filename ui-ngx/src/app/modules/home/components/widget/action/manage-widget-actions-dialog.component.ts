@@ -47,6 +47,7 @@ export interface ManageWidgetActionsDialogData {
   actionsData: WidgetActionsData;
   callbacks: WidgetActionCallbacks;
   widgetType: widgetType;
+  defaultIconColor?: string;
   additionalWidgetActionTypes?: WidgetActionType[];
 }
 
