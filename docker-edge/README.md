@@ -51,11 +51,11 @@ You should see ThingsBoard Edge login page.
 
 Use the credentials from the ThingsBoard account.
 
-In case of any issues you can examine service logs for errors.
-For example to see ThingsBoard node logs execute the following command:
+In case of any issues you can examine edge service logs for errors.
+For example to see ThingsBoard Edge node logs execute the following command:
 
 `
-$ docker-compose logs -f tb-edge1 tb-edge2 tb-rule-engine1 tb-rule-engine2
+$ docker-compose logs -f tb-edge1 tb-edge2
 `
 
 Or use `docker-compose ps` to see the state of all the containers.
@@ -90,14 +90,9 @@ In case when database upgrade is needed, execute the following commands:
 
 ```
 $ ./docker-stop-services.sh
-$ ./docker-upgrade-tb.sh --fromVersion=[FROM_VERSION]
+$ ./docker-upgrade-tb.sh
 $ ./docker-start-services.sh
 ```
-
-Where:
-
-- `FROM_VERSION` - from which version upgrade should be started. See [Upgrade Instructions](https://thingsboard.io/docs/user-guide/install/edge/upgrade-instructions/) for valid `fromVersion` values.
-
 
 ## Monitoring
 

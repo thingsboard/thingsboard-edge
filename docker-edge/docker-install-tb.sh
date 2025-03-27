@@ -15,28 +15,6 @@
 # limitations under the License.
 #
 
-while [[ $# -gt 0 ]]
-do
-key="$1"
-
-case $key in
-    --loadDemo)
-    LOAD_DEMO=true
-    shift # past argument
-    ;;
-    *)
-            # unknown option
-    ;;
-esac
-shift # past argument or value
-done
-
-if [ "$LOAD_DEMO" == "true" ]; then
-    loadDemo=true
-else
-    loadDemo=false
-fi
-
 set -e
 
 source compose-utils.sh
@@ -72,7 +50,7 @@ fi
 
 COMPOSE_ARGS="\
       -f docker-compose.yml ${ADDITIONAL_CACHE_ARGS} ${ADDITIONAL_COMPOSE_ARGS} \
-      run --no-deps --rm -e INSTALL_TB_EDGE=true -e LOAD_DEMO=${loadDemo} \
+      run --no-deps --rm -e INSTALL_TB_EDGE=true\
       tb-edge1"
 
 case $COMPOSE_VERSION in

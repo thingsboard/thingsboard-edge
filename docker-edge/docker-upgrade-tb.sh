@@ -15,27 +15,6 @@
 # limitations under the License.
 #
 
-for i in "$@"
-do
-case $i in
-    --fromVersion=*)
-    FROM_VERSION="${i#*=}"
-    shift
-    ;;
-    *)
-            # unknown option
-    ;;
-esac
-done
-
-if [[ -z "${FROM_VERSION// }" ]]; then
-    echo "--fromVersion parameter is invalid or unspecified!"
-    echo "Usage: docker-upgrade-tb.sh --fromVersion={VERSION}"
-    exit 1
-else
-    fromVersion="${FROM_VERSION// }"
-fi
-
 set -e
 
 source compose-utils.sh
@@ -63,7 +42,7 @@ COMPOSE_ARGS_UP="\
 
 COMPOSE_ARGS_RUN="\
       -f docker-compose.yml ${ADDITIONAL_CACHE_ARGS} ${ADDITIONAL_COMPOSE_ARGS} ${ADDITIONAL_COMPOSE_QUEUE_ARGS} \
-      run --no-deps --rm -e UPGRADE_TB=true -e FROM_VERSION=${fromVersion} \
+      run --no-deps --rm -e UPGRADE_TB=true \
       tb-edge1"
 
 case $COMPOSE_VERSION in

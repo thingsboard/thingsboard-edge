@@ -21,14 +21,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
@@ -61,7 +59,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
-import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
@@ -80,8 +77,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -94,10 +89,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     protected static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
     protected static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
     protected static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
-
-    private final AtomicReference<ScheduledExecutorService> rpcSchedulerRef = new AtomicReference<>();
-
-    private final AtomicBoolean rpcConnectionScheduled = new AtomicBoolean(false);
 
     private static final int MAX_SEND_UPLINK_ATTEMPTS = 3;
 
@@ -173,60 +164,40 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private volatile boolean isRateLimitViolated = false;
     private volatile boolean initInProgress = false;
 
-    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
-    public void onApplicationEvent(ApplicationReadyEvent event) {
-        scheduleRpcConnection();
-    }
-
-    @Override
-    @SneakyThrows
-    protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        if (ServiceType.TB_CORE.equals(event.getServiceType())) {
+    protected void establishRpcConnection() {
+        try {
             synchronized (this) {
-                boolean isMyPartition = isSystemTenantPartitionMine();
-                if (isMyPartition && !initialized) {
-                    scheduleRpcConnection();
-                } else if (initialized || initInProgress) {
-                    destroy();
+                if (!isSystemTenantPartitionMine()) {
+                    onDestroy();
+                    return;
+                }
+                if (!initialized && !initInProgress && validateRoutingKeyAndSecret()) {
+                    initInProgress = true;
+                    try {
+                        log.info("Starting Cloud Edge service");
+                        edgeRpcClient.connect(routingKey, routingSecret,
+                                this::onUplinkResponse,
+                                this::onEdgeUpdate,
+                                this::onDownlink,
+                                this::scheduleReconnect);
+                        uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
+                        reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
+                        launchUplinkProcessing();
+                    } catch (Exception e) {
+                        initInProgress = false;
+                        log.error("Failed to establish connection to cloud", e);
+                        // scheduleRpcConnection();
+                    }
                 }
             }
-        }
-    }
-
-    private void scheduleRpcConnection() {
-        ScheduledExecutorService rpcScheduler = getOrCreateRpcScheduler();
-        if (rpcConnectionScheduled.compareAndSet(false, true)) {
-            rpcScheduler.schedule(() -> {
-                try {
-                    establishRpcConnection();
-                } finally {
-                    initInProgress = false;
-                    rpcConnectionScheduled.set(false);
-                }
-            }, 60, TimeUnit.SECONDS);
-        }
-    }
-
-    private void establishRpcConnection() {
-        if (isSystemTenantPartitionMine() && !initialized && !initInProgress && validateRoutingKeyAndSecret()) {
-            initInProgress = true;
-            try {
-                log.info("Starting Cloud Edge service");
-                edgeRpcClient.connect(routingKey, routingSecret,
-                        this::onUplinkResponse,
-                        this::onEdgeUpdate,
-                        this::onDownlink,
-                        this::scheduleReconnect);
-                uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
-                reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
-                launchUplinkProcessing();
-            } catch (Exception e) {
-                scheduleRpcConnection();
-            }
+        } catch (Exception e) {
+            log.error("Failed to establish Cloud Edge service", e);
         }
     }
 
     protected abstract void launchUplinkProcessing();
+
+    protected abstract void onDestroy() throws InterruptedException;
 
     protected void resetQueueOffset() {
         updateQueueStartTsSeqIdOffset(tenantId, QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, System.currentTimeMillis(), 0L);
@@ -264,10 +235,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             log.error("Exception during disconnect", e);
         }
 
-        ScheduledExecutorService rpcScheduler = rpcSchedulerRef.get();
-        if (rpcScheduler != null && !rpcScheduler.isShutdown()) {
-            rpcScheduler.shutdownNow();
-        }
         if (uplinkExecutor != null && !uplinkExecutor.isShutdown()) {
             uplinkExecutor.shutdownNow();
         }
@@ -500,6 +467,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         }
 
         initialized = true;
+        initInProgress = false;
     }
 
     private boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration) {
@@ -808,20 +776,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             pendingMsgMap.remove(uplinkMsg.getUplinkMsgId());
             latch.countDown();
         }
-    }
-
-    private ScheduledExecutorService getOrCreateRpcScheduler() {
-        ScheduledExecutorService scheduler = rpcSchedulerRef.get();
-        if (scheduler == null || scheduler.isShutdown()) {
-            ScheduledExecutorService newScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-rpc-connect"));
-            if (rpcSchedulerRef.compareAndSet(scheduler, newScheduler)) {
-                return newScheduler;
-            } else {
-                newScheduler.shutdown();
-                return rpcSchedulerRef.get();
-            }
-        }
-        return scheduler;
     }
 
     private boolean isSystemTenantPartitionMine() {
