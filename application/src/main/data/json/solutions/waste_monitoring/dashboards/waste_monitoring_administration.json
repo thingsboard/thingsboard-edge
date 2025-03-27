@@ -3,264 +3,9 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
-  "name": "Waste Management Administration",
   "configuration": {
     "description": "",
     "widgets": {
-      "ad8020a2-53fd-8334-c94e-2a7af3774780": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "6ee2c775-15f1-e7dc-a368-12a263215530",
-              "filterId": "b57ed975-3305-c009-023a-bbb9d8fd36ee",
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.7494193897041803
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.9838447132407786
-                },
-                {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.6846057478799168
-                },
-                {
-                  "name": "isFull",
-                  "type": "attribute",
-                  "label": "isFull",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.22495105809331717
-                },
-                {
-                  "name": "isLowBattery",
-                  "type": "attribute",
-                  "label": "isLowBattery",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.342551798277811
-                },
-                {
-                  "name": "fullLevel",
-                  "type": "timeseries",
-                  "label": "fullLevel",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.9544049085696054
-                },
-                {
-                  "name": "batteryLevel",
-                  "type": "timeseries",
-                  "label": "batteryLevel",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.7804883468187684
-                },
-                {
-                  "name": "address",
-                  "type": "attribute",
-                  "label": "address",
-                  "color": "#3f51b5",
-                  "settings": {},
-                  "_hash": 0.09184488741118457
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideQuickInterval": false
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1677748441199,
-                "endTimeMs": 1677834841199
-              },
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideFixedInterval": false,
-              "hideQuickInterval": false
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "CartoDB.Positron",
-            "useCustomProvider": false,
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultZoomLevel": 0,
-            "defaultCenterPosition": "0,0",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "posFunction": "return {x: origXPos, y: origYPos};",
-            "draggableMarker": false,
-            "showLabel": false,
-            "useLabelFunction": false,
-            "label": "${entityName}",
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": true,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}",
-            "tooltipFunction": "const fullLevel = processValue(data.fullLevel, 0);\nconst batteryLevel = processValue(data.batteryLevel, 0);\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst fullColor = isFull ? '#D12730' : '#29313C';\nconst lowBatteryColor = isLowBattery ? '#D12730' : '#29313C';\nconst isActive = data.active === 'true';\nconst status = isActive ? 'Online' : 'Offline';\nconst color = isActive ? '#3AA94D' : '#C42F37';\nconst bgColor = isActive ? 'rgba(58, 169, 77, 0.08)' : 'rgba(196, 47, 55, 0.08)';\nconst address = data.address ? data.address : 'N/A';\nconst lastUpdate = (data['batteryLevel|ts'] || data['fullLevel|ts']) ? moment(Math.max(data['batteryLevel|ts'], data['fullLevel|ts'])).format('D MMM YYYY HH:mm') : 'N/A';\n\nreturn '<div style=\"display:flex;flex-direction:column;margin-bottom:8px;font-family:\\'Roboto\\';font-weight:500;font-size:16px;line-height:24px;letter-spacing:0.25px;color:#29313C\">' +\n            '<div>Sensor ${entityName}</div>' +\n            '<div style=\"width: 100%;border-bottom:1px solid rgba(0, 0, 0, 0.12);margin:12px 0;\"></div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Address</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;color:#29313C;letter-spacing:0.25px\">'+ address +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Fullness</div>' +\n                '<div style=\"color:'+ fullColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ fullLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Battery level</div>' +\n                '<div style=\"color:'+ lowBatteryColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ batteryLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Connection</div>' +\n                '<div style=\"font-size:14px;width:fit-content;padding:4px 8px;font-weight:500;line-height:20px;letter-spacing:0.25px;border-radius:8px;color:'+ color +';background-color:'+ bgColor +'\">' + status + '</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:13px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Last update</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;color:#29313C;letter-spacing:0.25px\">'+ lastUpdate +'</div>' +\n            '</div>' +\n       '</div>' +\n       '<div style=\"text-align: center\">' +\n            '<link-act name=\"sensor-details\">Details ></link-act>' +\n       '</div>';\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageSize": 34,
-            "markerImageFunction": "let image = images[0];\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst isActive = data.active && data.active !== 'false';\n\nif (!isActive) {\n    image = images[3];\n} else if (isFull) {\n    image = images[1];\n} else if (isLowBattery) {\n    image = images[2];\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
-            "markerImages": [
-              "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
-              "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_1.svg",
-              "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_2.svg",
-              "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg"
-            ],
-            "showPolygon": false,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": false,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "useClusterMarkers": true,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true,
-            "useIconCreateFunction": true,
-            "clusterMarkerFunction": "let isAlarm = false;\nfor(let i=0; i < data.length; i++) {\n    if (data[i].isFull === 'true' || data[i].isLowBattery === 'true' || data[i].active === 'false') {\n        isAlarm = true;\n        break;\n    }\n}\n\nreturn isAlarm ? '#fbac36' : '#73c65e';"
-          },
-          "title": "Bins Map",
-          "dropShadow": false,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "tooltipAction": [
-              {
-                "name": "sensor-details",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "selected_bin",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "e38e7a79-6238-7bbd-6bc2-5b90a3dfd660"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "ad8020a2-53fd-8334-c94e-2a7af3774780",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
-      },
       "6743d611-3f49-5caf-4e28-c06eeebbe225": {
         "type": "latest",
         "sizeX": 5,
@@ -732,7 +477,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "const $injector = widgetContext.$scope.$injector;\nconst attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\nconst currentUser = widgetContext.currentUser;\nconsole.log(currentUser);\nconst attributesArray = [\n    { key: 'displayFullBins', value: false },\n    { key: 'displayLowBatteryBins', value: false },\n    { key: 'displayOfflineBins', value: true }\n];\nattributeService.saveEntityAttributes({id: currentUser.userId, entityType: 'USER'},\n    'SERVER_SCOPE', attributesArray, {ignoreLoading: true}).subscribe();",
+                "customFunction": "const $injector = widgetContext.$scope.$injector;\nconst attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\nconst currentUser = widgetContext.currentUser;\nconst attributesArray = [\n    { key: 'displayFullBins', value: false },\n    { key: 'displayLowBatteryBins', value: false },\n    { key: 'displayOfflineBins', value: true }\n];\nattributeService.saveEntityAttributes({id: currentUser.userId, entityType: 'USER'},\n    'SERVER_SCOPE', attributesArray, {ignoreLoading: true}).subscribe();",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "4b4a2c35-e86a-01f9-d941-ab77ddf8bbc3"
@@ -1549,234 +1294,6 @@
         "id": "6672413e-b50d-c915-a8da-47f873df2458",
         "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
-      "f7e58e0e-4207-8e1c-1825-67d85a19234a": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6.5,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "89427837-ec63-72e5-7388-d55276d731d8",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.625071850015156
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.7359334302147129
-                },
-                {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.7452535357568304
-                },
-                {
-                  "name": "isLowBattery",
-                  "type": "attribute",
-                  "label": "isLowBattery",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.05675118414125824
-                },
-                {
-                  "name": "isFull",
-                  "type": "attribute",
-                  "label": "isFull",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.48210407759035956
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideQuickInterval": false
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1677748441199,
-                "endTimeMs": 1677834841199
-              },
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideFixedInterval": false,
-              "hideQuickInterval": false
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "CartoDB.Positron",
-            "useCustomProvider": false,
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultZoomLevel": 5,
-            "defaultCenterPosition": "0,0",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "draggableMarker": true,
-            "showLabel": false,
-            "showTooltip": false,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageFunction": "let image = images[0];\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst isActive = data.active && data.active !== 'false';\n\nif (!isActive) {\n    image = images[3];\n} else if (isFull) {\n    image = images[1];\n} else if (isLowBattery) {\n    image = images[2];\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
-            "markerImages": [
-              "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
-              "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_1.svg",
-              "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_2.svg",
-              "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg"
-            ],
-            "showPolygon": false,
-            "polygonKeyName": "coordinates",
-            "editablePolygon": true,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${coordinates|ts:7}<br/><br/><link-act name='delete'>Delete</link-act>",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.5,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 1,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "snappable": false,
-            "initDragMode": false,
-            "hideAllControlButton": false,
-            "hideDrawControlButton": false,
-            "hideEditControlButton": false,
-            "hideRemoveControlButton": false,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true,
-            "useIconCreateFunction": false
-          },
-          "title": "",
-          "dropShadow": false,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "tooltipAction": [
-              {
-                "name": "delete",
-                "icon": "more_horiz",
-                "type": "custom",
-                "customFunction": "var entityDatasource = widgetContext.map.map.datasources.filter(\n    function(entity) {\n        return entity.entityId === entityId.id;\n    });\n\nwidgetContext.map.setMarkerLocation(entityDatasource[0], null, null).subscribe(() => widgetContext.updateAliases());",
-                "id": "54c293c4-9ca6-e34f-dc6a-0271944c1c66"
-              },
-              {
-                "name": "delete_polygon",
-                "icon": "more_horiz",
-                "type": "custom",
-                "customFunction": "var entityDatasource = widgetContext.map.map.datasources.filter(\n    function(entity) {\n        return entity.entityId === entityId.id\n    });\n\nwidgetContext.map.savePolygonLocation(entityDatasource[0], null).subscribe(() => widgetContext.updateAliases());",
-                "id": "6beb7bed-dfd8-388d-b60c-82988ab52f06"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleIcon": "more_horiz",
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "displayTimewindow": true,
-          "enableDataExport": false,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "f7e58e0e-4207-8e1c-1825-67d85a19234a",
-        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
-      },
       "1c29fe6f-d07a-61c4-2c16-01c861588074": {
         "typeFullFqn": "system.state_chart",
         "type": "timeseries",
@@ -2579,6 +2096,535 @@
         "row": 0,
         "col": 0,
         "id": "3432fdd3-4ce7-6221-f6f2-e551f414898a"
+      },
+      "24a4752e-7f68-011f-eeaa-2839664028bc": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742976686812,
+                "endTimeMs": 1743063086812
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "openstreet",
+                "layerType": "CartoDB.Positron",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "6ee2c775-15f1-e7dc-a368-12a263215530",
+                "dsFilterId": "b57ed975-3305-c009-023a-bbb9d8fd36ee",
+                "additionalDataKeys": [
+                  {
+                    "name": "active",
+                    "type": "attribute",
+                    "label": "active",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.6938682084400549
+                  },
+                  {
+                    "name": "isFull",
+                    "type": "attribute",
+                    "label": "isFull",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7663040659848686
+                  },
+                  {
+                    "name": "isLowBattery",
+                    "type": "attribute",
+                    "label": "isLowBattery",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.5782043187469397
+                  },
+                  {
+                    "name": "fullLevel",
+                    "type": "timeseries",
+                    "label": "fullLevel",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4754909823353195
+                  },
+                  {
+                    "name": "batteryLevel",
+                    "type": "timeseries",
+                    "label": "batteryLevel",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.8989016678459154
+                  },
+                  {
+                    "name": "address",
+                    "type": "attribute",
+                    "label": "address",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.6736783729168021
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "function",
+                  "pattern": "",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": "const fullLevel = processValue(data.fullLevel, 0);\nconst batteryLevel = processValue(data.batteryLevel, 0);\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst fullColor = isFull ? '#D12730' : '#29313C';\nconst lowBatteryColor = isLowBattery ? '#D12730' : '#29313C';\nconst isActive = data.active === 'true';\nconst status = isActive ? 'Online' : 'Offline';\nconst color = isActive ? '#3AA94D' : '#C42F37';\nconst bgColor = isActive ? 'rgba(58, 169, 77, 0.08)' : 'rgba(196, 47, 55, 0.08)';\nconst address = data.address ? data.address : 'N/A';\nconst lastUpdate = (data['batteryLevel|ts'] || data['fullLevel|ts']) ? moment(Math.max(data['batteryLevel|ts'], data['fullLevel|ts'])).format('D MMM YYYY HH:mm') : 'N/A';\n\nreturn '<div style=\"display:flex;flex-direction:column;margin-bottom:8px;font-family:\\'Roboto\\';font-weight:500;font-size:16px;line-height:24px;letter-spacing:0.25px;color:#29313C\">' +\n            '<div>Sensor ${entityName}</div>' +\n            '<div style=\"width: 100%;border-bottom:1px solid rgba(0, 0, 0, 0.12);margin:12px 0;\"></div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Address</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;color:#29313C;letter-spacing:0.25px\">'+ address +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Fullness</div>' +\n                '<div style=\"color:'+ fullColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ fullLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Battery level</div>' +\n                '<div style=\"color:'+ lowBatteryColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ batteryLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Connection</div>' +\n                '<div style=\"font-size:14px;width:fit-content;padding:4px 8px;font-weight:500;line-height:20px;letter-spacing:0.25px;border-radius:8px;color:'+ color +';background-color:'+ bgColor +'\">' + status + '</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:13px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Last update</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;color:#29313C;letter-spacing:0.25px\">'+ lastUpdate +'</div>' +\n            '</div>' +\n       '</div>' +\n       '<div style=\"text-align: center\">' +\n            '<link-act name=\"sensor-details\">Details ></link-act>' +\n       '</div>';\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
+                  "tagActions": [
+                    {
+                      "name": "sensor-details",
+                      "type": "openDashboardState",
+                      "targetDashboardStateId": "selected_bin",
+                      "setEntityId": true,
+                      "stateEntityParamName": null,
+                      "openRightLayout": false,
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": null,
+                  "icon": "mdi:trash-can-outline",
+                  "size": 32,
+                  "color": {
+                    "type": "constant",
+                    "color": "#787878",
+                    "range": null,
+                    "colorFunction": null
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "let image = images[0];\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst isActive = data.active && data.active !== 'false';\n\nif (!isActive) {\n    image = images[3];\n} else if (isFull) {\n    image = images[1];\n} else if (isLowBattery) {\n    image = images[2];\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
+                  "images": [
+                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
+                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_1.svg",
+                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_2.svg",
+                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg"
+                  ]
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": true,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": true,
+                  "clusterMarkerColorFunction": "let isAlarm = false;\nfor(let i=0; i < data.length; i++) {\n    if (data[i].isFull === 'true' || data[i].isLowBattery === 'true' || data[i].active === 'false') {\n        isAlarm = true;\n        break;\n    }\n}\n\nreturn isAlarm ? '#fbac36' : '#73c65e';"
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [
+              "metric"
+            ],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": 0,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "8px"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "24a4752e-7f68-011f-eeaa-2839664028bc"
+      },
+      "bea7eccf-f333-e2b9-41c1-ecd2640ad303": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742977623861,
+                "endTimeMs": 1743064023861
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "openstreet",
+                "layerType": "CartoDB.Positron",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "89427837-ec63-72e5-7388-d55276d731d8",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "active",
+                    "type": "attribute",
+                    "label": "active",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.3120230024243247
+                  },
+                  {
+                    "name": "isLowBattery",
+                    "type": "attribute",
+                    "label": "isLowBattery",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.6053110699421451
+                  },
+                  {
+                    "name": "isFull",
+                    "type": "attribute",
+                    "label": "isFull",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.6063832408664489
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": false,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": null,
+                  "tagActions": null
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [
+                    "add",
+                    "move",
+                    "remove"
+                  ],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "let image = images[0];\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst isActive = data.active && data.active !== 'false';\n\nif (!isActive) {\n    image = images[3];\n} else if (isFull) {\n    image = images[1];\n} else if (isLowBattery) {\n    image = images[2];\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
+                  "images": [
+                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
+                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_1.svg",
+                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_2.svg",
+                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg"
+                  ]
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [
+              "metric"
+            ],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": 5,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "8px"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "bea7eccf-f333-e2b9-41c1-ecd2640ad303"
       }
     },
     "states": {
@@ -2588,14 +2634,6 @@
         "layouts": {
           "main": {
             "widgets": {
-              "ad8020a2-53fd-8334-c94e-2a7af3774780": {
-                "sizeX": 36,
-                "sizeY": 41,
-                "row": 0,
-                "col": 28,
-                "resizable": true,
-                "mobileHeight": 4
-              },
               "6743d611-3f49-5caf-4e28-c06eeebbe225": {
                 "sizeX": 7,
                 "sizeY": 4,
@@ -2643,6 +2681,14 @@
                 "col": 0,
                 "resizable": true,
                 "mobileHeight": 5
+              },
+              "24a4752e-7f68-011f-eeaa-2839664028bc": {
+                "sizeX": 36,
+                "sizeY": 41,
+                "mobileHeight": 4,
+                "resizable": true,
+                "row": 0,
+                "col": 28
               }
             },
             "gridSettings": {
@@ -2683,12 +2729,6 @@
                 "row": 8,
                 "col": 0
               },
-              "f7e58e0e-4207-8e1c-1825-67d85a19234a": {
-                "sizeX": 9,
-                "sizeY": 8,
-                "row": 0,
-                "col": 8
-              },
               "1c29fe6f-d07a-61c4-2c16-01c861588074": {
                 "sizeX": 15,
                 "sizeY": 8,
@@ -2700,6 +2740,12 @@
                 "sizeY": 8,
                 "row": 8,
                 "col": 17
+              },
+              "bea7eccf-f333-e2b9-41c1-ecd2640ad303": {
+                "sizeX": 9,
+                "sizeY": 8,
+                "row": 0,
+                "col": 8
               }
             },
             "gridSettings": {
@@ -3069,21 +3115,11 @@
       "hideToolbar": false,
       "showFilters": false,
       "showUpdateDashboardImage": false,
-      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 2px 8px rgba(222, 223, 224, 0.25);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #4B535B !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell {\n    color: #9FA6B4 !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity) .mat-cell.mat-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell button.mat-icon-button mat-icon,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-actions mat-icon {\n    color: #757575 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    color: #4B535B;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in {\n    border-radius: 6px 6px 0 0;\n    border-bottom: 1px solid transparent; \n}\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    border-radius: 0 0 6px 6px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-buttons-control-button{\n    border: none;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-popup a.tb-custom-action {\n    font-family: 'Roboto';\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    border-bottom: none;\n}\n\n.bin-card,\n.bin-card .mdc-button {\n    padding: 0 !important;\n    height: 100%;\n    width: 100%;\n    border-radius: 8px;\n}\n\n.bin-card .mdc-button {\n    border-bottom: 3px solid #fff;\n    transition: all 0.2s ease-in-out;\n}\n\n.bin-card .mat-mdc-button:hover .mat-mdc-button-persistent-ripple:before,\n.bin-card .mat-mdc-outlined-button:hover .mat-mdc-button-persistent-ripple:before {\n    opacity: 0;\n}\n  \n.bin-card .mdc-button:hover {\n    border-bottom: 3px solid #E7E7E7;\n    background-color: #fff;\n}\n\n.bin-card .bin-card-selected {\n    border-bottom: 3px solid #305680;\n}\n\n.bin-card .bin-card-selected:hover {\n    border-bottom: 3px solid #305680;\n    cursor: initial;\n}\n\n.bin-card .mdc-button__label {\n    width: 100%;\n    margin-top: 4px;\n}\n\n.bin-card-content {\n    padding: 0 16px;\n}\n\n.bin-card-content img {\n    width: 40px;\n    height: 40px;\n}\n\n.bin-card-data {\n    text-align: left;\n    margin-left: 16px;\n}\n\n.bin-card-content .bin-card-header {\n    margin-bottom: 4px;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n    color: #9FA6B4;\n    white-space: nowrap;\n}\n\n.bin-card-content .bin-card-value {\n    font-size: 24px;\n    line-height: 24px;\n    color: rgba(0, 0, 0, 0.87);\n}\n\n@media (max-width: 1599px) {\n    \n    .bin-card-content {\n        padding: 0 8px;\n    }\n    \n    .bin-card-content img {\n        width: 32px;\n        height: 32px;\n    }\n    \n    .bin-card-data {\n        margin-left: 8px;\n    }\n    \n    .bin-card-content .bin-card-header {\n        font-size: 10px;\n        line-height: 12px;\n        margin-bottom: 0;\n    }\n    \n    .bin-card-content .bin-card-value {\n        font-size: 18px;\n        line-height: 20px;\n    }\n}"
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 2px 8px rgba(222, 223, 224, 0.25);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #4B535B !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell {\n    color: #9FA6B4 !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity) .mat-cell.mat-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell button.mat-icon-button mat-icon,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-actions mat-icon {\n    color: #757575 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-popup a.tb-custom-action {\n    font-family: 'Roboto';\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    border-bottom: none;\n}\n\n.bin-card,\n.bin-card .mdc-button {\n    padding: 0 !important;\n    height: 100%;\n    width: 100%;\n    border-radius: 8px;\n}\n\n.bin-card .mdc-button {\n    border-bottom: 3px solid #fff;\n    transition: all 0.2s ease-in-out;\n}\n\n.bin-card .mat-mdc-button:hover .mat-mdc-button-persistent-ripple:before,\n.bin-card .mat-mdc-outlined-button:hover .mat-mdc-button-persistent-ripple:before {\n    opacity: 0;\n}\n  \n.bin-card .mdc-button:hover {\n    border-bottom: 3px solid #E7E7E7;\n    background-color: #fff;\n}\n\n.bin-card .bin-card-selected {\n    border-bottom: 3px solid #305680;\n}\n\n.bin-card .bin-card-selected:hover {\n    border-bottom: 3px solid #305680;\n    cursor: initial;\n}\n\n.bin-card .mdc-button__label {\n    width: 100%;\n    margin-top: 4px;\n}\n\n.bin-card-content {\n    padding: 0 16px;\n}\n\n.bin-card-content img {\n    width: 40px;\n    height: 40px;\n}\n\n.bin-card-data {\n    text-align: left;\n    margin-left: 16px;\n}\n\n.bin-card-content .bin-card-header {\n    margin-bottom: 4px;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n    color: #9FA6B4;\n    white-space: nowrap;\n}\n\n.bin-card-content .bin-card-value {\n    font-size: 24px;\n    line-height: 24px;\n    color: rgba(0, 0, 0, 0.87);\n}\n\n@media (max-width: 1599px) {\n    \n    .bin-card-content {\n        padding: 0 8px;\n    }\n    \n    .bin-card-content img {\n        width: 32px;\n        height: 32px;\n    }\n    \n    .bin-card-data {\n        margin-left: 8px;\n    }\n    \n    .bin-card-content .bin-card-header {\n        font-size: 10px;\n        line-height: 12px;\n        margin-bottom: 0;\n    }\n    \n    .bin-card-content .bin-card-value {\n        font-size: 18px;\n        line-height: 20px;\n    }\n}"
     }
   },
+  "name": "Waste Management Administration",
   "resources": [
-    {
-      "link": "/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "title": "\"Air Quality Monitoring\" dashboard widget \"New OpenStreetMap\" map image",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "publicResourceKey": "tqOwYO62300IxbMN7XadhrP23toIW8W4",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
-      "public": true
-    },
     {
       "link": "/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
       "title": "\"Waste Management Administration\" dashboard widget \"Bins Map\" marker image 0",
