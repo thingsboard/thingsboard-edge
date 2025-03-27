@@ -389,7 +389,7 @@ export class WidgetComponent extends PageComponent implements OnInit, OnChanges,
 
   headerButtonStyle(buttonType: WidgetHeaderActionButtonType = WidgetHeaderActionButtonType.icon,
                     customButtonStyle:{[key: string]: string},
-                    buttonColor: string = 'rgba(0,0,0,0.87)',
+                    buttonColor: string = this.widget.config.color,
                     backgroundColor: string,
                     borderColor: string) {
     const buttonStyle = {};

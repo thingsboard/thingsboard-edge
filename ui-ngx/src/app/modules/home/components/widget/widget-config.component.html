@@ -184,6 +184,7 @@
           [actionTypes]="widgetActionTypesList"
           [customFunctionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
           [widgetType] = "modelValue.widgetType"
+          [defaultIconColor]="widgetSettings.get('color').value"
           [actionSources]="modelValue.actionSources"
           [additionalWidgetActionTypes]="modelValue.typeParameters.additionalWidgetActionTypes"
           formControlName="actions">
