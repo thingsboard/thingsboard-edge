@@ -159,6 +159,9 @@ export class WidgetComponent extends PageComponent implements OnInit, OnChanges,
   widgetTitlePanel: TemplateRef<any>;
 
   @Input()
+  widgetHeaderActionsPanel: TemplateRef<any>;
+
+  @Input()
   isEdit: boolean;
 
   @Input()
@@ -507,6 +510,7 @@ export class WidgetComponent extends PageComponent implements OnInit, OnChanges,
     this.widgetType = this.widgetInfo.widgetTypeFunction;
     this.typeParameters = this.widgetInfo.typeParameters;
     this.widgetContext.embedTitlePanel = this.typeParameters.embedTitlePanel;
+    this.widgetContext.embedActionsPanel = this.typeParameters.embedActionsPanel;
     this.widgetContext.overflowVisible = this.typeParameters.overflowVisible;
 
     if (!this.widgetType) {

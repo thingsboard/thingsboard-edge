@@ -338,6 +338,7 @@ export class WidgetContext {
   timeWindow?: WidgetTimewindow;
 
   embedTitlePanel?: boolean;
+  embedActionsPanel?: boolean;
   overflowVisible?: boolean;
 
   hideTitlePanel = false;
