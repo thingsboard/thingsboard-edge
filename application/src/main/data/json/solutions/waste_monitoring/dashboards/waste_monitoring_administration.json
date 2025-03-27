@@ -2269,7 +2269,7 @@
                   "settings": {},
                   "color": "#2196f3"
                 },
-                "markerType": "image",
+                "markerType": "icon",
                 "markerShape": {
                   "shape": "markerShape1",
                   "size": 34,
@@ -2279,27 +2279,20 @@
                   }
                 },
                 "markerIcon": {
-                  "iconContainer": null,
-                  "icon": "mdi:trash-can-outline",
                   "size": 32,
                   "color": {
-                    "type": "constant",
-                    "color": "#787878",
+                    "type": "function",
+                    "color": "#757575",
                     "range": null,
-                    "colorFunction": null
-                  }
+                    "colorFunction": "let color = '#198038';\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst isActive = data.active && data.active !== 'false';\n\nif (!isActive) {\n    color = '#757575';\n} else if (isFull) {\n    color = '#d12730';\n} else if (isLowBattery) {\n    color = '#ff8a00';\n}\n\nreturn color;"
+                  },
+                  "iconContainer": "iconContainer6",
+                  "icon": "mdi:trash-can-outline"
                 },
                 "markerImage": {
-                  "type": "function",
+                  "type": "image",
                   "image": "/assets/markers/shape1.svg",
-                  "imageSize": 34,
-                  "imageFunction": "let image = images[0];\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst isActive = data.active && data.active !== 'false';\n\nif (!isActive) {\n    image = images[3];\n} else if (isFull) {\n    image = images[1];\n} else if (isLowBattery) {\n    image = images[2];\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
-                  "images": [
-                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
-                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_1.svg",
-                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_2.svg",
-                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg"
-                  ]
+                  "imageSize": 34
                 },
                 "markerOffsetX": 0.5,
                 "markerOffsetY": 1,
@@ -2519,7 +2512,7 @@
                   "settings": {},
                   "color": "#2196f3"
                 },
-                "markerType": "image",
+                "markerType": "icon",
                 "markerShape": {
                   "shape": "markerShape1",
                   "size": 34,
@@ -2529,25 +2522,20 @@
                   }
                 },
                 "markerIcon": {
-                  "iconContainer": "iconContainer1",
-                  "icon": "mdi:lightbulb-on",
-                  "size": 48,
+                  "size": 32,
                   "color": {
-                    "type": "constant",
-                    "color": "#307FE5"
-                  }
+                    "type": "function",
+                    "color": "#757575",
+                    "range": null,
+                    "colorFunction": "let color = '#198038';\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst isActive = data.active && data.active !== 'false';\n\nif (!isActive) {\n    color = '#757575';\n} else if (isFull) {\n    color = '#d12730';\n} else if (isLowBattery) {\n    color = '#ff8a00';\n}\n\nreturn color;"
+                  },
+                  "iconContainer": "iconContainer6",
+                  "icon": "mdi:trash-can-outline"
                 },
                 "markerImage": {
-                  "type": "function",
+                  "type": "image",
                   "image": "/assets/markers/shape1.svg",
-                  "imageSize": 34,
-                  "imageFunction": "let image = images[0];\nconst isFull = data.isFull && data.isFull !== 'false';\nconst isLowBattery = data.isLowBattery && data.isLowBattery !== 'false';\nconst isActive = data.active && data.active !== 'false';\n\nif (!isActive) {\n    image = images[3];\n} else if (isFull) {\n    image = images[1];\n} else if (isLowBattery) {\n    image = images[2];\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
-                  "images": [
-                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
-                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_1.svg",
-                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_2.svg",
-                    "tb-image;/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg"
-                  ]
+                  "imageSize": 34
                 },
                 "markerOffsetX": 0.5,
                 "markerOffsetY": 1,
@@ -3119,50 +3107,5 @@
     }
   },
   "name": "Waste Management Administration",
-  "resources": [
-    {
-      "link": "/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
-      "title": "\"Waste Management Administration\" dashboard widget \"Bins Map\" marker image 0",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
-      "publicResourceKey": "hTkrBG746PHyiukQUn8oHlMJlkgjMF2F",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI4IiBoZWlnaHQ9IjI4IiBmaWxsPSIjZmZmIiByeD0iNCIvPjxwYXRoIHN0cm9rZT0iIzE5ODAzOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik01IDcuNGgxOE0yMSA4djE0YTIgMiAwIDAgMS0yIDJIOWEyIDIgMCAwIDEtMi0yVjhtMy0uOVY2YTIgMiAwIDAgMSAyLTJoNGEyIDIgMCAwIDEgMiAydjEuMU0xMiAxM3Y2TTE2IDEzdjYiLz48L3N2Zz4=",
-      "public": true
-    },
-    {
-      "link": "/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_1.svg",
-      "title": "\"Waste Management Administration\" dashboard widget \"Bins Map\" marker image 1",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "waste_management_administration_dashboard_widget_bins_map_marker_image_1.svg",
-      "publicResourceKey": "Xn8i5Ta6w7NqSbbOObQ5zTkTzT38Ncul",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI4IiBoZWlnaHQ9IjI4IiBmaWxsPSIjZmZmIiByeD0iNCIvPjxwYXRoIHN0cm9rZT0iI0QxMjczMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik01IDcuNGgxOE0yMSA4djE0YTIgMiAwIDAgMS0yIDJIOWEyIDIgMCAwIDEtMi0yVjhtMy0uOVY2YTIgMiAwIDAgMSAyLTJoNGEyIDIgMCAwIDEgMiAydjEuMU0xMiAxM3Y2TTE2IDEzdjYiLz48L3N2Zz4=",
-      "public": true
-    },
-    {
-      "link": "/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_2.svg",
-      "title": "\"Waste Management Administration\" dashboard widget \"Bins Map\" marker image 2",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "waste_management_administration_dashboard_widget_bins_map_marker_image_2.svg",
-      "publicResourceKey": "s7cNtQtd6X7H3PJEKpxvb7RRYsFz86sp",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI4IiBoZWlnaHQ9IjI4IiBmaWxsPSIjZmZmIiByeD0iNCIvPjxwYXRoIHN0cm9rZT0iI0ZGOEEwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik01IDcuNGgxOE0yMSA4djE0YTIgMiAwIDAgMS0yIDJIOWEyIDIgMCAwIDEtMi0yVjhtMy0uOVY2YTIgMiAwIDAgMSAyLTJoNGEyIDIgMCAwIDEgMiAydjEuMU0xMiAxM3Y2TTE2IDEzdjYiLz48L3N2Zz4=",
-      "public": true
-    },
-    {
-      "link": "/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg",
-      "title": "\"Waste Management Administration\" dashboard widget \"Bins Map\" marker image 3",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg",
-      "publicResourceKey": "1EF2Eo4uxktb941Nml8CvdQKzw5AGWZf",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI4IiBoZWlnaHQ9IjI4IiBmaWxsPSIjZmZmIiByeD0iNCIvPjxwYXRoIHN0cm9rZT0iIzc1NzU3NSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik01IDcuNGgxOE0yMSA4djE0YTIgMiAwIDAgMS0yIDJIOWEyIDIgMCAwIDEtMi0yVjhtMy0uOVY2YTIgMiAwIDAgMSAyLTJoNGEyIDIgMCAwIDEgMiAydjEuMU0xMiAxM3Y2TTE2IDEzdjYiLz48L3N2Zz4=",
-      "public": true
-    }
-  ]
+  "resources": []
 }
