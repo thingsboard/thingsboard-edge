@@ -393,7 +393,18 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
     }
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> createToCalculatedFieldNotificationsMsgConsumer() {
+    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-rule-engine-to-cloud-event-ts-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(cloudEventTSSettings.getTopic()));
+        requestBuilder.admin(cloudEventTSAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> createToCalculatedFieldNotificationMsgConsumer() {
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
         consumerBuilder.topic(topicService.getCalculatedFieldNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
@@ -406,14 +417,12 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgProducer() {
-        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
-
+    public TbQueueProducer<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> createToCalculatedFieldNotificationMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
-        requestBuilder.clientId("tb-rule-engine-to-cloud-event-ts-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(topicService.buildTopicName(cloudEventTSSettings.getTopic()));
-        requestBuilder.admin(cloudEventTSAdmin);
-
+        requestBuilder.clientId("tb-calculated-field-notifications-producer-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.getCalculatedFieldNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
+        requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
     }
 
@@ -446,6 +455,7 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
     public TbQueueProducer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsMsgProducer(EdqsQueue queue) {
         return TbKafkaProducerTemplate.<TbProtoQueueMsg<ToEdqsMsg>>builder()
                 .clientId("edqs-producer-" + queue.name().toLowerCase() + "-" + serviceInfoProvider.getServiceId())
+                .defaultTopic(topicService.buildTopicName(queue.getTopic()))
                 .settings(kafkaSettings)
                 .admin(edqsEventsAdmin)
                 .build();
