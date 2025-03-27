@@ -27,6 +27,7 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
@@ -34,6 +35,7 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.tenant.TenantService;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -61,6 +63,7 @@ public class CloudEventSourcingListener {
 
     private final TbClusterService tbClusterService;
     private final CloudSynchronizationManager cloudSynchronizationManager;
+    private final TenantService tenantService;
 
     private static final List<EntityType> COMMON_ENTITY_TYPES = Arrays.asList(
             EntityType.DEVICE,
@@ -110,6 +113,13 @@ public class CloudEventSourcingListener {
         if (cloudSynchronizationManager.isSync()) {
             return;
         }
+        TenantId tenantId = event.getTenantId();
+
+        if (!tenantId.isSysTenantId() && !tenantService.tenantExists(tenantId)) {
+            log.error("[{}] Ignoring DeleteEntityEvent because tenant does not exist: {}", tenantId, event);
+            return;
+        }
+
         try {
             if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())
                     && !(event.getEntity() instanceof AlarmComment)) {
