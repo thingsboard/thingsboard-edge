@@ -100,7 +100,7 @@
                                               formControlName="name"
                                               required
                                               [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name'] | translate"
-                                              [errorText]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name-require'] | translate">
+                                              [errorText]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name-required'] | translate">
               </tb-string-pattern-autocomplete>
             </div>
           }
