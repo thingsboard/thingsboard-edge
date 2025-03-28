@@ -32,6 +32,7 @@ package org.thingsboard.server.edqs.data.dp;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.edqs.DataPoint;
 
 @RequiredArgsConstructor
@@ -67,6 +68,11 @@ public abstract class AbstractDataPoint implements DataPoint {
 
     public String toString() {
         return valueToString();
+    }
+
+    @Override
+    public int compareTo(DataPoint dataPoint) {
+        return StringUtils.compareIgnoreCase(valueToString(), dataPoint.valueToString());
     }
 
 }
