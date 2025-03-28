@@ -37,7 +37,7 @@ if [ "$INSTALL_TB_EDGE" == "true" ]; then
                         -Dlogging.config=/usr/share/tb-edge/bin/install/logback.xml \
                         org.springframework.boot.loader.launch.PropertiesLauncher
 
-elif [ "$UPGRADE_TB" == "true" ]; then
+elif [ "$UPGRADE_TB_EDGE" == "true" ]; then
 
     echo "Starting ThingsBoard Edge upgrade ..."
 
