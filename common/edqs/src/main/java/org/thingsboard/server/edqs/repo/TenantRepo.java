@@ -274,6 +274,7 @@ public class TenantRepo {
                 }
                 edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.DELETED));
             }
+
             switch (entityType) {
                 case CUSTOMER -> {
                     customersHierarchy.remove(entityId);
