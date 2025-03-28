@@ -38,7 +38,7 @@
     <parent>
         <artifactId>thingsboard</artifactId>
         <groupId>org.thingsboard</groupId>
-        <version>4.0.0EDGEPE-RC</version>
+        <version>4.0.0EDGE-RC</version>
     </parent>
 
     <artifactId>migrator</artifactId>
