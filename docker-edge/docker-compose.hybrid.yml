@@ -44,3 +44,9 @@ services:
     depends_on:
       - postgres
       - cassandra
+  tb-edge3:
+    env_file:
+      - tb-edge.hybrid.env
+    depends_on:
+      - postgres
+      - cassandra

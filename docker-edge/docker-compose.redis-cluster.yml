@@ -98,12 +98,7 @@ services:
       - cache-redis-cluster.env
     depends_on:
       - redis-node-5
-  tb-rule-engine1:
-    env_file:
-      - cache-redis-cluster.env
-    depends_on:
-      - redis-node-5
-  tb-rule-engine2:
+  tb-edge3:
     env_file:
       - cache-redis-cluster.env
     depends_on:

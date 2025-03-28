@@ -61,12 +61,7 @@ services:
       - cache-redis-sentinel.env
     depends_on:
       - redis-sentinel
-  tb-rule-engine1:
-    env_file:
-      - cache-redis-sentinel.env
-    depends_on:
-      - redis-sentinel
-  tb-rule-engine2:
+  tb-edge3:
     env_file:
       - cache-redis-sentinel.env
     depends_on:

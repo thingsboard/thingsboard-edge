@@ -90,6 +90,33 @@ services:
     depends_on:
       - zookeeper
       - kafka
+  tb-edge3:
+    restart: always
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+    ports:
+      - "8080"
+      - "1883"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "30"
+    environment:
+      TB_SERVICE_ID: tb-edge3
+      TB_SERVICE_TYPE: monolith
+      JAVA_OPTS: "${JAVA_OPTS}"
+      CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
+      CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
+      CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
+      CLOUD_RPC_PORT: "${CLOUD_RPC_PORT}"
+    env_file:
+      - tb-edge.env
+    volumes:
+      - ./tb-edge/conf:/config
+      - ./tb-edge/log:/var/log/tb-edge
+    depends_on:
+      - zookeeper
+      - kafka
   haproxy:
     restart: always
     container_name: "${LOAD_BALANCER_NAME}"
@@ -114,3 +141,4 @@ services:
     links:
       - tb-edge1
       - tb-edge2
+      - tb-edge3

@@ -55,7 +55,7 @@ In case of any issues you can examine edge service logs for errors.
 For example to see ThingsBoard Edge node logs execute the following command:
 
 `
-$ docker-compose logs -f tb-edge1 tb-edge2
+$ docker-compose logs -f tb-edge1 tb-edge2 tb-edge3
 `
 
 Or use `docker-compose ps` to see the state of all the containers.

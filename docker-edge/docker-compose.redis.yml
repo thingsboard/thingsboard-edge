@@ -39,3 +39,8 @@ services:
       - cache-redis.env
     depends_on:
       - redis
+  tb-edge3:
+    env_file:
+      - cache-redis.env
+    depends_on:
+      - redis

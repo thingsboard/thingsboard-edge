@@ -186,7 +186,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     } catch (Exception e) {
                         initInProgress = false;
                         log.error("Failed to establish connection to cloud", e);
-                        // scheduleRpcConnection();
+                        reconnectExecutor.schedule(this::establishRpcConnection, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
                     }
                 }
             }

@@ -35,3 +35,8 @@ services:
       - tb-edge.postgres.env
     depends_on:
       - postgres
+  tb-edge3:
+    env_file:
+      - tb-edge.postgres.env
+    depends_on:
+      - postgres

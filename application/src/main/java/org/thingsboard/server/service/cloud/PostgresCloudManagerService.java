@@ -19,7 +19,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -27,7 +26,6 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
-import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 
 import javax.annotation.PreDestroy;
@@ -50,16 +48,9 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
     private ExecutorService executor;
     private ExecutorService tsExecutor;
 
-    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
-    public void onApplicationEvent(ApplicationReadyEvent event) {
-        log.error("HERE 1 {}", event);
-        establishRpcConnection();
-    }
-
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
         if (ServiceType.TB_CORE.equals(event.getServiceType())) {
-            log.error("HERE 2 {}", event);
             establishRpcConnection();
         }
     }

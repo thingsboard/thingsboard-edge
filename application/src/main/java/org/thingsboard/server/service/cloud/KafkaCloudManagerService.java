@@ -19,7 +19,6 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
@@ -34,7 +33,6 @@ import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCloudEventQueueFactory;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
-import org.thingsboard.server.queue.util.AfterStartUp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,16 +60,9 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
     @Autowired
     private TbQueueCloudEventSettings tbQueueCloudEventSettings;
 
-    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
-    public void onApplicationEvent(ApplicationReadyEvent event) {
-        log.error("Here 1 {}", event);
-        establishRpcConnection();
-    }
-
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
         if (ServiceType.TB_CORE.equals(event.getServiceType())) {
-            log.error("Here 2 {}", event);
             establishRpcConnection();
         }
     }
