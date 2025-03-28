@@ -19,7 +19,7 @@ services:
     restart: always
     image: "postgres:16"
     ports:
-    - "5432"
+      - "5432"
     environment:
       POSTGRES_DB: tb_edge
       POSTGRES_PASSWORD: postgres
