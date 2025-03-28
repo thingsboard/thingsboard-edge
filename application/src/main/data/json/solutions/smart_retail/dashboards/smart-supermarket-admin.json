@@ -1,5 +1,5 @@
 {
-  "title": "Smart Supermarket Administration",
+  "title": "Smart supermarket administration",
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
@@ -2559,7 +2559,7 @@
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
     }
   },
-  "name": "Smart Supermarket Administration",
+  "name": "Smart supermarket administration",
   "resources": [
     {
       "link": "/api/resource/js_module/system/Smart Retail Solution JS Utils.js",

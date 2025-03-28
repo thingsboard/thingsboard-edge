@@ -1,5 +1,5 @@
 {
-  "title": "Water Metering User Dashboard",
+  "title": "Water metering User dashboard",
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
@@ -9940,7 +9940,7 @@
     },
     "filters": {}
   },
-  "name": "Water Metering User Dashboard",
+  "name": "Water metering User dashboard",
   "resources": [
     {
       "link": "/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",

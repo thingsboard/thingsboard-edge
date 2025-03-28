@@ -1,5 +1,5 @@
 {
-  "title": "Assisted Living Administration",
+  "title": "Assisted living administration",
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
@@ -6283,7 +6283,7 @@
       "dashboardCss": ".tb-dashboard-page .mat-drawer-container {\n\tbackground: #ffffff;\n}\n\n.tb-widget-container > .tb-widget {\n    border-radius: 12px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-title .title  {\n    color: #000000 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #868D9C !important;\n}\n"
     }
   },
-  "name": "Assisted Living Administration",
+  "name": "Assisted living administration",
   "resources": [
     {
       "link": "/api/images/system/assisted_living_administration_dashboard_widget_new_image_map_marker_image.svg",

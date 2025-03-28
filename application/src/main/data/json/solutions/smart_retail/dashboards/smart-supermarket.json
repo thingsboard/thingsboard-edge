@@ -1,5 +1,5 @@
 {
-  "title": "Smart Supermarket",
+  "title": "Smart supermarket",
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
@@ -14344,7 +14344,7 @@
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view .tb-progress-cover, .tb-widget-container > .tb-widget .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view div, .tb-widget-container > .tb-widget .tb-markdown-view p {\n    line-height: normal;\n}\n"
     }
   },
-  "name": "Smart Supermarket",
+  "name": "Smart supermarket",
   "resources": [
     {
       "link": "/api/resource/js_module/system/Smart Retail Solution JS Utils.js",

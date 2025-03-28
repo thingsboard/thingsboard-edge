@@ -1,5 +1,5 @@
 {
-  "title": "Water Metering Tenant Dashboard",
+  "title": "Water metering Tenant dashboard",
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
@@ -18067,7 +18067,7 @@
       }
     }
   },
-  "name": "Water Metering Tenant Dashboard",
+  "name": "Water metering Tenant dashboard",
   "resources": [
     {
       "link": "/api/images/system/water_metering_user_dashboard_dashboard_widget_new_openstreetmap_marker_image.svg",
