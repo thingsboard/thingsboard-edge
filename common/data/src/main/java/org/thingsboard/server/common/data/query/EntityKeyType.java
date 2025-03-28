@@ -38,4 +38,8 @@ public enum EntityKeyType {
     TIME_SERIES,
     ENTITY_FIELD,
     ALARM_FIELD;
+
+    public boolean isAttribute() {
+        return this == ATTRIBUTE || this == CLIENT_ATTRIBUTE || this == SHARED_ATTRIBUTE || this == SERVER_ATTRIBUTE;
+    }
 }
