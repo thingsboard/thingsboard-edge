@@ -171,10 +171,12 @@ public class ThingsboardInstallService {
                 // installScripts.loadSystemLwm2mResources();
                 installScripts.loadSystemImagesAndResources();
 
+                /* loadDemo: not supported on edge
                 if (loadDemo) {
-                    // log.info("Loading demo data...");
-                    // systemDataLoaderService.loadDemoData();
+                    log.info("Loading demo data...");
+                    systemDataLoaderService.loadDemoData();
                 }
+                 */
                 log.info("Installation finished successfully!");
             }
         } catch (Exception e) {

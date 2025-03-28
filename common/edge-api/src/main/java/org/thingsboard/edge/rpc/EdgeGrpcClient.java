@@ -42,6 +42,7 @@ import org.thingsboard.server.gen.edge.v1.ResponseMsg;
 import org.thingsboard.server.gen.edge.v1.SyncRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.net.ssl.SSLException;
 import java.net.InetSocketAddress;
@@ -49,8 +50,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-@Service
 @Slf4j
+@Service
+@TbCoreComponent
 public class EdgeGrpcClient implements EdgeRpcClient {
 
     @Value("${cloud.rpc.host}")

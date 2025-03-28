@@ -30,6 +30,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
@@ -126,14 +127,13 @@ public class KafkaCloudEventMigrationService extends BaseCloudManagerService imp
     }
 
     @Override
-    @EventListener(ApplicationReadyEvent.class)
-    public void onApplicationEvent(ApplicationReadyEvent event) {}
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {}
 
     @Override
     protected void launchUplinkProcessing() {}
 
     @PreDestroy
-    private void onDestroy() {
+    protected void onDestroy() {
         if (executor != null) {
             executor.shutdownNow();
         }
