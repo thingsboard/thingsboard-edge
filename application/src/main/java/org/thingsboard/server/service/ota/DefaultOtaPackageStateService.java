@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.rule.engine.api.AttributesDeleteRequest;
+import org.thingsboard.rule.engine.api.AttributesSaveRequest;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
+import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
@@ -366,19 +369,25 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
             List<AttributeKvEntry> attributes = new ArrayList<>();
             attributes.add(new BaseAttributeKvEntry(ts, new StringDataEntry(getAttributeKey(firmware.getType(), ID), firmware.getId().toString())));
 
-            telemetryService.saveAndNotify(tenantId, deviceId, AttributeScope.SERVER_SCOPE, attributes, new FutureCallback<>() {
-                @Override
-                public void onSuccess(@Nullable Void tmp) {
-                    log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
-                    latch.countDown();
-                }
+            telemetryService.saveAttributes(AttributesSaveRequest.builder()
+                    .tenantId(tenantId)
+                    .entityId(deviceId)
+                    .scope(AttributeScope.SERVER_SCOPE)
+                    .entries(attributes)
+                    .callback(new FutureCallback<>() {
+                        @Override
+                        public void onSuccess(@Nullable Void tmp) {
+                            log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
+                            latch.countDown();
+                        }
 
-                @Override
-                public void onFailure(Throwable t) {
-                    log.error("[{}] Failed to save attributes with target OtaPackage!", deviceId, t);
-                    latch.countDown();
-                }
-            });
+                        @Override
+                        public void onFailure(Throwable t) {
+                            log.error("[{}] Failed to save attributes with target OtaPackage!", deviceId, t);
+                            latch.countDown();
+                        }
+                    })
+                    .build());
 
             try {
                 latch.await();
@@ -398,17 +407,22 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
             telemetry.add(new BasicTsKvEntry(ts, new LongDataEntry(getTargetTelemetryKey(firmware.getType(), TS), ts)));
             telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTelemetryKey(firmware.getType(), STATE), OtaPackageUpdateStatus.QUEUED.name())));
 
-            telemetryService.saveAndNotify(tenantId, deviceId, telemetry, new FutureCallback<>() {
-                @Override
-                public void onSuccess(@Nullable Void tmp) {
-                    log.trace("[{}] Success save OtaPackage status!", deviceId);
-                }
+            telemetryService.saveTimeseries(TimeseriesSaveRequest.builder()
+                    .tenantId(tenantId)
+                    .entityId(deviceId)
+                    .entries(telemetry)
+                    .callback(new FutureCallback<Void>() {
+                        @Override
+                        public void onSuccess(@Nullable Void tmp) {
+                            log.trace("[{}] Success save OtaPackage status!", deviceId);
+                        }
 
-                @Override
-                public void onFailure(Throwable t) {
-                    log.error("[{}] Failed to save OtaPackage status!", deviceId, t);
-                }
-            });
+                        @Override
+                        public void onFailure(Throwable t) {
+                            log.error("[{}] Failed to save OtaPackage status!", deviceId, t);
+                        }
+                    })
+                    .build());
 
             TopicPartitionInfo tpi = new TopicPartitionInfo(otaPackageStateMsgProducer.getDefaultTopic(), null, null, false);
             otaPackageStateMsgProducer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), null);
@@ -422,19 +436,24 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
 
         BasicTsKvEntry status = new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry(getTelemetryKey(otaPackageType, STATE), OtaPackageUpdateStatus.INITIATED.name()));
 
-        telemetryService.saveAndNotify(tenantId, deviceId, Collections.singletonList(status), new FutureCallback<>() {
-            @Override
-            public void onSuccess(@Nullable Void tmp) {
-                log.trace("[{}] Success save telemetry with target {} for device!", deviceId, otaPackage);
-                updateAttributes(device, otaPackage, ts, tenantId, deviceId, otaPackageType);
-            }
+        telemetryService.saveTimeseries(TimeseriesSaveRequest.builder()
+                .tenantId(tenantId)
+                .entityId(deviceId)
+                .entry(status)
+                .callback(new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(@Nullable Void tmp) {
+                        log.trace("[{}] Success save telemetry with target {} for device!", deviceId, otaPackage);
+                        updateAttributes(device, otaPackage, ts, tenantId, deviceId, otaPackageType);
+                    }
 
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("[{}] Failed to save telemetry with target {} for device!", deviceId, otaPackage, t);
-                updateAttributes(device, otaPackage, ts, tenantId, deviceId, otaPackageType);
-            }
-        });
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("[{}] Failed to save telemetry with target {} for device!", deviceId, otaPackage, t);
+                        updateAttributes(device, otaPackage, ts, tenantId, deviceId, otaPackageType);
+                    }
+                })
+                .build());
     }
 
     private void updateAttributes(Device device, OtaPackageInfo otaPackage, long ts, TenantId tenantId, DeviceId deviceId, OtaPackageType otaPackageType) {
@@ -476,25 +495,35 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
 
         remove(device, otaPackageType, attrToRemove);
 
-        telemetryService.saveAndNotify(tenantId, deviceId, AttributeScope.SHARED_SCOPE, attributes, new FutureCallback<>() {
-            @Override
-            public void onSuccess(@Nullable Void tmp) {
-                log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
-            }
+        telemetryService.saveAttributes(AttributesSaveRequest.builder()
+                .tenantId(tenantId)
+                .entityId(deviceId)
+                .scope(AttributeScope.SHARED_SCOPE)
+                .entries(attributes)
+                .callback(new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(@Nullable Void tmp) {
+                        log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
+                    }
 
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("[{}] Failed to save attributes with target OtaPackage!", deviceId, t);
-            }
-        });
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("[{}] Failed to save attributes with target OtaPackage!", deviceId, t);
+                    }
+                })
+                .build());
     }
 
     private void remove(Device device, OtaPackageType otaPackageType) {
         remove(device, otaPackageType, OtaPackageUtil.getAttributeKeys(otaPackageType));
         String idKey = OtaPackageUtil.getAttributeKey(otaPackageType, ID);
         List<String> idKeyList = Collections.singletonList(idKey);
-        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, idKeyList,
-                new FutureCallback<>() {
+        telemetryService.deleteAttributes(AttributesDeleteRequest.builder()
+                .tenantId(device.getTenantId())
+                .entityId(device.getId())
+                .scope(AttributeScope.SERVER_SCOPE)
+                .keys(idKeyList)
+                .callback(new FutureCallback<>() {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {
                         log.trace("[{}] Success remove OtaPackage id attribute!", device.getId());
@@ -505,12 +534,17 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
                     public void onFailure(Throwable t) {
                         log.error("[{}] Failed to remove target {} attributes!", device.getId(), otaPackageType, t);
                     }
-                });
+                })
+                .build());
     }
 
     private void remove(Device device, OtaPackageType otaPackageType, List<String> attributesKeys) {
-        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), AttributeScope.SHARED_SCOPE, attributesKeys,
-                new FutureCallback<>() {
+        telemetryService.deleteAttributes(AttributesDeleteRequest.builder()
+                .tenantId(device.getTenantId())
+                .entityId(device.getId())
+                .scope(AttributeScope.SHARED_SCOPE)
+                .keys(attributesKeys)
+                .callback(new FutureCallback<>() {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {
                         log.trace("[{}] Success remove target {} attributes!", device.getId(), otaPackageType);
@@ -521,10 +555,12 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
                     public void onFailure(Throwable t) {
                         log.error("[{}] Failed to remove target {} attributes!", device.getId(), otaPackageType, t);
                     }
-                });
+                })
+                .build());
     }
 
     private PageLink createPageLink() {
         return new PageLink(100);
     }
+
 }

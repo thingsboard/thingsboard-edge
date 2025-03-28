@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -84,10 +84,25 @@ export class ValueInputComponent implements OnInit, OnDestroy, OnChanges, Contro
   valueType: ValueType;
 
   @Input()
+  allowedValueTypes: ValueType[];
+
+  @Input()
   trueLabel: string;
 
   @Input()
   falseLabel: string;
+
+  @Input()
+  @coerceBoolean()
+  shortBooleanField = false;
+
+  @Input()
+  @coerceBoolean()
+  required = true;
+
+  @Input()
+  @coerceBoolean()
+  hideJsonEdit = false;
 
   @Input()
   layout: ValueInputLayout | Layout = 'row';
@@ -129,6 +144,9 @@ export class ValueInputComponent implements OnInit, OnDestroy, OnChanges, Contro
     }
     if (!this.falseLabel) {
       this.falseLabel = this.translate.instant('value.false');
+    }
+    if (this.allowedValueTypes?.length) {
+      this.valueTypeKeys = this.allowedValueTypes;
     }
     this._subscription = new Subscription();
     this.showValueType = !this.valueType;

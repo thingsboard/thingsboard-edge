@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,7 +68,6 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
                 "<li><strong>User</strong> - use a user with the specified email as the target entity to delete relation with.</li>" +
                 "<li><strong>Edge</strong> - use an edge with the specified name as the target entity to delete relation with.</li></ul>" +
                 "Output connections: <code>Success</code> - If the relation(s) successfully deleted, otherwise <code>Failure</code>.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeDeleteRelationConfig",
         icon = "remove_circle",
         version = 1

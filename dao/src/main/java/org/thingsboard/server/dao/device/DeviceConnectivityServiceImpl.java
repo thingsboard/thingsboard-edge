@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -110,7 +110,7 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
     private boolean mqttSslEnabled;
     @Value("${transport.mqtt.ssl.bind_port}")
     private Integer mqttsBindPort;
-    @Value("${coap.enabled}")
+    @Value("${transport.coap.enabled}")
     private boolean coapEnabled;
     @Value("${coap.bind_port}")
     private Integer coapBindPort;

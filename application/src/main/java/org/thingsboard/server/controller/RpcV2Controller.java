@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -254,7 +254,12 @@ public class RpcV2Controller extends AbstractRpcController {
             rpcService.deleteRpc(getTenantId(), rpcId);
             rpc.setStatus(RpcStatus.DELETED);
 
-            TbMsg msg = TbMsg.newMsg(TbMsgType.RPC_DELETED, rpc.getDeviceId(), TbMsgMetaData.EMPTY, JacksonUtil.toString(rpc));
+            TbMsg msg = TbMsg.newMsg()
+                    .type(TbMsgType.RPC_DELETED)
+                    .originator(rpc.getDeviceId())
+                    .copyMetaData(TbMsgMetaData.EMPTY)
+                    .data(JacksonUtil.toString(rpc))
+                    .build();
             tbClusterService.pushMsgToRuleEngine(getTenantId(), rpc.getDeviceId(), msg, null);
         }
     }

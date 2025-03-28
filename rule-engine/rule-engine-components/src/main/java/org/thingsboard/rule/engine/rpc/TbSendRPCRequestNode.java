@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,6 @@ import java.util.concurrent.TimeUnit;
         nodeDescription = "Sends RPC call to device",
         nodeDetails = "Expects messages with \"method\" and \"params\". Will forward response from device to next nodes." +
                 "If the RPC call request is originated by REST API call from user, will forward the response to user immediately.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeRpcRequestConfig",
         icon = "call_made"
 )

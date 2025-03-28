@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -126,26 +126,22 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         callback.onFailure(throwable);
     }
 
+
     private ListenableFuture<Void> processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
         EdgeEventActionType cloudEventActionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEventType, new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
-        switch (cloudEventActionType) {
-            case ADDED:
-            case UPDATED:
-            case CREDENTIALS_UPDATED:
-            case ADDED_TO_ENTITY_GROUP:
-            case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
+        return switch (cloudEventActionType) {
+            case ADDED, UPDATED, CREDENTIALS_UPDATED, ADDED_TO_ENTITY_GROUP, DELETED, REMOVED_FROM_ENTITY_GROUP -> {
                 EntityGroupId entityGroupId = null;
                 if (cloudNotificationMsg.getEntityGroupIdMSB() != 0 && cloudNotificationMsg.getEntityGroupIdLSB() != 0) {
                     entityGroupId = new EntityGroupId(
                             new UUID(cloudNotificationMsg.getEntityGroupIdMSB(), cloudNotificationMsg.getEntityGroupIdLSB()));
                 }
-                return cloudEventService.saveCloudEventAsync(tenantId, cloudEventType, cloudEventActionType, entityId, null, entityGroupId);
-            default:
-                return Futures.immediateFuture(null);
-        }
+                yield cloudEventService.saveCloudEventAsync(tenantId, cloudEventType, cloudEventActionType, entityId, null, entityGroupId);
+            }
+            default -> Futures.immediateFuture(null);
+        };
     }
 
     private ListenableFuture<Void> processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {

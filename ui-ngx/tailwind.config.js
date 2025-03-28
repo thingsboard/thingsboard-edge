@@ -1,7 +1,7 @@
 /*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -108,6 +108,7 @@ module.exports = {
         '0.75': '0.1875rem',
         '1.25': '0.3125rem',
         '3.75': '0.9375rem',
+        '5.5': '1.375rem',
         '6.25': '1.5625rem'
       },
       minHeight: {
@@ -168,6 +169,7 @@ module.exports = {
         '7.5': '1.875rem',
         '25': '6.25rem',
         '37.5': '9.375rem',
+        '50': '12.5rem',
         '62.5': '15.625rem',
         '72.5': '18.125rem'
       },

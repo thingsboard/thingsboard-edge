@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,8 +44,8 @@ import {
   Datasource,
   DatasourceType,
   datasourceTypeTranslationMap,
-  JsonSettingsSchema,
-  Widget, WidgetConfigMode,
+  Widget,
+  WidgetConfigMode,
   widgetType
 } from '@shared/models/widget.models';
 import { AlarmSearchStatus } from '@shared/models/alarm.models';
@@ -58,6 +58,7 @@ import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/wid
 import { EntityType } from '@shared/models/entity-type.models';
 import { DatasourcesComponent } from '@home/components/widget/config/datasources.component';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
+import { FormProperty } from '@shared/models/dynamic-form.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -120,20 +121,25 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
     return this.widgetConfigComponent.modelValue?.typeParameters?.datasourcesOptional;
   }
 
+  public get entityAliasOptional(): boolean {
+    const type: DatasourceType = this.datasourceFormGroup.get('type').value;
+    return this.datasourcesOptional || type === DatasourceType.alarmCount
+  }
+
   public get maxDataKeys(): number {
     return this.widgetConfigComponent.modelValue?.typeParameters?.maxDataKeys;
   }
 
-  public get dataKeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.dataKeySettingsSchema;
+  public get dataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.dataKeySettingsForm;
   }
 
   public get dataKeySettingsDirective(): string {
     return this.widgetConfigComponent.modelValue?.dataKeySettingsDirective;
   }
 
-  public get latestDataKeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.latestDataKeySettingsSchema;
+  public get latestDataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.latestDataKeySettingsForm;
   }
 
   public get latestDataKeySettingsDirective(): string {
@@ -182,6 +188,10 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
 
   public get hideLatestDataKeys(): boolean {
     return this.datasourcesComponent?.hideLatestDataKeys;
+  }
+
+  public get hideAlarmFilter(): boolean {
+    return this.datasourcesComponent?.hideAlarmFilter;
   }
 
   @Input()

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,7 +63,6 @@ import java.util.UUID;
         configClazz = TbSendRpcReplyNodeConfiguration.class,
         nodeDescription = "Sends reply to RPC call from device",
         nodeDetails = "Expects messages with any message type. Will forward message body to the device.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeRpcReplyConfig",
         icon = "call_merge"
 )

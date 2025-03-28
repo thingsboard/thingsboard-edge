@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
+import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -177,70 +178,58 @@ public class BaseTimeseriesService implements TimeseriesService {
     }
 
     @Override
-    public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
+    public ListenableFuture<TimeseriesSaveResult> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
         validate(entityId);
-        List<ListenableFuture<Integer>> futures = new ArrayList<>(INSERTS_PER_ENTRY);
-        saveAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, 0L, false);
-        return Futures.transform(Futures.allAsList(futures), SUM_ALL_INTEGERS, MoreExecutors.directExecutor());
+        return doSave(tenantId, entityId, List.of(tsKvEntry), 0L, true, true, false);
     }
 
     @Override
-    public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl) {
-        return save(tenantId, entityId, tsKvEntries, ttl, false);
+    public ListenableFuture<TimeseriesSaveResult> save(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl) {
+        return doSave(tenantId, entityId, tsKvEntries, ttl, true, true, false);
     }
 
     @Override
-    public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean overwriteValue) {
-        return doSave(tenantId, entityId, tsKvEntries, ttl, true, overwriteValue);
+    public ListenableFuture<TimeseriesSaveResult> save(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean overwriteValue) {
+        return doSave(tenantId, entityId, tsKvEntries, ttl, true, true, overwriteValue);
     }
 
     @Override
-    public ListenableFuture<Integer> saveWithoutLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl) {
-        return doSave(tenantId, entityId, tsKvEntries, ttl, false, false);
+    public ListenableFuture<TimeseriesSaveResult> saveWithoutLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl) {
+        return doSave(tenantId, entityId, tsKvEntries, ttl, false, true, false);
     }
 
     @Override
-    public ListenableFuture<Integer> saveWithoutLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean overwriteValue) {
-        return doSave(tenantId, entityId, tsKvEntries, ttl, false, overwriteValue);
-    }
-
-    private ListenableFuture<Integer> doSave(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean saveLatest, boolean overwriteValue) {
-        int inserts = saveLatest ? INSERTS_PER_ENTRY : INSERTS_PER_ENTRY_WITHOUT_LATEST;
-        List<ListenableFuture<Integer>> futures = new ArrayList<>(tsKvEntries.size() * inserts);
-        for (TsKvEntry tsKvEntry : tsKvEntries) {
-            if (saveLatest) {
-                saveAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, ttl, overwriteValue);
-            } else {
-                saveWithoutLatestAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, ttl, overwriteValue);
-            }
-        }
-        return Futures.transform(Futures.allAsList(futures), SUM_ALL_INTEGERS, MoreExecutors.directExecutor());
+    public ListenableFuture<TimeseriesSaveResult> saveWithoutLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean overwriteValue) {
+        return doSave(tenantId, entityId, tsKvEntries, ttl, false, true, overwriteValue);
     }
 
     @Override
-    public ListenableFuture<List<Long>> saveLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries) {
-        List<ListenableFuture<Long>> futures = new ArrayList<>(tsKvEntries.size());
-        for (TsKvEntry tsKvEntry : tsKvEntries) {
-            futures.add(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry));
-        }
-        return Futures.allAsList(futures);
+    public ListenableFuture<TimeseriesSaveResult> saveLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries) {
+        return doSave(tenantId, entityId, tsKvEntries, 0L, true, false, false);
     }
 
-    private void saveAndRegisterFutures(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean overwriteValue) {
-        doSaveAndRegisterFuturesFor(tenantId, futures, entityId, tsKvEntry, ttl, overwriteValue);
-        futures.add(Futures.transform(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry), v -> 0, MoreExecutors.directExecutor()));
-    }
-
-    private void saveWithoutLatestAndRegisterFutures(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean overwriteValue) {
-        doSaveAndRegisterFuturesFor(tenantId, futures, entityId, tsKvEntry, ttl, overwriteValue);
-    }
-
-    private void doSaveAndRegisterFuturesFor(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean overwriteValue) {
-        if (entityId.getEntityType().equals(EntityType.ENTITY_VIEW)) {
+    private ListenableFuture<TimeseriesSaveResult> doSave(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean saveLatest, boolean saveTs, boolean overwriteValue) {
+        if (saveTs && entityId.getEntityType().equals(EntityType.ENTITY_VIEW)) {
             throw new IncorrectParameterException("Telemetry data can't be stored for entity view. Read only");
         }
-        futures.add(timeseriesDao.savePartition(tenantId, entityId, tsKvEntry.getTs(), tsKvEntry.getKey()));
-        futures.add(timeseriesDao.save(tenantId, entityId, tsKvEntry, ttl, overwriteValue));
+        List<ListenableFuture<Integer>> tsFutures = saveTs ? new ArrayList<>(tsKvEntries.size() * INSERTS_PER_ENTRY_WITHOUT_LATEST) : null;
+        List<ListenableFuture<Long>> latestFutures = saveLatest ? new ArrayList<>(tsKvEntries.size()) : null;
+        for (TsKvEntry tsKvEntry : tsKvEntries) {
+            if (saveTs) {
+                tsFutures.add(timeseriesDao.savePartition(tenantId, entityId, tsKvEntry.getTs(), tsKvEntry.getKey()));
+                tsFutures.add(timeseriesDao.save(tenantId, entityId, tsKvEntry, ttl, overwriteValue));
+            }
+            if (saveLatest) {
+                latestFutures.add(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry));
+            }
+        }
+        ListenableFuture<Integer> dpsFuture = saveTs ? Futures.transform(Futures.allAsList(tsFutures), SUM_ALL_INTEGERS, MoreExecutors.directExecutor()) : Futures.immediateFuture(0);
+        ListenableFuture<List<Long>> versionsFuture = saveLatest ? Futures.allAsList(latestFutures) : Futures.immediateFuture(null);
+        return Futures.whenAllComplete(dpsFuture, versionsFuture).call(() -> {
+            Integer dataPoints = Futures.getUnchecked(dpsFuture);
+            List<Long> versions = Futures.getUnchecked(versionsFuture);
+            return TimeseriesSaveResult.of(dataPoints, versions);
+        }, MoreExecutors.directExecutor());
     }
 
     private List<ReadTsKvQuery> updateQueriesForEntityView(EntityView entityView, List<ReadTsKvQuery> queries) {
@@ -285,11 +274,11 @@ public class BaseTimeseriesService implements TimeseriesService {
     }
 
     @Override
-    public ListenableFuture<Collection<String>> removeAllLatest(TenantId tenantId, EntityId entityId) {
+    public ListenableFuture<List<String>> removeAllLatest(TenantId tenantId, EntityId entityId) {
         validate(entityId);
         return Futures.transformAsync(this.findAllLatest(tenantId, entityId), latest -> {
             if (latest != null && !latest.isEmpty()) {
-                Collection<String> keys = latest.stream().map(TsKvEntry::getKey).collect(Collectors.toList());
+                List<String> keys = latest.stream().map(TsKvEntry::getKey).collect(Collectors.toList());
                 return Futures.transform(this.removeLatest(tenantId, entityId, keys), res -> keys, MoreExecutors.directExecutor());
             } else {
                 return Futures.immediateFuture(Collections.emptyList());

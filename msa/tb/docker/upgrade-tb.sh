@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -38,8 +38,24 @@ source "${CONF_FOLDER}/${configfile}"
 
 echo "Starting ThingsBoard upgrade ..."
 
+for i in "$@"
+do
+case $i in
+    --fromVersion=*)
+    FROM_VERSION="${i#*=}"
+    shift
+    ;;
+    *)
+            # unknown option
+    ;;
+esac
+done
+
+fromVersion="${FROM_VERSION// }"
+
 java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication \
                 -Dspring.jpa.hibernate.ddl-auto=none \
                 -Dinstall.upgrade=true \
+                -Dinstall.upgrade.from_version=${fromVersion} \
                 -Dlogging.config=/usr/share/thingsboard/bin/install/logback.xml \
                 org.springframework.boot.loader.launch.PropertiesLauncher

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -97,9 +97,13 @@ public abstract class TbAbstractNodeWithFetchTo<C extends TbAbstractFetchToNodeC
     protected TbMsg transformMessage(TbMsg msg, ObjectNode msgDataNode, TbMsgMetaData msgMetaData) {
         switch (fetchTo) {
             case DATA:
-                return TbMsg.transformMsgData(msg, JacksonUtil.toString(msgDataNode));
+                return msg.transform()
+                        .data(JacksonUtil.toString(msgDataNode))
+                        .build();
             case METADATA:
-                return TbMsg.transformMsgMetadata(msg, msgMetaData);
+                return msg.transform()
+                        .metaData(msgMetaData)
+                        .build();
             default:
                 log.debug("Unexpected FetchTo value: {}. Allowed values: {}", fetchTo, TbMsgSource.values());
                 return msg;

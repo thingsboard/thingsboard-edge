@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -224,7 +224,7 @@ export abstract class BasicWidgetConfigComponent extends PageComponent implement
   protected constructDataKey(configData: WidgetConfigComponentData, key: DataKey, isLatestKey: boolean): DataKey {
     const dataKey =
       this.widgetConfigComponent.widgetConfigCallbacks.generateDataKey(key.name, key.type,
-        configData.dataKeySettingsSchema, isLatestKey, configData.dataKeySettingsFunction);
+        configData.dataKeySettingsForm, isLatestKey, configData.dataKeySettingsFunction);
     if (key.label) {
       dataKey.label = key.label;
     }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,6 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         nodeDetails = "Expects messages with <b>SEND_EMAIL</b> type. Node works only with messages that " +
                 " where created using <code>to Email</code> transformation Node, please connect this Node " +
                 "with <code>to Email</code> Node using <code>Successful</code> chain.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbExternalNodeSendEmailConfig",
         icon = "send"
 )

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -65,6 +65,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -159,8 +160,7 @@ public interface TbContext {
     void tellFailure(TbMsg msg, Throwable th);
 
     /**
-     * Puts new message to queue for processing by the Root Rule Chain
-     * WARNING: message is put to the Main queue. To specify other queue name - use {@link #enqueue(TbMsg, String, Runnable, Consumer)}
+     * Puts new message to queue from TbMsg for processing by the Root Rule Chain
      *
      * @param msg - message
      */
@@ -208,9 +208,6 @@ public interface TbContext {
     void enqueueForTellNext(TbMsg msg, String queueName, Set<String> relationTypes, Runnable onSuccess, Consumer<Throwable> onFailure);
 
     void ack(TbMsg tbMsg);
-
-    @Deprecated(since = "3.6.0", forRemoval = true)
-    TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, String data);
 
     /**
      * Creates a new TbMsg instance with the specified parameters.
@@ -378,6 +375,8 @@ public interface TbContext {
     MobileAppBundleService getMobileAppBundleService();
 
     SlackService getSlackService();
+
+    CalculatedFieldService getCalculatedFieldService();
 
     boolean isExternalNodeForceAck();
 

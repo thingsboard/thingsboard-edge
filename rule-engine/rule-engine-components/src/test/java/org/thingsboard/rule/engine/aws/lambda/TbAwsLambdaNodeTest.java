@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -160,7 +160,12 @@ public class TbAwsLambdaNodeTest {
         config.setFunctionName(functionName);
         config.setQualifier(qualifier);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, metadata, data);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(metadata)
+                .data(data)
+                .build();
 
         InvokeRequest request = createInvokeRequest(msg);
         String requestIdStr = "a124af57-e7c3-4ebb-83bf-b09ff86eaa23";
@@ -186,7 +191,10 @@ public class TbAwsLambdaNodeTest {
         assertThat(invokeRequestCaptor.getValue().getQualifier()).isEqualTo(expectedQualifier);
         TbMsgMetaData resultMsgMetadata = metadata.copy();
         resultMsgMetadata.putValue("requestId", requestIdStr);
-        TbMsg resultedMsg = TbMsg.transformMsg(msg, resultMsgMetadata, funcResponsePayload);
+        TbMsg resultedMsg = msg.transform()
+                .metaData(resultMsgMetadata)
+                .data(funcResponsePayload)
+                .build();
         assertThat(msgCaptor.getValue()).usingRecursiveComparison()
                 .ignoringFields("ctx")
                 .isEqualTo(resultedMsg);
@@ -212,7 +220,12 @@ public class TbAwsLambdaNodeTest {
         init();
         config.setTellFailureIfFuncThrowsExc(true);
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_ARRAY);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_ARRAY)
+                .build();
         InvokeRequest request = createInvokeRequest(msg);
         String requestIdStr = "a124af57-e7c3-4ebb-83bf-b09ff86eaa23";
         String errorMsg = "Unhandled exception from function";
@@ -236,7 +249,9 @@ public class TbAwsLambdaNodeTest {
         verify(ctx).tellFailure(msgCaptor.capture(), throwableCaptor.capture());
 
         var metadata = Map.of("error", RuntimeException.class + ": " + errorMsg, "requestId", requestIdStr);
-        TbMsg resultedMsg = TbMsg.transformMsgMetadata(msg, new TbMsgMetaData(metadata));
+        TbMsg resultedMsg = msg.transform()
+                .metaData(new TbMsgMetaData(metadata))
+                .build();
 
         assertThat(msgCaptor.getValue()).usingRecursiveComparison()
                 .ignoringFields("ctx")
@@ -248,7 +263,12 @@ public class TbAwsLambdaNodeTest {
     public void givenExceptionWasThrownInsideFunctionAndTellFailureIfFuncThrowsExcIsFalse_whenOnMsg_thenTellSuccess() {
         init();
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         InvokeRequest request = createInvokeRequest(msg);
         String requestIdStr = "e83dfbc4-68d5-441c-8ee9-289959a30d3b";
         String payload = "{\"errorMessage\":\"Something went wrong\",\"errorType\":\"Exception\",\"requestId\":\"" + requestIdStr + "\"}";
@@ -270,7 +290,10 @@ public class TbAwsLambdaNodeTest {
         verify(ctx).tellSuccess(msgCaptor.capture());
 
         Map<String, String> metadata = Map.of("requestId", requestIdStr);
-        TbMsg resultedMsg = TbMsg.transformMsg(msg, new TbMsgMetaData(metadata), payload);
+        TbMsg resultedMsg = msg.transform()
+                .metaData(new TbMsgMetaData(metadata))
+                .data(payload)
+                .build();
 
         assertThat(msgCaptor.getValue()).usingRecursiveComparison()
                 .ignoringFields("ctx")
@@ -281,7 +304,12 @@ public class TbAwsLambdaNodeTest {
     public void givenPayloadFromResultIsNull_whenOnMsg_thenTellFailure() {
         init();
 
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         InvokeRequest request = createInvokeRequest(msg);
         String requestIdStr = "12bbb074-e2fc-4381-8f28-d4bd235103d5";
         String errorMsg = "Payload from result of AWS Lambda function execution is null.";
@@ -304,7 +332,9 @@ public class TbAwsLambdaNodeTest {
         verify(ctx).tellFailure(msgCaptor.capture(), throwableCaptor.capture());
 
         var metadata = Map.of("error", RuntimeException.class + ": " + errorMsg, "requestId", requestIdStr);
-        TbMsg resultedMsg = TbMsg.transformMsgMetadata(msg, new TbMsgMetaData(metadata));
+        TbMsg resultedMsg = msg.transform()
+                .metaData(new TbMsgMetaData(metadata))
+                .build();
 
         assertThat(msgCaptor.getValue()).usingRecursiveComparison()
                 .ignoringFields("ctx")
@@ -315,7 +345,12 @@ public class TbAwsLambdaNodeTest {
     @Test
     public void givenExceptionWasThrownOnAWS_whenOnMsg_thenTellFailure() {
         init();
-        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
         InvokeRequest request = createInvokeRequest(msg);
 
         String errorMsg = "Simulated error";

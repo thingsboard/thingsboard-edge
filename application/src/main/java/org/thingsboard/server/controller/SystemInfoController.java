@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,22 +51,23 @@ import org.thingsboard.server.common.data.SystemParams;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
 import org.thingsboard.server.common.data.mobile.qrCodeSettings.QRCodeConfig;
+import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.dao.mobile.QrCodeSettingService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.translation.TranslationService;
+import org.thingsboard.server.utils.DebugModeRateLimitsConfig;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -94,21 +95,6 @@ public class SystemInfoController extends BaseController {
     @Value("${debug.settings.default_duration:15}")
     private int defaultDebugDurationMinutes;
 
-    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled:true}")
-    private boolean ruleChainDebugPerTenantLimitsEnabled;
-
-    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.configuration:50000:3600}")
-    private String ruleChainDebugPerTenantLimitsConfiguration;
-
-    @Value("${event.debug.rate_limits.enabled}")
-    private boolean eventRateLimitsEnabled;
-
-    @Value("${event.debug.rate_limits.integration}")
-    private String integrationDebugPerTenantLimitsConfiguration;
-
-    @Value("${event.debug.rate_limits.converter}")
-    private String converterDebugPerTenantLimitsConfiguration;
-
     @Autowired(required = false)
     private BuildProperties buildProperties;
 
@@ -123,6 +109,9 @@ public class SystemInfoController extends BaseController {
 
     @Autowired
     private QrCodeSettingService qrCodeSettingService;
+
+    @Autowired
+    private DebugModeRateLimitsConfig debugModeRateLimitsConfig;
 
     @PostConstruct
     public void init() {
@@ -188,13 +177,18 @@ public class SystemInfoController extends BaseController {
             DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
             systemParams.setMaxDebugModeDurationMinutes(DebugModeUtil.getMaxDebugAllDuration(tenantProfileConfiguration.getMaxDebugModeDurationMinutes(), defaultDebugDurationMinutes));
-            if (ruleChainDebugPerTenantLimitsEnabled) {
-                systemParams.setRuleChainDebugPerTenantLimitsConfiguration(ruleChainDebugPerTenantLimitsConfiguration);
+            if (debugModeRateLimitsConfig.isRuleChainDebugPerTenantLimitsEnabled()) {
+                systemParams.setRuleChainDebugPerTenantLimitsConfiguration(debugModeRateLimitsConfig.getRuleChainDebugPerTenantLimitsConfiguration());
             }
-            if (eventRateLimitsEnabled) {
-                systemParams.setIntegrationDebugPerTenantLimitsConfiguration(integrationDebugPerTenantLimitsConfiguration);
-                systemParams.setConverterDebugPerTenantLimitsConfiguration(converterDebugPerTenantLimitsConfiguration);
+            if (debugModeRateLimitsConfig.isCalculatedFieldDebugPerTenantLimitsEnabled()) {
+                systemParams.setCalculatedFieldDebugPerTenantLimitsConfiguration(debugModeRateLimitsConfig.getCalculatedFieldDebugPerTenantLimitsConfiguration());
             }
+            if (debugModeRateLimitsConfig.isEventRateLimitsEnabled()) {
+                systemParams.setIntegrationDebugPerTenantLimitsConfiguration(debugModeRateLimitsConfig.getIntegrationDebugPerTenantLimitsConfiguration());
+                systemParams.setConverterDebugPerTenantLimitsConfiguration(debugModeRateLimitsConfig.getConverterDebugPerTenantLimitsConfiguration());
+            }
+            systemParams.setMaxArgumentsPerCF(tenantProfileConfiguration.getMaxArgumentsPerCF());
+            systemParams.setMaxDataPointsPerRollingArg(tenantProfileConfiguration.getMaxDataPointsPerRollingArg());
         }
         systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
         systemParams.setMobileQrEnabled(Optional.ofNullable(qrCodeSettingService.getMergedQrCodeSettings(tenantId))

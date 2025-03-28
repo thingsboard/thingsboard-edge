@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -29,3 +29,61 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+-- UPDATE DEFAULT TENANT USERS ROLE START
+
+UPDATE role SET permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY", "READ_CALCULATED_FIELD"]}'
+            WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' and customer_id = '13814000-1dd2-11b2-8080-808080808080' and name = 'Tenant User'
+              and permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY"]}';
+
+-- UPDATE DEFAULT TENANT USERS ROLE END
+
+-- UPDATE SAVE TIME SERIES NODES START
+
+DO $$
+    BEGIN
+        -- Check if the rule_node table exists
+        IF EXISTS (
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_name = 'rule_node'
+        ) THEN
+
+            UPDATE rule_node
+            SET configuration = (
+                (configuration::jsonb - 'skipLatestPersistence')
+                    || jsonb_build_object(
+                        'processingSettings', jsonb_build_object(
+                                'type',       'ADVANCED',
+                                'timeseries',       jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
+                                'latest',           jsonb_build_object('type', 'SKIP'),
+                                'webSockets',       jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
+                                'calculatedFields', jsonb_build_object('type', 'ON_EVERY_MESSAGE')
+                                               )
+                       )
+                )::text,
+                configuration_version = 1
+            WHERE type = 'org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode'
+              AND configuration_version = 0
+              AND configuration::jsonb ->> 'skipLatestPersistence' = 'true';
+
+            UPDATE rule_node
+            SET configuration = (
+                (configuration::jsonb - 'skipLatestPersistence')
+                    || jsonb_build_object(
+                        'processingSettings', jsonb_build_object(
+                                'type', 'ON_EVERY_MESSAGE'
+                                               )
+                       )
+                )::text,
+                configuration_version = 1
+            WHERE type = 'org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode'
+              AND configuration_version = 0
+              AND (configuration::jsonb ->> 'skipLatestPersistence' != 'true' OR configuration::jsonb ->> 'skipLatestPersistence' IS NULL);
+
+        END IF;
+    END;
+$$;
+
+-- UPDATE SAVE TIME SERIES NODES END
+
+ALTER TABLE api_usage_state ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;

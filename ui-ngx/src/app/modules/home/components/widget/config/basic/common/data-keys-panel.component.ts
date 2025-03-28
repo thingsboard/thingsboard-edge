@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -53,7 +53,7 @@ import {
 } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
-import { DataKey, DatasourceType, JsonSettingsSchema, widgetType } from '@shared/models/widget.models';
+import { DataKey, DatasourceType, widgetType } from '@shared/models/widget.models';
 import { dataKeyRowValidator, dataKeyValid } from '@home/components/widget/config/basic/common/data-key-row.component';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
@@ -61,6 +61,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { TimeSeriesChartYAxisId } from '@home/components/widget/lib/chart/time-series-chart.models';
+import { FormProperty } from '@shared/models/dynamic-form.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -171,8 +172,8 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
       this.widgetConfigComponent.modelValue?.typeParameters?.hasAdditionalLatestDataKeys;
   }
 
-  get datakeySettingsSchema(): JsonSettingsSchema {
-    return this.widgetConfigComponent.modelValue?.dataKeySettingsSchema;
+  get dataKeySettingsForm(): FormProperty[] {
+    return this.widgetConfigComponent.modelValue?.dataKeySettingsForm;
   }
 
   get dataKeySettingsFunction(): DataKeySettingsFunction {
@@ -296,7 +297,7 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
   }
 
   addKey() {
-    const dataKey = this.callbacks.generateDataKey('', null, this.datakeySettingsSchema,
+    const dataKey = this.callbacks.generateDataKey('', null, this.dataKeySettingsForm,
       false, this.dataKeySettingsFunction);
     dataKey.label = '';
     dataKey.decimals = 0;

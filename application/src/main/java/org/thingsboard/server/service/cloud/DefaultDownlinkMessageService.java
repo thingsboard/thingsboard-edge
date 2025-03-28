@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -87,6 +87,7 @@ import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.service.cloud.rpc.processor.AdminSettingsCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.AlarmCommentCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.ConverterCloudProcessor;
@@ -138,9 +139,6 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
     private EdgeSettingsService edgeSettingsService;
 
     @Autowired
-    private WhiteLabelingService whiteLabelingService;
-
-    @Autowired
     private EdgeCloudProcessor edgeCloudProcessor;
 
     @Autowired
@@ -175,6 +173,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private AlarmCloudProcessor alarmProcessor;
+
+    @Autowired
+    private AlarmCommentCloudProcessor alarmCommentProcessor;
 
     @Autowired
     private UserCloudProcessor userProcessor;
@@ -329,7 +330,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getAlarmCommentUpdateMsgCount() > 0) {
                 for (AlarmCommentUpdateMsg alarmCommentUpdateMsg : downlinkMsg.getAlarmCommentUpdateMsgList()) {
-                    result.add(alarmProcessor.processAlarmCommentMsgFromCloud(tenantId, alarmCommentUpdateMsg));
+                    result.add(alarmCommentProcessor.processAlarmCommentMsgFromCloud(tenantId, alarmCommentUpdateMsg));
                 }
             }
             if (downlinkMsg.getCustomerUpdateMsgCount() > 0) {

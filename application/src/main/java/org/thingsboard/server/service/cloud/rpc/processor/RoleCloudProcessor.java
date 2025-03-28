@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -172,6 +172,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                     case DEVICE_PROFILE:
                     case ASSET_PROFILE:
                     case TB_RESOURCE:
+                    case RULE_CHAIN:
                         newOperations = filterOperations(originOperations, fullEntityUpdateOperations);
                         break;
                     case EDGE:
@@ -193,6 +194,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                             newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(fullEntityUpdateOperations));
                             newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(fullEntityUpdateOperations));
                             newPermissions.put(Resource.TB_RESOURCE, new ArrayList<>(fullEntityUpdateOperations));
+                            newPermissions.put(Resource.RULE_CHAIN, new ArrayList<>(fullEntityUpdateOperations));
                             newPermissions.put(Resource.EDGE, new ArrayList<>(edgeOperations));
                             newOperations = new ArrayList<>(partialUpdateOrReadOperations);
                         } else {

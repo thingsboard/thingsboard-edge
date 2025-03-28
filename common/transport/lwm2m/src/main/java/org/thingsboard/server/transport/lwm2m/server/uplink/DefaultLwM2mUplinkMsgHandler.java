@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -295,6 +295,7 @@ public class DefaultLwM2mUplinkMsgHandler extends LwM2MExecutorAwareService impl
             clientContext.unregister(client, registration);
             SessionInfoProto sessionInfo = client.getSession();
             if (sessionInfo != null) {
+                securityStore.remove(client.getEndpoint(), client.getRegistration().getId());
                 sessionManager.deregister(sessionInfo);
                 sessionStore.remove(registration.getEndpoint());
                 log.info("Client close session: [{}] unReg [{}] name  [{}] profile ", registration.getId(), registration.getEndpoint(), sessionInfo.getDeviceType());
@@ -417,7 +418,6 @@ public class DefaultLwM2mUplinkMsgHandler extends LwM2MExecutorAwareService impl
                     .stream().filter(e -> e.getProfileId() != null)
                     .filter(e -> e.getProfileId().equals(deviceProfile.getUuidId())).collect(Collectors.toList());
             clients.forEach(client -> {
-                this.securityStore.remove(client.getEndpoint(), client.getRegistration().getId());
                 client.onDeviceProfileUpdate(deviceProfile);
             });
             if (clients.size() > 0) {

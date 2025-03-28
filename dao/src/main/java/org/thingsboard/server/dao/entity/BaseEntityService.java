@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -319,6 +319,11 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     public Optional<NameLabelAndCustomerDetails> fetchNameLabelAndCustomerDetails(TenantId tenantId, EntityId entityId) {
         log.trace("Executing fetchNameLabelAndCustomerDetails [{}]", entityId);
         return fetchAndConvert(tenantId, entityId, this::getNameLabelAndCustomerDetails);
+    }
+
+    @Override
+    public Optional<HasId<?>> fetchEntity(TenantId tenantId, EntityId entityId) {
+        return fetchAndConvert(tenantId, entityId, Function.identity());
     }
 
     private <T> Optional<T> fetchAndConvert(TenantId tenantId, EntityId entityId, Function<HasId<?>, T> converter) {

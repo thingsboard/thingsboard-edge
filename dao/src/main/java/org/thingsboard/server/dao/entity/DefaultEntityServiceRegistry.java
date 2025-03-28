@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,6 +57,9 @@ public class DefaultEntityServiceRegistry implements EntityServiceRegistry {
             entityDaoServicesMap.put(entityType, entityDaoService);
             if (EntityType.RULE_CHAIN.equals(entityType)) {
                 entityDaoServicesMap.put(EntityType.RULE_NODE, entityDaoService);
+            }
+            if (EntityType.CALCULATED_FIELD.equals(entityType)) {
+                entityDaoServicesMap.put(EntityType.CALCULATED_FIELD_LINK, entityDaoService);
             }
         });
         log.debug("Initialized EntityServiceRegistry total [{}] entries", entityDaoServicesMap.size());

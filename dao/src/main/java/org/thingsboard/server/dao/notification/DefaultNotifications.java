@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -401,25 +401,6 @@ public class DefaultNotifications {
                     .triggerConfig(TaskProcessingFailureNotificationRuleTriggerConfig.builder().build())
                     .description("Send notification to system admins when task processing fails")
                     .build())
-            .build();
-
-    public static final DefaultNotification queueTypeDeprecation = DefaultNotification.builder()
-            .name("Queue type deprecation")
-            .type(NotificationType.GENERAL)
-            .subject("WARNING: ${queueType} deprecation")
-            .text("Starting with ThingsBoard 4.0, ${queueType} will no longer be supported as a message queue for microservices. " +
-                    "Please migrate to Apache Kafka. This change will not impact any integrations or rule nodes.")
-            .icon("warning").color(RED_COLOR)
-            .build();
-
-    public static final DefaultNotification databaseTypeDeprecation = DefaultNotification.builder()
-            .name("Database type deprecation")
-            .type(NotificationType.GENERAL)
-            .subject("WARNING: ${databaseType} deprecation")
-            .text("Starting with ThingsBoard 4.0, ${databaseType} will no longer be supported as a storage provider. " +
-                    "Please migrate to Cassandra or PostgreSQL.")
-            .icon("warning")
-            .color(RED_COLOR)
             .build();
 
     private final NotificationTemplateService templateService;

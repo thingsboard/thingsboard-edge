@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -85,13 +85,14 @@ public class CloudEventSourcingListener {
             EntityType.ASSET,
             EntityType.ASSET_PROFILE,
             EntityType.DASHBOARD,
+            EntityType.RULE_CHAIN,
             EntityType.TB_RESOURCE);
 
     private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{
         add(EntityType.ALARM);
     }};
 
-    private final List<EntityType> saveEventSupportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES);
+    private final List<EntityType> baseEventSupportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES);
 
     @PostConstruct
     public void init() {
@@ -104,7 +105,7 @@ public class CloudEventSourcingListener {
             return;
         }
         try {
-            if (event.getEntityId() != null && !saveEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())
+            if (event.getEntityId() != null && !baseEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())
                     && !(event.getEntity() instanceof AlarmComment)) {
                 return;
             }
@@ -146,7 +147,7 @@ public class CloudEventSourcingListener {
             return;
         }
         try {
-            if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())) {
+            if (event.getEntityId() != null && !baseEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())) {
                 return;
             }
             if (event.getEntityGroup() != null) {

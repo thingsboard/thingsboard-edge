@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import { Router } from '@angular/router';
 import {
   checkBoxCell,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -93,7 +94,9 @@ export class WidgetTypesTableConfigResolver  {
 
     this.config.columns.push(
       new DateEntityTableColumn<WidgetTypeInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<WidgetTypeInfo>('name', 'widget.title', '100%'),
+      new EntityTableColumn<WidgetTypeInfo>('name', 'widget.title', '60%'),
+      new EntityChipsEntityTableColumn<WidgetTypeInfo>( 'bundles', 'entity.type-widgets-bundles', '40%',
+          () => '/resources/widgets-library/widgets-bundles'),
       new EntityTableColumn<WidgetTypeInfo>('widgetType', 'widget.type', '150px', entity =>
         entity?.widgetType ? this.translate.instant(widgetTypesData.get(entity.widgetType).name) : '', undefined, false),
       new EntityTableColumn<WidgetTypeInfo>('tenantId', 'widget.system', '60px',

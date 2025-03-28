@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,7 +52,6 @@ import org.thingsboard.server.common.msg.TbMsg;
         configClazz = TbIntegrationDownlinkConfiguration.class,
         nodeDescription = "Pushes downlink message to selected integration",
         nodeDetails = "Will push downlink message to the selected integration queue.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeIntegrationDownlinkConfig",
         icon = "input"
 )

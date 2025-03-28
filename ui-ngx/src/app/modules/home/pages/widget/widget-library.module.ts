@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import { WidgetTypeTabsComponent } from '@home/pages/widget/widget-type-tabs.com
 import { WidgetsBundleWidgetsComponent } from '@home/pages/widget/widgets-bundle-widgets.component';
 import { WidgetTypeAutocompleteComponent } from '@home/pages/widget/widget-type-autocomplete.component';
 import { WidgetsBundleDialogComponent } from '@home/pages/widget/widgets-bundle-dialog.component';
+import { WidgetConfigComponentsModule } from '@home/components/widget/config/widget-config-components.module';
 
 @NgModule({
   declarations: [
@@ -62,6 +63,7 @@ import { WidgetsBundleDialogComponent } from '@home/pages/widget/widgets-bundle-
     CommonModule,
     SharedModule,
     HomeComponentsModule,
+    WidgetConfigComponentsModule,
     WidgetLibraryRoutingModule
   ]
 })

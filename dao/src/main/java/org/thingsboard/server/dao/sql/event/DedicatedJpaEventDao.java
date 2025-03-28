@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,11 +54,12 @@ public class DedicatedJpaEventDao extends JpaBaseEventDao {
                                 IntegrationDebugEventRepository integrationDebugEventRepository,
                                 ConverterDebugEventRepository converterDebugEventRepository,
                                 ScheduledLogExecutorComponent logExecutor,
-                                StatsFactory statsFactory) {
+                                StatsFactory statsFactory,
+                                CalculatedFieldDebugEventRepository cfDebugEventRepository) {
         super(partitionConfiguration, partitioningRepository, lcEventRepository, statsEventRepository,
                 errorEventRepository, eventInsertRepository, ruleNodeDebugEventRepository,
                 ruleChainDebugEventRepository, rawEventRepository, integrationDebugEventRepository,
-                converterDebugEventRepository, logExecutor, statsFactory);
+                converterDebugEventRepository, cfDebugEventRepository, logExecutor, statsFactory);
     }
 
 }

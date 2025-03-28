@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -108,6 +108,7 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         }
         return getRepository().save(entity);
         // ... edge-only
+
 //        boolean flushed = false;
 //        EntityManager entityManager = getEntityManager();
 //        if (isNew) {
@@ -157,9 +158,12 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     @Override
     @Transactional
     public D saveAndFlush(TenantId tenantId, D domain) {
+        // edge-only ...
         D d = save(tenantId, domain);
         getRepository().flush();
         return d;
+        // ... edge-only
+//        return save(tenantId, domain, true);
     }
 
     @Override

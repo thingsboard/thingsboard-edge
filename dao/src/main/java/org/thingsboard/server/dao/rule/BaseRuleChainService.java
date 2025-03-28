@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -134,7 +134,16 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     @Override
     @Transactional
     public RuleChain saveRuleChain(RuleChain ruleChain, boolean publishSaveEvent) {
-        ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
+        return saveRuleChain(ruleChain, publishSaveEvent, true);
+    }
+
+    @Override
+    @Transactional
+    public RuleChain saveRuleChain(RuleChain ruleChain, boolean publishSaveEvent, boolean doValidate) {
+        log.trace("Executing doSaveRuleChain [{}]", ruleChain);
+        if (doValidate) {
+            ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
+        }
         try {
             RuleChain savedRuleChain = ruleChainDao.saveAndFlush(ruleChain.getTenantId(), ruleChain);
             if (ruleChain.getId() == null) {
@@ -181,18 +190,17 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     @Override
     @Transactional
     public RuleChainUpdateResult saveRuleChainMetaData(TenantId tenantId, RuleChainMetaData ruleChainMetaData, Function<RuleNode, RuleNode> ruleNodeUpdater) {
-        return saveRuleChainMetaData(tenantId, ruleChainMetaData, ruleNodeUpdater, true, true);
+        return saveRuleChainMetaData(tenantId, ruleChainMetaData, ruleNodeUpdater, true);
     }
 
     @Transactional
     @Override
-    public RuleChainUpdateResult saveRuleChainMetaData(TenantId tenantId, RuleChainMetaData ruleChainMetaData, Function<RuleNode, RuleNode> ruleNodeUpdater,
-                                                       boolean publishSaveEvent, boolean doValidate) {
+    public RuleChainUpdateResult saveRuleChainMetaData(TenantId tenantId, RuleChainMetaData ruleChainMetaData, Function<RuleNode, RuleNode> ruleNodeUpdater, boolean publishSaveEvent) {
         Validator.validateId(ruleChainMetaData.getRuleChainId(), "Incorrect rule chain id.");
         RuleChain ruleChain = findRuleChainById(tenantId, ruleChainMetaData.getRuleChainId());
         if (ruleChain == null) {
             return RuleChainUpdateResult.failed();
-        } else if (doValidate && ruleChainMetaData.getVersion() != null && !ruleChainMetaData.getVersion().equals(ruleChain.getVersion())) {
+        } else if (ruleChainMetaData.getVersion() != null && !ruleChainMetaData.getVersion().equals(ruleChain.getVersion())) {
             throw new EntityVersionMismatchException(EntityType.RULE_CHAIN, null);
         }
         RuleChainDataValidator.validateMetaDataFieldsAndConnections(ruleChainMetaData);
@@ -206,14 +214,9 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         if (nodes != null) {
             for (RuleNode node : nodes) {
                 setSingletonMode(node);
-                if (doValidate) {
-                    if (node.getId() != null) {
-                        ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
-                    } else {
-                        toAddOrUpdate.add(node);
-                    }
-                } else {
+                if (node.getId() != null) {
                     ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
+                } else {
                     toAddOrUpdate.add(node);
                 }
             }
@@ -226,10 +229,8 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             Integer index = ruleNodeIndexMap.get(existingNode.getId());
             RuleNode newRuleNode = null;
             if (index != null) {
-                if (doValidate) {
-                    newRuleNode = ruleChainMetaData.getNodes().get(index);
-                    toAddOrUpdate.add(newRuleNode);
-                }
+                newRuleNode = ruleChainMetaData.getNodes().get(index);
+                toAddOrUpdate.add(newRuleNode);
             } else {
                 updatedRuleNodes.add(new RuleNodeUpdateResult(existingNode, null));
                 toDelete.add(existingNode);

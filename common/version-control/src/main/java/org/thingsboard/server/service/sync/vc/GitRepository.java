@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -470,7 +470,7 @@ public class GitRepository {
         }
         ObjectId result = git.getRepository().resolve(rev);
         if (result == null) {
-            throw new IllegalArgumentException("Failed to parse git revision string: \"" + rev + "\"");
+            throw new IllegalArgumentException("Failed to resolve '" + rev + "'");
         }
         return result;
     }

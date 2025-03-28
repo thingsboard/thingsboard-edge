@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
@@ -851,6 +852,65 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         List<String> deviceNames = groups.stream().map(EntityGroup::getName).collect(Collectors.toList());
 
         Assert.assertEquals(deviceNames, loadedNames);
+    }
+
+    @Test
+    public void testFindEntityDataAfterEntityGroupIsUnshared() throws Exception {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("TestGroup");
+        entityGroup.setType(EntityType.DEVICE);
+        entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        List<Device> devices = new ArrayList<>();
+        for (int i = 0; i < 15; i++) {
+            Device device = new Device();
+            String name = "Device" + i;
+            device.setName(name);
+            device.setType("default");
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
+            Device savedDevice = doPost("/api/device?accessToken=" + name, device, Device.class);
+            devices.add(savedDevice);
+            Thread.sleep(1);
+            long temperature = (long) (Math.random() * 100);
+            doPost("/api/entityGroup/" + entityGroup.getId() + "/addEntities", Collections.singletonList(savedDevice.getId().getId()))
+                    .andExpect(status().isOk());
+        }
+
+        //share group for customer
+        var shareGroupRequest = new ShareGroupRequest(customerId, true, null, false, Collections.emptyList());
+        doPost("/api/entityGroup/{entityGroupId}/share", shareGroupRequest, entityGroup.getId().toString());
+
+        loginCustomerAdministrator();
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(20, 0, null, sortOrder);
+        List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+        List<EntityKey> latestValues = Collections.singletonList(new EntityKey(EntityKeyType.ATTRIBUTE, "temperature"));
+        DeviceTypeFilter filter = new DeviceTypeFilter();
+        filter.setDeviceTypes(List.of("default"));
+        filter.setDeviceNameFilter("");
+
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, latestValues, null);
+        PageData<EntityData> data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {
+        });
+        List<String> loadedNames = data.getData().stream().map(entityData ->
+                entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).collect(Collectors.toList());
+        assertThat(loadedNames).containsExactlyInAnyOrderElementsOf(devices.stream().map(Device::getName).collect(Collectors.toList()));
+
+        //unshare group
+        loginTenantAdmin();
+        List<GroupPermissionInfo> loadedGroupPermissionsInfo = doGetTyped("/api/entityGroup/" + entityGroup.getId().getId() + "/groupPermissions",
+                new TypeReference<>() {});
+        doDelete("/api/groupPermission/" + loadedGroupPermissionsInfo.get(0).getUuidId())
+                .andExpect(status().isOk());
+
+        //check no more devices are visible
+        loginCustomerAdministrator();
+        PageData<EntityData> dataAfterGroupIsUnshared = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {
+        });
+        assertThat(dataAfterGroupIsUnshared.getData()).isEmpty();
     }
 
     @Test

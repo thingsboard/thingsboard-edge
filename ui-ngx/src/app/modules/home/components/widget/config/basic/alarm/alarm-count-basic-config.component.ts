@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -84,6 +84,7 @@ export class AlarmCountBasicConfigComponent extends BasicWidgetConfigComponent {
     const settings: CountWidgetSettings = {...countDefaultSettings(true), ...(configData.config.settings || {})};
     this.alarmCountWidgetConfigForm = this.fb.group({
       alarmFilterConfig: [getAlarmFilterConfig(configData.config.datasources), []],
+      datasources: [configData.config.datasources, []],
 
       settings: [settings, []],
 
@@ -96,6 +97,7 @@ export class AlarmCountBasicConfigComponent extends BasicWidgetConfigComponent {
   }
 
   protected prepareOutputConfig(config: any): WidgetConfigComponentData {
+    this.widgetConfig.config.datasources = config.datasources;
     setAlarmFilterConfig(config.alarmFilterConfig, this.widgetConfig.config.datasources);
 
     this.widgetConfig.config.settings = {...(this.widgetConfig.config.settings || {}), ...config.settings};

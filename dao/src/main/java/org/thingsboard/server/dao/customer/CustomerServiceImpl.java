@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -79,6 +79,7 @@ import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -279,6 +280,9 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     }
 
     private void deleteCustomer(TenantId tenantId, CustomerId customerId, boolean deleteSubcustomers, boolean force) {
+        if (!force && calculatedFieldService.referencedInAnyCalculatedField(tenantId, customerId)) {
+            throw new DataValidationException("Can't delete customer that is referenced in calculated fields!");
+        }
         Customer customer = findCustomerById(tenantId, customerId);
         if (customer == null) {
             if (force) {

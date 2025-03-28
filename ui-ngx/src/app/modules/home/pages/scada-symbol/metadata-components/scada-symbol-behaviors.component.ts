@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -192,8 +192,8 @@ export class ScadaSymbolBehaviorsComponent implements ControlValueAccessor, OnIn
   behaviorDrop(event: CdkDragDrop<string[]>) {
     const behaviorsArray = this.behaviorsFormGroup.get('behaviors') as UntypedFormArray;
     const behavior = behaviorsArray.at(event.previousIndex);
-    behaviorsArray.removeAt(event.previousIndex);
-    behaviorsArray.insert(event.currentIndex, behavior);
+    behaviorsArray.removeAt(event.previousIndex, {emitEvent: false});
+    behaviorsArray.insert(event.currentIndex, behavior, {emitEvent: true});
   }
 
   behaviorsFormArray(): UntypedFormArray {
