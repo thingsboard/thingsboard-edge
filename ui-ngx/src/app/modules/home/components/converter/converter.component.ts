@@ -469,7 +469,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   get functionHelpId(): string {
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration.scriptLang').value;
     const converterType: ConverterType = this.entityForm.get('type').value;
-    return getConverterFunctionHeldId(converterType, scriptLang);
+    const converterVersion: ConverterVersion = this.entityForm.get('converterVersion').value
+    return getConverterFunctionHeldId(converterType, scriptLang, converterVersion);
   }
 
   get functionHelpPopupStyle(): Record<string, string> {

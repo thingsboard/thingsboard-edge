@@ -159,7 +159,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
     this.functionName = getConverterFunctionName(this.data.converter.type, this.data.converter.converterVersion);
     this.scriptLang = this.data.scriptLang ? this.data.scriptLang : ScriptLanguage.JS;
     this.functionArgs = getConverterFunctionArgs(this.data.converter.type);
-    this.functionHelpId = getConverterFunctionHeldId(this.data.converter.type, this.data.scriptLang);
+    this.functionHelpId = getConverterFunctionHeldId(this.data.converter.type, this.data.scriptLang, this.data.converter.converterVersion);
     this.functionHelpPopupStyle = getConverterFunctionHeldPopupStyle(this.data.converter.type);
     this.dialogTitle = getConverterTestFunctionName(this.data.converter.type, this.data.converter.converterVersion);
   }
