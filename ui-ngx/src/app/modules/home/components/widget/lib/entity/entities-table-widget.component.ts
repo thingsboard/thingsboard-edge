@@ -182,7 +182,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   public enableStickyHeader = true;
   public enableStickyAction = true;
   public showCellActionsMenu = true;
-  public pageSizeOptions;
+  public pageSizeOptions = [];
   public pageLink: EntityDataPageLink;
   public sortOrderProperty: string;
   public textSearchMode = false;
@@ -204,7 +204,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private widgetResize$: ResizeObserver;
   private destroy$ = new Subject<void>();
 
-  private defaultPageSize = 10;
+  private defaultPageSize;
   private defaultSortOrder = 'entityName';
 
   private contentsInfo: {[key: string]: CellContentInfo} = {};
@@ -360,10 +360,25 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.rowStylesInfo = getRowStyleInfo(this.ctx, this.settings, 'entity, ctx');
 
     const pageSize = this.settings.defaultPageSize;
+    let pageStepIncrement = this.settings.pageStepIncrement;
+    let pageStepCount = this.settings.pageStepCount;
+
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
+      pageStepCount = 3;
+    }
+
+    for (let i = 1; i <= pageStepCount; i++) {
+      this.pageSizeOptions.push(pageStepIncrement * i);
+    }
     this.pageLink.pageSize = this.displayPagination ? this.defaultPageSize : 1024;
 
     this.noDataDisplayMessageText =
@@ -500,7 +515,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         dataKey.label = this.utils.customTranslation(dataKey.label, dataKey.label);
         dataKey.title = getHeaderTitle(dataKey, keySettings, this.utils);
         dataKey.def = 'def' + this.columns.length;
-        dataKey.sortable = !dataKey.usePostProcessing && (!dataKey.aggregationType || dataKey.aggregationType === AggregationType.NONE);
+        dataKey.sortable = !keySettings.disableSorting && !dataKey.usePostProcessing
+          && (!dataKey.aggregationType ||dataKey.aggregationType === AggregationType.NONE);
         if (dataKey.type === DataKeyType.entityField &&
           !isDefined(keySettings.columnWidth) || keySettings.columnWidth === '0px') {
           const entityField = entityFields[dataKey.name];
@@ -901,6 +917,13 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
                                                        entityFields[c.entityKey.key]).map(c => c.entityKey);
       query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
                                                        c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey);
+
+      if (query.entityFields.every(entityField => entityField.key !== entityFields.name.keyName)) {
+        query.entityFields.push({ key: entityFields.name.keyName, type: EntityKeyType.ENTITY_FIELD });
+      }
+      if (query.entityFields.every(entityField => entityField.key !== entityFields.label.keyName)) {
+        query.entityFields.push({ key: entityFields.label.keyName, type: EntityKeyType.ENTITY_FIELD });
+      }
 
       return this.entityService.findEntityDataByQuery(query).pipe(
         expand(data => {

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { widgetActionTypes, widgetType } from '@shared/models/widget.models';
+import { widgetActionTypes, WidgetActionType, widgetType } from '@shared/models/widget.models';
 import {
   WidgetActionCallbacks,
   WidgetActionsData
@@ -47,6 +47,8 @@ export interface ManageWidgetActionsDialogData {
   actionsData: WidgetActionsData;
   callbacks: WidgetActionCallbacks;
   widgetType: widgetType;
+  defaultIconColor?: string;
+  additionalWidgetActionTypes?: WidgetActionType[];
 }
 
 @Component({

@@ -65,6 +65,7 @@ import { JsFuncModulesComponent } from '@shared/components/js-func-modules.compo
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { tbelUtilsAutocompletes, tbelUtilsFuncHighlightRules } from '@shared/models/ace/tbel-utils.models';
 
 @Component({
   selector: 'tb-js-func',
@@ -120,6 +121,8 @@ export class JsFuncComponent implements OnInit, OnChanges, OnDestroy, ControlVal
   @Input() highlightRules: AceHighlightRules;
 
   @Input() globalVariables: Array<string>;
+
+  @Input() helpPopupStyle: Record<string, any> = {};
 
   @Input()
   @coerceBoolean()
@@ -348,7 +351,7 @@ export class JsFuncComponent implements OnInit, OnChanges, OnDestroy, ControlVal
   }
 
   private updatedScriptLanguage() {
-    this.jsEditor.session.setMode(`ace/mode/${ScriptLanguage.TBEL === this.scriptLanguage ? 'tbel' : 'javascript'}`);
+    this.jsEditor?.session?.setMode(`ace/mode/${ScriptLanguage.TBEL === this.scriptLanguage ? 'tbel' : 'javascript'}`);
   }
 
   validateOnSubmit(): Observable<void> {
@@ -530,14 +533,17 @@ export class JsFuncComponent implements OnInit, OnChanges, OnDestroy, ControlVal
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const ctx: any = {
-        modules: deepClone(this.modules)
-      };
-      const modulesPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, JsFuncModulesComponent, ['leftOnly', 'leftTopOnly', 'leftBottomOnly'], true, null,
-        ctx,
-        {},
-        {}, {}, true);
+      const modulesPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: JsFuncModulesComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'leftTop',
+        context: {
+          modules: deepClone(this.modules)
+        },
+        isModal: true
+      });
       modulesPanelPopover.tbComponentRef.instance.popover = modulesPanelPopover;
       modulesPanelPopover.tbComponentRef.instance.modulesApplied.subscribe((modules) => {
         modulesPanelPopover.hide();
@@ -575,6 +581,9 @@ export class JsFuncComponent implements OnInit, OnChanges, OnDestroy, ControlVal
         break;
       case 'scriptLanguage':
         this.updatedScriptLanguage();
+        this.updateHighlightRules();
+        this.updateCompleters();
+        this.updateJsWorkerGlobals();
         break;
       case 'disableUndefinedCheck':
       case 'globalVariables':
@@ -591,16 +600,25 @@ export class JsFuncComponent implements OnInit, OnChanges, OnDestroy, ControlVal
 
   private updateHighlightRules(): void {
     // @ts-ignore
-    if (!!this.highlightRules && !!this.jsEditor.session.$mode) {
+    if (!!this.jsEditor?.session?.$mode) {
       // @ts-ignore
       const newMode = new this.jsEditor.session.$mode.constructor();
       newMode.$highlightRules = new newMode.HighlightRules();
-      for(const group in this.highlightRules) {
-        if(!!newMode.$highlightRules.$rules[group]) {
-          newMode.$highlightRules.$rules[group].unshift(...this.highlightRules[group]);
-        } else {
-          newMode.$highlightRules.$rules[group] = this.highlightRules[group];
+      if (!!this.highlightRules) {
+        for(const group in this.highlightRules) {
+          if(!!newMode.$highlightRules.$rules[group]) {
+            newMode.$highlightRules.$rules[group].unshift(...this.highlightRules[group]);
+          } else {
+            newMode.$highlightRules.$rules[group] = this.highlightRules[group];
+          }
         }
+      }
+      if (this.scriptLanguage === ScriptLanguage.TBEL) {
+        newMode.$highlightRules.$rules.start = [...tbelUtilsFuncHighlightRules, ...newMode.$highlightRules.$rules.start];
+      }
+      const identifierRule = newMode.$highlightRules.$rules.no_regex.find(rule => Array.isArray(rule.token) && rule.token.includes('identifier'));
+      if (identifierRule && identifierRule.next === 'no_regex') {
+        identifierRule.next = 'start';
       }
       // @ts-ignore
       this.jsEditor.session.$onChangeMode(newMode);
@@ -609,7 +627,7 @@ export class JsFuncComponent implements OnInit, OnChanges, OnDestroy, ControlVal
 
   private updateJsWorkerGlobals() {
     // @ts-ignore
-    if (!!this.jsEditor.session.$worker) {
+    if (!!this.jsEditor?.session?.$worker) {
       const jsWorkerOptions = {
         undef: !this.disableUndefinedCheck,
         unused: true,
@@ -638,6 +656,9 @@ export class JsFuncComponent implements OnInit, OnChanges, OnDestroy, ControlVal
   }
 
   updateCompleters() {
+    if (!this.jsEditor) {
+      return;
+    }
     let modulesCompleterObservable: Observable<TbEditorCompleter>;
     if (this.withModules) {
       modulesCompleterObservable = loadModulesCompleter(this.http, this.modules);
@@ -651,6 +672,9 @@ export class JsFuncComponent implements OnInit, OnChanges, OnDestroy, ControlVal
       }
       if (modulesCompleter) {
         completers.push(modulesCompleter);
+      }
+      if (this.scriptLanguage === ScriptLanguage.TBEL) {
+        completers.push(tbelUtilsAutocompletes);
       }
       completers.push(...this.initialCompleters);
       this.jsEditor.completers = completers;

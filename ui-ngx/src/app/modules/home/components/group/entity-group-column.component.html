@@ -67,7 +67,8 @@
   <div style="padding-left: 5px;"
        class="tb-column-sort-order flex flex-col lt-xl:flex-1 lt-lg:!hidden">
     <mat-form-field subscriptSizing="dynamic">
-      <mat-select required formControlName="sortOrder">
+      <mat-select required formControlName="sortOrder"
+                  [disabled]="modelValue?.disableSorting">
         <mat-option *ngFor="let sortOrder of sortOrders" [value]="sortOrder">
           {{ entityGroupSortOrderTranslations.get(sortOrder) | translate }}
         </mat-option>

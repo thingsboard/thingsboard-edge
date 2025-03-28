@@ -49,7 +49,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldTelemetryMsgProto;
@@ -59,7 +58,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Data
 public class CalculatedFieldCtx {
@@ -73,8 +71,6 @@ public class CalculatedFieldCtx {
     private final Map<String, Argument> arguments;
     private final Map<ReferencedEntityKey, String> mainEntityArguments;
     private final Map<EntityId, Map<ReferencedEntityKey, String>> linkedEntityArguments;
-
-    private final Map<TbPair<EntityId, ReferencedEntityKey>, String> referencedEntityKeys;
     private final List<String> argNames;
     private Output output;
     private String expression;
@@ -86,6 +82,7 @@ public class CalculatedFieldCtx {
 
     private long maxDataPointsPerRollingArg;
     private long maxStateSize;
+    private long maxSingleValueArgumentSize;
 
     public CalculatedFieldCtx(CalculatedField calculatedField, TbelInvokeService tbelInvokeService, ApiLimitService apiLimitService) {
         this.calculatedField = calculatedField;
@@ -101,17 +98,12 @@ public class CalculatedFieldCtx {
         for (Map.Entry<String, Argument> entry : arguments.entrySet()) {
             var refId = entry.getValue().getRefEntityId();
             var refKey = entry.getValue().getRefEntityKey();
-            if (refId == null) {
+            if (refId == null || refId.equals(calculatedField.getEntityId())) {
                 mainEntityArguments.put(refKey, entry.getKey());
             } else {
                 linkedEntityArguments.computeIfAbsent(refId, key -> new HashMap<>()).put(refKey, entry.getKey());
             }
         }
-        this.referencedEntityKeys = arguments.entrySet().stream()
-                .collect(Collectors.toMap(
-                        entry -> new TbPair<>(entry.getValue().getRefEntityId() == null ? entityId : entry.getValue().getRefEntityId(), entry.getValue().getRefEntityKey()),
-                        Map.Entry::getKey
-                ));
         this.argNames = new ArrayList<>(arguments.keySet());
         this.output = configuration.getOutput();
         this.expression = configuration.getExpression();
@@ -119,6 +111,7 @@ public class CalculatedFieldCtx {
 
         this.maxDataPointsPerRollingArg = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMaxDataPointsPerRollingArg);
         this.maxStateSize = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMaxStateSizeInKBytes) * 1024;
+        this.maxSingleValueArgumentSize = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMaxSingleValueArgumentSizeInKBytes) * 1024;
     }
 
     public void init() {
@@ -144,16 +137,28 @@ public class CalculatedFieldCtx {
         }
     }
 
+    public void stop() {
+        if (calculatedFieldScriptEngine != null) {
+            calculatedFieldScriptEngine.destroy();
+        }
+        if (customExpression != null) {
+            customExpression.remove();
+        }
+    }
+
     private CalculatedFieldScriptEngine initEngine(TenantId tenantId, String expression, TbelInvokeService tbelInvokeService) {
         if (tbelInvokeService == null) {
             throw new IllegalArgumentException("TBEL script engine is disabled!");
         }
 
+        List<String> ctxAndArgNames = new ArrayList<>(argNames.size() + 1);
+        ctxAndArgNames.add("ctx");
+        ctxAndArgNames.addAll(argNames);
         return new CalculatedFieldTbelScriptEngine(
                 tenantId,
                 tbelInvokeService,
                 expression,
-                argNames.toArray(String[]::new)
+                ctxAndArgNames.toArray(String[]::new)
         );
     }
 

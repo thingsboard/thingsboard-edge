@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.rule;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -41,12 +42,13 @@ import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Created by igor on 3/12/18.
  */
-public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao, ExportableEntityDao<RuleChainId, RuleChain> {
+public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao<RuleChain>, ExportableEntityDao<RuleChainId, RuleChain> {
 
     /**
      * Find rule chains by tenantId and page link.
@@ -95,5 +97,14 @@ public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao, Exportabl
     PageData<RuleChain> findAutoAssignToEdgeRuleChainsByTenantId(UUID tenantId, PageLink pageLink);
 
     Collection<RuleChain> findByTenantIdAndTypeAndName(TenantId tenantId, RuleChainType type, String name);
+
+    /**
+     * Find rule chains by tenantId and rule chain Ids.
+     *
+     * @param tenantId the tenantId
+     * @param ruleChainIds the rule chain Ids
+     * @return the list of rule chain objects
+     */
+    ListenableFuture<List<RuleChain>> findRuleChainsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> ruleChainIds);
 
 }

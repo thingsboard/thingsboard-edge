@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="integrationTypeFormGroup" class="mat-block">
+<mat-form-field [formGroup]="integrationTypeFormGroup" class="mat-block" [floatLabel]="floatLabel">
   <mat-label translate>integration.type</mat-label>
   <input matInput type="text"
          #integrationTypeInput
@@ -38,7 +38,7 @@
          (focusin)="onFocus()"
          (keyup.enter)="selectedType()"
          [required]="required"
-         placeholder="{{ 'integration.select-integration-type' | translate }}"
+         placeholder="{{ placeholder }}"
          [matAutocomplete]="integrationTypesAutocomplete">
   <button *ngIf="integrationTypeFormGroup.get('type').value && !disabled"
           type="button"

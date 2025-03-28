@@ -137,7 +137,9 @@ export class WidgetActionsPanelComponent implements ControlValueAccessor, OnInit
         widgetTitle: this.widgetConfigComponent.modelValue.widgetName,
         callbacks: this.widgetConfigComponent.widgetConfigCallbacks,
         actionsData,
-        widgetType: this.widgetConfigComponent.widgetType
+        widgetType: this.widgetConfigComponent.widgetType,
+        defaultIconColor: this.widgetConfigComponent.widgetSettings.get('color').value,
+        additionalWidgetActionTypes: this.widgetConfigComponent.modelValue.typeParameters.additionalWidgetActionTypes
       }
     }).afterClosed().subscribe(
       (res) => {

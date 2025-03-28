@@ -69,6 +69,7 @@ public class ContainerTestSuite {
     private static final String TB_VC_LOG_REGEXP = TRANSPORTS_LOG_REGEXP;
     private static final String INTEGRATION_LOG_REGEXP = ".*Sending a connect request to the TB!.*";
     private static final String TB_JS_EXECUTOR_LOG_REGEXP = ".*template started.*";
+    private static final String TB_EDQS_LOG_REGEXP = ".*All partitions processed.*";
     private static final Duration CONTAINER_STARTUP_TIMEOUT = Duration.ofSeconds(400);
 
     private  DockerComposeContainer<?> testContainer;
@@ -130,6 +131,8 @@ public class ContainerTestSuite {
 
             List<File> composeFiles = new ArrayList<>(Arrays.asList(
                     new File(targetDir + "advanced/docker-compose.yml"),
+                    new File(targetDir + "advanced/docker-compose.edqs.yml"),
+                    new File(targetDir + "advanced/docker-compose.edqs.volumes.yml"),
                     new File(targetDir + "advanced/docker-compose.volumes.yml"),
                     new File(targetDir + "advanced/" + (IS_HYBRID_MODE ? "docker-compose.hybrid.yml" : "docker-compose.postgres.yml")),
                     new File(targetDir + (IS_HYBRID_MODE ? "docker-compose.hybrid-test-extras.yml" : "docker-compose.postgres-test-extras.yml")),
@@ -211,7 +214,9 @@ public class ContainerTestSuite {
                     .waitingFor("tb-integration-executor2", Wait.forLogMessage(TB_IE_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                     .waitingFor("tb-vc-executor1", Wait.forLogMessage(TB_VC_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                     .waitingFor("tb-vc-executor2", Wait.forLogMessage(TB_VC_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
-                    .waitingFor("tb-js-executor", Wait.forLogMessage(TB_JS_EXECUTOR_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT));
+                    .waitingFor("tb-js-executor", Wait.forLogMessage(TB_JS_EXECUTOR_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
+                    .waitingFor("tb-edqs1", Wait.forLogMessage(TB_EDQS_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
+                    .waitingFor("tb-edqs2", Wait.forLogMessage(TB_EDQS_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT));
             testContainer.start();
             setActive(true);
         } catch (Exception e) {

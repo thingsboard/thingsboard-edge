@@ -32,11 +32,13 @@ package org.thingsboard.server.dao.sql.customer;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edqs.fields.CustomerFields;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -177,6 +179,16 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
         } else {
             customerRepository.updateCustomMenuId(toUUIDs(customerIds), customMenuId.getId());
         }
+    }
+
+    @Override
+    public PageData<Customer> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public List<CustomerFields> findNextBatch(UUID id, int batchSize) {
+        return customerRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

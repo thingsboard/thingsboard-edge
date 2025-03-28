@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.EntityDaoService;
@@ -58,9 +59,9 @@ public interface ConverterService extends EntityDaoService {
 
     ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
 
-    PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink);
+    PageData<Converter> findTenantConverters(TenantId tenantId, IntegrationType integrationType, PageLink pageLink);
 
-    PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, PageLink pageLink);
+    PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, IntegrationType integrationType, PageLink pageLink);
 
     void deleteConverter(TenantId tenantId, ConverterId converterId);
 

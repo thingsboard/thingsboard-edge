@@ -64,7 +64,8 @@ export class TimeseriesTableLatestKeySettingsComponent extends WidgetSettingsCom
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
       columnSelectionToDisplay: 'enabled',
-      columnExportOption: columnExportOptions.onlyVisible
+      columnExportOption: columnExportOptions.onlyVisible,
+      disableSorting: false
     };
   }
 
@@ -79,7 +80,8 @@ export class TimeseriesTableLatestKeySettingsComponent extends WidgetSettingsCom
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
-      columnExportOption: [settings.columnExportOption, []]
+      columnExportOption: [settings.columnExportOption, []],
+      disableSorting: [settings.disableSorting, []]
     });
   }
 

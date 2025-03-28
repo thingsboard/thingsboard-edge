@@ -35,18 +35,27 @@
     <table mat-table [dataSource]="dataSource" class="overflow-hidden bg-transparent" matSort
            [matSortActive]="sortOrder.property" [matSortDirection]="sortOrder.direction" matSortDisableClear>
       <ng-container [matColumnDef]="'name'">
-        <mat-header-cell mat-sort-header *matHeaderCellDef class="!w-1/4 xs:!w-1/2">
+        <mat-header-cell mat-sort-header *matHeaderCellDef class="!w-1/3 xs:!w-1/2">
           <div tbTruncateWithTooltip>{{ 'common.name' | translate }}</div>
         </mat-header-cell>
-        <mat-cell *matCellDef="let argument" class="w-1/4 xs:w-1/2">
-          <div tbTruncateWithTooltip>{{ argument.argumentName }}</div>
+        <mat-cell *matCellDef="let argument" class="argument-name-cell w-1/3 xs:w-1/2">
+          <div class="flex items-center">
+            <div tbTruncateWithTooltip class="flex-1">{{ argument.argumentName }}</div>
+            <tb-copy-button
+              class="copy-argument-name"
+              [copyText]="argument.argumentName"
+              tooltipText="{{ 'calculated-fields.copy-argument-name' | translate }}"
+              tooltipPosition="above"
+              icon="content_copy"
+            />
+          </div>
         </mat-cell>
       </ng-container>
       <ng-container [matColumnDef]="'entityType'">
-        <mat-header-cell mat-sort-header *matHeaderCellDef class="entity-type-header w-1/4 xs:hidden">
+        <mat-header-cell mat-sort-header *matHeaderCellDef class="entity-type-header w-1/5 xs:hidden">
           {{ 'entity.entity-type' | translate }}
         </mat-header-cell>
-        <mat-cell *matCellDef="let argument" class="w-1/4 xs:hidden">
+        <mat-cell *matCellDef="let argument" class="w-1/5 xs:hidden">
           <div tbTruncateWithTooltip>
             @if (argument.refEntityId?.entityType === ArgumentEntityType.Tenant) {
               {{ 'calculated-fields.argument-current-tenant' | translate }}
@@ -64,7 +73,7 @@
         </mat-header-cell>
         <mat-cell *matCellDef="let argument" class="w-1/4 xs:hidden">
           <div tbTruncateWithTooltip>
-            @if (argument.refEntityId?.id) {
+            @if (argument.refEntityId?.id && argument.refEntityId?.entityType !== ArgumentEntityType.Tenant) {
               <a aria-label="Open entity details page"
                  [routerLink]="getEntityDetailsPageURL(argument.refEntityId.id, argument.refEntityId.entityType)">
                 {{ entityNameMap.get(argument.refEntityId.id) ?? '' }}
@@ -93,17 +102,17 @@
       </ng-container>
       <ng-container matColumnDef="actions" stickyEnd>
         <mat-header-cell *matHeaderCellDef class="w-20 min-w-20" [class.hidden]="readonly"/>
-        <mat-cell *matCellDef="let argument; let $index = index" [class.hidden]="readonly">
+        <mat-cell *matCellDef="let argument;" [class.hidden]="readonly">
           <div class="tb-form-table-row-cell-buttons flex w-20 min-w-20">
             <button type="button"
                     mat-icon-button
                     #button
-                    (click)="manageArgument($event, button, argument, $index)"
+                    (click)="manageArgument($event, button, argument)"
                     [matTooltip]="'action.edit' | translate"
                     matTooltipPosition="above">
               <mat-icon
                 [matBadgeHidden]="!(argument.refEntityKey.type === ArgumentType.Rolling
-                          && calculatedFieldType === CalculatedFieldType.SIMPLE)"
+                          && calculatedFieldType === CalculatedFieldType.SIMPLE) && argument.refEntityId?.id !== NULL_UUID"
                 matBadgeColor="warn"
                 matBadgeSize="small"
                 matBadge="*"
@@ -113,7 +122,7 @@
             </button>
             <button type="button"
                     mat-icon-button
-                    (click)="onDelete($event, $index)"
+                    (click)="onDelete($event, argument)"
                     [matTooltip]="'action.delete' | translate"
                     matTooltipPosition="above">
               <mat-icon>delete</mat-icon>

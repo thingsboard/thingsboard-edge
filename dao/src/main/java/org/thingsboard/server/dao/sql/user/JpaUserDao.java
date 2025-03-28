@@ -33,10 +33,12 @@ package org.thingsboard.server.dao.sql.user;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.edqs.fields.UserFields;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -116,13 +118,13 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     @Override
     public PageData<User> findCustomerUsers(UUID tenantId, UUID customerId, PageLink pageLink) {
         return DaoUtil.toPageData(
-            userRepository
-                    .findUsersByAuthority(
-                            tenantId,
-                            customerId,
-                            pageLink.getTextSearch(),
-                            Authority.CUSTOMER_USER,
-                            DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
+                userRepository
+                        .findUsersByAuthority(
+                                tenantId,
+                                customerId,
+                                pageLink.getTextSearch(),
+                                Authority.CUSTOMER_USER,
+                                DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
 
     }
 
@@ -235,6 +237,16 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     @Override
     public Long countByTenantId(TenantId tenantId) {
         return userRepository.countByTenantId(tenantId.getId());
+    }
+
+    @Override
+    public PageData<User> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return findByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public List<UserFields> findNextBatch(UUID id, int batchSize) {
+        return userRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

@@ -76,9 +76,6 @@ export class TimeSeriesChartWidgetComponent implements OnInit, OnDestroy, AfterV
   @Input()
   ctx: WidgetContext;
 
-  @Input()
-  widgetTitlePanel: TemplateRef<any>;
-
   horizontalLegendPosition = false;
 
   showLegend: boolean;

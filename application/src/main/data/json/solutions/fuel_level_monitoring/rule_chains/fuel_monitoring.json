@@ -45,8 +45,15 @@
         "debugFailures": false,
         "debugAll": false,
         "singletonMode": false,
+        "configurationVersion": 3,
         "configuration": {
-          "scope": "CLIENT_SCOPE"
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          },
+          "scope": "CLIENT_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false,
+          "updateAttributesOnlyOnValueChange": false
         },
         "externalId": null
       },
@@ -226,10 +233,15 @@
         "debugFailures": false,
         "debugAll": false,
         "singletonMode": false,
+        "configurationVersion": 3,
         "configuration": {
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          },
           "scope": "SERVER_SCOPE",
           "notifyDevice": false,
-          "sendAttributesUpdatedNotification": false
+          "sendAttributesUpdatedNotification": false,
+          "updateAttributesOnlyOnValueChange": false
         },
         "externalId": null
       },

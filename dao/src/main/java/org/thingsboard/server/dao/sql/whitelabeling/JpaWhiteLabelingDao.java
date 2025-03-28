@@ -94,5 +94,9 @@ public class JpaWhiteLabelingDao extends JpaAbstractDaoListeningExecutorService 
         ))));
     }
 
+    @Override
+    public PageData<WhiteLabeling> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(whiteLabelingRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink, "tenantId", "customerId", "type")));
+    }
 
 }

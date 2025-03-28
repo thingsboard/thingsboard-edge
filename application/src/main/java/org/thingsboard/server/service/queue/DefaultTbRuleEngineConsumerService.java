@@ -30,20 +30,19 @@
  */
 package org.thingsboard.server.service.queue;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rpc.RpcError;
-import org.thingsboard.server.common.data.util.CollectionsUtil;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
@@ -65,7 +64,7 @@ import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cf.CalculatedFieldCache;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
+import org.thingsboard.server.service.queue.processing.AbstractPartitionBasedConsumerService;
 import org.thingsboard.server.service.queue.ruleengine.TbRuleEngineConsumerContext;
 import org.thingsboard.server.service.queue.ruleengine.TbRuleEngineQueueConsumerManager;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
@@ -82,7 +81,7 @@ import java.util.stream.Collectors;
 @Service
 @TbRuleEngineComponent
 @Slf4j
-public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<ToRuleEngineNotificationMsg> implements TbRuleEngineConsumerService {
+public class DefaultTbRuleEngineConsumerService extends AbstractPartitionBasedConsumerService<ToRuleEngineNotificationMsg> implements TbRuleEngineConsumerService {
 
     private final TbRuleEngineConsumerContext ctx;
     private final QueueService queueService;
@@ -108,9 +107,8 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
         this.queueService = queueService;
     }
 
-    @PostConstruct
-    public void init() {
-        super.init("tb-rule-engine");
+    @Override
+    protected void onStartUp() {
         List<Queue> queues = queueService.findAllQueues();
         for (Queue configuration : queues) {
             if (partitionService.isManagedByCurrentService(configuration.getTenantId())) {
@@ -121,9 +119,9 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
     }
 
     @Override
-    protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        event.getPartitionsMap().forEach((queueKey, partitions) -> {
-            if (CollectionsUtil.isOneOf(queueKey, QueueKey.CF, QueueKey.CF_STATES)) {
+    protected void onPartitionChangeEvent(PartitionChangeEvent event) {
+        event.getNewPartitions().forEach((queueKey, partitions) -> {
+            if (DataConstants.CF_QUEUE_NAME.equals(queueKey.getQueueName()) || DataConstants.CF_STATES_QUEUE_NAME.equals(queueKey.getQueueName())) {
                 return;
             }
             if (partitionService.isManagedByCurrentService(queueKey.getTenantId())) {
@@ -163,6 +161,11 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
     @Override
     protected ServiceType getServiceType() {
         return ServiceType.TB_RULE_ENGINE;
+    }
+
+    @Override
+    protected String getPrefix() {
+        return "tb-rule-engine";
     }
 
     @Override
@@ -248,7 +251,7 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
             if (event.getEvent() == ComponentLifecycleEvent.DELETED) {
                 List<QueueKey> toRemove = consumers.keySet().stream()
                         .filter(queueKey -> queueKey.getTenantId().equals(event.getTenantId()))
-                        .collect(Collectors.toList());
+                        .toList();
                 toRemove.forEach(queueKey -> {
                     removeConsumer(queueKey).ifPresent(consumer -> consumer.delete(false));
                 });

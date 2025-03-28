@@ -1124,7 +1124,7 @@ public class TbUtilsTest {
         String validInput = Base64.getEncoder().encodeToString(new byte[]{1, 2, 3, 4, 5});
         ExecutionArrayList<Byte> actual = TbUtils.base64ToBytesList(ctx, validInput);
         ExecutionArrayList<Byte> expected = new ExecutionArrayList<>(ctx);
-        expected.addAll(List.of((byte) 1, (byte)2, (byte)3, (byte)4, (byte)5));
+        expected.addAll(List.of((byte) 1, (byte) 2, (byte) 3, (byte) 4, (byte) 5));
         Assertions.assertEquals(expected, actual);
 
         String emptyInput = Base64.getEncoder().encodeToString(new byte[]{});
@@ -1138,6 +1138,7 @@ public class TbUtilsTest {
             TbUtils.base64ToBytesList(ctx, null);
         });
     }
+
     @Test
     public void bytesToHex_Test() {
         byte[] bb = {(byte) 0xBB, (byte) 0xAA};
@@ -1149,6 +1150,39 @@ public class TbUtilsTest {
         expected = "BB53";
         actual = TbUtils.bytesToHex(expectedList);
         Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void toInt() {
+        Assertions.assertEquals(1729, TbUtils.toInt(doubleVal));
+        Assertions.assertEquals(13, TbUtils.toInt(12.8));
+        Assertions.assertEquals(28, TbUtils.toInt(28.0));
+    }
+
+    @Test
+    public void isNaN() {
+        Assertions.assertFalse(TbUtils.isNaN(doubleVal));
+        Assertions.assertTrue(TbUtils.isNaN(Double.NaN));
+    }
+
+    @Test
+    public void isInsidePolygon() {
+        // outside the polygon
+        String perimeter = "[[[50.75581142688204,29.097910166341073],[50.16785158177623,29.35066098977171],[50.164329922384674,29.773743889862114],[50.16785158177623,30.801230932938843],[50.459245308833495,30.92760634465418],[50.486522489629564,30.68548421850448],[50.703612031034005,30.872660513473573]],[[50.606017492632766,29.36165015600782],[50.54317104075835,29.762754723626013],[50.41021974600505,29.455058069014804]]]";
+        Assertions.assertFalse(TbUtils.isInsidePolygon(50.50869555168039, 30.80123093293884, perimeter));
+        // inside the polygon
+        Assertions.assertTrue(TbUtils.isInsidePolygon(50.50520628167696, 30.339685951022016, perimeter));
+        // inside the hole
+        Assertions.assertFalse(TbUtils.isInsidePolygon(50.52265651287081, 29.488025567723156, perimeter));
+    }
+
+    @Test
+    public void isInsideCircle() {
+        // outside the circle
+        String perimeter = "{\"latitude\":50.32254778825905,\"longitude\":28.207787701215757,\"radius\":47477.33130420423}";
+        Assertions.assertFalse(TbUtils.isInsideCircle(50.81490715736681, 28.05943395702824, perimeter));
+        // inside the circle
+        Assertions.assertTrue(TbUtils.isInsideCircle(50.599397971892444, 28.086906872618542, perimeter));
     }
 
     private static List<Byte> toList(byte[] data) {

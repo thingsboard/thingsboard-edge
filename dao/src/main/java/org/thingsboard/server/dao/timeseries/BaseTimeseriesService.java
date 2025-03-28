@@ -41,6 +41,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.edqs.LatestTsKv;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -54,6 +56,7 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
+import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.Validator;
@@ -70,7 +73,6 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 /**
  * @author Andrew Shvayka
  */
-@SuppressWarnings("UnstableApiUsage")
 @Service
 @Slf4j
 public class BaseTimeseriesService implements TimeseriesService {
@@ -104,6 +106,9 @@ public class BaseTimeseriesService implements TimeseriesService {
 
     @Autowired
     private EntityViewService entityViewService;
+
+    @Autowired
+    private EdqsService edqsService;
 
     @Override
     public ListenableFuture<TsKvEntry> findOne(TenantId tenantId, EntityId entityId, long ts, String key) {
@@ -220,7 +225,12 @@ public class BaseTimeseriesService implements TimeseriesService {
                 tsFutures.add(timeseriesDao.save(tenantId, entityId, tsKvEntry, ttl, overwriteValue));
             }
             if (saveLatest) {
-                latestFutures.add(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry));
+                latestFutures.add(Futures.transform(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry), version -> {
+                    if (version != null) {
+                        edqsService.onUpdate(tenantId, ObjectType.LATEST_TS_KV, new LatestTsKv(entityId, tsKvEntry, version));
+                    }
+                    return version;
+                }, MoreExecutors.directExecutor()));
             }
         }
         ListenableFuture<Integer> dpsFuture = saveTs ? Futures.transform(Futures.allAsList(tsFutures), SUM_ALL_INTEGERS, MoreExecutors.directExecutor()) : Futures.immediateFuture(0);
@@ -268,7 +278,7 @@ public class BaseTimeseriesService implements TimeseriesService {
         List<ListenableFuture<TsKvLatestRemovingResult>> futures = new ArrayList<>(keys.size());
         for (String key : keys) {
             DeleteTsKvQuery query = new BaseDeleteTsKvQuery(key, 0, System.currentTimeMillis(), false);
-            futures.add(timeseriesLatestDao.removeLatest(tenantId, entityId, query));
+            futures.add(doRemove(tenantId, entityId, query));
         }
         return Futures.allAsList(futures);
     }
@@ -289,8 +299,18 @@ public class BaseTimeseriesService implements TimeseriesService {
     private void deleteAndRegisterFutures(TenantId tenantId, List<ListenableFuture<TsKvLatestRemovingResult>> futures, EntityId entityId, DeleteTsKvQuery query) {
         futures.add(Futures.transform(timeseriesDao.remove(tenantId, entityId, query), v -> null, MoreExecutors.directExecutor()));
         if (query.getDeleteLatest()) {
-            futures.add(timeseriesLatestDao.removeLatest(tenantId, entityId, query));
+            futures.add(doRemove(tenantId, entityId, query));
         }
+    }
+
+    private ListenableFuture<TsKvLatestRemovingResult> doRemove(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+        return Futures.transform(timeseriesLatestDao.removeLatest(tenantId, entityId, query), result -> {
+            if (result.isRemoved()) {
+                Long version = result.getVersion();
+                edqsService.onDelete(tenantId, ObjectType.LATEST_TS_KV, new LatestTsKv(entityId, query.getKey(), version));
+            }
+            return result;
+        }, MoreExecutors.directExecutor());
     }
 
     private static void validate(EntityId entityId) {
@@ -306,7 +326,12 @@ public class BaseTimeseriesService implements TimeseriesService {
             throw new IncorrectParameterException("Incorrect ReadTsKvQuery. Aggregation can't be empty");
         }
         if (!Aggregation.NONE.equals(query.getAggregation())) {
-            long step = Math.max(query.getInterval(), 1000);
+            long interval = query.getInterval();
+            if (interval < 1) {
+                throw new IncorrectParameterException("Invalid TsKvQuery: 'interval' must be greater than 0, but got " + interval +
+                        ". Please check your query parameters and ensure 'endTs' is greater than 'startTs' or increase 'interval'.");
+            }
+            long step = Math.max(interval, 1000);
             long intervalCounts = (query.getEndTs() - query.getStartTs()) / step;
             if (intervalCounts > maxTsIntervals || intervalCounts < 0) {
                 throw new IncorrectParameterException("Incorrect TsKvQuery. Number of intervals is to high - " + intervalCounts + ". " +
@@ -322,4 +347,5 @@ public class BaseTimeseriesService implements TimeseriesService {
             throw new IncorrectParameterException("Incorrect DeleteTsKvQuery. Key can't be empty");
         }
     }
+
 }

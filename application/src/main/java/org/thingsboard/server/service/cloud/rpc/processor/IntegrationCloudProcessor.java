@@ -115,7 +115,7 @@ public class IntegrationCloudProcessor extends BaseEdgeProcessor {
         PageData<Converter> pageData;
         PageLink pageLink = new PageLink(100);
         do {
-            pageData = edgeCtx.getConverterService().findTenantConverters(tenantId, pageLink);
+            pageData = edgeCtx.getConverterService().findTenantConverters(tenantId, null, pageLink);
             tenantConverters.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();

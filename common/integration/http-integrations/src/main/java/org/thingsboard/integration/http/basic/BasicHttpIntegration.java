@@ -196,7 +196,7 @@ public class BasicHttpIntegration<T extends HttpIntegrationMsg<?>> extends Abstr
                 }
         );
 
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData(msg.getContentType(), mdMap));
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, data, new UplinkMetaData<>(msg.getContentType(), mdMap));
         if (uplinkDataList != null && !uplinkDataList.isEmpty()) {
             Map<String, UplinkData> result = new HashMap<>();
             for (UplinkData uplinkData : uplinkDataList) {

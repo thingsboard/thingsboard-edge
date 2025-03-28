@@ -65,9 +65,9 @@
   />
 </mat-tab>
 <mat-tab *ngIf="entity" #alarmRules="matTab"
-         label="{{'device-profile.alarm-rules-with-count' | translate:
-            {count: this.detailsForm.get('profileData.alarms').value?.length ? this.detailsForm.get('profileData.alarms').value.length : 0}
-          }}">
+         label="{{ this.detailsForm.get('profileData.alarms').value?.length
+         ? ('device-profile.alarm-rules-with-count' | translate: { count: this.detailsForm.get('profileData.alarms').value.length })
+         : 'device-profile.alarm-rules' | translate }}">
   <div class="mat-padding" [formGroup]="detailsForm" *ngIf="alarmRules.isActive">
     <div formGroupName="profileData">
       <tb-device-profile-alarms formControlName="alarms" [deviceProfileId]="entity.id"></tb-device-profile-alarms>

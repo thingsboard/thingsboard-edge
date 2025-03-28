@@ -309,9 +309,11 @@ public class ModelConstants {
     public static final String CONVERTER_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String CONVERTER_NAME_PROPERTY = "name";
     public static final String CONVERTER_TYPE_PROPERTY = "type";
+    public static final String CONVERTER_INTEGRATION_TYPE_PROPERTY = "integration_type";
     public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
+    public static final String CONVERTER_VERSION_PROPERTY = "converter_version";
 
     /**
      * Integration constants.
@@ -332,7 +334,6 @@ public class ModelConstants {
     public static final String INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
 
     public static final String INTEGRATION_VIEW_NAME = "integration_info";
-    public static final String INTEGRATION_VIEW_STATS_PROPERTY = "stats";
     public static final String INTEGRATION_VIEW_STATUS_PROPERTY = "status";
 
     /**
@@ -934,7 +935,6 @@ public class ModelConstants {
     public static final String CALCULATED_FIELD_CONFIGURATION_VERSION = "configuration_version";
     public static final String CALCULATED_FIELD_CONFIGURATION = "configuration";
     public static final String CALCULATED_FIELD_VERSION = "version";
-    public static final String CALCULATED_FIELD_EXTERNAL_ID = "external_id";
 
     /**
      * Calculated field links constants.
@@ -1001,4 +1001,5 @@ public class ModelConstants {
             "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
             "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
             "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
+
 }

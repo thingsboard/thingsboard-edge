@@ -41,6 +41,7 @@ import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.aware.TenantAwareMsg;
 import org.thingsboard.server.common.msg.cluster.ToAllNodesMsg;
 
+import java.io.Serial;
 import java.util.Optional;
 
 /**
@@ -48,6 +49,8 @@ import java.util.Optional;
  */
 @Data
 public class ComponentLifecycleMsg implements TenantAwareMsg, ToAllNodesMsg {
+
+    @Serial
     private static final long serialVersionUID = -5303421482781273062L;
 
     private final TenantId tenantId;
@@ -81,4 +84,5 @@ public class ComponentLifecycleMsg implements TenantAwareMsg, ToAllNodesMsg {
     public MsgType getMsgType() {
         return MsgType.COMPONENT_LIFE_CYCLE_MSG;
     }
+
 }

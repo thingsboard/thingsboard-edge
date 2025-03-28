@@ -383,7 +383,7 @@ public class DefaultTransportApiService implements TransportApiService {
                     }
                     entityGroupService.addEntityToEntityGroup(tenantId, groupSparkplugDevice.getId(), device.getId());
                 }
-                relationService.saveRelation(TenantId.SYS_TENANT_ID, new EntityRelation(gateway.getId(), device.getId(), "Created"));
+                relationService.saveRelation(tenantId, new EntityRelation(gateway.getId(), device.getId(), "Created"));
 
                 TbMsgMetaData metaData = new TbMsgMetaData();
                 CustomerId customerId = gateway.getCustomerId();

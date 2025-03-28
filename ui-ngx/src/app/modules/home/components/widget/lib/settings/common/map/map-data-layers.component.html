@@ -1,0 +1,67 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-form-panel no-padding no-border">
+  <div class="tb-form-table tb-map-data-layers">
+    <div class="tb-form-table-header no-padding-right">
+      <div class="tb-form-table-header-cell tb-source-header" translate>widgets.maps.data-layer.source</div>
+      <div *ngIf="['trips', 'markers'].includes(dataLayerType)" class="tb-form-table-header-cell tb-x-pos-header">
+        {{ (mapType === MapType.geoMap ? 'widgets.maps.data-layer.marker.latitude-key' : 'widgets.maps.data-layer.marker.x-pos-key') | translate }}
+      </div>
+      <div *ngIf="['trips', 'markers'].includes(dataLayerType)" class="tb-form-table-header-cell tb-y-pos-header">
+        {{ (mapType === MapType.geoMap ? 'widgets.maps.data-layer.marker.longitude-key' : 'widgets.maps.data-layer.marker.y-pos-key') | translate }}
+      </div>
+      <div *ngIf="dataLayerType === 'polygons'" class="tb-form-table-header-cell tb-key-header" translate>widgets.maps.data-layer.polygon.polygon-key</div>
+      <div *ngIf="dataLayerType === 'circles'" class="tb-form-table-header-cell tb-key-header" translate>widgets.maps.data-layer.circle.circle-key</div>
+      <div class="tb-form-table-header-cell tb-actions-header"></div>
+    </div>
+    <div *ngIf="dataLayersFormArray().controls.length; else noDataLayers" class="tb-form-table-body">
+      <div *ngFor="let dataLayerControl of dataLayersFormArray().controls; trackBy: trackByDataLayer; let $index = index;">
+        <tb-map-data-layer-row class="flex-1"
+                               [mapType]="mapType"
+                               [dataLayerType]="dataLayerType"
+                               [context]="context"
+                               [formControl]="dataLayerControl"
+                               (dataLayerRemoved)="removeDataLayer($index)">
+        </tb-map-data-layer-row>
+      </div>
+    </div>
+  </div>
+  <div>
+    <button type="button" mat-stroked-button color="primary" (click)="addDataLayer()">
+      {{ addDataLayerText | translate }}
+    </button>
+  </div>
+</div>
+<ng-template #noDataLayers>
+  <span class="tb-prompt flex items-center justify-center">{{ noDataLayersText | translate }}</span>
+</ng-template>

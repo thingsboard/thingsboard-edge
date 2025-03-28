@@ -465,6 +465,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .updateRelations(config.isLoadRelations())
                 .saveAttributes(config.isLoadAttributes())
                 .saveCredentials(config.isLoadCredentials())
+                .saveCalculatedFields(config.isLoadCalculatedFields())
                 .saveUserGroupPermissions(config.isLoadPermissions())
                 .autoGenerateIntegrationKey(config.isAutoGenerateIntegrationKey())
                 .findExistingByName(false)
@@ -555,7 +556,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private VersionLoadResult loadMultipleEntities(EntitiesImportCtx ctx, EntityTypeVersionLoadRequest request) {
         var sw = TbStopWatch.create("before");
         List<EntityType> entityTypes = request.getEntityTypes().keySet().stream()
-                .sorted(exportImportService.getEntityTypeComparatorForImport()).collect(Collectors.toList());
+                .sorted(exportImportService.getEntityTypeComparatorForImport()).toList();
         for (EntityType entityType : entityTypes) {
             log.debug("[{}] LOADING {} entities", ctx.getTenantId(), entityType);
             sw.startNew("Entities " + entityType.name());
@@ -600,6 +601,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .updateRelations(config.isLoadRelations())
                 .saveAttributes(config.isLoadAttributes())
                 .saveCredentials(config.isLoadCredentials())
+                .saveCalculatedFields(config.isLoadCalculatedFields())
                 .saveUserGroupPermissions(config.isLoadPermissions())
                 .findExistingByName(config.isFindExistingEntityByName())
                 .autoGenerateIntegrationKey(config.isAutoGenerateIntegrationKey())
@@ -808,7 +810,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     @SuppressWarnings({"rawtypes"})
     @Override
-    public ListenableFuture<EntityDataDiff> compareEntityDataToVersion(User user, EntityId entityId, String versionId) throws Exception {
+    public ListenableFuture<EntityDataDiff> compareEntityDataToVersion(User user, EntityId entityId, String versionId) {
         HasId<? extends EntityId> entity = findExportableEntityInDb(user.getTenantId(), entityId);
 
         EntityId externalId = ((ExportableEntity<? extends EntityId>) entity).getExternalId();
@@ -828,6 +830,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                             .exportRelations(otherVersion.hasRelations())
                             .exportAttributes(otherVersion.hasAttributes())
                             .exportCredentials(otherVersion.hasCredentials())
+                            .exportCalculatedFields(otherVersion.hasCalculatedFields())
                             .exportPermissions(otherVersion.hasPermissions())
                             .exportGroupEntities(otherVersion.hasGroupEntities())
                             .build());
@@ -853,12 +856,11 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             future = gitServiceQueue.getEntity(user.getTenantId(), versionId, customerIds, externalId);
         }
         return Futures.transform(future,
-                entity -> new EntityDataInfo(entity.hasRelations(), entity.hasAttributes(), entity.hasCredentials(), entity.hasPermissions(), entity.hasGroupEntities()), MoreExecutors.directExecutor());
+                entity -> new EntityDataInfo(entity.hasRelations(), entity.hasAttributes(), entity.hasCredentials(), entity.hasCalculatedFields(), entity.hasPermissions(), entity.hasGroupEntities()), MoreExecutors.directExecutor());
     }
 
-
     @Override
-    public ListenableFuture<List<BranchInfo>> listBranches(TenantId tenantId) throws Exception {
+    public ListenableFuture<List<BranchInfo>> listBranches(TenantId tenantId) {
         return gitServiceQueue.listBranches(tenantId);
     }
 
@@ -882,6 +884,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     @Override
     public ListenableFuture<Void> deleteVersionControlSettings(TenantId tenantId) {
+        log.debug("[{}] Deleting version control settings", tenantId);
+        repositorySettingsService.delete(tenantId);
         return gitServiceQueue.clearRepository(tenantId);
     }
 

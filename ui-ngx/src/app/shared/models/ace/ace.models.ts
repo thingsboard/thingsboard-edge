@@ -392,4 +392,3 @@ export const endGroupHighlightRule: AceHighlightRule = {
 };
 
 
-

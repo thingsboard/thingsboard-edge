@@ -30,6 +30,7 @@
  */
 package org.thingsboard.script.api.tbel;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.primitives.Bytes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -38,6 +39,10 @@ import org.mvel2.ParserConfiguration;
 import org.mvel2.execution.ExecutionArrayList;
 import org.mvel2.execution.ExecutionHashMap;
 import org.mvel2.util.MethodStub;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.geo.Coordinates;
+import org.thingsboard.common.util.geo.GeoUtil;
+import org.thingsboard.common.util.geo.RangeUnit;
 import org.thingsboard.server.common.data.StringUtils;
 
 import java.io.IOException;
@@ -270,6 +275,10 @@ public class TbUtils {
                 double.class, int.class)));
         parserConfig.addImport("toFixed", new MethodStub(TbUtils.class.getMethod("toFixed",
                 float.class, int.class)));
+        parserConfig.addImport("toInt", new MethodStub(TbUtils.class.getMethod("toInt",
+                double.class)));
+        parserConfig.addImport("isNaN", new MethodStub(TbUtils.class.getMethod("isNaN",
+                double.class)));
         parserConfig.addImport("hexToBytes", new MethodStub(TbUtils.class.getMethod("hexToBytes",
                 ExecutionContext.class, String.class)));
         parserConfig.addImport("hexToBytesArray", new MethodStub(TbUtils.class.getMethod("hexToBytesArray",
@@ -382,6 +391,10 @@ public class TbUtils {
                 byte[].class, int.class)));
         parserConfig.addImport("parseBinaryArrayToInt", new MethodStub(TbUtils.class.getMethod("parseBinaryArrayToInt",
                 byte[].class, int.class, int.class)));
+        parserConfig.addImport("isInsidePolygon", new MethodStub(TbUtils.class.getMethod("isInsidePolygon",
+                double.class, double.class, String.class)));
+        parserConfig.addImport("isInsideCircle", new MethodStub(TbUtils.class.getMethod("isInsideCircle",
+                double.class, double.class, String.class)));
     }
 
     public static String btoa(String input) {
@@ -1170,6 +1183,14 @@ public class TbUtils {
         return BigDecimal.valueOf(value).setScale(precision, RoundingMode.HALF_UP).floatValue();
     }
 
+    public static int toInt(double value) {
+        return BigDecimal.valueOf(value).setScale(0, RoundingMode.HALF_UP).intValue();
+    }
+
+    public static boolean isNaN(double value) {
+        return Double.isNaN(value);
+    }
+
     public static ExecutionHashMap<String, Object> toFlatMap(ExecutionContext ctx, Map<String, Object> json) {
         return toFlatMap(ctx, json, new ArrayList<>(), true);
     }
@@ -1440,6 +1461,22 @@ public class TbUtils {
         return result;
     }
 
+    public static boolean isInsidePolygon(double latitude, double longitude, String perimeter) {
+        return GeoUtil.contains(perimeter, new Coordinates(latitude, longitude));
+    }
+
+    public static boolean isInsideCircle(double latitude, double longitude, String perimeter) {
+        JsonNode perimeterJson = JacksonUtil.toJsonNode(perimeter);
+        double centerLatitude = Double.parseDouble(perimeterJson.get("latitude").asText());
+        double centerLongitude = Double.parseDouble(perimeterJson.get("longitude").asText());
+        double range = Double.parseDouble(perimeterJson.get("radius").asText());
+        RangeUnit rangeUnit = perimeterJson.has("radiusUnit") ? RangeUnit.valueOf(perimeterJson.get("radiusUnit").asText()) : RangeUnit.METER;
+
+        Coordinates entityCoordinates = new Coordinates(latitude, longitude);
+        Coordinates perimeterCoordinates = new Coordinates(centerLatitude, centerLongitude);
+        return range > GeoUtil.distance(entityCoordinates, perimeterCoordinates, rangeUnit);
+    }
+
     private static byte isValidIntegerToByte(Integer val) {
         if (val > 255 || val < -128) {
             throw new NumberFormatException("The value '" + val + "' could not be correctly converted to a byte. " +
@@ -1521,5 +1558,6 @@ public class TbUtils {
         }
         return hex;
     }
+
 }
 

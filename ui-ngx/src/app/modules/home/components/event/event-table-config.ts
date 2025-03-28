@@ -466,7 +466,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
             (entity) => entity.body.entityId,
             {
               name: this.translate.instant('event.copy-entity-id'),
-              icon: 'content_paste',
+              icon: 'content_copy',
               style: {
                 padding: '4px',
                 'font-size': '16px',
@@ -486,7 +486,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
             false,
             {
               name: this.translate.instant('event.copy-message-id'),
-              icon: 'content_paste',
+              icon: 'content_copy',
               style: {
                 padding: '4px',
                 'font-size': '16px',
@@ -587,7 +587,12 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
     }
     if (contentType === ContentType.JSON && sortKeys) {
       try {
-        content = JSON.stringify(sortObjectKeys(JSON.parse(content)));
+        const parsedContent = JSON.parse(content);
+        if (Array.isArray(parsedContent)) {
+          content = JSON.stringify(parsedContent.map(item => item && typeof item === 'object' ? sortObjectKeys(item) : item));
+        } else {
+          content = JSON.stringify(sortObjectKeys(parsedContent));
+        }
       } catch (e) {}
     }
     this.dialog.open<EventContentDialogComponent, EventContentDialogData>(EventContentDialogComponent, {

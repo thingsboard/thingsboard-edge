@@ -33,15 +33,6 @@ DROP VIEW IF EXISTS integration_info CASCADE;
 CREATE OR REPLACE VIEW integration_info as
 SELECT created_time, id, tenant_id, name, type, debug_settings, enabled, is_remote,
        allow_create_devices_or_assets, is_edge_template,
-       (SELECT cast(json_agg(element) as varchar)
-        FROM (SELECT sum(se.e_messages_processed + se.e_errors_occurred) element
-              FROM stats_event se
-              WHERE se.tenant_id = i.tenant_id
-                AND se.entity_id = i.id
-                AND ts >= (EXTRACT(EPOCH FROM current_timestamp) * 1000 - 24 * 60 * 60 * 1000)::bigint
-
-              GROUP BY ts / 3600000
-              ORDER BY ts / 3600000) stats) as stats,
        (CASE WHEN i.enabled THEN
                  (SELECT cast(json_v as varchar)
                   FROM attribute_kv

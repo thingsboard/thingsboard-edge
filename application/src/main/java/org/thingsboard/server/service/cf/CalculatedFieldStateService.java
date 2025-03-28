@@ -28,6 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 package org.thingsboard.server.service.cf;
 
 import org.thingsboard.server.common.msg.queue.TbCallback;
@@ -36,6 +37,7 @@ import org.thingsboard.server.exception.CalculatedFieldStateException;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.common.consumer.PartitionedQueueConsumerManager;
+import org.thingsboard.server.queue.discovery.QueueKey;
 import org.thingsboard.server.service.cf.ctx.CalculatedFieldEntityCtxId;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldState;
 
@@ -49,7 +51,11 @@ public interface CalculatedFieldStateService {
 
     void removeState(CalculatedFieldEntityCtxId stateId, TbCallback callback);
 
-    void restore(Set<TopicPartitionInfo> partitions);
+    void restore(QueueKey queueKey, Set<TopicPartitionInfo> partitions);
+
+    void delete(Set<TopicPartitionInfo> partitions);
+
+    Set<TopicPartitionInfo> getPartitions();
 
     void stop();
 

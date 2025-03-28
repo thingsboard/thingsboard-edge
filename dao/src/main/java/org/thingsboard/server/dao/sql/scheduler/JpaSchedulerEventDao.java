@@ -32,9 +32,11 @@ package org.thingsboard.server.dao.sql.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edqs.fields.SchedulerEventFields;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -45,6 +47,7 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -79,6 +82,16 @@ public class JpaSchedulerEventDao extends JpaAbstractDao<SchedulerEventEntity, S
     @Override
     public Long countByTenantId(TenantId tenantId) {
         return schedulerEventRepository.countByTenantId(tenantId.getId());
+    }
+
+    @Override
+    public PageData<SchedulerEvent> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(schedulerEventRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public List<SchedulerEventFields> findNextBatch(UUID id, int batchSize) {
+        return schedulerEventRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

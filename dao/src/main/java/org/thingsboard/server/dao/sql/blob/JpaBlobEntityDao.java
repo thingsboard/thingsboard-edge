@@ -33,11 +33,17 @@ package org.thingsboard.server.dao.sql.blob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.edqs.fields.BlobEntityFields;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
@@ -45,6 +51,7 @@ import org.thingsboard.server.dao.sql.JpaPartitionedAbstractDao;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 import org.thingsboard.server.dao.util.SqlDao;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -118,6 +125,16 @@ public class JpaBlobEntityDao extends JpaPartitionedAbstractDao<BlobEntityEntity
 
     private long getPartitionSizeInMs() {
         return TimeUnit.HOURS.toMillis(partitionSizeInHours);
+    }
+
+    @Override
+    public PageData<BlobEntity> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(blobEntityRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public List<BlobEntityFields> findNextBatch(UUID id, int batchSize) {
+        return blobEntityRepository.findNextBatch(id, Limit.of(batchSize));
     }
 
     @Override

@@ -104,7 +104,7 @@ public class TsRollingArgumentEntry implements ArgumentEntry {
         for (var e : tsRecords.entrySet()) {
             values.add(new TbelCfTsDoubleVal(e.getKey(), e.getValue()));
         }
-        return new TbelCfTsRollingArg(limit, timeWindow, values);
+        return new TbelCfTsRollingArg(timeWindow, values);
     }
 
     @Override

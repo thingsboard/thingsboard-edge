@@ -62,7 +62,11 @@ public class AssetImportService extends BaseGroupEntityImportService<AssetId, As
 
     @Override
     protected Asset saveOrUpdate(EntitiesImportCtx ctx, Asset asset, GroupEntityExportData<Asset> exportData, IdProvider idProvider) {
-        return assetService.saveAsset(asset);
+        Asset savedAsset = assetService.saveAsset(asset);
+        if (ctx.isFinalImportAttempt() || ctx.getCurrentImportResult().isUpdatedAllExternalIds()) {
+            importCalculatedFields(ctx, savedAsset, exportData, idProvider);
+        }
+        return savedAsset;
     }
 
     @Override

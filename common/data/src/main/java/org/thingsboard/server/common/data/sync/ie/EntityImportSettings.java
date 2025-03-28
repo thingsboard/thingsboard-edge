@@ -40,10 +40,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class EntityImportSettings {
+
     private boolean findExistingByName;
     private boolean updateRelations;
     private boolean saveAttributes;
     private boolean saveCredentials;
+    private boolean saveCalculatedFields;
     private boolean saveUserGroupPermissions;
     private boolean autoGenerateIntegrationKey;
+
 }
