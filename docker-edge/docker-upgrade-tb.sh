@@ -42,7 +42,7 @@ COMPOSE_ARGS_UP="\
 
 COMPOSE_ARGS_RUN="\
       -f docker-compose.yml ${ADDITIONAL_CACHE_ARGS} ${ADDITIONAL_COMPOSE_ARGS} ${ADDITIONAL_COMPOSE_QUEUE_ARGS} \
-      run --no-deps --rm -e UPGRADE_TB=true \
+      run --no-deps --rm -e UPGRADE_TB_EDGE=true \
       tb-edge1"
 
 case $COMPOSE_VERSION in
