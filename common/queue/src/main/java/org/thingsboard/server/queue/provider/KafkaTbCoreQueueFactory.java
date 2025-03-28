@@ -158,9 +158,9 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
                                    TbKafkaConsumerStatsService consumerStatsService,
                                    TbQueueTransportNotificationSettings transportNotificationSettings,
                                    TbQueueIntegrationExecutorSettings integrationExecutorSettings,
+                                   TbQueueCalculatedFieldSettings calculatedFieldSettings,
                                    TbQueueCloudEventSettings cloudEventSettings,
                                    TbQueueCloudEventTSSettings cloudEventTSSettings,
-                                   TbQueueCalculatedFieldSettings calculatedFieldSettings,
                                    EdqsConfig edqsConfig,
                                    TbKafkaTopicConfigs kafkaTopicConfigs) {
         this.topicService = topicService;

@@ -1010,5 +1010,4 @@ public class DefaultTbClusterService implements TbClusterService {
         pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
                 TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
     }
-
 }

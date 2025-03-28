@@ -38,11 +38,13 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCloudEventQueueFactory;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
@@ -72,6 +74,13 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
 
     @Autowired
     private TbQueueCloudEventSettings tbQueueCloudEventSettings;
+
+    @Override
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        if (ServiceType.TB_CORE.equals(event.getServiceType())) {
+            establishRpcConnection();
+        }
+    }
 
     @Override
     protected void launchUplinkProcessing() {
@@ -108,16 +117,21 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
     }
 
     @PreDestroy
-    private void onDestroy() throws InterruptedException {
+    protected void onDestroy() throws InterruptedException {
         super.destroy();
 
-        consumer.stop();
-        consumerExecutor.shutdown();
+        if (consumer != null) {
+            consumer.stop();
+            consumerExecutor.shutdown();
+            consumer = null;
+        }
 
-        tsConsumer.stop();
-        tsConsumerExecutor.shutdown();
+        if (tsConsumer != null) {
+            tsConsumer.stop();
+            tsConsumerExecutor.shutdown();
+            tsConsumer = null;
+        }
     }
-
 
     private void processUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
         log.trace("[{}] starting processing cloud events", tenantId);
@@ -128,7 +142,6 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         } else {
             sleep();
         }
-
     }
 
     private void processTsUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {

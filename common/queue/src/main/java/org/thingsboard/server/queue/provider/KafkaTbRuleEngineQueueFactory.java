@@ -125,6 +125,7 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
     private final TbQueueAdmin cfStateAdmin;
 
     private final TbQueueAdmin edqsEventsAdmin;
+
     private final AtomicLong consumerCount = new AtomicLong();
 
     public KafkaTbRuleEngineQueueFactory(TopicService topicService, TbKafkaSettings kafkaSettings,
@@ -440,6 +441,17 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
     }
 
     @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-rule-engine-to-cloud-event-ts-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(cloudEventTSSettings.getTopic()));
+        requestBuilder.admin(cloudEventTSAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> createToCalculatedFieldNotificationMsgConsumer() {
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
@@ -450,17 +462,6 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
         consumerBuilder.admin(notificationAdmin);
         consumerBuilder.statsService(consumerStatsService);
         return consumerBuilder.build();
-    }
-
-    @Override
-    public TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> createCloudEventTSMsgProducer() {
-        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCloudEventMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
-
-        requestBuilder.settings(kafkaSettings);
-        requestBuilder.clientId("tb-rule-engine-to-cloud-event-ts-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(topicService.buildTopicName(cloudEventTSSettings.getTopic()));
-        requestBuilder.admin(cloudEventTSAdmin);
-        return requestBuilder.build();
     }
 
     @Override

@@ -34,11 +34,11 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@Component
 @Slf4j
+@Getter
+@Component
 public class DefaultCloudSynchronizationManager implements CloudSynchronizationManager {
 
-    @Getter
     private final ThreadLocal<Boolean> sync = new ThreadLocal<>();
 
     @Override
@@ -46,4 +46,5 @@ public class DefaultCloudSynchronizationManager implements CloudSynchronizationM
         Boolean sync = this.sync.get();
         return sync != null && sync;
     }
+
 }

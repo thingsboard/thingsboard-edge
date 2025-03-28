@@ -1,0 +1,83 @@
+#
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+#
+# Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+#
+# NOTICE: All information contained herein is, and remains
+# the property of ThingsBoard, Inc. and its suppliers,
+# if any.  The intellectual and technical concepts contained
+# herein are proprietary to ThingsBoard, Inc.
+# and its suppliers and may be covered by U.S. and Foreign Patents,
+# patents in process, and are protected by trade secret or copyright law.
+#
+# Dissemination of this information or reproduction of this material is strictly forbidden
+# unless prior written permission is obtained from COMPANY.
+#
+# Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+# managers or contractors who have executed Confidentiality and Non-disclosure agreements
+# explicitly covering such access.
+#
+# The copyright notice above does not evidence any actual or intended publication
+# or disclosure  of  this source code, which includes
+# information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+# ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+# OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+# THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+# AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+# THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+# DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+# OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+#
+
+services:
+  # Redis sentinel
+  # The latest version of Redis compatible with ThingsBoard is 7.2
+  redis-master:
+    image: 'bitnami/redis:7.2'
+    volumes:
+      - ./tb-edge/redis-sentinel-data-master:/bitnami/redis/data
+    environment:
+      - 'REDIS_REPLICATION_MODE=master'
+      - 'REDIS_PASSWORD=thingsboard'
+
+  redis-slave:
+    image: 'bitnami/redis:7.2'
+    volumes:
+      - ./tb-edge/redis-sentinel-data-slave:/bitnami/redis/data
+    environment:
+      - 'REDIS_REPLICATION_MODE=slave'
+      - 'REDIS_MASTER_HOST=redis-master'
+      - 'REDIS_MASTER_PASSWORD=thingsboard'
+      - 'REDIS_PASSWORD=thingsboard'
+    depends_on:
+      - redis-master
+
+  redis-sentinel:
+    image: 'bitnami/redis-sentinel:7.2'
+    volumes:
+      - ./tb-edge/redis-sentinel-data-sentinel:/bitnami/redis/data
+    environment:
+      - 'REDIS_MASTER_HOST=redis-master'
+      - 'REDIS_MASTER_SET=mymaster'
+      - 'REDIS_SENTINEL_PASSWORD=sentinel'
+      - 'REDIS_MASTER_PASSWORD=thingsboard'
+    depends_on:
+      - redis-master
+      - redis-slave
+
+  # ThingsBoard Edge setup to use redis-sentinel
+  tb-edge1:
+    env_file:
+      - cache-redis-sentinel.env
+    depends_on:
+      - redis-sentinel
+  tb-edge2:
+    env_file:
+      - cache-redis-sentinel.env
+    depends_on:
+      - redis-sentinel
+  tb-edge3:
+    env_file:
+      - cache-redis-sentinel.env
+    depends_on:
+      - redis-sentinel
