@@ -428,6 +428,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
+        initInProgress = false;
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
@@ -454,7 +455,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         // TODO: voba - should sync be executed in some other cases ???
         log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
         edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
-        this.syncInProgress = true;
+        syncInProgress = true;
 
         edgeSettingsService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
@@ -467,7 +468,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         }
 
         initialized = true;
-        initInProgress = false;
     }
 
     private boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration) {
@@ -514,9 +514,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
         boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
-        if (this.syncInProgress && downlinkMsg.hasSyncCompletedMsg()) {
+        if (syncInProgress && downlinkMsg.hasSyncCompletedMsg()) {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
-            this.syncInProgress = false;
+            syncInProgress = false;
         }
         ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings);
         Futures.addCallback(future, new FutureCallback<>() {
