@@ -652,6 +652,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             queueService.saveQueue(mainQueue);
         }
 
+        /* edge: create MAIN queue to start services properly before connected to cloud. replace MAIN queue in QueueCloudProcessor from the cloud
         Queue highPriorityQueue = queueService.findQueueByTenantIdAndName(TenantId.SYS_TENANT_ID, DataConstants.HP_QUEUE_NAME);
         if (highPriorityQueue == null) {
             highPriorityQueue = new Queue();
@@ -699,6 +700,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             sequentialByOriginatorQueue.setProcessingStrategy(sequentialByOriginatorQueueProcessingStrategy);
             queueService.saveQueue(sequentialByOriginatorQueue);
         }
+         */
     }
 
     @Override
