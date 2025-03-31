@@ -41,7 +41,7 @@ import {
   ValidatorFn,
   Validators
 } from '@angular/forms';
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, forwardRef, input, Input, OnInit, ViewChild } from '@angular/core';
 import {
   MapItemType,
   mapItemTypeTranslationMap,
@@ -123,20 +123,16 @@ export class WidgetActionComponent implements ControlValueAccessor, OnInit, Vali
   @Input()
   actionNames: string[];
 
-  @Input()
-  set additionalWidgetActionTypes(value: WidgetActionType[]) {
-    if (this.widgetActionFormGroup && !widgetActionTypes.includes(this.widgetActionFormGroup.get('type').value)) {
-      this.widgetActionFormGroup.get('type').setValue(WidgetActionType.doNothing);
-    }
-    if (value?.length) {
-      this.widgetActionTypes = widgetActionTypes.concat(value);
-    } else {
-      this.widgetActionTypes = widgetActionTypes;
-    }
-  }
+  additionalWidgetActionTypes = input<WidgetActionType[]>(null);
+  widgetActionTypes = input(widgetActionTypes);
 
-  @Input()
-  widgetActionTypes = widgetActionTypes;
+  actionTypes = computed(() => {
+    const predefinedActionTypes = this.widgetActionTypes();
+    if (this.additionalWidgetActionTypes()?.length) {
+      return predefinedActionTypes.concat(this.additionalWidgetActionTypes());
+    }
+    return predefinedActionTypes;
+  });
 
   widgetActionTypeTranslations = widgetActionTypeTranslationMap;
   widgetActionType = WidgetActionType;
@@ -214,9 +210,6 @@ export class WidgetActionComponent implements ControlValueAccessor, OnInit, Vali
     ).subscribe(() => {
       this.widgetActionUpdated();
     });
-    if (this.additionalWidgetActionTypes) {
-      this.widgetActionTypes = this.widgetActionTypes.concat(this.additionalWidgetActionTypes);
-    }
   }
 
   writeValue(widgetAction?: WidgetAction): void {
