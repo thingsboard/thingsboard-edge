@@ -185,7 +185,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createRandomJwtSettings();
                 // systemDataLoaderService.loadSystemWidgets();
                 // systemDataLoaderService.createOAuth2Templates();
-                // systemDataLoaderService.createQueues();
+                systemDataLoaderService.createQueues();
                 // systemDataLoaderService.createDefaultNotificationConfigs();
                 // installScripts.updateSystemNotificationTemplates();
                 // systemDataLoaderService.createDefaultCustomMenu();

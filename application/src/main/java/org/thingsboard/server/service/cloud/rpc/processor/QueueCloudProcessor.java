@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.queue.Queue;
@@ -71,6 +72,9 @@ public class QueueCloudProcessor extends BaseEdgeProcessor {
                         if (queue == null) {
                             throw new RuntimeException("[{" + tenantId + "}] queueUpdateMsg {" + queueUpdateMsg + "} cannot be converted to queue");
                         }
+
+                        deleteMainQueueIfIdMismatches(queue);
+
                         Queue queueById = edgeCtx.getQueueService().findQueueById(tenantId, queueId);
                         boolean create = queueById == null;
                         edgeCtx.getQueueService().saveQueue(queue, false);
@@ -92,6 +96,15 @@ public class QueueCloudProcessor extends BaseEdgeProcessor {
             cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void deleteMainQueueIfIdMismatches(Queue cloudQueue) {
+        if (DataConstants.MAIN_QUEUE_NAME.equals(cloudQueue.getName())) {
+            Queue mainEdgeQueue = edgeCtx.getQueueService().findQueueByTenantIdAndName(TenantId.SYS_TENANT_ID, DataConstants.MAIN_QUEUE_NAME);
+            if (mainEdgeQueue != null && !mainEdgeQueue.getId().equals(cloudQueue.getId())) {
+                tbQueueService.deleteQueue(mainEdgeQueue.getTenantId(), mainEdgeQueue.getId());
+            }
+        }
     }
 
 }
