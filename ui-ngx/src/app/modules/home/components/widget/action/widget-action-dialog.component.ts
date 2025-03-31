@@ -159,7 +159,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
       icon: [this.action.icon, Validators.required],
       buttonColor: [{ value: this.action.buttonColor ?? this.defaultIconColor, disabled: true}, []],
       buttonFillColor: [{ value: this.action.buttonFillColor ?? 'var(--tb-primary-500)', disabled: true}, []],
-      buttonBorderColor: [{ value: this.action.buttonBorderColor ?? 'var(--tb-primary-500)', disabled: true}, []],
+      buttonBorderColor: [{ value: this.action.buttonBorderColor ?? '#0000001F', disabled: true}, []],
       customButtonStyle: [{ value: this.action.customButtonStyle ?? {}, disabled: true}, []],
       useShowWidgetActionFunction: [this.action.useShowWidgetActionFunction],
       showWidgetActionFunction: [this.action.showWidgetActionFunction || 'return true;'],
@@ -169,7 +169,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
     if (this.widgetActionFormGroup.get('actionSourceId').value === 'headerButton') {
       this.widgetActionFormGroup.get('buttonType').enable({emitEvent: false});
       this.widgetActionFormGroup.get('buttonColor').enable({emitEvent: false});
-      this.widgetHeaderButtonValidators();
+      this.widgetHeaderButtonValidators(true);
     }
     this.widgetActionFormGroup.get('actionSourceId').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
@@ -185,7 +185,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
       if (value === 'headerButton') {
         this.widgetActionFormGroup.get('buttonType').enable({emitEvent: false});
         this.widgetActionFormGroup.get('buttonColor').enable({emitEvent: false});
-        this.widgetHeaderButtonValidators();
+        this.widgetHeaderButtonValidators(true);
       } else {
         this.widgetActionFormGroup.get('buttonType').disable({emitEvent: false});
         this.widgetActionFormGroup.get('showIcon').disable({emitEvent: false});
@@ -213,12 +213,16 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
     });
   }
 
-  widgetHeaderButtonValidators() {
+  private widgetHeaderButtonValidators(ignoreUpdatedButtonColor = false) {
     const buttonType = this.widgetActionFormGroup.get('buttonType').value;
-    if (buttonType !== WidgetHeaderActionButtonType.icon) {
-      this.widgetActionFormGroup.get('buttonColor').patchValue('#ffffff', {emitEvent: false});
-    } else {
-      this.widgetActionFormGroup.get('buttonColor').patchValue(this.defaultIconColor, {emitEvent: false});
+    if (!ignoreUpdatedButtonColor) {
+      if ([WidgetHeaderActionButtonType.raised, WidgetHeaderActionButtonType.flat, WidgetHeaderActionButtonType.miniFab].includes(buttonType)) {
+        this.widgetActionFormGroup.get('buttonColor').patchValue('#ffffff', {emitEvent: false});
+      } else if ([WidgetHeaderActionButtonType.stroked].includes(buttonType)) {
+        this.widgetActionFormGroup.get('buttonColor').patchValue('var(--tb-primary-500)', {emitEvent: false});
+      } else {
+        this.widgetActionFormGroup.get('buttonColor').patchValue(this.defaultIconColor, {emitEvent: false});
+      }
     }
     this.widgetActionFormGroup.get('showIcon').disable({emitEvent: false});
     this.widgetActionFormGroup.get('buttonFillColor').disable({emitEvent: false});
