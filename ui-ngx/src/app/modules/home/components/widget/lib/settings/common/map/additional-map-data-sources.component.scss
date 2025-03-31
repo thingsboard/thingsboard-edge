@@ -28,23 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@import '../../../../../../../../../scss/constants';
 
-.tb-map-data-sources {
+.tb-additional-map-data-sources {
   .tb-form-table-header-cell {
     &.tb-source-header {
-      flex: 1 1 70%;
+      flex: 1 1 50%;
     }
-    &.tb-filter-header {
-      flex: 1 1 30%;
+    &.tb-data-keys-header {
+      flex: 1 1 50%;
     }
     &.tb-actions-header {
       width: 40px;
       min-width: 40px;
     }
+    @media #{$mat-lt-lg} {
+      &.tb-source-header {
+        flex: 1 1 30%;
+      }
+      &.tb-data-keys-header {
+        flex: 1 1 70%;
+      }
+      @media #{$mat-lt-md} {
+        &.tb-source-header {
+          flex: 1 1 50%;
+        }
+        &.tb-data-keys-header {
+          flex: 1 1 50%;
+        }
+      }
+    }
   }
 
   .tb-form-table-body {
-    tb-map-data-source-row {
+    tb-additional-map-data-source-row {
       overflow: hidden;
     }
   }
