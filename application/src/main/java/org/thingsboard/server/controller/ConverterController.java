@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
@@ -99,6 +100,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.integration.api.converter.DedicatedConverterUtil.parseUplinkData;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_CONFIGURATION_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_DEBUG_INPUT_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID_PARAM_DESCRIPTION;
@@ -467,12 +469,23 @@ public class ConverterController extends AutoCommitController {
 
         if (StringUtils.isNotEmpty(output) && inputParams.has("converter")) {
             Converter converter = JacksonUtil.treeToValue(inputParams.get("converter"), Converter.class);
-            JsonObject jsonOutput = JsonParser.parseString(output).getAsJsonObject();
             Integer converterVersion = converter.getConverterVersion();
             if (converterVersion != null && converterVersion == 2 && ConverterWrapperFactory.getWrapper(converter.getIntegrationType()).isPresent()) {
                 DedicatedConverterConfig config = JacksonUtil.treeToValue(converter.getConfiguration(), DedicatedConverterConfig.class);
-                DedicatedUplinkData uplinkData = DedicatedConverterUtil.parseUplinkData(config, jsonOutput, uplinkMetaData);
-                result.set("outputMsg", JacksonUtil.valueToTree(uplinkData));
+                JsonElement jsonOutput = JsonParser.parseString(output);
+                Object outputMsg = null;
+                if (jsonOutput.isJsonArray()) {
+                    List<DedicatedUplinkData> resultList = new ArrayList<>();
+                    for (JsonElement uplinkJson : jsonOutput.getAsJsonArray()) {
+                        resultList.add(parseUplinkData(config, uplinkJson.getAsJsonObject(), uplinkMetaData));
+                    }
+                   outputMsg = resultList;
+                } else if (jsonOutput.isJsonObject()) {
+                    outputMsg = parseUplinkData(config, jsonOutput.getAsJsonObject(), uplinkMetaData);
+                }
+                if (outputMsg != null) {
+                    result.set("outputMsg", JacksonUtil.valueToTree(outputMsg));
+                }
             }
         }
 

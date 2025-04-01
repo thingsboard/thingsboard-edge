@@ -101,6 +101,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.query.TsValue.EMPTY;
 import static org.thingsboard.server.edqs.util.RepositoryUtils.SORT_ASC;
 import static org.thingsboard.server.edqs.util.RepositoryUtils.SORT_DESC;
 import static org.thingsboard.server.edqs.util.RepositoryUtils.SYS_ADMIN_PERMISSIONS;
@@ -193,7 +194,7 @@ public class TenantRepo {
                 }
             }
         } else if (RelationTypeGroup.FROM_ENTITY_GROUP.equals(entityRelation.getTypeGroup())) {
-            var eg = getEntityGroup(entityRelation.getFrom().getId());
+            EntityGroupData eg = (EntityGroupData) get(EntityType.ENTITY_GROUP, entityRelation.getFrom().getId());
             if (eg != null) {
                 eg.remove(entityRelation.getTo().getId());
             }
@@ -222,7 +223,7 @@ public class TenantRepo {
                     UUID ownerId = entityGroupFields.getOwnerId();
                     if (EntityType.CUSTOMER.equals(entityGroupFields.getOwnerType())) {
                         entityData.setCustomerId(ownerId);
-                        ((CustomerData) getEntityMap(EntityType.CUSTOMER).computeIfAbsent(ownerId, CustomerData::new)).addOrUpdate(entityData);
+                        ((CustomerData) getOrCreate(EntityType.CUSTOMER, ownerId)).addOrUpdate(entityData);
                     }
                 }
                 case CUSTOMER -> {
@@ -245,13 +246,13 @@ public class TenantRepo {
                     entityData.setCustomerId(newCustomerId);
                     if (entityIdMismatch(oldCustomerId, newCustomerId)) {
                         if (oldCustomerId != null) {
-                            CustomerData old = (CustomerData) getEntityMap(EntityType.CUSTOMER).get(oldCustomerId);
+                            CustomerData old = (CustomerData) get(EntityType.CUSTOMER, oldCustomerId);
                             if (old != null) {
-                                old.remove(entityData);
+                                old.remove(entityType, entityId);
                             }
                         }
                         if (newCustomerId != null) {
-                            CustomerData newData = (CustomerData) getEntityMap(EntityType.CUSTOMER).computeIfAbsent(newCustomerId, CustomerData::new);
+                            CustomerData newData = (CustomerData) getOrCreate(EntityType.CUSTOMER, newCustomerId);
                             newData.addOrUpdate(entityData);
                         }
                     }
@@ -274,6 +275,7 @@ public class TenantRepo {
                 }
                 edqsStatsService.ifPresent(statService -> statService.reportEvent(tenantId, ObjectType.fromEntityType(entityType), EdqsEventType.DELETED));
             }
+
             switch (entityType) {
                 case CUSTOMER -> {
                     customersHierarchy.remove(entityId);
@@ -351,7 +353,11 @@ public class TenantRepo {
     }
 
     private EntityData<?> get(EntityId entityId) {
-        return getEntityMap(entityId.getEntityType()).get(entityId.getId());
+        return get(entityId.getEntityType(), entityId.getId());
+    }
+
+    private EntityData<?> get(EntityType entityType, UUID entityId) {
+        return getEntityMap(entityType).get(entityId);
     }
 
     private EntityData<?> constructEntityData(EntityType entityType, UUID id) {
@@ -455,7 +461,8 @@ public class TenantRepo {
             }
             for (var key : query.getLatestValues()) {
                 DataPoint dp = entityData.getEntityData().getDataPoint(key, ctx);
-                TsValue v = RepositoryUtils.toTsValue(ts, dp);
+                TsValue v = ((key.type().isAttribute() && entityData.isReadAttrs()) || (key.type() == EntityKeyType.TIME_SERIES && entityData.isReadTs())) ?
+                        RepositoryUtils.toTsValue(ts, dp) : EMPTY;
                 latest.computeIfAbsent(key.type(), t -> new HashMap<>()).put(KeyDictionary.get(key.keyId()), v);
             }
 
@@ -472,7 +479,7 @@ public class TenantRepo {
             switch (filter.getType()) {
                 case STATE_ENTITY_OWNER:
                     var singleEntity = ((StateEntityOwnerFilter) filter).getSingleEntity();
-                    EntityData ed = getEntityMap(singleEntity.getEntityType()).get(singleEntity.getId());
+                    EntityData ed = get(singleEntity);
                     if (ed != null) {
                         EntityId owner = ed.getCustomerId() != null ? new CustomerId(ed.getCustomerId()) : tenantId;
                         queryContext = new QueryContext(tenantId, customerId, owner.getEntityType(), userPermissions, filter, owner, ignorePermissionCheck);
@@ -544,7 +551,7 @@ public class TenantRepo {
         EntityType entityType = entityId.getEntityType();
         return switch (entityType) {
             case CUSTOMER, TENANT -> {
-                EntityFields fields = getEntityMap(entityType).get(entityId.getId()).getFields();
+                EntityFields fields = get(entityId).getFields();
                 yield fields != null ? fields.getName() : "";
             }
             default -> throw new RuntimeException("Unsupported entity type: " + entityType);

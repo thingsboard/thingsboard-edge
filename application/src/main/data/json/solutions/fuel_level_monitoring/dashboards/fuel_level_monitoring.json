@@ -3,7 +3,6 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
-  "name": "Fuel Level Monitoring",
   "configuration": {
     "description": "",
     "widgets": {
@@ -19,7 +18,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -29,7 +31,11 @@
                 "startTimeMs": 1682001930247,
                 "endTimeMs": 1682088330247
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -726,7 +732,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -736,7 +745,11 @@
                 "startTimeMs": 1682001930247,
                 "endTimeMs": 1682088330247
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -792,338 +805,6 @@
         "col": 0,
         "id": "09402650-e84b-171f-cd11-e608d8f89bfb",
         "typeFullFqn": "system.cards.markdown_card"
-      },
-      "ad8020a2-53fd-8334-c94e-2a7af3774780": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "e1a32425-259b-f9d4-7380-b40d12a71238",
-              "filterId": "f7766c99-0996-844e-84bc-ac5923e173a2",
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.7494193897041803
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.9838447132407786
-                },
-                {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.6846057478799168
-                },
-                {
-                  "name": "battery",
-                  "type": "timeseries",
-                  "label": "battery",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.7804883468187684,
-                  "aggregationType": "NONE",
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "liquidType",
-                  "type": "attribute",
-                  "label": "liquidType",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.5112403657601383
-                },
-                {
-                  "name": "temperature",
-                  "type": "timeseries",
-                  "label": "temperature",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.6026874983363109
-                },
-                {
-                  "name": "tankCapacity",
-                  "type": "attribute",
-                  "label": "tankCapacity",
-                  "color": "#03a9f4",
-                  "settings": {},
-                  "_hash": 0.11473993178433628
-                },
-                {
-                  "name": "fuelLevel",
-                  "type": "timeseries",
-                  "label": "fuelLevel",
-                  "color": "#ff9800",
-                  "settings": {},
-                  "_hash": 0.9116024261844533
-                },
-                {
-                  "name": "isHighTemperature",
-                  "type": "attribute",
-                  "label": "isHighTemperature",
-                  "color": "#e91e63",
-                  "settings": {},
-                  "_hash": 0.9632470736529124,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "return value === \"true\";"
-                },
-                {
-                  "name": "isLowBattery",
-                  "type": "attribute",
-                  "label": "isLowBattery",
-                  "color": "#ffeb3b",
-                  "settings": {},
-                  "_hash": 0.37472605989530705,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "return value === \"true\";"
-                },
-                {
-                  "name": "isLowFuel",
-                  "type": "attribute",
-                  "label": "isLowFuel",
-                  "color": "#03a9f4",
-                  "settings": {},
-                  "_hash": 0.7321873987269121,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "return value === \"true\";"
-                },
-                {
-                  "name": "isLowTemperature",
-                  "type": "attribute",
-                  "label": "isLowTemperature",
-                  "color": "#ff9800",
-                  "settings": {},
-                  "_hash": 0.33412107130818325,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "return value === \"true\";"
-                },
-                {
-                  "name": "tankCapacityOutput",
-                  "type": "attribute",
-                  "label": "tankCapacityOutput",
-                  "color": "#673ab7",
-                  "settings": {},
-                  "_hash": 0.3920405012585384
-                },
-                {
-                  "name": "label",
-                  "type": "entityField",
-                  "label": "Label",
-                  "color": "#cddc39",
-                  "settings": {},
-                  "_hash": 0.7770833766418184
-                }
-              ],
-              "alarmFilterConfig": {
-                "statusList": [
-                  "ACTIVE"
-                ]
-              }
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1682001930247,
-                "endTimeMs": 1682088330247
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "CartoDB.Positron",
-            "useCustomProvider": true,
-            "customProviderTileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "useV3": true,
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg",
-              "apiKey": "kVXykxAfZ6LS4EbCTO02soFVfjA7HoBzNVVH9u7nzoE"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultZoomLevel": 0,
-            "defaultCenterPosition": "0,0",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "posFunction": "return {x: origXPos, y: origYPos};",
-            "draggableMarker": false,
-            "showLabel": false,
-            "useLabelFunction": false,
-            "label": "${entityName}",
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": true,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}",
-            "tooltipFunction": "\nconst fuelLevel = data.fuelLevel;\nconst batteryLevel = data.battery;\nconst tankCapacity = data.tankCapacity;\nconst tankCapacityOutput = data.tankCapacityOutput ? data.tankCapacityOutput : \"L\";\nconst temperature = data.temperature;\nconst fuel = processValue((fuelLevel * tankCapacity) / 100, 0);\nconst liquidType = data.liquidType ? data.liquidType : 'N/A';\nconst lowFuelLevelColor = data.isLowFuel ? '#D12730' : '#29313C';\nconst lowBatteryColor = data.isLowBattery ? '#D12730' : '#29313C';\nconst thresholdTemperatureColor = data.isHighTemperature || data.isLowTemperature ? '#D12730' : '#29313C';\n                              \nconst isActive = data.active === 'true';\nconst status = isActive ? 'Online' : 'Offline';\nconst color = isActive ? '#3AA94D' : '#C42F37';\nconst bgColor = isActive ? 'rgba(58, 169, 77, 0.08)' : 'rgba(196, 47, 55, 0.08)';\nconst lastUpdate = (data['battery|ts'] || data['fuelLevel|ts']) ? \n    moment(Math.max(data['battery|ts'], data['fuelLevel|ts'])).format('D MMM YYYY HH:mm') : 'N/A';\nconst remaining = `${fuelLevel}% (${fuel}${tankCapacityOutput})`;\n\nreturn '<div style=\"display:flex;flex-direction:column;margin-bottom:8px;font-family:\\'Roboto\\';font-weight:500;font-size:16px;line-height:24px;letter-spacing:0.25px;color:#29313C\">' +\n            '<div>${entityLabel}</div>' +\n            '<div style=\"width: 100%;border-bottom:1px solid rgba(0, 0, 0, 0.12);margin:12px 0;\"></div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Liquid type</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ liquidType +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Remaining</div>' +\n                '<div style=\"color:'+ lowFuelLevelColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ remaining +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Temperature</div>' +\n                '<div style=\"color:'+ thresholdTemperatureColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ temperature +'°C</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Battery level</div>' +\n                '<div style=\"color:'+ lowBatteryColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ batteryLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Connection</div>' +\n                '<div style=\"font-size:14px;width:fit-content;padding:4px 8px;font-weight:500;line-height:20px;letter-spacing:0.25px;border-radius:8px;color:'+ color +';background-color:'+ bgColor +'\">' + status + '</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:13px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Last update</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;color:#29313C;letter-spacing:0.25px\">'+ lastUpdate +'</div>' +\n            '</div>' +\n       '</div>' +\n       '<div style=\"text-align: center\">' +\n            '<link-act name=\"tank-details\">Details ></link-act>' +\n       '</div>';\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageSize": 34,
-            "markerImageFunction": "let image = images[0];\nif (data) {\n    const isActive = data.active && data.active !== 'false';\n    const fuelLevel = data.fuelLevel;\n    const batteryLevel = data.battery;\n    const tankCapacity = data.tankCapacity;\n    const temperature = data.temperature;\n    const lowFuelLevel = data.isLowFuel;\n    const lowBattery = data.isLowBattery;\n    const thresholdTemperature = data.isHighTemperature || data.isLowTemperature;\n    \n    if (!isActive) {\n        image = images[3];\n    } else if (lowFuelLevel || thresholdTemperature) {\n        image = images[1];\n    } else if (lowBattery) {\n        image = images[2];\n    }\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
-            "markerImages": [
-              "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_0.svg",
-              "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_1.svg",
-              "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_2.svg",
-              "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_3.svg"
-            ],
-            "showPolygon": false,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": false,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "useClusterMarkers": true,
-            "zoomOnClick": true,
-            "maxClusterRadius": 10,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true,
-            "useIconCreateFunction": true,
-            "clusterMarkerFunction": "if (data && data.length && childCount === data.length) {\n   const alarmsState = data.map((entity) => {\n        if (entity) {\n            const isActive = entity.active && entity.active !== 'false';\n            const fuelLevel = entity.fuelLevel;\n            const batteryLevel = entity.battery;\n            const tankCapacity = entity.tankCapacity;\n            const temperature = entity.temperature;\n            const lowFuelLevel = entity.isLowFuel;\n            const lowBattery = entity.isLowBattery;\n            const thresholdTemperature = entity.isHighTemperature || entity.isLowTemperature;\n            const isAlarm = lowFuelLevel || lowBattery || thresholdTemperature || !isActive;\n            \n            return isAlarm;\n        }\n        \n        return false;\n    });\n    \n    return alarmsState.includes(true) ? '#ff0000' : '#73c65e'; \n}\n\nreturn '#73c65e';"
-          },
-          "title": "",
-          "dropShadow": false,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "tooltipAction": [
-              {
-                "name": "tank-details",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "tank-details",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "e38e7a79-6238-7bbd-6bc2-5b90a3dfd660"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "widgetCss": ".leaflet-container a.leaflet-popup-close-button {\n    top: 15px;\n    right: 20px;\n}",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "ad8020a2-53fd-8334-c94e-2a7af3774780",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "b89177ac-8f67-3ae5-dfc8-945d995ced41": {
         "type": "latest",
@@ -1282,7 +963,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1292,7 +976,11 @@
                 "startTimeMs": 1682001930247,
                 "endTimeMs": 1682088330247
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1747,7 +1435,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1757,7 +1448,11 @@
                 "startTimeMs": 1682774690137,
                 "endTimeMs": 1682861090137
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1824,342 +1519,6 @@
         "col": 0,
         "id": "79b3975f-b3ed-f839-8209-b17d2e7a2601",
         "typeFullFqn": "system.cards.markdown_card"
-      },
-      "b52a62ff-7409-332f-6e41-3ed879a77892": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "6d74f33d-0025-fbc5-06b7-996534fa99c7",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.7494193897041803
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.9838447132407786
-                },
-                {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.6846057478799168
-                },
-                {
-                  "name": "battery",
-                  "type": "timeseries",
-                  "label": "battery",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.7804883468187684,
-                  "aggregationType": "NONE",
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "liquidType",
-                  "type": "attribute",
-                  "label": "liquidType",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.5112403657601383
-                },
-                {
-                  "name": "temperature",
-                  "type": "timeseries",
-                  "label": "temperature",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.6026874983363109
-                },
-                {
-                  "name": "tankCapacity",
-                  "type": "attribute",
-                  "label": "tankCapacity",
-                  "color": "#03a9f4",
-                  "settings": {},
-                  "_hash": 0.11473993178433628
-                },
-                {
-                  "name": "fuelLevel",
-                  "type": "timeseries",
-                  "label": "fuelLevel",
-                  "color": "#ff9800",
-                  "settings": {},
-                  "_hash": 0.9116024261844533
-                },
-                {
-                  "name": "isHighTemperature",
-                  "type": "attribute",
-                  "label": "isHighTemperature",
-                  "color": "#e91e63",
-                  "settings": {},
-                  "_hash": 0.9632470736529124,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "return value === \"true\";"
-                },
-                {
-                  "name": "isLowBattery",
-                  "type": "attribute",
-                  "label": "isLowBattery",
-                  "color": "#ffeb3b",
-                  "settings": {},
-                  "_hash": 0.37472605989530705,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "return value === \"true\";"
-                },
-                {
-                  "name": "isLowFuel",
-                  "type": "attribute",
-                  "label": "isLowFuel",
-                  "color": "#03a9f4",
-                  "settings": {},
-                  "_hash": 0.7321873987269121,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "return value === \"true\";"
-                },
-                {
-                  "name": "isLowTemperature",
-                  "type": "attribute",
-                  "label": "isLowTemperature",
-                  "color": "#ff9800",
-                  "settings": {},
-                  "_hash": 0.33412107130818325,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "return value === \"true\";"
-                },
-                {
-                  "name": "tankCapacityOutput",
-                  "type": "attribute",
-                  "label": "tankCapacityOutput",
-                  "color": "#673ab7",
-                  "settings": {},
-                  "_hash": 0.9877029750455761
-                },
-                {
-                  "name": "label",
-                  "type": "entityField",
-                  "label": "Label",
-                  "color": "#cddc39",
-                  "settings": {},
-                  "_hash": 0.9558093460495649
-                }
-              ],
-              "alarmFilterConfig": {
-                "statusList": [
-                  "ACTIVE"
-                ]
-              }
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1682001930247,
-                "endTimeMs": 1682088330247
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "CartoDB.Positron",
-            "useCustomProvider": true,
-            "customProviderTileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg",
-              "useV3": false
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultZoomLevel": 15,
-            "defaultCenterPosition": "34.023894, -118.238698",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "posFunction": "return {x: origXPos, y: origYPos};",
-            "draggableMarker": true,
-            "showLabel": false,
-            "useLabelFunction": false,
-            "label": "${entityName}",
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": true,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}",
-            "tooltipFunction": "\nconst fuelLevel = data.fuelLevel;\nconst batteryLevel = data.battery;\nconst tankCapacity = data.tankCapacity;\nconst tankCapacityOutput = data.tankCapacityOutput ? data.tankCapacityOutput : \"L\";\nconst temperature = data.temperature;\nconst fuel = processValue((fuelLevel * tankCapacity) / 100, 0);\nconst liquidType = data.liquidType ? data.liquidType : 'N/A';\nconst lowFuelLevelColor = data.isLowFuel ? '#D12730' : '#29313C';\nconst lowBatteryColor = data.isLowBattery ? '#D12730' : '#29313C';\nconst thresholdTemperatureColor = data.isHighTemperature || data.isLowTemperature ? '#D12730' : '#29313C';\n                              \nconst isActive = data.active === 'true';\nconst status = isActive ? 'Online' : 'Offline';\nconst color = isActive ? '#3AA94D' : '#C42F37';\nconst bgColor = isActive ? 'rgba(58, 169, 77, 0.08)' : 'rgba(196, 47, 55, 0.08)';\nconst lastUpdate = (data['battery|ts'] || data['fuelLevel|ts']) ? \n    moment(Math.max(data['battery|ts'], data['fuelLevel|ts'])).format('D MMM YYYY HH:mm') : 'N/A';\nconst remaining = `${fuelLevel}% (${fuel}${tankCapacityOutput})`;\n\nreturn '<div style=\"display:flex;flex-direction:column;margin-bottom:8px;font-family:\\'Roboto\\';font-weight:500;font-size:16px;line-height:24px;letter-spacing:0.25px;color:#29313C\">' +\n            '<div>${entityLabel}</div>' +\n            '<div style=\"width: 100%;border-bottom:1px solid rgba(0, 0, 0, 0.12);margin:12px 0;\"></div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Liquid type</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ liquidType +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Remaining</div>' +\n                '<div style=\"color:'+ lowFuelLevelColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ remaining +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Temperature</div>' +\n                '<div style=\"color:'+ thresholdTemperatureColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ temperature +'°C</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Battery level</div>' +\n                '<div style=\"color:'+ lowBatteryColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ batteryLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Connection</div>' +\n                '<div style=\"font-size:14px;width:fit-content;padding:4px 8px;font-weight:500;line-height:20px;letter-spacing:0.25px;border-radius:8px;color:'+ color +';background-color:'+ bgColor +'\">' + status + '</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:13px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Last update</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;color:#29313C;letter-spacing:0.25px\">'+ lastUpdate +'</div>' +\n            '</div>' +\n       '</div>';\n    //   '<div style=\"text-align: center\">' +\n    //         '<link-act name=\"tank-details\">Details ></link-act>' +\n    //   '</div>';\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageSize": 34,
-            "markerImageFunction": "let image = images[0];\nconst isActive = data.active && data.active !== 'false';\n\nconst fuelLevel = data.fuelLevel;\nconst batteryLevel = data.battery;\nconst tankCapacity = data.tankCapacity;\nconst temperature = data.temperature;\nconst lowFuelLevel = data.isLowFuel;\nconst lowBattery = data.isLowBattery;\nconst thresholdTemperature = data.isHighTemperature || data.isLowTemperature;\n\nif (!isActive) {\n    image = images[3];\n} else if (lowFuelLevel || thresholdTemperature) {\n    image = images[1];\n} else if (lowBattery) {\n    image = images[2];\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
-            "markerImages": [
-              "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_0.svg",
-              "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_1.svg",
-              "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_2.svg",
-              "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_3.svg"
-            ],
-            "showPolygon": false,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": false,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "snappable": false,
-            "initDragMode": true,
-            "hideAllControlButton": false,
-            "hideDrawControlButton": false,
-            "hideEditControlButton": false,
-            "hideRemoveControlButton": true,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true,
-            "useIconCreateFunction": false
-          },
-          "title": "",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "tooltipAction": [
-              {
-                "name": "tank-details",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "tank-details",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "e38e7a79-6238-7bbd-6bc2-5b90a3dfd660"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "widgetCss": ".leaflet-container a.leaflet-popup-close-button {\n    top: 15px;\n    right: 20px;\n}",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "b52a62ff-7409-332f-6e41-3ed879a77892",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
       },
       "97c98f18-f68f-5848-c4c2-79627e86775e": {
         "type": "latest",
@@ -2264,7 +1623,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2274,7 +1636,11 @@
                 "startTimeMs": 1682001930247,
                 "endTimeMs": 1682088330247
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2425,7 +1791,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2435,7 +1804,11 @@
                 "startTimeMs": 1682001930247,
                 "endTimeMs": 1682088330247
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2518,7 +1891,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2528,7 +1904,11 @@
                 "startTimeMs": 1705930161315,
                 "endTimeMs": 1706016561315
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -3116,6 +2496,696 @@
         "row": 0,
         "col": 0,
         "id": "f08ac178-fae4-506c-9074-28fcc9cec8d7"
+      },
+      "8bd39332-4ef0-9804-7857-f195d2b23f07": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742737665734,
+                "endTimeMs": 1742824065734
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "custom",
+                "tileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "e1a32425-259b-f9d4-7380-b40d12a71238",
+                "dsFilterId": "f7766c99-0996-844e-84bc-ac5923e173a2",
+                "additionalDataKeys": [
+                  {
+                    "name": "active",
+                    "type": "attribute",
+                    "label": "active",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7176985399912621
+                  },
+                  {
+                    "name": "battery",
+                    "type": "timeseries",
+                    "label": "battery",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.19490862764871997
+                  },
+                  {
+                    "name": "liquidType",
+                    "type": "attribute",
+                    "label": "liquidType",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.024734914324393786
+                  },
+                  {
+                    "name": "temperature",
+                    "type": "timeseries",
+                    "label": "temperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.2505913337633108
+                  },
+                  {
+                    "name": "tankCapacity",
+                    "type": "attribute",
+                    "label": "tankCapacity",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.3715560000313691
+                  },
+                  {
+                    "name": "fuelLevel",
+                    "type": "timeseries",
+                    "label": "fuelLevel",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7736590290772694
+                  },
+                  {
+                    "name": "isHighTemperature",
+                    "type": "attribute",
+                    "label": "isHighTemperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.06669472877493243,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === \"true\";"
+                  },
+                  {
+                    "name": "isLowBattery",
+                    "type": "attribute",
+                    "label": "isLowBattery",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.10002934468387892,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === \"true\";"
+                  },
+                  {
+                    "name": "isLowFuel",
+                    "type": "attribute",
+                    "label": "isLowFuel",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.42793076922602946,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === \"true\";"
+                  },
+                  {
+                    "name": "isLowTemperature",
+                    "type": "attribute",
+                    "label": "isLowTemperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.0236889308910071,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === \"true\";"
+                  },
+                  {
+                    "name": "tankCapacityOutput",
+                    "type": "attribute",
+                    "label": "tankCapacityOutput",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.9688818901458072
+                  },
+                  {
+                    "name": "label",
+                    "type": "entityField",
+                    "label": "Label",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.24873345472832864
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "${entityName}",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "function",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See tooltip settings for details</small>",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": "\nconst fuelLevel = data.fuelLevel;\nconst batteryLevel = data.battery;\nconst tankCapacity = data.tankCapacity;\nconst tankCapacityOutput = data.tankCapacityOutput ? data.tankCapacityOutput : \"L\";\nconst temperature = data.temperature;\nconst fuel = processValue((fuelLevel * tankCapacity) / 100, 0);\nconst liquidType = data.liquidType ? data.liquidType : 'N/A';\nconst lowFuelLevelColor = data.isLowFuel ? '#D12730' : '#29313C';\nconst lowBatteryColor = data.isLowBattery ? '#D12730' : '#29313C';\nconst thresholdTemperatureColor = data.isHighTemperature || data.isLowTemperature ? '#D12730' : '#29313C';\n                              \nconst isActive = data.active === 'true';\nconst status = isActive ? 'Online' : 'Offline';\nconst color = isActive ? '#3AA94D' : '#C42F37';\nconst bgColor = isActive ? 'rgba(58, 169, 77, 0.08)' : 'rgba(196, 47, 55, 0.08)';\nconst lastUpdate = (data['battery|ts'] || data['fuelLevel|ts']) ? \n    moment(Math.max(data['battery|ts'], data['fuelLevel|ts'])).format('D MMM YYYY HH:mm') : 'N/A';\nconst remaining = `${fuelLevel}% (${fuel}${tankCapacityOutput})`;\n\nreturn '<div style=\"display:flex;flex-direction:column;margin-bottom:8px;font-family:\\'Roboto\\';font-weight:500;font-size:16px;line-height:24px;letter-spacing:0.25px;color:#29313C\">' +\n            '<div>${entityLabel}</div>' +\n            '<div style=\"width: 100%;border-bottom:1px solid rgba(0, 0, 0, 0.12);margin:12px 0;\"></div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Liquid type</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ liquidType +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Remaining</div>' +\n                '<div style=\"color:'+ lowFuelLevelColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ remaining +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Temperature</div>' +\n                '<div style=\"color:'+ thresholdTemperatureColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ temperature +'°C</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Battery level</div>' +\n                '<div style=\"color:'+ lowBatteryColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ batteryLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Connection</div>' +\n                '<div style=\"font-size:14px;width:fit-content;padding:4px 8px;font-weight:500;line-height:20px;letter-spacing:0.25px;border-radius:8px;color:'+ color +';background-color:'+ bgColor +'\">' + status + '</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:13px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Last update</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;color:#29313C;letter-spacing:0.25px\">'+ lastUpdate +'</div>' +\n            '</div>' +\n       '</div>' +\n       '<div style=\"text-align: center\">' +\n            '<link-act name=\"tank-details\">Details ></link-act>' +\n       '</div>';\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
+                  "tagActions": [
+                    {
+                      "name": "tank-details",
+                      "type": "openDashboardState",
+                      "targetDashboardStateId": "tank-details",
+                      "setEntityId": true,
+                      "stateEntityParamName": null,
+                      "openRightLayout": false,
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "let image = images[0];\nif (data) {\n    const isActive = data.active && data.active !== 'false';\n    const fuelLevel = data.fuelLevel;\n    const batteryLevel = data.battery;\n    const tankCapacity = data.tankCapacity;\n    const temperature = data.temperature;\n    const lowFuelLevel = data.isLowFuel;\n    const lowBattery = data.isLowBattery;\n    const thresholdTemperature = data.isHighTemperature || data.isLowTemperature;\n    \n    if (!isActive) {\n        image = images[3];\n    } else if (lowFuelLevel || thresholdTemperature) {\n        image = images[1];\n    } else if (lowBattery) {\n        image = images[2];\n    }\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
+                  "images": [
+                    "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_0.svg",
+                    "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_1.svg",
+                    "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_2.svg",
+                    "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_3.svg"
+                  ]
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": true,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 10,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": true,
+                  "clusterMarkerColorFunction": "if (data && data.length && childCount === data.length) {\n   const alarmsState = data.map((entity) => {\n        if (entity) {\n            const isActive = entity.active && entity.active !== 'false';\n            const fuelLevel = entity.fuelLevel;\n            const batteryLevel = entity.battery;\n            const tankCapacity = entity.tankCapacity;\n            const temperature = entity.temperature;\n            const lowFuelLevel = entity.isLowFuel;\n            const lowBattery = entity.isLowBattery;\n            const thresholdTemperature = entity.isHighTemperature || entity.isLowTemperature;\n            const isAlarm = lowFuelLevel || lowBattery || thresholdTemperature || !isActive;\n            \n            return isAlarm;\n        }\n        \n        return false;\n    });\n    \n    return alarmsState.includes(true) ? '#ff0000' : '#73c65e'; \n}\n\nreturn '#73c65e';"
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "0"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": ".leaflet-container a.leaflet-popup-close-button {\n    top: 15px;\n    right: 20px;\n}",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "0px",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "8bd39332-4ef0-9804-7857-f195d2b23f07"
+      },
+      "035671af-046a-fcc1-2036-ebcf69f7d54f": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742737665734,
+                "endTimeMs": 1742824065734
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "custom",
+                "tileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "6d74f33d-0025-fbc5-06b7-996534fa99c7",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "active",
+                    "type": "attribute",
+                    "label": "active",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7176985399912621
+                  },
+                  {
+                    "name": "battery",
+                    "type": "timeseries",
+                    "label": "battery",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.19490862764871997
+                  },
+                  {
+                    "name": "liquidType",
+                    "type": "attribute",
+                    "label": "liquidType",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.024734914324393786
+                  },
+                  {
+                    "name": "temperature",
+                    "type": "timeseries",
+                    "label": "temperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.2505913337633108
+                  },
+                  {
+                    "name": "tankCapacity",
+                    "type": "attribute",
+                    "label": "tankCapacity",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.3715560000313691
+                  },
+                  {
+                    "name": "fuelLevel",
+                    "type": "timeseries",
+                    "label": "fuelLevel",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7736590290772694
+                  },
+                  {
+                    "name": "isHighTemperature",
+                    "type": "attribute",
+                    "label": "isHighTemperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.06669472877493243,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === \"true\";"
+                  },
+                  {
+                    "name": "isLowBattery",
+                    "type": "attribute",
+                    "label": "isLowBattery",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.10002934468387892,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === \"true\";"
+                  },
+                  {
+                    "name": "isLowFuel",
+                    "type": "attribute",
+                    "label": "isLowFuel",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.42793076922602946,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === \"true\";"
+                  },
+                  {
+                    "name": "isLowTemperature",
+                    "type": "attribute",
+                    "label": "isLowTemperature",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.0236889308910071,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": true,
+                    "postFuncBody": "return value === \"true\";"
+                  },
+                  {
+                    "name": "tankCapacityOutput",
+                    "type": "attribute",
+                    "label": "tankCapacityOutput",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.9688818901458072
+                  },
+                  {
+                    "name": "label",
+                    "type": "entityField",
+                    "label": "Label",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.24873345472832864
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "${entityName}",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "type": "function",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See tooltip settings for details</small>",
+                  "patternFunction": "\nconst fuelLevel = data.fuelLevel;\nconst batteryLevel = data.battery;\nconst tankCapacity = data.tankCapacity;\nconst tankCapacityOutput = data.tankCapacityOutput ? data.tankCapacityOutput : \"L\";\nconst temperature = data.temperature;\nconst fuel = processValue((fuelLevel * tankCapacity) / 100, 0);\nconst liquidType = data.liquidType ? data.liquidType : 'N/A';\nconst lowFuelLevelColor = data.isLowFuel ? '#D12730' : '#29313C';\nconst lowBatteryColor = data.isLowBattery ? '#D12730' : '#29313C';\nconst thresholdTemperatureColor = data.isHighTemperature || data.isLowTemperature ? '#D12730' : '#29313C';\n                              \nconst isActive = data.active === 'true';\nconst status = isActive ? 'Online' : 'Offline';\nconst color = isActive ? '#3AA94D' : '#C42F37';\nconst bgColor = isActive ? 'rgba(58, 169, 77, 0.08)' : 'rgba(196, 47, 55, 0.08)';\nconst lastUpdate = (data['battery|ts'] || data['fuelLevel|ts']) ? \n    moment(Math.max(data['battery|ts'], data['fuelLevel|ts'])).format('D MMM YYYY HH:mm') : 'N/A';\nconst remaining = `${fuelLevel}% (${fuel}${tankCapacityOutput})`;\n\nreturn '<div style=\"display:flex;flex-direction:column;margin-bottom:8px;font-family:\\'Roboto\\';font-weight:500;font-size:16px;line-height:24px;letter-spacing:0.25px;color:#29313C\">' +\n            '<div>${entityLabel}</div>' +\n            '<div style=\"width: 100%;border-bottom:1px solid rgba(0, 0, 0, 0.12);margin:12px 0;\"></div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Liquid type</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ liquidType +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Remaining</div>' +\n                '<div style=\"color:'+ lowFuelLevelColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ remaining +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Temperature</div>' +\n                '<div style=\"color:'+ thresholdTemperatureColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ temperature +'°C</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Battery level</div>' +\n                '<div style=\"color:'+ lowBatteryColor +';font-size:14px;line-height:20px;font-weight:500;letter-spacing:0.25px\">'+ batteryLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:9px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Connection</div>' +\n                '<div style=\"font-size:14px;width:fit-content;padding:4px 8px;font-weight:500;line-height:20px;letter-spacing:0.25px;border-radius:8px;color:'+ color +';background-color:'+ bgColor +'\">' + status + '</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:13px;\">' +\n                '<div style=\"font-size:13px;line-height:16px;font-weight:500;color:rgba(0, 0, 0, 0.38);width:100px\">Last update</div>' +\n                '<div style=\"font-size:14px;line-height:20px;font-weight:500;color:#29313C;letter-spacing:0.25px\">'+ lastUpdate +'</div>' +\n            '</div>' +\n       '</div>';\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
+                  "trigger": "click",
+                  "autoclose": true,
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "tagActions": []
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [
+                    "add",
+                    "move"
+                  ],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "let image = images[0];\nif (data) {\n    const isActive = data.active && data.active !== 'false';\n    const fuelLevel = data.fuelLevel;\n    const batteryLevel = data.battery;\n    const tankCapacity = data.tankCapacity;\n    const temperature = data.temperature;\n    const lowFuelLevel = data.isLowFuel;\n    const lowBattery = data.isLowBattery;\n    const thresholdTemperature = data.isHighTemperature || data.isLowTemperature;\n    \n    if (!isActive) {\n        image = images[3];\n    } else if (lowFuelLevel || thresholdTemperature) {\n        image = images[1];\n    } else if (lowBattery) {\n        image = images[2];\n    }\n}\n\nreturn {\n    url: image,\n    size: 28\n};\n",
+                  "images": [
+                    "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_0.svg",
+                    "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_1.svg",
+                    "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_2.svg",
+                    "tb-image;/api/images/system/fuel_level_monitoring_dashboard_widget_marker_image_3.svg"
+                  ]
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 10,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": true,
+                  "clusterMarkerColorFunction": "if (data && data.length && childCount === data.length) {\n   const alarmsState = data.map((entity) => {\n        if (entity) {\n            const isActive = entity.active && entity.active !== 'false';\n            const fuelLevel = entity.fuelLevel;\n            const batteryLevel = entity.battery;\n            const tankCapacity = entity.tankCapacity;\n            const temperature = entity.temperature;\n            const lowFuelLevel = entity.isLowFuel;\n            const lowBattery = entity.isLowBattery;\n            const thresholdTemperature = entity.isHighTemperature || entity.isLowTemperature;\n            const isAlarm = lowFuelLevel || lowBattery || thresholdTemperature || !isActive;\n            \n            return isAlarm;\n        }\n        \n        return false;\n    });\n    \n    return alarmsState.includes(true) ? '#ff0000' : '#73c65e'; \n}\n\nreturn '#73c65e';"
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "0"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": ".leaflet-container a.leaflet-popup-close-button {\n    top: 15px;\n    right: 20px;\n}",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "0px",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "035671af-046a-fcc1-2036-ebcf69f7d54f"
       }
     },
     "states": {
@@ -3154,7 +3224,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 55,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -3165,9 +3236,9 @@
         "layouts": {
           "main": {
             "widgets": {
-              "ad8020a2-53fd-8334-c94e-2a7af3774780": {
+              "8bd39332-4ef0-9804-7857-f195d2b23f07": {
                 "sizeX": 24,
-                "sizeY": 15,
+                "sizeY": 11,
                 "row": 0,
                 "col": 0
               }
@@ -3181,7 +3252,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -3232,7 +3304,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -3243,9 +3316,9 @@
         "layouts": {
           "main": {
             "widgets": {
-              "b52a62ff-7409-332f-6e41-3ed879a77892": {
+              "035671af-046a-fcc1-2036-ebcf69f7d54f": {
                 "sizeX": 24,
-                "sizeY": 15,
+                "sizeY": 11,
                 "row": 0,
                 "col": 0
               }
@@ -3259,7 +3332,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -3286,7 +3360,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -3313,7 +3388,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -3340,7 +3416,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -3541,9 +3618,6 @@
       }
     },
     "timewindow": {
-      "hideInterval": false,
-      "hideLastInterval": false,
-      "hideQuickInterval": false,
       "hideAggregation": false,
       "hideAggInterval": false,
       "hideTimezone": false,
@@ -3577,18 +3651,8 @@
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 2px 8px rgba(222, 223, 224, 0.25);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #4B535B !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell {\n    color: rgba(0, 0, 0, 0.38) !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-row:hover:not(.tb-current-entity) .mat-cell.mat-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: rgba(0, 0, 0, 0.38) !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell button.mat-mdc-icon-button .mat-icon,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-actions .mat-icon {\n    color: #00000061 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    color: #4B535B;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in {\n    border-radius: 6px 6px 0 0;\n    border-bottom: 1px solid transparent; \n}\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    border-radius: 0 0 6px 6px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-buttons-control-button{\n    border: none;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-popup a.tb-custom-action {\n    font-family: 'Roboto';\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.25px;\n    border-bottom: none;\n    color: #9699FF;\n}\n\n.tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-content .mat-expansion-panel-body .tank-filter-layout {\n       height: 166px; \n    }\n\nmat-cell {\n    border: none !important;\n}\n\n@media (max-width: 1130px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 32px;\n    }\n    \n    .tank-filter-layout .tb-multiple-input .tb-multiple-input-layout {\n        gap: 0 !important;\n    }\n    \n    .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 16px;\n        height: 16px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 6px;\n    }\n    \n    .tank-layout .tank-filter-layout .tb-multiple-input .tb-multiple-input-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 12px !important;\n       width: 100px;\n    }\n    \n    .tank-layout .tb-multiple-input-container {\n        padding: 0 3px !important;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle {\n        margin: 8px 0;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-body .tank-filter-toggles {\n       height: 133px;\n    }\n}\n\n@media (max-width: 959px) {\n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch {\n       width: 42px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__track {\n        height: 24px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle {\n        width: 20px;\n        height: 20px;\n    }\n    \n    .tb-widget-container .tb-widget .tank-layout .tb-multiple-input .mat-mdc-slide-toggle .mdc-switch .mdc-switch__handle-track {\n        width: calc(100% - 24px);\n        left: 2px;\n    }\n    \n    .tank-layout .tank-filter-layout .tb-multiple-input .tb-multiple-input-layout .mat-mdc-slide-toggle .label-wrapper {\n       font-size: 14px !important;\n       width: 100%;\n    }\n}\n\n@media (max-width: 599px) {\n    .tb-widget-container .tb-widget .tank-layout .mat-expansion-panel-content .mat-expansion-panel-body .tank-filter-layout {\n       height: 265px; \n    }\n}"
     }
   },
+  "name": "Fuel Level Monitoring",
   "resources": [
-    {
-      "link": "/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "title": "\"Air Quality Monitoring\" dashboard widget \"New OpenStreetMap\" map image",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "publicResourceKey": "tqOwYO62300IxbMN7XadhrP23toIW8W4",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
-      "public": true
-    },
     {
       "link": "/api/images/system/fuel_level_monitoring_dashboard_widget_filter_custom_icon.svg",
       "title": "\"Fuel Level Monitoring\" dashboard widget \"Filter\" custom icon",

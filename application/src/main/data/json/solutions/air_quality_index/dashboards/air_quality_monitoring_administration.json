@@ -3,7 +3,6 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
-  "name": "Air Quality Monitoring Administration",
   "configuration": {
     "description": "",
     "widgets": {
@@ -19,7 +18,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -29,7 +31,11 @@
                 "startTimeMs": 1678035571326,
                 "endTimeMs": 1678121971326
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -272,9 +278,6 @@
         "sizeY": 6.5,
         "config": {
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -411,461 +414,12 @@
         "id": "8036e24e-24c8-cff5-3bb8-540e7c2ffafc",
         "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
-      "7adac828-1986-b488-ad2e-cbc07f5f800c": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "c277b2f3-cca2-032a-4201-0305e99d3590",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.8616257019700237
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.16189758386018727
-                },
-                {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.7876386320761877
-                },
-                {
-                  "name": "state",
-                  "type": "attribute",
-                  "label": "state",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.8355297632559455
-                },
-                {
-                  "name": "aqi",
-                  "type": "timeseries",
-                  "label": "aqi",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.5809059596352029,
-                  "aggregationType": "NONE",
-                  "units": null,
-                  "decimals": 0,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "batteryLevel",
-                  "type": "timeseries",
-                  "label": "batteryLevel",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.30323111284188076
-                },
-                {
-                  "name": "batteryLevelThreshold",
-                  "type": "attribute",
-                  "label": "batteryLevelThreshold",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.961467451798433
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678035571326,
-                "endTimeMs": 1678121971326
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "OpenStreetMap.Mapnik",
-            "useCustomProvider": true,
-            "customProviderTileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultCenterPosition": "0,0",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "draggableMarker": false,
-            "showLabel": false,
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": true,
-            "tooltipFunction": "const aqi = processValue(data['aqi'], 0);\nconst batteryLevel = processValue(data['batteryLevel']);\nconst batteryLevelThreshold = processValue(data['batteryLevelThreshold']);\nconst blColor = (batteryLevel <= batteryLevelThreshold) ? \"#C32F37\" : \"#29313C\";\nconst lastUpdate = (data['batteryLevel|ts'] || data['aqi|ts']) ? moment(Math.max(data['batteryLevel|ts'], data['aqi|ts'])).format('D MMM YYYY HH:mm') : 'N/A';\nconst isActive = data['active'] === 'true';\nconst status = isActive ? 'Connected' : 'Inactive';\nconst color = isActive ? '#3AA94D' : '#C42F37';\nconst bgColor = isActive ? 'rgba(58, 169, 77, 0.08)' : 'rgba(196, 47, 55, 0.08)';\n\nreturn '<div style=\"display:flex;flex-direction:column;margin-bottom:8px;font-family:\\'Roboto\\';font-weight:500;font-size:14px;line-height:18px;letter-spacing:0.25px;color:#29313C\">' +\n            '<div style=\"margin-bottom:14px\">${entityLabel}</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Sensor id</div>' +\n                '<div>${entityName}</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Connection</div>' +\n                '<div style=\"width:fit-content;padding:4px 8px;font-weight:400;border-radius:8px;color:'+ color +';background-color:'+ bgColor +'\">' + status + '</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Battery level</div>' +\n                '<div style=\"color:'+ blColor +'\">'+ batteryLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Last AQI</div>' +\n                '<div>'+ aqi +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Last update</div>' +\n                '<div>'+ lastUpdate +'</div>' +\n            '</div>' +\n       '</div>' +\n       '<link-act name=\"sensor-details\">Details</link-act>';\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageFunction": "const state = data['state'];\nconst hasData = data['aqi'] || data['batteryLevel'];\nconst svgString = '<svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    '<rect width=\"32\" height=\"32\" rx=\"16\" fill=\"'+ (state === 'normal' ? (hasData ? '#80BA3C' : '#B4B4B4') : '#C42F37\"/><path d=\"M15 10V19H17V10M15 21V23H17V21\" fill=\"white') +'\"/>' +       \n                  '</svg>';\n                  \nconst encodedSvg = encodeURIComponent(svgString);\nconst svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: 32\n};",
-            "markerImages": [],
-            "showPolygon": false,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": false,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true,
-            "useIconCreateFunction": false
-          },
-          "title": "New OpenStreetMap",
-          "dropShadow": false,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "tooltipAction": [
-              {
-                "name": "sensor-details",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "selected_sensor",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "9502f8eb-5e70-8681-da43-ce3c03c26b2c"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "enableDataExport": false,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "7adac828-1986-b488-ad2e-cbc07f5f800c",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
-      },
-      "e98b4083-21bb-df07-c889-047db0c7b0d0": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6.5,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "98ac7e0d-e4c9-58a6-ee9a-e691db5bba47",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.47249052615090226
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.26911257953559686
-                },
-                {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.4772124617505462
-                },
-                {
-                  "name": "state",
-                  "type": "attribute",
-                  "label": "state",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.8474485754203147
-                },
-                {
-                  "name": "aqi",
-                  "type": "timeseries",
-                  "label": "aqi",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.2792225953372438
-                },
-                {
-                  "name": "batteryLevel",
-                  "type": "timeseries",
-                  "label": "batteryLevel",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.13532623517256082
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678035571326,
-                "endTimeMs": 1678121971326
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "provider": "openstreet-map",
-            "mapProvider": "OpenStreetMap.Mapnik",
-            "useCustomProvider": true,
-            "customProviderTileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultZoomLevel": 5,
-            "defaultCenterPosition": "0,0",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "draggableMarker": true,
-            "showLabel": false,
-            "showTooltip": false,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageFunction": "const state = data['state'];\nconst hasData = data['aqi'] || data['batteryLevel'];\nconst svgString = '<svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    '<rect width=\"32\" height=\"32\" rx=\"16\" fill=\"'+ (state === 'normal' ? (hasData ? '#80BA3C' : '#B4B4B4') : '#C42F37\"/><path d=\"M15 10V19H17V10M15 21V23H17V21\" fill=\"white') +'\"/>' +       \n                  '</svg>';\n                  \nconst encodedSvg = encodeURIComponent(svgString);\nconst svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: 32\n};",
-            "markerImages": [],
-            "showPolygon": false,
-            "polygonKeyName": "coordinates",
-            "editablePolygon": true,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${coordinates|ts:7}<br/><br/><link-act name='delete'>Delete</link-act>",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.5,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 1,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "snappable": false,
-            "initDragMode": false,
-            "hideAllControlButton": false,
-            "hideDrawControlButton": false,
-            "hideEditControlButton": false,
-            "hideRemoveControlButton": false,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true,
-            "useIconCreateFunction": false
-          },
-          "title": "New Markers Placement - OpenStreetMap",
-          "dropShadow": false,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "tooltipAction": [
-              {
-                "name": "delete",
-                "icon": "more_horiz",
-                "type": "custom",
-                "customFunction": "var entityDatasource = widgetContext.map.map.datasources.filter(\n    function(entity) {\n        return entity.entityId === entityId.id;\n    });\n\nwidgetContext.map.setMarkerLocation(entityDatasource[0], null, null).subscribe(() => widgetContext.updateAliases());",
-                "id": "54c293c4-9ca6-e34f-dc6a-0271944c1c66"
-              },
-              {
-                "name": "delete_polygon",
-                "icon": "more_horiz",
-                "type": "custom",
-                "customFunction": "var entityDatasource = widgetContext.map.map.datasources.filter(\n    function(entity) {\n        return entity.entityId === entityId.id\n    });\n\nwidgetContext.map.savePolygonLocation(entityDatasource[0], null).subscribe(() => widgetContext.updateAliases());",
-                "id": "6beb7bed-dfd8-388d-b60c-82988ab52f06"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleIcon": "more_horiz",
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "displayTimewindow": true,
-          "enableDataExport": false,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "e98b4083-21bb-df07-c889-047db0c7b0d0",
-        "typeFullFqn": "system.input_widgets.markers_placement_openstreetmap"
-      },
       "5e0db7e2-78da-079f-47d2-960355026472": {
         "type": "alarm",
         "sizeX": 10.5,
         "sizeY": 6.5,
         "config": {
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -1039,7 +593,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1049,7 +606,11 @@
                 "startTimeMs": 1678035571326,
                 "endTimeMs": 1678121971326
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1259,7 +820,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1269,7 +833,11 @@
                 "startTimeMs": 1678035571326,
                 "endTimeMs": 1678121971326
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2122,6 +1690,538 @@
         "row": 0,
         "col": 0,
         "id": "3307147d-9991-3eb4-e0e4-19500419f695"
+      },
+      "0106ede7-e965-1661-b94a-0a0e21ef6521": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742741950734,
+                "endTimeMs": 1742828350734
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "custom",
+                "tileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "c277b2f3-cca2-032a-4201-0305e99d3590",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "active",
+                    "type": "attribute",
+                    "label": "active",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.25368338461489826
+                  },
+                  {
+                    "name": "state",
+                    "type": "attribute",
+                    "label": "state",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.9460447622547674
+                  },
+                  {
+                    "name": "aqi",
+                    "type": "timeseries",
+                    "label": "aqi",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.16939980979630143
+                  },
+                  {
+                    "name": "batteryLevel",
+                    "type": "timeseries",
+                    "label": "batteryLevel",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7735200314203357
+                  },
+                  {
+                    "name": "batteryLevelThreshold",
+                    "type": "attribute",
+                    "label": "batteryLevelThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.28390807926935113
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "${entityName}",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": true,
+                  "type": "function",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See tooltip settings for details</small>",
+                  "patternFunction": "const aqi = processValue(data['aqi'], 0);\nconst batteryLevel = processValue(data['batteryLevel']);\nconst batteryLevelThreshold = processValue(data['batteryLevelThreshold']);\nconst blColor = (batteryLevel <= batteryLevelThreshold) ? \"#C32F37\" : \"#29313C\";\nconst lastUpdate = (data['batteryLevel|ts'] || data['aqi|ts']) ? moment(Math.max(data['batteryLevel|ts'], data['aqi|ts'])).format('D MMM YYYY HH:mm') : 'N/A';\nconst isActive = data['active'] === 'true';\nconst status = isActive ? 'Connected' : 'Inactive';\nconst color = isActive ? '#3AA94D' : '#C42F37';\nconst bgColor = isActive ? 'rgba(58, 169, 77, 0.08)' : 'rgba(196, 47, 55, 0.08)';\n\nreturn '<div style=\"display:flex;flex-direction:column;margin-bottom:8px;font-family:\\'Roboto\\';font-weight:500;font-size:14px;line-height:18px;letter-spacing:0.25px;color:#29313C\">' +\n            '<div style=\"margin-bottom:14px\">${entityLabel}</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Sensor id</div>' +\n                '<div>${entityName}</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Connection</div>' +\n                '<div style=\"width:fit-content;padding:4px 8px;font-weight:400;border-radius:8px;color:'+ color +';background-color:'+ bgColor +'\">' + status + '</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Battery level</div>' +\n                '<div style=\"color:'+ blColor +'\">'+ batteryLevel +'%</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Last AQI</div>' +\n                '<div>'+ aqi +'</div>' +\n            '</div>' +\n            '<div style=\"display:flex;flex-direction:row;align-items:baseline;margin-bottom:6px;\">' +\n                '<div style=\"font-size:12px;line-height:16px;letter-spacing:0.4px;color:#9FA6B4;width:100px\">Last update</div>' +\n                '<div>'+ lastUpdate +'</div>' +\n            '</div>' +\n       '</div>' +\n       '<link-act name=\"sensor-details\">Details</link-act>';\n\nfunction isNumber(value) {\n    return (typeof value === 'number' && isFinite(value));\n}\n\nfunction processValue(value, dec) {\n    value = parseFloat(value);\n    if (isNumber(value)) {\n        if (isNumber(dec)) {\n            value = parseFloat(value.toFixed(dec));\n        }\n        return value;\n    } else {\n        return 'N/A';\n    }\n}",
+                  "trigger": "click",
+                  "autoclose": true,
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "tagActions": [
+                    {
+                      "name": "sensor-details",
+                      "type": "openDashboardState",
+                      "targetDashboardStateId": "selected_sensor",
+                      "setEntityId": true,
+                      "stateEntityParamName": null,
+                      "openRightLayout": false,
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "const state = data['state'];\nconst hasData = data['aqi'] || data['batteryLevel'];\nconst svgString = '<svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    '<rect width=\"32\" height=\"32\" rx=\"16\" fill=\"'+ (state === 'normal' ? (hasData ? '#80BA3C' : '#B4B4B4') : '#C42F37\"/><path d=\"M15 10V19H17V10M15 21V23H17V21\" fill=\"white') +'\"/>' +       \n                  '</svg>';\n                  \nconst encodedSvg = encodeURIComponent(svgString);\nconst svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: 32\n};",
+                  "images": null
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "8px"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "0106ede7-e965-1661-b94a-0a0e21ef6521"
+      },
+      "2b5dc642-aa86-b1c0-f15e-31b648165201": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742741950734,
+                "endTimeMs": 1742828350734
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "custom",
+                "tileUrl": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "98ac7e0d-e4c9-58a6-ee9a-e691db5bba47",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "active",
+                    "type": "attribute",
+                    "label": "active",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.25368338461489826
+                  },
+                  {
+                    "name": "state",
+                    "type": "attribute",
+                    "label": "state",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.9460447622547674
+                  },
+                  {
+                    "name": "aqi",
+                    "type": "timeseries",
+                    "label": "aqi",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.16939980979630143
+                  },
+                  {
+                    "name": "batteryLevel",
+                    "type": "timeseries",
+                    "label": "batteryLevel",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7735200314203357
+                  },
+                  {
+                    "name": "batteryLevelThreshold",
+                    "type": "attribute",
+                    "label": "batteryLevelThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.28390807926935113
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "${entityName}",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See tooltip settings for details</small>",
+                  "patternFunction": "",
+                  "trigger": "click",
+                  "autoclose": true,
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "tagActions": [
+                    {
+                      "name": "sensor-details",
+                      "type": "openDashboardState",
+                      "targetDashboardStateId": "selected_sensor",
+                      "setEntityId": true,
+                      "stateEntityParamName": null,
+                      "openRightLayout": false,
+                      "openInSeparateDialog": false,
+                      "openInPopover": false
+                    }
+                  ]
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [
+                    "add",
+                    "move",
+                    "remove"
+                  ],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "const state = data['state'];\nconst hasData = data['aqi'] || data['batteryLevel'];\nconst svgString = '<svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    '<rect width=\"32\" height=\"32\" rx=\"16\" fill=\"'+ (state === 'normal' ? (hasData ? '#80BA3C' : '#B4B4B4') : '#C42F37\"/><path d=\"M15 10V19H17V10M15 21V23H17V21\" fill=\"white') +'\"/>' +       \n                  '</svg>';\n                  \nconst encodedSvg = encodeURIComponent(svgString);\nconst svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: 32\n};",
+                  "images": null
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "8px"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "2b5dc642-aa86-b1c0-f15e-31b648165201"
       }
     },
     "states": {
@@ -2143,7 +2243,7 @@
                 "row": 5,
                 "col": 0
               },
-              "7adac828-1986-b488-ad2e-cbc07f5f800c": {
+              "0106ede7-e965-1661-b94a-0a0e21ef6521": {
                 "sizeX": 14,
                 "sizeY": 10,
                 "row": 0,
@@ -2159,7 +2259,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -2170,13 +2271,6 @@
         "layouts": {
           "main": {
             "widgets": {
-              "e98b4083-21bb-df07-c889-047db0c7b0d0": {
-                "sizeX": 6,
-                "sizeY": 5,
-                "row": 5,
-                "col": 0,
-                "mobileOrder": 3
-              },
               "5e0db7e2-78da-079f-47d2-960355026472": {
                 "sizeX": 8,
                 "sizeY": 5,
@@ -2211,6 +2305,14 @@
                 "mobileOrder": 5,
                 "row": 5,
                 "col": 14
+              },
+              "2b5dc642-aa86-b1c0-f15e-31b648165201": {
+                "sizeX": 6,
+                "sizeY": 5,
+                "mobileOrder": 3,
+                "resizable": true,
+                "row": 5,
+                "col": 0
               }
             },
             "gridSettings": {
@@ -2222,7 +2324,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -2276,9 +2379,6 @@
     },
     "filters": {},
     "timewindow": {
-      "hideInterval": false,
-      "hideLastInterval": false,
-      "hideQuickInterval": false,
       "hideAggregation": false,
       "hideAggInterval": false,
       "hideTimezone": false,
@@ -2308,20 +2408,9 @@
       "hideToolbar": false,
       "showFilters": false,
       "showUpdateDashboardImage": false,
-      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 12px;\n    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.06);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell {\n    color: #9FA6B4 !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.4px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-row:hover:not(.tb-current-entity) .mat-mdc-cell.mat-mdc-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell .mat-sort-header-arrow {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-input-element::placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-input-element::-moz-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-input-element::-webkit-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell .mat-mdc-checkbox .mdc-checkbox__native-control:focus:enabled:not(:checked):not(:indeterminate):not([data-indeterminate=true])~.mdc-checkbox__background,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell .mat-mdc-checkbox .mdc-checkbox__native-control:focus:enabled:not(:checked):not(:indeterminate):not([data-indeterminate=true])~.mdc-checkbox__background {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell button.mat-mdc-icon-button mat-icon {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator {\n    color: #9FA6B4 !important;\n}\n\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator button.mat-mdc-icon-button {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator .mat-mdc-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget a.tb-custom-action {\n    font-family: 'Roboto';\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    color: #9FA6B4;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in {\n   border-bottom: 1px solid transparent; \n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-buttons-control-button{\n    border: none;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-pm-icon-delete {\n    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTciIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNyAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwLjA5MDggMTAuNjExNEw1LjQ4NjI0IDYuNzYyOEwxLjU1MzczIDExLjI4NjZMNC42NjU2OCAxMy45OTE4SDcuMTUyMjRMMTAuMDkwOCAxMC42MTE0Wk05LjEzMDgxIDEzLjk5MThIMTYuMjUwMlYxNS40OTE4SDQuMjUwMjRINC4xMDU1NUwwLjU2OTY0NSAxMi40MTg3Qy0wLjA1NTU3NjggMTEuODc1MiAtMC4xMjE4MjggMTAuOTI3OCAwLjQyMTY2OSAxMC4zMDI1TDguNzg2NDIgMC42Nzk5OTZDOS4zMjk5MiAwLjA1NDc3NDYgMTAuMjc3NCAtMC4wMTE0NzYzIDEwLjkwMjYgMC41MzIwMjFMMTUuNDMwOCA0LjQ2ODM3QzE2LjA1NjEgNS4wMTE4NyAxNi4xMjIzIDUuOTU5MzEgMTUuNTc4OCA2LjU4NDUzTDkuMTMwODEgMTMuOTkxOFoiIGZpbGw9IiM5RkE2QjQiLz4KPC9zdmc+Cg==);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-pm-icon-drag {\n    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEzLjUgOC4yNVY1LjI1TDE4IDlMMTMuNSAxMi43NVY5Ljc1SDkuNzVWMTMuNUgxMi43NUw5IDE4TDUuMjUgMTMuNUg4LjI1VjkuNzVINC41VjEyLjc1TDAgOUw0LjUgNS4yNVY4LjI1SDguMjVWNC41SDUuMjVMOSAwTDEyLjc1IDQuNUg5Ljc1VjguMjVIMTMuNVoiIGZpbGw9IiM5RkE2QjQiLz4KPC9zdmc+Cg==);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-pm-icon-marker {\n    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEycHgiIGhlaWdodD0iNTEycHgiIHZpZXdCb3g9Ii02NCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTE3Mi4yNjggNTAxLjY3QzI2Ljk3IDI5MS4wMzEgMCAyNjkuNDEzIDAgMTkyIDAgODUuOTYxIDg1Ljk2MSAwIDE5MiAwczE5MiA4NS45NjEgMTkyIDE5MmMwIDc3LjQxMy0yNi45NyA5OS4wMzEtMTcyLjI2OCAzMDkuNjctOS41MzUgMTMuNzc0LTI5LjkzIDEzLjc3My0zOS40NjQgMHpNMTkyIDI3MmM0NC4xODMgMCA4MC0zNS44MTcgODAtODBzLTM1LjgxNy04MC04MC04MC04MCAzNS44MTctODAgODAgMzUuODE3IDgwIDgwIDgweiIgZmlsbD0iIzlGQTZCNCIvPjwvc3ZnPgo=);\n}"
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 12px;\n    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.06);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-widget-actions button.mat-mdc-icon-button {\n    --mat-icon-color: inherit !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell {\n    color: #9FA6B4 !important;\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    letter-spacing: 0.4px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell {\n    color: #4B535B;\n    border-bottom-color: transparent;\n    font-size: 14px;\n    line-height: 20px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .no-data-found {\n    font-weight: 500;\n    font-size: 14px;\n    letter-spacing: 0.25px;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-row:hover:not(.tb-current-entity),\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-row:hover:not(.tb-current-entity) .mat-mdc-cell.mat-mdc-table-sticky {\n    background-color: #F9F9FB !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell .mat-sort-header-arrow {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-input-element::placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-input-element::-moz-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-input-element::-webkit-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-input-element:-ms-input-placeholder {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell .mat-mdc-checkbox .mdc-checkbox__native-control:focus:enabled:not(:checked):not(:indeterminate):not([data-indeterminate=true])~.mdc-checkbox__background,\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell .mat-mdc-checkbox .mdc-checkbox__native-control:focus:enabled:not(:checked):not(:indeterminate):not([data-indeterminate=true])~.mdc-checkbox__background {\n    border-color : #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell button.mat-mdc-icon-button mat-icon {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator {\n    color: #9FA6B4 !important;\n}\n\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator button.mat-mdc-icon-button {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator .mat-mdc-select-value {\n    color: #9FA6B4 !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget a.tb-custom-action {\n    font-family: 'Roboto';\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    --tb-map-control-color: #9FA6B4;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-out {\n    color: #9FA6B4;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control-zoom-in {\n   border-bottom: 1px solid transparent; \n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-control,\n.tb-dashboard-page .tb-widget-container > .tb-widget .leaflet-buttons-control-button{\n    border: none;\n}\n"
     }
   },
-  "resources": [
-    {
-      "link": "/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "title": "\"Air Quality Monitoring\" dashboard widget \"New OpenStreetMap\" map image",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "publicResourceKey": "tqOwYO62300IxbMN7XadhrP23toIW8W4",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
-      "public": true
-    }
-  ]
+  "name": "Air Quality Monitoring Administration",
+  "resources": []
 }

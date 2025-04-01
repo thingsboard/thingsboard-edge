@@ -31,6 +31,7 @@
 package org.thingsboard.server.edqs.data.dp;
 
 import lombok.Getter;
+import org.thingsboard.server.common.data.edqs.DataPoint;
 import org.thingsboard.server.common.data.kv.DataType;
 
 public class LongDataPoint extends AbstractDataPoint {
@@ -61,5 +62,10 @@ public class LongDataPoint extends AbstractDataPoint {
     @Override
     public String valueToString() {
         return Long.toString(value);
+    }
+
+    @Override
+    public int compareTo(DataPoint dataPoint) {
+        return Long.compare(value, dataPoint.getLong());
     }
 }

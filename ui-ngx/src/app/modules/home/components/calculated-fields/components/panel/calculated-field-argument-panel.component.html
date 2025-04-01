@@ -103,6 +103,7 @@
               [placeholder]="'action.set' | translate"
               [required]="true"
               [entityType]="ArgumentEntityTypeParamsMap.get(entityType).entityType"
+              (entityChanged)="entityNameSubject.next($event?.name)"
             />
           </div>
         }

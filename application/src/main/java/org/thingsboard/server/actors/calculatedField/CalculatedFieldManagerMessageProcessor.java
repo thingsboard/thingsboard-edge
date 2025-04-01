@@ -71,7 +71,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.thingsboard.server.utils.CalculatedFieldUtils.fromProto;
 
-
 /**
  * @author Andrew Shvayka
  */
@@ -107,8 +106,17 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         this.ctx = ctx;
     }
 
+    public void stop() {
+        log.info("[{}] Stopping CF manager actor.", tenantId);
+        calculatedFields.values().forEach(CalculatedFieldCtx::stop);
+        calculatedFields.clear();
+        entityIdCalculatedFields.clear();
+        entityIdCalculatedFieldLinks.clear();
+        ctx.stop(ctx.getSelf());
+    }
+
     public void onFieldInitMsg(CalculatedFieldInitMsg msg) throws CalculatedFieldException {
-        log.info("[{}] Processing CF init message.", msg.getCf().getId());
+        log.debug("[{}] Processing CF init message.", msg.getCf().getId());
         var cf = msg.getCf();
         var cfCtx = new CalculatedFieldCtx(cf, systemContext.getTbelInvokeService(), systemContext.getApiLimitService());
         try {
@@ -124,7 +132,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
     }
 
     public void onLinkInitMsg(CalculatedFieldLinkInitMsg msg) {
-        log.info("[{}] Processing CF link init message for entity [{}].", msg.getLink().getCalculatedFieldId(), msg.getLink().getEntityId());
+        log.debug("[{}] Processing CF link init message for entity [{}].", msg.getLink().getCalculatedFieldId(), msg.getLink().getEntityId());
         var link = msg.getLink();
         // We use copy on write lists to safely pass the reference to another actor for the iteration.
         // Alternative approach would be to use any list but avoid modifications to the list (change the complete map value instead)
@@ -137,7 +145,9 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         var calculatedField = calculatedFields.get(cfId);
 
         if (calculatedField != null) {
-            msg.getState().setRequiredArguments(calculatedField.getArgNames());
+            if (msg.getState() != null) {
+                msg.getState().setRequiredArguments(calculatedField.getArgNames());
+            }
             log.debug("Pushing CF state restore msg to specific actor [{}]", msg.getId().entityId());
             getOrCreateActor(msg.getId().entityId()).tell(msg);
         } else {
@@ -146,7 +156,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
     }
 
     public void onEntityLifecycleMsg(CalculatedFieldEntityLifecycleMsg msg) throws CalculatedFieldException {
-        log.info("Processing entity lifecycle event: [{}] for entity: [{}]", msg.getData().getEvent(), msg.getData().getEntityId());
+        log.debug("Processing entity lifecycle event: [{}] for entity: [{}]", msg.getData().getEvent(), msg.getData().getEntityId());
         var entityType = msg.getData().getEntityId().getEntityType();
         var event = msg.getData().getEvent();
         switch (entityType) {
@@ -372,6 +382,10 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         log.debug("Received linked telemetry msg from entity [{}]", sourceEntityId);
         var proto = msg.getProto();
         var linksList = proto.getLinksList();
+        if (linksList.isEmpty()) {
+            log.debug("[{}] No CF links to process new telemetry.", msg.getTenantId());
+            msg.getCallback().onSuccess();
+        }
         for (var linkProto : linksList) {
             var link = fromProto(linkProto);
             var targetEntityId = link.entityId();

@@ -28,24 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.edqs;
+package org.thingsboard.common.util.geo;
 
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
-public enum EdqsQueue {
-
-    EVENTS("edqs.events", false, false),
-    STATE("edqs.state", true, true);
-
-    private final String topic;
-    private final boolean readFromBeginning;
-    private final boolean stopWhenRead;
-
-    EdqsQueue(String topic, boolean readFromBeginning, boolean stopWhenRead) {
-        this.topic = topic;
-        this.readFromBeginning = readFromBeginning;
-        this.stopWhenRead = stopWhenRead;
-    }
-
+@Data
+public class Coordinates {
+    private final double latitude;
+    private final double longitude;
 }

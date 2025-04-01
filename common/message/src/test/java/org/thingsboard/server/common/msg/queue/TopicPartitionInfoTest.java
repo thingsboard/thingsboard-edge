@@ -33,11 +33,15 @@ package org.thingsboard.server.common.msg.queue;
 import org.junit.jupiter.api.Test;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.util.UUID;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TopicPartitionInfoTest {
+
+    private final TenantId tenantId = TenantId.fromUUID(UUID.randomUUID());
 
     @Test
     public void givenTopicPartitionInfo_whenEquals_thenTrue() {
@@ -67,13 +71,13 @@ public class TopicPartitionInfoTest {
 
         assertThat(TopicPartitionInfo.builder()
                         .topic("tb_core")
-                        .tenantId(TenantId.SYS_TENANT_ID)
+                        .tenantId(tenantId)
                         .partition(4)
                         .myPartition(true) //will ignored on equals
                         .build()
                 , is(TopicPartitionInfo.builder()
                         .topic("tb_core")
-                        .tenantId(TenantId.SYS_TENANT_ID)
+                        .tenantId(tenantId)
                         .partition(4)
                         .myPartition(true) //will ignored on equals
                         .build()));
@@ -124,7 +128,7 @@ public class TopicPartitionInfoTest {
 
         assertThat(TopicPartitionInfo.builder()
                         .topic("tb_core")
-                        .tenantId(TenantId.SYS_TENANT_ID)
+                        .tenantId(tenantId)
                         .partition(4)
                         .myPartition(true) //will ignored on equals
                         .build()
@@ -132,7 +136,7 @@ public class TopicPartitionInfoTest {
 
         assertThat(TopicPartitionInfo.builder()
                         .topic("tb_core")
-                        .tenantId(TenantId.SYS_TENANT_ID)
+                        .tenantId(tenantId)
                         .partition(4)
                         .myPartition(false) //will ignored on equals
                         .build()

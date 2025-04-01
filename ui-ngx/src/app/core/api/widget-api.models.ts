@@ -107,7 +107,7 @@ export interface IWidgetUtils {
 }
 
 export interface PlaceMapItemActionData {
-  action: WidgetAction;
+  action: WidgetAction | WidgetActionDescriptor;
   additionalParams?: any;
   afterPlaceItemCallback: ($event: Event, descriptor: WidgetAction, entityId?: EntityId, entityName?: string,
                            additionalParams?: any, entityLabel?: string) => void;

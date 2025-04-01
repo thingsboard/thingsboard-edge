@@ -218,7 +218,7 @@ export class IntegrationWizardDialogComponent extends
           this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
           this.uplinkConverterForm.get('newUplinkConverter').enable({emitEvent: false});
           this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
-          this.downlinkDataConverterComponent.updatedValidators();
+          this.uplinkDataConverterComponent.updatedValidators();
           break;
       }
     });

@@ -261,11 +261,23 @@ export const getTargetTemplateUrl =
     return getTbelTemplateUrl(converterType, converterVersion);
   }
 
+const getTbelConverterFunctionHeldId = (converterType: ConverterType, converterVersion: ConverterVersion): string => {
+  return converterVersion === 2
+    ? (converterType === ConverterType.UPLINK ? 'converter/tbel/decoder_fn_v2' : 'converter/tbel/encoder_fn')
+    : (converterType === ConverterType.UPLINK ? 'converter/tbel/decoder_fn' : 'converter/tbel/encoder_fn')
+}
+
+const getJsConverterFunctionHeldId = (converterType: ConverterType, converterVersion: ConverterVersion): string => {
+  return converterVersion === 2
+    ? (converterType === ConverterType.UPLINK ? 'converter/decoder_fn' : 'converter/encoder_fn')
+    : (converterType === ConverterType.UPLINK ? 'converter/decoder_fn' : 'converter/encoder_fn')
+}
+
 export const getConverterFunctionHeldId =
-  (converterType: ConverterType, scriptLang: ScriptLanguage): string => {
+  (converterType: ConverterType, scriptLang: ScriptLanguage, converterVersion: ConverterVersion): string => {
     return scriptLang === ScriptLanguage.TBEL
-      ? (converterType === ConverterType.UPLINK ? 'converter/tbel/decoder_fn' : 'converter/tbel/encoder_fn')
-      : (converterType === ConverterType.UPLINK ? 'converter/decoder_fn' : 'converter/encoder_fn');
+      ? getTbelConverterFunctionHeldId(converterType, converterVersion)
+      : getJsConverterFunctionHeldId(converterType, converterVersion);
   }
 
 export const getConverterFunctionHeldPopupStyle =

@@ -36,11 +36,11 @@ import {
   widgetActionTypeTranslationMap
 } from '@app/shared/models/widget.models';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
-import { BehaviorSubject, Observable, of, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, Observable, of, ReplaySubject, shareReplay } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { TranslateService } from '@ngx-translate/core';
 import { PageLink } from '@shared/models/page/page-link';
-import { catchError, map, publishReplay, refCount } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { UtilsService } from '@core/services/utils.service';
 import { deepClone } from '@core/utils';
 
@@ -83,11 +83,11 @@ export class WidgetActionsDatasource implements DataSource<WidgetActionDescripto
   constructor(private translate: TranslateService,
               private utils: UtilsService) {}
 
-  connect(collectionViewer: CollectionViewer): Observable<WidgetActionDescriptorInfo[] | ReadonlyArray<WidgetActionDescriptorInfo>> {
+  connect(_collectionViewer: CollectionViewer): Observable<WidgetActionDescriptorInfo[] | ReadonlyArray<WidgetActionDescriptorInfo>> {
     return this.actionsSubject.asObservable();
   }
 
-  disconnect(collectionViewer: CollectionViewer): void {
+  disconnect(_collectionViewer: CollectionViewer): void {
     this.actionsSubject.complete();
     this.pageDataSubject.complete();
   }
@@ -130,8 +130,7 @@ export class WidgetActionsDatasource implements DataSource<WidgetActionDescripto
         });
       }
       this.allActions = of(actions).pipe(
-        publishReplay(1),
-        refCount()
+        shareReplay(1)
       );
     }
     return this.allActions;

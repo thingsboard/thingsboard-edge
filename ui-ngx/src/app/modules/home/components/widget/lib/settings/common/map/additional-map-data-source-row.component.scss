@@ -28,22 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.geo;
+@import '../../../../../../../../../scss/constants';
 
-import lombok.Data;
+.tb-form-table-row.tb-additional-map-data-source-row {
 
-@Data
-public class Perimeter {
+  .tb-source-field {
+    flex: 1 1 50%;
+    display: flex;
+    gap: 12px;
+    .tb-ds-type-field, .tb-label-field, .tb-device-field, .tb-entity-alias-field {
+      flex: 1;
+    }
+  }
 
-    private PerimeterType perimeterType;
+  .tb-data-keys-field {
+    flex: 1 1 50%;
+    min-width: 0;
+  }
 
-    //For Polygons
-    private String polygonsDefinition;
+  .tb-remove-button {
+    width: 40px;
+    min-width: 40px;
+  }
 
-    //For Circles
-    private Double centerLatitude;
-    private Double centerLongitude;
-    private Double range;
-    private RangeUnit rangeUnit;
-
+  @media #{$mat-lt-lg} {
+    .tb-source-field {
+      flex-direction: column;
+      flex: 1 1 30%;
+    }
+    .tb-data-keys-field {
+      flex: 1 1 70%;
+    }
+    @media #{$mat-lt-md} {
+      .tb-source-field {
+        flex: 1 1 50%;
+      }
+      .tb-data-keys-field {
+        flex: 1 1 50%;
+      }
+    }
+  }
 }
