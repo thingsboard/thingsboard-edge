@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
@@ -74,7 +73,6 @@ import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.common.util.ProtoUtils;
-import org.thingsboard.server.dao.cache.CacheExecutorService;
 import org.thingsboard.server.dao.menu.CustomMenuCacheKey;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -141,7 +139,6 @@ import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWra
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -150,7 +147,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -192,7 +188,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbCustomMenuService customMenuService;
     private final EdqsService edqsService;
     private final TbCoreConsumerStats stats;
-    private final CacheExecutorService cacheExecutorService;
 
     private MainQueueConsumerManager<TbProtoQueueMsg<ToCoreMsg>, QueueConfig> mainConsumer;
     private QueueConsumerManager<TbProtoQueueMsg<ToUsageStatsServiceMsg>> usageStatsConsumer;
@@ -222,8 +217,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbCustomTranslationService translationService,
                                         TbCustomMenuService customMenuService,
                                         CalculatedFieldCache calculatedFieldCache,
-                                        EdqsService edqsService,
-                                        CacheExecutorService cacheExecutorService) {
+                                        EdqsService edqsService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService,
                 eventPublisher, jwtSettingsService);
         this.stateService = stateService;
@@ -245,7 +239,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.customMenuService = customMenuService;
         this.queueFactory = tbCoreQueueFactory;
         this.edqsService = edqsService;
-        this.cacheExecutorService = cacheExecutorService;
     }
 
     @PostConstruct
@@ -535,23 +528,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     }
 
     private void processIntegrationMsgs(List<TbProtoQueueMsg<ToCoreIntegrationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> consumer) {
-        List<Pair<TbProtoQueueMsg<ToCoreIntegrationMsg>,ListenableFuture<Runnable>>> futures = new ArrayList<>(msgs.size());
-        for (TbProtoQueueMsg<ToCoreIntegrationMsg> msg : msgs) {
-            try {
-                // TODO: ashvayka: improve the retry strategy.
-                ListenableFuture<Runnable> future = cacheExecutorService.executeAsync(() -> tbCoreIntegrationApiService.handle(msg, TbCallback.EMPTY));
-                futures.add(Pair.of(msg, future));
-            } catch (Throwable e) {
-                log.warn("Failed to process integration msg: {}", msg, e);
-            }
-        }
-
-        for (var future : futures) {
-            try {
-                future.getSecond().get(20, TimeUnit.SECONDS).run();
-            } catch (Throwable e) {
-                log.warn("Failed to process integration msg: {}", future.getFirst(), e);
-            }
+        try {
+            tbCoreIntegrationApiService.handle(msgs, TbCallback.EMPTY);
+        } catch (Throwable t) {
+            log.warn("Failed to process integration msgs batch", t); // likely never happens but to be sure
         }
 
         consumer.commit();
