@@ -31,141 +31,145 @@
 package org.thingsboard.server.service.edge;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.action.TbChangeOwnerNode;
 import org.thingsboard.rule.engine.action.TbChangeOwnerNodeConfiguration;
+import org.thingsboard.rule.engine.action.TbChangeOwnerNode;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNode;
-import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.aws.lambda.TbAwsLambdaNode;
-import org.thingsboard.rule.engine.aws.lambda.TbAwsLambdaNodeConfiguration;
+import org.thingsboard.rule.engine.filter.TbCheckRelationNode;
+import org.thingsboard.rule.engine.flow.TbAckNode;
+import org.thingsboard.rule.engine.math.TbMathNode;
+import org.thingsboard.rule.engine.metadata.CalculateDeltaNode;
+import org.thingsboard.rule.engine.metadata.TbGetTelemetryNode;
 import org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode;
-import org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNodeConfiguration;
 import org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode;
-import org.thingsboard.rule.engine.telemetry.TbMsgAttributesNodeConfiguration;
 import org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode;
-import org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNodeConfiguration;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.lang.reflect.Constructor;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.EXCLUDED_NODES_BY_EDGE_VERSION;
 import static org.thingsboard.server.service.edge.EdgeMsgConstructorUtils.IGNORED_PARAMS_BY_EDGE_VERSION;
 
 @Slf4j
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EdgeMsgConstructorUtilsTest {
+
     private static final int CONFIGURATION_VERSION = 5;
 
-    public static final List<EdgeVersion> SUPPORTED_EDGE_VERSIONS_FOR_TESTS = Arrays.asList(
-            EdgeVersion.V_4_0_0, EdgeVersion.V_3_9_0, EdgeVersion.V_3_8_0, EdgeVersion.V_3_7_0
-    );
-
-    private static final Map<NodeConfiguration, String> CONFIG_TO_NODE_NAME = Map.of(
-            new TbMsgTimeseriesNodeConfiguration(), TbMsgTimeseriesNode.class.getName(),
-            new TbMsgAttributesNodeConfiguration(), TbMsgAttributesNode.class.getName(),
-            new TbSaveToCustomCassandraTableNodeConfiguration(), TbSaveToCustomCassandraTableNode.class.getName(),
-            new TbChangeOwnerNodeConfiguration(), TbChangeOwnerNode.class.getName()
-    );
-
-    private static final Map<String, Integer> NODE_TO_CONFIG_PARAMS_COUNT = Map.of(
-            TbMsgTimeseriesNode.class.getName(), 3,
-            TbMsgAttributesNode.class.getName(), 5,
-            TbSaveToCustomCassandraTableNode.class.getName(), 3,
-            TbChangeOwnerNode.class.getName(), 4
-    );
-
-    private static final Map<NodeConfiguration, String> CONFIG_TO_MISS_NODE_FOR_OLD_EDGE = Map.of(
-            new TbSendRestApiCallReplyNodeConfiguration(), TbSendRestApiCallReplyNode.class.getName(),
-            new TbAwsLambdaNodeConfiguration(), TbAwsLambdaNode.class.getName()
-    );
-
-    @Test
-    public void testRuleChainMetadataUpdateMsgForOldEdgeVersions() {
-        // GIVEN
-        RuleChainMetaData metaData = createMetadataWithProblemNodes(CONFIG_TO_NODE_NAME);
-
-        SUPPORTED_EDGE_VERSIONS_FOR_TESTS.forEach(edgeVersion -> {
-            // WHEN
-            List<RuleNode> ruleNodes = extractRuleNodesFromUpdateMsg(metaData, edgeVersion);
-
-            // THEN
-            assertRuleNodeConfig(ruleNodes, edgeVersion);
-        });
+    static Stream<EdgeVersion> provideEdgeVersions() {
+        return Stream.of(
+                EdgeVersion.V_4_0_0,
+                EdgeVersion.V_3_9_0,
+                EdgeVersion.V_3_8_0,
+                EdgeVersion.V_3_7_0
+        );
     }
 
-    @Test
-    public void testRuleChainMetadataWithMissingNodeForOldEdgeVersions() {
-        // GIVEN
-        RuleChainMetaData metaData = createMetadataWithProblemNodes(CONFIG_TO_MISS_NODE_FOR_OLD_EDGE);
+    private static final RuleChainMetaData RULE_CHAIN_META_DATA = new RuleChainMetaData();
+    private static final List<TbNode> TEST_NODES =
+            List.of(
+                    new TbSaveToCustomCassandraTableNode(),
+                    new TbMsgAttributesNode(),
+                    new TbMsgTimeseriesNode(),
+                    new TbChangeOwnerNode(),
+                    new TbSendRestApiCallReplyNode(),
+                    new TbAwsLambdaNode(),
 
-        SUPPORTED_EDGE_VERSIONS_FOR_TESTS.forEach(edgeVersion -> {
-            // WHEN
-            List<RuleNode> ruleNodes = extractRuleNodesFromUpdateMsg(metaData, edgeVersion);
-
-            // THEN
-            int leftNode = EXCLUDED_NODES_BY_EDGE_VERSION.containsKey(edgeVersion) ?
-                    CONFIG_TO_MISS_NODE_FOR_OLD_EDGE.size() - EXCLUDED_NODES_BY_EDGE_VERSION.get(edgeVersion).size() :
-                    CONFIG_TO_MISS_NODE_FOR_OLD_EDGE.size();
-
-            Assert.assertEquals(leftNode, ruleNodes.size());
-        });
-    }
-
-    private RuleChainMetaData createMetadataWithProblemNodes(Map<NodeConfiguration, String> nodeMap) {
-        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
-        List<RuleNode> ruleNodes = new ArrayList<>();
-
-        nodeMap.forEach((key, value) -> {
-            RuleNode ruleNode = new RuleNode();
-
-            ruleNode.setName(value);
-            ruleNode.setType(value);
-            ruleNode.setConfigurationVersion(CONFIGURATION_VERSION);
-            ruleNode.setConfiguration(JacksonUtil.valueToTree(key.defaultConfiguration()));
-
-            ruleNodes.add(ruleNode);
-        });
-
-        ruleChainMetaData.setFirstNodeIndex(0);
-        ruleChainMetaData.setNodes(ruleNodes);
-
-        return ruleChainMetaData;
-    }
-
-    private List<RuleNode> extractRuleNodesFromUpdateMsg(RuleChainMetaData metaData, EdgeVersion edgeVersion) {
-        String ruleChainMetadataUpdateMsg =
-                EdgeMsgConstructorUtils.constructRuleChainMetadataUpdatedMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, metaData, edgeVersion).getEntity();
-
-        RuleChainMetaData ruleChainMetaData = JacksonUtil.fromString(ruleChainMetadataUpdateMsg, RuleChainMetaData.class, true);
-
-        Assert.assertNotNull("RuleChainMetaData is null", ruleChainMetaData);
-
-        return ruleChainMetaData.getNodes();
-    }
-
-    private void assertRuleNodeConfig(List<RuleNode> ruleNodes, EdgeVersion edgeVersion) {
-
-        ruleNodes.forEach(ruleNode -> {
-            int configParamCount = NODE_TO_CONFIG_PARAMS_COUNT.get(ruleNode.getType());
-
-            boolean isOldEdgeVersion = IGNORED_PARAMS_BY_EDGE_VERSION.entrySet().stream()
-                    .anyMatch(entry -> entry.getKey().equals(edgeVersion) &&
-                            entry.getValue().containsKey(ruleNode.getType()));
-            int expectedConfigAmount = isOldEdgeVersion ? configParamCount - 1 : configParamCount;
-
-            Assert.assertEquals(
-                    String.format("For ruleNode '%s', edgeVersion '%s", ruleNode.getName(), edgeVersion),
-                    expectedConfigAmount, ruleNode.getConfiguration().size()
+                    new TbMathNode(),
+                    new CalculateDeltaNode(),
+                    new TbAckNode(),
+                    new TbCheckRelationNode(),
+                    new TbGetTelemetryNode()
             );
+
+    @BeforeAll
+    static void setUp() {
+        List<RuleNode> ruleNodes = TEST_NODES.stream()
+                .map(node -> {
+                    RuleNode ruleNode = new RuleNode();
+                    ruleNode.setName(node.getClass().getName());
+                    ruleNode.setType(node.getClass().getName());
+                    ruleNode.setConfigurationVersion(CONFIGURATION_VERSION);
+                    ruleNode.setConfiguration(JacksonUtil.valueToTree(createDefaultConfiguration(node)));
+                    return ruleNode;
+                })
+                .toList();
+
+        RULE_CHAIN_META_DATA.setFirstNodeIndex(0);
+        RULE_CHAIN_META_DATA.setNodes(ruleNodes);
+    }
+
+    private static NodeConfiguration<?> createDefaultConfiguration(TbNode node) {
+        try {
+            org.thingsboard.rule.engine.api.RuleNode annotation = node.getClass().getAnnotation(org.thingsboard.rule.engine.api.RuleNode.class);
+            Constructor<?> constructor = annotation.configClazz().getConstructor();
+            NodeConfiguration<?> configInstance = (NodeConfiguration<?>) constructor.newInstance();
+
+            return configInstance.defaultConfiguration();
+        } catch (Exception e) {
+            throw new RuntimeException("Exception during creating RuleNodeConfiguration for node - " + node, e);
+        }
+    }
+
+    @ParameterizedTest(name = "Test Sanitize Metadata For Edge: {0}")
+    @MethodSource("provideEdgeVersions")
+    @DisplayName("Test Sanitize Metadata For Legacy Edge Version")
+    public void testSanitizeMetadataForLegacyEdgeVersion(EdgeVersion edgeVersion) {
+        // WHEN
+        List<RuleNode> ruleNodes = sanitizeMetadataForLegacyEdgeVersion(edgeVersion);
+
+        // THEN
+        ruleNodes.forEach(ruleNode -> {
+            checkUpdateNodeConfigurationsForLegacyEdge(ruleNode, edgeVersion);
+            checkRemoveExcludedNodesForLegacyEdge(ruleNode, edgeVersion);
         });
+    }
+
+    private List<RuleNode> sanitizeMetadataForLegacyEdgeVersion(EdgeVersion edgeVersion) {
+        String metadataUpdateMsg = EdgeMsgConstructorUtils.constructRuleChainMetadataUpdatedMsg(
+                UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
+                RULE_CHAIN_META_DATA,
+                edgeVersion
+        ).getEntity();
+
+        RuleChainMetaData updatedMetaData = JacksonUtil.fromString(metadataUpdateMsg, RuleChainMetaData.class, true);
+        Assertions.assertNotNull(updatedMetaData, "RuleChainMetaData should not be null after update.");
+
+        return updatedMetaData.getNodes();
+    }
+
+    private void checkUpdateNodeConfigurationsForLegacyEdge(RuleNode ruleNode, EdgeVersion edgeVersion) {
+        if (IGNORED_PARAMS_BY_EDGE_VERSION.containsKey(edgeVersion) && IGNORED_PARAMS_BY_EDGE_VERSION.get(edgeVersion).containsKey(ruleNode.getType())) {
+            String ignoredParam = IGNORED_PARAMS_BY_EDGE_VERSION.get(edgeVersion).get(ruleNode.getType());
+
+            Assertions.assertFalse(ruleNode.getConfiguration().has(ignoredParam),
+                    String.format("RuleNode '%s' for EdgeVersion '%s' should ignore '%s' config parameter.", ruleNode.getName(), edgeVersion, ignoredParam));
+        }
+    }
+
+    private void checkRemoveExcludedNodesForLegacyEdge(RuleNode ruleNode, EdgeVersion edgeVersion) {
+        boolean isNodeExcluded = Optional.ofNullable(EXCLUDED_NODES_BY_EDGE_VERSION.get(edgeVersion))
+                .map(excludedNodes -> !excludedNodes.contains(ruleNode.getType()))
+                .orElse(true);
+
+        Assertions.assertTrue(isNodeExcluded,
+                String.format("For EdgeVersion '%s', ruleNode '%s' should not be included.", edgeVersion, ruleNode.getType()));
     }
 
 }
