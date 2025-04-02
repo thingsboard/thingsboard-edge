@@ -84,17 +84,17 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback).run();
     }
 
     @Override
     public void processUplinkData(AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
-        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback).run();
     }
 
     @Override
     public void createEntityView(EntityViewDataProto data, IntegrationCallback<Void> callback) {
-        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback).run();
     }
 
     @Override
