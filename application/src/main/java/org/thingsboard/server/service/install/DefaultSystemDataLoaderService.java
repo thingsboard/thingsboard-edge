@@ -633,7 +633,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             mainQueue = new Queue();
             mainQueue.setTenantId(TenantId.SYS_TENANT_ID);
             mainQueue.setName(DataConstants.MAIN_QUEUE_NAME);
-            mainQueue.setTopic(DataConstants.MAIN_QUEUE_TOPIC);
+            // mainQueue.setTopic(DataConstants.MAIN_QUEUE_TOPIC);
+            // edge: use temporary topic for temporary MAIN queue
+            mainQueue.setTopic(DataConstants.TMP_MAIN_QUEUE_TOPIC);
             mainQueue.setPollInterval(25);
             mainQueue.setPartitions(10);
             mainQueue.setConsumerPerPartition(true);
@@ -652,7 +654,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             queueService.saveQueue(mainQueue);
         }
 
-        /* edge: create MAIN queue to start services properly before connected to cloud. replace MAIN queue in QueueCloudProcessor from the cloud
+        /* edge: create MAIN queue to start services properly before connected to cloud. replace MAIN queue in QueueCloudProcessor from the cloud.
         Queue highPriorityQueue = queueService.findQueueByTenantIdAndName(TenantId.SYS_TENANT_ID, DataConstants.HP_QUEUE_NAME);
         if (highPriorityQueue == null) {
             highPriorityQueue = new Queue();

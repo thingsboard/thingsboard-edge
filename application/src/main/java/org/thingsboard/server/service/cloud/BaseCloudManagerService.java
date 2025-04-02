@@ -189,7 +189,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                                     this::onDownlink,
                                     this::scheduleReconnect);
                             uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
-                            reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
                             launchUplinkProcessing();
                         } catch (Exception e) {
                             initInProgress = false;
@@ -246,9 +245,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
         if (uplinkExecutor != null && !uplinkExecutor.isShutdown()) {
             uplinkExecutor.shutdownNow();
+            uplinkExecutor = null;
         }
         if (reconnectExecutor != null) {
             reconnectExecutor.shutdownNow();
+            reconnectExecutor = null;
         }
         log.info("[{}] Destroy was successful", edgeId);
     }

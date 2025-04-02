@@ -58,14 +58,11 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
             Tenant savedTenant = edgeCtx.getTenantService().saveTenant(tenant, null, false);
 
-            requestForAdditionalData(tenantId, tenantId).get();
-
             try {
-                var apiUsageState = apiUsageStateService.findApiUsageStateByEntityId(savedTenant.getId());
-                if (apiUsageState == null) {
-                    apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
-                }
+                apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
             } catch (Exception ignored) {}
+
+            requestForAdditionalData(tenantId, tenantId).get();
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
