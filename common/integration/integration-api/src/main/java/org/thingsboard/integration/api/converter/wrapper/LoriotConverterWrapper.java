@@ -62,7 +62,6 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
                 .put("decoded", "/decoded")
                 .put("encdata", "/encdata")
                 .put("gws", "/gws")
-
                 .build();
     }
 
