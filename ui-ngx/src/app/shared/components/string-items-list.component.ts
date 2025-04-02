@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -46,6 +55,7 @@ import { Observable, of } from 'rxjs';
 import { filter, mergeMap, share, tap } from 'rxjs/operators';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { isDefined } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface StringItemsOption {
   name: string;
@@ -135,6 +145,10 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
   @Input()
   fetchOptionsFn: (searchText?: string) => Observable<Array<StringItemsOption>>;
 
+  @Input()
+  @coerceBoolean()
+  allowUserValue = false;
+
   get itemsControl(): AbstractControl {
     return this.stringItemsForm.get('items');
   }
@@ -147,7 +161,8 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
   private propagateChange: (value: any) => void = () => {};
   private dirty = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder,
+              private destroyRef: DestroyRef) {
     this.stringItemsForm = this.fb.group({
       item: [null],
       items: [null]
@@ -259,12 +274,20 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
   private addItem(value: string) {
     const item = value.trim();
     if (item) {
-      if (this.predefinedValues) {
+      if (this.predefinedValues && !this.allowUserValue) {
         const findItems = this.predefinedValues
           .filter(value => value.name.toLowerCase().includes(item.toLowerCase()));
         if (findItems.length === 1) {
           this.add(findItems[0]);
         }
+      } else if (isDefined(this.fetchOptionsFn) && !this.allowUserValue) {
+        this.fetchOptionsFn(item).pipe(
+          takeUntilDestroyed(this.destroyRef)
+        ).subscribe((findItems) => {
+          if (findItems.length === 1) {
+            this.add(findItems[0]);
+          }
+        })
       } else {
         this.add({value: item, name: item});
       }
