@@ -44,7 +44,7 @@ import { FloatLabelType, MatFormFieldAppearance, SubscriptSizing } from '@angula
 import { coerceArray, coerceBoolean } from '@shared/decorators/coercion';
 import { Observable, of } from 'rxjs';
 import { filter, mergeMap, share, tap } from 'rxjs/operators';
-import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { isDefined } from '@core/utils';
 
 export interface StringItemsOption {
@@ -143,7 +143,7 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
     return this.stringItemsForm.get('item');
   }
 
-  onTouched = () => {};
+  private onTouched = () => {};
   private propagateChange: (value: any) => void = () => {};
   private dirty = false;
 
@@ -219,19 +219,16 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
     this.dirty = true;
   }
 
-  addItem(event: MatChipInputEvent): void {
-    const item = event.value?.trim() ?? '';
-    if (item) {
-      if (this.predefinedValues) {
-        const findItems = this.predefinedValues
-          .filter(value => value.name.toLowerCase().includes(item.toLowerCase()));
-        if (findItems.length === 1) {
-          this.add(findItems[0]);
-        }
-      } else {
-        this.add({value: item, name: item});
-      }
+  addOnBlur(event: FocusEvent) {
+    const target: HTMLElement = event.relatedTarget as HTMLElement;
+    if (target && target.tagName !== 'MAT-OPTION') {
+      this.addItem(this.stringItemInput.nativeElement.value ?? '')
     }
+    this.onTouched();
+  }
+
+  addOnEnd(event: MatChipInputEvent): void {
+    this.addItem(event.value ?? '')
   }
 
   removeItems(item: StringItemsOption) {
@@ -259,9 +256,19 @@ export class StringItemsListComponent implements ControlValueAccessor, OnInit {
     return values ? values.name : undefined;
   }
 
-  selected(event: MatAutocompleteSelectedEvent) {
-    this.stringItemInput.nativeElement.value = '';
-    this.add(event.option.value)
+  private addItem(value: string) {
+    const item = value.trim();
+    if (item) {
+      if (this.predefinedValues) {
+        const findItems = this.predefinedValues
+          .filter(value => value.name.toLowerCase().includes(item.toLowerCase()));
+        if (findItems.length === 1) {
+          this.add(findItems[0]);
+        }
+      } else {
+        this.add({value: item, name: item});
+      }
+    }
   }
 
   private add(item: StringItemsOption) {
