@@ -165,34 +165,43 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private volatile boolean initInProgress = false;
 
     protected void establishRpcConnection() {
-        try {
-            synchronized (this) {
-                if (!isSystemTenantPartitionMine()) {
-                    onDestroy();
-                    return;
-                }
-                if (!initialized && !initInProgress && validateRoutingKeyAndSecret()) {
-                    initInProgress = true;
-                    try {
-                        log.info("Starting Cloud Edge service");
-                        edgeRpcClient.connect(routingKey, routingSecret,
-                                this::onUplinkResponse,
-                                this::onEdgeUpdate,
-                                this::onDownlink,
-                                this::scheduleReconnect);
-                        uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
-                        reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
-                        launchUplinkProcessing();
-                    } catch (Exception e) {
-                        initInProgress = false;
-                        log.error("Failed to establish connection to cloud", e);
-                        reconnectExecutor.schedule(this::establishRpcConnection, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+        if (reconnectFuture != null) {
+            reconnectFuture.cancel(true);
+            reconnectFuture = null;
+        }
+        if (reconnectExecutor == null) {
+            reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
+        }
+        reconnectFuture = reconnectExecutor.schedule(() -> {
+            try {
+                synchronized (this) {
+                    if (!isSystemTenantPartitionMine()) {
+                        onDestroy();
+                        return;
+                    }
+                    if (!initialized && !initInProgress && validateRoutingKeyAndSecret()) {
+                        initInProgress = true;
+                        try {
+                            log.info("Starting Cloud Edge service");
+                            edgeRpcClient.connect(routingKey, routingSecret,
+                                    this::onUplinkResponse,
+                                    this::onEdgeUpdate,
+                                    this::onDownlink,
+                                    this::scheduleReconnect);
+                            uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
+                            reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
+                            launchUplinkProcessing();
+                        } catch (Exception e) {
+                            initInProgress = false;
+                            log.error("Failed to establish connection to cloud", e);
+                            reconnectExecutor.schedule(this::establishRpcConnection, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+                        }
                     }
                 }
+            } catch (Exception e) {
+                log.error("Failed to establish Cloud Edge service", e);
             }
-        } catch (Exception e) {
-            log.error("Failed to establish Cloud Edge service", e);
-        }
+        }, reconnectTimeoutMs, TimeUnit.SECONDS);
     }
 
     protected abstract void launchUplinkProcessing();
@@ -435,29 +444,36 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         if (!isSystemTenantPartitionMine()) {
             return;
         }
-        this.tenantId = TenantId.fromUUID(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
+        tenantId = TenantId.fromUUID(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
-        this.currentEdgeSettings = edgeSettingsService.findEdgeSettings();
+        currentEdgeSettings = edgeSettingsService.findEdgeSettings();
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
-        if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
+
+        if (currentEdgeSettings != null && !newEdgeSettings.getEdgeId().equals(currentEdgeSettings.getEdgeId())) {
             cloudCtx.getTenantProcessor().cleanUp();
-            this.currentEdgeSettings = newEdgeSettings;
             resetQueueOffset();
+        }
+
+        if (currentEdgeSettings == null) {
+            currentEdgeSettings = newEdgeSettings;
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
+            currentEdgeSettings.setName(newEdgeSettings.getName());
+            currentEdgeSettings.setType(newEdgeSettings.getType());
+            currentEdgeSettings.setRoutingKey(newEdgeSettings.getRoutingKey());
         }
 
-        cloudCtx.getTenantProcessor().createTenantIfNotExists(this.tenantId);
+        cloudCtx.getTenantProcessor().createTenantIfNotExists(tenantId);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
         if (edgeCustomerIdUpdated) {
-            cloudCtx.getCustomerProcessor().createCustomerIfNotExists(this.tenantId, edgeConfiguration);
+            cloudCtx.getCustomerProcessor().createCustomerIfNotExists(tenantId, edgeConfiguration);
         }
         // TODO: voba - should sync be executed in some other cases ???
-        log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
-        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
+        log.trace("Sending sync request, fullSyncRequired {}", currentEdgeSettings.isFullSyncRequired());
+        edgeRpcClient.sendSyncRequestMsg(currentEdgeSettings.isFullSyncRequired());
         syncInProgress = true;
 
-        edgeSettingsService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
+        edgeSettingsService.saveEdgeSettings(tenantId, currentEdgeSettings);
 
         saveOrUpdateEdge(tenantId, edgeConfiguration);
 
