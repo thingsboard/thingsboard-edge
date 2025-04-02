@@ -1209,7 +1209,8 @@
             "key-required": "Key is required.",
             "key-pattern": "Key is invalid.",
             "key-max-length": "Key should be less than 256 characters."
-        }
+        },
+        "required-fields": "Missing required fields"
     },
     "converter": {
         "converter": "Data converter",
