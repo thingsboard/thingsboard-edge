@@ -201,7 +201,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             } catch (Exception e) {
                 log.error("Failed to establish Cloud Edge service", e);
             }
-        }, reconnectTimeoutMs, TimeUnit.SECONDS);
+        }, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
     }
 
     protected abstract void launchUplinkProcessing();
