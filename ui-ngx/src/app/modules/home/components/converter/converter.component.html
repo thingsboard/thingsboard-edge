@@ -176,11 +176,13 @@
                     <tb-string-items-list label="{{ 'converter.telemetry' | translate }}"
                                           placeholder="{{ 'action.add' | translate }}"
                                           formControlName="telemetry"
+                                          allowUserValue
                                           [fetchOptionsFn]="fetchLatestKey">
                     </tb-string-items-list>
                     <tb-string-items-list label="{{ 'converter.attributes' | translate }}"
                                           placeholder="{{ 'action.add' | translate }}"
                                           formControlName="attributes"
+                                          allowUserValue
                                           [fetchOptionsFn]="fetchLatestKey">
                     </tb-string-items-list>
                   }
@@ -189,6 +191,7 @@
                                         hint="{{ 'converter.update-only-keys-list-hint' | translate }}"
                                         placeholder="{{ 'action.add' | translate }}"
                                         formControlName="updateOnlyKeys"
+                                        allowUserValue
                                         [fetchOptionsFn]="fetchLatestKey">
                   </tb-string-items-list>
                 </div>
