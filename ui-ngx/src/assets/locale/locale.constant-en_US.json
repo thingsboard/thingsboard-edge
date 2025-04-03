@@ -3072,7 +3072,6 @@
         },
         "column-type-required": "Column type is required.",
         "entity-field": {
-            "additionalInfo": "Additional information",
             "created-time": "Created time",
             "name": "Name",
             "type": "Type",
@@ -3172,6 +3171,7 @@
         "owner-and-groups": "Owner and groups"
     },
     "entity-field": {
+        "additional-info": "Additional info",
         "created-time": "Created time",
         "name": "Name",
         "type": "Type",
