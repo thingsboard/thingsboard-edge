@@ -2043,7 +2043,8 @@ public class ControllerConstants {
             CONVERTER_TEST_UPLINK_INPUT + NEW_LINE +
             " * 'metadata' - integration metadata; \n" +
             " * 'payload' - base64 string representation of the data; \n" +
-            " * 'decoder' - string representation of the decoder configuration." + NEW_LINE +
+            " * 'decoder' - string representation of the decoder configuration; \n" +
+            " * 'converter' - JSON object representing converter." + NEW_LINE +
             "## Response Body Example" + NEW_LINE +
             CONVERTER_TEST_UPLINK_OUTPUT + NEW_LINE +
             " * 'output' - string representation of the output message; \n" +
@@ -2062,6 +2063,21 @@ public class ControllerConstants {
             "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempValue = msg.temp;\\ndata.humValue = msg.humidity;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
             "}" +
             MARKDOWN_CODE_BLOCK_END;
+
+    static final String DEDICATED_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "   },\n" +
+            "   \"payload\":\"ewogICAgImRhdGEiOiAiZGF0YSIKfQ==\",\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            " * 'metadata' - integration metadata; \n" +
+            " * 'payload' - base64 string representation of the input raw message." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            " * 'metadata' - integration metadata enriched with the data from the input message; \n" +
+            " * 'payload' - base64 string representation of the payload from the unwrapped input message; \n" +
+            " * 'contentType' - string representation payload contentType.";
 
     private static final String CONVERTER_TEST_DOWNLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
             "{\n" +

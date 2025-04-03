@@ -106,6 +106,7 @@ import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_DE
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
@@ -408,30 +409,14 @@ public class ConverterController extends AutoCommitController {
             @Parameter(description = "Script language: JS or TBEL")
             @RequestParam(required = false) ScriptLanguage scriptLang,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, description = "A JSON value representing the input to the converter function.")
-            @RequestBody JsonNode inputParams) throws Exception {
+            @RequestBody JsonNode inputParams) throws ThingsboardException {
         String payloadBase64 = inputParams.get("payload").asText();
         byte[] payload = Base64.getDecoder().decode(payloadBase64);
         JsonNode metadata = inputParams.get("metadata");
         String decoder = inputParams.get("decoder").asText();
 
-        Map<String, Object> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {
-        });
+        Map<String, Object> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {});
         UplinkMetaData<Object> uplinkMetaData = new UplinkMetaData<>(ContentType.JSON, metadataMap);
-
-        Converter converter = null;
-
-        if (inputParams.has("converter")) {
-            converter = JacksonUtil.treeToValue(inputParams.get("converter"), Converter.class);
-            if (converter.isDedicated()) {
-                IntegrationType integrationType = converter.getIntegrationType();
-                var wrapper = ConverterWrapperFactory
-                        .getWrapper(integrationType)
-                        .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
-                TbPair<byte[], UplinkMetaData<Object>> wrappedPair = wrapper.wrap(payload, uplinkMetaData);
-                payload = wrappedPair.getFirst();
-                uplinkMetaData = wrappedPair.getSecond();
-            }
-        }
 
         String output = "";
         String errorText = "";
@@ -451,9 +436,9 @@ public class ConverterController extends AutoCommitController {
         result.put("output", output);
         result.put("error", errorText);
 
-        if (StringUtils.isNotEmpty(output) && converter != null && converter.isDedicated()) {
-            Integer converterVersion = converter.getConverterVersion();
-            if (converterVersion != null && converterVersion == 2 && ConverterWrapperFactory.getWrapper(converter.getIntegrationType()).isPresent()) {
+        if (StringUtils.isNotEmpty(output) && inputParams.has("converter")) {
+            Converter converter = JacksonUtil.treeToValue(inputParams.get("converter"), Converter.class);
+            if (converter.isDedicated() && ConverterWrapperFactory.getWrapper(converter.getIntegrationType()).isPresent()) {
                 DedicatedConverterConfig config = JacksonUtil.treeToValue(converter.getConfiguration(), DedicatedConverterConfig.class);
                 JsonElement jsonOutput = JsonParser.parseString(output);
                 Object outputMsg = null;
@@ -583,6 +568,39 @@ public class ConverterController extends AutoCommitController {
         }
         List<Converter> converters = checkNotNull(converterService.findConvertersByIdsAsync(tenantId, converterIds).get());
         return filterConvertersByReadPermission(converters);
+    }
+
+    @ApiOperation(value = "Transform input raw payload to the dedicated converter data (unwrapRawPayload)",
+            notes = "Returns a JSON object representing the result of the unwrapped incoming raw message. " + NEW_LINE +
+                    DEDICATED_CONVERTER_DEFINITION
+    )
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/converter/unwrap/{integrationType}", method = RequestMethod.POST)
+    @ResponseBody
+    public JsonNode unwrapRawPayload(@Parameter(description = INTEGRATION_TYPE_DESCRIPTION)
+                                                           @PathVariable IntegrationType integrationType,
+                                                           @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, description = "A JSON value representing the input message.")
+                                                           @RequestBody JsonNode inputParams) throws Exception {
+        String payloadBase64 = inputParams.get("payload").asText();
+        byte[] payload = Base64.getDecoder().decode(payloadBase64);
+        JsonNode metadata = inputParams.get("metadata");
+
+        Map<String, Object> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {});
+        UplinkMetaData<Object> uplinkMetaData = new UplinkMetaData<>(ContentType.JSON, metadataMap);
+
+        var wrapper = ConverterWrapperFactory
+                .getWrapper(integrationType)
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
+        TbPair<byte[], UplinkMetaData<Object>> wrappedPair = wrapper.wrap(payload, uplinkMetaData);
+        payload = wrappedPair.getFirst();
+        uplinkMetaData = wrappedPair.getSecond();
+
+        ObjectNode result = JacksonUtil.newObjectNode();
+        result.put("payload", Base64.getEncoder().encodeToString(payload));
+        result.put("contentType", uplinkMetaData.getContentType().toString());
+        result.set("metadata", JacksonUtil.valueToTree(uplinkMetaData.getKvMap()));
+
+        return result;
     }
 
     private List<Converter> filterConvertersByReadPermission(List<Converter> converters) {
