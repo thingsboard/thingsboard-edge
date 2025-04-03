@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
@@ -49,7 +50,7 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 public class DeviceOtaPackageEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
-    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg downlinkMsg = null;
         try {
             DeviceGroupOtaPackage deviceGroupOtaPackage = JacksonUtil.convertValue(edgeEvent.getBody(), DeviceGroupOtaPackage.class);
