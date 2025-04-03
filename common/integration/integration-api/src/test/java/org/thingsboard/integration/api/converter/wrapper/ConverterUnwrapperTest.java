@@ -51,11 +51,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ConverterWrapperTest {
+public class ConverterUnwrapperTest {
 
     @Test
     public void loriotConverterWrapperTest() throws Exception {
-        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.LORIOT).get();
+        ConverterUnwrapper wrapper = ConverterUnwrapperFactory.getUnwrapper(IntegrationType.LORIOT).get();
 
         ObjectNode payloadMsg = JacksonUtil.fromString(readPayloadFromFile("LoriotPayload.json"), ObjectNode.class);
 
@@ -102,7 +102,7 @@ public class ConverterWrapperTest {
 
     @Test
     public void chirpStackConverterWrapperTest() throws Exception {
-        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.CHIRPSTACK).get();
+        ConverterUnwrapper wrapper = ConverterUnwrapperFactory.getUnwrapper(IntegrationType.CHIRPSTACK).get();
 
         ObjectNode payloadMsg = JacksonUtil.fromString(readPayloadFromFile("ChirpStackPayload.json"), ObjectNode.class);
 
@@ -156,7 +156,7 @@ public class ConverterWrapperTest {
 
     @Test
     public void thingsStackConverterWrapperTest() throws Exception {
-        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.TTN).get();
+        ConverterUnwrapper wrapper = ConverterUnwrapperFactory.getUnwrapper(IntegrationType.TTN).get();
 
         ObjectNode payloadMsg = JacksonUtil.fromString(readPayloadFromFile("ThingsStackPayload.json"), ObjectNode.class);
 
@@ -214,7 +214,7 @@ public class ConverterWrapperTest {
 
     @Test
     public void thingsParkConverterWrapperTest() throws Exception {
-        ConverterWrapper wrapper = ConverterWrapperFactory.getWrapper(IntegrationType.THINGPARK).get();
+        ConverterUnwrapper wrapper = ConverterUnwrapperFactory.getUnwrapper(IntegrationType.THINGPARK).get();
 
         ObjectNode payloadMsg = JacksonUtil.fromString(readPayloadFromFile("ThingsParkPayload.json"), ObjectNode.class);
 

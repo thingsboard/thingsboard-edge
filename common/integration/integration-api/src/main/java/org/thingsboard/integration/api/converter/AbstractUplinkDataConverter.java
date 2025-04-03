@@ -43,8 +43,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.converter.wrapper.ConverterWrapper;
-import org.thingsboard.integration.api.converter.wrapper.ConverterWrapperFactory;
+import org.thingsboard.integration.api.converter.wrapper.ConverterUnwrapper;
+import org.thingsboard.integration.api.converter.wrapper.ConverterUnwrapperFactory;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -85,7 +85,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     protected final Map<String, Map<String, String>> currentUpdateOnlyTelemetryPerEntity = new ConcurrentHashMap<>();
     protected final Map<String, Map<String, String>> currentUpdateOnlyAttributesPerEntity = new ConcurrentHashMap<>();
 
-    private ConverterWrapper converterWrapper;
+    private ConverterUnwrapper converterUnwrapper;
 
     public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
         super(jsInvokeService, tbelInvokeService, logSettings);
@@ -108,8 +108,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
         if (configuration.isDedicated()) {
             var integrationType = configuration.getIntegrationType();
-            this.converterWrapper = ConverterWrapperFactory
-                    .getWrapper(integrationType)
+            this.converterUnwrapper = ConverterUnwrapperFactory
+                    .getUnwrapper(integrationType)
                     .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
         }
     }
@@ -122,7 +122,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         final UplinkMetaData finalMetadata;
 
         if (configuration.isDedicated()) {
-            TbPair<byte[], UplinkMetaData<Object>> wrappedPair = converterWrapper.wrap(data, metadata);
+            TbPair<byte[], UplinkMetaData<Object>> wrappedPair = converterUnwrapper.wrap(data, metadata);
             finalData = wrappedPair.getFirst();
             finalMetadata = wrappedPair.getSecond();
         } else {

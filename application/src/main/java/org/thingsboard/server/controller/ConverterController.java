@@ -59,7 +59,7 @@ import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
 import org.thingsboard.integration.api.converter.DedicatedUplinkData;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
-import org.thingsboard.integration.api.converter.wrapper.ConverterWrapperFactory;
+import org.thingsboard.integration.api.converter.wrapper.ConverterUnwrapperFactory;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -438,7 +438,7 @@ public class ConverterController extends AutoCommitController {
 
         if (StringUtils.isNotEmpty(output) && inputParams.has("converter")) {
             Converter converter = JacksonUtil.treeToValue(inputParams.get("converter"), Converter.class);
-            if (converter.isDedicated() && ConverterWrapperFactory.getWrapper(converter.getIntegrationType()).isPresent()) {
+            if (converter.isDedicated() && ConverterUnwrapperFactory.getUnwrapper(converter.getIntegrationType()).isPresent()) {
                 DedicatedConverterConfig config = JacksonUtil.treeToValue(converter.getConfiguration(), DedicatedConverterConfig.class);
                 JsonElement jsonOutput = JsonParser.parseString(output);
                 Object outputMsg = null;
@@ -588,8 +588,8 @@ public class ConverterController extends AutoCommitController {
         Map<String, Object> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {});
         UplinkMetaData<Object> uplinkMetaData = new UplinkMetaData<>(ContentType.JSON, metadataMap);
 
-        var wrapper = ConverterWrapperFactory
-                .getWrapper(integrationType)
+        var wrapper = ConverterUnwrapperFactory
+                .getUnwrapper(integrationType)
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
         TbPair<byte[], UplinkMetaData<Object>> wrappedPair = wrapper.wrap(payload, uplinkMetaData);
         payload = wrappedPair.getFirst();
