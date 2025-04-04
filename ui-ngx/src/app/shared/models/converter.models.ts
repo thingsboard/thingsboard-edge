@@ -122,6 +122,23 @@ export interface ConverterConfigV2 extends ConverterConfig {
   telemetry: string[];
 }
 
+export interface ConverterMsg {
+  payload: any;
+  metadata: {[key: string]: string};
+}
+
+export interface ConvertedInputMsgParams {
+  metadata: {[key: string]: string};
+  payload: {[key: string]: string};
+}
+
+export interface ConvertedInputMsgResult {
+  payload: any;
+  metadata: {[key: string]: string};
+  contentType: ContentType;
+  stringContent?: string;
+}
+
 export interface TestUpLinkInputParams {
   metadata: {[key: string]: string};
   payload: string;

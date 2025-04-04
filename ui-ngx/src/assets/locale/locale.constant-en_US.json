@@ -1294,7 +1294,8 @@
         "attributes": "Attributes",
         "integration-type": "Integration type",
         "decoder-output": "Decoder output",
-        "converter-output": "Converter output"
+        "converter-output": "Converter output",
+        "update-raw-payload": "Updated RAW payload"
     },
     "content-type": {
         "json": "Json",
