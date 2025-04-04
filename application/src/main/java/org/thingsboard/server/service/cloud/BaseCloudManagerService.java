@@ -145,7 +145,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     private ScheduledExecutorService shutdownExecutor;
     private ScheduledExecutorService reconnectExecutor;
+    private ScheduledExecutorService connectExecutor;
     private ScheduledFuture<?> reconnectFuture;
+    private ScheduledFuture<?> connectFuture;
 
     private EdgeSettings currentEdgeSettings;
     protected TenantId tenantId;
@@ -165,14 +167,14 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private volatile boolean initInProgress = false;
 
     protected void establishRpcConnection() {
-        if (reconnectFuture != null) {
-            reconnectFuture.cancel(true);
-            reconnectFuture = null;
+        if (connectFuture != null) {
+            connectFuture.cancel(true);
+            connectFuture = null;
         }
-        if (reconnectExecutor == null) {
-            reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
+        if (connectExecutor == null) {
+            connectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-connect"));
         }
-        reconnectFuture = reconnectExecutor.schedule(() -> {
+        connectFuture = connectExecutor.schedule(() -> {
             try {
                 synchronized (this) {
                     if (!isSystemTenantPartitionMine()) {
@@ -189,11 +191,12 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                                     this::onDownlink,
                                     this::scheduleReconnect);
                             uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
+                            reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
                             launchUplinkProcessing();
                         } catch (Exception e) {
                             initInProgress = false;
                             log.error("Failed to establish connection to cloud", e);
-                            reconnectExecutor.schedule(this::establishRpcConnection, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+                            connectExecutor.schedule(this::establishRpcConnection, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
                         }
                     }
                 }
@@ -230,7 +233,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         initialized = false;
 
         if (shutdownExecutor != null) {
-            shutdownExecutor.shutdown();
+            shutdownExecutor.shutdownNow();
         }
 
         updateConnectivityStatus(false);

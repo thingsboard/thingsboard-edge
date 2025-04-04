@@ -107,14 +107,14 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
 
         if (consumer != null) {
             consumer.stop();
-            consumerExecutor.shutdown();
             consumer = null;
+            consumerExecutor.shutdown();
         }
 
         if (tsConsumer != null) {
             tsConsumer.stop();
-            tsConsumerExecutor.shutdown();
             tsConsumer = null;
+            tsConsumerExecutor.shutdown();
         }
     }
 
