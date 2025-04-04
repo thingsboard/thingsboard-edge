@@ -55,10 +55,10 @@ function decodePayload(input) {
 var result = decodePayload(payload);
 // Uncomment this code block to overwrite values set in the main configuration window. Useful if you extract device/asset/customer/group names from the payload;
 // result.type = 'DEVICE'; // Entity type allows you to choose type of created entity. Can be 'DEVICE' or 'ASSET'.
-// result.name: 'Temperature Sensor', // Device or asset name (the value must be unique)
-// result.profile: 'IndustrialSensorProfile', // Device or asset profile name.
-// result.customer: 'MyCustomer', // If customer is not null - created entity will be assigned to customer with such name.
-// result.group: 'SensorsGroup', // If group is not null - created entity will be added to the entity group with such name.
+// result.name = 'Temperature Sensor', // Device or asset name (the value must be unique)
+// result.profile = 'IndustrialSensorProfile', // Device or asset profile name.
+// result.customer = 'MyCustomer', // If customer is not null - created entity will be assigned to customer with such name.
+// result.group = 'SensorsGroup', // If group is not null - created entity will be added to the entity group with such name.
 
 // Return the final result object.
 return result;
