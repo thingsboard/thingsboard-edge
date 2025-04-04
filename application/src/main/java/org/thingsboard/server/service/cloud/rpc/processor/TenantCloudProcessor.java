@@ -84,19 +84,24 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
                 apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
             } catch (Exception ignored) {}
 
-            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
-            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
-            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
-            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
-            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.EDGE);
-            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
-            edgeCtx.getEntityGroupService().createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
+            tryCreateEntityGroupAll(savedTenant, EntityType.CUSTOMER);
+            tryCreateEntityGroupAll(savedTenant, EntityType.ASSET);
+            tryCreateEntityGroupAll(savedTenant, EntityType.DEVICE);
+            tryCreateEntityGroupAll(savedTenant, EntityType.ENTITY_VIEW);
+            tryCreateEntityGroupAll(savedTenant, EntityType.EDGE);
+            tryCreateEntityGroupAll(savedTenant, EntityType.DASHBOARD);
+            tryCreateEntityGroupAll(savedTenant, EntityType.USER);
 
             requestForAdditionalData(tenantId, tenantId).get();
-
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
+    }
+
+    private void tryCreateEntityGroupAll(Tenant tenant, EntityType entityType) {
+        try {
+            edgeCtx.getEntityGroupService().createEntityGroupAll(tenant.getId(), tenant.getId(), entityType);
+        } catch (Exception ignored) {}
     }
 
     public ListenableFuture<Void> processTenantMsgFromCloud(TenantUpdateMsg tenantUpdateMsg) {
