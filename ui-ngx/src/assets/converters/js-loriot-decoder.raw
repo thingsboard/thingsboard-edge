@@ -13,8 +13,8 @@ function decodePayload(input) {
     // Press '?' icon in the top right corner to learn more about built in helper functions and capabilities.
     result.attributes.sn = parseBytesToInt(input, 0, 4);
 
-    // Parse timestamp from metadata.time field (returns current time if invalid).
-    var timestamp = parseDateToTimestampOrNow(metadata.time); // time from the incoming message.
+    // Extract the timestamp from metadata (represented in milliseconds).
+    var timestamp = metadata.ts; // ts from the incoming message.
 
     // Initialize an object to store decoded key/value telemetry data.
     var values = {};
@@ -42,7 +42,7 @@ function decodePayload(input) {
     //         sn: parseBytesToInt(input, 0, 4)
     //     },
     //     telemetry: {
-    //         ts: convertDateToTimestamp(metadata.time),
+    //         ts: metadata.ts,
     //         values: {
     //             battery: parseBytesToInt(input, 4, 1),
     //             temperature: parseBytesToInt(input, 5, 2) / 100.0,
@@ -62,3 +62,19 @@ var result = decodePayload(payload);
 
 // Return the final result object.
 return result;
+
+/**
+ * Parse a slice of bytes from an array into an integer (big-endian).
+ *
+ * @param {number[]} input - The array of bytes.
+ * @param {number} offset - The starting index.
+ * @param {number} length - The number of bytes to convert.
+ * @returns {number} - The resulting integer.
+ */
+function parseBytesToInt(input, offset, length) {
+  var result = 0;
+  for (var i = offset; i < offset + length; i++) {
+    result = (result << 8) | (input[i] & 0xFF);
+  }
+  return result;
+}

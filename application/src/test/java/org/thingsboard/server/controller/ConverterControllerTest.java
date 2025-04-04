@@ -111,7 +111,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     private static final String DEFAULT_LORIOT_UPLINK_DECODER = "converters/tbel-loriot-decoder.raw";
     private static final String LORIOT_UPLINK_DECODER = "converter/loriot_uplink_decoder.raw";
     private static final String DEFAULT_SIGFOX_UPLINK_DECODER = "converters/tbel-sigfox-decoder.raw";
-    private static final String DEFAULT_THINGPARK_UPLINK_DECODER = "converters/tbel-thingspark-decoder.raw";
+    private static final String DEFAULT_THINGPARK_UPLINK_DECODER = "converters/tbel-thingpark-decoder.raw";
     private static final String THINGPARK_UPLINK_DECODER = "converter/thingpark_uplink_decoder.raw";
     private static final String DEFAULT_TPE_UPLINK_DECODER = "converters/tbel-tpe-decoder.raw";
     private static final String TPE_UPLINK_DECODER = "converter/tpe_uplink_decoder.raw";
@@ -700,7 +700,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     @Test
     public void testTTIDefaultDecoder() throws IOException {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tti-name\"," +
-                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+                "\"telemetry\":{\"ts\":1684398325906,\"values\":{\"battery\":95,\"temperature\":36.6,\"saturation\":99}},\"attributes\":{\"sn\":32310067,\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTI, 2);
@@ -710,8 +710,8 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testTTINotDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tti-name\"," +
-                "\"telemetry\":[{\"ts\":1684398325906,\"values\":{\"battery\":94}}],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"IndustrialSensorProfile\",\"customer\":\"MyCustomer\",\"group\":\"SensorsGroup\"," +
+                "\"telemetry\":{\"ts\":1684398325906,\"values\":{\"battery\":95,\"temperature\":36.6}},\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTI, 2);
@@ -722,7 +722,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     @Test
     public void testTTNDefaultDecoder() throws IOException {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tts-name\"," +
-                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+                "\"telemetry\":{\"ts\":1684474415641,\"values\":{\"battery\":95,\"temperature\":36.6,\"saturation\":99}},\"attributes\":{\"sn\":32310067,\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTN, 2);
@@ -732,8 +732,8 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testTTNNotDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"application-tts-name\"," +
-                "\"telemetry\":[{\"ts\":1684474415641,\"values\":{\"battery\":94}}],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-1000000000000001\",\"profile\":\"IndustrialSensorProfile\",\"customer\":\"MyCustomer\",\"group\":\"SensorsGroup\"," +
+                "\"telemetry\":{\"ts\":1684474415641,\"values\":{\"battery\":95,\"temperature\":36.6}},\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTN, 2);
@@ -744,7 +744,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     @Test
     public void testThingParkDefaultDecoder() throws IOException {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
-                "\"telemetry\":[],\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
+                "\"telemetry\":{\"ts\":1732828102138,\"values\":{\"battery\":95,\"temperature\":36.6,\"saturation\":99}},\"attributes\":{\"sn\":32310067,\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device $eui", "", Set.of("eui", "mType", "fCntDn"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.THINGPARK, 2);
@@ -754,8 +754,8 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testThingParkNotDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
-                "\"telemetry\":[{\"ts\":1732828102138,\"values\":{\"battery\":94}}],\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"IndustrialSensorProfile\",\"customer\":\"MyCustomer\",\"group\":\"SensorsGroup\"," +
+                "\"telemetry\":{\"ts\":1732828102138,\"values\":{\"battery\":95,\"temperature\":36.6}},\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device $eui", "", Set.of("eui", "mType", "fCntDn"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.THINGPARK, 2);
@@ -766,7 +766,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     @Test
     public void testTPEDefaultDecoder() throws IOException {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
-                "\"telemetry\":[],\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
+                "\"telemetry\":{\"ts\":1732828102138,\"values\":{\"battery\":95,\"temperature\":36.6,\"saturation\":99}},\"attributes\":{\"sn\":32310067,\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device $eui", "", Set.of("eui", "mType", "fCntDn"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TPE, 2);
@@ -776,8 +776,8 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testTPENotDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
-                "\"telemetry\":[{\"ts\":1732828102138,\"values\":{\"battery\":94}}],\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"IndustrialSensorProfile\",\"customer\":\"MyCustomer\",\"group\":\"SensorsGroup\"," +
+                "\"telemetry\":{\"ts\":1732828102138,\"values\":{\"battery\":95,\"temperature\":36.6}},\"attributes\":{\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device $eui", "", Set.of("eui", "mType", "fCntDn"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TPE, 2);
@@ -788,7 +788,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     @Test
     public void testChirpStackDefaultDecoder() throws IOException {
         String expectedDecodedMessage = "{\"entityType\":\"ASSET\",\"name\":\"Asset 1000000000000001\",\"profile\":\"Chirpstack default device profile\"," +
-                "\"telemetry\":[],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+                "\"telemetry\":{\"ts\":1684741625404,\"values\":{\"battery\":95,\"temperature\":36.6,\"saturation\":99}},\"attributes\":{\"sn\":32310067,\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.ASSET, "Asset $eui", "$deviceProfileName", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.CHIRPSTACK, 2);
@@ -798,8 +798,8 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testChirpStackNotDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"entityType\":\"ASSET\",\"name\":\"Asset 1000000000000001\",\"profile\":\"Chirpstack default device profile\"," +
-                "\"telemetry\":[{\"ts\":1684741625404,\"values\":{\"battery\":93}}],\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+        String expectedDecodedMessage = "{\"entityType\":\"ASSET\",\"name\":\"Asset 1000000000000001\",\"profile\":\"IndustrialSensorProfile\",\"customer\":\"MyCustomer\",\"group\":\"SensorsGroup\"," +
+                "\"telemetry\":{\"ts\":1684741625404,\"values\":{\"battery\":95,\"temperature\":36.6}},\"attributes\":{\"devAddr\":\"20000001\",\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.ASSET, "Asset $eui", "$deviceProfileName", Set.of("eui", "fPort", "devAddr"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.CHIRPSTACK, 2);
@@ -810,7 +810,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     @Test
     public void testLoriotDefaultDecoder() throws IOException {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\"," +
-                "\"profile\":\"Device type\",\"telemetry\":[],\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+                "\"profile\":\"Device type\",\"telemetry\":{\"ts\":1684478801936,\"values\":{\"battery\":95,\"temperature\":36.6,\"saturation\":99}},\"attributes\":{\"sn\":32310067,\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device name $eui", "Device type", Set.of("eui", "fPort"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.LORIOT, 2);
@@ -820,8 +820,8 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testLoriotNotDefaultDecoder() throws IOException {
-        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\"," +
-                "\"profile\":\"Device type\",\"telemetry\":[{\"ts\":1684478801936,\"values\":{\"battery\":94}}],\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}";
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\",\"profile\":\"IndustrialSensorProfile\",\"customer\":\"MyCustomer\",\"group\":\"SensorsGroup\"," +
+                "\"telemetry\":{\"ts\":1684478801936,\"values\":{\"battery\":95,\"temperature\":36.6}},\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device name $eui", "Device type", Set.of("eui", "fPort"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.LORIOT, 2);
@@ -831,8 +831,8 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     @Test
     public void testLoriotDecoderThatReturnArray() throws IOException {
-        String expectedDecodedMessage = "[{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\"," +
-                "\"profile\":\"Device type\",\"telemetry\":[{\"ts\":1684478801936,\"values\":{\"battery\":94}}],\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}]";
+        String expectedDecodedMessage = "[{\"entityType\":\"DEVICE\",\"name\":\"Device name 1000000000000001\",\"profile\":\"IndustrialSensorProfile\",\"customer\":\"MyCustomer\",\"group\":\"SensorsGroup\"," +
+                "\"telemetry\":{\"ts\":1684478801936,\"values\":{\"battery\":95,\"temperature\":36.6}},\"attributes\":{\"fPort\":85,\"eui\":\"1000000000000001\"}}]";
 
         DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "Device name $eui", "Device type", Set.of("eui", "fPort"));
         Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.LORIOT, 2);

@@ -2152,7 +2152,7 @@ public class ControllerConstants {
     "    \"session_key_id\": \"AYfg8rhha5n+FWx0ZaAprA==\",\n" +
     "    \"f_port\": 85,\n" +
     "    \"f_cnt\": 5017,\n" +
-    "    \"frm_payload\": \"AXVeAwABBAAB\",\n" +
+    "    \"frm_payload\": \"Ae0DM18OTGM=\",\n" +
     "    \"rx_metadata\": [{\n" +
     "        \"gateway_ids\": {\n" +
     "            \"gateway_id\": \"eui-6A7E111A10000000\",\n" +
@@ -2230,7 +2230,7 @@ public class ControllerConstants {
     "    \"session_key_id\": \"AYfqmb0pc/1uRZv9xUydgQ==\",\n" +
     "    \"f_port\": 85,\n" +
     "    \"f_cnt\": 10335,\n" +
-    "    \"frm_payload\": \"AXVeAwABBAAB\",\n" +
+    "    \"frm_payload\": \"Ae0DM18OTGM=\",\n" +
     "    \"rx_metadata\": [{\n" +
     "        \"gateway_ids\": {\n" +
     "            \"gateway_id\": \"eui-6a7e111a10000000\",\n" +
@@ -2285,7 +2285,7 @@ public class ControllerConstants {
     "    \"ack\": false,\n" +
     "    \"bat\": 94,\n" +
     "    \"offline\": false,\n" +
-    "    \"data\": \"01755e030001040001\"\n" +
+    "    \"data\": \"01ed03335f0e4c63\"\n" +
     "}\n";
 
     static final String DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE = "{\n" +
@@ -2308,7 +2308,7 @@ public class ControllerConstants {
     "       \"fCnt\": 4,\n" +
     "       \"fPort\": 85,\n" +
     "       \"confirmed\": false,\n" +
-    "       \"data\": \"AXVdAwABBAAA\",\n" +
+    "       \"data\": \"Ae0DM18OTGM=\",\n" +
     "       \"rxInfo\": [{\n" +
     "           \"gatewayId\": \"6a7e111a10000000\",\n" +
     "           \"uplinkId\": 24022,\n" +
@@ -2442,7 +2442,7 @@ public class ControllerConstants {
             "        \"ADRbit\": 1,\n" +
             "        \"MType\": 2,\n" +
             "        \"FCntDn\": 2,\n" +
-            "        \"payload_hex\": \"01755e030001040001\",\n" +
+            "        \"payload_hex\": \"01ed03335f0e4c63\",\n" +
             "        \"mic_hex\": \"e7214986\",\n" +
             "        \"Lrcid\": \"00000211\",\n" +
             "        \"LrrRSSI\": -114,\n" +
@@ -2516,7 +2516,7 @@ public class ControllerConstants {
             "        \"ADRbit\": 1,\n" +
             "        \"MType\": 2,\n" +
             "        \"FCntDn\": 2,\n" +
-            "        \"payload_hex\": \"01755e030001040001\",\n" +
+            "        \"payload_hex\": \"01ed03335f0e4c63\",\n" +
             "        \"mic_hex\": \"e7214986\",\n" +
             "        \"Lrcid\": \"00000211\",\n" +
             "        \"LrrRSSI\": -114,\n" +
