@@ -96,6 +96,7 @@ import {
 import { WidgetService } from '@core/http/widget.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
 
 @Component({
   selector: 'tb-scada-symbol',
@@ -241,31 +242,35 @@ export class ScadaSymbolComponent extends PageComponent
       }
       const metadata: ScadaSymbolMetadata = this.scadaSymbolFormGroup.get('metadata').value;
       const scadaSymbolContent = this.prepareScadaSymbolContent(metadata);
-      const file = createFileFromContent(scadaSymbolContent, this.symbolData.imageResource.fileName,
-        this.symbolData.imageResource.descriptor.mediaType);
-      const type = imageResourceType(this.symbolData.imageResource);
-      let imageInfoObservable =
-        this.imageService.updateImage(type, this.symbolData.imageResource.resourceKey, file);
-      if (metadata.title !== this.symbolData.imageResource.title) {
-        imageInfoObservable = imageInfoObservable.pipe(
-          switchMap(imageInfo => {
-            imageInfo.title = metadata.title;
-            return this.imageService.updateImageInfo(imageInfo);
-          })
-        );
-      }
-      imageInfoObservable.pipe(
-        switchMap(imageInfo => this.imageService.getImageString(
+      if (scadaSymbolContent.includes('parsererror')) {
+        this.store.dispatch(new ActionNotificationShow({ message: scadaSymbolContent, type: 'error' }));
+      } else {
+        const file = createFileFromContent(scadaSymbolContent, this.symbolData.imageResource.fileName,
+          this.symbolData.imageResource.descriptor.mediaType);
+        const type = imageResourceType(this.symbolData.imageResource);
+        let imageInfoObservable =
+          this.imageService.updateImage(type, this.symbolData.imageResource.resourceKey, file);
+        if (metadata.title !== this.symbolData.imageResource.title) {
+          imageInfoObservable = imageInfoObservable.pipe(
+            switchMap(imageInfo => {
+              imageInfo.title = metadata.title;
+              return this.imageService.updateImageInfo(imageInfo);
+            })
+          );
+        }
+        imageInfoObservable.pipe(
+          switchMap(imageInfo => this.imageService.getImageString(
             `${IMAGES_URL_PREFIX}/${type}/${encodeURIComponent(imageInfo.resourceKey)}`).pipe(
-              map(content => ({
-                imageResource: imageInfo,
-                scadaSymbolContent: content
-              }))
+            map(content => ({
+              imageResource: imageInfo,
+              scadaSymbolContent: content
+            }))
           ))
-      ).subscribe(data => {
-        this.init(data);
-        this.updateBreadcrumbs.emit();
-      });
+        ).subscribe(data => {
+          this.init(data);
+          this.updateBreadcrumbs.emit();
+        });
+      }
     }
   }
 
