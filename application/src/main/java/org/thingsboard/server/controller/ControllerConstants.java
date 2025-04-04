@@ -2073,7 +2073,7 @@ public class ControllerConstants {
             "}" +
             MARKDOWN_CODE_BLOCK_END +
             " * 'metadata' - integration metadata; \n" +
-            " * 'payload' - base64 string representation of the input raw message." + NEW_LINE +
+            " * 'payload' - JSON object representing the input raw message." + NEW_LINE +
             "## Response Body Example" + NEW_LINE +
             " * 'metadata' - integration metadata enriched with the data from the input message; \n" +
             " * 'payload' - base64 string representation of the payload from the unwrapped input message; \n" +

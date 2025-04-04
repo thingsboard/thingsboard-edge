@@ -581,8 +581,8 @@ public class ConverterController extends AutoCommitController {
                                                            @PathVariable IntegrationType integrationType,
                                                            @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, description = "A JSON value representing the input message.")
                                                            @RequestBody JsonNode inputParams) throws Exception {
-        String payloadBase64 = inputParams.get("payload").asText();
-        byte[] payload = Base64.getDecoder().decode(payloadBase64);
+        JsonNode payloadJson = inputParams.get("payload");
+        byte[] payload = JacksonUtil.writeValueAsBytes(payloadJson);
         JsonNode metadata = inputParams.get("metadata");
 
         Map<String, Object> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {});

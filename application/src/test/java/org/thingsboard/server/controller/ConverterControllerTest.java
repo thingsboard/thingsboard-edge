@@ -886,14 +886,16 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
         ObjectNode inputParams = JacksonUtil.newObjectNode();
         inputParams.set("decoder", new TextNode(new String(bytes)));
-        inputParams.set("payload", new TextNode(base64Payload));
         inputParams.set("metadata", JacksonUtil.newObjectNode());
 
         if (converter != null && converter.isDedicated()) {
+            inputParams.set("payload", JacksonUtil.toJsonNode(payloadExample));
             inputParams.set("converter", JacksonUtil.valueToTree(converter));
             JsonNode unwrapped = doPost("/api/converter/unwrap/" + converter.getIntegrationType(), inputParams, JsonNode.class);
             inputParams.set("payload", unwrapped.get("payload"));
             inputParams.set("metadata",unwrapped.get("metadata"));
+        } else {
+            inputParams.set("payload", new TextNode(base64Payload));
         }
 
         JsonNode response = doPost("/api/converter/testUpLink?scriptLang=TBEL", inputParams, JsonNode.class);
