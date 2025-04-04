@@ -30,16 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div style="width: 600px; max-width: 90vw;" class="tb-form-panel no-border no-padding" [formGroup]="payloadForm">
+<div style="width: 650px; max-width: 90vw;" class="tb-form-panel no-border no-padding" [formGroup]="payloadForm">
   <div class="tb-form-panel-title">{{ 'converter.update-raw-payload' | translate }}</div>
   <div class="flex flex-col gap-2 overflow-y-auto">
     <tb-json-object-edit
       jsonRequired
+      [editorStyle]="{'min-height': '300px'}"
       label="{{ 'converter.payload' | translate }}"
       formControlName="payload">
     </tb-json-object-edit>
     <tb-json-object-edit
       jsonRequired
+      [editorStyle]="{'min-height': '100px'}"
       label="{{ 'converter.metadata' | translate }}"
       formControlName="metadata">
     </tb-json-object-edit>
