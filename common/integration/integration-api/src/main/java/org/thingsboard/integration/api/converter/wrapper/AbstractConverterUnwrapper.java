@@ -41,7 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class AbstractConverterWrapper implements ConverterWrapper {
+public abstract class AbstractConverterUnwrapper implements ConverterUnwrapper {
 
     protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 

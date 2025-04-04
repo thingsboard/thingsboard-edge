@@ -2043,7 +2043,8 @@ public class ControllerConstants {
             CONVERTER_TEST_UPLINK_INPUT + NEW_LINE +
             " * 'metadata' - integration metadata; \n" +
             " * 'payload' - base64 string representation of the data; \n" +
-            " * 'decoder' - string representation of the decoder configuration." + NEW_LINE +
+            " * 'decoder' - string representation of the decoder configuration; \n" +
+            " * 'converter' - JSON object representing converter." + NEW_LINE +
             "## Response Body Example" + NEW_LINE +
             CONVERTER_TEST_UPLINK_OUTPUT + NEW_LINE +
             " * 'output' - string representation of the output message; \n" +
@@ -2062,6 +2063,21 @@ public class ControllerConstants {
             "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempValue = msg.temp;\\ndata.humValue = msg.humidity;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
             "}" +
             MARKDOWN_CODE_BLOCK_END;
+
+    static final String DEDICATED_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "   },\n" +
+            "   \"payload\":\"ewogICAgImRhdGEiOiAiZGF0YSIKfQ==\",\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            " * 'metadata' - integration metadata; \n" +
+            " * 'payload' - JSON object representing the input raw message." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            " * 'metadata' - integration metadata enriched with the data from the input message; \n" +
+            " * 'payload' - base64 string representation of the payload from the unwrapped input message; \n" +
+            " * 'contentType' - string representation payload contentType.";
 
     private static final String CONVERTER_TEST_DOWNLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
             "{\n" +
@@ -2416,31 +2432,153 @@ public class ControllerConstants {
             "  }\n" +
             "}\n";
 
-    private static final String DEFAULT_DEDICATED_PAYLOAD = "Ae0DM18OTGM=";
+    static final String DEFAULT_THINGSPARK_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "    \"DevEUI_uplink\": {\n" +
+            "        \"Time\": \"2024-11-28T21:08:22.138+00:00\",\n" +
+            "        \"DevEUI\": \"1000000000000001\",\n" +
+            "        \"FPort\": 1,\n" +
+            "        \"FCntUp\": 26,\n" +
+            "        \"LostUplinksAS\": 0,\n" +
+            "        \"ADRbit\": 1,\n" +
+            "        \"MType\": 2,\n" +
+            "        \"FCntDn\": 2,\n" +
+            "        \"payload_hex\": \"01755e030001040001\",\n" +
+            "        \"mic_hex\": \"e7214986\",\n" +
+            "        \"Lrcid\": \"00000211\",\n" +
+            "        \"LrrRSSI\": -114,\n" +
+            "        \"LrrSNR\": 4.75,\n" +
+            "        \"LrrESP\": -115.2547,\n" +
+            "        \"SpFact\": 9,\n" +
+            "        \"SubBand\": \"G0\",\n" +
+            "        \"Channel\": \"LC1\",\n" +
+            "        \"Lrrid\": \"100019D4\",\n" +
+            "        \"Late\": 0,\n" +
+            "        \"LrrLAT\": 32.516357,\n" +
+            "        \"LrrLON\": -106.824348,\n" +
+            "        \"Lrrs\": {\n" +
+            "            \"Lrr\": [{\n" +
+            "                \"Lrrid\": \"100019D4\",\n" +
+            "                \"Chain\": 0,\n" +
+            "                \"LrrRSSI\": -114,\n" +
+            "                \"LrrSNR\": 4.75,\n" +
+            "                \"LrrESP\": -115.2547\n" +
+            "            }]\n" +
+            "        },\n" +
+            "        \"DevLrrCnt\": 1,\n" +
+            "        \"CustomerID\": \"100045194\",\n" +
+            "        \"CustomerData\": {\n" +
+            "            \"loc\": {\n" +
+            "                \"lat\": \"32.592782\",\n" +
+            "                \"lon\": \"-106.927742\"\n" +
+            "            },\n" +
+            "            \"alr\": {\n" +
+            "                \"pro\": \"DL/TBRG\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            },\n" +
+            "            \"tags\": [\"EnvironSens\", \"RainGauge\", \"CDRRC\"],\n" +
+            "            \"doms\": [],\n" +
+            "            \"name\": \"RainGauge 5483_Test\"\n" +
+            "        },\n" +
+            "        \"BaseStationData\": {\n" +
+            "            \"doms\": [],\n" +
+            "            \"name\": \"iStation US #6_CDRRC_Summerford\"\n" +
+            "        },\n" +
+            "        \"ModelCfg\": \"0\",\n" +
+            "        \"DriverCfg\": {\n" +
+            "            \"mod\": {\n" +
+            "                \"pId\": \"dl\",\n" +
+            "                \"mId\": \"dl-tbrg\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            },\n" +
+            "            \"app\": {\n" +
+            "                \"pId\": \"dl\",\n" +
+            "                \"mId\": \"dl-tbrg\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            }\n" +
+            "        },\n" +
+            "        \"InstantPER\": 0,\n" +
+            "        \"MeanPER\": 0.037037,\n" +
+            "        \"DevAddr\": \"00FDA112\",\n" +
+            "        \"TxPower\": 18,\n" +
+            "        \"NbTrans\": 2,\n" +
+            "        \"Frequency\": 902.5,\n" +
+            "        \"DynamicClass\": \"A\"\n" +
+            "    }\n" +
+            "}";
 
-    static final String DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
-
-    static final String DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
-
-    static final String DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
-
-    static final String DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
-
-    static final String DEDICATED_THINGSPARK_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
-
-    static final String DEDICATED_TPE_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
-
-    static final String DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA = "{\"rssi\":-21,\"seqno\":3040,\"fPort\":85,\"data\":\"01755e030001040001\",\"toa\":206,\"ack\":false,\"battery\":94,\"dr\":\"SF9 BW125 4/5\",\"frequency\":867500000,\"offline\":false,\"snr\":10,\"eui\":\"1000000000000001\",\"cmd\":\"rx\",\"fСnt\":2,\"ts\":1684478801936}\n";
-
-    static final String DEDICATED_TTI_UPLINK_CONVERTER_METADATA = "{\"devAddr\":\"20000001\",\"rssi\":-24,\"fPort\":85,\"data\":\"AXVeAwABBAAB\",\"rxMetadata\":[{\"gateway_ids\":{\"gateway_id\":\"eui-6A7E111A10000000\",\"eui\":\"6A7E111A10000000\"},\"time\":\"2023-05-18T08:25:25.885310Z\",\"timestamp\":818273765,\"rssi\":-24,\"channel_rssi\":-24,\"snr\":12,\"frequency_offset\":671,\"uplink_token\":\"CiIKIAoUZXVpLTZBN0UxMTFBMTAwMDAwMDASCCThJP/+9k6eEOW7l4YDGgwI9cGXowYQ5KPhrwMgiI2rp+jpOA=\",\"channel_index\":2,\"received_at\":\"2023-05-18T08:25:25.869324983Z\"},{\"gateway_ids\":{\"gateway_id\":\"packetbroker\"},\"packet_broker\":{\"message_id\":\"01H0PZDG4MF9AYSMNY44MAVTDH\",\"forwarder_net_id\":\"000013\",\"forwarder_tenant_id\":\"ttn\",\"forwarder_cluster_id\":\"eu1.cloud.thethings.network\",\"forwarder_gateway_eui\":\"6A7E111A10000000\",\"forwarder_gateway_id\":\"eui-6a7e111a10000000\",\"home_network_net_id\":\"000013\",\"home_network_tenant_id\":\"tenant\",\"home_network_cluster_id\":\"eu1.cloud.thethings.industries\"},\"time\":\"2023-05-18T08:25:25.885310Z\",\"rssi\":-24,\"channel_rssi\":-24,\"snr\":12,\"frequency_offset\":\"671\",\"uplink_token\":\"eyJnIjoiWlhsS2FHSkhZMmxQYVVwQ1RWUkpORkl3VGs1VE1XTnBURU5LYkdKdFRXbFBhVXBDVFZSSk5GSXdUazVKYVhkcFlWaFphVTlwU201a01uaGhWVlJvZDFSWFVuRmlSM1JtVFcxT2RVbHBkMmxrUjBadVNXcHZhV05ZY0RKT1IyeExaREpSZVZwR1pIUmpNRXBLVlVoR2RFNVZkR3BWVTBvNUxua3paVVJTWVRaM1lXOU1kbTQwVm5sdmIyWmlPWGN1ZUhCZmVrcElaa3hIWlZadGRVUlFVeTVuYlRaVlZXRXdkakpHV0VKMGJUUjZaMjVXUkVoeGVHRjRaMlJKTlVkS1VsbERhemc1VDNCbk5rVk1iM1JDUkVZM1VWbHdZbEJDTkdOblNqWjBlbkphYUV4MFRVMHhZMVZFTTFac01XdExURUo0YURaMFExTnhhMVJsWWw4eE5FdHlVVXcyZUhsRWFFbEhlakJITXpoTE0xaFdlRzR5VUVjMk4wNUViME5WTkhoTmRrazFZVk5oWkUwd2FXVnFjR294VGtoMFduZHlZMDFxVlVGNmRsbERUazlNY2s5eFdVeFpWMk5XTG1WVFFYVkpNVkptT1U5NWRqUTNhSEoxTUZoalYxRT0iLCJhIjp7ImZuaWQiOiIwMDAwMTMiLCJmdGlkIjoidHRuIiwiZmNpZCI6ImV1MS5jbG91ZC50aGV0aGluZ3MubmV0d29yayJ9fQ==\",\"received_at\":\"2023-05-18T08:25:25.906038642Z\"}],\"bandwidth\":125000,\"netId\":\"000013\",\"clusterId\":\"eu1\",\"receivedAt\":\"2023-05-18T08:25:26.112483370Z\",\"fCnt\":5017,\"deviceId\":\"eui-1000000000000001\",\"frequency\":\"868500000\",\"consumedAirtime\":\"0.097536s\",\"spreadingFactor\":7,\"joinEui\":\"2000000000000001\",\"snr\":12.0,\"correlationIds\":[\"as:up:01H0PZDGB1NW6NAPD815NGHPF6\",\"gs:conn:01H0FJRSXSYT7VKNYXJ89F95XT\",\"gs:up:host:01H0FJRSY3MZMGPPFBQ4FZV4T8\",\"gs:uplink:01H0PZDG4HHGFRTXRTXD4PFTH7\",\"ns:uplink:01H0PZDG4JZ3BM0K6J89EQK1J7\",\"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0PZDG4J02F85RYFPCNSNXCR\",\"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0PZDGB081PMP806BJHNHX1A\"],\"eui\":\"1000000000000001\",\"tenantId\":\"tenant\",\"uplinkMessageReceivedAt\":\"2023-05-18T08:25:25.906399073Z\",\"time\":\"2023-05-18T08:25:25.885310Z\",\"applicationId\":\"application-tti-name\",\"sessionKeyId\":\"AYfg8rhha5n+FWx0ZaAprA==\",\"timestamp\":818273765}\n";
-
-    static final String DEDICATED_TTN_UPLINK_CONVERTER_METADATA = "{\"devAddr\":\"20000001\",\"rssi\":-35,\"fPort\":85,\"data\":\"AXVeAwABBAAB\",\"rxMetadata\":[{\"gateway_ids\":{\"gateway_id\":\"eui-6a7e111a10000000\",\"eui\":\"6A7E111A10000000\"},\"time\":\"2023-05-19T05:33:35.608982Z\",\"timestamp\":3893546133,\"rssi\":-35,\"channel_rssi\":-35,\"snr\":13.2,\"frequency_offset\":69,\"uplink_token\":\"CiIKIAoUZXVpLTZhN2UxMTFhMTAwMDAwMDASCCThJP/+9k6eEJWZy8AOGgwIr5ScowYQvNbUsQIgiMy8y6jwpwE=\",\"channel_index\":3,\"received_at\":\"2023-05-19T05:33:35.607383681Z\"}],\"bandwidth\":125000,\"netId\":\"000013\",\"clusterId\":\"eu1\",\"receivedAt\":\"2023-05-19T05:33:35.848446463Z\",\"fCnt\":10335,\"deviceId\":\"eui-1000000000000001\",\"frequency\":\"867100000\",\"consumedAirtime\":\"0.056576s\",\"spreadingFactor\":7,\"joinEui\":\"2000000000000001\",\"snr\":13.2,\"correlationIds\":[\"as:up:01H0S7ZJQ9MQPMVY49FT3SE07M\",\"gs:conn:01H03BQZ9342X3Y86DJ2P704E5\",\"gs:up:host:01H03BQZ99EGAM52KK1300GFKN\",\"gs:uplink:01H0S7ZJGS6D9TJSKJN8XNTMAV\",\"ns:uplink:01H0S7ZJGS9KKD4HTTPKFEMWCV\",\"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0S7ZJGSF3M38ZRZVTM38DEC\",\"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0S7ZJQ8R2EH5AA269AKM8DX\"],\"eui\":\"1000000000000001\",\"tenantId\":\"ttn\",\"uplinkMessageReceivedAt\":\"2023-05-19T05:33:35.641841782Z\",\"time\":\"2023-05-19T05:33:35.608982Z\",\"applicationId\":\"application-tts-name\",\"sessionKeyId\":\"AYfqmb0pc/1uRZv9xUydgQ==\",\"timestamp\":3893546133}\n";
-
-    static final String DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA = "{\"devAddr\":\"20000001\",\"fPort\":85,\"data\":\"AXVdAwABBAAA\",\"deviceProfileId\":\"605d08d4-65f5-4d2c-8a5a-3d2457662f79\",\"fCnt\":4,\"deviceName\":\"Device name\",\"confirmed\":false,\"dr\":5,\"frequency\":868500000,\"rxInfo\":[{\"gatewayId\":\"6a7e111a10000000\",\"uplinkId\":24022,\"time\":\"2023-05-22T07:47:05.404859+00:00\",\"rssi\":-35,\"snr\":11.5,\"channel\":2,\"rfChain\":1,\"location\":{},\"context\":\"EFwMtA==\",\"metadata\":{\"region_common_name\":\"EU868\",\"region_config_id\":\"eu868\"},\"crcStatus\":\"CRC_OK\"}],\"tenantName\":\"ChirpStack\",\"applicationName\":\"Chirpstack application\",\"deviceProfileName\":\"Chirpstack default device profile\",\"rssi\":-35,\"bandwidth\":125000,\"deduplicationId\":\"57433366-50a6-4dc2-8145-2df1bbc70d9e\",\"adr\":true,\"tags\":{},\"codeRate\":\"CR_4_5\",\"spreadingFactor\":7,\"snr\":11.5,\"tenantId\":\"52f14cd4-c6f1-4fbd-8f87-4025e1d49242\",\"eui\":\"1000000000000001\",\"time\":\"2023-05-22T07:47:05.404859+00:00\",\"applicationId\":\"ca739e26-7b67-4f14-b69e-d568c22a5a75\"}\n";
-
-    static final String DEDICATED_THINGSPARK_UPLINK_CONVERTER_METADATA = "{\"lrrId\":\"100019D4\",\"devAddr\":\"00FDA112\",\"esp\":-115.2547,\"fPort\":1,\"data\":\"01755e030001040001\",\"latitude\":32.516357,\"channel\":\"LC1\",\"baseStationData\":{\"doms\":[],\"name\":\"iStation US #6_CDRRC_Summerford\"},\"customerData\":{\"loc\":{\"lat\":32.592782,\"lon\":-106.927742},\"alr\":{\"pro\":\"DL/TBRG\",\"ver\":1},\"tags\":[\"EnvironSens\",\"RainGauge\",\"CDRRC\"],\"doms\":[],\"name\":\"RainGauge 5483_Test\"},\"fCnt\":26,\"devLrrCnt\":1,\"frequency\":902.5,\"txPower\":18,\"driverCfg\":{\"mod\":{\"pId\":\"dl\",\"mId\":\"dl-tbrg\",\"ver\":1},\"app\":{\"pId\":\"dl\",\"mId\":\"dl-tbrg\",\"ver\":1}},\"late\":0,\"lostUplinksAs\":0,\"customerId\":100045194,\"lrcid\":\"00000211\",\"longitude\":-106.824348,\"micHex\":\"e7214986\",\"rssi\":-114,\"modelCfg\":0,\"dynamicClass\":\"A\",\"bandwidth\":\"G0\",\"nbTrans\":2,\"lrr\":[{\"Lrrid\":\"100019D4\",\"Chain\":0,\"LrrRSSI\":-114,\"LrrSNR\":4.75,\"LrrESP\":-115.2547}],\"adr\":1,\"mType\":2,\"meanPer\":0.037037,\"spreadingFactor\":9,\"snr\":4.75,\"instantPer\":0,\"eui\":\"1000000000000001\",\"time\":\"2024-11-28T21:08:22.138+00:00\",\"fCntDn\":2}\n";
-
-    static final String DEDICATED_TPE_UPLINK_CONVERTER_METADATA = "{\"lrrId\":\"100019D4\",\"devAddr\":\"00FDA112\",\"esp\":-115.2547,\"fPort\":1,\"data\":\"01755e030001040001\",\"latitude\":32.516357,\"channel\":\"LC1\",\"baseStationData\":{\"doms\":[],\"name\":\"iStation US #6_CDRRC_Summerford\"},\"customerData\":{\"loc\":{\"lat\":32.592782,\"lon\":-106.927742},\"alr\":{\"pro\":\"DL/TBRG\",\"ver\":1},\"tags\":[\"EnvironSens\",\"RainGauge\",\"CDRRC\"],\"doms\":[],\"name\":\"RainGauge 5483_Test\"},\"fCnt\":26,\"devLrrCnt\":1,\"frequency\":902.5,\"txPower\":18,\"driverCfg\":{\"mod\":{\"pId\":\"dl\",\"mId\":\"dl-tbrg\",\"ver\":1},\"app\":{\"pId\":\"dl\",\"mId\":\"dl-tbrg\",\"ver\":1}},\"late\":0,\"lostUplinksAs\":0,\"customerId\":100045194,\"lrcid\":\"00000211\",\"longitude\":-106.824348,\"micHex\":\"e7214986\",\"rssi\":-114,\"modelCfg\":0,\"dynamicClass\":\"A\",\"bandwidth\":\"G0\",\"nbTrans\":2,\"lrr\":[{\"Lrrid\":\"100019D4\",\"Chain\":0,\"LrrRSSI\":-114,\"LrrSNR\":4.75,\"LrrESP\":-115.2547}],\"adr\":1,\"mType\":2,\"meanPer\":0.037037,\"spreadingFactor\":9,\"snr\":4.75,\"instantPer\":0,\"eui\":\"1000000000000001\",\"time\":\"2024-11-28T21:08:22.138+00:00\",\"fCntDn\":2}\n";
+    static final String DEFAULT_TPE_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "    \"DevEUI_uplink\": {\n" +
+            "        \"Time\": \"2024-11-28T21:08:22.138+00:00\",\n" +
+            "        \"DevEUI\": \"1000000000000001\",\n" +
+            "        \"FPort\": 1,\n" +
+            "        \"FCntUp\": 26,\n" +
+            "        \"LostUplinksAS\": 0,\n" +
+            "        \"ADRbit\": 1,\n" +
+            "        \"MType\": 2,\n" +
+            "        \"FCntDn\": 2,\n" +
+            "        \"payload_hex\": \"01755e030001040001\",\n" +
+            "        \"mic_hex\": \"e7214986\",\n" +
+            "        \"Lrcid\": \"00000211\",\n" +
+            "        \"LrrRSSI\": -114,\n" +
+            "        \"LrrSNR\": 4.75,\n" +
+            "        \"LrrESP\": -115.2547,\n" +
+            "        \"SpFact\": 9,\n" +
+            "        \"SubBand\": \"G0\",\n" +
+            "        \"Channel\": \"LC1\",\n" +
+            "        \"Lrrid\": \"100019D4\",\n" +
+            "        \"Late\": 0,\n" +
+            "        \"LrrLAT\": 32.516357,\n" +
+            "        \"LrrLON\": -106.824348,\n" +
+            "        \"Lrrs\": {\n" +
+            "            \"Lrr\": [{\n" +
+            "                \"Lrrid\": \"100019D4\",\n" +
+            "                \"Chain\": 0,\n" +
+            "                \"LrrRSSI\": -114,\n" +
+            "                \"LrrSNR\": 4.75,\n" +
+            "                \"LrrESP\": -115.2547\n" +
+            "            }]\n" +
+            "        },\n" +
+            "        \"DevLrrCnt\": 1,\n" +
+            "        \"CustomerID\": \"100045194\",\n" +
+            "        \"CustomerData\": {\n" +
+            "            \"loc\": {\n" +
+            "                \"lat\": \"32.592782\",\n" +
+            "                \"lon\": \"-106.927742\"\n" +
+            "            },\n" +
+            "            \"alr\": {\n" +
+            "                \"pro\": \"DL/TBRG\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            },\n" +
+            "            \"tags\": [\"EnvironSens\", \"RainGauge\", \"CDRRC\"],\n" +
+            "            \"doms\": [],\n" +
+            "            \"name\": \"RainGauge 5483_Test\"\n" +
+            "        },\n" +
+            "        \"BaseStationData\": {\n" +
+            "            \"doms\": [],\n" +
+            "            \"name\": \"iStation US #6_CDRRC_Summerford\"\n" +
+            "        },\n" +
+            "        \"ModelCfg\": \"0\",\n" +
+            "        \"DriverCfg\": {\n" +
+            "            \"mod\": {\n" +
+            "                \"pId\": \"dl\",\n" +
+            "                \"mId\": \"dl-tbrg\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            },\n" +
+            "            \"app\": {\n" +
+            "                \"pId\": \"dl\",\n" +
+            "                \"mId\": \"dl-tbrg\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            }\n" +
+            "        },\n" +
+            "        \"InstantPER\": 0,\n" +
+            "        \"MeanPER\": 0.037037,\n" +
+            "        \"DevAddr\": \"00FDA112\",\n" +
+            "        \"TxPower\": 18,\n" +
+            "        \"NbTrans\": 2,\n" +
+            "        \"Frequency\": 902.5,\n" +
+            "        \"DynamicClass\": \"A\"\n" +
+            "    }\n" +
+            "}";
 
     // Default converter uplinks messages
 

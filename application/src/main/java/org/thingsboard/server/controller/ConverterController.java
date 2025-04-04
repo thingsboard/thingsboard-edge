@@ -33,8 +33,8 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,11 +56,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
-import org.thingsboard.integration.api.converter.DedicatedConverterUtil;
 import org.thingsboard.integration.api.converter.DedicatedUplinkData;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
-import org.thingsboard.integration.api.converter.wrapper.ConverterWrapperFactory;
+import org.thingsboard.integration.api.converter.wrapper.ConverterUnwrapperFactory;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -83,6 +82,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.config.annotations.ApiOperation;
@@ -106,18 +106,7 @@ import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_DE
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TYPE_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_THINGSPARK_UPLINK_CONVERTER_METADATA;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_THINGSPARK_UPLINK_CONVERTER_PAYLOAD;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TPE_UPLINK_CONVERTER_METADATA;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TPE_UPLINK_CONVERTER_PAYLOAD;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTI_UPLINK_CONVERTER_METADATA;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTN_UPLINK_CONVERTER_METADATA;
-import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD;
+import static org.thingsboard.server.controller.ControllerConstants.DEDICATED_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
@@ -125,6 +114,8 @@ import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_KNP_
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_THINGSPARK_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TPE_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
 import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_GATEWAY_INFO;
@@ -157,39 +148,23 @@ public class ConverterController extends AutoCommitController {
     private final Optional<TbelInvokeService> tbelInvokeService;
     private final TbConverterService tbConverterService;
 
-    private final static Map<IntegrationType, String> converterDefaultMessages = Map.of(
-            IntegrationType.LORIOT, DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.TTI, DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.TTN, DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.CHIRPSTACK, DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.AZURE_IOT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.AZURE_EVENT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.AZURE_SERVICE_BUS, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.AWS_IOT, DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE,
-            IntegrationType.KPN, DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE
-    );
+    private static final Map<IntegrationType, String> converterDefaultMessages = ImmutableMap.<IntegrationType, String>builder()
+            .put(IntegrationType.LORIOT, DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.TTI, DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.TTN, DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.CHIRPSTACK, DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.AZURE_IOT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.AZURE_EVENT_HUB, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.AZURE_SERVICE_BUS, DEFAULT_AZURE_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.AWS_IOT, DEFAULT_AWS_IOT_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.KPN, DEFAULT_KNP_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.THINGPARK, DEFAULT_THINGSPARK_UPLINK_CONVERTER_MESSAGE)
+            .put(IntegrationType.TPE, DEFAULT_TPE_UPLINK_CONVERTER_MESSAGE)
+            .build();
 
     private final static Map<IntegrationType, String> converterDefaultMetadatas = Map.of(
             IntegrationType.SIGFOX, DEFAULT_SIGFOX_UPLINK_CONVERTER_METADATA
-    );
-
-    private final static Map<IntegrationType, String> dedicatedConverterDefaultMessages = Map.of(
-            IntegrationType.LORIOT, DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD,
-            IntegrationType.TTI, DEDICATED_TTI_UPLINK_CONVERTER_PAYLOAD,
-            IntegrationType.TTN, DEDICATED_TTN_UPLINK_CONVERTER_PAYLOAD,
-            IntegrationType.CHIRPSTACK, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_PAYLOAD,
-            IntegrationType.THINGPARK, DEDICATED_THINGSPARK_UPLINK_CONVERTER_PAYLOAD,
-            IntegrationType.TPE, DEDICATED_TPE_UPLINK_CONVERTER_PAYLOAD
-    );
-
-    private final static Map<IntegrationType, String> dedicatedConverterDefaultMetadatas = Map.of(
-            IntegrationType.LORIOT, DEDICATED_LORIOT_UPLINK_CONVERTER_METADATA,
-            IntegrationType.TTI, DEDICATED_TTI_UPLINK_CONVERTER_METADATA,
-            IntegrationType.TTN, DEDICATED_TTN_UPLINK_CONVERTER_METADATA,
-            IntegrationType.CHIRPSTACK, DEDICATED_CHIRPSTACK_UPLINK_CONVERTER_METADATA,
-            IntegrationType.THINGPARK, DEDICATED_THINGSPARK_UPLINK_CONVERTER_METADATA,
-            IntegrationType.TPE, DEDICATED_TPE_UPLINK_CONVERTER_METADATA
     );
 
     public static final String CONVERTER_ID = "converterId";
@@ -338,17 +313,11 @@ public class ConverterController extends AutoCommitController {
 
         String inContent;
         ContentType contentType;
-        if (converterVersion != null && converterVersion == 2) {
-            inContent = dedicatedConverterDefaultMessages.get(targetIntegrationType);
-            metadata.setAll(JacksonUtil.fromString(dedicatedConverterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
-            contentType = ContentType.BINARY;
-        } else {
-            inContent = converterDefaultMessages.get(targetIntegrationType);
-            if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
-                metadata.setAll(JacksonUtil.fromString(converterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
-            }
-            contentType = ContentType.JSON;
+        inContent = converterDefaultMessages.get(targetIntegrationType);
+        if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {
+            metadata.setAll(JacksonUtil.fromString(converterDefaultMetadatas.get(targetIntegrationType), ObjectNode.class));
         }
+        contentType = ContentType.JSON;
 
         debugIn.put("inMetadata", JacksonUtil.toString(metadata));
         debugIn.put("inContent", inContent);
@@ -469,8 +438,7 @@ public class ConverterController extends AutoCommitController {
 
         if (StringUtils.isNotEmpty(output) && inputParams.has("converter")) {
             Converter converter = JacksonUtil.treeToValue(inputParams.get("converter"), Converter.class);
-            Integer converterVersion = converter.getConverterVersion();
-            if (converterVersion != null && converterVersion == 2 && ConverterWrapperFactory.getWrapper(converter.getIntegrationType()).isPresent()) {
+            if (converter.isDedicated() && ConverterUnwrapperFactory.getUnwrapper(converter.getIntegrationType()).isPresent()) {
                 DedicatedConverterConfig config = JacksonUtil.treeToValue(converter.getConfiguration(), DedicatedConverterConfig.class);
                 JsonElement jsonOutput = JsonParser.parseString(output);
                 Object outputMsg = null;
@@ -479,7 +447,7 @@ public class ConverterController extends AutoCommitController {
                     for (JsonElement uplinkJson : jsonOutput.getAsJsonArray()) {
                         resultList.add(parseUplinkData(config, uplinkJson.getAsJsonObject(), uplinkMetaData));
                     }
-                   outputMsg = resultList;
+                    outputMsg = resultList;
                 } else if (jsonOutput.isJsonObject()) {
                     outputMsg = parseUplinkData(config, jsonOutput.getAsJsonObject(), uplinkMetaData);
                 }
@@ -600,6 +568,39 @@ public class ConverterController extends AutoCommitController {
         }
         List<Converter> converters = checkNotNull(converterService.findConvertersByIdsAsync(tenantId, converterIds).get());
         return filterConvertersByReadPermission(converters);
+    }
+
+    @ApiOperation(value = "Transform input raw payload to the dedicated converter data (unwrapRawPayload)",
+            notes = "Returns a JSON object representing the result of the unwrapped incoming raw message. " + NEW_LINE +
+                    DEDICATED_CONVERTER_DEFINITION
+    )
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/converter/unwrap/{integrationType}", method = RequestMethod.POST)
+    @ResponseBody
+    public JsonNode unwrapRawPayload(@Parameter(description = INTEGRATION_TYPE_DESCRIPTION)
+                                                           @PathVariable IntegrationType integrationType,
+                                                           @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, description = "A JSON value representing the input message.")
+                                                           @RequestBody JsonNode inputParams) throws Exception {
+        JsonNode payloadJson = inputParams.get("payload");
+        byte[] payload = JacksonUtil.writeValueAsBytes(payloadJson);
+        JsonNode metadata = inputParams.get("metadata");
+
+        Map<String, Object> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {});
+        UplinkMetaData<Object> uplinkMetaData = new UplinkMetaData<>(ContentType.JSON, metadataMap);
+
+        var wrapper = ConverterUnwrapperFactory
+                .getUnwrapper(integrationType)
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
+        TbPair<byte[], UplinkMetaData<Object>> wrappedPair = wrapper.wrap(payload, uplinkMetaData);
+        payload = wrappedPair.getFirst();
+        uplinkMetaData = wrappedPair.getSecond();
+
+        ObjectNode result = JacksonUtil.newObjectNode();
+        result.put("payload", Base64.getEncoder().encodeToString(payload));
+        result.put("contentType", uplinkMetaData.getContentType().toString());
+        result.set("metadata", JacksonUtil.valueToTree(uplinkMetaData.getKvMap()));
+
+        return result;
     }
 
     private List<Converter> filterConvertersByReadPermission(List<Converter> converters) {

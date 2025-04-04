@@ -38,7 +38,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
-public class ThingParkConverterWrapper extends AbstractConverterWrapper {
+public class ThingParkConverterUnwrapper extends AbstractConverterUnwrapper {
 
     private static final ImmutableMap<String, String> KEYS_MAPPING;
 

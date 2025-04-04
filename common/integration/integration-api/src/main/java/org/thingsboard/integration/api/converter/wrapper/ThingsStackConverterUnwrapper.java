@@ -38,7 +38,7 @@ import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Base64;
 
-public class ThingsStackConverterWrapper extends AbstractConverterWrapper {
+public class ThingsStackConverterUnwrapper extends AbstractConverterUnwrapper {
 
     private static final ImmutableMap<String, String> KEYS_MAPPING;
 

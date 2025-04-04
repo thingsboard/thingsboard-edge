@@ -30,15 +30,29 @@
  */
 package org.thingsboard.integration.api.converter.wrapper;
 
-import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.server.common.data.util.TbPair;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-import java.util.Set;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
-public interface ConverterWrapper {
+public final class ConverterUnwrapperFactory {
 
-    TbPair<byte[], UplinkMetaData<Object>> wrap(byte[] payload, UplinkMetaData metadata) throws Exception;
+    private static final ConcurrentHashMap<IntegrationType, Optional<ConverterUnwrapper>> unwrappers = new ConcurrentHashMap<>();
 
-    Set<String> getKeys();
+    private ConverterUnwrapperFactory() {}
 
+    public static Optional<ConverterUnwrapper> getUnwrapper(IntegrationType integrationType) {
+        if (integrationType == null) {
+            return Optional.empty();
+        }
+
+        return unwrappers.computeIfAbsent(integrationType, key ->
+                Optional.ofNullable(switch (integrationType) {
+                    case LORIOT -> new LoriotConverterUnwrapper();
+                    case CHIRPSTACK -> new ChirpStackConverterUnwrapper();
+                    case THINGPARK, TPE -> new ThingParkConverterUnwrapper();
+                    case TTN, TTI -> new ThingsStackConverterUnwrapper();
+                    default -> null;
+                }));
+    }
 }
