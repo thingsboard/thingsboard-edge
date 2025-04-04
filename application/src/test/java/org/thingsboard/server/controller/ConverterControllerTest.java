@@ -121,7 +121,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     private static final String DEFAULT_LORIOT_UPLINK_DECODER = "converters/tbel-loriot-decoder.raw";
     private static final String LORIOT_UPLINK_DECODER = "converter/loriot_uplink_decoder.raw";
     private static final String DEFAULT_SIGFOX_UPLINK_DECODER = "converters/tbel-sigfox-decoder.raw";
-    private static final String DEFAULT_THINGPARK_UPLINK_DECODER = "converters/tbel-thingspark-decoder.raw";
+    private static final String DEFAULT_THINGPARK_UPLINK_DECODER = "converters/tbel-thingpark-decoder.raw";
     private static final String THINGPARK_UPLINK_DECODER = "converter/thingpark_uplink_decoder.raw";
     private static final String DEFAULT_TPE_UPLINK_DECODER = "converters/tbel-tpe-decoder.raw";
     private static final String TPE_UPLINK_DECODER = "converter/tpe_uplink_decoder.raw";

@@ -1309,6 +1309,21 @@ const tbelEditorCompletions:TbEditorCompletions = {
       description: 'True if the point is inside the circle, false otherwise.',
       type: 'boolean'
     }
+  },
+  parseDateToTimestampOrNow: {
+    meta: 'function',
+    description: 'Parses an ISO-8601 date string to a Unix timestamp (ms). Returns current time on failure.',
+    args: [
+      {
+        name: 'str',
+        description: 'The date string to be parsed (expected in ISO-8601 format).',
+        type: 'string'
+      }
+    ],
+    return: {
+      description: 'A Unix timestamp in milliseconds representing.',
+      type: 'number'
+    }
   }
 }
 

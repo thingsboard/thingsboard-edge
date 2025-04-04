@@ -2416,7 +2416,7 @@ public class ControllerConstants {
             "  }\n" +
             "}\n";
 
-    private static final String DEFAULT_DEDICATED_PAYLOAD = "AXVeAwABBAAB";
+    private static final String DEFAULT_DEDICATED_PAYLOAD = "Ae0DM18OTGM=";
 
     static final String DEDICATED_LORIOT_UPLINK_CONVERTER_PAYLOAD = DEFAULT_DEDICATED_PAYLOAD;
 

@@ -13,8 +13,8 @@ function decodePayload(input) {
     // Press '?' icon in the top right corner to learn more about built in helper functions and capabilities.
     result.attributes.sn = parseBytesToInt(input, 0, 4);
 
-    // Parse timestamp from the selected date string (returns current time if invalid).
-    var timestamp = parseDateToTimestampOrNow(extractDateFromMetadata()); // Extract the date string from metadata using extractDateFromMetadata() function.
+    // Parse timestamp from metadata.time field (returns current time if invalid).
+    var timestamp = parseDateToTimestampOrNow(metadata.time); // time from the incoming message.
 
     // Initialize an object to store decoded key/value telemetry data.
     var values = {};
@@ -42,7 +42,7 @@ function decodePayload(input) {
     //         sn: parseBytesToInt(input, 0, 4)
     //     },
     //     telemetry: {
-    //         ts: convertDateToTimestamp(extractDateFromMetadata()),
+    //         ts: convertDateToTimestamp(metadata.time),
     //         values: {
     //             battery: parseBytesToInt(input, 4, 1),
     //             temperature: parseBytesToInt(input, 5, 2) / 100.0,
@@ -64,17 +64,30 @@ var result = decodePayload(payload);
 return result;
 
 /**
- * Extracts the date from metadata.
- * Returns metadata.uplinkMessageReceivedAt unless the message is simulated or missing,
- * in which case it returns data.receivedAt.
+ * Parse a slice of bytes from an array into an integer (big-endian).
  *
- * @returns {string} - The extracted date string.
+ * @param {number[]} input - The array of bytes.
+ * @param {number} offset - The starting index.
+ * @param {number} length - The number of bytes to convert.
+ * @returns {number} - The resulting integer.
  */
-function extractDateFromMetadata() {
-  var date = metadata.uplinkMessageReceivedAt; // uplinkMessageReceivedAt from the incoming message.
-  if ((metadata.simulated != null && metadata.simulated) || date == null) {
-      date = metadata.receivedAt; // receivedAt from the incoming message.
+function parseBytesToInt(input, offset, length) {
+  var result = 0;
+  for (var i = offset; i < offset + length; i++) {
+    result = (result << 8) | (input[i] & 0xFF);
   }
+  return result;
+}
 
-  return date;
+/**
+ * Parse a date string to a Unix timestamp in milliseconds.
+ * Returns the current time if parsing fails.
+ *
+ * @param {string} dateString - The date string to convert.
+ * @returns {number} - The Unix timestamp in milliseconds.
+ */
+function parseDateToTimestampOrNow(dateString) {
+  var date = new Date(dateString);
+  var timestamp = date.getTime();
+  return isNaN(timestamp) ? Date.now() : timestamp;
 }

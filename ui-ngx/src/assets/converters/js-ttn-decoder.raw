@@ -78,3 +78,32 @@ function extractDateFromMetadata() {
 
   return date;
 }
+
+/**
+ * Parse a slice of bytes from an array into an integer (big-endian).
+ *
+ * @param {number[]} input - The array of bytes.
+ * @param {number} offset - The starting index.
+ * @param {number} length - The number of bytes to convert.
+ * @returns {number} - The resulting integer.
+ */
+function parseBytesToInt(input, offset, length) {
+  var result = 0;
+  for (var i = offset; i < offset + length; i++) {
+    result = (result << 8) | (input[i] & 0xFF);
+  }
+  return result;
+}
+
+/**
+ * Parse a date string to a Unix timestamp in milliseconds.
+ * Returns the current time if parsing fails.
+ *
+ * @param {string} dateString - The date string to convert.
+ * @returns {number} - The Unix timestamp in milliseconds.
+ */
+function parseDateToTimestampOrNow(dateString) {
+  var date = new Date(dateString);
+  var timestamp = date.getTime();
+  return isNaN(timestamp) ? Date.now() : timestamp;
+}
