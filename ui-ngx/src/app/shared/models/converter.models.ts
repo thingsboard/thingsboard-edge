@@ -59,6 +59,15 @@ export const IntegrationTbelDefaultConvertersUrl = new Map<IntegrationType, stri
   [IntegrationType.TPE, '/assets/converters/tbel-tpe-decoder.raw']
 ]);
 
+export const IntegrationJSDefaultConvertersUrl = new Map<IntegrationType, string>([
+  [IntegrationType.CHIRPSTACK, '/assets/converters/js-chirpstack-decoder.raw'],
+  [IntegrationType.LORIOT, '/assets/converters/js-loriot-decoder.raw'],
+  [IntegrationType.TTI,'/assets/converters/js-tti-decoder.raw'],
+  [IntegrationType.TTN, '/assets/converters/js-ttn-decoder.raw'],
+  [IntegrationType.THINGPARK, '/assets/converters/js-thingpark-decoder.raw'],
+  [IntegrationType.TPE, '/assets/converters/js-tpe-decoder.raw']
+]);
+
 export const jsDefaultConvertersUrl = new Map<ConverterType, string>([
   [ConverterType.UPLINK, '/assets/converters/js-decoder.raw' ],
   [ConverterType.DOWNLINK, '/assets/converters/js-encoder.raw'],
@@ -270,7 +279,9 @@ export const getTargetField =
 export const getTargetTemplateUrl =
   (converterType: ConverterType, scriptLang: ScriptLanguage,
    integrationType: IntegrationType, converterVersion: ConverterVersion = 1): string => {
-    if (scriptLang === ScriptLanguage.JS) {
+    if (scriptLang === ScriptLanguage.JS && converterType === ConverterType.UPLINK && IntegrationJSDefaultConvertersUrl.has(integrationType)) {
+      return IntegrationJSDefaultConvertersUrl.get(integrationType)
+    } else if (scriptLang === ScriptLanguage.JS) {
       return getJsTemplateUrl(converterType, converterVersion);
     } else if (converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(integrationType)) {
       return IntegrationTbelDefaultConvertersUrl.get(integrationType);
