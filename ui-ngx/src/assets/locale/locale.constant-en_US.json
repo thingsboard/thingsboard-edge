@@ -1213,7 +1213,6 @@
     },
     "converter": {
         "converter": "Data converter",
-        "converter-short-name": "Converter",
         "converters": "Data converters",
         "select-converter": "Select data converter",
         "no-converters-matching": "No data converters matching '{{entity}}' were found.",
@@ -1295,6 +1294,7 @@
         "integration-type": "Integration type",
         "decoder-output": "Decoder output",
         "converter-output": "Converter output",
+        "converter-type": "Converter type",
         "update-raw-payload": "Updated RAW payload"
     },
     "content-type": {

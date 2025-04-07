@@ -209,7 +209,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const form = this.fb.group({
       name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-      debugSettings: [entity?.debugSettings ?? { failuresEnabled: false, allEnabled: false, allEnabledUntil: 0 }],
+      debugSettings: [entity?.debugSettings ?? { failuresEnabled: true, allEnabled: false, allEnabledUntil: 0 }],
       integrationType: [entity?.integrationType ?? null],
       converterVersion: [entity?.converterVersion ?? 1],
       configuration: this.fb.group({
