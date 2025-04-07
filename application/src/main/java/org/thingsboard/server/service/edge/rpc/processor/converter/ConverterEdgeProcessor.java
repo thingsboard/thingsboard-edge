@@ -50,7 +50,7 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 public class ConverterEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
-    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         if (msgType == UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE) {

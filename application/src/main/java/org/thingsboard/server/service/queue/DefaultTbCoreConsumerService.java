@@ -535,14 +535,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     }
 
     private void processIntegrationMsgs(List<TbProtoQueueMsg<ToCoreIntegrationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> consumer) {
-        for (TbProtoQueueMsg<ToCoreIntegrationMsg> msg : msgs) {
-            try {
-                // TODO: ashvayka: improve the retry strategy.
-                tbCoreIntegrationApiService.handle(msg, TbCallback.EMPTY);
-            } catch (Throwable e) {
-                log.warn("Failed to process integration msg: {}", msg, e);
-            }
+        try {
+            tbCoreIntegrationApiService.handle(msgs, TbCallback.EMPTY);
+        } catch (Throwable t) {
+            log.warn("Failed to process integration msgs batch", t); // likely never happens but to be sure
         }
+
         consumer.commit();
     }
 

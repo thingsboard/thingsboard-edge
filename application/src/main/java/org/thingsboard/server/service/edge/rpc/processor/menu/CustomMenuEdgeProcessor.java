@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -66,7 +67,7 @@ public class CustomMenuEdgeProcessor extends BaseEdgeProcessor {
     private CustomMenuService customMenuService;
 
     @Override
-    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         CustomMenu customMenu = JacksonUtil.convertValue(edgeEvent.getBody(), CustomMenu.class);
         if (customMenu == null) {
             return null;

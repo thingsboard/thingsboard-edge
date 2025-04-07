@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -65,7 +66,7 @@ import java.util.UUID;
 public class CustomTranslationEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
-    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg result = null;
         try {
             CustomTranslation customTranslation = JacksonUtil.treeToValue(edgeEvent.getBody(), CustomTranslation.class);
