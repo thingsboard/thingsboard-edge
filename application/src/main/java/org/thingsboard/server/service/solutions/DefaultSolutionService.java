@@ -898,6 +898,7 @@ public class DefaultSolutionService implements SolutionService {
             dashboard.setTitle(entityDef.getName());
             dashboard.setConfiguration(dashboardTemplate.getConfiguration());
             dashboard.setCustomerId(customerId);
+            dashboard.setImage(dashboardTemplate.getImage());
             dashboard.setResources(dashboardTemplate.getResources());
             dashboard = dashboardService.saveDashboard(dashboard);
 

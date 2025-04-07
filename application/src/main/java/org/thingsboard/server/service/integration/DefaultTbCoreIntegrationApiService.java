@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.StringUtils;
@@ -56,6 +57,7 @@ import org.thingsboard.server.common.stats.MessagesStats;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.common.util.ProtoUtils;
+import org.thingsboard.server.dao.cache.CacheExecutorService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -77,9 +79,12 @@ import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -94,6 +99,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     private final ConverterService converterService;
     private final TbTenantProfileCache tenantProfileCache;
     private final PlatformIntegrationService platformIntegrationService;
+    private final CacheExecutorService cacheExecutorService;
 
     @Value("${queue.integration_api.max_pending_requests:10000}")
     private int maxPendingRequests;
@@ -170,28 +176,52 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     }
 
     @Override
-    public void handle(TbProtoQueueMsg<ToCoreIntegrationMsg> envelope, TbCallback callback) {
+    public void handle(Collection<TbProtoQueueMsg<ToCoreIntegrationMsg>> msgs, TbCallback callback) {
+        List<Pair<TbProtoQueueMsg<ToCoreIntegrationMsg>, ListenableFuture<Runnable>>> futures = new ArrayList<>(msgs.size());
+        for (TbProtoQueueMsg<ToCoreIntegrationMsg> msg : msgs) {
+            try {
+                // TODO: ashvayka: improve the retry strategy.
+                ListenableFuture<Runnable> future = cacheExecutorService.executeAsync(() -> this.handle(msg, TbCallback.EMPTY));
+                futures.add(Pair.of(msg, future));
+            } catch (Throwable e) {
+                log.warn("Failed to process integration msg: {}", msg, e);
+            }
+        }
+        for (var future : futures) {
+            try {
+                future.getSecond().get(20, TimeUnit.SECONDS).run();
+            } catch (Throwable e) {
+                log.warn("Failed to process integration msg: {}", future.getFirst(), e);
+            }
+        }
+
+        callback.onSuccess();
+    }
+
+    Runnable handle(TbProtoQueueMsg<ToCoreIntegrationMsg> envelope, TbCallback callback) {
         var msg = envelope.getValue();
         if (msg.hasIntegration()) {
             IntegrationInfo info = ProtoUtils.fromProto(msg.getIntegration());
             if (msg.hasDeviceUplinkProto()) {
-                platformIntegrationService.processUplinkData(info, msg.getDeviceUplinkProto(), new IntegrationApiCallback(callback));
+                return platformIntegrationService.processUplinkData(info, msg.getDeviceUplinkProto(), new IntegrationApiCallback(callback));
             } else if (msg.hasAssetUplinkProto()) {
-                platformIntegrationService.processUplinkData(info, msg.getAssetUplinkProto(), new IntegrationApiCallback(callback));
+                return platformIntegrationService.processUplinkData(info, msg.getAssetUplinkProto(), new IntegrationApiCallback(callback));
             } else if (msg.hasEntityViewDataProto()) {
-                platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
+                return platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
             } else if (!msg.getCustomTbMsg().isEmpty()) {
-                platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(null, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+                return () -> platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(null, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
             } else {
                 callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
             }
         } else if (msg.hasEventProto()) {
-            platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
+            return () -> platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
         } else if (msg.hasTsDataProto()) {
-            platformIntegrationService.processUplinkData(msg.getTsDataProto(), new IntegrationApiCallback(callback));
+            return () -> platformIntegrationService.processUplinkData(msg.getTsDataProto(), new IntegrationApiCallback(callback));
         } else {
             callback.onFailure(new IllegalArgumentException("Unsupported integration msg!"));
         }
+        return () -> {
+        };
     }
 
     private ListenableFuture<IntegrationApiResponseMsg> handleConverterRequest(ConverterRequestProto request) {
