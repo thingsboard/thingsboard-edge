@@ -80,7 +80,7 @@ public class CalculatedField extends BaseData<CalculatedFieldId> implements HasN
     @Schema(description = "Version of calculated field configuration.", example = "0")
     private int configurationVersion;
     @Schema(implementation = SimpleCalculatedFieldConfiguration.class)
-    private transient CalculatedFieldConfiguration configuration;
+    private CalculatedFieldConfiguration configuration;
     @Getter
     @Setter
     private Long version;
