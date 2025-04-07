@@ -35,7 +35,7 @@ import { MatButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { MapDataLayerType, ShapeFillStripeSettings } from '@shared/models/widget/maps/map.models';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { isDefinedAndNotNull, stringToBase64 } from '@core/utils';
+import { isDefinedAndNotNull, plainColorFromVariable, stringToBase64 } from '@core/utils';
 import { MapSettingsContext } from '@home/components/widget/lib/settings/common/map/map-settings.component.models';
 import { DatasourceType } from '@shared/models/widget.models';
 import {
@@ -146,8 +146,8 @@ export const generateStripePreviewUrl = (settings: ShapeFillStripeSettings): str
   const spaceWeight = isDefinedAndNotNull(settings?.spaceWeight) ? settings.spaceWeight : 9;
   const angle = isDefinedAndNotNull(settings?.angle) ? settings.angle : 45;
   const height = weight + spaceWeight;
-  const color = settings?.color?.color || '#8f8f8f';
-  const spaceColor = settings?.spaceColor?.color || 'rgba(143,143,143,0)';
+  const color = plainColorFromVariable(settings?.color?.color || '#8f8f8f');
+  const spaceColor = plainColorFromVariable(settings?.spaceColor?.color || 'rgba(143,143,143,0)');
   const svgStr = `<svg x="0" y="0" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="0" y="0" width="48" height="48" fill="url(#stripePattern)" fill-opacity="1"></rect>
         <defs>
