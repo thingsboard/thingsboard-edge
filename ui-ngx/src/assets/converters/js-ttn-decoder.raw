@@ -13,8 +13,8 @@ function decodePayload(input) {
     // Press '?' icon in the top right corner to learn more about built in helper functions and capabilities.
     result.attributes.sn = parseBytesToInt(input, 0, 4);
 
-    // Parse timestamp from the selected date string (returns current time if invalid).
-    var timestamp = parseDateToTimestampOrNow(extractDateFromMetadata()); // Extract the date string from metadata using extractDateFromMetadata() function.
+    // Extract the timestamp from metadata (represented in milliseconds).
+    var timestamp = metadata.ts; // ts is the timestamp parsed from the incoming message's time, or returns the current time if it cannot be parsed.
 
     // Initialize an object to store decoded key/value telemetry data.
     var values = {};
@@ -64,22 +64,6 @@ var result = decodePayload(payload);
 return result;
 
 /**
- * Extracts the date from metadata.
- * Returns metadata.uplinkMessageReceivedAt unless the message is simulated or missing,
- * in which case it returns data.receivedAt.
- *
- * @returns {string} - The extracted date string.
- */
-function extractDateFromMetadata() {
-  var date = metadata.uplinkMessageReceivedAt; // uplinkMessageReceivedAt from the incoming message.
-  if ((metadata.simulated != null && metadata.simulated) || date == null) {
-      date = metadata.receivedAt; // receivedAt from the incoming message.
-  }
-
-  return date;
-}
-
-/**
  * Parse a slice of bytes from an array into an integer (big-endian).
  *
  * @param {number[]} input - The array of bytes.
@@ -93,17 +77,4 @@ function parseBytesToInt(input, offset, length) {
     result = (result << 8) | (input[i] & 0xFF);
   }
   return result;
-}
-
-/**
- * Parse a date string to a Unix timestamp in milliseconds.
- * Returns the current time if parsing fails.
- *
- * @param {string} dateString - The date string to convert.
- * @returns {number} - The Unix timestamp in milliseconds.
- */
-function parseDateToTimestampOrNow(dateString) {
-  var date = new Date(dateString);
-  var timestamp = date.getTime();
-  return isNaN(timestamp) ? Date.now() : timestamp;
 }

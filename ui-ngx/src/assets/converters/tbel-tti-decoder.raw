@@ -13,8 +13,8 @@ function decodePayload(input) {
     // Press '?' icon in the top right corner to learn more about built in helper functions and capabilities.
     result.attributes.sn = parseBytesToInt(input, 0, 4);
 
-    // Parse timestamp from the selected date string (returns current time if invalid).
-    var timestamp = parseDateToTimestampOrNow(extractDateFromMetadata()); // Extract the date string from metadata using extractDateFromMetadata() function.
+    // Extract the timestamp from metadata (represented in milliseconds).
+    var timestamp = metadata.ts; // ts is the timestamp parsed from the incoming message's time, or returns the current time if it cannot be parsed.
 
     // Initialize an object to store decoded key/value telemetry data.
     var values = {};
@@ -62,19 +62,3 @@ var result = decodePayload(payload);
 
 // Return the final result object.
 return result;
-
-/**
- * Extracts the date from metadata.
- * Returns metadata.uplinkMessageReceivedAt unless the message is simulated or missing,
- * in which case it returns data.receivedAt.
- *
- * @returns {string} - The extracted date string.
- */
-function extractDateFromMetadata() {
-  var date = metadata.uplinkMessageReceivedAt; // uplinkMessageReceivedAt from the incoming message.
-  if ((metadata.simulated != null && metadata.simulated) || date == null) {
-      date = metadata.receivedAt; // receivedAt from the incoming message.
-  }
-
-  return date;
-}

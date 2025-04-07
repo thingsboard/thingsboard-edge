@@ -13,8 +13,8 @@ function decodePayload(input) {
     // Press '?' icon in the top right corner to learn more about built in helper functions and capabilities.
     result.attributes.sn = parseBytesToInt(input, 0, 4);
 
-    // Parse timestamp from metadata.time field (returns current time if invalid).
-    var timestamp = parseDateToTimestampOrNow(metadata.time); // time from the incoming message.
+    // Extract the timestamp from metadata (represented in milliseconds).
+    var timestamp = metadata.ts; // ts is the timestamp parsed from the incoming message's time, or returns the current time if it cannot be parsed.
 
     // Initialize an object to store decoded key/value telemetry data.
     var values = {};
