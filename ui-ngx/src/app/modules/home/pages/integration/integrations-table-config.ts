@@ -79,18 +79,11 @@ import {
 } from '@home/components/wizard/integration-wizard-dialog.component';
 import { EventType } from '@shared/models/event.models';
 import { EntityDebugSettings } from '@shared/models/entity.models';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DestroyRef } from '@angular/core';
-import { MINUTE } from '@shared/models/time/time.models';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
-
-  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
-  readonly maxDebugModeDuration = getCurrentAuthState(this.store).maxDebugModeDurationMinutes * MINUTE;
 
   constructor(private integrationService: IntegrationService,
               private userPermissionsService: UserPermissionsService,
@@ -101,7 +94,6 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
               private utils: UtilsService,
               private dialogService: DialogService,
               private dialog: MatDialog,
-              private store: Store<AppState>,
               private entityDebugSettingsService: EntityDebugSettingsService,
               private destroyRef: DestroyRef,
               private params: IntegrationParams) {
@@ -340,9 +332,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     this.entityDebugSettingsService.openDebugStrategyPanel({
       debugSettings,
       debugConfig: {
-        debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
-        maxDebugModeDuration: this.maxDebugModeDuration,
-        entityLabel: this.translate.instant('debug-settings.integration'),
+        entityType: EntityType.INTEGRATION
       },
       onSettingsAppliedFn: settings => this.onDebugConfigChanged(id.id, settings)
     }, $event.target as Element);

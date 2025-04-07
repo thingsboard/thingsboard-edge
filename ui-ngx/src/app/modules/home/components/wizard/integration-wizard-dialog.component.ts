@@ -59,8 +59,8 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
 import { ConverterId } from '@shared/models/id/converter-id';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export interface IntegrationWizardData<T> extends AddEntityDialogData<T>{
   edgeTemplate: boolean;
@@ -109,7 +109,7 @@ export class IntegrationWizardDialogComponent extends
     integrationType: null,
   } as Converter;
 
-  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
+  EntityType = EntityType;
 
   private checkConnectionAllow = false;
 
