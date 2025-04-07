@@ -37,6 +37,7 @@ import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Base64;
+import java.util.Map;
 
 public class ThingsStackConverterUnwrapper extends AbstractConverterUnwrapper {
 
@@ -100,6 +101,31 @@ public class ThingsStackConverterUnwrapper extends AbstractConverterUnwrapper {
             var data = uplink.get("frm_payload").textValue();
             return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
         }
+    }
+
+    @Override
+    protected void postMapping(Map<String, Object> kvMap) {
+        long ts = 0;
+        if (kvMap.containsKey("uplinkMessageReceivedAt")) {
+            var uplinkMessageReceivedAtTs = parseDateToTimestamp(kvMap.get("uplinkMessageReceivedAt").toString());
+            kvMap.put("uplinkMessageReceivedAtTs", uplinkMessageReceivedAtTs);
+            ts = uplinkMessageReceivedAtTs;
+        }
+        if (kvMap.containsKey("time")) {
+            var timeTs = parseDateToTimestamp(kvMap.get("time").toString());
+            kvMap.put("timeTs", timeTs);
+        }
+        if (kvMap.containsKey("receivedAt")) {
+            var receivedAtTs = parseDateToTimestamp(kvMap.get("receivedAt").toString());
+            kvMap.put("receivedAtTs", receivedAtTs);
+            if (ts == 0) {
+                ts = receivedAtTs;
+            }
+        }
+        if (ts == 0) {
+            ts = System.currentTimeMillis();
+        }
+        kvMap.put("ts", ts);
     }
 
     @Override
