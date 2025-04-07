@@ -1064,10 +1064,6 @@
         "all-messages": "All messages ({{time}})",
         "failures": "Failures",
         "entity": "entity",
-        "integration": "integration",
-        "converter": "converter",
-        "rule-node": "rule node",
-        "calculated-field": "calculated field",
         "hint": {
             "main-limited": "No more than {{msg}} {{entity}} debug messages per {{time}} will be recorded.",
             "on-failure": "Log error messages only.",
