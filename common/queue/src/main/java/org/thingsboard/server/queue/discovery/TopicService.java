@@ -62,7 +62,7 @@ public class TopicService {
     @Value("${queue.edge.event-notifications-topic:tb_edge_event.notifications}")
     private String tbEdgeEventNotificationsTopic;
 
-    @Value("${queue.calculated_fields.notifications-topic:calculated_field.notifications}")
+    @Value("${queue.calculated-fields.notifications-topic:calculated_field.notifications}")
     private String tbCalculatedFieldNotificationsTopic;
 
     @Value("${queue.integration.notifications-topic:tb_integration_executor.notifications}")
