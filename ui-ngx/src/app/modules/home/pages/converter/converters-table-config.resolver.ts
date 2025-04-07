@@ -216,7 +216,7 @@ export class ConvertersTableConfigResolver  {
     this.entityDebugSettingsService.renderer = renderer;
 
     this.entityDebugSettingsService.openDebugStrategyPanel({
-      debugSettings: converter.debugSettings,
+      debugSettings: converter.debugSettings || {},
       debugConfig: {
         entityType: EntityType.CONVERTER,
         additionalActionConfig
