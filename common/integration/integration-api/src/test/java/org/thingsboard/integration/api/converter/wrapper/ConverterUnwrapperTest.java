@@ -78,7 +78,7 @@ public class ConverterUnwrapperTest {
         expectedKvMap.put("fСnt", 2);
         expectedKvMap.put("ts", 1690901187375L);
 
-        TbPair<byte[], UplinkMetaData<Object>> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+        TbPair<byte[], UplinkMetaData<Object>> result = wrapper.unwrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
         assertArrayEquals(Hex.decodeHex("2A3F"), result.getFirst());
 
@@ -91,7 +91,7 @@ public class ConverterUnwrapperTest {
         payloadMsg.set("decoded", JacksonUtil.valueToTree(decoded));
         expectedKvMap.put("decoded", decoded);
 
-        result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+        result = wrapper.unwrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
         assertArrayEquals(JacksonUtil.writeValueAsBytes(decoded), result.getFirst());
 
@@ -134,7 +134,7 @@ public class ConverterUnwrapperTest {
         expectedKvMap.put("applicationName", "Test application");
         expectedKvMap.put("rxInfo", List.of(Map.of("uplinkId", 2, "rssi",-36, "snr", 10.5), Map.of("uplinkId", 1, "rssi", -22, "snr", 10.5)));
 
-        TbPair<byte[], UplinkMetaData<Object>> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+        TbPair<byte[], UplinkMetaData<Object>> result = wrapper.unwrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
         assertArrayEquals(Base64.getDecoder().decode("MkEzRg=="), result.getFirst());
 
@@ -147,7 +147,7 @@ public class ConverterUnwrapperTest {
         payloadMsg.set("object", JacksonUtil.valueToTree(decoded));
         expectedKvMap.put("decoded", decoded);
 
-        result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+        result = wrapper.unwrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
         assertArrayEquals(JacksonUtil.writeValueAsBytes(decoded), result.getFirst());
 
@@ -196,7 +196,7 @@ public class ConverterUnwrapperTest {
         expectedKvMap.put("rssi", -22);
         expectedKvMap.put("snr", 11.0);
 
-        TbPair<byte[], UplinkMetaData<Object>> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+        TbPair<byte[], UplinkMetaData<Object>> result = wrapper.unwrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
         assertArrayEquals(Base64.getDecoder().decode("AgI7AAMANwJxDGA="), result.getFirst());
 
@@ -209,7 +209,7 @@ public class ConverterUnwrapperTest {
         ((ObjectNode) payloadMsg.get("uplink_message")).set("decoded_payload", JacksonUtil.valueToTree(decoded));
         expectedKvMap.put("decoded", decoded);
 
-        result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+        result = wrapper.unwrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
         assertArrayEquals(JacksonUtil.writeValueAsBytes(decoded), result.getFirst());
 
@@ -265,7 +265,7 @@ public class ConverterUnwrapperTest {
         expectedKvMap.put("frequency", 902.5);
         expectedKvMap.put("dynamicClass", "A");
 
-        TbPair<byte[], UplinkMetaData<Object>> result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+        TbPair<byte[], UplinkMetaData<Object>> result = wrapper.unwrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
         assertArrayEquals(Base64.getDecoder().decode("AgI7AAMANwJxDGA="), result.getFirst());
 
@@ -278,7 +278,7 @@ public class ConverterUnwrapperTest {
         ((ObjectNode) payloadMsg.get("DevEUI_uplink")).set("payload", JacksonUtil.valueToTree(decoded));
         expectedKvMap.put("decoded", decoded);
 
-        result = wrapper.wrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
+        result = wrapper.unwrap(JacksonUtil.writeValueAsBytes(payloadMsg), uplinkMetaData);
 
         assertArrayEquals(JacksonUtil.writeValueAsBytes(decoded), result.getFirst());
 

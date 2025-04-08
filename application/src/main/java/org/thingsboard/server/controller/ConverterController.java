@@ -588,10 +588,10 @@ public class ConverterController extends AutoCommitController {
         Map<String, Object> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {});
         UplinkMetaData<Object> uplinkMetaData = new UplinkMetaData<>(ContentType.JSON, metadataMap);
 
-        var wrapper = ConverterUnwrapperFactory
+        var unwrapper = ConverterUnwrapperFactory
                 .getUnwrapper(integrationType)
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
-        TbPair<byte[], UplinkMetaData<Object>> wrappedPair = wrapper.wrap(payload, uplinkMetaData);
+        TbPair<byte[], UplinkMetaData<Object>> wrappedPair = unwrapper.unwrap(payload, uplinkMetaData);
         payload = wrappedPair.getFirst();
         uplinkMetaData = wrappedPair.getSecond();
 
