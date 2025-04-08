@@ -1091,8 +1091,8 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     }
 
     @Override
-    public ListenableFuture<Boolean> checkEdgeEntityGroupByIdAsync(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
-        log.trace("Executing checkEdgeEntityGroupByIdAsync, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
+    public ListenableFuture<Boolean> checkEntityGroupAssignedToEdgeAsync(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
+        log.trace("Executing checkEntityGroupAssignedToEdgeAsync, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
         validateEntityId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         return relationService.checkRelationAsync(tenantId, edgeId, entityGroupId,
                 EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
@@ -1113,7 +1113,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         return Futures.transformAsync(futureEntityGroup, optionalEntityGroup -> {
             if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
                 ListenableFuture<Boolean> groupAssignedToEdgeFuture =
-                        entityGroupService.checkEdgeEntityGroupByIdAsync(tenantId, edge.getId(), optionalEntityGroup.get().getId(), groupType);
+                        entityGroupService.checkEntityGroupAssignedToEdgeAsync(tenantId, edge.getId(), optionalEntityGroup.get().getId(), groupType);
                 return Futures.transformAsync(groupAssignedToEdgeFuture, groupAssignedToEdge -> {
                     if (!groupAssignedToEdge) {
                         entityGroupService.assignEntityGroupToEdge(tenantId, optionalEntityGroup.get().getId(),
