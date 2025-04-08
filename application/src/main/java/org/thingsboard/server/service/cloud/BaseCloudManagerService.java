@@ -479,6 +479,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         if (currentEdgeSettings != null && !newEdgeSettings.getEdgeId().equals(currentEdgeSettings.getEdgeId())) {
             cloudCtx.getTenantProcessor().cleanUp();
             resetQueueOffset();
+            currentEdgeSettings = null;
         }
 
         if (currentEdgeSettings == null) {
