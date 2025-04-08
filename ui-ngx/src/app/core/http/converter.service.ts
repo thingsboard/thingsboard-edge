@@ -36,6 +36,8 @@ import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-uti
 import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import {
+  ConvertedInputMsgParams,
+  ConvertedInputMsgResult,
   Converter,
   ConverterDebugInput,
   LatestConverterParameters,
@@ -132,6 +134,10 @@ export class ConverterService {
       }
     }
     return this.http.get<ConverterDebugInput>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public unwrapRawPayload(integrationType: IntegrationType, msg: ConvertedInputMsgParams, config?: RequestConfig): Observable<ConvertedInputMsgResult> {
+    return this.http.post<ConvertedInputMsgResult>(`/api/converter/unwrap/${integrationType}`, msg, defaultHttpOptionsFromConfig(config));
   }
 
 }

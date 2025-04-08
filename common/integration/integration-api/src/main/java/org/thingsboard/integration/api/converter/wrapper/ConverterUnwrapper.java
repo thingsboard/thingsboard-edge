@@ -35,9 +35,9 @@ import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Set;
 
-public interface ConverterWrapper {
+public interface ConverterUnwrapper {
 
-    TbPair<byte[], UplinkMetaData<Object>> wrap(byte[] payload, UplinkMetaData metadata) throws Exception;
+    TbPair<byte[], UplinkMetaData<Object>> unwrap(byte[] payload, UplinkMetaData metadata) throws Exception;
 
     Set<String> getKeys();
 

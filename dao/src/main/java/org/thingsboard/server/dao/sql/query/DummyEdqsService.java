@@ -51,7 +51,7 @@ public class DummyEdqsService implements EdqsService {
     public void onUpdate(TenantId tenantId, ObjectType objectType, EdqsObject object) {}
 
     @Override
-    public void onDelete(TenantId tenantId, EntityId entityId) {}
+    public void onDelete(TenantId tenantId, EntityId entityId, Object entity) {}
 
     @Override
     public void onDelete(TenantId tenantId, ObjectType objectType, EdqsObject object) {}
