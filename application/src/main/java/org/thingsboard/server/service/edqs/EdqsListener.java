@@ -61,7 +61,7 @@ public class EdqsListener {
         if (event.getEntityId() == null) {
             return;
         }
-        edqsService.onDelete(event.getTenantId(), event.getEntityId());
+        edqsService.onDelete(event.getTenantId(), event.getEntityId(), event.getEntity());
     }
 
     @TransactionalEventListener(fallbackExecution = true)

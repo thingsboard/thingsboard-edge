@@ -49,7 +49,7 @@ public abstract class AbstractConverterUnwrapper implements ConverterUnwrapper {
     protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     @Override
-    public TbPair<byte[], UplinkMetaData<Object>> wrap(byte[] payload, UplinkMetaData metadata) throws Exception {
+    public TbPair<byte[], UplinkMetaData<Object>> unwrap(byte[] payload, UplinkMetaData metadata) throws Exception {
         JsonNode payloadJson = JacksonUtil.fromBytes(payload);
 
         Map<String, Object> kvMap = new TreeMap<>(metadata.getKvMap());

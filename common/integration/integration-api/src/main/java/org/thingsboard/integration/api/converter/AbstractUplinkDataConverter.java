@@ -122,7 +122,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         final UplinkMetaData finalMetadata;
 
         if (configuration.isDedicated()) {
-            TbPair<byte[], UplinkMetaData<Object>> wrappedPair = converterUnwrapper.wrap(data, metadata);
+            TbPair<byte[], UplinkMetaData<Object>> wrappedPair = converterUnwrapper.unwrap(data, metadata);
             finalData = wrappedPair.getFirst();
             finalMetadata = wrappedPair.getSecond();
         } else {

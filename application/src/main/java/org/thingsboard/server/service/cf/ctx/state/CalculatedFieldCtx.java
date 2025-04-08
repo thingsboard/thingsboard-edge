@@ -59,6 +59,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.thingsboard.common.util.ExpressionFunctionsUtil.userDefinedFunctions;
+
 @Data
 public class CalculatedFieldCtx {
 
@@ -126,6 +128,7 @@ public class CalculatedFieldCtx {
             if (isValidExpression(expression)) {
                 this.customExpression = ThreadLocal.withInitial(() ->
                         new ExpressionBuilder(expression)
+                                .functions(userDefinedFunctions)
                                 .implicitMultiplication(true)
                                 .variables(this.arguments.keySet())
                                 .build()

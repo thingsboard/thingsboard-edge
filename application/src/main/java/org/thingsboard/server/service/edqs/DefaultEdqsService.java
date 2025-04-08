@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.msg.edqs.EdqsApiService;
 import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -200,7 +201,7 @@ public class DefaultEdqsService implements EdqsService {
     public void onUpdate(TenantId tenantId, EntityId entityId, Object entity) {
         EntityType entityType = entityId.getEntityType();
         ObjectType objectType = ObjectType.fromEntityType(entityType);
-        if (!isEdqsType(tenantId, objectType)) {
+        if (ignoreEvent(tenantId, entity, objectType)) {
             log.trace("[{}][{}] Ignoring update event, type {} not supported", tenantId, entityId, entityType);
             return;
         }
@@ -213,14 +214,18 @@ public class DefaultEdqsService implements EdqsService {
     }
 
     @Override
-    public void onDelete(TenantId tenantId, EntityId entityId) {
+    public void onDelete(TenantId tenantId, EntityId entityId, Object entity) {
         EntityType entityType = entityId.getEntityType();
         ObjectType objectType = ObjectType.fromEntityType(entityType);
-        if (!isEdqsType(tenantId, objectType)) {
+        if (ignoreEvent(tenantId, entity, objectType)) {
             log.trace("[{}][{}] Ignoring deletion event, type {} not supported", tenantId, entityId, entityType);
             return;
         }
         onDelete(tenantId, objectType, new Entity(entityType, entityId.getId(), Long.MAX_VALUE));
+    }
+
+    private boolean ignoreEvent(TenantId tenantId, Object entity, ObjectType objectType) {
+        return !isEdqsType(tenantId, objectType) || entity instanceof DeviceGroupOtaPackage;
     }
 
     @Override
