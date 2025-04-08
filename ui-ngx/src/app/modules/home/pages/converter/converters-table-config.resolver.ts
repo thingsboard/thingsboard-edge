@@ -63,19 +63,13 @@ import { EntityDebugSettingsService } from '@home/components/entity/debug/entity
 import { EntityDebugSettings } from '@shared/models/entity.models';
 import { catchError, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { MINUTE } from '@shared/models/time/time.models';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { PageLink } from '@shared/models/page/page-link';
+import { DebugEventType } from '@shared/models/event.models';
 
 @Injectable()
 export class ConvertersTableConfigResolver  {
 
   private readonly config: EntityTableConfig<Converter> = new EntityTableConfig<Converter>();
-
-  readonly maxDebugModeDuration = getCurrentAuthState(this.store).maxDebugModeDurationMinutes * MINUTE;
-  readonly converterDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).converterDebugPerTenantLimitsConfiguration;
 
   constructor(private converterService: ConverterService,
               private userPermissionsService: UserPermissionsService,
@@ -86,7 +80,6 @@ export class ConvertersTableConfigResolver  {
               private utils: UtilsService,
               private entityDebugSettingsService: EntityDebugSettingsService,
               private destroyRef: DestroyRef,
-              private store: Store<AppState>,
               private customTranslate: CustomTranslatePipe) {
 
     this.config.entityType = EntityType.CONVERTER;
@@ -208,24 +201,38 @@ export class ConvertersTableConfigResolver  {
     }
   }
 
-  onOpenDebugConfig($event: Event, { debugSettings = {}, id }: Converter): void {
+  onOpenDebugConfig($event: Event, converter: Converter): void {
     if ($event) {
       $event.stopPropagation();
     }
+
+    const additionalActionConfig = {
+      title: this.translate.instant('converter.see-debug-events'),
+      action: () => this.openDebugEventDetails($event, converter)
+    };
 
     const { viewContainerRef, renderer } = this.config.getTable();
     this.entityDebugSettingsService.viewContainerRef = viewContainerRef;
     this.entityDebugSettingsService.renderer = renderer;
 
     this.entityDebugSettingsService.openDebugStrategyPanel({
-      debugSettings,
+      debugSettings: converter.debugSettings || {},
       debugConfig: {
-        debugLimitsConfiguration: this.converterDebugPerTenantLimitsConfiguration,
-        maxDebugModeDuration: this.maxDebugModeDuration,
-        entityLabel: this.translate.instant('debug-settings.integration'),
+        entityType: EntityType.CONVERTER,
+        additionalActionConfig
       },
-      onSettingsAppliedFn: settings => this.onDebugConfigChanged(id.id, settings)
+      onSettingsAppliedFn: settings => this.onDebugConfigChanged(converter.id.id, settings)
     }, $event.target as Element);
+  }
+
+  private openDebugEventDetails($event: Event, entity): void {
+    const table = this.config.getTable();
+    table.toggleEntityDetails($event, entity);
+    setTimeout(() => {
+      table.entityDetailsPanel.matTabGroup.selectedIndex = 4;
+      (table.entityDetailsPanel.entityTabsComponent as any).defaultEventType = DebugEventType.DEBUG_CONVERTER;
+    }, 0);
+    table.detectChanges();
   }
 
   exportConverter($event: Event, converter: Converter) {
