@@ -37,19 +37,22 @@ import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.util.TbPair;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
-public abstract class AbstractConverterWrapper implements ConverterWrapper {
+public abstract class AbstractConverterUnwrapper implements ConverterUnwrapper {
 
     protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     @Override
-    public TbPair<byte[], UplinkMetaData<Object>> wrap(byte[] payload, UplinkMetaData metadata) throws Exception {
+    public TbPair<byte[], UplinkMetaData<Object>> unwrap(byte[] payload, UplinkMetaData metadata) throws Exception {
         JsonNode payloadJson = JacksonUtil.fromBytes(payload);
 
-        Map<String, Object> kvMap = new HashMap<>(metadata.getKvMap());
+        Map<String, Object> kvMap = new TreeMap<>(metadata.getKvMap());
 
         getKeysMapping().forEach((name, path) -> {
             if (path.isEmpty()) {
@@ -63,6 +66,7 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
 
         addGatewayAdditionalInfo(kvMap, payloadJson);
 
+        postMapping(kvMap);
         kvMap.putAll(metadata.getKvMap());
         TbPair<byte[], ContentType> payloadPair = getPayload(payloadJson);
         UplinkMetaData<Object> mergedMetadata = new UplinkMetaData<>(payloadPair.getSecond(), kvMap);
@@ -104,6 +108,27 @@ public abstract class AbstractConverterWrapper implements ConverterWrapper {
     }
 
     protected abstract TbPair<byte[], ContentType> getPayload(JsonNode payloadJson) throws Exception;
+
+    protected void postMapping(Map<String, Object> kvMap) {
+        long ts = 0;
+        if (kvMap.containsKey("time")) {
+            var timeTs = parseDateToTimestamp(kvMap.get("time").toString());
+            kvMap.put("timeTs", timeTs);
+            ts = timeTs;
+        }
+        if (ts == 0) {
+            ts = System.currentTimeMillis();
+        }
+        kvMap.put("ts", ts);
+    }
+
+    protected long parseDateToTimestamp(String dateString) {
+        try {
+            return OffsetDateTime.parse(dateString).toInstant().toEpochMilli();
+        } catch (DateTimeParseException e) {
+            return 0;
+        }
+    }
 
     // Key is a name in metadata, Value is a JSON path to value in payload.
     protected abstract ImmutableMap<String, String> getKeysMapping();

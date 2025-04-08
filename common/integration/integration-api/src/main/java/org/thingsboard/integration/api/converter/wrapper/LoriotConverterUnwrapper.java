@@ -38,7 +38,9 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.util.TbPair;
 
-public class LoriotConverterWrapper extends AbstractConverterWrapper {
+import java.util.Map;
+
+public class LoriotConverterUnwrapper extends AbstractConverterUnwrapper {
 
     private static final ImmutableMap<String, String> KEYS_MAPPING;
 
@@ -62,7 +64,6 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
                 .put("decoded", "/decoded")
                 .put("encdata", "/encdata")
                 .put("gws", "/gws")
-
                 .build();
     }
 
@@ -84,6 +85,13 @@ public class LoriotConverterWrapper extends AbstractConverterWrapper {
             return TbPair.of(Hex.decodeHex(encoded.toCharArray()), ContentType.BINARY);
         } else {
             return TbPair.of(EMPTY_BYTE_ARRAY, ContentType.BINARY);
+        }
+    }
+
+    @Override
+    protected void postMapping(Map<String, Object> kvMap) {
+        if (!kvMap.containsKey("ts")) {
+            kvMap.put("ts", System.currentTimeMillis());
         }
     }
 
