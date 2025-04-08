@@ -297,7 +297,7 @@ const getTbelConverterFunctionHeldId = (converterType: ConverterType, converterV
 
 const getJsConverterFunctionHeldId = (converterType: ConverterType, converterVersion: ConverterVersion): string => {
   return converterVersion === 2
-    ? (converterType === ConverterType.UPLINK ? 'converter/decoder_fn' : 'converter/encoder_fn')
+    ? (converterType === ConverterType.UPLINK ? 'converter/decoder_fn_v2' : 'converter/encoder_fn')
     : (converterType === ConverterType.UPLINK ? 'converter/decoder_fn' : 'converter/encoder_fn')
 }
 

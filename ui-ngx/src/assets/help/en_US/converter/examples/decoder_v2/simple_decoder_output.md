@@ -3,7 +3,7 @@
 ```json
 {
   "attributes": {
-    "serialNumber": "S567483"
+    "sn": "S567483"
   },
   "telemetry": [{
     "ts": 1742770610971,

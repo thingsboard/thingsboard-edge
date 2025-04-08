@@ -24,6 +24,14 @@ function decodePayload(input) {
 
 var result = decodePayload(payload);
 return result;
+
+function parseBytesToInt(input, offset, length) {
+  var result = 0;
+  for (var i = offset; i < offset + length; i++) {
+    result = (result << 8) | (input[i] & 0xFF);
+  }
+  return result;
+}
 {:copy-code}
 ```
 

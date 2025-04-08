@@ -4,8 +4,10 @@
 {
   "entityType": "DEVICE",
   "name": "Device 1000000000000001",
-  "profile": "Chirpstack default device profile",
+  "profile": "default",
   "label": "Device name",
+  "customer": "MyCustomer",
+  "group": "SensorsGroup",
   "telemetry": [{
     "ts": 1742770246830,
     "values": {
