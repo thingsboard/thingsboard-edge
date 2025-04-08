@@ -1129,6 +1129,7 @@
         "delete-text": "Be careful, after the confirmation the calculated field and all related data will become unrecoverable.",
         "delete-multiple-title": "Are you sure you want to delete { count, plural, =1 {1 calculated field} other {# calculated fields} }?",
         "delete-multiple-text": "Be careful, after the confirmation all selected calculated fields will be removed and all related data will become unrecoverable.",
+        "test-with-this-message": "Test with this message",
         "hint": {
             "arguments-simple-with-rolling": "Simple type calculated field should not contain keys with time series rolling type.",
             "arguments-empty": "Arguments should not be empty.",
@@ -1193,8 +1194,6 @@
         "time-left": "{{time}} left",
         "loading-please-wait": "Loading... Please wait",
         "output": "Output",
-        "test-function": "Test function",
-        "test-with-this-message": "{{test}} with this message",
         "suffix": {
             "s": "s",
             "ms": "ms"
@@ -1214,7 +1213,6 @@
     },
     "converter": {
         "converter": "Data converter",
-        "converter-short-name": "Converter",
         "converters": "Data converters",
         "select-converter": "Select data converter",
         "no-converters-matching": "No data converters matching '{{entity}}' were found.",
@@ -1295,7 +1293,9 @@
         "attributes": "Attributes",
         "integration-type": "Integration type",
         "decoder-output": "Decoder output",
-        "converter-output": "Converter output"
+        "converter-output": "Converter output",
+        "converter-type": "Converter type",
+        "update-raw-payload": "Updated RAW payload"
     },
     "content-type": {
         "json": "Json",
@@ -3072,7 +3072,6 @@
         },
         "column-type-required": "Column type is required.",
         "entity-field": {
-            "additionalInfo": "Additional information",
             "created-time": "Created time",
             "name": "Name",
             "type": "Type",
@@ -3172,6 +3171,7 @@
         "owner-and-groups": "Owner and groups"
     },
     "entity-field": {
+        "additional-info": "Additional info",
         "created-time": "Created time",
         "name": "Name",
         "type": "Type",
@@ -4056,7 +4056,7 @@
         "type-sigfox": "SigFox",
         "type-sigfox-description": "Lightweight protocol to handle small data transmissions.",
         "type-thingpark": "ThingPark",
-        "type-thingpark-description": "Message-oriented transport layer protocol.",
+        "type-thingpark-description": "ThingPark is an IoT connectivity platform by Actility.",
         "type-loriot": "Loriot",
         "type-loriot-description": "Distributed LoRaWAN infrastructure.",
         "type-thingpark-enterprise": "ThingParkEnterprise",
@@ -4088,7 +4088,7 @@
         "type-azure-iot-hub": "Azure IoT Hub",
         "type-azure-iot-hub-description": "Cloud-hosted messaging service.",
         "type-opc-ua": "OPC-UA",
-        "type-opc-ua-description": "Cross-platform for data exchange from sensors to cloud apps.",
+        "type-opc-ua-description": "Cross-platform protocol for data exchange from sensors to cloud apps.",
         "type-custom": "Custom",
         "type-coap": "CoAP",
         "type-coap-description": "Machine to machine network protocol for constrained devices.",
@@ -4105,7 +4105,7 @@
         "type-apache-pulsar": "Apache Pulsar",
         "type-apache-pulsar-description": "Distributed pub-sub messaging and streaming platform.",
         "type-tuya": "Tuya",
-        "type-tuya-description": "Cloud-hosted messaging. device platform.",
+        "type-tuya-description": "Cloud-hosted messaging and device platform.",
         "type-azure-service-bus": "Azure Service Bus",
         "type-azure-service-bus-description": "Fully managed enterprise message broker with message queues and publish-subscribe topics.",
         "opc-ua-application-name": "Application name",

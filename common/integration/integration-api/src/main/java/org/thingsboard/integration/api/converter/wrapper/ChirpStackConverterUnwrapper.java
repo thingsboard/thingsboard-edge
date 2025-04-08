@@ -38,7 +38,7 @@ import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.Base64;
 
-public class ChirpStackConverterWrapper extends AbstractConverterWrapper {
+public class ChirpStackConverterUnwrapper extends AbstractConverterUnwrapper {
 
     private static final ImmutableMap<String, String> KEYS_MAPPING;
 

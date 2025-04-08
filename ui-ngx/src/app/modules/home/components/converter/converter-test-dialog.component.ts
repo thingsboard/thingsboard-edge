@@ -37,9 +37,11 @@ import {
   HostBinding,
   Inject,
   QueryList,
+  Renderer2,
   SkipSelf,
   ViewChild,
   ViewChildren,
+  ViewContainerRef,
   ViewEncapsulation
 } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -52,11 +54,12 @@ import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { ContentType, contentTypesMap } from '@shared/models/constants';
 import { JsonContentComponent } from '@shared/components/json-content.component';
-import { mergeMap, startWith } from 'rxjs/operators';
+import { map, mergeMap, startWith } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import {
   Converter,
   ConverterDebugInput,
+  ConverterMsg,
   getConverterFunctionArgs,
   getConverterFunctionHeldId,
   getConverterFunctionHeldPopupStyle,
@@ -71,6 +74,9 @@ import { beautifyJs } from '@shared/models/beautify.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButton } from '@angular/material/button';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { UpdatedPayloadPanelComponent } from '@home/components/converter/updated-payload-panel.component';
 
 export interface ConverterTestDialogData {
   isDecoder: boolean;
@@ -78,6 +84,7 @@ export interface ConverterTestDialogData {
   scriptLang?: ScriptLanguage;
   debugIn: ConverterDebugInput;
   converter: Converter;
+  originalMsg?: ConverterMsg;
 }
 
 type TestConverterResultData = {
@@ -121,7 +128,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
   converterTestFormGroup: FormGroup = null;
 
   isDecoder: boolean;
-  isPayload: boolean;
+  isConverterV2: boolean;
   submitted = false;
   outputFullscreen = false;
 
@@ -139,6 +146,8 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
 
   dialogTitle: string;
 
+  private currentOriginalMsg: ConverterMsg;
+
   constructor(protected store: Store<AppState>,
               protected router: Router,
               protected dialogRef: MatDialogRef<ConverterTestDialogComponent, string>,
@@ -147,10 +156,14 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
               private fb: FormBuilder,
               public wl: WhiteLabelingService,
               private converterService: ConverterService,
-              private destroyRef: DestroyRef) {
+              private destroyRef: DestroyRef,
+              private popoverService: TbPopoverService,
+              private renderer: Renderer2,
+              private viewContainerRef: ViewContainerRef) {
     super(store, router, dialogRef);
     this.isDecoder = this.data.isDecoder;
-    this.isPayload = this.data.converter.converterVersion === 2;
+    this.isConverterV2 = this.data.converter.converterVersion === 2;
+    this.currentOriginalMsg = this.data.originalMsg;
     this.initConstant()
     this.init();
   }
@@ -233,7 +246,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
     });
     const payloadFormGroup = this.converterTestFormGroup.get('payload') as FormGroup;
     if (this.isDecoder) {
-      if (this.data.converter.converterVersion === 2) {
+      if (this.isConverterV2) {
         this.converterTestFormGroup.addControl('outputMsg', this.fb.control(''));
       }
       payloadFormGroup.addControl('payload', this.fb.control(null));
@@ -292,7 +305,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
       }
     }
     if (this.isDecoder) {
-      if (this.data.converter.converterVersion === 2) {
+      if (this.isConverterV2) {
         return of('AXVeAwABBAAB');
       }
       return beautifyJs(JSON.stringify({devName: 'devA', param1: 1, param2: 'test'}), {indent_size: 4});
@@ -395,6 +408,52 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         this.converterTestFormGroup.get('outputMsg').setValue(output.outputMsg);
       }
     });
+  }
+
+  updateMsg($event: Event, matButton: MatButton) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const trigger = matButton._elementRef.nativeElement;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const updatedPayloadPanel = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: UpdatedPayloadPanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: ['bottomOnly', 'bottomLeftOnly', 'bottomRightOnly'],
+        context: {
+          originalMsg: this.currentOriginalMsg
+        },
+        isModal: true
+      });
+      updatedPayloadPanel.tbComponentRef.instance.changesMsgApplied.subscribe((msg) => {
+        updatedPayloadPanel.hide();
+        this.converterService.unwrapRawPayload(this.data.converter.integrationType, msg, {ignoreErrors: true}).pipe(
+          mergeMap(value => {
+            if (value.contentType === ContentType.JSON) {
+              return beautifyJs(value.payload, {indent_size: 4}).pipe(
+                map(stringContent => {
+                  value.stringContent = stringContent;
+                  return value;
+                })
+              );
+            }
+            value.stringContent = value.payload;
+            return of(value)
+          })
+        ).subscribe((value) => {
+          this.converterTestFormGroup.patchValue({
+            payload: value,
+            metadata: value.metadata
+          }, {emitEvent: false});
+          this.currentOriginalMsg.payload = value.payload;
+          this.currentOriginalMsg.metadata = value.metadata;
+        })
+      });
+    }
   }
 
   private testConverter(): Observable<TestConverterResult> {

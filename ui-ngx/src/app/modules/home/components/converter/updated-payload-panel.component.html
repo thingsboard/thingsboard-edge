@@ -30,18 +30,35 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<button mat-stroked-button
-        type="button"
-        class="tb-rounded-btn w-36 flex-1"
-        color="primary"
-        #matButton
-        [class.active]="((isDebugAllActive$ | async) || failuresEnabled) && !disabled"
-        [disabled]="disabled"
-        (click)="onOpenDebugStrategyPanel($event, matButton)">
-  <mat-icon [color]="debugSettingsFormGroup.disabled ? 'inherit' : 'primary'">bug_report</mat-icon>
-  @if (isDebugAllActive$ | async) {
-    {{ (allEnabled$ | async) === false ? (allEnabledUntil | durationLeft) : (maxDebugModeDuration | milliSecondsToTimeString: true : true) }}
-  } @else {
-    {{ (failuresEnabled ? 'debug-settings.failures' : 'common.disabled') | translate }}
-  }
-</button>
+<div style="width: 650px; max-width: 90vw;" class="tb-form-panel no-border no-padding" [formGroup]="payloadForm">
+  <div class="tb-form-panel-title">{{ 'converter.update-raw-payload' | translate }}</div>
+  <div class="flex flex-col gap-2 overflow-y-auto">
+    <tb-json-object-edit
+      jsonRequired
+      [editorStyle]="{'min-height': '300px'}"
+      label="{{ 'converter.payload' | translate }}"
+      formControlName="payload">
+    </tb-json-object-edit>
+    <tb-json-object-edit
+      jsonRequired
+      [editorStyle]="{'min-height': '100px'}"
+      label="{{ 'converter.metadata' | translate }}"
+      formControlName="metadata">
+    </tb-json-object-edit>
+  </div>
+  <div class="flex justify-end gap-2">
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="apply()"
+            [disabled]="payloadForm.invalid || !payloadForm.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>

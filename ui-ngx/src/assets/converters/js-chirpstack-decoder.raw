@@ -1,7 +1,7 @@
 /**
  * Decodes the incoming payload and returns a structured object containing telemetry data and attributes.
  *
- * @param {byte[]} input - The raw payload received as an array of bytes.
+ * @param {number[]} input - The raw payload received as an array of bytes.
  * @returns {Object} output - The structured output with decoded telemetry and attributes.
  */
 
@@ -62,3 +62,19 @@ var result = decodePayload(payload);
 
 // Return the final result object.
 return result;
+
+/**
+ * Converts a slice of bytes from an array into an integer (big-endian).
+ *
+ * @param {number[]} input - The array of bytes.
+ * @param {number} offset - The starting index.
+ * @param {number} length - The number of bytes to convert.
+ * @returns {number} - The resulting integer.
+ */
+function parseBytesToInt(input, offset, length) {
+  var result = 0;
+  for (var i = offset; i < offset + length; i++) {
+    result = (result << 8) | (input[i] & 0xFF);
+  }
+  return result;
+}
