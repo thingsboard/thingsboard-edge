@@ -14,7 +14,7 @@
         "enableRemoteLogging":false,
         "logLevel":"INFO",
         "sendDataOnlyOnChange":false,
-        "configuration": "poolGatewayConnector.json",
+        "configuration": "poolConnector.json",
         "configurationJson": {
           "master": {
             "slaves": [
