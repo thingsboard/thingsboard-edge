@@ -520,14 +520,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                         if (RoleType.GENERIC.equals(role.getType())) {
                             saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermission.getId());
                         } else {
-                            ListenableFuture<Boolean> checkFuture =
-                                    entityGroupService.checkEdgeEntityGroupByIdAsync(edge.getTenantId(), edge.getId(), groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
-                            return Futures.transformAsync(checkFuture, exists -> {
-                                if (Boolean.TRUE.equals(exists)) {
-                                    saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermission.getId());
-                                }
-                                return Futures.immediateFuture(null);
-                            }, dbCallbackExecutorService);
+                            return checkAndSaveGroupPermissionEvent(edge, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType(), groupPermission.getId());
                         }
                     }
                     return Futures.immediateFuture(null);
@@ -548,20 +541,24 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                 if (groupPermission.isPublic()) {
                     saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermission.getId());
                 } else {
-                    ListenableFuture<Boolean> checkFuture =
-                            entityGroupService.checkEdgeEntityGroupByIdAsync(edge.getTenantId(), edge.getId(), groupPermission.getUserGroupId(), EntityType.USER);
-                    result.add(Futures.transformAsync(checkFuture, exists -> {
-                        if (Boolean.TRUE.equals(exists)) {
-                            saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermission.getId());
-                        }
-                        return Futures.immediateFuture(null);
-                    }, dbCallbackExecutorService));
+                    result.add(checkAndSaveGroupPermissionEvent(edge, groupPermission.getUserGroupId(), EntityType.USER, groupPermission.getId()));
                 }
             }
             return Futures.transform(Futures.allAsList(result), voids -> null, MoreExecutors.directExecutor());
         } else {
             return Futures.immediateFuture(null);
         }
+    }
+
+    private ListenableFuture<Void> checkAndSaveGroupPermissionEvent(Edge edge, EntityGroupId entityGroupId, EntityType entityGroupType, GroupPermissionId groupPermissionId) {
+        ListenableFuture<Boolean> checkFuture =
+                entityGroupService.checkEntityGroupAssignedToEdgeAsync(edge.getTenantId(), edge.getId(), entityGroupId, entityGroupType);
+        return Futures.transformAsync(checkFuture, exists -> {
+            if (Boolean.TRUE.equals(exists)) {
+                saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermissionId);
+            }
+            return Futures.immediateFuture(null);
+        }, dbCallbackExecutorService);
     }
 
     private void saveGroupPermissionEdgeEvent(TenantId tenantId, EdgeId edgeId, GroupPermissionId groupPermissionId) {
