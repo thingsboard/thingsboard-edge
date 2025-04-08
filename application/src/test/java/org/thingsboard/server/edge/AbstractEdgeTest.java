@@ -997,11 +997,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         return findGroupByOwnerIdTypeAndName(tenantId, EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME);
     }
 
-    protected ObjectNode getCustomTranslationHomeObject(String homeValue) {
-        ObjectNode objectNode = JacksonUtil.newObjectNode();
-        return objectNode.put("home", homeValue);
-    }
-
     private void verifyTenantAdministratorsAndTenantUsersAssignedToEdge() {
         verifyGroupTenantNameAssignedToEdge(EntityGroup.GROUP_TENANT_ADMINS_NAME);
         verifyGroupTenantNameAssignedToEdge(EntityGroup.GROUP_TENANT_USERS_NAME);

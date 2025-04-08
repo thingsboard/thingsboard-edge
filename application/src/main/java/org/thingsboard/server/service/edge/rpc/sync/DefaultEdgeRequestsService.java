@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -517,20 +518,9 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                 result.add(Futures.transformAsync(roleFuture, role -> {
                     if (role != null) {
                         if (RoleType.GENERIC.equals(role.getType())) {
-                            saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                    EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
-                                    groupPermission.getId(), null, null);
+                            saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermission.getId());
                         } else {
-                            ListenableFuture<Boolean> checkFuture =
-                                    entityGroupService.checkEdgeEntityGroupByIdAsync(edge.getTenantId(), edge.getId(), groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
-                            return Futures.transformAsync(checkFuture, exists -> {
-                                if (Boolean.TRUE.equals(exists)) {
-                                    saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                            EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
-                                            groupPermission.getId(), null, null);
-                                }
-                                return Futures.immediateFuture(null);
-                            }, dbCallbackExecutorService);
+                            return checkAndSaveGroupPermissionEvent(edge, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType(), groupPermission.getId());
                         }
                     }
                     return Futures.immediateFuture(null);
@@ -548,21 +538,31 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
         if (!groupPermissionsData.getData().isEmpty()) {
             List<ListenableFuture<Void>> result = new ArrayList<>();
             for (GroupPermission groupPermission : groupPermissionsData.getData()) {
-                ListenableFuture<Boolean> checkFuture =
-                        entityGroupService.checkEdgeEntityGroupByIdAsync(edge.getTenantId(), edge.getId(), groupPermission.getUserGroupId(), EntityType.USER);
-                result.add(Futures.transformAsync(checkFuture, exists -> {
-                    if (Boolean.TRUE.equals(exists)) {
-                        saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
-                                groupPermission.getId(), null, null);
-                    }
-                    return Futures.immediateFuture(null);
-                }, dbCallbackExecutorService));
+                if (groupPermission.isPublic()) {
+                    saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermission.getId());
+                } else {
+                    result.add(checkAndSaveGroupPermissionEvent(edge, groupPermission.getUserGroupId(), EntityType.USER, groupPermission.getId()));
+                }
             }
             return Futures.transform(Futures.allAsList(result), voids -> null, MoreExecutors.directExecutor());
         } else {
             return Futures.immediateFuture(null);
         }
+    }
+
+    private ListenableFuture<Void> checkAndSaveGroupPermissionEvent(Edge edge, EntityGroupId entityGroupId, EntityType entityGroupType, GroupPermissionId groupPermissionId) {
+        ListenableFuture<Boolean> checkFuture =
+                entityGroupService.checkEntityGroupAssignedToEdgeAsync(edge.getTenantId(), edge.getId(), entityGroupId, entityGroupType);
+        return Futures.transformAsync(checkFuture, exists -> {
+            if (Boolean.TRUE.equals(exists)) {
+                saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermissionId);
+            }
+            return Futures.immediateFuture(null);
+        }, dbCallbackExecutorService);
+    }
+
+    private void saveGroupPermissionEdgeEvent(TenantId tenantId, EdgeId edgeId, GroupPermissionId groupPermissionId) {
+        saveEdgeEvent(tenantId, edgeId, EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED, groupPermissionId, null, null);
     }
 
     private ListenableFuture<Void> syncDevices(Edge edge, List<EntityId> entityIds, EntityGroupId entityGroupId) {
