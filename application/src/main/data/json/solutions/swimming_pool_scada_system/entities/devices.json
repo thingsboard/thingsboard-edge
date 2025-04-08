@@ -6,10 +6,10 @@
       "gateway": true
     },
     "sharedAttributes": {
-      "active_connectors": ["Pool Gateway connector"],
-      "Pool Gateway connector": {
-        "mode":"advanced",
-        "name":"Pool Gateway connector",
+      "active_connectors": ["Pool connector"],
+      "Pool connector": {
+        "mode": "basic",
+        "name":"Pool connector",
         "type":"modbus",
         "enableRemoteLogging":false,
         "logLevel":"INFO",
