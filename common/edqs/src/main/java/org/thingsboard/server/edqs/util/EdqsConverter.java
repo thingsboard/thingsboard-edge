@@ -42,6 +42,7 @@ import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.TbStringPool;
 import org.thingsboard.server.common.data.AttributeScope;
@@ -77,6 +78,9 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class EdqsConverter {
+
+    @Value("${queue.edqs.string_compression_length_threshold:512}")
+    private int stringCompressionLengthThreshold;
 
     private final Map<ObjectType, Converter<? extends EdqsObject>> converters = new HashMap<>();
     private final Converter<Entity> defaultConverter = new JsonConverter<>(Entity.class);
@@ -146,7 +150,7 @@ public class EdqsConverter {
         });
     }
 
-    public static DataPointProto toDataPointProto(long ts, KvEntry kvEntry) {
+    public DataPointProto toDataPointProto(long ts, KvEntry kvEntry) {
         DataPointProto.Builder proto = DataPointProto.newBuilder();
         proto.setTs(ts);
         switch (kvEntry.getDataType()) {
@@ -155,7 +159,7 @@ public class EdqsConverter {
             case DOUBLE -> proto.setDoubleV(kvEntry.getDoubleValue().get());
             case STRING -> {
                 String strValue = kvEntry.getStrValue().get();
-                if (strValue.length() < CompressedStringDataPoint.MIN_STR_SIZE_TO_COMPRESS) {
+                if (strValue.length() < stringCompressionLengthThreshold) {
                     proto.setStringV(strValue);
                 } else {
                     proto.setCompressedStringV(ByteString.copyFrom(compress(strValue)));
@@ -163,7 +167,7 @@ public class EdqsConverter {
             }
             case JSON -> {
                 String jsonValue = kvEntry.getJsonValue().get();
-                if (jsonValue.length() < CompressedStringDataPoint.MIN_STR_SIZE_TO_COMPRESS) {
+                if (jsonValue.length() < stringCompressionLengthThreshold) {
                     proto.setJsonV(jsonValue);
                 } else {
                     proto.setCompressedJsonV(ByteString.copyFrom(compress(jsonValue)));
@@ -173,7 +177,7 @@ public class EdqsConverter {
         return proto.build();
     }
 
-    public static DataPoint fromDataPointProto(DataPointProto proto) {
+    public DataPoint fromDataPointProto(DataPointProto proto) {
         long ts = proto.getTs();
         if (proto.hasBoolV()) {
             return new BoolDataPoint(ts, proto.getBoolV());
