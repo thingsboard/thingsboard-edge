@@ -1064,10 +1064,6 @@
         "all-messages": "All messages ({{time}})",
         "failures": "Failures",
         "entity": "entity",
-        "integration": "integration",
-        "converter": "converter",
-        "rule-node": "rule node",
-        "calculated-field": "calculated field",
         "hint": {
             "main-limited": "No more than {{msg}} {{entity}} debug messages per {{time}} will be recorded.",
             "on-failure": "Log error messages only.",
@@ -1295,7 +1291,8 @@
         "decoder-output": "Decoder output",
         "converter-output": "Converter output",
         "converter-type": "Converter type",
-        "update-raw-payload": "Updated RAW payload"
+        "update-raw-payload": "Updated RAW payload",
+        "see-debug-events": "See debug events"
     },
     "content-type": {
         "json": "Json",
@@ -4308,7 +4305,8 @@
         "downlink-connection-string": "Downlink connection string",
         "downlink-connection-string-required": "Downlink connection string is required",
         "downlink-topic-name": "Downlink topic name",
-        "downlink-topic-name-required": "Downlink topic name is required"
+        "downlink-topic-name-required": "Downlink topic name is required",
+        "see-debug-events": "See debug events"
     },
     "scada": {
         "symbols": "SCADA symbols",

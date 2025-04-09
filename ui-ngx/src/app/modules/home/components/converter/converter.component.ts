@@ -136,8 +136,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }]
   ])
 
-  readonly converterDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).converterDebugPerTenantLimitsConfiguration;
-
   private predefinedConverterKeys: StringItemsOption[];
   private integrationsConvertersInfo: IntegrationsConvertersInfo;
 

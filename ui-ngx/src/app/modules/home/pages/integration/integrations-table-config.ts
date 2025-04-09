@@ -77,20 +77,13 @@ import {
   IntegrationWizardData,
   IntegrationWizardDialogComponent
 } from '@home/components/wizard/integration-wizard-dialog.component';
-import { EventType } from '@shared/models/event.models';
+import { DebugEventType, EventType } from '@shared/models/event.models';
 import { EntityDebugSettings } from '@shared/models/entity.models';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DestroyRef } from '@angular/core';
-import { MINUTE } from '@shared/models/time/time.models';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
-
-  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
-  readonly maxDebugModeDuration = getCurrentAuthState(this.store).maxDebugModeDurationMinutes * MINUTE;
 
   constructor(private integrationService: IntegrationService,
               private userPermissionsService: UserPermissionsService,
@@ -101,7 +94,6 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
               private utils: UtilsService,
               private dialogService: DialogService,
               private dialog: MatDialog,
-              private store: Store<AppState>,
               private entityDebugSettingsService: EntityDebugSettingsService,
               private destroyRef: DestroyRef,
               private params: IntegrationParams) {
@@ -328,24 +320,38 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     return false;
   }
 
-  onOpenDebugConfig($event: Event, { debugSettings = {}, id }: IntegrationInfo): void {
+  onOpenDebugConfig($event: Event, entity: IntegrationInfo): void {
     if ($event) {
       $event.stopPropagation();
     }
+
+    const additionalActionConfig = {
+      title: this.translate.instant('integration.see-debug-events'),
+      action: () => this.openDebugEventDetails($event, entity)
+    };
 
     const { viewContainerRef, renderer } = this.getTable();
     this.entityDebugSettingsService.viewContainerRef = viewContainerRef;
     this.entityDebugSettingsService.renderer = renderer;
 
     this.entityDebugSettingsService.openDebugStrategyPanel({
-      debugSettings,
+      debugSettings: entity.debugSettings || {},
       debugConfig: {
-        debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
-        maxDebugModeDuration: this.maxDebugModeDuration,
-        entityLabel: this.translate.instant('debug-settings.integration'),
+        entityType: EntityType.INTEGRATION,
+        additionalActionConfig
       },
-      onSettingsAppliedFn: settings => this.onDebugConfigChanged(id.id, settings)
+      onSettingsAppliedFn: settings => this.onDebugConfigChanged(entity.id.id, settings)
     }, $event.target as Element);
+  }
+
+  private openDebugEventDetails($event: Event, entity): void {
+    const table = this.getTable();
+    table.toggleEntityDetails($event, entity);
+    setTimeout(() => {
+      table.entityDetailsPanel.matTabGroup.selectedIndex = 1;
+      (table.entityDetailsPanel.entityTabsComponent as any).defaultEventType = DebugEventType.DEBUG_INTEGRATION;
+    }, 0);
+    table.detectChanges();
   }
 
   private onDebugConfigChanged(id: string, debugSettings: EntityDebugSettings): void {
