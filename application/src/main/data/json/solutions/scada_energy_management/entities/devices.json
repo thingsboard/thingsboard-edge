@@ -1,0 +1,1342 @@
+[
+  {
+    "name": "Energy management gateway",
+    "type": "default",
+    "group": "Energy management devices",
+    "additionalInfo": {
+      "gateway": true
+    },
+    "sharedAttributes": {
+      "active_connectors": ["Energy Gateway connector"],
+      "Energy Gateway connector": {
+        "mode": "basic",
+        "name": "Energy Gateway connector",
+        "type": "modbus",
+        "enableRemoteLogging": false,
+        "logLevel": "INFO",
+        "configuration": "drillingGatewayConnector.json",
+        "configurationJson": {
+          "master": {
+            "slaves": [
+              {
+                "host": "host.docker.internal",
+                "port": 5040,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Consumption",
+                "deviceType": "Consumption",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "voltageL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "voltageL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "voltageL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "frequencyL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 60000
+                    }
+                  },
+                  {
+                    "tag": "frequencyL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 60000
+                    }
+                  },
+                  {
+                    "tag": "frequencyL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 60000
+                    }
+                  }
+                ,
+                  {
+                    "tag": "consumptionL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 7,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "consumptionL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 8,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "consumptionL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 9,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "consumption",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "powerDemand",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 11,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "dailyConsumption",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 12,
+                    "multiplier": 100,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 3600000
+                    }
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5041,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Generator",
+                "deviceType": "Generator",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [
+                  {
+                    "tag": "currentSessionDuration",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 7,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "totalWorkingHours",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 8,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  }
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "oilTemperature",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 300000
+                    }
+                  },
+                  {
+                    "tag": "frequency",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 60000
+                    }
+                  },
+                  {
+                    "tag": "voltage",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "fuelLevel",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 5000
+                    }
+                  },
+                  {
+                    "tag": "outputPower",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "current",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  }
+                ],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5042,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Solar panels",
+                "deviceType": "Solar panels",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "illuminance",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "multiplier": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "voltage",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "temperature",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 300000
+                    }
+                  },
+                  {
+                    "tag": "powerOuput",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "current",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  }
+                ],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5043,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Wind turbine",
+                "deviceType": "Wind turbine",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "outputPower",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "rotorSpeed",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 15000
+                    }
+                  },
+                  {
+                    "tag": "windSpeed",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 30000
+                    }
+                  },
+                  {
+                    "tag": "windDirection",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "divider": 100,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 120000
+                    }
+                  }
+                ],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5044,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Power transformer",
+                "deviceType": "Power transformer",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [
+                  {
+                    "tag": "l1Mode",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 10,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "l2Mode",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 11,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "l3Mode",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 12,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  }
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "frequency",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 60000
+                    }
+                  },
+                  {
+                    "tag": "inputVoltageL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "inputVoltageL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "inputVoltageL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "outputVoltageL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "outputVoltageL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "outputVoltageL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 7,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "current",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 8,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "power",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 9,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "dayConsumption",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 13,
+                    "multiplier": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 600000
+                    }
+                  },
+                  {
+                    "tag": "nightConsumption",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 14,
+                    "multiplier": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 600000
+                    }
+                  }
+                ],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  }
+                ],
+                "attributeUpdates": [
+                  {
+                    "tag": "l1Mode",
+                    "type": "16int",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 10
+                  },
+                  {
+                    "tag": "l2Mode",
+                    "type": "16int",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 11
+                  },
+                  {
+                    "tag": "l3Mode",
+                    "type": "16int",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 12
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5045,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Batteries",
+                "deviceType": "Batteries",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [
+                  {
+                    "tag": "batteriesMode",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 7,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  }
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "running1",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "running2",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "running3",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "running4",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "running5",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "level",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 8,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 60000
+                    }
+                  },
+                  {
+                    "tag": "temperature",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 9,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 300000
+                    }
+                  },
+                  {
+                    "tag": "voltage",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 10,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "chargeCurrent",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 11,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 5000
+                    }
+                  },
+                  {
+                    "tag": "cycleCount",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 12,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "dischargeCurrent",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 13,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 5000
+                    }
+                  }
+                ],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  },
+                  {
+                    "tag": "setRunning1",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 2
+                  },
+                  {
+                    "tag": "setRunning2",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 3
+                  },
+                  {
+                    "tag": "setRunning3",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 4
+                  },
+                  {
+                    "tag": "setRunning4",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 5
+                  },
+                  {
+                    "tag": "setRunning5",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 6
+                  }
+                ],
+                "attributeUpdates": [
+                  {
+                    "tag": "batteriesMode",
+                    "type": "16int",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 7
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5046,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Inverter",
+                "deviceType": "Inverter",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [
+                  {
+                    "tag": "mode",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  }
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "inputVoltageL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "inputVoltageL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "inputVoltageL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "outputVoltageL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "outputVoltageL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "outputVoltageL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 7,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "temperatureL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 8,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 300000
+                    }
+                  },
+                  {
+                    "tag": "temperatureL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 9,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 300000
+                    }
+                  },
+                  {
+                    "tag": "temperatureL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 300000
+                    }
+                  },
+                  {
+                    "tag": "chargerMode",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 11,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "currentL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 12,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "currentL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 13,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "currentL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 14,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "current",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 15,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "powerL1",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 16,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "powerL2",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 17,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "powerL3",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 18,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "power",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 19,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  }
+                ],
+                "attributeUpdates": [
+                  {
+                    "tag": "mode",
+                    "type": "16int",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 1
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "relations": [],
+    "jsonId": "e9ab05b0-1503-11f0-8308-dfc38c65ed1c"
+  },
+  {
+    "name": "Power transformer",
+    "type": "Power transformer",
+    "group": "Energy management devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Energy management gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "e9b12030-1503-11f0-8308-dfc38c65ed1c"
+  },
+  {
+    "name": "Wind turbine",
+    "type": "Wind turbine",
+    "group": "Energy management devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Energy management gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "e9b788d0-1503-11f0-8308-dfc38c65ed1c"
+  },
+  {
+    "name": "Solar panels",
+    "type": "Solar panels",
+    "group": "Energy management devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Energy management gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "e9be1880-1503-11f0-8308-dfc38c65ed1c"
+  },
+  {
+    "name": "Inverter",
+    "type": "Inverter",
+    "group": "Energy management devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Energy management gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "e9c3bdd0-1503-11f0-8308-dfc38c65ed1c"
+  },
+  {
+    "name": "Batteries",
+    "type": "Batteries",
+    "group": "Energy management devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Energy management gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "e9c91500-1503-11f0-8308-dfc38c65ed1c"
+  },
+  {
+    "name": "Consumption",
+    "type": "Consumption",
+    "group": "Energy management devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Energy management gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "e9ce9340-1503-11f0-8308-dfc38c65ed1c"
+  },
+  {
+    "name": "Generator",
+    "type": "Generator",
+    "group": "Energy management devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Energy management gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "e9d43890-1503-11f0-8308-dfc38c65ed1c"
+  }
+]
