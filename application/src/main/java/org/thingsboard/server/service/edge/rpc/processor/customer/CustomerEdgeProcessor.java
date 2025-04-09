@@ -135,7 +135,6 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                 return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
             case DELETED:
                 return processActionForAllEdges(tenantId, type, actionType, customerId, null, null);
-            // case CHANGE_OWNER:
             default:
                 return Futures.immediateFuture(null);
         }
