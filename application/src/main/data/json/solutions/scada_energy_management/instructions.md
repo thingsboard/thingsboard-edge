@@ -4,7 +4,7 @@
 
 Follow the instructions in the official [Docker Compose installation guide](https://docs.docker.com/compose/install/) to install Docker Compose on your system.
 
-##### Step 2: Launch the Modbus Drilling Emulator
+##### Step 2: Launch the Modbus Energy emulator
 
 To simulate a comprehensive energy management system, this Docker command launches a Modbus energy emulator containing 7 separate devices that function as a unified system and communicate via Modbus. 
 Execute the following command in your terminal:
