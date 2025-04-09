@@ -28,39 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs.data.dp;
+package org.thingsboard.server.common.stats;
 
-import lombok.Getter;
-import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.common.util.TbStringPool;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.query.EntityCountQuery;
+import org.thingsboard.server.common.data.query.EntityDataQuery;
 
-public class StringDataPoint extends AbstractDataPoint {
+public interface EdqsStatsService {
 
-    @Getter
-    private final String value;
+    void reportAdded(ObjectType objectType);
 
-    public StringDataPoint(long ts, String value) {
-        this(ts, value, true);
-    }
+    void reportRemoved(ObjectType objectType);
 
-    public StringDataPoint(long ts, String value, boolean deduplicate) {
-        super(ts);
-        this.value = deduplicate ? TbStringPool.intern(value) : value;
-    }
+    void reportDataQuery(TenantId tenantId, EntityDataQuery query, long timingNanos);
 
-    @Override
-    public DataType getType() {
-        return DataType.STRING;
-    }
-
-    @Override
-    public String getStr() {
-        return value;
-    }
-
-    @Override
-    public String valueToString() {
-        return value;
-    }
+    void reportCountQuery(TenantId tenantId, EntityCountQuery query, long timingNanos);
 
 }

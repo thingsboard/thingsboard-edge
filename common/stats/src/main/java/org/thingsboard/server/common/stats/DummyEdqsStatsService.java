@@ -28,25 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs.util;
+package org.thingsboard.server.common.stats;
 
-import org.springframework.util.ConcurrentReferenceHashMap;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.query.EntityCountQuery;
+import org.thingsboard.server.common.data.query.EntityDataQuery;
 
-import java.util.concurrent.ConcurrentMap;
+@Service
+@ConditionalOnMissingBean(value = EdqsStatsService.class, ignored = DummyEdqsStatsService.class)
+public class DummyEdqsStatsService implements EdqsStatsService {
 
-public class TbStringPool {
+    @Override
+    public void reportAdded(ObjectType objectType) {}
 
-    private static final ConcurrentMap<String, String> pool = new ConcurrentReferenceHashMap<>();
+    @Override
+    public void reportRemoved(ObjectType objectType) {}
 
-    public static String intern(String data) {
-        if (data == null) {
-            return null;
-        }
-        return pool.computeIfAbsent(data, str -> str);
-    }
+    @Override
+    public void reportDataQuery(TenantId tenantId, EntityDataQuery query, long timingNanos) {}
 
-    public static int size(){
-        return pool.size();
-    }
+    @Override
+    public void reportCountQuery(TenantId tenantId, EntityCountQuery query, long timingNanos) {}
 
 }

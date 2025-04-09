@@ -28,39 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs.data.dp;
+package org.thingsboard.common.util;
 
-import lombok.Getter;
-import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.common.util.TbStringPool;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
-public class StringDataPoint extends AbstractDataPoint {
+import java.util.concurrent.ConcurrentMap;
 
-    @Getter
-    private final String value;
+public class TbStringPool {
 
-    public StringDataPoint(long ts, String value) {
-        this(ts, value, true);
+    private static final ConcurrentMap<String, String> pool = new ConcurrentReferenceHashMap<>();
+
+    public static String intern(String data) {
+        if (data == null) {
+            return null;
+        }
+        return pool.computeIfAbsent(data, str -> str);
     }
 
-    public StringDataPoint(long ts, String value, boolean deduplicate) {
-        super(ts);
-        this.value = deduplicate ? TbStringPool.intern(value) : value;
-    }
-
-    @Override
-    public DataType getType() {
-        return DataType.STRING;
-    }
-
-    @Override
-    public String getStr() {
-        return value;
-    }
-
-    @Override
-    public String valueToString() {
-        return value;
+    public static int size(){
+        return pool.size();
     }
 
 }
