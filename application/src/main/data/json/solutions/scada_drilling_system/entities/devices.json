@@ -6,14 +6,14 @@
       "gateway": true
     },
     "sharedAttributes": {
-      "active_connectors": ["Drilling Gateway connector"],
-      "Drilling Gateway connector": {
+      "active_connectors": ["Drilling connector"],
+      "Drilling connector": {
         "mode": "basic",
-        "name": "Drilling Gateway connector",
+        "name": "Drilling connector",
         "type": "modbus",
         "enableRemoteLogging": false,
         "logLevel": "INFO",
-        "configuration": "drillingGatewayConnector.json",
+        "configuration": "drillingConnector.json",
         "configurationJson": {
           "master": {
             "slaves": [
@@ -636,8 +636,7 @@
               }
             ]
           }
-        },
-        "configVersion": "3.6.3"
+        }
       }
     },
     "relations": [],
