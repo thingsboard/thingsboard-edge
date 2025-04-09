@@ -184,9 +184,9 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
         tmpUser.setAuthority(Authority.CUSTOMER_USER);
         tmpUser.setTenantId(tenantId);
         tmpUser.setCustomerId(customer.getId());
-        tmpUser.setEmail("testEdgeCustomer@thingsboard.org");
+        tmpUser.setEmail("tmpCustomerUser@thingsboard.org");
         User savedUser = createUser(tmpUser, "customer", findCustomerAdminsGroup(customer.getId()).getId());
-        login("testEdgeCustomer@thingsboard.org", "customer");
+        login("tmpCustomerUser@thingsboard.org", "customer");
 
         createPublicGroupAndDeleteAfter(customer.getId());
 
