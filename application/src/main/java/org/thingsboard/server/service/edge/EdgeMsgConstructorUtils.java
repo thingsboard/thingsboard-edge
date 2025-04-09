@@ -598,7 +598,7 @@ public class EdgeMsgConstructorUtils {
                     JsonObject data = entityData.getAsJsonObject();
                     builder.setPostTelemetryMsg(JsonConverter.convertToTelemetryProto(data.getAsJsonObject("data"), ts));
                 } catch (Exception e) {
-                    log.warn("[{}][{}] Can't convert to telemetry proto, entityData [{}]", tenantId, entityId, entityData, e);
+                    log.trace("[{}][{}] Can't convert to telemetry proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case ATTRIBUTES_UPDATED:
@@ -613,7 +613,7 @@ public class EdgeMsgConstructorUtils {
                     builder.setPostAttributeScope(getScopeOfDefault(data));
                     builder.setAttributeTs(ts);
                 } catch (Exception e) {
-                    log.warn("[{}][{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
+                    log.trace("[{}][{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case POST_ATTRIBUTES:
@@ -624,7 +624,7 @@ public class EdgeMsgConstructorUtils {
                     builder.setPostAttributeScope(getScopeOfDefault(data));
                     builder.setAttributeTs(ts);
                 } catch (Exception e) {
-                    log.warn("[{}][{}] Can't convert to PostAttributesMsg, entityData [{}]", tenantId, entityId, entityData, e);
+                    log.trace("[{}][{}] Can't convert to PostAttributesMsg, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case ATTRIBUTES_DELETED:
@@ -637,7 +637,7 @@ public class EdgeMsgConstructorUtils {
                     attributeDeleteMsg.build();
                     builder.setAttributeDeleteMsg(attributeDeleteMsg);
                 } catch (Exception e) {
-                    log.warn("[{}][{}] Can't convert to AttributeDeleteMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
+                    log.trace("[{}][{}] Can't convert to AttributeDeleteMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
         }
