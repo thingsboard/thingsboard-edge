@@ -53,7 +53,7 @@
   <fieldset [disabled]="(isLoading$ | async)">
     <div translate class="tb-hint tb-hint-edge" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
     <div class="flex flex-row xs:flex-col gt-xs:gap-2">
-      <div class="flex flex-row flex-1 xs:flex-col gt-xs:gap-2">
+      <div class="flex flex-1 flex-row xs:flex-col gt-xs:gap-2">
         <mat-form-field class="flex-1">
           <mat-label translate>integration.name</mat-label>
           <input matInput formControlName="name" required>
@@ -70,8 +70,7 @@
       <tb-entity-debug-settings-button
         class="mb-5 flex items-center"
         formControlName="debugSettings"
-        [entityLabel]="'debug-settings.integration' | translate"
-        [debugLimitsConfiguration]="integrationDebugPerTenantLimitsConfiguration"
+        [entityType]="EntityType.INTEGRATION"
       />
     </div>
     <div class="row flex flex-col gap-2">
@@ -86,6 +85,7 @@
       <tb-converter-autocomplete class="flex-1" formControlName="defaultConverterId" required
                                  labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
                                  [converterType]="converterType.UPLINK"
+                                 [integrationType]="entityForm.get('type').value"
                                  [showDetailsPageLink]="true"
                                  [useFullEntityId]="true"
                                  [addNewConverter]="true"
@@ -95,6 +95,7 @@
                                  labelText="integration.downlink-converter"
                                  *ngIf="showDownlinkConvector"
                                  [converterType]="converterType.DOWNLINK"
+                                 [integrationType]="entityForm.get('type').value"
                                  [showDetailsPageLink]="true"
                                  [useFullEntityId]="true"
                                  [addNewConverter]="true"

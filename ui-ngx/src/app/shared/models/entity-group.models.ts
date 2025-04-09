@@ -99,6 +99,8 @@ export interface EntityGroupSettings {
   detailsMode: EntityGroupDetailsMode;
   displayPagination: boolean;
   defaultPageSize: number;
+  pageStepIncrement: number;
+  pageStepCount: number;
   enableCredentialsManagement: boolean;
   enableLoginAsUser: boolean;
   enableUsersManagement: boolean;
@@ -247,6 +249,7 @@ export interface EntityGroupColumn {
   title?: string;
   sortOrder: EntityGroupSortOrder;
   mobileHide: boolean;
+  disableSorting?: boolean;
   useCellStyleFunction?: boolean;
   cellStyleFunction?: TbFunction;
   useCellContentFunction?: string;
@@ -425,7 +428,9 @@ export const groupSettingsDefaults = (entityType: EntityType, settings: EntityGr
       enableGroupTransfer: true,
       detailsMode: EntityGroupDetailsMode.onRowClick,
       displayPagination: true,
-      defaultPageSize: 10
+      defaultPageSize: 10,
+      pageStepIncrement: 10,
+      pageStepCount: 3
   }, ...settings};
 
   if (entityType === EntityType.DEVICE) {

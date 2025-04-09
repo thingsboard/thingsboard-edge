@@ -1,163 +1,64 @@
-var data = decodeToJson(payload);
-var deviceName = "Device name " + data.EUI; // Replace the text "Device name " with the actual name of your device
-var deviceType = "Device type"; // Replace the text "Device type" with the actual type of your device
-var groupName = null; // If groupName is not null - created device will be added to the entity group with such name.
-var customerName = null; // If customerName is not null - created devices will be assigned to customer with such name.
-
-// use assetName and assetType instead of deviceName and deviceType
-// to automatically create assets instead of devices.
-// var assetName = 'Asset A';
-// var assetType = 'building';
-
-// If you want to parse incoming data somehow, you can add your code to this function.
-// input: bytes
-// Note ts represents a timestamp in milliseconds since the Unix epoch (January 1, 1970)
-// expected output:
-//  {
-//    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": [{"ts": 1730898982391, "values": {"telemetryKey":"telemetryValue"}, {"ts": 1730518182391, "values": {"telemetryKey":"telemetryValue"}}]
-//  }
+/**
+ * Decodes the incoming payload and returns a structured object containing telemetry data and attributes.
+ *
+ * @param {byte[]} input - The raw payload received as an array of bytes.
+ * @returns {Object} output - The structured output with decoded telemetry and attributes.
+ */
 
 function decodePayload(input) {
-    var output = { attributes: {}, telemetry: []};
+    // Initialize the output object with empty attributes and telemetry for clarity.
+    var result = { attributes: {}, telemetry: {}};
 
-    // --- Decoding code --- //
-    var decoded = {};
+    // Decode serial number (SN) from the first 4 bytes of the payload.
+    // Press '?' icon in the top right corner to learn more about built in helper functions and capabilities.
+    result.attributes.sn = parseBytesToInt(input, 0, 4);
 
-    output.telemetry = [{
+    // Extract the timestamp from metadata (represented in milliseconds).
+    var timestamp = metadata.ts; // ts from the incoming message.
+
+    // Initialize an object to store decoded key/value telemetry data.
+    var values = {};
+
+    // Decode battery level from the 5th byte of the payload.
+    values.battery = parseBytesToInt(input, 4, 1);
+
+    // Decode temperature from the 6th and 7th bytes of the payload (divided by 100).
+    values.temperature = parseBytesToInt(input, 5, 2) / 100.0;
+
+    // Decode saturation from the 8th byte of the payload.
+    values.saturation = parseBytesToInt(input, 7, 1);
+
+    // Combine the timestamp with values and add it to the telemetry.
+    result.telemetry = {
         ts: timestamp,
-        values: decoded
-    }];
+        values: values
+    };
 
-    // --- Decoding code --- //
-    return output;
+    // Return the fully constructed output object.
+    return result;
+    // Same logic, less code:
+    // return {
+    //     attributes: {
+    //         sn: parseBytesToInt(input, 0, 4)
+    //     },
+    //     telemetry: {
+    //         ts: metadata.ts,
+    //         values: {
+    //             battery: parseBytesToInt(input, 4, 1),
+    //             temperature: parseBytesToInt(input, 5, 2) / 100.0,
+    //             saturation: parseBytesToInt(input, 7, 1)
+    //         }
+    //     }
+    // };
 }
 
-// --- attributes and telemetry objects ---
-var telemetry = [];
-var attributes = {};
-// --- attributes and telemetry objects ---
+var result = decodePayload(payload);
+// Uncomment this code block to overwrite values set in the main configuration window. Useful if you extract device/asset/customer/group names from the payload;
+// result.type = 'DEVICE'; // Entity type allows you to choose type of created entity. Can be 'DEVICE' or 'ASSET'.
+// result.name = 'Temperature Sensor'; // Device or asset name (the value must be unique)
+// result.profile = 'IndustrialSensorProfile'; // Device or asset profile name.
+// result.customer = 'MyCustomer'; // If customer is not null - created entity will be assigned to customer with such name.
+// result.group = 'SensorsGroup'; // If group is not null - created entity will be added to the entity group with such name.
 
-// --- Timestamp parsing
-var timestamp = data.ts;
-// --- Timestamp parsing
-
-// Message parsing
-// To avoid paths in the decoded objects we passing false value to function as "pathInKey" argument.
-// Warning: pathInKey can cause already found fields to be overwritten with the last value found.
-
-var uplinkDataList = [];
-
-// Passing incoming bytes to decodePayload function, to get custom decoding
-var customDecoding = decodePayload(hexToBytes(data.data));
-
-// Collecting data to result
-if (customDecoding.?telemetry.size() > 0) {
-    foreach(telemetryObj: customDecoding.telemetry) {
-        if (telemetryObj.ts != null && telemetryObj.values != null) {
-            telemetry.add(telemetryObj);
-        }
-    }
-}
-
-if (customDecoding.?attributes.size() > 0) {
-    attributes.putAll(customDecoding.attributes);
-}
-
-// You can add some keys manually to attributes or telemetry
-attributes.eui = data.EUI;
-attributes.fPort = data.port;
-
-// Uncomment to add more attributes;
-// attributes.frequency = data.freq;
-
-if(Boolean.parseBoolean(metadata["includeGatewayInfo"])) {
-    var addDataToTelemetry = {};
-
-    // You can add some keys manually to telemetry
-    addDataToTelemetry.rssi = data.rssi;
-    addDataToTelemetry.seqno = data.seqno;
-    addDataToTelemetry.snr = data.snr;
-    addDataToTelemetry.ack = data.ack;
-    addDataToTelemetry.toa = data.toa;
-    addDataToTelemetry.fCnt = data.fcnt;
-    // You can add some keys manually to telemetry
-
-    telemetry = processTelemetryData(telemetry, addDataToTelemetry);
-}
-
-var deviceInfo = {
-    deviceName: deviceName,
-    deviceType: deviceType,
-//  assetName: assetName,
-//  assetType: assetType,
-    attributes: attributes,
-    telemetry: telemetry,
-};
-
-addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName);
-
-uplinkDataList.add(deviceInfo);
-
-var gatewayDeviceNamePrefix = "Gateway "; // Replace the text "Gateway " with the actual name of your gateway
-var gatewayDeviceType = "Lora gateway";
-var gatewayGroupName = null; // If gatewayGroupName is not null - created device will be added to the entity group with such name.
-
-if (data.cmd == "gw") {
-    foreach( gatewayInfo : data.gws ) {
-        var addGatewayInfo = {};
-
-        // You can add some keys manually telemetry
-        addGatewayInfo.rssi = gatewayInfo.rssi;
-        addGatewayInfo.snr = gatewayInfo.snr;
-        // You can add some keys manually telemetry
-
-        var gatewayInfoMsg = {
-            deviceName: gatewayDeviceNamePrefix + gatewayInfo.gweui,
-            deviceType: gatewayDeviceType,
-            telemetry: [{
-                "ts": gatewayInfo.ts,
-                "values": addGatewayInfo
-            }],
-            attributes: {
-                eui: gatewayInfo.gweui
-            }
-        };
-        addAdditionalInfoForDeviceMsg(gatewayInfoMsg, customerName, gatewayGroupName);
-        uplinkDataList.add(gatewayInfoMsg);
-    }
-}
-
-return uplinkDataList;
-
-function addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName) {
-    if (customerName != null) {
-        deviceInfo.customerName = customerName;
-    }
-    if (groupName != null) {
-        deviceInfo.groupName = groupName;
-    }
-}
-
-function processTelemetryData(telemetry, addDataToTelemetry) {
-    if (telemetry.size >= 1) {
-        telemetry = addDataToTelemetries(telemetry, addDataToTelemetry);
-    }
-    else {
-        telemetry.add(addDataToTelemetry);
-    }
-
-    return telemetry;
-}
-
-function addDataToTelemetries(telemetries, addDataToTelemetry) {
-    foreach(telemetry : telemetries) {
-        foreach(element : addDataToTelemetry.entrySet()) {
-            if(!telemetry["values"].keys.contains(element.key)) {
-                telemetry["values"][element.key] = element.value;
-            }
-        }
-    }
-
-    return telemetries;
-}
+// Return the final result object.
+return result;

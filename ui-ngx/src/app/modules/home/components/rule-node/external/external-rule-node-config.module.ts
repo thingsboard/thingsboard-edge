@@ -47,8 +47,6 @@ import { HomeComponentsModule } from '@home/components/public-api';
 import { CommonRuleNodeConfigModule } from '../common/common-rule-node-config.module';
 import { SlackConfigComponent } from './slack-config.component';
 import { LambdaConfigComponent } from './lambda-config.component';
-import { TwilioSmsConfigComponent } from '@home/components/rule-node/external/twilio-sms-config.component';
-import { TwilioVoiceConfigComponent } from '@home/components/rule-node/external/twilio-voice-config.component';
 
 @NgModule({
   declarations: [
@@ -65,8 +63,6 @@ import { TwilioVoiceConfigComponent } from '@home/components/rule-node/external/
     AzureIotHubConfigComponent,
     SendSmsConfigComponent,
     SlackConfigComponent,
-    TwilioSmsConfigComponent,
-    TwilioVoiceConfigComponent,
   ],
   imports: [
     CommonModule,
@@ -88,8 +84,6 @@ import { TwilioVoiceConfigComponent } from '@home/components/rule-node/external/
     AzureIotHubConfigComponent,
     SendSmsConfigComponent,
     SlackConfigComponent,
-    TwilioSmsConfigComponent,
-    TwilioVoiceConfigComponent,
   ]
 })
 export class ExternalRuleNodeConfigModule {

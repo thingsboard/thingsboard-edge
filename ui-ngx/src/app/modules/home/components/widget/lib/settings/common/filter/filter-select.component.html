@@ -1,0 +1,97 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-form-field [formGroup]="selectFilterFormGroup"
+                [class.tb-inline-field]="inlineField"
+                [class.flex]="inlineField"
+                class="mat-block"
+                [appearance]="inlineField ? 'outline' : appearance"
+                [subscriptSizing]="inlineField ? 'dynamic' : subscriptSizing">
+  <mat-label *ngIf="showLabel && !inlineField">{{ 'filter.filter' | translate }}</mat-label>
+  <input matInput type="text" placeholder="{{  (!showLabel || inlineField) ? ('filter.filter' | translate) : ''}}"
+         #filterInput
+         formControlName="filter"
+         (focusin)="onFocus()"
+         [required]="tbRequired"
+         (keydown)="filterEnter($event)"
+         (keypress)="filterEnter($event)"
+         [matAutocomplete]="filterAutocomplete">
+  <div matSuffix class="mat-mdc-form-field-icon-suffix flex flex-row">
+    <button *ngIf="selectFilterFormGroup.get('filter').value && !disabled"
+            type="button"
+            mat-icon-button aria-label="Clear"
+            (click)="clear()">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+    <mat-icon matTooltipPosition="above"
+              matTooltipClass="tb-error-tooltip"
+              [matTooltip]="'filter.filter-required' | translate"
+              *ngIf="inlineField && !modelValue && tbRequired
+                            && selectFilterFormGroup.get('filter').touched"
+              class="tb-error">
+      warning
+    </mat-icon>
+  </div>
+  <button *ngIf="!inlineField && !selectFilterFormGroup.get('filter').value && !disabled"
+          style="margin-right: 8px;"
+          type="button"
+          matSuffix mat-button color="primary"
+          (click)="createFilter($event, searchText, false)">
+    {{ 'filter.create-new' | translate }}
+  </button>
+  <mat-autocomplete class="tb-autocomplete"
+                    #filterAutocomplete="matAutocomplete"
+                    [displayWith]="displayFilterFn">
+    <mat-option *ngFor="let filter of filteredFilters | async" [value]="filter">
+      <span [innerHTML]="filter.filter | highlight:searchText"></span>
+    </mat-option>
+    <mat-option *ngIf="!(filteredFilters | async)?.length" [value]="null" class="tb-not-found">
+      <div class="tb-not-found-content" (click)="$event.stopPropagation()">
+        <div *ngIf="!textIsNotEmpty(searchText); else searchNotEmpty">
+          <span translate>filter.no-filters-found</span>
+        </div>
+        <ng-template #searchNotEmpty>
+          <span>
+            {{ translate.get('filter.no-filter-matching',
+            {filter: truncate.transform(searchText, true, 6, &apos;...&apos;)}) | async }}
+          </span>
+        </ng-template>
+        <span>
+          <a translate (click)="createFilter($event, searchText)">filter.create-new-filter</a>
+        </span>
+      </div>
+    </mat-option>
+  </mat-autocomplete>
+  <mat-error *ngIf="!inlineField && !modelValue && tbRequired">
+    {{ 'filter.filter-required' | translate }}
+  </mat-error>
+</mat-form-field>

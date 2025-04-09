@@ -1,8 +1,8 @@
 [
   {
-    "name": "SCADA Drilling system",
+    "name": "SCADA Oil & Gas Drilling system",
     "file": "scada_drilling_system.json",
-    "group": "SCADA Drilling System",
+    "group": "SCADA Oil & Gas",
     "main": true
   }
 ]

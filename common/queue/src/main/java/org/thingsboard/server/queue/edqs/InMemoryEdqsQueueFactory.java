@@ -37,6 +37,7 @@ import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
+import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueResponseTemplate;
@@ -54,26 +55,26 @@ public class InMemoryEdqsQueueFactory implements EdqsQueueFactory {
     private final InMemoryStorage storage;
     private final EdqsConfig edqsConfig;
     private final StatsFactory statsFactory;
+    private final TbQueueAdmin queueAdmin;
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsMsgConsumer(EdqsQueue queue) {
-        if (queue == EdqsQueue.STATE) {
-            throw new UnsupportedOperationException();
-        }
-        return new InMemoryTbQueueConsumer<>(storage, queue.getTopic());
+    public TbQueueConsumer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsEventsConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, edqsConfig.getEventsTopic());
     }
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsMsgConsumer(EdqsQueue queue, String group) {
-        return createEdqsMsgConsumer(queue);
+    public TbQueueConsumer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsEventsToBackupConsumer() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsMsgProducer(EdqsQueue queue) {
-        if (queue == EdqsQueue.STATE) {
-            throw new UnsupportedOperationException();
-        }
-        return new InMemoryTbQueueProducer<>(storage, queue.getTopic());
+    public TbQueueConsumer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsStateConsumer() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdqsMsg>> createEdqsStateProducer() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -89,6 +90,11 @@ public class InMemoryEdqsQueueFactory implements EdqsQueueFactory {
                 .stats(statsFactory.createMessagesStats(StatsType.EDQS.getName()))
                 .executor(ThingsBoardExecutors.newWorkStealingPool(5, "edqs"))
                 .build();
+    }
+
+    @Override
+    public TbQueueAdmin getEdqsQueueAdmin() {
+        return queueAdmin;
     }
 
 }

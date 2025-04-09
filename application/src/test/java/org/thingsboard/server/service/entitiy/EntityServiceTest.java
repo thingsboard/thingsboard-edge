@@ -514,6 +514,10 @@ public class EntityServiceTest extends AbstractControllerTest {
         data.forEach(entityData -> Assert.assertNotNull(entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("phone")));
 
         countByQueryAndCheck(query, 5);
+
+        // delete user
+        userService.deleteUser(tenantId, users.get(0));
+        countByQueryAndCheck(query, 4);
     }
 
     private void createTestUserRelations(TenantId tenantId, List<User> users) {
@@ -2194,6 +2198,67 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testFindEntityDataByQueryWithoutAttributeReadPermission() throws ExecutionException, InterruptedException {
+        EntityGroup group = new EntityGroup();
+        group.setName("group to share");
+        group.setTenantId(tenantId);
+        group.setType(EntityType.DEVICE);
+        group.setOwnerId(tenantId);
+        group = entityGroupService.saveEntityGroup(tenantId, tenantId, group);
+
+        List<Device> devices = new ArrayList<>();
+        List<Long> temperatures = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device" + i);
+            device.setType("default");
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
+            Device e = deviceService.saveDevice(device);
+            devices.add(e);
+            entityGroupService.addEntityToEntityGroup(tenantId, group.getId(), e.getId());
+            //TO make sure devices have different created time
+            Thread.sleep(1);
+            long temperature = (long) (Math.random() * 100);
+            temperatures.add(temperature);
+        }
+
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        for (int i = 0; i < devices.size(); i++) {
+            Device device = devices.get(i);
+            for (AttributeScope currentScope : AttributeScope.values()) {
+                attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temperatures.get(i), currentScope));
+            }
+        }
+        Futures.allAsList(attributeFutures).get();
+
+        DeviceTypeFilter filter = new DeviceTypeFilter();
+        filter.setDeviceTypes(List.of("default"));
+        filter.setDeviceNameFilter("");
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+        List<EntityKey> latestValues = Collections.singletonList(new EntityKey(ATTRIBUTE, "temperature"));
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, latestValues, null);
+
+        // find by customer user read entity permission only
+        MergedUserPermissions mergedGroupOnlyPermission = new MergedUserPermissions(Collections.emptyMap(), Map.of(group.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ))));
+        PageData<EntityData> result = findByQueryAndCheck(customerId, mergedGroupOnlyPermission, query, 5);
+
+        List<String> loadedNames = result.getData().stream().map(entityData ->
+                entityData.getLatest().get(ENTITY_FIELD).get("name").getValue()).toList();
+        assertThat(loadedNames).containsExactlyInAnyOrderElementsOf(devices.stream().map(Device::getName).collect(Collectors.toList()));
+        List<String> loadedTemperatures = result.getData().stream().map(entityData ->
+                entityData.getLatest().get(ATTRIBUTE).get("temperature").getValue()).toList();
+        assertThat(loadedTemperatures).containsExactlyInAnyOrderElementsOf(List.of("", "", "", "", ""));
+
+        deviceService.deleteDevicesByTenantId(tenantId);
+    }
+
+    @Test
     public void testFindEntityDataByRelationQuery_blobEntity_customerLevel() {
         final int deviceCnt = 2;
         final int relationsCnt = 3;
@@ -2564,7 +2629,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<ListenableFuture<TimeseriesSaveResult>> timeseriesFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
-            timeseriesFutures.add(saveLongTimeseries(device.getId(), "temperature", temperatures.get(i)));
+            timeseriesFutures.add(saveTimeseries(device.getId(), "temperature", temperatures.get(i)));
         }
         Futures.allAsList(timeseriesFutures).get();
 
@@ -2597,6 +2662,26 @@ public class EntityServiceTest extends AbstractControllerTest {
 
         query = new EntityDataQuery(filter, pageLink, entityFields, latestValues, keyFilters);
         findByQueryAndCheckTelemetry(query, EntityKeyType.TIME_SERIES, "temperature", deviceHighTemperatures);
+
+        // change sort order to sort by temperature
+        temperatures.sort(Comparator.naturalOrder());
+        List<String> expectedSortedList = temperatures.stream().map(aDouble -> Double.toString(aDouble)).collect(Collectors.toList());
+
+        EntityDataSortOrder sortByTempOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.TIME_SERIES, "temperature"), EntityDataSortOrder.Direction.ASC);
+        EntityDataPageLink sortByTempPageLink = new EntityDataPageLink(10, 0, null, sortByTempOrder);
+        EntityDataQuery querySortByTemp = new EntityDataQuery(filter, sortByTempPageLink, entityFields, latestValues, null);
+
+        List<EntityData> loadedEntities = loadAllData(querySortByTemp, deviceTemperatures.size());
+        List<String> entitiesTelemetry = loadedEntities.stream().map(entityData -> entityData.getLatest().get(EntityKeyType.TIME_SERIES).get("temperature").getValue()).toList();
+        assertThat(entitiesTelemetry).containsExactlyElementsOf(expectedSortedList);
+
+        // update temperature to long value for one of device
+        long longTempValue = -100L;
+        saveTimeseries(devices.get(new Random().nextInt(66)).getId(), "temperature", longTempValue).get();
+        loadedEntities = loadAllData(querySortByTemp, deviceTemperatures.size());
+        entitiesTelemetry = loadedEntities.stream().map(entityData -> entityData.getLatest().get(EntityKeyType.TIME_SERIES).get("temperature").getValue()).toList();
+        assertThat(entitiesTelemetry.get(0)).isEqualTo(String.valueOf(longTempValue));
 
         deviceService.deleteDevicesByTenantId(tenantId);
     }
@@ -3143,11 +3228,14 @@ public class EntityServiceTest extends AbstractControllerTest {
         return attributesService.save(tenantId, entityId, scope, Collections.singletonList(attr));
     }
 
-    private ListenableFuture<TimeseriesSaveResult> saveLongTimeseries(EntityId entityId, String key, Double value) {
-        TsKvEntity tsKv = new TsKvEntity();
-        tsKv.setStrKey(key);
-        tsKv.setDoubleValue(value);
+    private ListenableFuture<TimeseriesSaveResult> saveTimeseries(EntityId entityId, String key, Double value) {
         KvEntry telemetryValue = new DoubleDataEntry(key, value);
+        BasicTsKvEntry timeseries = new BasicTsKvEntry(42L, telemetryValue);
+        return timeseriesService.save(tenantId, entityId, timeseries);
+    }
+
+    private ListenableFuture<TimeseriesSaveResult> saveTimeseries(EntityId entityId, String key, Long value) {
+        KvEntry telemetryValue = new LongDataEntry(key, value);
         BasicTsKvEntry timeseries = new BasicTsKvEntry(42L, telemetryValue);
         return timeseriesService.save(tenantId, entityId, timeseries);
     }
@@ -3775,14 +3863,14 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     protected List<EntityData> findByQueryAndCheckTelemetry(EntityDataQuery query, EntityKeyType entityKeyType, String key, List<String> expectedTelemetry) {
-        List<EntityData> loadedEntities = findEntitiesTelemetry(query, entityKeyType, key, expectedTelemetry);
+        List<EntityData> loadedEntities = loadAllData(query, expectedTelemetry.size());
         List<String> entitiesTelemetry = loadedEntities.stream().map(entityData -> entityData.getLatest().get(entityKeyType).get(key).getValue()).toList();
         assertThat(entitiesTelemetry).containsExactlyInAnyOrderElementsOf(expectedTelemetry);
         return loadedEntities;
     }
 
-    protected List<EntityData> findEntitiesTelemetry(EntityDataQuery query, EntityKeyType entityKeyType, String key, List<String> expectedTelemetries) {
-        PageData<EntityData> data = findByQueryAndCheck(query, expectedTelemetries.size());
+    protected List<EntityData> loadAllData(EntityDataQuery query, int expectedSize) {
+        PageData<EntityData> data = findByQueryAndCheck(query, expectedSize);
         List<EntityData> loadedEntities = new ArrayList<>(data.getData());
         while (data.hasNext()) {
             query = query.next();

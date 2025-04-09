@@ -228,7 +228,7 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setConfiguration(IntegrationConfigurationProto.getDefaultInstance()).build();
     }
 
-    private UplinkResponseMsg processUplinkMsg(UplinkMsg msg) {
+    UplinkResponseMsg processUplinkMsg(UplinkMsg msg) {
         try {
             if (msg.getDeviceDataCount() > 0) {
                 for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
@@ -236,7 +236,7 @@ public final class IntegrationGrpcSession implements Closeable {
                     ctx.getRateLimitService().checkLimitPerDevice(configuration.getTenantId(), data.getDeviceName(), data::toString);
 
                     final UUID sessionId = this.sessionId;
-                    ctx.getPlatformIntegrationService().processUplinkData(configuration, sessionId, data, null);
+                    ctx.getPlatformIntegrationService().processUplinkData(configuration, sessionId, data, null).run();
                 }
             }
 
@@ -244,13 +244,13 @@ public final class IntegrationGrpcSession implements Closeable {
                 for (AssetUplinkDataProto data : msg.getAssetDataList()) {
                     ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
                     ctx.getRateLimitService().checkLimitPerAsset(configuration.getTenantId(), data.getAssetName(), data::toString);
-                    ctx.getPlatformIntegrationService().processUplinkData(configuration, data, null);
+                    ctx.getPlatformIntegrationService().processUplinkData(configuration, data, null).run();
                 }
             }
 
             if (msg.getEntityViewDataCount() > 0) {
                 for (EntityViewDataProto data : msg.getEntityViewDataList()) {
-                    ctx.getPlatformIntegrationService().processUplinkData(configuration, data, null);
+                    ctx.getPlatformIntegrationService().processUplinkData(configuration, data, null).run();
                 }
             }
 
@@ -451,6 +451,9 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
         if (converter.getDebugSettings() != null) {
             builder.setDebugSettings(JacksonUtil.toString(converter.getDebugSettings()));
+        }
+        if (converter.getIntegrationType() != null) {
+            builder.setIntegrationType(converter.getIntegrationType().toString());
         }
         return builder.build();
     }

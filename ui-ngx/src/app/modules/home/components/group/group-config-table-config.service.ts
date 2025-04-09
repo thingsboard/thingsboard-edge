@@ -657,6 +657,9 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     );
     column.ignoreTranslate = true;
     column.mobileHide = entityGroupColumn.mobileHide;
+    if (entityGroupColumn.disableSorting) {
+      column.sortable = false;
+    }
     return column;
   }
 

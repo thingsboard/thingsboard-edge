@@ -31,6 +31,7 @@
 package org.thingsboard.server.edqs.query;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.edqs.DataPoint;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.edqs.data.EntityData;
@@ -41,7 +42,7 @@ import java.util.UUID;
 public class SortableEntityData {
 
     private final EntityData entityData;
-    private String sortValue;
+    private DataPoint sortValue;
     private boolean readAttrs;
     private boolean readTs;
 

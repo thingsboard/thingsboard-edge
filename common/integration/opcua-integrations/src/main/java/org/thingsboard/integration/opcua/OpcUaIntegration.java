@@ -184,7 +184,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     private void doProcess(IntegrationContext context, OpcUaIntegrationMsg msg) throws Exception {
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         mdMap.putAll(msg.getDeviceMetadata());
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), mdMap));
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData<>(getDefaultUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 log.trace("[{}] Processing uplink data: {}", getConfigurationId(), data);

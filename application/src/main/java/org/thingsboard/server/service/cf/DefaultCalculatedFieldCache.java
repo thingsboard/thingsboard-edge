@@ -159,6 +159,9 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
         calculatedFieldFetchLock.lock();
         try {
             CalculatedField calculatedField = calculatedFieldService.findById(tenantId, calculatedFieldId);
+            if (calculatedField == null) {
+                return;
+            }
             EntityId cfEntityId = calculatedField.getEntityId();
 
             calculatedFields.put(calculatedFieldId, calculatedField);

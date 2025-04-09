@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.exception.TenantNotFoundException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -55,6 +56,7 @@ import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,7 +71,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static org.thingsboard.server.common.data.DataConstants.CF_QUEUE_NAME;
+import static org.thingsboard.server.common.data.DataConstants.CF_STATES_QUEUE_NAME;
 import static org.thingsboard.server.common.data.DataConstants.EDGE_QUEUE_NAME;
 import static org.thingsboard.server.common.data.DataConstants.MAIN_QUEUE_NAME;
 
@@ -87,8 +92,6 @@ public class HashPartitionService implements PartitionService {
     private String cfEventTopic;
     @Value("${queue.calculated_fields.state_topic:tb_cf_state}")
     private String cfStateTopic;
-    @Value("${queue.calculated_fields.partitions:10}")
-    private Integer cfPartitions;
     @Value("${queue.vc.topic:tb_version_control}")
     private String vcTopic;
     @Value("${queue.vc.partitions:10}")
@@ -145,11 +148,6 @@ public class HashPartitionService implements PartitionService {
         partitionSizesMap.put(coreKey, corePartitions);
         partitionTopicsMap.put(coreKey, coreTopic);
 
-        partitionSizesMap.put(QueueKey.CF, cfPartitions);
-        partitionTopicsMap.put(QueueKey.CF, cfEventTopic);
-        partitionSizesMap.put(QueueKey.CF_STATES, cfPartitions);
-        partitionTopicsMap.put(QueueKey.CF_STATES, cfStateTopic);
-
         QueueKey vcKey = new QueueKey(ServiceType.TB_VC_EXECUTOR);
         partitionSizesMap.put(vcKey, vcPartitions);
         partitionTopicsMap.put(vcKey, vcTopic);
@@ -197,8 +195,7 @@ public class HashPartitionService implements PartitionService {
         List<QueueRoutingInfo> queueRoutingInfoList = getQueueRoutingInfos();
         queueRoutingInfoList.forEach(queue -> {
             QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queue);
-            partitionTopicsMap.put(queueKey, queue.getQueueTopic());
-            partitionSizesMap.put(queueKey, queue.getPartitions());
+            updateQueue(queueKey, queue.getQueueTopic(), queue.getPartitions());
             queueConfigs.put(queueKey, new QueueConfig(queue));
         });
     }
@@ -245,8 +242,7 @@ public class HashPartitionService implements PartitionService {
             QueueRoutingInfo queueRoutingInfo = new QueueRoutingInfo(queueUpdateMsg);
             TenantId tenantId = queueRoutingInfo.getTenantId();
             QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queueRoutingInfo.getQueueName(), tenantId);
-            partitionTopicsMap.put(queueKey, queueRoutingInfo.getQueueTopic());
-            partitionSizesMap.put(queueKey, queueRoutingInfo.getPartitions());
+            updateQueue(queueKey, queueRoutingInfo.getQueueTopic(), queueRoutingInfo.getPartitions());
             queueConfigs.put(queueKey, new QueueConfig(queueRoutingInfo));
             if (!tenantId.isSysTenantId()) {
                 tenantRoutingInfoMap.remove(tenantId);
@@ -257,9 +253,15 @@ public class HashPartitionService implements PartitionService {
     @Override
     public void removeQueues(List<TransportProtos.QueueDeleteMsg> queueDeleteMsgs) {
         List<QueueKey> queueKeys = queueDeleteMsgs.stream()
-                .map(queueDeleteMsg -> {
+                .flatMap(queueDeleteMsg -> {
                     TenantId tenantId = TenantId.fromUUID(new UUID(queueDeleteMsg.getTenantIdMSB(), queueDeleteMsg.getTenantIdLSB()));
-                    return new QueueKey(ServiceType.TB_RULE_ENGINE, queueDeleteMsg.getQueueName(), tenantId);
+                    QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queueDeleteMsg.getQueueName(), tenantId);
+                    if (queueKey.getQueueName().equals(MAIN_QUEUE_NAME)) {
+                        return Stream.of(queueKey, queueKey.withQueueName(CF_QUEUE_NAME),
+                                queueKey.withQueueName(CF_STATES_QUEUE_NAME));
+                    } else {
+                        return Stream.of(queueKey);
+                    }
                 }).toList();
         queueKeys.forEach(queueKey -> {
             removeQueue(queueKey);
@@ -274,9 +276,31 @@ public class HashPartitionService implements PartitionService {
     @Override
     public void removeTenant(TenantId tenantId) {
         List<QueueKey> queueKeys = partitionSizesMap.keySet().stream()
-                .filter(queueKey -> tenantId.equals(queueKey.getTenantId())).toList();
+                .filter(queueKey -> tenantId.equals(queueKey.getTenantId()))
+                .flatMap(queueKey -> {
+                    if (queueKey.getQueueName().equals(MAIN_QUEUE_NAME)) {
+                        return Stream.of(queueKey, queueKey.withQueueName(CF_QUEUE_NAME),
+                                queueKey.withQueueName(CF_STATES_QUEUE_NAME));
+                    } else {
+                        return Stream.of(queueKey);
+                    }
+                })
+                .toList();
         queueKeys.forEach(this::removeQueue);
         evictTenantInfo(tenantId);
+    }
+
+    private void updateQueue(QueueKey queueKey, String topic, int partitions) {
+        partitionTopicsMap.put(queueKey, topic);
+        partitionSizesMap.put(queueKey, partitions);
+        if (DataConstants.MAIN_QUEUE_NAME.equals(queueKey.getQueueName())) {
+            QueueKey cfQueueKey = queueKey.withQueueName(DataConstants.CF_QUEUE_NAME);
+            partitionTopicsMap.put(cfQueueKey, cfEventTopic);
+            partitionSizesMap.put(cfQueueKey, partitions);
+            QueueKey cfStatesQueueKey = queueKey.withQueueName(DataConstants.CF_STATES_QUEUE_NAME);
+            partitionTopicsMap.put(cfStatesQueueKey, cfStateTopic);
+            partitionSizesMap.put(cfStatesQueueKey, partitions);
+        }
     }
 
     private void removeQueue(QueueKey queueKey) {
@@ -368,8 +392,7 @@ public class HashPartitionService implements PartitionService {
         }
     }
 
-    @Override
-    public TopicPartitionInfo resolve(QueueKey queueKey, EntityId entityId) {
+    private TopicPartitionInfo resolve(QueueKey queueKey, EntityId entityId) {
         Integer partitionSize = partitionSizesMap.get(queueKey);
         if (partitionSize == null) {
             throw new IllegalStateException("Partitions info for queue " + queueKey + " is missing");
@@ -569,7 +592,15 @@ public class HashPartitionService implements PartitionService {
 
     @Override
     public int resolvePartitionIndex(UUID entityId, int partitions) {
-        int hash = hash(entityId);
+        return resolvePartitionIndex(hash(entityId), partitions);
+    }
+
+    @Override
+    public int resolvePartitionIndex(String key, int partitions) {
+        return resolvePartitionIndex(hash(key), partitions);
+    }
+
+    private int resolvePartitionIndex(int hash, int partitions) {
         return Math.abs(hash % partitions);
     }
 
@@ -587,11 +618,6 @@ public class HashPartitionService implements PartitionService {
     @Override
     public int getIntegrationExecutorPartitionsCount() {
         return integrationPartitions;
-    }
-
-    @Override
-    public int getTotalCalculatedFieldPartitions() {
-        return cfPartitions;
     }
 
     private Map<QueueKey, List<ServiceInfo>> getServiceKeyListMap(List<ServiceInfo> services) {
@@ -755,6 +781,12 @@ public class HashPartitionService implements PartitionService {
         return hashFunction.newHasher()
                 .putLong(key.getMostSignificantBits())
                 .putLong(key.getLeastSignificantBits())
+                .hash().asInt();
+    }
+
+    private int hash(String key) {
+        return hashFunction.newHasher()
+                .putString(key, StandardCharsets.UTF_8)
                 .hash().asInt();
     }
 

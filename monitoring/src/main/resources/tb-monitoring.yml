@@ -142,6 +142,9 @@ monitoring:
         # Whether to monitor IPs associated with the domain from base url
         check_domain_ips: '${COAP_INTEGRATION_CHECK_DOMAIN_IPS:false}'
 
+  edqs:
+    enabled: "${EDQS_MONITORING_ENABLED:false}"
+
   notifications:
     message_prefix: '${NOTIFICATION_MESSAGE_PREFIX:}'
     slack:

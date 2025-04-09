@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Input, OnInit, output } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, output, ViewChild } from '@angular/core';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { charsWithNumRegex, oneSpaceInsideRegex } from '@shared/models/regex.constants';
@@ -51,21 +51,22 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EntityFilter } from '@shared/models/query/query.models';
 import { AliasFilterType } from '@shared/models/alias.models';
-import { merge } from 'rxjs';
+import { BehaviorSubject, merge } from 'rxjs';
 import { MINUTE } from '@shared/models/time/time.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
+import { EntityAutocompleteComponent } from '@shared/components/entity/entity-autocomplete.component';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
 
 @Component({
   selector: 'tb-calculated-field-argument-panel',
   templateUrl: './calculated-field-argument-panel.component.html',
   styleUrls: ['./calculated-field-argument-panel.component.scss']
 })
-export class CalculatedFieldArgumentPanelComponent implements OnInit {
+export class CalculatedFieldArgumentPanelComponent implements OnInit, AfterViewInit {
 
   @Input() buttonTitle: string;
-  @Input() index: number;
   @Input() argument: CalculatedFieldArgumentValue;
   @Input() entityId: EntityId;
   @Input() tenantId: string;
@@ -73,7 +74,9 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit {
   @Input() calculatedFieldType: CalculatedFieldType;
   @Input() usedArgumentNames: string[];
 
-  argumentsDataApplied = output<{ value: CalculatedFieldArgumentValue, index: number }>();
+  @ViewChild('entityAutocomplete') entityAutocomplete: EntityAutocompleteComponent;
+
+  argumentsDataApplied = output<CalculatedFieldArgumentValue>();
 
   readonly maxDataPointsPerRollingArg = getCurrentAuthState(this.store).maxDataPointsPerRollingArg;
   readonly defaultLimit = Math.floor(this.maxDataPointsPerRollingArg / 10);
@@ -90,12 +93,13 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit {
       scope: [{ value: AttributeScope.SERVER_SCOPE, disabled: true }, [Validators.required]],
     }),
     defaultValue: ['', [Validators.pattern(oneSpaceInsideRegex)]],
-    limit: [{ value: this.defaultLimit, disabled: !this.maxDataPointsPerRollingArg }],
-    timeWindow: [MINUTE * 15],
+    limit: [{ value: this.defaultLimit, disabled: !this.maxDataPointsPerRollingArg }, [Validators.required, Validators.min(1), Validators.max(this.maxDataPointsPerRollingArg)]],
+    timeWindow: [MINUTE * 15, [Validators.required]],
   });
 
   argumentTypes: ArgumentType[];
   entityFilter: EntityFilter;
+  entityNameSubject = new BehaviorSubject<string>(null);
 
   readonly argumentEntityTypes = Object.values(ArgumentEntityType) as ArgumentEntityType[];
   readonly ArgumentEntityTypeTranslations = ArgumentEntityTypeTranslations;
@@ -117,7 +121,7 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit {
     private store: Store<AppState>
   ) {
     this.observeEntityFilterChanges();
-    this.observeEntityTypeChanges()
+    this.observeEntityTypeChanges();
     this.observeEntityKeyChanges();
     this.observeUpdatePosition();
   }
@@ -151,17 +155,26 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit {
       .filter(type => type !== ArgumentType.Rolling || this.calculatedFieldType === CalculatedFieldType.SCRIPT);
   }
 
+  ngAfterViewInit(): void {
+    if (this.argument.refEntityId?.id === NULL_UUID) {
+      this.entityAutocomplete.selectEntityFormGroup.get('entity').markAsTouched();
+    }
+  }
+
   saveArgument(): void {
     const { refEntityId, ...restConfig } = this.argumentFormGroup.value;
     const value = (refEntityId.entityType === ArgumentEntityType.Current ? restConfig : { refEntityId, ...restConfig }) as CalculatedFieldArgumentValue;
     if (refEntityId.entityType === ArgumentEntityType.Tenant) {
       refEntityId.id = this.tenantId;
     }
+    if (refEntityId.entityType !== ArgumentEntityType.Current && refEntityId.entityType !== ArgumentEntityType.Tenant) {
+      value.entityName = this.entityNameSubject.value;
+    }
     if (value.defaultValue) {
       value.defaultValue = value.defaultValue.trim();
     }
     value.refEntityKey.key = value.refEntityKey.key.trim();
-    this.argumentsDataApplied.emit({ value, index: this.index });
+    this.argumentsDataApplied.emit(value);
   }
 
   cancel(): void {
@@ -217,12 +230,16 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit {
   }
 
   private observeEntityTypeChanges(): void {
-    this.argumentFormGroup.get('refEntityId').get('entityType').valueChanges
+    this.refEntityIdFormGroup.get('entityType').valueChanges
       .pipe(distinctUntilChanged(), takeUntilDestroyed())
       .subscribe(type => {
         this.argumentFormGroup.get('refEntityId').get('id').setValue('');
+        const isEntityWithId = type !== ArgumentEntityType.Tenant && type !== ArgumentEntityType.Current;
         this.argumentFormGroup.get('refEntityId')
-          .get('id')[type === ArgumentEntityType.Tenant || type === ArgumentEntityType.Current ? 'disable' : 'enable']();
+          .get('id')[isEntityWithId ? 'enable' : 'disable']();
+        if (!isEntityWithId) {
+          this.entityNameSubject.next(null);
+        }
         if (!this.enableAttributeScopeSelection) {
           this.refEntityKeyFormGroup.get('scope').setValue(AttributeScope.SERVER_SCOPE);
         }

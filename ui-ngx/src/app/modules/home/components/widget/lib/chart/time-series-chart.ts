@@ -86,7 +86,7 @@ import { BehaviorSubject } from 'rxjs';
 import { AggregationType } from '@shared/models/time/time.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { WidgetSubscriptionOptions } from '@core/api/widget-api.models';
-import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeySettingsFunction } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import { DeepPartial } from '@shared/models/common';
 import { BarRenderSharedContext } from '@home/components/widget/lib/chart/time-series-chart-bar.models';
 import { TimeSeriesChartStateValueConverter } from '@home/components/widget/lib/chart/time-series-chart-state.models';
@@ -175,6 +175,8 @@ export class TbTimeSeriesChart {
   private barRenderSharedContext: BarRenderSharedContext;
 
   private latestData: FormattedData[] = [];
+
+  private onParentScroll = this._onParentScroll.bind(this);
 
   yMin$ = this.yMinSubject.asObservable();
   yMax$ = this.yMaxSubject.asObservable();
@@ -373,6 +375,7 @@ export class TbTimeSeriesChart {
     this.yMinSubject.complete();
     this.yMaxSubject.complete();
     this.darkModeObserver?.disconnect();
+    this.ctx.dashboard.gridster.el.removeEventListener('scroll', this.onParentScroll);
   }
 
   public resize(): void {
@@ -626,6 +629,7 @@ export class TbTimeSeriesChart {
     this.timeSeriesChart = echarts.init(this.chartElement,  null, {
       renderer: 'svg'
     });
+    this.ctx.dashboard.gridster.el.addEventListener('scroll', this.onParentScroll);
     this.timeSeriesChartOptions = {
       darkMode: this.darkMode,
       backgroundColor: 'transparent',
@@ -701,12 +705,14 @@ export class TbTimeSeriesChart {
   }
 
   private updateSeriesData(updateScale = false): void {
-    this.updateSeries();
-    if (updateScale && this.updateYAxisScale(this.yAxisList)) {
-      this.timeSeriesChartOptions.yAxis = this.yAxisList.map(axis => axis.option);
+    if (!this.timeSeriesChart.isDisposed()) {
+      this.updateSeries();
+      if (updateScale && this.updateYAxisScale(this.yAxisList)) {
+        this.timeSeriesChartOptions.yAxis = this.yAxisList.map(axis => axis.option);
+      }
+      this.timeSeriesChart.setOption(this.timeSeriesChartOptions);
+      this.updateAxes();
     }
-    this.timeSeriesChart.setOption(this.timeSeriesChartOptions);
-    this.updateAxes();
   }
 
   private updateSeries(): void {
@@ -802,7 +808,7 @@ export class TbTimeSeriesChart {
           }
         } else {
           if (!axis.option.name) {
-            axis.option.name = axis.settings.label;
+            axis.option.name = this.ctx.utilsService.customTranslation(axis.settings.label, axis.settings.label);
             result.changed = true;
           }
           const nameGap = size;
@@ -850,6 +856,14 @@ export class TbTimeSeriesChart {
 
   private minBottomOffset(): number {
     return this.settings.dataZoom ? 45 : 5;
+  }
+
+  private _onParentScroll() {
+    if (this.timeSeriesChart) {
+      this.timeSeriesChart.dispatchAction({
+        type: 'hideTip'
+      });
+    }
   }
 
   private onResize() {

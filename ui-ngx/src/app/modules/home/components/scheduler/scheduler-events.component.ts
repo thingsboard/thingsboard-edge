@@ -151,8 +151,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   mode = 'list';
 
   displayPagination = true;
-  pageSizeOptions: Array<number>;
-  defaultPageSize = 10;
+  pageSizeOptions: Array<number> = [];
+  defaultPageSize;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
   hidePageSize = false;
@@ -216,8 +216,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       const routerQueryParams: PageQueryParam = this.route.snapshot.queryParams;
       const sortOrder: SortOrder = {
         property: routerQueryParams?.property || this.defaultSortOrder,
-        direction: routerQueryParams?.direction || Direction.ASC
+        direction: routerQueryParams?.direction || Direction.DESC
       };
+      this.defaultPageSize = 10;
       this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
       if (routerQueryParams.hasOwnProperty('page')) {
@@ -346,10 +347,26 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     this.displayedColumns.push('actions');
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     const pageSize = this.settings.defaultPageSize;
+    let pageStepIncrement = this.settings.pageStepIncrement;
+    let pageStepCount = this.settings.pageStepCount;
+
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
+      pageStepCount = 3;
+    }
+
+    for (let i = 1; i <= pageStepCount; i++) {
+      this.pageSizeOptions.push(pageStepIncrement * i);
+    }
+
     if (this.settings.defaultSortOrder && this.settings.defaultSortOrder.length) {
       this.defaultSortOrder = this.settings.defaultSortOrder;
     }

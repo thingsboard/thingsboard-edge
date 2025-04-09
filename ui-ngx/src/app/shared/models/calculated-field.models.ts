@@ -30,7 +30,6 @@
 ///
 
 import {
-  AdditionalDebugActionConfig,
   HasEntityDebugSettings,
   HasTenantId,
   HasVersion
@@ -142,7 +141,7 @@ export const ArgumentTypeTranslations = new Map<ArgumentType, string>(
 export interface CalculatedFieldArgument {
   refEntityKey: RefEntityKey;
   defaultValue?: string;
-  refEntityId?: RefEntityKey;
+  refEntityId?: RefEntityId;
   limit?: number;
   timeWindow?: number;
 }
@@ -153,46 +152,21 @@ export interface RefEntityKey {
   scope?: AttributeScope;
 }
 
-export interface RefEntityKey {
+export interface RefEntityId {
   entityType: ArgumentEntityType;
   id: string;
 }
 
 export interface CalculatedFieldArgumentValue extends CalculatedFieldArgument {
   argumentName: string;
+  entityName?: string;
 }
 
 export type CalculatedFieldTestScriptFn = (calculatedField: CalculatedField, argumentsObj?: Record<string, unknown>, closeAllOnSave?: boolean) => Observable<string>;
 
-export interface CalculatedFieldDialogData {
-  value?: CalculatedField;
-  buttonTitle: string;
-  entityId: EntityId;
-  debugLimitsConfiguration: string;
-  tenantId: string;
-  entityName?: string;
-  additionalDebugActionConfig: AdditionalDebugActionConfig<(calculatedField: CalculatedField) => void>;
-  getTestScriptDialogFn: CalculatedFieldTestScriptFn;
-  isDirty?: boolean;
-  readonly: boolean;
-}
-
-export interface CalculatedFieldDebugDialogData {
-  tenantId: string;
-  value: CalculatedField;
-  getTestScriptDialogFn: CalculatedFieldTestScriptFn;
-}
-
 export interface CalculatedFieldTestScriptInputParams {
   arguments: CalculatedFieldEventArguments;
   expression: string;
-}
-
-export interface CalculatedFieldTestScriptDialogData extends CalculatedFieldTestScriptInputParams {
-  argumentsEditorCompleter: TbEditorCompleter;
-  argumentsHighlightRules: AceHighlightRules;
-  openCalculatedFieldEdit?: boolean;
-  readonly: boolean;
 }
 
 export interface ArgumentEntityTypeParams {
@@ -580,12 +554,12 @@ export const getCalculatedFieldArgumentsHighlights = (
     regex: `\\b${key}\\b`,
     next: argumentsObj[key].refEntityKey.type === ArgumentType.Rolling
       ? 'calculatedFieldRollingArgumentValue'
-      : 'start'
+      : 'no_regex'
   }));
   const calculatedFieldCtxArgumentsHighlightRules = {
     calculatedFieldCtxArgs: [
       dotOperatorHighlightRule,
-      ...calculatedFieldArgumentsKeys.map(argumentRule => argumentRule.next === 'start' ? {...argumentRule, next: 'calculatedFieldSingleArgumentValue' } : argumentRule),
+      ...calculatedFieldArgumentsKeys.map(argumentRule => argumentRule.next === 'no_regex' ? {...argumentRule, next: 'calculatedFieldSingleArgumentValue' } : argumentRule),
       endGroupHighlightRule
     ]
   };
@@ -639,7 +613,7 @@ const calculatedFieldSingleArgumentValueHighlightRules: AceHighlightRules = {
 }
 
 const calculatedFieldRollingArgumentValueFunctionsHighlightRules: Array<AceHighlightRule> =
-  ['max', 'min', 'avg', 'mean', 'std', 'median', 'count', 'last', 'first', 'sum', 'merge', 'mergeAll'].map(funcName => ({
+  Object.keys(CalculatedFieldRollingValueArgumentFunctionsAutocomplete).map(funcName => ({
     token: 'tb.calculated-field-func',
     regex: `\\b${funcName}\\b`,
     next: 'no_regex'
@@ -680,7 +654,8 @@ const calculatedFieldTimeWindowArgumentValueHighlightRules: AceHighlightRules = 
   ]
 }
 
-export const calculatedFieldDefaultScript = 'return {\n' +
-  '    // Convert Fahrenheit to Celsius\n' +
-  '    "temperatureCelsius": (temperature - 32) / 1.8\n' +
+export const calculatedFieldDefaultScript =
+  '// Sample script to convert temperature readings from Fahrenheit to Celsius\n' +
+  'return {\n' +
+  '    "temperatureC": (temperatureF - 32) / 1.8\n' +
   '};'

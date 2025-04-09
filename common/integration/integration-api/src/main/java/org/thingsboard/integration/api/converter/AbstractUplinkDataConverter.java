@@ -43,14 +43,18 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.converter.wrapper.ConverterUnwrapper;
+import org.thingsboard.integration.api.converter.wrapper.ConverterUnwrapperFactory;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
@@ -63,6 +67,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
@@ -76,12 +81,14 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final int MAX_ALLOWED_STRING_LENGTH = 32;
 
-    private final Set<String> updateOnlyKeys = new HashSet<>();
-    private final Map<String, Map<String, String>> currentUpdateOnlyTelemetryPerEntity = new ConcurrentHashMap<>();
-    private final Map<String, Map<String, String>> currentUpdateOnlyAttributesPerEntity = new ConcurrentHashMap<>();
+    protected final Set<String> updateOnlyKeys = new HashSet<>();
+    protected final Map<String, Map<String, String>> currentUpdateOnlyTelemetryPerEntity = new ConcurrentHashMap<>();
+    protected final Map<String, Map<String, String>> currentUpdateOnlyAttributesPerEntity = new ConcurrentHashMap<>();
 
-    public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
-        super(jsInvokeService, tbelInvokeService);
+    private ConverterUnwrapper converterUnwrapper;
+
+    public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
+        super(jsInvokeService, tbelInvokeService, logSettings);
     }
 
     @Override
@@ -98,12 +105,33 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
         this.currentUpdateOnlyTelemetryPerEntity.values().forEach(entityKeys -> entityKeys.keySet().retainAll(this.updateOnlyKeys));
         this.currentUpdateOnlyAttributesPerEntity.values().forEach(entityKeys -> entityKeys.keySet().retainAll(this.updateOnlyKeys));
+
+        if (configuration.isDedicated()) {
+            var integrationType = configuration.getIntegrationType();
+            this.converterUnwrapper = ConverterUnwrapperFactory
+                    .getUnwrapper(integrationType)
+                    .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
+        }
     }
 
     @Override
     public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata, ExecutorService callBackExecutorService) throws Exception {
+        final byte[] srcData = data;
+        final UplinkMetaData srcMetadata = metadata;
+        final byte[] finalData;
+        final UplinkMetaData finalMetadata;
+
+        if (configuration.isDedicated()) {
+            TbPair<byte[], UplinkMetaData<Object>> wrappedPair = converterUnwrapper.unwrap(data, metadata);
+            finalData = wrappedPair.getFirst();
+            finalMetadata = wrappedPair.getSecond();
+        } else {
+            finalData = data;
+            finalMetadata = metadata;
+        }
+
         long startTime = System.currentTimeMillis();
-        ListenableFuture<String> convertFuture = doConvertUplink(data, metadata);
+        ListenableFuture<String> convertFuture = doConvertUplink(finalData, finalMetadata);
         ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, rawResult -> {
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Uplink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
@@ -112,20 +140,20 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
             List<UplinkData> resultList = new ArrayList<>();
             if (element.isJsonArray()) {
                 for (JsonElement uplinkJson : element.getAsJsonArray()) {
-                    resultList.add(parseUplinkData(uplinkJson.getAsJsonObject()));
+                    resultList.add(parseUplinkData(uplinkJson.getAsJsonObject(), finalMetadata));
                 }
             } else if (element.isJsonObject()) {
-                resultList.add(parseUplinkData(element.getAsJsonObject()));
+                resultList.add(parseUplinkData(element.getAsJsonObject(), finalMetadata));
             }
             if (DebugModeUtil.isDebugAllAvailable(configuration)) {
                 if (context.getRateLimitService().map(s -> s.checkLimit(configuration.getTenantId(), configuration.getId(), false)).orElse(true)) {
-                    persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
+                    persistUplinkDebug(context, srcMetadata.getContentType(), srcData, rawResult, srcMetadata);
                 } else {
                     if (context.getRateLimitService().get().alreadyProcessed(configuration.getId(), EntityType.CONVERTER)) {
                         log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), configuration.getId(), EntityType.CONVERTER);
                     } else {
                         TbRateLimitsException exception = new TbRateLimitsException(EntityType.CONVERTER, "Converter debug rate limits reached!");
-                        persistUplinkDebug(context, metadata.getContentType(), data, metadata, exception);
+                        persistUplinkDebug(context, srcMetadata.getContentType(), srcData, srcMetadata, exception);
                     }
                 }
             }
@@ -135,7 +163,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         }, t -> {
             if (t instanceof Exception) {
                 if (DebugModeUtil.isDebugIntegrationFailuresAvailable(configuration)) {
-                    persistUplinkDebug(context, metadata.getContentType(), data, metadata, (Exception) t);
+                    persistUplinkDebug(context, srcMetadata.getContentType(), srcData, srcMetadata, (Exception) t);
                 }
             } else {
                 log.warn("[{}][{}] Unhandled exception: ", configuration.getId(), configuration.getName(), t);
@@ -146,7 +174,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     protected abstract ListenableFuture<String> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
 
-    protected UplinkData parseUplinkData(JsonObject src) {
+    protected UplinkData parseUplinkData(JsonObject src, UplinkMetaData metadata) {
         boolean isAsset = getIsAssetAndVerify(src);
 
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
@@ -208,7 +236,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return builder.build();
     }
 
-    private PostTelemetryMsg filterTelemetryOnKeyValueUpdateAndUpdateMap(PostTelemetryMsg telemetry, Map<String, String> currentEntityKeyValues) {
+    protected PostTelemetryMsg filterTelemetryOnKeyValueUpdateAndUpdateMap(PostTelemetryMsg telemetry, Map<String, String> currentEntityKeyValues) {
         PostTelemetryMsg.Builder filteredTelemetryBuilder = PostTelemetryMsg.newBuilder();
         for (TransportProtos.TsKvListProto tsKvList : telemetry.getTsKvListList()) {
             TransportProtos.TsKvListProto.Builder filteredTsKvListBuilder = TransportProtos.TsKvListProto.newBuilder().setTs(tsKvList.getTs());
@@ -224,7 +252,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return !currentEntityKeyValues.isEmpty() ? filteredTelemetryBuilder.build() : telemetry;
     }
 
-    private PostAttributeMsg filterAttributeOnKeyValueUpdateAndUpdateMap(PostAttributeMsg attributes, Map<String, String> currentEntityKeyValues) {
+    protected PostAttributeMsg filterAttributeOnKeyValueUpdateAndUpdateMap(PostAttributeMsg attributes, Map<String, String> currentEntityKeyValues) {
         PostAttributeMsg.Builder filteredAttributesBuilder = PostAttributeMsg.newBuilder();
         List<TransportProtos.KeyValueProto> filtered = filterKeyValueAndUpdateMap(attributes.getKvList(), currentEntityKeyValues);
         filteredAttributesBuilder.addAllKv(filtered);
@@ -293,11 +321,11 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return isAsset;
     }
 
-    private PostTelemetryMsg parseTelemetry(JsonElement src) {
+    protected PostTelemetryMsg parseTelemetry(JsonElement src) {
         return JsonConverter.convertToTelemetryProto(src);
     }
 
-    private PostAttributeMsg parseAttributesUpdate(JsonElement src) {
+    protected PostAttributeMsg parseAttributesUpdate(JsonElement src) {
         return JsonConverter.convertToAttributesProto(src);
     }
 
@@ -318,7 +346,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     }
 
     private String metadataToJson(UplinkMetaData metaData) throws JsonProcessingException {
-        return JacksonUtil.toString(metaData.getKvMap());
+        return JacksonUtil.toString(new TreeMap<>(metaData.getKvMap()));
     }
 
     private String getTypeUplink(byte[] inMessage) throws JsonProcessingException {

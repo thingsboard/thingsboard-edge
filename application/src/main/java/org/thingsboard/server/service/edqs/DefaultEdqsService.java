@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.msg.edqs.EdqsApiService;
 import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -74,7 +75,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
 import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.TopicService;
-import org.thingsboard.server.queue.edqs.EdqsQueue;
 import org.thingsboard.server.queue.environment.DistributedLock;
 import org.thingsboard.server.queue.environment.DistributedLockService;
 import org.thingsboard.server.queue.provider.EdqsClientQueueFactory;
@@ -111,10 +111,8 @@ public class DefaultEdqsService implements EdqsService {
     private void init() {
         executor = ThingsBoardExecutors.newWorkStealingPool(12, getClass());
         eventsProducer = EdqsProducer.builder()
-                .queue(EdqsQueue.EVENTS)
+                .producer(queueFactory.createEdqsEventsProducer())
                 .partitionService(edqsPartitionService)
-                .topicService(topicService)
-                .producer(queueFactory.createEdqsMsgProducer(EdqsQueue.EVENTS))
                 .build();
         syncLock = distributedLockService.getLock("edqs_sync");
     }
@@ -165,9 +163,12 @@ public class DefaultEdqsService implements EdqsService {
                     syncLock.lock();
                     try {
                         EdqsSyncState syncState = getSyncState();
-                        if (syncState != null && syncState.getStatus() == EdqsSyncStatus.FINISHED) {
-                            log.info("EDQS sync is already finished");
-                            return;
+                        if (syncState != null) {
+                            EdqsSyncStatus status = syncState.getStatus();
+                            if (status == EdqsSyncStatus.FINISHED || status == EdqsSyncStatus.FAILED) {
+                                log.info("EDQS sync is already " + status + ", ignoring the msg");
+                                return;
+                            }
                         }
 
                         saveSyncState(EdqsSyncStatus.STARTED);
@@ -200,7 +201,7 @@ public class DefaultEdqsService implements EdqsService {
     public void onUpdate(TenantId tenantId, EntityId entityId, Object entity) {
         EntityType entityType = entityId.getEntityType();
         ObjectType objectType = ObjectType.fromEntityType(entityType);
-        if (!isEdqsType(tenantId, objectType)) {
+        if (ignoreEvent(tenantId, entity, objectType)) {
             log.trace("[{}][{}] Ignoring update event, type {} not supported", tenantId, entityId, entityType);
             return;
         }
@@ -213,14 +214,18 @@ public class DefaultEdqsService implements EdqsService {
     }
 
     @Override
-    public void onDelete(TenantId tenantId, EntityId entityId) {
+    public void onDelete(TenantId tenantId, EntityId entityId, Object entity) {
         EntityType entityType = entityId.getEntityType();
         ObjectType objectType = ObjectType.fromEntityType(entityType);
-        if (!isEdqsType(tenantId, objectType)) {
+        if (ignoreEvent(tenantId, entity, objectType)) {
             log.trace("[{}][{}] Ignoring deletion event, type {} not supported", tenantId, entityId, entityType);
             return;
         }
         onDelete(tenantId, objectType, new Entity(entityType, entityId.getId(), Long.MAX_VALUE));
+    }
+
+    private boolean ignoreEvent(TenantId tenantId, Object entity, ObjectType objectType) {
+        return !isEdqsType(tenantId, objectType) || entity instanceof DeviceGroupOtaPackage;
     }
 
     @Override

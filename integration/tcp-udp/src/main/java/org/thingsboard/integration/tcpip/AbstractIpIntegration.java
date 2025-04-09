@@ -301,7 +301,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(uplinkContentType, metadataMap));
+        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData<>(uplinkContentType, metadataMap));
     }
 
     private void processUplinkData(IntegrationContext context, List<UplinkData> uplinkDataList) throws Exception {

@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -91,7 +92,7 @@ public class DefaultTbCalculatedFieldService extends AbstractTbEntityService imp
 
     @Override
     @Transactional
-    public void delete(CalculatedField calculatedField, SecurityUser user) {
+    public void delete(CalculatedField calculatedField, User user) {
         ActionType actionType = ActionType.DELETED;
         TenantId tenantId = calculatedField.getTenantId();
         CalculatedFieldId calculatedFieldId = calculatedField.getId();
@@ -104,6 +105,12 @@ public class DefaultTbCalculatedFieldService extends AbstractTbEntityService imp
         }
     }
 
+    @Override
+    public void delete(CalculatedFieldId calculatedFieldId, User user) {
+        CalculatedField calculatedField = calculatedFieldService.findById(user.getTenantId(), calculatedFieldId);
+        delete(calculatedField, user);
+    }
+
     private void checkForEntityChange(CalculatedField oldCalculatedField, CalculatedField newCalculatedField) {
         if (!oldCalculatedField.getEntityId().equals(newCalculatedField.getEntityId())) {
             throw new IllegalArgumentException("Changing the calculated field target entity after initialization is prohibited.");
@@ -112,9 +119,11 @@ public class DefaultTbCalculatedFieldService extends AbstractTbEntityService imp
 
     private void checkEntityExistence(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {
-            case ASSET, DEVICE, ASSET_PROFILE, DEVICE_PROFILE -> Optional.ofNullable(entityService.fetchEntity(tenantId, entityId))
-                    .orElseThrow(() -> new IllegalArgumentException(entityId.getEntityType().getNormalName() + " with id [" + entityId.getId() + "] does not exist."));
-            default -> throw new IllegalArgumentException("Entity type '" + entityId.getEntityType() + "' does not support calculated fields.");
+            case ASSET, DEVICE, ASSET_PROFILE, DEVICE_PROFILE ->
+                    Optional.ofNullable(entityService.fetchEntity(tenantId, entityId))
+                            .orElseThrow(() -> new IllegalArgumentException(entityId.getEntityType().getNormalName() + " with id [" + entityId.getId() + "] does not exist."));
+            default ->
+                    throw new IllegalArgumentException("Entity type '" + entityId.getEntityType() + "' does not support calculated fields.");
         }
     }
 

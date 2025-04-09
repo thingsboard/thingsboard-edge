@@ -77,6 +77,8 @@ public interface RuleChainService extends EntityDaoService {
 
     ListenableFuture<RuleChain> findRuleChainByIdAsync(TenantId tenantId, RuleChainId ruleChainId);
 
+    ListenableFuture<List<RuleChain>> findRuleChainsByIdsAsync(TenantId tenantId, List<RuleChainId> ruleChainIds);
+
     ListenableFuture<RuleNode> findRuleNodeByIdAsync(TenantId tenantId, RuleNodeId ruleNodeId);
 
     RuleChain getRootTenantRuleChain(TenantId tenantId);

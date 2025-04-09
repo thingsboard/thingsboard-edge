@@ -64,7 +64,8 @@ export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
       columnSelectionToDisplay: 'enabled',
-      columnExportOption: 'onlyVisible'
+      columnExportOption: 'onlyVisible',
+      disableSorting: false
     };
   }
 
@@ -79,7 +80,8 @@ export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
-      columnExportOption: [settings.columnExportOption, []]
+      columnExportOption: [settings.columnExportOption, []],
+      disableSorting: [settings.disableSorting, []]
     });
   }
 

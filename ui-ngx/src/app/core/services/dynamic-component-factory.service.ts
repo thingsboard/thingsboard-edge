@@ -30,16 +30,19 @@
 ///
 
 import { Component, Injectable, Type, ɵComponentDef, ɵNG_COMP_DEF } from '@angular/core';
-import { forkJoin, from, Observable, of } from 'rxjs';
+import { from, Observable, shareReplay } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { mergeMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { guid } from '@core/utils';
-import { getFlexLayoutModule } from '@shared/legacy/flex-layout.models';
 
 @Injectable({
     providedIn: 'root'
 })
 export class DynamicComponentFactoryService {
+
+  private compiler$: Observable<any> = from(import('@angular/compiler')).pipe(
+    shareReplay({refCount: true, bufferSize: 1})
+  );
 
   constructor() {
   }
@@ -50,14 +53,14 @@ export class DynamicComponentFactoryService {
                      imports?: Type<any>[],
                      preserveWhitespaces?: boolean,
                      styles?: string[]): Observable<Type<T>> {
-    return forkJoin({flexLayoutModule: getFlexLayoutModule(), compiler: from(import('@angular/compiler'))}).pipe(
-      mergeMap((data) => {
-        let componentImports: Type<any>[] = [CommonModule, data.flexLayoutModule];
+    return this.compiler$.pipe(
+      map(() => {
+        let componentImports: Type<any>[] = [CommonModule];
         if (imports) {
           componentImports = [...componentImports, ...imports];
         }
         const comp = this.createAndCompileDynamicComponent(componentType, template, componentImports, preserveWhitespaces, styles);
-        return of(comp.type);
+        return comp.type;
       })
     );
   }

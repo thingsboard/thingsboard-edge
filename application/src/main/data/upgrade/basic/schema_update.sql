@@ -29,6 +29,14 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+-- CONVERTERS 2.0 START
+
+ALTER TABLE converter ADD COLUMN IF NOT EXISTS integration_type varchar(255);
+
+ALTER TABLE converter ADD COLUMN IF NOT EXISTS converter_version INT DEFAULT 1;
+
+-- CONVERTERS 2.0 END
+
 -- UPDATE DEFAULT TENANT USERS ROLE START
 
 UPDATE role SET permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY", "READ_CALCULATED_FIELD"]}'
@@ -106,3 +114,13 @@ SET profile_data = profile_data
 WHERE profile_data->'configuration'->>'maxCalculatedFieldsPerEntity' IS NULL;
 
 -- UPDATE TENANT PROFILE CALCULATED FIELD LIMITS END
+
+-- UPDATE TENANT PROFILE DEBUG DURATION START
+
+UPDATE tenant_profile
+SET profile_data = jsonb_set(profile_data, '{configuration,maxDebugModeDurationMinutes}', '15', true)
+WHERE
+    profile_data->'configuration' ? 'maxDebugModeDurationMinutes' = false
+    OR (profile_data->'configuration'->>'maxDebugModeDurationMinutes')::int = 0;
+
+-- UPDATE TENANT PROFILE DEBUG DURATION END

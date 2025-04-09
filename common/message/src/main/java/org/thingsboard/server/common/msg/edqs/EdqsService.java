@@ -43,7 +43,7 @@ public interface EdqsService {
 
     void onUpdate(TenantId tenantId, ObjectType objectType, EdqsObject object);
 
-    void onDelete(TenantId tenantId, EntityId entityId);
+    void onDelete(TenantId tenantId, EntityId entityId, Object entity);
 
     void onDelete(TenantId tenantId, ObjectType objectType, EdqsObject object);
 

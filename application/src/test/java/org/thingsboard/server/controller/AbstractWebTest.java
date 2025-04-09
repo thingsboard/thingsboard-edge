@@ -53,6 +53,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -163,6 +164,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.memory.InMemoryStorage;
+import org.thingsboard.server.service.cf.CfRocksDb;
 import org.thingsboard.server.service.entitiy.tenant.profile.TbTenantProfileService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
@@ -305,6 +307,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @Autowired
     protected InMemoryStorage storage;
+
+    @MockBean
+    protected CfRocksDb cfRocksDb;
 
     @Rule
     public TestRule watcher = new TestWatcher() {

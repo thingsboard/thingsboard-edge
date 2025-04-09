@@ -86,7 +86,7 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
         String status = "OK";
         Exception exception = null;
         try {
-            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), msg.getDeviceMetadata()));
+            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData<>(getDefaultUplinkContentType(), msg.getDeviceMetadata()));
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);

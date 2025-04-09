@@ -38,6 +38,7 @@ import { CustomSchedulerEventType } from '@home/components/scheduler/scheduler-e
 import {
   customSchedulerEventTypeValidator
 } from '@home/components/widget/lib/settings/scheduler/custom-scheduler-event-type.component';
+import { buildPageStepSizeValues } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-scheduler-events-widget-settings',
@@ -47,6 +48,8 @@ import {
 export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsComponent {
 
   schedulerEventsWidgetSettingsForm: UntypedFormGroup;
+
+  pageStepSizeValues = [];
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -65,12 +68,20 @@ export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsCompon
       displayCustomer: true,
       displayPagination: true,
       defaultPageSize: 10,
+      pageStepIncrement: null,
+      pageStepCount: 3,
       defaultSortOrder: 'name',
       enabledViews: 'both',
       noDataDisplayMessage: '',
       forceDefaultEventType: '',
       customEventTypes: []
     };
+  }
+
+  protected prepareInputSettings(settings: WidgetSettings): WidgetSettings {
+    settings.pageStepIncrement = settings.pageStepIncrement ?? settings.defaultPageSize;
+    this.pageStepSizeValues = buildPageStepSizeValues(settings.pageStepCount, settings.pageStepIncrement);
+    return settings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
@@ -81,6 +92,9 @@ export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsCompon
       displayCustomer: [settings.displayCustomer, []],
       displayPagination: [settings.displayPagination, []],
       defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],
+      pageStepCount: [settings.pageStepCount ?? 3, [Validators.min(1), Validators.max(100),
+        Validators.required, Validators.pattern(/^\d*$/)]],
+      pageStepIncrement: [settings.pageStepIncrement, [Validators.min(1), Validators.required, Validators.pattern(/^\d*$/)]],
       defaultSortOrder: [settings.defaultSortOrder, []],
       enabledViews: [settings.enabledViews, []],
       noDataDisplayMessage: [settings.noDataDisplayMessage, []],
@@ -135,16 +149,25 @@ export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsCompon
   }
 
   protected validatorTriggers(): string[] {
-    return ['displayPagination'];
+    return ['displayPagination', 'pageStepCount', 'pageStepIncrement'];
   }
 
-  protected updateValidators(emitEvent: boolean) {
+  protected updateValidators(emitEvent: boolean, trigger: string) {
+    if (trigger === 'pageStepCount' || trigger === 'pageStepIncrement') {
+      this.schedulerEventsWidgetSettingsForm.get('defaultPageSize').reset();
+      this.pageStepSizeValues = buildPageStepSizeValues(this.schedulerEventsWidgetSettingsForm.get('pageStepCount').value,
+        this.schedulerEventsWidgetSettingsForm.get('pageStepIncrement').value);
+      return;
+    }
     const displayPagination: boolean = this.schedulerEventsWidgetSettingsForm.get('displayPagination').value;
     if (displayPagination) {
-      this.schedulerEventsWidgetSettingsForm.get('defaultPageSize').enable();
+      this.schedulerEventsWidgetSettingsForm.get('defaultPageSize').enable({emitEvent});
+      this.schedulerEventsWidgetSettingsForm.get('pageStepCount').enable({emitEvent: false});
+      this.schedulerEventsWidgetSettingsForm.get('pageStepIncrement').enable({emitEvent: false});
     } else {
-      this.schedulerEventsWidgetSettingsForm.get('defaultPageSize').disable();
+      this.schedulerEventsWidgetSettingsForm.get('defaultPageSize').disable({emitEvent});
+      this.schedulerEventsWidgetSettingsForm.get('pageStepCount').disable({emitEvent: false});
+      this.schedulerEventsWidgetSettingsForm.get('pageStepIncrement').disable({emitEvent: false});
     }
-    this.schedulerEventsWidgetSettingsForm.get('defaultPageSize').updateValueAndValidity({emitEvent});
   }
 }

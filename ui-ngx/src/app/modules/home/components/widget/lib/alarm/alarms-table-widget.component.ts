@@ -231,7 +231,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   public enableStickyHeader = true;
   public enableStickyAction = false;
   public showCellActionsMenu = true;
-  public pageSizeOptions;
+  public pageSizeOptions = [];
   public pageLink: AlarmDataPageLink;
   public sortOrderProperty: string;
   public textSearchMode = false;
@@ -259,7 +259,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   private allowClear = true;
   public allowAssign = true;
 
-  private defaultPageSize = 10;
+  private defaultPageSize;
   private defaultSortOrder = '-' + alarmFields.createdTime.value;
 
   private contentsInfo: {[key: string]: CellContentInfo} = {};
@@ -443,10 +443,25 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     this.rowStylesInfo = getRowStyleInfo(this.ctx, this.settings, 'alarm, ctx');
 
     const pageSize = this.settings.defaultPageSize;
+    let pageStepIncrement = this.settings.pageStepIncrement;
+    let pageStepCount = this.settings.pageStepCount;
+
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
+      pageStepCount = 3;
+    }
+
+    for (let i = 1; i <= pageStepCount; i++) {
+      this.pageSizeOptions.push(pageStepIncrement * i);
+    }
     this.pageLink.pageSize = this.displayPagination ? this.defaultPageSize : 1024;
 
     const alarmFilter = this.entityService.resolveAlarmFilter(this.widgetConfig.alarmFilterConfig, false);
@@ -480,6 +495,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         dataKey.label = this.utils.customTranslation(dataKey.label, dataKey.label);
         dataKey.title = getHeaderTitle(dataKey, keySettings, this.utils);
         dataKey.def = 'def' + this.columns.length;
+        dataKey.sortable = !keySettings.disableSorting && !(dataKey.type === DataKeyType.alarm && dataKey.name.startsWith('details.'));
         if (dataKey.type === DataKeyType.alarm && !isDefined(keySettings.columnWidth)) {
           const alarmField = alarmFields[dataKey.name];
           if (alarmField && alarmField.time) {
@@ -586,7 +602,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     if ($event) {
       $event.stopPropagation();
     }
-    const target = $event.target || $event.srcElement || $event.currentTarget;
+    const target = $event.target || $event.currentTarget;
     const config = new OverlayConfig({
       panelClass: 'tb-panel-container',
       backdropClass: 'cdk-overlay-transparent-backdrop',
@@ -657,7 +673,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     if ($event) {
       $event.stopPropagation();
     }
-    const target = $event.target || $event.srcElement || $event.currentTarget;
+    const target = $event.target || $event.currentTarget;
     const config = new OverlayConfig({
       panelClass: 'tb-filter-panel',
       backdropClass: 'cdk-overlay-transparent-backdrop',
@@ -1301,10 +1317,6 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     return dataObj;
   }
 
-  isSorting(column: EntityColumn): boolean {
-    return column.type === DataKeyType.alarm && column.name.startsWith('details.');
-  }
-
   private clearCache() {
     this.cellContentCache.length = 0;
     this.cellStyleCache.length = 0;
@@ -1332,7 +1344,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     if ($event) {
       $event.stopPropagation();
     }
-    const target = $event.target || $event.srcElement || $event.currentTarget;
+    const target = $event.target || $event.currentTarget;
     const config = new OverlayConfig();
     config.backdropClass = 'cdk-overlay-transparent-backdrop';
     config.hasBackdrop = true;

@@ -63,6 +63,7 @@ import { Observable } from 'rxjs';
 import { ImagePipe } from '@shared/pipe/image.pipe';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TbTimeSeriesChart } from '@home/components/widget/lib/chart/time-series-chart';
+import { WidgetComponent } from '@home/components/widget/widget.component';
 
 @Component({
   selector: 'tb-range-chart-widget',
@@ -79,9 +80,6 @@ export class RangeChartWidgetComponent implements OnInit, OnDestroy, AfterViewIn
 
   @Input()
   ctx: WidgetContext;
-
-  @Input()
-  widgetTitlePanel: TemplateRef<any>;
 
   showLegend: boolean;
   legendClass: string;
@@ -101,7 +99,8 @@ export class RangeChartWidgetComponent implements OnInit, OnDestroy, AfterViewIn
 
   private timeSeriesChart: TbTimeSeriesChart;
 
-  constructor(private imagePipe: ImagePipe,
+  constructor(public widgetComponent: WidgetComponent,
+              private imagePipe: ImagePipe,
               private sanitizer: DomSanitizer,
               private renderer: Renderer2,
               private cd: ChangeDetectorRef) {

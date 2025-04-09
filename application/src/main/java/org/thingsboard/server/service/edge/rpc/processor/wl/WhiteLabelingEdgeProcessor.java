@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
@@ -77,7 +78,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
     protected DomainService domainService;
 
     @Override
-    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+        DownlinkMsg result = null;
         try {
             EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
             if (entityId == null) {
