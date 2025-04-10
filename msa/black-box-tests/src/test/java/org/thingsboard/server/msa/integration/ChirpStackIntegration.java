@@ -31,18 +31,20 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -50,23 +52,16 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
-import static org.thingsboard.server.common.data.integration.IntegrationType.LORIOT;
+import static org.thingsboard.server.common.data.integration.IntegrationType.CHIRPSTACK;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfig;
 
-@Slf4j
-public class LoriotIntegrationTest extends AbstractIntegrationTest {
-    private static final String ROUTING_KEY = "routing-key-loriot";
-    private static final String SECRET_KEY = "secret-key-loriot";
+public class ChirpStackIntegration extends AbstractIntegrationTest{
+
+    private static final String ROUTING_KEY = "routing-key-chirpstack";
+    private static final String SECRET_KEY = "secret-key-chirpstack";
 
     private WsClient wsClient;
-
-    @AfterMethod
-    public void tearDown() throws Exception {
-        if (wsClient != null) {
-            wsClient.closeBlocking();
-        }
-    }
 
     @Test
     public void checkTelemetryUploadedWithLocalIntegration() throws Exception {
@@ -75,10 +70,10 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
 
         Integration integration = Integration.builder()
-                .type(LORIOT)
-                .name("loriot_" + RandomStringUtils.randomAlphanumeric(7))
+                .type(CHIRPSTACK)
+                .name("chirpstack" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, LORIOT, 2)).getId())
+                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, CHIRPSTACK, 2)).getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -89,16 +84,17 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
 
         this.integration = testRestClient.postIntegration(integration);
 
-        wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", AbstractContainerTest.CmdsType.TS_SUB_CMDS);
+        wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
         ObjectNode payloadMsg = createPayloadMsg();
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, LORIOT);
+        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, CHIRPSTACK);
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
-        assertThat(actualLatestTelemetry.getDataValuesByKey("data").get(1)).isEqualTo("2A3F");
+        assertThat(actualLatestTelemetry.getDataValuesByKey("data").get(1)).isEqualTo("Kj8=");
         assertThat(actualLatestTelemetry.getDataValuesByKey("temperature").get(1)).isEqualTo("42");
         assertThat(actualLatestTelemetry.getDataValuesByKey("humidity").get(1)).isEqualTo("63");
+        assertThat(actualLatestTelemetry.getDataValuesByKey("snr").get(1)).isEqualTo("11.5");
     }
 
     @Test
@@ -108,10 +104,10 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
 
         Integration integration = Integration.builder()
-                .type(LORIOT)
-                .name("loriot_" + RandomStringUtils.randomAlphanumeric(7))
+                .type(CHIRPSTACK)
+                .name("chirpstack" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, LORIOT, 2)).getId())
+                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, CHIRPSTACK, 2)).getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -124,34 +120,49 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
 
         ObjectNode payloadMsg = createPayloadMsg();
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, LORIOT);
+        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, CHIRPSTACK);
 
         List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
 
         Map<String, JsonNode> attributeMap = attributes.stream()
-                .collect(Collectors.toMap(
-                        node -> node.get("key").asText(),
-                        node -> node
-                ));
+                        .collect(Collectors.toMap(
+                                node -> node.get("key").asText(),
+                                node -> node
+                        ));
 
         assertThat(attributeMap.get("rssi").get("value").asInt()).isEqualTo(-130);
         assertThat(attributeMap.get("eui").get("value").asText()).isEqualTo("BE7A123456789");
         assertThat(attributeMap.get("fPort").get("value").asInt()).isEqualTo(80);
     }
 
+    @AfterMethod
+    public void tearDown() throws Exception {
+        if (wsClient != null) {
+            wsClient.closeBlocking();
+        }
+    }
+
     @Override
     protected String getDevicePrototypeSufix() {
-        return "loriot_";
+        return "chirpstack_";
     }
 
     private ObjectNode createPayloadMsg() {
         ObjectNode payloadMsg = JacksonUtil.newObjectNode();
-        payloadMsg.put("ts", System.currentTimeMillis());
-        payloadMsg.put("data", "2A3F");
-        payloadMsg.put("rssi", -130);
-        payloadMsg.put("port", 80);
-        payloadMsg.put("EUI", "BE7A123456789");
-        payloadMsg.put("snr", 11.5);
+
+        String isoTime = OffsetDateTime.now(ZoneOffset.UTC)
+                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        payloadMsg.put("time", isoTime);
+        payloadMsg.put("data", "Kj8=");
+
+        ObjectNode deviceInfo = payloadMsg.putObject("deviceInfo");
+        deviceInfo.put("devEui", "BE7A123456789");
+        payloadMsg.put("fPort", 80);
+
+        ArrayNode rxInfo = payloadMsg.putArray("rxInfo");
+        ObjectNode rxInfoEntry = rxInfo.addObject();
+        rxInfoEntry.put("rssi", -130);
+        rxInfoEntry.put("snr", 11.5);
 
         return payloadMsg;
     }

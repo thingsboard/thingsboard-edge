@@ -79,6 +79,38 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     protected Integration integration;
     protected Converter uplinkConverter;
 
+    protected final String JSON_CONVERTER_CONFIG = """
+            {
+                "isDevice": true,
+                "name": "DEVICE_NAME",
+                "profile": "default",
+                "customer": null,
+                "group": null,
+                "attributes": [
+                    "eui",
+                    "fPort",
+                    "rssi"
+                ],
+                "telemetry": [
+                    "data",
+                    "snr"
+                ],
+                "scriptLang": "TBEL",
+                "decoder": "",
+                "tbelDecoder": "var payloadStr = decodeToString(payload);\\nvar result = {\\n    attributes: {},\\n    telemetry: {\\n        ts: metadata.ts,\\n        values: {\\n            temperature: payload[0],\\n            humidity: payload[1]\\n        }\\n    }\\n};\\n\\nreturn result;",
+                "encoder": null,
+                "tbelEncoder": null,
+                "updateOnlyKeys": [
+                    "fPort",
+                    "frequency",
+                    "vdd",
+                    "eui",
+                    "ack",
+                    "dr"
+                ]
+            }
+            """;
+
     abstract protected String getDevicePrototypeSufix();
 
     @BeforeClass

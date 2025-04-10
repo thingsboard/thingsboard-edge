@@ -32,17 +32,18 @@ package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -50,14 +51,14 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
-import static org.thingsboard.server.common.data.integration.IntegrationType.LORIOT;
+import static org.thingsboard.server.common.data.integration.IntegrationType.THINGPARK;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfig;
 
-@Slf4j
-public class LoriotIntegrationTest extends AbstractIntegrationTest {
-    private static final String ROUTING_KEY = "routing-key-loriot";
-    private static final String SECRET_KEY = "secret-key-loriot";
+public class ThingParkIntegration extends AbstractIntegrationTest {
+
+    private static final String ROUTING_KEY = "routing-key-thingpark";
+    private static final String SECRET_KEY = "secret-key-thingpark";
 
     private WsClient wsClient;
 
@@ -75,10 +76,10 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
 
         Integration integration = Integration.builder()
-                .type(LORIOT)
-                .name("loriot_" + RandomStringUtils.randomAlphanumeric(7))
+                .type(THINGPARK)
+                .name("chirpstack" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, LORIOT, 2)).getId())
+                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, THINGPARK, 2)).getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -89,29 +90,31 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
 
         this.integration = testRestClient.postIntegration(integration);
 
-        wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", AbstractContainerTest.CmdsType.TS_SUB_CMDS);
+        wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
         ObjectNode payloadMsg = createPayloadMsg();
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, LORIOT);
+        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, THINGPARK);
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         assertThat(actualLatestTelemetry.getDataValuesByKey("data").get(1)).isEqualTo("2A3F");
         assertThat(actualLatestTelemetry.getDataValuesByKey("temperature").get(1)).isEqualTo("42");
         assertThat(actualLatestTelemetry.getDataValuesByKey("humidity").get(1)).isEqualTo("63");
+        assertThat(actualLatestTelemetry.getDataValuesByKey("snr").get(1)).isEqualTo("11.5");
     }
 
     @Test
+
     public void checkAttributesUploadedWithLocalIntegration() {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
 
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
 
         Integration integration = Integration.builder()
-                .type(LORIOT)
-                .name("loriot_" + RandomStringUtils.randomAlphanumeric(7))
+                .type(THINGPARK)
+                .name("thingpark_" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, LORIOT, 2)).getId())
+                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, THINGPARK, 2)).getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -124,7 +127,7 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
 
         ObjectNode payloadMsg = createPayloadMsg();
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, LORIOT);
+        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, THINGPARK);
 
         List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
 
@@ -141,17 +144,22 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
 
     @Override
     protected String getDevicePrototypeSufix() {
-        return "loriot_";
+        return "thingpark_";
     }
 
     private ObjectNode createPayloadMsg() {
         ObjectNode payloadMsg = JacksonUtil.newObjectNode();
-        payloadMsg.put("ts", System.currentTimeMillis());
-        payloadMsg.put("data", "2A3F");
-        payloadMsg.put("rssi", -130);
-        payloadMsg.put("port", 80);
-        payloadMsg.put("EUI", "BE7A123456789");
-        payloadMsg.put("snr", 11.5);
+
+        ObjectNode devEUIUplink = payloadMsg.putObject("DevEUI_uplink");
+
+        String isoTime = OffsetDateTime.now(ZoneOffset.UTC)
+                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        devEUIUplink.put("Time", isoTime);
+        devEUIUplink.put("DevEUI", "BE7A123456789");
+        devEUIUplink.put("FPort", 80);
+        devEUIUplink.put("LrrRSSI", -130);
+        devEUIUplink.put("LrrSNR", 11.5);
+        devEUIUplink.put("payload_hex", "2A3F");
 
         return payloadMsg;
     }
