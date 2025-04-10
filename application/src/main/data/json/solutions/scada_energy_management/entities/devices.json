@@ -186,10 +186,8 @@
                     "functionCode": 3,
                     "objectsCount": 1,
                     "address": 12,
-                    "multiplier": 100,
                     "reportStrategy": {
-                      "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 3600000
+                      "type": "ON_CHANGE"
                     }
                   }
                 ]

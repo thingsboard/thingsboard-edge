@@ -10,7 +10,7 @@ To simulate a comprehensive energy management system, this Docker command launch
 Execute the following command in your terminal:
 
 ```bash
-docker run --pull always --rm -d --name tb-modbus-energy-emulator -p 5040-5046:5040-5046 thingsboard/tb-energy-emulator:latest && docker logs -f tb-modbus-energy-emulator{:copy-code}
+docker run --pull always --rm -d --name tb-modbus-energy-emulator -p 5040-5046:5040-5046 thingsboard/tb-energy-emulator:1.0-stable && docker logs -f tb-modbus-energy-emulator{:copy-code}
 ```
 
 ##### Step 3: Launch the IoT Gateway
