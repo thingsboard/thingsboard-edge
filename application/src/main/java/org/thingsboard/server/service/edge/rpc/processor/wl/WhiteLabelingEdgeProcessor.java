@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.wl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -79,33 +80,44 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
     @Override
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
-        DownlinkMsg result = null;
         try {
-            EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
-            if (entityId == null) {
-                return null;
+            switch (edgeEvent.getAction()) {
+                case ADDED, UPDATED -> {
+                    EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
+                    if (entityId == null) {
+                        return null;
+                    }
+                    TenantId tenantId = EntityType.TENANT.equals(entityId.getEntityType()) ? (TenantId) entityId : edgeEvent.getTenantId();
+                    CustomerId customerId = EntityType.CUSTOMER.equals(entityId.getEntityType()) ? new CustomerId(entityId.getId()) : null;
+                    WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(tenantId, customerId, getWhiteLabelingType(edgeEvent.getType()));
+                    if (whiteLabeling == null) {
+                        return null;
+                    }
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
+                    WhiteLabelingProto whiteLabelingProto = EdgeMsgConstructorUtils.constructWhiteLabeling(msgType, whiteLabeling);
+                    DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .setWhiteLabelingProto(whiteLabelingProto);
+                    if (WhiteLabelingType.LOGIN.equals(whiteLabeling.getType())) {
+                        DomainInfo domainInfo = domainService.findDomainInfoById(tenantId, whiteLabeling.getDomainId());
+                        OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg =
+                                EdgeMsgConstructorUtils.constructOAuth2DomainUpdateMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, domainInfo);
+                        builder.addOAuth2DomainUpdateMsg(oAuth2DomainUpdateMsg);
+                    }
+                    return builder.build();
+                }
+                case DELETED -> {
+                    WhiteLabeling whiteLabeling = JacksonUtil.convertValue(edgeEvent.getBody(), WhiteLabeling.class);
+                    WhiteLabelingProto whiteLabelingProto = EdgeMsgConstructorUtils.constructWhiteLabeling(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, whiteLabeling);
+                    return DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .setWhiteLabelingProto(whiteLabelingProto).build();
+                }
             }
-            TenantId tenantId = EntityType.TENANT.equals(entityId.getEntityType()) ? (TenantId) entityId : edgeEvent.getTenantId();
-            CustomerId customerId = EntityType.CUSTOMER.equals(entityId.getEntityType()) ? new CustomerId(entityId.getId()) : null;
-            WhiteLabeling whiteLabeling = whiteLabelingService.findByEntityId(tenantId, customerId, getWhiteLabelingType(edgeEvent.getType()));
-            if (whiteLabeling == null) {
-                return null;
-            }
-            WhiteLabelingProto whiteLabelingProto = EdgeMsgConstructorUtils.constructWhiteLabeling(whiteLabeling);
-            DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
-                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                    .setWhiteLabelingProto(whiteLabelingProto);
-            if (WhiteLabelingType.LOGIN.equals(whiteLabeling.getType())) {
-                DomainInfo domainInfo = domainService.findDomainInfoById(tenantId, whiteLabeling.getDomainId());
-                OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg =
-                        EdgeMsgConstructorUtils.constructOAuth2DomainUpdateMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, domainInfo);
-                builder.addOAuth2DomainUpdateMsg(oAuth2DomainUpdateMsg);
-            }
-            return builder.build();
         } catch (Exception e) {
             log.error("Can't process white labeling msg [{}]", edgeEvent, e);
-            return null;
         }
+        return null;
     }
 
     private WhiteLabelingType getWhiteLabelingType(EdgeEventType type) {
@@ -124,29 +136,28 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(EdgeEventType.valueOf(edgeNotificationMsg.getEntityType()),
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
         EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
+        JsonNode body = actionType.equals(EdgeEventActionType.DELETED) ? JacksonUtil.toJsonNode(edgeNotificationMsg.getBody()) : JacksonUtil.valueToTree(entityId);
         switch (entityId.getEntityType()) {
             case TENANT:
                 List<ListenableFuture<Void>> futures = new ArrayList<>();
                 if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
                     PageDataIterable<TenantId> tenantIds = new PageDataIterable<>(link -> edgeCtx.getTenantService().findTenantsIds(link), 1024);
                     for (TenantId tenantId1 : tenantIds) {
-                        futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null));
+                        futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, body, sourceEdgeId, null));
                     }
                 } else {
-                    futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null);
+                    futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, body, sourceEdgeId, null);
                 }
                 return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
             case CUSTOMER:
-                if (EdgeEventActionType.UPDATED.equals(actionType)) {
-                    List<EdgeId> edgesByCustomerId =
-                            edgeCtx.getCustomersHierarchyEdgeService().findAllEdgesInHierarchyByCustomerId(tenantId, new CustomerId(entityId.getId()));
-                    if (edgesByCustomerId != null) {
-                        for (EdgeId edgeId : edgesByCustomerId) {
-                            saveEdgeEvent(tenantId, edgeId, type, actionType, null, JacksonUtil.valueToTree(entityId));
-                        }
+                List<EdgeId> edgesByCustomerId =
+                        edgeCtx.getCustomersHierarchyEdgeService().findAllEdgesInHierarchyByCustomerId(tenantId, new CustomerId(entityId.getId()));
+                if (edgesByCustomerId != null) {
+                    for (EdgeId edgeId : edgesByCustomerId) {
+                        saveEdgeEvent(tenantId, edgeId, type, actionType, null, body);
                     }
                 }
-                break;
+                return Futures.immediateFuture(null);
         }
         return Futures.immediateFuture(null);
     }
