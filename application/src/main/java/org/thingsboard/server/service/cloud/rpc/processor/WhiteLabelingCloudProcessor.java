@@ -62,30 +62,38 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
         boolean isSysAdmin = TenantId.SYS_TENANT_ID.equals(whiteLabeling.getTenantId());
         boolean isLogin = WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
         boolean isGeneral = WhiteLabelingType.GENERAL.equals(whiteLabeling.getType());
-        if (whiteLabeling.getCustomerId() == null || whiteLabeling.getCustomerId().isNullUid()) {
-            if (isLogin) {
-                if (isSysAdmin) {
-                    whiteLabelingService.saveSystemLoginWhiteLabelingParams(constructLoginWlParams(whiteLabeling.getSettings()));
+        switch (whiteLabelingProto.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                if (whiteLabeling.getCustomerId() == null || whiteLabeling.getCustomerId().isNullUid()) {
+                    if (isLogin) {
+                        if (isSysAdmin) {
+                            whiteLabelingService.saveSystemLoginWhiteLabelingParams(constructLoginWlParams(whiteLabeling.getSettings()));
+                        } else {
+                            LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
+                            whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
+                        }
+                    } else if (isGeneral) {
+                        if (isSysAdmin) {
+                            whiteLabelingService.saveSystemWhiteLabelingParams(constructWlParams(whiteLabeling.getSettings(), true));
+                        } else {
+                            whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, constructWlParams(whiteLabeling.getSettings(), false));
+                        }
+                    } else if (WhiteLabelingType.MAIL_TEMPLATES.equals(whiteLabeling.getType())) {
+                        whiteLabelingService.saveMailTemplates(isSysAdmin ? TenantId.SYS_TENANT_ID : tenantId, whiteLabeling.getSettings());
+                    }
                 } else {
-                    LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
-                    whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
+                    if (isLogin) {
+                        LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
+                        whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, whiteLabeling.getCustomerId(), loginWhiteLabelingParams);
+                    } else if (isGeneral) {
+                        whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, whiteLabeling.getCustomerId(), constructWlParams(whiteLabeling.getSettings(), false));
+                    }
                 }
-            } else if (isGeneral) {
-                if (isSysAdmin) {
-                    whiteLabelingService.saveSystemWhiteLabelingParams(constructWlParams(whiteLabeling.getSettings(), true));
-                } else {
-                    whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, constructWlParams(whiteLabeling.getSettings(), false));
-                }
-            } else if (WhiteLabelingType.MAIL_TEMPLATES.equals(whiteLabeling.getType())) {
-                whiteLabelingService.saveMailTemplates(isSysAdmin ? TenantId.SYS_TENANT_ID : tenantId, whiteLabeling.getSettings());
-            }
-        } else {
-            if (isLogin) {
-                LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWlParams(whiteLabeling.getSettings());
-                whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, whiteLabeling.getCustomerId(), loginWhiteLabelingParams);
-            } else if (isGeneral) {
-                whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, whiteLabeling.getCustomerId(), constructWlParams(whiteLabeling.getSettings(), false));
-            }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                whiteLabelingService.deleteWhiteLabeling(whiteLabeling.getTenantId(), whiteLabeling.getCustomerId(), whiteLabeling.getType());
+                break;
         }
         return Futures.immediateFuture(null);
     }
