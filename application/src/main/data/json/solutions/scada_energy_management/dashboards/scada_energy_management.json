@@ -53689,7 +53689,7 @@
               "hideQuickInterval": false
             },
             "aggregation": {
-              "type": "MAX",
+              "type": "SUM",
               "limit": 25000
             },
             "timezone": "Etc/GMT+0"
@@ -54118,7 +54118,7 @@
               "hideQuickInterval": false
             },
             "aggregation": {
-              "type": "MAX",
+              "type": "SUM",
               "limit": 25000
             },
             "timezone": "Etc/GMT+0"

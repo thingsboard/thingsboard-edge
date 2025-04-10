@@ -679,7 +679,7 @@
     "relations": [
       {
         "entityType": "DEVICE",
-        "entityName": "Drilling System Gateway",
+        "entityName": "Drilling system gateway",
         "direction": "FROM",
         "type": "Created"
       }
@@ -694,7 +694,7 @@
   "relations": [
     {
       "entityType": "DEVICE",
-      "entityName": "Drilling System Gateway",
+      "entityName": "Drilling system Gateway",
       "direction": "FROM",
       "type": "Created"
     }
@@ -709,7 +709,7 @@
     "relations": [
       {
         "entityType": "DEVICE",
-        "entityName": "Drilling System Gateway",
+        "entityName": "Drilling system gateway",
         "direction": "FROM",
         "type": "Created"
       }
@@ -724,7 +724,7 @@
     "relations": [
       {
         "entityType": "DEVICE",
-        "entityName": "Drilling System Gateway",
+        "entityName": "Drilling system gateway",
         "direction": "FROM",
         "type": "Created"
       }
@@ -739,7 +739,7 @@
     "relations": [
       {
         "entityType": "DEVICE",
-        "entityName": "Drilling System Gateway",
+        "entityName": "Drilling system gateway",
         "direction": "FROM",
         "type": "Created"
       }
