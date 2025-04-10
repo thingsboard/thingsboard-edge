@@ -21,16 +21,16 @@ JavaScript function used to parse and transform uplink message from the integrat
 There are two types of outputs:
 
 1. **Converter output:**  
-   This output combines pre-configured settings with the results of the decoding function. The initial configuration defines default keys and values, but the decoding function can overwrite these keys with new values if necessary. This flexible approach ensures that both pre-configured settings and dynamic data are seamlessly integrated into the final JSON output.
+   This output combines pre-configured settings with the result of the decoding function. The initial configuration defines default keys and values, but the decoding function can overwrite these keys with new values if necessary. This flexible approach ensures that both pre-configured settings and dynamic data are seamlessly integrated into the final JSON output.
 
 2. **Decoder output:**
    This output is the direct result of the decoding function. It represents the data decoded from the incoming message without any additional configuration or processing. It must be a valid JSON object and meet the following requirements:
 
-* Required **attributes** object:
+* Required **attributes** object:  
   The result must include an **attributes** object that holds details about the device/asset. It must contain at least one key-value pair; in other words, you need to provide at least one value within the attributes object to ensure it is not empty.
 
-* Required **telemetry** object or array:
-  The result must include a **telemetry** object or array that shows time-based data for the device/asset. It must contain at least one entry; in other words, you need to provide at least one data point within the telemetry object or array to ensure it is not empty.
+* Required **telemetry** object or array:  
+  The result must include a **telemetry** object or array that shows time series data for the device/asset. It must contain at least one entry; in other words, you need to provide at least one data point within the telemetry object or array to ensure it is not empty.
 
 * Optional **name** property (overridable):  
   The **name** uniquely identifies the device/asset within the tenant's scope. Often, unique identifiers such as the eui, MAC address, or other hardware-specific values are used as the device/asset name. The platform uses this property to locate an existing device/asset. If no match is found and the integration is allowed to create entities, a new device/asset will be created.
@@ -45,7 +45,7 @@ There are two types of outputs:
   The platform will use this property to automatically assign the device/asset to a customer, creating a new customer if one with the specified name does not exist. This assignment occurs only during the creation process of the device/asset by the current integration; if the device/asset already exists, the platform ignores this parameter.
 
 * Optional **group** property (overridable):   
-  The platform will use this property to automatically assign the device to a specific entity group, creating a new group if one with the specified name does not exist. The group is created within the tenant's scope (by default) or under a customer (if the **customer** property is present). This assignment only happens during the initial creation by the current integration; if the device/asset already exists, the parameter is ignored.
+  The platform will use this property to automatically assign the device/asset to a specific entity group, creating a new group if one with the specified name does not exist. The group is created within the tenant's scope (by default) or under a customer (if the **customer** property is present). This assignment only happens during the initial creation by the current integration; if the device/asset already exists, the parameter is ignored.
 
 * Optional **label** property (overridable):   
   This property provides non-unique, user-friendly labels for devices/assets, which can be displayed on dashboards. Like other properties, it is applied only during creation by the current integration.
