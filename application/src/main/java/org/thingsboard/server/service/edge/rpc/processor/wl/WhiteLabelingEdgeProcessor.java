@@ -98,7 +98,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .setWhiteLabelingProto(whiteLabelingProto);
-                    if (WhiteLabelingType.LOGIN.equals(whiteLabeling.getType())) {
+                    if (WhiteLabelingType.LOGIN.equals(whiteLabeling.getType()) && whiteLabeling.getDomainId() != null) {
                         DomainInfo domainInfo = domainService.findDomainInfoById(tenantId, whiteLabeling.getDomainId());
                         OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg =
                                 EdgeMsgConstructorUtils.constructOAuth2DomainUpdateMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, domainInfo);
