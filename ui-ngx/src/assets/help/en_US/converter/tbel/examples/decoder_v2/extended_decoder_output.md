@@ -1,4 +1,4 @@
-#### Converter output example
+#### Decoder output example
 
 ```json
 {

@@ -21,32 +21,34 @@ JavaScript function used to parse and transform uplink message from the integrat
 There are two types of outputs:
 
 1. **Converter output:**  
-   The output is a combination of the pre-configuration and the decoding function. This means that while the initial configuration sets default keys and values, the decoding function has the ability to override these keys with new values if needed. This flexible approach allows you to ensure that both pre-configured settings and dynamic data are properly incorporated into the final JSON output.
+   This output combines pre-configured settings with the results of the decoding function. The initial configuration defines default keys and values, but the decoding function can overwrite these keys with new values if necessary. This flexible approach ensures that both pre-configured settings and dynamic data are seamlessly integrated into the final JSON output.
 
 2. **Decoder output:**
-   This output is the result of the decoding function only. It represents the data directly decoded from the incoming message without applying any additional configuration or processing. It must return a valid JSON object that meets the following requirements:
+   This output is the direct result of the decoding function. It represents the data decoded from the incoming message without any additional configuration or processing. It must be a valid JSON object and meet the following requirements:
 
-* May contain the **name** property.  
-  The **name** uniquely identifies the device or asset within the tenant's scope. Often, unique identifiers such as the eui, MAC address, or other hardware-specific values are used as the device name. The platform uses this property to locate an existing device or asset. If no match is found and the integration is allowed to create entities, a new device or asset will be created.
+* Required **attributes** object:
+  The result must include an **attributes** object that holds details about the device/asset. It must contain at least one key-value pair; in other words, you need to provide at least one value within the attributes object to ensure it is not empty.
 
-* May contain the **type** property.  
+* Required **telemetry** object or array:
+  The result must include a **telemetry** object or array that shows time-based data for the device/asset. It must contain at least one entry; in other words, you need to provide at least one data point within the telemetry object or array to ensure it is not empty.
+
+* Optional **name** property (overridable):  
+  The **name** uniquely identifies the device/asset within the tenant's scope. Often, unique identifiers such as the eui, MAC address, or other hardware-specific values are used as the device/asset name. The platform uses this property to locate an existing device/asset. If no match is found and the integration is allowed to create entities, a new device/asset will be created.
+
+* Optional **type** property (overridable):  
   The **type** must be either **Asset** or **Device**, and it indicates the nature of the entity being processed. This field ensures correct classification within the platform's data model.
 
-* May contain the **profile** property.  
-  This field defines the profile to be associated with the device or asset. If the **profile** property is not set in either the pre-configuration or within the decoding function, then the default value **default** will be applied automatically.
+* Optional **profile** property (overridable):  
+  This field defines the profile to be associated with the device/asset. If the **profile** property is not set in either the pre-configuration or within the decoding function, then the default value **default** will be applied automatically.
 
-* May contain an **attributes** object that represents a set of server-side attributes to assign to the device/asset.
+* Optional **customer** property (overridable):   
+  The platform will use this property to automatically assign the device/asset to a customer, creating a new customer if one with the specified name does not exist. This assignment occurs only during the creation process of the device/asset by the current integration; if the device/asset already exists, the platform ignores this parameter.
 
-* May contain a **telemetry** object or array that represents time-series data of the device/asset.
+* Optional **group** property (overridable):   
+  The platform will use this property to automatically assign the device to a specific entity group, creating a new group if one with the specified name does not exist. The group is created within the tenant's scope (by default) or under a customer (if the **customer** property is present). This assignment only happens during the initial creation by the current integration; if the device/asset already exists, the parameter is ignored.
 
-* May contain a **customer** property.  
-  The platform will use this property to automatically assign the device to a customer, creating a new customer if one with the specified name does not exist. This assignment occurs only during the creation process of the device or asset by the current integration; if the device or asset already exists, the platform ignores this parameter.
-
-* May contain a **group** property.  
-  The platform will use this property to automatically assign the device to a specific entity group, creating a new group if one with the specified name does not exist. The group is created within the tenant's scope (by default) or under a customer (if the **customer** property is present). This assignment only happens during the initial creation by the current integration; if the device or asset already exists, the parameter is ignored.
-
-* May contain a **label** property.  
-  This property is useful for creating non-unique, user-friendly labels for devices/assets that can be displayed on dashboards. As with the other properties, the label is applied only during the creation process by the current integration.
+* Optional **label** property (overridable):   
+  This property provides non-unique, user-friendly labels for devices/assets, which can be displayed on dashboards. Like other properties, it is applied only during creation by the current integration.
 
 <div class="divider"></div>
 
@@ -114,7 +116,7 @@ Similar Decoder output JSON result that also contains entity label, group, custo
 
 ##### Examples
 
-See table with the examples that contain input parameters, decoder function and expected output.
+Refer to the table below for examples that include input parameters, decoder functions, and expected outputs.
 
 <table style="max-width: 1200px;">
 <thead>
