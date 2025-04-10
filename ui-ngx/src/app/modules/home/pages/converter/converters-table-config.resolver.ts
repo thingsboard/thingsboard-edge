@@ -61,10 +61,9 @@ import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { integrationTypeInfoMap } from '@shared/models/integration.models';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 import { EntityDebugSettings } from '@shared/models/entity.models';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError, first, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PageLink } from '@shared/models/page/page-link';
-import { DebugEventType } from '@shared/models/event.models';
 
 @Injectable()
 export class ConvertersTableConfigResolver  {
@@ -225,13 +224,20 @@ export class ConvertersTableConfigResolver  {
     }, $event.target as Element);
   }
 
-  private openDebugEventDetails($event: Event, entity): void {
+  private openDebugEventDetails($event: Event, entity: Converter): void {
     const table = this.config.getTable();
-    table.toggleEntityDetails($event, entity);
-    setTimeout(() => {
-      table.entityDetailsPanel.matTabGroup.selectedIndex = 4;
-      (table.entityDetailsPanel.entityTabsComponent as any).defaultEventType = DebugEventType.DEBUG_CONVERTER;
-    }, 0);
+    if (!table.isDetailsOpen) {
+      table.toggleEntityDetails($event, entity);
+      if (table.entityDetailsPanel.matTabGroup._tabs.length > 1) {
+        table.entityDetailsPanel.matTabGroup.selectedIndex = 4;
+      } else {
+        table.entityDetailsPanel.matTabGroup._tabs.changes.pipe(
+          first()
+        ).subscribe(() => {
+          table.entityDetailsPanel.matTabGroup.selectedIndex = 4;
+        })
+      }
+    }
     table.detectChanges();
   }
 
