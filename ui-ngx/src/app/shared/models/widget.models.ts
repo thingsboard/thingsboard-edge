@@ -221,7 +221,7 @@ export interface WidgetControllerDescriptor {
   actionSources?: {[actionSourceId: string]: WidgetActionSource};
 }
 
-export interface BaseWidgetType extends BaseData<WidgetTypeId>, HasTenantId, HasVersion {
+export interface BaseWidgetType extends BaseData<WidgetTypeId>, HasTenantId, HasVersion, ExportableEntity<WidgetTypeId> {
   tenantId: TenantId;
   fqn: string;
   name: string;
