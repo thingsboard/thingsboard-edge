@@ -9970,6 +9970,7 @@
                     "fill-image": "Fill image",
                     "fill-image-type-image": "Image",
                     "fill-image-type-function": "Function",
+                    "preserve-aspect-ratio": "Preserve aspect ratio",
                     "opacity": "Opacity",
                     "angle": "Rotation angle",
                     "scale": "Scale",
