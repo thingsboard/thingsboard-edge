@@ -340,10 +340,20 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     @Override
     public Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicCustomer, tenantId [{}], ownerId [{}]", tenantId, ownerId);
+        var publicCustomer = findPublicCustomer(tenantId, ownerId);
+        if (publicCustomer != null) {
+            return publicCustomer;
+        }
+        return createPublicCustomer(tenantId, ownerId);
+    }
+
+    @Override
+    public Customer findPublicCustomer(TenantId tenantId, EntityId ownerId) {
+        log.trace("Executing findPublicCustomer, tenantId [{}], ownerId [{}]", tenantId, ownerId);
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         var publicCustomerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantId.getId(), ownerId.getId());
-        return publicCustomerOpt.orElseGet(() -> createPublicCustomer(tenantId, ownerId));
+        return publicCustomerOpt.orElse(null);
     }
 
     private Customer createPublicCustomer(TenantId tenantId, EntityId ownerId) {
