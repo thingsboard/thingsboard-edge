@@ -1201,6 +1201,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         this.dashboardCtx.aliasController.dashboardStateChanged();
         this.isRightLayoutOpened = openRightLayout ? true : false;
         widgetsCount = this.updateLayouts(layoutsData);
+        this.cd.markForCheck();
       }
       setTimeout(() => {
         this.mobileService.onDashboardLoaded(this.layouts.right.show, this.isRightLayoutOpened);
