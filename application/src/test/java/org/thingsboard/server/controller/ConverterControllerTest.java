@@ -45,6 +45,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.DedicatedConverterConfig;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -65,6 +66,7 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -119,7 +121,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
     private static final String TTI_UPLINK_DECODER = "converter/tti_uplink_decoder.raw";
     private static final String DEFAULT_TTN_UPLINK_DECODER = "converters/tbel-ttn-decoder.raw";
     private static final String TTN_UPLINK_DECODER = "converter/ttn_uplink_decoder.raw";
+    private static final String TTN_UPLINK_JSON_DECODER = "converter/ttn_uplink_json_decoder.raw";
     private static final String LORIOT_UPLINK_DECODER_RETURN_ARRAY = "converter/loriot_uplink_decoder_array.raw";
+    private static final String TTN_DECODED_PAYLOAD = "payload/ttn_payload_with_decoded.json";
 
     @Before
     public void beforeTest() throws Exception {
@@ -742,6 +746,20 @@ public class ConverterControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testTTNDecoderWithJsonPayloadContent() throws IOException {
+        String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"eui-70B3D57ED006F370\",\"profile\":\"vadym-application\"," +
+                "\"telemetry\":{\"ts\":1744280858243,\"values\":{\"battery\":95,\"temperature\":36.6,\"saturation\":99}},\"attributes\":{\"sn\":32310067,\"fPort\":1,\"eui\":\"70B3D57ED006F370\"}}";
+
+        DedicatedConverterConfig config = createDedicatedConverterConfig(EntityType.DEVICE, "eui-$eui", "$applicationId", Set.of("eui", "fPort"));
+        Converter converter = createConverter(JacksonUtil.valueToTree(config), IntegrationType.TTN, 2);
+
+        InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(TTN_DECODED_PAYLOAD);
+        String payload = new String(resourceAsStream.readAllBytes(), StandardCharsets.UTF_8);
+
+        testDecoder(TTN_UPLINK_JSON_DECODER, payload, expectedDecodedMessage, converter);
+    }
+
+    @Test
     public void testThingParkDefaultDecoder() throws IOException {
         String expectedDecodedMessage = "{\"entityType\":\"DEVICE\",\"name\":\"Device 1000000000000001\",\"profile\":\"default\"," +
                 "\"telemetry\":{\"ts\":1732828102138,\"values\":{\"battery\":95,\"temperature\":36.6,\"saturation\":99}},\"attributes\":{\"sn\":32310067,\"mType\":2,\"eui\":\"1000000000000001\",\"fCntDn\":2}}";
@@ -892,7 +910,14 @@ public class ConverterControllerTest extends AbstractControllerTest {
             inputParams.set("payload", JacksonUtil.toJsonNode(payloadExample));
             inputParams.set("converter", JacksonUtil.valueToTree(converter));
             JsonNode unwrapped = doPost("/api/converter/unwrap/" + converter.getIntegrationType(), inputParams, JsonNode.class);
-            inputParams.set("payload", unwrapped.get("payload"));
+            String contentType = unwrapped.get("contentType").asText();
+            if (ContentType.JSON.name().equals(contentType)) {
+                String payloadString = unwrapped.get("payload").asText();
+                String base64Encoded = Base64.getEncoder().encodeToString(payloadString.getBytes(StandardCharsets.UTF_8));
+                inputParams.put("payload", base64Encoded);
+            } else {
+                inputParams.set("payload", unwrapped.get("payload"));
+            }
             inputParams.set("metadata",unwrapped.get("metadata"));
         } else {
             inputParams.set("payload", new TextNode(base64Payload));

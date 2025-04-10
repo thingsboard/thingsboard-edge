@@ -91,6 +91,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.converter.TbConverterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -596,9 +597,14 @@ public class ConverterController extends AutoCommitController {
         uplinkMetaData = wrappedPair.getSecond();
 
         ObjectNode result = JacksonUtil.newObjectNode();
-        result.put("payload", Base64.getEncoder().encodeToString(payload));
         result.put("contentType", uplinkMetaData.getContentType().toString());
         result.set("metadata", JacksonUtil.valueToTree(uplinkMetaData.getKvMap()));
+
+        if (uplinkMetaData.getContentType() == ContentType.JSON) {
+            result.put("payload", new String(payload, StandardCharsets.UTF_8));
+        } else {
+            result.put("payload", Base64.getEncoder().encodeToString(payload));
+        }
 
         return result;
     }
