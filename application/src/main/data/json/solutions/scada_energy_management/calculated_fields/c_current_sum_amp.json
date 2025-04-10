@@ -1,0 +1,67 @@
+{
+  "type": "SIMPLE",
+  "name": "Current sum ampere",
+  "entityId": {
+    "id": "e9ce9340-1503-11f0-8308-dfc38c65ed1c",
+    "entityType": "DEVICE"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1743783667407
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SIMPLE",
+    "arguments": {
+      "consumptionL1": {
+        "refEntityKey": {
+          "key": "consumptionL1",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "consumptionL2": {
+        "refEntityKey": {
+          "key": "consumptionL2",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "consumptionL3": {
+        "refEntityKey": {
+          "key": "consumptionL3",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "voltageL1": {
+        "refEntityKey": {
+          "key": "voltageL1",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "voltageL2": {
+        "refEntityKey": {
+          "key": "voltageL2",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "voltageL3": {
+        "refEntityKey": {
+          "key": "voltageL3",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      }
+    },
+    "expression": "(consumptionL1/voltageL1) + (consumptionL2/voltageL2) + (consumptionL1/voltageL3)",
+    "output": {
+      "name": "currentSumAmp",
+      "type": "TIME_SERIES",
+      "decimalsByDefault": 0
+    }
+  }
+}

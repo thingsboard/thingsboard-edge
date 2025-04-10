@@ -1,0 +1,916 @@
+{
+  "name": "Inverter",
+  "description": "",
+  "image": "tb-image:aW52ZXJ0ZXIuc3Zn:aW52ZXJ0ZXIuc3Zn:SU1BR0U=;data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NSIgaGVpZ2h0PSI2NSIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDY1IDY1Ij4KICA8ZyBjbGlwLXBhdGg9InVybCgjYSkiPgogICAgPHJlY3Qgd2lkdGg9IjY1IiBoZWlnaHQ9IjY1IiBmaWxsPSIjQ0Y2N0ZGIiBmaWxsLW9wYWNpdHk9Ii4yIiByeD0iMTEuNSIvPgogICAgPHJlY3Qgd2lkdGg9IjUyIiBoZWlnaHQ9IjUyIiB4PSI2LjUiIHk9IjYuNSIgZmlsbD0iI0NGNjdGRiIgcng9IjUiLz4KICAgIDxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjMiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIuNyIgZD0iTTEyIDEyLjRjMC0uMjIuMTgtLjQuNC0uNGgzOS4yYy4yMiAwIC40LjE4LjQuNHYzOS4yYS40LjQgMCAwIDEtLjQuNGgtLjUzM2EuNC40IDAgMCAxLS40LS40di0xLjE5M2EuNC40IDAgMCAwLS40LS40SDEzLjczM2EuNC40IDAgMCAwLS40LjRWNTEuNmEuNC40IDAgMCAxLS40LjRIMTIuNGEuNC40IDAgMCAxLS40LS40VjEyLjRaIi8+CiAgICA8cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTUuMzMzIDUwYzAtLjA3NC4wNi0uMTMzLjEzNC0uMTMzaDUuOWMuMDczIDAgLjEzMy4wNi4xMzMuMTMzdjEuODY3YzAgLjA3My0uMDYuMTMzLS4xMzMuMTMzaC01LjlhLjEzMy4xMzMgMCAwIDEtLjEzNC0uMTMzVjUwWk0yMiA1MGMwLS4wNzQuMDYtLjEzMy4xMzMtLjEzM2g1LjczNGMuMDczIDAgLjEzMy4wNi4xMzMuMTMzdjEuODY3YzAgLjA3My0uMDYuMTMzLS4xMzMuMTMzaC01LjczNGEuMTMzLjEzMyAwIDAgMS0uMTMzLS4xMzNWNTBabTYuNjY3IDBjMC0uMDc0LjA2LS4xMzMuMTMzLS4xMzNoNi4wNjdjLjA3MyAwIC4xMzMuMDYuMTMzLjEzM3YxLjg2N2MwIC4wNzMtLjA2LjEzMy0uMTMzLjEzM0gyOC44YS4xMzMuMTMzIDAgMCAxLS4xMzMtLjEzM1Y1MFoiLz4KICAgIDxyZWN0IHdpZHRoPSIzLjMzMyIgaGVpZ2h0PSIyLjEzMyIgeD0iNDMuNjY3IiB5PSI0OS44NjciIGZpbGw9IiNmZmYiIHJ4PSIuMTMzIi8+CiAgICA8cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjIuMzE2IDIyLjU4djQuMjMyaC0uNzY3VjIyLjU4aC43NjdabTEuNTQ0IDIuMzcydjEuODZoLS43NDd2LTMuMTc0aC43MTR2LjU0aC4wMzhhLjkwNy45MDcgMCAwIDEgLjM0OS0uNDI0Yy4xNi0uMTA1LjM2LS4xNTcuNTk3LS4xNTcuMjE5IDAgLjQxLjA0Ni41NzIuMTQuMTY0LjA5NC4yOS4yMy4zOC40MDcuMDkxLjE3OC4xMzYuMzkzLjEzNS42NDd2Mi4wMmgtLjc0OHYtMS45MDRjMC0uMjEzLS4wNTUtLjM3OC0uMTY2LS40OThhLjU4LjU4IDAgMCAwLS40NTItLjE4LjY5NC42OTQgMCAwIDAtLjM1LjA4Ny42LjYgMCAwIDAtLjIzNy4yNDUuODMuODMgMCAwIDAtLjA4NS4zOTFabTUuNTItMS4zMTQtMS4xMzEgMy4xNzNoLS44MjdsLTEuMTMtMy4xNzNoLjc5OGwuNzMgMi4zNTdoLjAzMmwuNzMyLTIuMzU3aC43OTVabTEuODE0IDMuMjM1Yy0uMzE5IDAtLjU5My0uMDY2LS44MjUtLjE5OGExLjM0MyAxLjM0MyAwIDAgMS0uNTMtLjU2NiAxLjg5NSAxLjg5NSAwIDAgMS0uMTg3LS44NjZjMC0uMzI2LjA2Mi0uNjEzLjE4Ni0uODYuMTI2LS4yNDcuMy0uNDQuNTI1LS41NzguMjI1LS4xMzkuNDg4LS4yMDguNzkxLS4yMDguMTk2IDAgLjM4LjAzMS41NTQuMDk1LjE3NS4wNjIuMzMuMTU4LjQ2My4yODkuMTM1LjEzLjI0LjI5Ny4zMTguNS4wNzcuMjAxLjExNi40NC4xMTYuNzE5di4yM2gtMi42MDF2LS41MDVoMS44ODRhLjgwNC44MDQgMCAwIDAtLjA5My0uMzgyLjY3Ni42NzYgMCAwIDAtLjI1NC0uMjY3LjcxNC43MTQgMCAwIDAtLjM3Ni0uMDk3LjcyOC43MjggMCAwIDAtLjQwMy4xMTIuNzcuNzcgMCAwIDAtLjI3LjI5LjgzMy44MzMgMCAwIDAtLjA5OC4zOXYuNDRjMCAuMTg0LjAzNC4zNDMuMTAxLjQ3NS4wNjguMTMuMTYyLjIzMS4yODMuMzAyYS44NDguODQ4IDAgMCAwIC40MjYuMTAzLjkwNC45MDQgMCAwIDAgLjI5NS0uMDQ2LjY1Ni42NTYgMCAwIDAgLjIzLS4xMzguNTc2LjU3NiAwIDAgMCAuMTQ2LS4yMjVsLjY5OS4wNzhhMS4wODkgMS4wODkgMCAwIDEtLjI1Mi40ODQgMS4yMyAxLjIzIDAgMCAxLS40NzEuMzE4Yy0uMTkyLjA3NC0uNDEuMTExLS42NTcuMTExWm0yLjA0My0uMDYydi0zLjE3M2guNzI2di41MjloLjAzM2EuNzkyLjc5MiAwIDAgMSAuNzgzLS41NzUgMS43NDMgMS43NDMgMCAwIDEgLjI2OC4wMjF2LjY4OGEuNzg0Ljc4NCAwIDAgMC0uMTUtLjAyOSAxLjM4IDEuMzggMCAwIDAtLjE5Ny0uMDE0Ljc1Ny43NTcgMCAwIDAtLjM2Ny4wODkuNjUuNjUgMCAwIDAtLjM0Ny41OTl2MS44NjVoLS43NDhabTQuMDYzLTMuMTczdi41NzhoLTEuODI1di0uNTc4SDM3LjNabS0xLjM3NC0uNzZoLjc0N3YyLjk3OWMwIC4xLjAxNi4xNzguMDQ2LjIzMWEuMjQ2LjI0NiAwIDAgMCAuMTI0LjEwOGMuMDUuMDIuMTA3LjAyOS4xNy4wMjlhLjgxOC44MTggMCAwIDAgLjEyNy0uMDFjLjA0LS4wMDguMDctLjAxNC4wOTEtLjAybC4xMjYuNTg1YTEuNDAyIDEuNDAyIDAgMCAxLS40NC4wNzQgMS4yMiAxLjIyIDAgMCAxLS41MDYtLjA4NC43ODguNzg4IDAgMCAxLS4zNTctLjI5My44NzQuODc0IDAgMCAxLS4xMjgtLjQ5NnYtMy4xMDNabTMuMzcgMy45OTVjLS4zMTggMC0uNTkzLS4wNjYtLjgyNS0uMTk4YTEuMzQ0IDEuMzQ0IDAgMCAxLS41My0uNTY2IDEuODk3IDEuODk3IDAgMCAxLS4xODYtLjg2NmMwLS4zMjYuMDYyLS42MTMuMTg1LS44Ni4xMjYtLjI0Ny4zLS40NC41MjUtLjU3OC4yMjUtLjEzOS40ODktLjIwOC43OTItLjIwOC4xOTUgMCAuMzguMDMxLjU1My4wOTUuMTc1LjA2Mi4zMy4xNTguNDYzLjI4OS4xMzUuMTMuMjQxLjI5Ny4zMTguNS4wNzguMjAxLjExNi40NC4xMTYuNzE5di4yM2gtMi42MDF2LS41MDVoMS44ODRhLjgwNC44MDQgMCAwIDAtLjA5My0uMzgyLjY3Ny42NzcgMCAwIDAtLjI1NC0uMjY3LjcxNS43MTUgMCAwIDAtLjM3Ni0uMDk3LjcyOC43MjggMCAwIDAtLjQwMy4xMTIuNzcuNzcgMCAwIDAtLjI3LjI5LjgzMy44MzMgMCAwIDAtLjA5OC4zOXYuNDRjMCAuMTg0LjAzNC4zNDMuMTAyLjQ3NS4wNjcuMTMuMTYxLjIzMS4yODMuMzAyYS44NDguODQ4IDAgMCAwIC40MjUuMTAzLjkwNS45MDUgMCAwIDAgLjI5Ni0uMDQ2LjY1NS42NTUgMCAwIDAgLjIyOS0uMTM4LjU3NS41NzUgMCAwIDAgLjE0Ny0uMjI1bC42OTguMDc4YTEuMDg5IDEuMDg5IDAgMCAxLS4yNTIuNDg0Yy0uMTIzLjEzNi0uMjguMjQyLS40NzEuMzE4LS4xOTIuMDc0LS40MS4xMTEtLjY1Ny4xMTFabTIuMDQ0LS4wNjJ2LTMuMTczaC43MjV2LjUyOWguMDMzYS43OTEuNzkxIDAgMCAxIC43ODMtLjU3NSAxLjc0MyAxLjc0MyAwIDAgMSAuMjY5LjAyMXYuNjg4YS43ODEuNzgxIDAgMCAwLS4xNTEtLjAyOSAxLjM4IDEuMzggMCAwIDAtLjE5Ni0uMDE0Ljc1Ny43NTcgMCAwIDAtLjM2OC4wODkuNjUuNjUgMCAwIDAtLjM0Ny41OTl2MS44NjVoLS43NDhaIi8+CiAgICA8Y2lyY2xlIGN4PSIxOC42OTciIGN5PSIzNC40NzgiIHI9IjEuMjEyIiBmaWxsPSIjZmZmIi8+CiAgICA8cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjIuNzYzIDMyLjk1MnYzLjUyNmgtLjQyN3YtMy41MjZoLjQyN1ptMS4yMDcgMS45MzV2MS41OTFoLS40MDZ2LTIuNjQ0aC4zOTN2LjQxM2guMDM0YS43NTUuNzU1IDAgMCAxIC4yODItLjMyNC44NzcuODc3IDAgMCAxIC40OS0uMTI0Yy4xNzggMCAuMzM1LjAzNy40Ny4xMWEuNzQzLjc0MyAwIDAgMSAuMzEzLjMzMWMuMDc1LjE0Ny4xMTIuMzMzLjExMi41NTh2MS42OGgtLjQwN3YtMS42NTNjMC0uMjA3LS4wNTMtLjM3LS4xNjEtLjQ4NWEuNTc0LjU3NCAwIDAgMC0uNDQ1LS4xNzYuNzA4LjcwOCAwIDAgMC0uMzQ3LjA4NS42MDMuNjAzIDAgMCAwLS4yNC4yNDYuODEyLjgxMiAwIDAgMC0uMDg4LjM5MlptNC40OTgtMS4wNTMtLjk3OCAyLjY0NGgtLjQxM2wtLjk3OC0yLjY0NGguNDRsLjczIDIuMTA3aC4wMjhsLjczLTIuMTA3aC40NDFabTEuNTUgMi43YTEuMjQgMS4yNCAwIDAgMS0uNjU5LS4xNyAxLjEzMiAxLjEzMiAwIDAgMS0uNDI1LS40NzUgMS42MiAxLjYyIDAgMCAxLS4xNDgtLjcxMmMwLS4yNzEuMDUtLjUxLjE0OC0uNzE3LjEtLjIwNy4yMzktLjM3LjQxNi0uNDg1YTEuMTIgMS4xMiAwIDAgMSAuNjI3LS4xNzZjLjEzOCAwIC4yNzQuMDIzLjQwOC4wNy4xMzUuMDQ1LjI1Ny4xMi4zNjcuMjIzLjExLjEwMi4xOTguMjM4LjI2NC40MDYuMDY1LjE2OS4wOTguMzc3LjA5OC42MjN2LjE3M2gtMi4wMzl2LS4zNTFIMzAuN2MwLS4xNS0uMDMtLjI4My0uMDktLjRhLjY3NS42NzUgMCAwIDAtLjYzMy0uMzc5LjczLjczIDAgMCAwLS40Mi4xMi43OTQuNzk0IDAgMCAwLS4yNy4zMS45MS45MSAwIDAgMC0uMDk1LjQxdi4yMzVjMCAuMi4wMzUuMzY5LjEwMy41MDguMDcuMTM3LjE2Ny4yNDIuMjkxLjMxNWEuODUyLjg1MiAwIDAgMCAuNDMzLjEwNi44OC44OCAwIDAgMCAuMjg5LS4wNDQuNjE5LjYxOSAwIDAgMCAuMjI1LS4xMzguNjI0LjYyNCAwIDAgMCAuMTQ3LS4yM2wuMzkyLjExYS44Ny44NyAwIDAgMS0uMjA4LjM1Yy0uMDk4LjEtLjIxOC4xNzgtLjM2Mi4yMzVhMS4zNDEgMS4zNDEgMCAwIDEtLjQ4My4wODJabTEuNzE0LS4wNTZ2LTIuNjQ0aC4zOTJ2LjRoLjAyOGEuNjM1LjYzNSAwIDAgMSAuMjYxLS4zMi43Ny43NyAwIDAgMSAuNDI4LS4xMjIgNC43NCA0Ljc0IDAgMCAxIC4yMTMuMDA3di40MTNhMS4yMjQgMS4yMjQgMCAwIDAtLjA5NS0uMDE1LjkzNS45MzUgMCAwIDAtLjE1My0uMDEyLjcyLjcyIDAgMCAwLS4zNDQuMDguNTk0LjU5NCAwIDAgMC0uMzI0LjUzOXYxLjY3NGgtLjQwNlptMy4xMi0yLjY0NHYuMzQ0SDMzLjQ4di0uMzQ0aDEuMzdabS0uOTcxLS42MzRoLjQwNnYyLjUyYS41My41MyAwIDAgMCAuMDUuMjU5LjI1OS4yNTkgMCAwIDAgLjEzLjExNC41NDIuNTQyIDAgMCAwIC4xNzEuMDI3LjczNS43MzUgMCAwIDAgLjE4LS4wMmwuMDgyLjM2NGEuODQ4Ljg0OCAwIDAgMS0uMzAzLjA0OC44MTkuODE5IDAgMCAxLS4zMzgtLjA3My42NzEuNjcxIDAgMCAxLS4yNzItLjIyNi42NDguNjQ4IDAgMCAxLS4xMDctLjM4MlYzMy4yWm0yLjY2MiAzLjMzM2MtLjI1NSAwLS40NzQtLjA1Ni0uNjYtLjE2OGExLjEzMiAxLjEzMiAwIDAgMS0uNDI1LS40NzYgMS42MiAxLjYyIDAgMCAxLS4xNDgtLjcxMmMwLS4yNzEuMDUtLjUxLjE0OC0uNzE3LjEtLjIwNy4yNC0uMzcuNDE3LS40ODUuMTgtLjExNy4zODgtLjE3Ni42MjctLjE3Ni4xMzggMCAuMjc0LjAyMy40MDguMDcuMTM0LjA0NS4yNTcuMTIuMzY3LjIyMy4xMS4xMDIuMTk4LjIzOC4yNjMuNDA2LjA2Ni4xNjkuMDk4LjM3Ny4wOTguNjIzdi4xNzNIMzUuNnYtLjM1MWgxLjYyNWMwLS4xNS0uMDMtLjI4My0uMDktLjRhLjY3NC42NzQgMCAwIDAtLjYzMy0uMzc5LjczLjczIDAgMCAwLS40Mi4xMi43OTIuNzkyIDAgMCAwLS4yNy4zMS45MS45MSAwIDAgMC0uMDk1LjQxdi4yMzVjMCAuMi4wMzQuMzY5LjEwMy41MDguMDcuMTM3LjE2Ny4yNDIuMjkxLjMxNWEuODUzLjg1MyAwIDAgMCAuNDMyLjEwNi44OC44OCAwIDAgMCAuMjktLjA0NC42MTguNjE4IDAgMCAwIC4yMjUtLjEzOC42MjYuNjI2IDAgMCAwIC4xNDYtLjIzbC4zOTMuMTFhLjg3Ljg3IDAgMCAxLS4yMDguMzVjLS4wOTguMS0uMjE5LjE3OC0uMzYyLjIzNWExLjM0IDEuMzQgMCAwIDEtLjQ4NC4wODJabTEuNzEzLS4wNTV2LTIuNjQ0aC4zOTN2LjRoLjAyN2EuNjM1LjYzNSAwIDAgMSAuMjYyLS4zMi43Ny43NyAwIDAgMSAuNDI3LS4xMjIgNC43NCA0Ljc0IDAgMCAxIC4yMTQuMDA3di40MTNhMS4yNDIgMS4yNDIgMCAwIDAtLjA5NS0uMDE1LjkzNi45MzYgMCAwIDAtLjE1My0uMDEyLjcyLjcyIDAgMCAwLS4zNDUuMDguNTk0LjU5NCAwIDAgMC0uMzI0LjUzOXYxLjY3NGgtLjQwNlptNC4yNDIuMDU1YTEuMTUgMS4xNSAwIDAgMS0uNjI4LS4xNyAxLjE1OCAxLjE1OCAwIDAgMS0uNDItLjQ3NyAxLjYxIDEuNjEgMCAwIDEtLjE1LS43MTZjMC0uMjc2LjA1LS41MTYuMTUtLjcyMi4xLS4yMDUuMjQtLjM2NS40Mi0uNDc4LjE4LS4xMTQuMzktLjE3LjYyOC0uMTcuMjQgMCAuNDQ4LjA1Ni42MjcuMTcuMTguMTEzLjMyLjI3My40Mi40NzguMTAxLjIwNi4xNTIuNDQ2LjE1Mi43MjIgMCAuMjczLS4wNS41MTItLjE1Mi43MTYtLjEuMjA0LS4yNC4zNjMtLjQyLjQ3Ny0uMTc5LjExNC0uMzg4LjE3LS42MjcuMTdabTAtLjM2NWMuMTgyIDAgLjMzLS4wNDYuNDQ4LS4xNGEuODIyLjgyMiAwIDAgMCAuMjYtLjM2NmMuMDU2LS4xNTEuMDg0LS4zMTYuMDg0LS40OTJhMS40MiAxLjQyIDAgMCAwLS4wODQtLjQ5NC44MzIuODMyIDAgMCAwLS4yNi0uMzcuNjkyLjY5MiAwIDAgMC0uNDQ4LS4xNDIuNjkyLjY5MiAwIDAgMC0uNDQ3LjE0MS44MzMuODMzIDAgMCAwLS4yNi4zNyAxLjQyIDEuNDIgMCAwIDAtLjA4NS40OTVjMCAuMTc2LjAyOC4zNC4wODUuNDkyYS44MjMuODIzIDAgMCAwIC4yNi4zNjdjLjExNy4wOTMuMjY2LjE0LjQ0Ny4xNFptMi4yMjUtMS4yOHYxLjU5aC0uNDA2di0yLjY0NGguMzkydi40MTNoLjAzNWEuNzU2Ljc1NiAwIDAgMSAuMjgyLS4zMjQuODc4Ljg3OCAwIDAgMSAuNDktLjEyNGMuMTc4IDAgLjMzNS4wMzcuNDcuMTFhLjc0Mi43NDIgMCAwIDEgLjMxMy4zMzFjLjA3NC4xNDcuMTEyLjMzMy4xMTIuNTU4djEuNjhoLS40MDd2LTEuNjUzYzAtLjIwNy0uMDU0LS4zNy0uMTYxLS40ODVhLjU3NS41NzUgMCAwIDAtLjQ0NS0uMTc2LjcwOS43MDkgMCAwIDAtLjM0OC4wODUuNjA0LjYwNCAwIDAgMC0uMjM5LjI0Ni44MTMuODEzIDAgMCAwLS4wODguMzkyWiIvPgogIDwvZz4KICA8ZGVmcz4KICAgIDxjbGlwUGF0aCBpZD0iYSI+CiAgICAgIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoNjV2NjVIMHoiLz4KICAgIDwvY2xpcFBhdGg+CiAgPC9kZWZzPgo8L3N2Zz4K",
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": null,
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "defaultEdgeRuleChainId": null,
+  "default": false,
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": [
+      {
+        "id": "a7828698-031c-2a11-db4d-883e7347e83c",
+        "alarmType": "Input average voltage",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "inputAvgVoltage"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "NUMERIC",
+                        "operation": "GREATER_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 265,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 170,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "inputAvgVoltage"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 240,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 265,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 170,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 190,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "inputAvgVoltage"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER_OR_EQUAL",
+                  "value": {
+                    "defaultValue": 190,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              },
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "inputAvgVoltage"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "LESS",
+                  "value": {
+                    "defaultValue": 240,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "a9a503aa-921e-77ac-5c14-755f5df3be6a",
+        "alarmType": "Output average voltage",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "outputAvgVoltage"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "NUMERIC",
+                        "operation": "GREATER_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 250,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 210,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "outputAvgVoltage"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 240,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 250,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 210,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 220,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "ATTRIBUTE",
+                  "key": "outputAvgVoltage"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER_OR_EQUAL",
+                  "value": {
+                    "defaultValue": 220,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              },
+              {
+                "key": {
+                  "type": "ATTRIBUTE",
+                  "key": "outputAvgVoltage"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "LESS",
+                  "value": {
+                    "defaultValue": 240,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "cc9cd46b-e0ac-b3b1-a670-47f8749db8c5",
+        "alarmType": "Current",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "current"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 210,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "current"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 200,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "current"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS",
+                    "value": {
+                      "defaultValue": 210,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "current"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "LESS",
+                  "value": {
+                    "defaultValue": 200,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "b76a8e3d-29cd-318c-9d9e-7af3e8035023",
+        "alarmType": "Average inverter temperature",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "avgInverterTemperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 60,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "avgInverterTemperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 50,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 60,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 10,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "avgInverterTemperature"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER_OR_EQUAL",
+                  "value": {
+                    "defaultValue": 10,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              },
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "avgInverterTemperature"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "LESS",
+                  "value": {
+                    "defaultValue": 50,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "79ba18dc-7a0b-bb4e-1de7-cd8081616b31",
+        "alarmType": "Overload",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "overload"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS",
+                    "value": {
+                      "defaultValue": 0,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 10,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "overload"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER_OR_EQUAL",
+                  "value": {
+                    "defaultValue": 0,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      }
+    ]
+  }
+}
