@@ -600,11 +600,13 @@ public class ConverterController extends AutoCommitController {
         result.put("contentType", uplinkMetaData.getContentType().toString());
         result.set("metadata", JacksonUtil.valueToTree(uplinkMetaData.getKvMap()));
 
-        if (uplinkMetaData.getContentType() == ContentType.JSON) {
-            result.put("payload", new String(payload, StandardCharsets.UTF_8));
+        String payloadValue;
+        if (uplinkMetaData.getContentType() == ContentType.BINARY) {
+            payloadValue = Base64.getEncoder().encodeToString(payload);
         } else {
-            result.put("payload", Base64.getEncoder().encodeToString(payload));
+            payloadValue = new String(payload, StandardCharsets.UTF_8);
         }
+        result.put("payload", payloadValue);
 
         return result;
     }
