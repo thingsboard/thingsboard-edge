@@ -154,7 +154,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
                     }
                     consumer.commit();
                 })
-                .consumerCreator((config, partitionId) -> queueFactory.createEdqsEventsConsumer())
+                .consumerCreator((config, tpi) -> queueFactory.createEdqsEventsConsumer())
                 .queueAdmin(queueFactory.getEdqsQueueAdmin())
                 .consumerExecutor(consumersExecutor)
                 .taskExecutor(taskExecutor)
