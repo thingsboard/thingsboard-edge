@@ -51,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.CHIRPSTACK;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
@@ -62,6 +63,13 @@ public class ChirpStackIntegration extends AbstractIntegrationTest{
     private static final String SECRET_KEY = "secret-key-chirpstack";
 
     private WsClient wsClient;
+
+    @AfterMethod
+    public void tearDown() throws Exception {
+        if (wsClient != null) {
+            wsClient.closeBlocking();
+        }
+    }
 
     @Test
     public void checkTelemetryUploadedWithLocalIntegration() throws Exception {
@@ -98,7 +106,7 @@ public class ChirpStackIntegration extends AbstractIntegrationTest{
     }
 
     @Test
-    public void checkAttributesUploadedWithLocalIntegration() {
+    public void checkAttributesUploadedWithLocalIntegration() throws InterruptedException {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
 
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
@@ -122,24 +130,21 @@ public class ChirpStackIntegration extends AbstractIntegrationTest{
 
         testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, CHIRPSTACK);
 
-        List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
+        await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
+                    Map<String, JsonNode> attributeMap = attributes.stream()
+                            .collect(Collectors.toMap(
+                                    node -> node.get("key").asText(),
+                                    node -> node
+                            ));
 
-        Map<String, JsonNode> attributeMap = attributes.stream()
-                        .collect(Collectors.toMap(
-                                node -> node.get("key").asText(),
-                                node -> node
-                        ));
-
-        assertThat(attributeMap.get("rssi").get("value").asInt()).isEqualTo(-130);
-        assertThat(attributeMap.get("eui").get("value").asText()).isEqualTo("BE7A123456789");
-        assertThat(attributeMap.get("fPort").get("value").asInt()).isEqualTo(80);
-    }
-
-    @AfterMethod
-    public void tearDown() throws Exception {
-        if (wsClient != null) {
-            wsClient.closeBlocking();
-        }
+                    assertThat(attributeMap.get("rssi").get("value").asInt()).isEqualTo(-130);
+                    assertThat(attributeMap.get("eui").get("value").asText()).isEqualTo("BE7A123456789");
+                    assertThat(attributeMap.get("fPort").get("value").asInt()).isEqualTo(80);
+                    return true;
+                });
     }
 
     @Override

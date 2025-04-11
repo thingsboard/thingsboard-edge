@@ -102,11 +102,8 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                 "tbelEncoder": null,
                 "updateOnlyKeys": [
                     "fPort",
-                    "frequency",
-                    "vdd",
                     "eui",
-                    "ack",
-                    "dr"
+                    "rssi"
                 ]
             }
             """;

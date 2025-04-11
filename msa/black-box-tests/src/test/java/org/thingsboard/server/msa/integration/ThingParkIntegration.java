@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.THINGPARK;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
@@ -129,17 +130,21 @@ public class ThingParkIntegration extends AbstractIntegrationTest {
 
         testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, THINGPARK);
 
-        List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
+        await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
+                    Map<String, JsonNode> attributeMap = attributes.stream()
+                            .collect(Collectors.toMap(
+                                    node -> node.get("key").asText(),
+                                    node -> node
+                            ));
 
-        Map<String, JsonNode> attributeMap = attributes.stream()
-                .collect(Collectors.toMap(
-                        node -> node.get("key").asText(),
-                        node -> node
-                ));
-
-        assertThat(attributeMap.get("rssi").get("value").asInt()).isEqualTo(-130);
-        assertThat(attributeMap.get("eui").get("value").asText()).isEqualTo("BE7A123456789");
-        assertThat(attributeMap.get("fPort").get("value").asInt()).isEqualTo(80);
+                    assertThat(attributeMap.get("rssi").get("value").asInt()).isEqualTo(-130);
+                    assertThat(attributeMap.get("eui").get("value").asText()).isEqualTo("BE7A123456789");
+                    assertThat(attributeMap.get("fPort").get("value").asInt()).isEqualTo(80);
+                    return true;
+                });
     }
 
     @Override
