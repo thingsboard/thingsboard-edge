@@ -817,8 +817,7 @@ public class EdgeMsgConstructorUtils {
                 .setIdLSB(schedulerEventId.getId().getLeastSignificantBits()).build();
     }
 
-    public static WhiteLabelingProto constructWhiteLabeling(WhiteLabeling whiteLabeling) {
-        return WhiteLabelingProto.newBuilder().setEntity(JacksonUtil.toString(whiteLabeling)).build();
+    public static WhiteLabelingProto constructWhiteLabeling(UpdateMsgType msgType, WhiteLabeling whiteLabeling) {
+        return WhiteLabelingProto.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(whiteLabeling)).build();
     }
-
 }

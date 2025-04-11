@@ -54,9 +54,11 @@ public class SchedulerEventFields extends AbstractEntityFields {
     private EntityId originatorId;
 
     public SchedulerEventFields(UUID id, long createdTime, UUID tenantId, UUID customerId, String name, Long version,
-                                String type, JsonNode additionalInfo, UUID originatorId, EntityType originatorType) {
+                                String type, JsonNode schedule, JsonNode configuration, JsonNode additionalInfo, UUID originatorId, EntityType originatorType) {
         super(id, createdTime, tenantId, customerId, name, version);
         this.type = type;
+        this.schedule = getText(schedule);
+        this.configuration = getText(configuration);
         this.additionalInfo = getText(additionalInfo);
         this.originatorId = (originatorId != null && originatorType != null) ? EntityIdFactory.getByTypeAndUuid(originatorType, originatorId) : null;
     }

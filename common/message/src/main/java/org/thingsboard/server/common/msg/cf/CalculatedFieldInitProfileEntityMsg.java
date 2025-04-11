@@ -28,30 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cf;
+package org.thingsboard.server.common.msg.cf;
 
-import org.thingsboard.server.common.data.cf.CalculatedFieldLink;
-import org.thingsboard.server.common.data.id.CalculatedFieldId;
+import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.ToCalculatedFieldSystemMsg;
 
-import java.util.List;
+@Data
+public class CalculatedFieldInitProfileEntityMsg implements ToCalculatedFieldSystemMsg {
 
-public interface CalculatedFieldLinkDao extends Dao<CalculatedFieldLink> {
+    private final TenantId tenantId;
+    private final EntityId profileEntityId;
+    private final EntityId entityId;
 
-    List<CalculatedFieldLink> findCalculatedFieldLinksByCalculatedFieldId(TenantId tenantId, CalculatedFieldId calculatedFieldId);
-
-    List<CalculatedFieldLink> findCalculatedFieldLinksByEntityId(TenantId tenantId, EntityId entityId);
-
-    List<CalculatedFieldLink> findCalculatedFieldLinksByTenantId(TenantId tenantId);
-
-    List<CalculatedFieldLink> findAll();
-
-    PageData<CalculatedFieldLink> findAll(PageLink pageLink);
-
-    PageData<CalculatedFieldLink> findAllByTenantId(TenantId tenantId, PageLink pageLink);
+    @Override
+    public MsgType getMsgType() {
+        return MsgType.CF_INIT_PROFILE_ENTITY_MSG;
+    }
 
 }

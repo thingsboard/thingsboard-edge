@@ -28,24 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cf.cache;
+package org.thingsboard.server.queue;
 
-import org.springframework.context.ApplicationListener;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+public interface TbEdgeQueueAdmin extends TbQueueAdmin {
+    void syncEdgeNotificationsOffsets(String fatGroupId, String newGroupId);
 
-import java.util.Collection;
-
-public interface CalculatedFieldEntityProfileCache extends ApplicationListener<PartitionChangeEvent> {
-
-    void add(TenantId tenantId, EntityId profileId, EntityId entityId);
-
-    void update(TenantId tenantId, EntityId oldProfileId, EntityId newProfileId, EntityId entityId);
-
-    void evict(TenantId tenantId, EntityId entityId);
-
-    Collection<EntityId> getMyEntityIdsByProfileId(TenantId tenantId, EntityId profileId);
-
-    int getEntityIdPartition(TenantId tenantId, EntityId entityId);
+    void deleteConsumerGroup(String consumerGroupId);
 }
