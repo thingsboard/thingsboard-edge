@@ -306,7 +306,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
     }
     if (this.isDecoder) {
       if (this.isConverterV2) {
-        return of('AXVeAwABBAAB');
+        return of('Ae0DM18OTGM=');
       }
       return beautifyJs(JSON.stringify({devName: 'devA', param1: 1, param2: 'test'}), {indent_size: 4});
     } else {
