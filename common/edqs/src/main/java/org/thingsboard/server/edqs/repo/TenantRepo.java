@@ -380,7 +380,6 @@ public class TenantRepo {
     public PageData<QueryResult> findEntityDataByQuery(CustomerId customerId, MergedUserPermissions userPermissions,
                                                        EntityDataQuery oldQuery, boolean ignorePermissionCheck) {
         EdqsDataQuery query = RepositoryUtils.toNewQuery(oldQuery);
-        log.info("[{}][{}] findEntityDataByQuery: {}", tenantId, customerId, query);
         QueryContext ctx = buildContext(customerId, userPermissions, query.getEntityFilter(), ignorePermissionCheck);
         if (ctx == null) {
             return PageData.emptyPageData();
@@ -391,7 +390,6 @@ public class TenantRepo {
 
     public long countEntitiesByQuery(CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery oldQuery, boolean ignorePermissionCheck) {
         EdqsQuery query = RepositoryUtils.toNewQuery(oldQuery);
-        log.info("[{}][{}] countEntitiesByQuery: {}", tenantId, customerId, query);
         QueryContext ctx = buildContext(customerId, userPermissions, query.getEntityFilter(), ignorePermissionCheck);
         if (ctx == null) {
             return 0;

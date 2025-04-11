@@ -30,12 +30,14 @@
  */
 package org.thingsboard.common.util;
 
+import lombok.Getter;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 import java.util.concurrent.ConcurrentMap;
 
 public class TbStringPool {
 
+    @Getter
     private static final ConcurrentMap<String, String> pool = new ConcurrentReferenceHashMap<>();
 
     public static String intern(String data) {
@@ -43,10 +45,6 @@ public class TbStringPool {
             return null;
         }
         return pool.computeIfAbsent(data, str -> str);
-    }
-
-    public static int size(){
-        return pool.size();
     }
 
 }

@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
@@ -294,7 +293,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityCountQuery(query);
 
-        TbStopWatch stopWatch = TbStopWatch.create();
+        long startNs = System.nanoTime();
         Long result;
         if (edqsApiService.isEnabled() && validForEdqs(query) && !tenantId.isSysTenantId()) {
             EdqsRequest request = EdqsRequest.builder()
@@ -306,7 +305,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         } else {
             result = entityQueryDao.countEntitiesByQuery(tenantId, customerId, userPermissions, query);
         }
-        edqsStatsService.reportCountQuery(tenantId, query, stopWatch.stopAndGetTotalTimeNanos());
+        edqsStatsService.reportEntityCountQuery(tenantId, query, System.nanoTime() - startNs);
         return result;
     }
 
@@ -317,7 +316,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityDataQuery(query);
 
-        TbStopWatch stopWatch = TbStopWatch.create();
+        long startNs = System.nanoTime();
         PageData<EntityData> result;
         if (edqsApiService.isEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
@@ -341,7 +340,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 }
             }
         }
-        edqsStatsService.reportDataQuery(tenantId, query, stopWatch.stopAndGetTotalTimeNanos());
+        edqsStatsService.reportEntityDataQuery(tenantId, query, System.nanoTime() - startNs);
         return result;
     }
 
