@@ -10,7 +10,7 @@ To simulate a comprehensive swimming pool system, this Docker command launches a
 Execute the following command in your terminal: 
 
 ```bash
-docker run --pull always --rm -d --name tb-modbus-pool-emulator -p 5021-5034:5021-5034 thingsboard/tb-modbus-pool-emulator:latest && docker logs -f tb-modbus-pool-emulator{:copy-code}
+docker run --pull always --rm -d --name tb-modbus-pool-emulator -p 5021-5034:5021-5034 thingsboard/tb-modbus-pool-emulator:1.0-stable && docker logs -f tb-modbus-pool-emulator{:copy-code}
 ```
 
 ##### Step 3: Launch the IoT Gateway

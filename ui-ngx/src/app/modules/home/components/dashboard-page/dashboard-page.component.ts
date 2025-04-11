@@ -1201,6 +1201,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         this.dashboardCtx.aliasController.dashboardStateChanged();
         this.isRightLayoutOpened = openRightLayout ? true : false;
         widgetsCount = this.updateLayouts(layoutsData);
+        this.cd.markForCheck();
       }
       setTimeout(() => {
         this.mobileService.onDashboardLoaded(this.layouts.right.show, this.isRightLayoutOpened);
@@ -1424,8 +1425,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   addWidgetFromType(widget: WidgetInfo) {
     this.onAddWidgetClosed();
-    this.widgetComponentService.getWidgetInfo(widget.typeFullFqn).subscribe(
-      (widgetTypeInfo) => {
+    this.widgetComponentService.getWidgetInfo(widget.typeFullFqn).subscribe({
+      next: (widgetTypeInfo) => {
         const config: WidgetConfig = this.dashboardUtils.widgetConfigFromWidgetType(widgetTypeInfo);
         if (!config.title) {
           config.title = 'New ' + widgetTypeInfo.widgetName;
@@ -1478,8 +1479,13 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
             }
           });
         }
+      },
+      error: (errorData) => {
+        const errorMessages: string[] = errorData.errorMessages;
+        this.dialogService.alert(this.translate.instant('widget.widget-type-load-error'),
+          errorMessages.join('<br>').replace(/\n/g, '<br>'));
       }
-    );
+    });
   }
 
   onRevertWidgetEdit() {

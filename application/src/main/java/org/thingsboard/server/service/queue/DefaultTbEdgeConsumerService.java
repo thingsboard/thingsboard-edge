@@ -34,8 +34,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,6 +58,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.common.consumer.MainQueueConsumerManager;
 import org.thingsboard.server.queue.discovery.QueueKey;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
@@ -67,7 +66,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
-import org.thingsboard.server.queue.common.consumer.MainQueueConsumerManager;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
 import org.thingsboard.server.service.queue.processing.IdMsgPair;
 
@@ -82,7 +81,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @TbCoreComponent
 public class DefaultTbEdgeConsumerService extends AbstractConsumerService<ToEdgeNotificationMsg> implements TbEdgeConsumerService {
@@ -212,36 +210,42 @@ public class DefaultTbEdgeConsumerService extends AbstractConsumerService<ToEdge
     protected void handleNotification(UUID id, TbProtoQueueMsg<ToEdgeNotificationMsg> msg, TbCallback callback) {
         ToEdgeNotificationMsg toEdgeNotificationMsg = msg.getValue();
         try {
+            EdgeRpcService edgeRpcService = edgeCtx.getEdgeRpcService();
+            if (edgeRpcService == null) {
+                log.debug("No EdgeRpcService available (edge functionality disabled), ignoring msg: {}", toEdgeNotificationMsg);
+                callback.onSuccess();
+                return;
+            }
             if (toEdgeNotificationMsg.hasEdgeHighPriority()) {
                 EdgeSessionMsg edgeSessionMsg = ProtoUtils.fromProto(toEdgeNotificationMsg.getEdgeHighPriority());
-                edgeCtx.getEdgeRpcService().onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);
+                edgeRpcService.onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);
                 callback.onSuccess();
             } else if (toEdgeNotificationMsg.hasEdgeEventUpdate()) {
                 EdgeSessionMsg edgeSessionMsg = ProtoUtils.fromProto(toEdgeNotificationMsg.getEdgeEventUpdate());
-                edgeCtx.getEdgeRpcService().onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);
+                edgeRpcService.onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);
                 callback.onSuccess();
             } else if (toEdgeNotificationMsg.hasToEdgeSyncRequest()) {
                 EdgeSessionMsg edgeSessionMsg = ProtoUtils.fromProto(toEdgeNotificationMsg.getToEdgeSyncRequest());
-                edgeCtx.getEdgeRpcService().onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);
+                edgeRpcService.onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);
                 callback.onSuccess();
             } else if (toEdgeNotificationMsg.hasFromEdgeSyncResponse()) {
                 EdgeSessionMsg edgeSessionMsg = ProtoUtils.fromProto(toEdgeNotificationMsg.getFromEdgeSyncResponse());
-                edgeCtx.getEdgeRpcService().onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);
+                edgeRpcService.onToEdgeSessionMsg(edgeSessionMsg.getTenantId(), edgeSessionMsg);
                 callback.onSuccess();
             } else if (toEdgeNotificationMsg.hasComponentLifecycle()) {
                 ComponentLifecycleMsg componentLifecycle = ProtoUtils.fromProto(toEdgeNotificationMsg.getComponentLifecycle());
                 TenantId tenantId = componentLifecycle.getTenantId();
                 EdgeId edgeId = new EdgeId(componentLifecycle.getEntityId().getId());
                 if (ComponentLifecycleEvent.DELETED.equals(componentLifecycle.getEvent())) {
-                    edgeCtx.getEdgeRpcService().deleteEdge(tenantId, edgeId);
+                    edgeRpcService.deleteEdge(tenantId, edgeId);
                 } else if (ComponentLifecycleEvent.UPDATED.equals(componentLifecycle.getEvent())) {
                     Edge edge = edgeCtx.getEdgeService().findEdgeById(tenantId, edgeId);
-                    edgeCtx.getEdgeRpcService().updateEdge(tenantId, edge);
+                    edgeRpcService.updateEdge(tenantId, edge);
                 }
                 callback.onSuccess();
             }
         } catch (Exception e) {
-            log.error("Error processing edge notification message", e);
+            log.error("Error processing edge notification message {}", toEdgeNotificationMsg, e);
             callback.onFailure(e);
         }
 

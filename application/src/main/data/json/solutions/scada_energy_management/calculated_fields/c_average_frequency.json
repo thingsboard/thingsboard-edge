@@ -1,0 +1,46 @@
+{
+  "type": "SIMPLE",
+  "name": "Average frequency",
+  "entityId": {
+    "id": "e9ce9340-1503-11f0-8308-dfc38c65ed1c",
+    "entityType": "DEVICE"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1744048493295
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SIMPLE",
+    "arguments": {
+      "frequencyL1": {
+        "refEntityKey": {
+          "key": "frequencyL1",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "frequencyL2": {
+        "refEntityKey": {
+          "key": "frequencyL2",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "frequencyL3": {
+        "refEntityKey": {
+          "key": "frequencyL3",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      }
+    },
+    "expression": "(frequencyL1+frequencyL2+frequencyL3)/3",
+    "output": {
+      "name": "frequencyAvg",
+      "type": "TIME_SERIES",
+      "decimalsByDefault": 2
+    }
+  }
+}

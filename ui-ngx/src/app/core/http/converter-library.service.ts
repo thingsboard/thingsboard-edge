@@ -79,29 +79,17 @@ export class ConverterLibraryService {
     ) as Observable<Converter>;
   }
 
-  getConverterMetaData(
-    integrationType: IntegrationType,
-    vendorName: string,
-    modelName: string,
-    converterType: ConverterType,
-    config?: RequestConfig
-  ) {
+  getConverterMetaData(integrationType: IntegrationType, vendorName: string, modelName: string, converterType: ConverterType, config?: RequestConfig): Observable<string> {
     return this.http.get(
       `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/${encodeURIComponent(modelName)}/${converterType.toLowerCase()}/metadata`,
-      defaultHttpOptionsFromConfig(config)
+      {...{responseType: 'text'}, ...defaultHttpOptionsFromConfig(config)}
     );
   }
 
-  getConverterPayload(
-    integrationType: IntegrationType,
-    vendorName: string,
-    modelName: string,
-    converterType: ConverterType,
-    config?: RequestConfig
-  ) {
+  getConverterPayload(integrationType: IntegrationType, vendorName: string, modelName: string, converterType: ConverterType, config?: RequestConfig): Observable<string> {
     return this.http.get(
       `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/${encodeURIComponent(modelName)}/${converterType.toLowerCase()}/payload`,
-      defaultHttpOptionsFromConfig(config)
+      {...{responseType: 'text'}, ...defaultHttpOptionsFromConfig(config)}
     );
   }
 }

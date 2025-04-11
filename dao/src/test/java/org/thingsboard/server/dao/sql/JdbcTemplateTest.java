@@ -28,31 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api.converter.wrapper;
+package org.thingsboard.server.dao.sql;
 
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.server.dao.AbstractJpaDaoTest;
 
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public final class ConverterWrapperFactory {
+@TestPropertySource(properties = {
+        "spring.jpa.properties.javax.persistence.query.timeout=500"
+})
+public class JdbcTemplateTest extends AbstractJpaDaoTest {
 
-    private static final ConcurrentHashMap<IntegrationType, Optional<ConverterWrapper>> wrappers = new ConcurrentHashMap<>();
+    @Autowired
+    private NamedParameterJdbcTemplate jdbcTemplate;
 
-    private ConverterWrapperFactory() {}
-
-    public static Optional<ConverterWrapper> getWrapper(IntegrationType integrationType) {
-        if (integrationType == null) {
-            return Optional.empty();
-        }
-
-        return wrappers.computeIfAbsent(integrationType, key ->
-                Optional.ofNullable(switch (integrationType) {
-                    case LORIOT -> new LoriotConverterWrapper();
-                    case CHIRPSTACK -> new ChirpStackConverterWrapper();
-                    case THINGPARK, TPE -> new ThingParkConverterWrapper();
-                    case TTN, TTI -> new ThingsStackConverterWrapper();
-                    default -> null;
-                }));
+    @Test
+    public void queryTimeoutTest() {
+        assertThrows(DataAccessResourceFailureException.class, () -> jdbcTemplate.query("SELECT pg_sleep(10)", rs -> {}));
     }
 }

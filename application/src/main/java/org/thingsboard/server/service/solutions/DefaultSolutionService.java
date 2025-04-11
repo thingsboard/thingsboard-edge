@@ -683,7 +683,7 @@ public class DefaultSolutionService implements SolutionService {
         try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, params).getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         ) {
-            return reader.lines().collect(Collectors.joining("\n")).replaceAll("(image:\\s+([\\w\\-/]+))", "$1:latest");
+            return reader.lines().collect(Collectors.joining("\n"));
         } catch (Exception e) {
             throw new RuntimeException("Failed to read or process the docker-compose.yml file.", e);
         }
@@ -898,6 +898,7 @@ public class DefaultSolutionService implements SolutionService {
             dashboard.setTitle(entityDef.getName());
             dashboard.setConfiguration(dashboardTemplate.getConfiguration());
             dashboard.setCustomerId(customerId);
+            dashboard.setImage(dashboardTemplate.getImage());
             dashboard.setResources(dashboardTemplate.getResources());
             dashboard = dashboardService.saveDashboard(dashboard);
 

@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -68,7 +69,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
     protected GroupPermissionService groupPermissionService;
 
     @Override
-    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         GroupPermissionId groupPermissionId = new GroupPermissionId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -109,7 +110,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                             link -> edgeCtx.getEdgeService().findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER, link), 1024);
                     for (EdgeId edgeId : edgeIds) {
                         ListenableFuture<Boolean> checkFuture =
-                                edgeCtx.getEntityGroupService().checkEdgeEntityGroupByIdAsync(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                                edgeCtx.getEntityGroupService().checkEntityGroupAssignedToEdgeAsync(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
                         futures.add(Futures.transformAsync(checkFuture, exists -> {
                             if (Boolean.TRUE.equals(exists)) {
                                 return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);

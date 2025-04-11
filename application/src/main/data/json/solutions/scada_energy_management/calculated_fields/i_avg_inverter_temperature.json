@@ -1,0 +1,46 @@
+{
+  "type": "SIMPLE",
+  "name": "Average inverter temperature",
+  "entityId": {
+    "id": "e9c3bdd0-1503-11f0-8308-dfc38c65ed1c",
+    "entityType": "DEVICE"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1743775401180
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SIMPLE",
+    "arguments": {
+      "temperatureL1": {
+        "refEntityKey": {
+          "key": "temperatureL1",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "temperatureL2": {
+        "refEntityKey": {
+          "key": "temperatureL2",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "temperatureL3": {
+        "refEntityKey": {
+          "key": "temperatureL3",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      }
+    },
+    "expression": "(temperatureL1 + temperatureL2 + temperatureL3) / 3",
+    "output": {
+      "name": "avgInverterTemperature",
+      "type": "TIME_SERIES",
+      "decimalsByDefault": 0
+    }
+  }
+}

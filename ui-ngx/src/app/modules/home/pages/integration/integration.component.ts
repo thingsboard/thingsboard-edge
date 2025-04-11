@@ -47,7 +47,7 @@ import { isDefined } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import { IntegrationService } from '@core/http/integration.service';
 import { PageLink } from '@shared/models/page/page-link';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-integration',
@@ -60,7 +60,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
 
   integrationScope: 'tenant' | 'edges' | 'edge';
 
-  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
+  EntityType = EntityType;
 
   private integrationType: IntegrationType;
 

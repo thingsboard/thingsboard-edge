@@ -44,12 +44,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
@@ -170,5 +173,37 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
 
         doPost("/api/entityGroup/" + entityGroupId + "/share", groupRequest)
                 .andExpect(status().isOk());
+    }
+
+    protected void createPublicCustomerOnTenantLevel() throws Exception {
+        createPublicGroupAndDeleteAfter(tenantId);
+    }
+
+    protected void createPublicCustomerOnCustomerLevel(Customer customer) throws Exception {
+        User tmpUser = new User();
+        tmpUser.setAuthority(Authority.CUSTOMER_USER);
+        tmpUser.setTenantId(tenantId);
+        tmpUser.setCustomerId(customer.getId());
+        tmpUser.setEmail("tmpCustomerUser@thingsboard.org");
+        User savedUser = createUser(tmpUser, "customer", findCustomerAdminsGroup(customer.getId()).getId());
+        login("tmpCustomerUser@thingsboard.org", "customer");
+
+        createPublicGroupAndDeleteAfter(customer.getId());
+
+        loginTenantAdmin();
+        doDelete("/api/user/" + savedUser.getId().getId().toString())
+                .andExpect(status().isOk());
+    }
+
+    private void createPublicGroupAndDeleteAfter(EntityId ownerId) throws Exception {
+        EntityGroup tmpEntityGroup = new EntityGroup();
+        tmpEntityGroup.setType(EntityType.DEVICE);
+        tmpEntityGroup.setName(ownerId.getId().toString());
+        tmpEntityGroup.setOwnerId(ownerId);
+        tmpEntityGroup = doPost("/api/entityGroup", tmpEntityGroup, EntityGroup.class);
+
+        doPost("/api/entityGroup/" + tmpEntityGroup.getUuidId() + "/makePublic").andExpect(status().isOk());
+
+        doDelete("/api/entityGroup/" + tmpEntityGroup.getId().getId().toString()).andExpect(status().isOk());
     }
 }

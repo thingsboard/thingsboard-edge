@@ -35,6 +35,24 @@
   <mat-toolbar class="flex flex-row" color="primary">
     <h2>{{ dialogTitle | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-tbel') | translate }})</h2>
     <span class="flex-1"></span>
+    @if (isConverterV2) {
+      <button mat-stroked-button
+              class="xs:hidden"
+              #updatedMsg
+              (click)="updateMsg($event, updatedMsg)"
+              type="button">
+        <mat-icon class="material-icons">replay</mat-icon>
+        {{ 'converter.update-raw-payload' | translate }}
+      </button>
+      <button mat-mini-fab
+              type="button"
+              class="gt-xs:hidden"
+              #updatedMsgIcon
+              (click)="updateMsg($event, updatedMsgIcon)"
+              color="primary">
+        <mat-icon class="material-icons">replay</mat-icon>
+      </button>
+    }
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -129,12 +147,12 @@
             </tb-js-func>
           </div>
         </div>
-        <div #bottomRightPanel class="tb-split tb-content" [class.not-p-top]="isPayload">
+        <div #bottomRightPanel class="tb-split tb-content" [class.not-p-top]="isConverterV2">
           <div class="tb-resize-container">
-            <div class="tb-editor-area-title-panel" [class.tb-tabs-output]="isPayload">
+            <div class="tb-editor-area-title-panel" [class.tb-tabs-output]="isConverterV2">
               <span translate>converter.output</span>
             </div>
-            @if (isPayload) {
+            @if (isConverterV2) {
               <ng-container *ngTemplateOutlet="outputTabsResult"></ng-container>
             } @else {
               <ng-container *ngTemplateOutlet="outputResult"></ng-container>
@@ -205,7 +223,7 @@
       [contentType]="contentType.JSON"
       validateContent="false"
       readonly="true"
-      [hideToolbar]="isPayload"
+      [hideToolbar]="isConverterV2"
       [fillHeight]="true">
     </tb-json-content>
   </ng-container>

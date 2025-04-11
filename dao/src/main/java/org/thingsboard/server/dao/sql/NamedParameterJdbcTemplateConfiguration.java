@@ -28,17 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api.converter.wrapper;
+package org.thingsboard.server.dao.sql;
 
-import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.server.common.data.util.TbPair;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
 
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
-public interface ConverterWrapper {
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class NamedParameterJdbcTemplateConfiguration {
 
-    TbPair<byte[], UplinkMetaData<Object>> wrap(byte[] payload, UplinkMetaData metadata) throws Exception;
+    @Value("${spring.jpa.properties.javax.persistence.query.timeout:30000}")
+    private int queryTimeout;
 
-    Set<String> getKeys();
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+    @PostConstruct
+    private void init() {
+        int timeout = Math.max(1, (int) TimeUnit.MILLISECONDS.toSeconds(queryTimeout));
+        log.info("Set jdbcTemplate query timeout [{}] second(s)", timeout);
+        namedParameterJdbcTemplate.getJdbcTemplate().setQueryTimeout(timeout);
+    }
 }

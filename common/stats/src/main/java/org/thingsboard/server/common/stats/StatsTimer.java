@@ -49,10 +49,14 @@ public class StatsTimer {
         this.timer = micrometerTimer;
     }
 
-    public  void record(long timeMs) {
+    public void record(long timeMs) {
+        record(timeMs, TimeUnit.MILLISECONDS);
+    }
+
+    public void record(long timing, TimeUnit timeUnit) {
         count++;
-        totalTime += timeMs;
-        timer.record(timeMs, TimeUnit.MILLISECONDS);
+        totalTime += timeUnit.toMillis(timing);
+        timer.record(timing, timeUnit);
     }
 
     public double getAvg() {
@@ -62,7 +66,7 @@ public class StatsTimer {
         return (double) totalTime / count;
     }
 
-    public  void reset() {
+    public void reset() {
         count = 0;
         totalTime = 0;
     }

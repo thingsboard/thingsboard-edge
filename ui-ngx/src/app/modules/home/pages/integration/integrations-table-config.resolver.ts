@@ -49,8 +49,6 @@ import { DialogService } from '@core/services/dialog.service';
 import { MatDialog } from '@angular/material/dialog';
 import { IntegrationsTableConfig } from '@home/pages/integration/integrations-table-config';
 import { PageLink } from '@shared/models/page/page-link';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 
 @Injectable()
@@ -64,7 +62,6 @@ export class IntegrationsTableConfigResolver  {
               private router: Router,
               private utils: UtilsService,
               private dialogService: DialogService,
-              private store: Store<AppState>,
               private entityDebugSettingsService: EntityDebugSettingsService,
               private destroyRef: DestroyRef,
               private dialog: MatDialog) {
@@ -85,7 +82,6 @@ export class IntegrationsTableConfigResolver  {
       this.utils,
       this.dialogService,
       this.dialog,
-      this.store,
       this.entityDebugSettingsService,
       this.destroyRef,
       params
