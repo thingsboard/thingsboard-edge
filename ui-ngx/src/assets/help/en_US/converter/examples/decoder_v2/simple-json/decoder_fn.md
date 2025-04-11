@@ -24,6 +24,16 @@ function decodePayload(input) {
 
 var result = decodePayload(payload);
 return result;
+
+/** Helper function to decode raw payload bytes to string**/
+function decodeToString(payload) {
+  return String.fromCharCode.apply(String, payload);
+}
+/** Helper function to decode raw payload bytes to JSON object**/
+function decodeToJson(payload) {
+  return JSON.parse(decodeToString(payload));
+}
+
 {:copy-code}
 ```
 
