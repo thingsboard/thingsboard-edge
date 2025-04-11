@@ -311,6 +311,8 @@ public class FieldsUtil {
                 .name(entity.getName())
                 .type(entity.getType())
                 .originatorId(entity.getOriginatorId())
+                .schedule(getText(entity.getSchedule()))
+                .configuration(getText(entity.getConfiguration()))
                 .additionalInfo(getText(entity.getAdditionalInfo()))
                 .version(entity.getVersion())
                 .build();
