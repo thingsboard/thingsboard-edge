@@ -64,7 +64,7 @@ import { IntegrationTabsComponent } from '@home/pages/integration/integration-ta
 import { Operation, Resource } from '@shared/models/security.models';
 import { forkJoin, Observable, of } from 'rxjs';
 import { isUndefined } from '@core/utils';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, first, map, switchMap } from 'rxjs/operators';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { PageData } from '@shared/models/page/page-data';
 import { Edge } from '@shared/models/edge.models';
@@ -134,20 +134,14 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     this.onEntityAction = action => this.onIntegrationAction(action, this.componentsData);
 
     this.handleRowClick = (event, entity) => {
-      this.getTable().toggleEntityDetails(event, entity);
       const path = (event as any).path || (event.composedPath && event.composedPath());
       if ((event.target as HTMLElement).getElementsByClassName('status').length || (event.target as HTMLElement).className === 'status') {
-        setTimeout(() => {
-          this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
-          (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.LC_EVENT;
-        }, 0);
+        this.openDetailsEventTab(event, entity, EventType.LC_EVENT);
       } else if ((event.target as HTMLElement).getElementsByTagName('TB-SPARK-LINE').length || path?.some(el => el.tagName === 'TB-SPARK-LINE')) {
-        setTimeout(() => {
-          this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
-          (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.STATS;
-        }, 0);
+        this.openDetailsEventTab(event, entity, EventType.STATS);
       } else {
-        (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = '';
+        (this.getTable().entityDetailsPanel.entityTabsComponent as IntegrationTabsComponent).defaultEventType = DebugEventType.DEBUG_INTEGRATION;
+        this.getTable().toggleEntityDetails(event, entity);
       }
       return true;
     };
@@ -344,14 +338,26 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     }, $event.target as Element);
   }
 
-  private openDebugEventDetails($event: Event, entity): void {
+  private openDebugEventDetails($event: Event, entity: IntegrationInfo): void {
+    this.openDetailsEventTab($event, entity, DebugEventType.DEBUG_INTEGRATION);
+    this.getTable().detectChanges();
+  }
+
+  private openDetailsEventTab($event: Event, entity: IntegrationInfo, eventType: DebugEventType | EventType) {
     const table = this.getTable();
-    table.toggleEntityDetails($event, entity);
-    setTimeout(() => {
-      table.entityDetailsPanel.matTabGroup.selectedIndex = 1;
-      (table.entityDetailsPanel.entityTabsComponent as any).defaultEventType = DebugEventType.DEBUG_INTEGRATION;
-    }, 0);
-    table.detectChanges();
+    if (!table.isDetailsOpen) {
+      (table.entityDetailsPanel.entityTabsComponent as IntegrationTabsComponent).defaultEventType = eventType;
+      table.toggleEntityDetails($event, entity);
+      if (table.entityDetailsPanel.matTabGroup._tabs.length > 1) {
+        table.entityDetailsPanel.matTabGroup.selectedIndex = 1;
+      } else {
+        table.entityDetailsPanel.matTabGroup._tabs.changes.pipe(
+          first()
+        ).subscribe(() => {
+          table.entityDetailsPanel.matTabGroup.selectedIndex = 1;
+        })
+      }
+    }
   }
 
   private onDebugConfigChanged(id: string, debugSettings: EntityDebugSettings): void {
