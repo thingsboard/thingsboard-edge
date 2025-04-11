@@ -161,8 +161,8 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     protected volatile boolean initialized;
     protected volatile boolean isGeneralProcessInProgress = false;
+    protected volatile boolean syncInProgress = false;
     private volatile boolean sendingInProgress = false;
-    private volatile boolean syncInProgress = false;
     private volatile boolean isRateLimitViolated = false;
     private volatile boolean initInProgress = false;
 
@@ -419,13 +419,14 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         try {
             interruptPreviousSendUplinkMsgsTask();
 
+            boolean doSync = reconnectFuture == null;
             if (reconnectFuture != null) {
                 reconnectFuture.cancel(true);
                 reconnectFuture = null;
             }
 
             if ("CE".equals(edgeConfiguration.getCloudType())) {
-                initAndUpdateEdgeSettings(edgeConfiguration);
+                initAndUpdateEdgeSettings(edgeConfiguration, doSync);
             } else {
                 new Thread(() -> {
                     log.error("Terminating application. CE edge can be connected only to CE server version...");
@@ -444,7 +445,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         initInProgress = false;
     }
 
-    private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
+    private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration, boolean doSync) throws Exception {
         if (!isSystemTenantPartitionMine()) {
             return;
         }
@@ -473,10 +474,12 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         if (edgeCustomerIdUpdated) {
             cloudCtx.getCustomerProcessor().createCustomerIfNotExists(tenantId, edgeConfiguration);
         }
-        // TODO: voba - should sync be executed in some other cases ???
-        log.trace("Sending sync request, fullSyncRequired {}", currentEdgeSettings.isFullSyncRequired());
-        edgeRpcClient.sendSyncRequestMsg(currentEdgeSettings.isFullSyncRequired());
-        syncInProgress = true;
+
+        if (doSync) {
+            log.trace("Sending sync request, fullSyncRequired {}", currentEdgeSettings.isFullSyncRequired());
+            edgeRpcClient.sendSyncRequestMsg(currentEdgeSettings.isFullSyncRequired());
+            syncInProgress = true;
+        }
 
         edgeSettingsService.saveEdgeSettings(tenantId, currentEdgeSettings);
 
