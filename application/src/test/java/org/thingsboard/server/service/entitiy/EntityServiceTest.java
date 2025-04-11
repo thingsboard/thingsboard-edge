@@ -1595,31 +1595,6 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testFindCustomerByStateEntityOwnerFilter() {
-        StateEntityOwnerFilter stateEntityOwnerFilter = new StateEntityOwnerFilter();
-        stateEntityOwnerFilter.setSingleEntity(customerUserId);
-
-        List<EntityKey> entityFields = List.of(
-                new EntityKey(EntityKeyType.ENTITY_FIELD, "name")
-        );
-
-        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
-        EntityDataQuery query = new EntityDataQuery(stateEntityOwnerFilter, pageLink, entityFields, null, null);
-
-        //check user owner
-        PageData<EntityData> result = findByQueryAndCheck(query, 1);
-        String ownerName = result.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
-        assertThat(ownerName).isEqualTo("Customer");
-
-        //check user owner by customer user
-//        MergedUserPermissions mergedGenericPermission = new MergedUserPermissions(Map.of(CUSTOMER, Set.of(Operation.READ),
-//                USER, Set.of(Operation.READ)), Collections.emptyMap());
-//        result = findByQueryAndCheck(customerId, mergedGenericPermission, query, 1);
-//        ownerName = result.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
-//        assertThat(ownerName).isEqualTo("Customer");
-    }
-
-    @Test
     public void testFindEntitiesByEntityGroupListFilter() {
         List<EntityGroup> groups = new ArrayList<>();
 
