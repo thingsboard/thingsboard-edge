@@ -49,6 +49,8 @@ public interface EntityData<T extends EntityFields> {
 
     UUID getCustomerId();
 
+    UUID getPermissionCustomerId();
+
     void setCustomerId(UUID customerId);
 
     void setRepo(TenantRepo repo);

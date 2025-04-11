@@ -128,7 +128,7 @@ public abstract class AbstractQueryProcessor<T extends EntityFilter> implements 
     }
 
     protected static boolean checkCustomerHierarchy(Set<UUID> customers, EntityData<?> ed) {
-        return ed.getCustomerId() != null && customers.contains(ed.getCustomerId());
+        return ed.getPermissionCustomerId() != null && customers.contains(ed.getPermissionCustomerId());
     }
 
     protected void process(Collection<EntityData<?>> entities, Consumer<EntityData<?>> processor) {

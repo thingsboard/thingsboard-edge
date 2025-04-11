@@ -48,6 +48,11 @@ public class CustomerData extends BaseEntityData<CustomerFields> {
     }
 
     @Override
+    public UUID getPermissionCustomerId() {
+        return getId();
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.CUSTOMER;
     }
