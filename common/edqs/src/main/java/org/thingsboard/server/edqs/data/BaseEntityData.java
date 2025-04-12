@@ -123,6 +123,11 @@ public abstract class BaseEntityData<T extends EntityFields> implements EntityDa
     }
 
     @Override
+    public UUID getPermissionCustomerId() {
+        return getCustomerId();
+    }
+
+    @Override
     public DataPoint getDataPoint(DataKey key, QueryContext ctx) {
         return switch (key.type()) {
             case TIME_SERIES -> getTs(key.keyId());

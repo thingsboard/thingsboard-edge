@@ -56,8 +56,8 @@ public class StateEntityOwnerQueryProcessor extends AbstractSingleEntityTypeQuer
     @Override
     protected void processCustomerGenericRead(UUID customerId, Consumer<EntityData<?>> processor) {
         EntityData ed = repository.getEntityMap(entityId.getEntityType()).get(entityId.getId());
-        if (ed != null && ed.getCustomerId() != null && matches(ed)) {
-            if (customerId.equals(ed.getCustomerId()) || repository.getAllCustomers(customerId).contains(ed.getCustomerId())) {
+        if (ed != null && ed.getPermissionCustomerId() != null && matches(ed)) {
+            if (customerId.equals(ed.getPermissionCustomerId()) || repository.getAllCustomers(customerId).contains(ed.getPermissionCustomerId())) {
                 processor.accept(ed);
             }
         }
@@ -70,7 +70,7 @@ public class StateEntityOwnerQueryProcessor extends AbstractSingleEntityTypeQuer
         if (!matches(ed)) {
             return Collections.emptyList();
         } else {
-            boolean genericRead = customerId.equals(ed.getCustomerId()) || repository.getAllCustomers(customerId).contains(ed.getCustomerId());
+            boolean genericRead = customerId.equals(ed.getPermissionCustomerId()) || repository.getAllCustomers(customerId).contains(ed.getPermissionCustomerId());
             CombinedPermissions permissions = getCombinedPermissions(ed.getId(), genericRead, readAttrPermissions, readTsPermissions, groupPermissions);
             if (permissions.isRead()) {
                 SortableEntityData sortData = toSortData(ed, permissions);
