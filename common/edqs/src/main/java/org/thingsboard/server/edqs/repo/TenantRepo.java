@@ -213,32 +213,27 @@ public class TenantRepo {
                 getEntitySet(entityType).add(entityData);
             }
 
+            UUID newCustomerId = fields.getCustomerId();
+            UUID oldCustomerId = entityData.getCustomerId();
             switch (entity.getType()) {
-                case ENTITY_GROUP -> {
+                case ENTITY_GROUP:
                     EntityGroupFields entityGroupFields = (EntityGroupFields) fields;
                     UUID ownerId = entityGroupFields.getOwnerId();
                     if (EntityType.CUSTOMER.equals(entityGroupFields.getOwnerType())) {
                         entityData.setCustomerId(ownerId);
                         ((CustomerData) getOrCreate(EntityType.CUSTOMER, ownerId)).addOrUpdate(entityData);
                     }
-                }
-                case CUSTOMER -> {
-                    CustomerFields customerFields = (CustomerFields) fields;
-                    UUID newParentId = customerFields.getCustomerId(); // for customer, customerId is parentCustomerId
-                    UUID oldParentId = entityData.getCustomerId();
-                    entityData.setCustomerId(newParentId);
-                    if (entityIdMismatch(oldParentId, newParentId)) {
-                        if (oldParentId != null) {
-                            customersHierarchy.computeIfAbsent(oldParentId, id -> new HashSet<>()).remove(entityData.getId());
+                    break;
+                case CUSTOMER:
+                    if (entityIdMismatch(oldCustomerId, newCustomerId)) {
+                        if (oldCustomerId != null) {
+                            customersHierarchy.computeIfAbsent(oldCustomerId, id -> new HashSet<>()).remove(entityData.getId());
                         }
-                        if (newParentId != null) {
-                            customersHierarchy.computeIfAbsent(newParentId, id -> new HashSet<>()).add(entityData.getId());
+                        if (newCustomerId != null) {
+                            customersHierarchy.computeIfAbsent(newCustomerId, id -> new HashSet<>()).add(entityData.getId());
                         }
                     }
-                }
-                default -> {
-                    UUID newCustomerId = fields.getCustomerId();
-                    UUID oldCustomerId = entityData.getCustomerId();
+                default:
                     entityData.setCustomerId(newCustomerId);
                     if (entityIdMismatch(oldCustomerId, newCustomerId)) {
                         if (oldCustomerId != null) {
@@ -252,7 +247,6 @@ public class TenantRepo {
                             newData.addOrUpdate(entityData);
                         }
                     }
-                }
             }
         } finally {
             entityUpdateLock.unlock();
@@ -269,13 +263,18 @@ public class TenantRepo {
                 if (removed.getFields() != null) {
                     getEntitySet(entityType).remove(removed);
                 }
-                edqsStatsService.reportRemoved(ObjectType.fromEntityType(entityType));
-            }
-
-            switch (entityType) {
-                case CUSTOMER -> {
-                    customersHierarchy.remove(entityId);
+                switch (entityType) {
+                    case CUSTOMER:
+                        customersHierarchy.remove(entityId);
+                    default:
+                        if (removed.getCustomerId() != null) {
+                            CustomerData customerData = (CustomerData) get(EntityType.CUSTOMER, removed.getCustomerId());
+                            if (customerData != null) {
+                                customerData.remove(entityType, entityId);
+                            }
+                        }
                 }
+                edqsStatsService.reportRemoved(ObjectType.fromEntityType(entityType));
             }
         } finally {
             entityUpdateLock.unlock();
