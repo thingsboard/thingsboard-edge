@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.AfterMethod;
@@ -52,14 +53,14 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
-import static org.thingsboard.server.common.data.integration.IntegrationType.THINGPARK;
+import static org.thingsboard.server.common.data.integration.IntegrationType.CHIRPSTACK;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfig;
 
-public class ThingParkIntegration extends AbstractIntegrationTest {
+public class ChirpStackIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String ROUTING_KEY = "routing-key-thingpark";
-    private static final String SECRET_KEY = "secret-key-thingpark";
+    private static final String ROUTING_KEY = "routing-key-chirpstack";
+    private static final String SECRET_KEY = "secret-key-chirpstack";
 
     private WsClient wsClient;
 
@@ -77,10 +78,10 @@ public class ThingParkIntegration extends AbstractIntegrationTest {
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
 
         Integration integration = Integration.builder()
-                .type(THINGPARK)
+                .type(CHIRPSTACK)
                 .name("chirpstack" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, THINGPARK, 2)).getId())
+                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, CHIRPSTACK, 2)).getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -95,27 +96,26 @@ public class ThingParkIntegration extends AbstractIntegrationTest {
 
         ObjectNode payloadMsg = createPayloadMsg();
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, THINGPARK);
+        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, CHIRPSTACK);
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
-        assertThat(actualLatestTelemetry.getDataValuesByKey("data").get(1)).isEqualTo("2A3F");
+        assertThat(actualLatestTelemetry.getDataValuesByKey("data").get(1)).isEqualTo("Kj8=");
         assertThat(actualLatestTelemetry.getDataValuesByKey("temperature").get(1)).isEqualTo("42");
         assertThat(actualLatestTelemetry.getDataValuesByKey("humidity").get(1)).isEqualTo("63");
         assertThat(actualLatestTelemetry.getDataValuesByKey("snr").get(1)).isEqualTo("11.5");
     }
 
     @Test
-
     public void checkAttributesUploadedWithLocalIntegration() {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
 
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
 
         Integration integration = Integration.builder()
-                .type(THINGPARK)
-                .name("thingpark_" + RandomStringUtils.randomAlphanumeric(7))
+                .type(CHIRPSTACK)
+                .name("chirpstack" + RandomStringUtils.randomAlphanumeric(7))
                 .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, THINGPARK, 2)).getId())
+                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, CHIRPSTACK, 2)).getId())
                 .routingKey(ROUTING_KEY)
                 .secret(SECRET_KEY)
                 .isRemote(false)
@@ -128,10 +128,10 @@ public class ThingParkIntegration extends AbstractIntegrationTest {
 
         ObjectNode payloadMsg = createPayloadMsg();
 
-        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, THINGPARK);
+        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, CHIRPSTACK);
 
         await()
-                .atMost(30, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .until(() -> {
                     List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
                     Map<String, JsonNode> attributeMap = attributes.stream()
@@ -149,22 +149,25 @@ public class ThingParkIntegration extends AbstractIntegrationTest {
 
     @Override
     protected String getDevicePrototypeSufix() {
-        return "thingpark_";
+        return "chirpstack_";
     }
 
     private ObjectNode createPayloadMsg() {
         ObjectNode payloadMsg = JacksonUtil.newObjectNode();
 
-        ObjectNode devEUIUplink = payloadMsg.putObject("DevEUI_uplink");
-
         String isoTime = OffsetDateTime.now(ZoneOffset.UTC)
                 .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-        devEUIUplink.put("Time", isoTime);
-        devEUIUplink.put("DevEUI", "BE7A123456789");
-        devEUIUplink.put("FPort", 80);
-        devEUIUplink.put("LrrRSSI", -130);
-        devEUIUplink.put("LrrSNR", 11.5);
-        devEUIUplink.put("payload_hex", "2A3F");
+        payloadMsg.put("time", isoTime);
+        payloadMsg.put("data", "Kj8=");
+
+        ObjectNode deviceInfo = payloadMsg.putObject("deviceInfo");
+        deviceInfo.put("devEui", "BE7A123456789");
+        payloadMsg.put("fPort", 80);
+
+        ArrayNode rxInfo = payloadMsg.putArray("rxInfo");
+        ObjectNode rxInfoEntry = rxInfo.addObject();
+        rxInfoEntry.put("rssi", -130);
+        rxInfoEntry.put("snr", 11.5);
 
         return payloadMsg;
     }
