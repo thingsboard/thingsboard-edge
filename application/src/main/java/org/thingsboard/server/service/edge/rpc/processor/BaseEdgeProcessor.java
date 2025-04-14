@@ -175,7 +175,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
                 }
             }, dbCallbackExecutorService);
         } else {
-            doSaveEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
+            return doSaveEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
         }
     }
 
