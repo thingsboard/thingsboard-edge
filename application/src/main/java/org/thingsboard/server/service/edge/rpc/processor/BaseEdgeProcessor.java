@@ -130,7 +130,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
                                                    EdgeEventActionType action,
                                                    EntityId entityId,
                                                    JsonNode body) {
-        return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
+        return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null, true);
     }
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
@@ -139,29 +139,34 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
                                                    EdgeEventActionType action,
                                                    EntityId entityId,
                                                    JsonNode body,
-                                                   EntityGroupId entityGroupId) {
-        ListenableFuture<Optional<AttributeKvEntry>> future =
-                edgeCtx.getAttributesService().find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, DefaultDeviceStateService.ACTIVITY_STATE);
-        return Futures.transformAsync(future, activeOpt -> {
-            if (activeOpt.isEmpty()) {
-                log.trace("Edge is not activated. Skipping event. tenantId [{}], edgeId [{}], type[{}], " +
-                                "action [{}], entityId [{}], body [{}], entityGroupId [{}]",
-                        tenantId, edgeId, type, action, entityId, body, entityGroupId);
-                return Futures.immediateFuture(null);
-            }
-            if (activeOpt.get().getBooleanValue().isPresent() && activeOpt.get().getBooleanValue().get()) {
-                return doSaveEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
-            } else {
-                if (doSaveIfEdgeIsOffline(type, action)) {
-                    return doSaveEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
-                } else {
-                    log.trace("Edge is not active at the moment. Skipping event. tenantId [{}], edgeId [{}], type[{}], " +
+                                                   EntityGroupId entityGroupId,
+                                                   boolean doValidate) {
+        if (doValidate) {
+            ListenableFuture<Optional<AttributeKvEntry>> future =
+                    edgeCtx.getAttributesService().find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, DefaultDeviceStateService.ACTIVITY_STATE);
+            return Futures.transformAsync(future, activeOpt -> {
+                if (activeOpt.isEmpty()) {
+                    log.trace("Edge is not activated. Skipping event. tenantId [{}], edgeId [{}], type[{}], " +
                                     "action [{}], entityId [{}], body [{}], entityGroupId [{}]",
                             tenantId, edgeId, type, action, entityId, body, entityGroupId);
                     return Futures.immediateFuture(null);
                 }
-            }
-        }, dbCallbackExecutorService);
+                if (activeOpt.get().getBooleanValue().isPresent() && activeOpt.get().getBooleanValue().get()) {
+                    return doSaveEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
+                } else {
+                    if (doSaveIfEdgeIsOffline(type, action)) {
+                        return doSaveEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
+                    } else {
+                        log.trace("Edge is not active at the moment. Skipping event. tenantId [{}], edgeId [{}], type[{}], " +
+                                        "action [{}], entityId [{}], body [{}], entityGroupId [{}]",
+                                tenantId, edgeId, type, action, entityId, body, entityGroupId);
+                        return Futures.immediateFuture(null);
+                    }
+                }
+            }, dbCallbackExecutorService);
+        } else {
+            doSaveEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
+        }
     }
 
     private boolean doSaveIfEdgeIsOffline(EdgeEventType type, EdgeEventActionType action) {
@@ -194,7 +199,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
         if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
             PageDataIterable<Edge> edges = new PageDataIterable<>(link -> edgeCtx.getEdgeService().findActiveEdges(link), 1024);
             for (Edge edge : edges) {
-                futures.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), type, actionType, entityId, body));
+                futures.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), type, actionType, entityId, body, null, false));
             }
             return Futures.immediateFuture(null);
         } else {
