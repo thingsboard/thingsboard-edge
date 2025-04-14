@@ -51,6 +51,7 @@ import org.thingsboard.rule.engine.math.TbMathNode;
 import org.thingsboard.rule.engine.metadata.CalculateDeltaNode;
 import org.thingsboard.rule.engine.metadata.TbGetTelemetryNode;
 import org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode;
+import org.thingsboard.rule.engine.telemetry.TbCalculatedFieldsNode;
 import org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode;
 import org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -90,6 +91,7 @@ public class EdgeMsgConstructorUtilsTest {
                     new TbChangeOwnerNode(),
                     new TbSendRestApiCallReplyNode(),
                     new TbAwsLambdaNode(),
+                    new TbCalculatedFieldsNode(),
 
                     new TbMathNode(),
                     new CalculateDeltaNode(),
