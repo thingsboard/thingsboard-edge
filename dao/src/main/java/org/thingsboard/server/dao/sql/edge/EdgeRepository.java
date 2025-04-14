@@ -61,7 +61,7 @@ public interface EdgeRepository extends JpaRepository<EdgeEntity, UUID> {
 
     @Query(value = "SELECT ee.id, ee.created_time, ee.additional_info, ee.customer_id, " +
             "ee.root_rule_chain_id, ee.type, ee.name, ee.label, ee.routing_key, " +
-            "ee.secret, ee.tenant_id, ee.version " +
+            "ee.secret, ee.tenant_id, ee.version, ee.edge_license_key, ee.cloud_endpoint " +
             "FROM edge ee " +
             "JOIN attribute_kv ON ee.id = attribute_kv.entity_id " +
             "JOIN key_dictionary ON attribute_kv.attribute_key = key_dictionary.key_id " +
