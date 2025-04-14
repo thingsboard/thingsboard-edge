@@ -211,7 +211,6 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
             for (Edge edge : edges) {
                 futures.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), type, actionType, entityId, body, null, false));
             }
-            return Futures.immediateFuture(null);
         } else {
             futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, body, sourceEdgeId, null);
         }
