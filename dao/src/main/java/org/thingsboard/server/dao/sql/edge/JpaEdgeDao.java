@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.edqs.fields.EdgeFields;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -74,6 +75,19 @@ public class JpaEdgeDao extends JpaAbstractDao<EdgeEntity, Edge> implements Edge
     @Override
     protected JpaRepository<EdgeEntity, UUID> getRepository() {
         return edgeRepository;
+    }
+
+    @Override
+    public EdgeInfo findEdgeInfoById(TenantId tenantId, UUID edgeId) {
+        return DaoUtil.getData(edgeRepository.findEdgeInfoById(edgeId));
+    }
+
+    @Override
+    public PageData<Edge> findActiveEdges(PageLink pageLink) {
+        return DaoUtil.toPageData(
+                edgeRepository.findActiveEdges(
+                        pageLink.getTextSearch(),
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
