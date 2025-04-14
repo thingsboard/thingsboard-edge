@@ -96,6 +96,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -189,17 +190,24 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
 
     protected ListenableFuture<Void> processActionForAllEdges(TenantId tenantId, EdgeEventType type,
                                                               EdgeEventActionType actionType, EntityId entityId,
-                                                              JsonNode body, EdgeId sourceEdgeId) {
-        List<ListenableFuture<Void>> futures = new ArrayList<>();
+                                                              EdgeId sourceEdgeId) {
         if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-            PageDataIterable<TenantId> tenantIds = new PageDataIterable<>(link -> edgeCtx.getTenantService().findTenantsIds(link), 1024);
+            PageDataIterable<TenantId> tenantIds = new PageDataIterable<>(link -> edgeCtx.getTenantService().findTenantsIds(link), 500);
             for (TenantId tenantId1 : tenantIds) {
-                futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId, body, sourceEdgeId, null));
+                try {
+                    List<ListenableFuture<Void>> sysTenantFutures = processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId, null, sourceEdgeId, null);
+                    for (ListenableFuture<Void> future : sysTenantFutures) {
+                        future.get(10, TimeUnit.SECONDS);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to process action for all edges by SYS_TENANT_ID. Failed tenantId = [{}]", tenantId1, e);
+                }
             }
+            return Futures.immediateFuture(null);
         } else {
-            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, body, sourceEdgeId, null);
+            List<ListenableFuture<Void>> tenantFutures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, null, sourceEdgeId, null);
+            return Futures.transform(Futures.allAsList(tenantFutures), voids -> null, dbCallbackExecutorService);
         }
-        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
     protected List<ListenableFuture<Void>> processActionForAllEdgesByTenantId(TenantId tenantId,
@@ -369,7 +377,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
     private ListenableFuture<Void> processEntityNotificationForAllEdges(TenantId tenantId, EdgeEventType type, EdgeEventActionType actionType, EntityId entityId, EdgeId sourceEdgeId) {
         return switch (actionType) {
             case ADDED, UPDATED, DELETED, CREDENTIALS_UPDATED -> // used by USER entity
-                    processActionForAllEdges(tenantId, type, actionType, entityId, null, sourceEdgeId);
+                    processActionForAllEdges(tenantId, type, actionType, entityId, sourceEdgeId);
             default -> Futures.immediateFuture(null);
         };
     }
