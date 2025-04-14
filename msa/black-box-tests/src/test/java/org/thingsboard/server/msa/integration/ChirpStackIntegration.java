@@ -106,7 +106,7 @@ public class ChirpStackIntegration extends AbstractIntegrationTest{
     }
 
     @Test
-    public void checkAttributesUploadedWithLocalIntegration() throws InterruptedException {
+    public void checkAttributesUploadedWithLocalIntegration() {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
 
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
@@ -133,7 +133,7 @@ public class ChirpStackIntegration extends AbstractIntegrationTest{
         await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, ATTRIBUTE_KEY);
+                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
                     Map<String, JsonNode> attributeMap = attributes.stream()
                             .collect(Collectors.toMap(
                                     node -> node.get("key").asText(),
