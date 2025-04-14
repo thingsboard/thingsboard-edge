@@ -130,7 +130,17 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
                                                    EdgeEventActionType action,
                                                    EntityId entityId,
                                                    JsonNode body) {
-        return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null, true);
+        return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
+    }
+
+    protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
+                                                   EdgeId edgeId,
+                                                   EdgeEventType type,
+                                                   EdgeEventActionType action,
+                                                   EntityId entityId,
+                                                   JsonNode body,
+                                                   EntityGroupId entityGroupId) {
+        return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId, true);
     }
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
