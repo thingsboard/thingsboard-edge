@@ -223,7 +223,7 @@ ui:
   # Help parameters
   help:
     # Base URL for UI help assets
-    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-pe-ui-help/release-4.0}"
+    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-pe-ui-help/release-4.1}"
   # Solution templates parameters
   solution_templates:
     # Base URL for solution templates docs
