@@ -94,6 +94,7 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
         testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, LORIOT);
 
         await()
+                .pollInterval(1, TimeUnit.SECONDS)
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
