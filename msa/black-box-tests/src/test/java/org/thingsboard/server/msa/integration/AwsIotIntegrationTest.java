@@ -154,7 +154,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        createIntegration(AWS_IOT, getIntegrationConfig(), CONFIG_CONVERTER, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false);
+        createIntegration(AWS_IOT, getIntegrationConfig(), CONFIG_CONVERTER, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false, 1);
 
         //subscribe for aws iot topic
         AWSIotMqttClient awsIotClient = getAwsIotClient();

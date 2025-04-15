@@ -143,15 +143,15 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
 
     protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig,
                                             String routingKey, String secretKey, boolean isRemote) {
-        return createIntegration(type, config, uplinkConfig, null, routingKey, secretKey, isRemote);
+        return createIntegration(type, config, uplinkConfig, null, routingKey, secretKey, isRemote, 1);
     }
 
     protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig, JsonNode downlinkConfig,
-                                            String routingKey, String secretKey, boolean isRemote) {
+                                            String routingKey, String secretKey, boolean isRemote, int converterVersion) {
         Integration integration = new Integration();
         integration.setConfiguration(config);
 
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(uplinkConfig));
+        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(uplinkConfig, type, converterVersion));
         integration.setDefaultConverterId(uplinkConverter.getId());
 
         if (downlinkConfig != null) {

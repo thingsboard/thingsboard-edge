@@ -287,7 +287,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        createIntegration(HTTP, defaultConfig(HTTPS_URL), CUSTOM_CONVERTER_CONFIGURATION, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false);
+        createIntegration(HTTP, defaultConfig(HTTPS_URL), CUSTOM_CONVERTER_CONFIGURATION, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false, 1);
 
         testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, TELEMETRY_VALUE));
 

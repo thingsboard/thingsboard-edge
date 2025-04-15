@@ -260,7 +260,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
 
-        createIntegration(TCP, defaultJsonConfig(PORT), configConverter, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, true);
+        createIntegration(TCP, defaultJsonConfig(PORT), configConverter, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, true, 1);
 
         String jsonPayload = createPayloadForUplink().toString();
         EventLoopGroup group = new NioEventLoopGroup();

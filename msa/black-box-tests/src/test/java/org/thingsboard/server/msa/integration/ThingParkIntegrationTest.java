@@ -32,12 +32,10 @@ package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang3.RandomStringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.debug.DebugSettings;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
@@ -53,9 +51,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.THINGPARK;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfig;
 
+@Slf4j
 public class ThingParkIntegrationTest extends AbstractIntegrationTest {
 
     private static final String ROUTING_KEY = "routing-key-thingpark";
@@ -73,23 +71,8 @@ public class ThingParkIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void checkTelemetryUploadedWithLocalIntegration() throws Exception {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
-
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
-
-        Integration integration = Integration.builder()
-                .type(THINGPARK)
-                .name("chirpstack" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, THINGPARK, 2)).getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugSettings(DebugSettings.until(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)))
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        this.integration = testRestClient.postIntegration(integration);
+        createIntegration(THINGPARK, integrationConfig, configConverter, null, ROUTING_KEY, SECRET_KEY, false, 2);
 
         wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
@@ -107,23 +90,8 @@ public class ThingParkIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void checkAttributesUploadedWithLocalIntegration() {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
-
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
-
-        Integration integration = Integration.builder()
-                .type(THINGPARK)
-                .name("thingpark_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, THINGPARK, 2)).getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugSettings(DebugSettings.until(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)))
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        this.integration = testRestClient.postIntegration(integration);
+        createIntegration(THINGPARK, integrationConfig, configConverter, null, ROUTING_KEY, SECRET_KEY, false, 2);
 
         ObjectNode payloadMsg = createPayloadMsg();
 
@@ -131,7 +99,7 @@ public class ThingParkIntegrationTest extends AbstractIntegrationTest {
 
         await()
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
-                .until(() -> {
+                .untilAsserted(() -> {
                     List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
                     Map<String, JsonNode> attributeMap = attributes.stream()
                             .collect(Collectors.toMap(
@@ -142,7 +110,6 @@ public class ThingParkIntegrationTest extends AbstractIntegrationTest {
                     assertThat(attributeMap.get("rssi").get("value").asInt()).isEqualTo(-130);
                     assertThat(attributeMap.get("eui").get("value").asText()).isEqualTo("BE7A123456789");
                     assertThat(attributeMap.get("fPort").get("value").asInt()).isEqualTo(80);
-                    return true;
                 });
     }
 

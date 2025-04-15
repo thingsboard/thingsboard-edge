@@ -33,12 +33,10 @@ package org.thingsboard.server.msa.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang3.RandomStringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.debug.DebugSettings;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
@@ -54,9 +52,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.CHIRPSTACK;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
-import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfig;
 
+@Slf4j
 public class ChirpStackIntegrationTest extends AbstractIntegrationTest {
 
     private static final String ROUTING_KEY = "routing-key-chirpstack";
@@ -74,23 +71,8 @@ public class ChirpStackIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void checkTelemetryUploadedWithLocalIntegration() throws Exception {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
-
-        JsonNode integrationConfig = defaultConfig(HTTPS_URL);
-
-        Integration integration = Integration.builder()
-                .type(CHIRPSTACK)
-                .name("chirpstack" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, CHIRPSTACK, 2)).getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugSettings(DebugSettings.until(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)))
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        this.integration = testRestClient.postIntegration(integration);
+        JsonNode integrationConfig = createChirpStackJsonConfig();
+        createIntegration(CHIRPSTACK, integrationConfig, configConverter, null, ROUTING_KEY, SECRET_KEY, false, 2);
 
         wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
@@ -108,23 +90,8 @@ public class ChirpStackIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void checkAttributesUploadedWithLocalIntegration() {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
-
-        JsonNode integrationConfig = defaultConfig(HTTPS_URL);
-
-        Integration integration = Integration.builder()
-                .type(CHIRPSTACK)
-                .name("chirpstack" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, CHIRPSTACK, 2)).getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugSettings(DebugSettings.until(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)))
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        this.integration = testRestClient.postIntegration(integration);
+        JsonNode integrationConfig = createChirpStackJsonConfig();
+        createIntegration(CHIRPSTACK, integrationConfig, configConverter, null, ROUTING_KEY, SECRET_KEY, false, 2);
 
         ObjectNode payloadMsg = createPayloadMsg();
 
@@ -132,7 +99,7 @@ public class ChirpStackIntegrationTest extends AbstractIntegrationTest {
 
         await()
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
-                .until(() -> {
+                .untilAsserted(() -> {
                     List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
                     Map<String, JsonNode> attributeMap = attributes.stream()
                             .collect(Collectors.toMap(
@@ -143,7 +110,6 @@ public class ChirpStackIntegrationTest extends AbstractIntegrationTest {
                     assertThat(attributeMap.get("rssi").get("value").asInt()).isEqualTo(-130);
                     assertThat(attributeMap.get("eui").get("value").asText()).isEqualTo("BE7A123456789");
                     assertThat(attributeMap.get("fPort").get("value").asInt()).isEqualTo(80);
-                    return true;
                 });
     }
 
@@ -170,6 +136,18 @@ public class ChirpStackIntegrationTest extends AbstractIntegrationTest {
         rxInfoEntry.put("snr", 11.5);
 
         return payloadMsg;
+    }
+
+    private JsonNode createChirpStackJsonConfig() {
+        ObjectNode rootNode = JacksonUtil.newObjectNode();
+        rootNode.putObject("metadata");
+
+        ObjectNode clientConfigNode = rootNode.putObject("clientConfiguration");
+        clientConfigNode.put("baseUrl", HTTPS_URL);
+        clientConfigNode.put("applicationServerUrl", "test_server_url");
+        clientConfigNode.put("applicationServerApiToken", "test_api_token");
+
+        return rootNode;
     }
 
 }
