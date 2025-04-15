@@ -43,6 +43,7 @@ public class TransportMonitoringTarget implements MonitoringTarget {
     private DeviceConfig device; // set manually during initialization
     private String queue;
     private boolean checkDomainIps;
+    private String namePrefix;
 
     @Override
     public UUID getDeviceId() {
