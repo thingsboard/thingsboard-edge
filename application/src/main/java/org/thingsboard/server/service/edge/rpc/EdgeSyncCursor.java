@@ -99,10 +99,12 @@ public class EdgeSyncCursor {
             fetchers.add(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
             fetchers.add(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
         }
-        Customer publicCustomer = ctx.getCustomerService().findOrCreatePublicCustomer(edge.getTenantId(), edge.getTenantId());
-        fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService(), publicCustomer.getId()));
-        fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), publicCustomer.getId()));
-        fetchers.add(new PublicCustomerUserGroupEdgeEventFetcher(ctx.getCustomerService(), edge.getTenantId()));
+        Customer publicCustomer = ctx.getCustomerService().findPublicCustomer(edge.getTenantId(), edge.getTenantId());
+        if (publicCustomer != null) {
+            fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService(), publicCustomer.getId()));
+            fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), publicCustomer.getId()));
+            fetchers.add(new PublicCustomerUserGroupEdgeEventFetcher(ctx.getCustomerService(), edge.getTenantId()));
+        }
         if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
             CustomerId customerId = new CustomerId(edge.getOwnerId().getId());
             fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService(), customerId));
@@ -134,10 +136,11 @@ public class EdgeSyncCursor {
 
     private void addCustomerRolesEdgeEventFetchers(EdgeContextComponent ctx, TenantId tenantId, CustomerId customerId) {
         fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), customerId));
-        Customer publicCustomer = ctx.getCustomerService().findOrCreatePublicCustomer(tenantId, customerId);
-        fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), publicCustomer.getId()));
-        fetchers.add(new PublicCustomerUserGroupEdgeEventFetcher(ctx.getCustomerService(), customerId));
-
+        Customer publicCustomer = ctx.getCustomerService().findPublicCustomer(tenantId, customerId);
+        if (publicCustomer != null) {
+            fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), publicCustomer.getId()));
+            fetchers.add(new PublicCustomerUserGroupEdgeEventFetcher(ctx.getCustomerService(), customerId));
+        }
         Customer customerById = ctx.getCustomerService().findCustomerById(tenantId, customerId);
         if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
             addCustomerRolesEdgeEventFetchers(ctx, tenantId, customerById.getParentCustomerId());

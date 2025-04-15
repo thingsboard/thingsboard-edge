@@ -1,0 +1,39 @@
+{
+  "type": "SIMPLE",
+  "name": "Flow charge-discharge",
+  "entityId": {
+    "id": "e9c91500-1503-11f0-8308-dfc38c65ed1c",
+    "entityType": "DEVICE"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1744037677784
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SIMPLE",
+    "arguments": {
+      "chargeCurrent": {
+        "refEntityKey": {
+          "key": "chargeCurrent",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "dischargeCurrent": {
+        "refEntityKey": {
+          "key": "dischargeCurrent",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      }
+    },
+    "expression": "chargeCurrent-dischargeCurrent",
+    "output": {
+      "name": "flowChargeDischarge",
+      "type": "TIME_SERIES",
+      "decimalsByDefault": 0
+    }
+  }
+}

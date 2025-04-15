@@ -56,6 +56,7 @@ import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -591,7 +592,15 @@ public class HashPartitionService implements PartitionService {
 
     @Override
     public int resolvePartitionIndex(UUID entityId, int partitions) {
-        int hash = hash(entityId);
+        return resolvePartitionIndex(hash(entityId), partitions);
+    }
+
+    @Override
+    public int resolvePartitionIndex(String key, int partitions) {
+        return resolvePartitionIndex(hash(key), partitions);
+    }
+
+    private int resolvePartitionIndex(int hash, int partitions) {
         return Math.abs(hash % partitions);
     }
 
@@ -772,6 +781,12 @@ public class HashPartitionService implements PartitionService {
         return hashFunction.newHasher()
                 .putLong(key.getMostSignificantBits())
                 .putLong(key.getLeastSignificantBits())
+                .hash().asInt();
+    }
+
+    private int hash(String key) {
+        return hashFunction.newHasher()
+                .putString(key, StandardCharsets.UTF_8)
                 .hash().asInt();
     }
 

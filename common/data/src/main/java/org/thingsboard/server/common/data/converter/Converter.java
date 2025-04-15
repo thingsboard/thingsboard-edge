@@ -216,7 +216,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
 
     @JsonIgnore
     public boolean isDedicated() {
-        return integrationType != null && converterVersion == 2;
+        return integrationType != null && converterVersion != null && converterVersion == 2;
     }
 
 }

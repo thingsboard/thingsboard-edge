@@ -33,8 +33,6 @@ package org.thingsboard.integration.api.converter;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.converter.wrapper.ConverterWrapper;
-import org.thingsboard.integration.api.converter.wrapper.ConverterWrapperFactory;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
@@ -43,21 +41,16 @@ import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
-import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConverter {
 
     private ScriptUplinkEvaluator evaluator;
     private DedicatedConverterConfig config;
-    private ConverterWrapper converterWrapper;
 
     public DedicatedScriptUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
         super(jsInvokeService, tbelInvokeService, logSettings);
@@ -71,10 +64,6 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
         String decoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "decoder" : "tbelDecoder";
         String decoder = configuration.getConfiguration().get(decoderField).asText();
         this.evaluator = new ScriptUplinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), decoder);
-        IntegrationType integrationType = configuration.getIntegrationType();
-        this.converterWrapper = ConverterWrapperFactory
-                .getWrapper(integrationType)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
     }
 
     @Override
@@ -93,12 +82,6 @@ public class DedicatedScriptUplinkDataConverter extends AbstractUplinkDataConver
     @Override
     public ListenableFuture<String> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
         return evaluator.execute(data, metadata);
-    }
-
-    @Override
-    public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata, ExecutorService callBackExecutorService) throws Exception {
-        TbPair<byte[], UplinkMetaData<Object>> wrappedPair = converterWrapper.wrap(data, metadata);
-        return super.convertUplink(context, wrappedPair.getFirst(), wrappedPair.getSecond(), callBackExecutorService);
     }
 
     @Override

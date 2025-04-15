@@ -80,7 +80,7 @@ public class CalculatedField extends BaseData<CalculatedFieldId> implements HasN
     @Schema(description = "Version of calculated field configuration.", example = "0")
     private int configurationVersion;
     @Schema(implementation = SimpleCalculatedFieldConfiguration.class)
-    private transient CalculatedFieldConfiguration configuration;
+    private CalculatedFieldConfiguration configuration;
     @Getter
     @Setter
     private Long version;
@@ -128,22 +128,6 @@ public class CalculatedField extends BaseData<CalculatedFieldId> implements HasN
         return super.getCreatedTime();
     }
 
-    @Override
-    public String toString() {
-        return new StringBuilder()
-                .append("CalculatedField[")
-                .append("tenantId=").append(tenantId)
-                .append(", entityId=").append(entityId)
-                .append(", type='").append(type)
-                .append(", name='").append(name)
-                .append(", configurationVersion=").append(configurationVersion)
-                .append(", configuration=").append(configuration)
-                .append(", version=").append(version)
-                .append(", createdTime=").append(createdTime)
-                .append(", id=").append(id).append(']')
-                .toString();
-    }
-
     // Getter is ignored for serialization
     @JsonIgnore
     public boolean isDebugMode() {
@@ -159,6 +143,22 @@ public class CalculatedField extends BaseData<CalculatedFieldId> implements HasN
     @Override
     public EntityType getEntityType() {
         return EntityType.CALCULATED_FIELD;
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder()
+                .append("CalculatedField[")
+                .append("tenantId=").append(tenantId)
+                .append(", entityId=").append(entityId)
+                .append(", type='").append(type)
+                .append(", name='").append(name)
+                .append(", configurationVersion=").append(configurationVersion)
+                .append(", configuration=").append(configuration)
+                .append(", version=").append(version)
+                .append(", createdTime=").append(createdTime)
+                .append(", id=").append(id).append(']')
+                .toString();
     }
 
 }

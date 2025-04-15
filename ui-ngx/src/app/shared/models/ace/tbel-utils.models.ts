@@ -1260,6 +1260,71 @@ const tbelEditorCompletions:TbEditorCompletions = {
       type: 'boolean'
     }
   },
+  isInsidePolygon: {
+    meta: 'function',
+    description: 'Checks if a given point is inside a polygon.',
+    args: [
+      {
+        name: 'latitude',
+        description: 'The latitude of the point',
+        type: 'number'
+      },
+      {
+        name: 'longitude',
+        description: 'The longitude of the point',
+        type: 'number'
+      },
+      {
+        name: 'perimeter',
+        description: 'The polygon perimeter represented as a string',
+        type: 'string'
+      }
+    ],
+    return: {
+      description: 'True if the point is inside the polygon, false otherwise.',
+      type: 'boolean'
+    }
+  },
+  isInsideCircle: {
+    meta: 'function',
+    description: 'Checks if a given point is inside a circular area.',
+    args: [
+      {
+        name: 'latitude',
+        description: 'The latitude of the point',
+        type: 'number'
+      },
+      {
+        name: 'longitude',
+        description: 'The longitude of the point',
+        type: 'number'
+      },
+      {
+        name: 'perimeter',
+        description: 'A string representation of the circle, containing center coordinates and radius',
+        type: 'string'
+      }
+    ],
+    return: {
+      description: 'True if the point is inside the circle, false otherwise.',
+      type: 'boolean'
+    }
+  },
+  parseDateToTimestampOrNow: {
+    meta: 'function',
+    description: 'Parses an ISO-8601 date string to a Unix timestamp (ms). Returns current time on failure.',
+    args: [
+      {
+        name: 'str',
+        description: 'The date string to be parsed (expected in ISO-8601 format).',
+        type: 'string'
+      }
+    ],
+    return: {
+      description: 'A Unix timestamp in milliseconds representing.',
+      type: 'number'
+    }
+  }
 }
 
 export const tbelUtilsAutocompletes = new TbEditorCompleter(tbelEditorCompletions);

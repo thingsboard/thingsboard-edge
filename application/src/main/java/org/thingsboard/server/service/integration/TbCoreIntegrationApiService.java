@@ -37,8 +37,10 @@ import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.queue.TbQueueHandler;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
+import java.util.Collection;
+
 public interface TbCoreIntegrationApiService extends TbQueueHandler<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> {
 
-    void handle(TbProtoQueueMsg<ToCoreIntegrationMsg> msg, TbCallback callback);
+    void handle(Collection<TbProtoQueueMsg<ToCoreIntegrationMsg>> msg, TbCallback callback);
 
 }

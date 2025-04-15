@@ -51,6 +51,7 @@ import { Store } from '@ngrx/store';
 import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 import { AdditionalDebugActionConfig } from '@home/components/entity/debug/entity-debug-settings.model';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-entity-debug-settings-button',
@@ -73,9 +74,8 @@ import { AdditionalDebugActionConfig } from '@home/components/entity/debug/entit
 })
 export class EntityDebugSettingsButtonComponent implements ControlValueAccessor {
 
-  @Input() debugLimitsConfiguration: string;
-  @Input() entityLabel: string;
   @Input() additionalActionConfig: AdditionalDebugActionConfig;
+  @Input({required: true}) entityType: EntityType;
 
   debugSettingsFormGroup = this.fb.group({
     failuresEnabled: [false],
@@ -138,8 +138,7 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
       debugSettings: this.debugSettingsFormGroup.value,
       debugConfig: {
         maxDebugModeDuration: this.maxDebugModeDuration,
-        debugLimitsConfiguration: this.debugLimitsConfiguration,
-        entityLabel: this.entityLabel,
+        entityType: this.entityType,
         additionalActionConfig: this.additionalActionConfig,
       },
       onSettingsAppliedFn: settings => {
@@ -169,5 +168,6 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
     } else {
       this.debugSettingsFormGroup.enable({emitEvent: false});
     }
+    this.cd.markForCheck();
   }
 }

@@ -40,6 +40,7 @@ import {
   Converter,
   ConverterConfigV2,
   ConverterDebugInput,
+  ConverterMsg,
   ConverterType,
   converterTypeTranslationMap,
   ConverterVersion,
@@ -47,6 +48,7 @@ import {
   DefaultUpdateOnlyKeysValue,
   getConverterFunctionArgs,
   getConverterFunctionHeldId,
+  getConverterFunctionHeldPopupStyle,
   getConverterFunctionName,
   getConverterTestFunctionName,
   getTargetField,
@@ -67,7 +69,7 @@ import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { ConverterInfo, IntegrationsConvertersInfo, IntegrationType } from '@shared/models/integration.models';
 import { capitalize, deepClone, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
-import { map } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { forkJoin, Observable, of } from 'rxjs';
 import { ContentType } from '@shared/models/constants';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
@@ -133,8 +135,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       'group': 'converter.device-group-name'
     }]
   ])
-
-  readonly converterDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).converterDebugPerTenantLimitsConfiguration;
 
   private predefinedConverterKeys: StringItemsOption[];
   private integrationsConvertersInfo: IntegrationsConvertersInfo;
@@ -207,7 +207,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const form = this.fb.group({
       name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-      debugSettings: [entity?.debugSettings ?? { failuresEnabled: false, allEnabled: false, allEnabledUntil: 0 }],
+      debugSettings: [entity?.debugSettings ?? { failuresEnabled: true, allEnabled: false, allEnabledUntil: 0 }],
       integrationType: [entity?.integrationType ?? null],
       converterVersion: [entity?.converterVersion ?? 1],
       configuration: this.fb.group({
@@ -245,6 +245,10 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       delete value.configuration.telemetry;
     }
     return super.prepareFormValue(value);
+  }
+
+  updatedValidators() {
+    this.updatedConverterVersionDisableState();
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
@@ -464,7 +468,12 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   get functionHelpId(): string {
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration.scriptLang').value;
     const converterType: ConverterType = this.entityForm.get('type').value;
-    return getConverterFunctionHeldId(converterType, scriptLang);
+    const converterVersion: ConverterVersion = this.entityForm.get('converterVersion').value
+    return getConverterFunctionHeldId(converterType, scriptLang, converterVersion);
+  }
+
+  get functionHelpPopupStyle(): Record<string, string> {
+    return getConverterFunctionHeldPopupStyle(this.entityForm.get('type').value);
   }
 
   get testFunctionButtonLabel(): string {
@@ -499,8 +508,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     })
       .pipe(
         map((payload) => ({
-          inMetadata: JSON.stringify(payload.inMetadata),
-          inContent: JSON.stringify(payload.inContent),
+          inMetadata: payload.inMetadata,
+          inContent: payload.inContent,
           inContentType: ContentType.JSON
         } as ConverterDebugInput))
       );
@@ -526,6 +535,40 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   showConverterTestDialog(debugIn: ConverterDebugInput, setFirstTab = false) {
+    const converterVersion: ConverterVersion = this.entityForm.get('converterVersion').value;
+    if (converterVersion === 2) {
+      const integrationType: IntegrationType = this.entityForm.get('integrationType').value;
+      let currentMsg: ConverterMsg;
+      try {
+        currentMsg = {
+          payload: JSON.parse(debugIn.inContent),
+          metadata: {}
+        }
+      } catch (e) {
+        currentMsg = {
+          payload: debugIn.inContent,
+          metadata: {}
+        };
+      }
+      try {
+        currentMsg.metadata = JSON.parse(debugIn.inMetadata);
+      } catch (e) { /* empty */ }
+      this.converterService.unwrapRawPayload(integrationType, currentMsg, {ignoreErrors: true}).pipe(
+        catchError(() => of(null))
+      ).subscribe(value => {
+        if (value) {
+          debugIn.inContent = value.payload;
+          debugIn.inContentType = value.contentType;
+          debugIn.inMetadata = JSON.stringify(value.metadata);
+        }
+        this.openTestDialog(debugIn, setFirstTab, currentMsg);
+      });
+    } else {
+      this.openTestDialog(debugIn, setFirstTab);
+    }
+  }
+
+  private openTestDialog(debugIn: ConverterDebugInput, setFirstTab = false, originalMsg?: ConverterMsg) {
     const isDecoder = this.entityForm.get('type').value === ConverterType.UPLINK;
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration').get('scriptLang').value;
     const targetField = getTargetField(this.entityForm.get('type').value, scriptLang);
@@ -539,7 +582,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           isDecoder,
           funcBody,
           scriptLang,
-          converter: this.entityFormValue()
+          converter: this.entityFormValue(),
+          originalMsg
         }
       })
       .afterClosed()

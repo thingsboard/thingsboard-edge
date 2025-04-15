@@ -209,6 +209,7 @@ import { AssetProfileAutocompleteComponent } from '@home/components/profile/asse
 import { IntegrationWizardDialogComponent } from '@home/components/wizard/integration-wizard-dialog.component';
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
+import { UpdatedPayloadPanelComponent } from '@home/components/converter/updated-payload-panel.component';
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
@@ -426,6 +427,7 @@ import {
       IntegrationWizardDialogComponent,
       ConverterComponent,
       ConverterTestDialogComponent,
+      UpdatedPayloadPanelComponent,
       SendNotificationButtonComponent,
       EntityChipsComponent,
       DashboardViewComponent,

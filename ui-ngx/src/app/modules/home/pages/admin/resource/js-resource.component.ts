@@ -49,7 +49,6 @@ import { startWith, takeUntil } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { isDefinedAndNotNull } from '@core/utils';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { scadaSymbolGeneralStateHighlightRules } from '@home/pages/scada-symbol/scada-symbol-editor.models';
 
 @Component({
   selector: 'tb-js-resource',
@@ -186,6 +185,4 @@ export class JsResourceComponent extends EntityComponent<Resource> implements On
       this.entityForm.get('content').enable({ emitEvent: false });
     }
   }
-
-  protected readonly highlightRules = scadaSymbolGeneralStateHighlightRules;
 }

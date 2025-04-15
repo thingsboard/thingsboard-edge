@@ -187,7 +187,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(35);
+        edgeImitator.expectMessageAmount(36);
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
         edgeImitator.connect();
@@ -214,6 +214,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
                 createMqttDeviceProfileTransportConfiguration(new JsonTransportPayloadConfiguration(), false));
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
+
+        createPublicCustomerOnTenantLevel();
 
         updateRootRuleChainMetadata();
 
@@ -312,9 +314,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 5 messages
         // - 2 messages from SysAdminRolesEdgeEventFetcher
         // - 2 messages from TenantRolesEdgeEventFetcher
-        // - 1 message from public customer role
-        validateMsgsCnt(RoleProto.class, 5);
-        validateRoles();
+        // - 2 messages from public customer role
+        validateMsgsCnt(RoleProto.class, 6);
+        validateRoles(6);
 
         // 3 messages
         // - 2 messages from fetcher
@@ -534,9 +536,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(3, entityGroupUpdateMsgList.size());
     }
 
-    private void validateRoles() {
+    private void validateRoles(int expectedMsgCnt) {
         List<RoleProto> roleProtoList = edgeImitator.findAllMessagesByType(RoleProto.class);
-        Assert.assertEquals(5, roleProtoList.size());
+        Assert.assertEquals(expectedMsgCnt, roleProtoList.size());
     }
 
     private void validatePublicCustomer() throws Exception {
@@ -995,11 +997,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     protected EntityGroupInfo findTenantAdminsGroup() throws Exception {
         return findGroupByOwnerIdTypeAndName(tenantId, EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME);
-    }
-
-    protected ObjectNode getCustomTranslationHomeObject(String homeValue) {
-        ObjectNode objectNode = JacksonUtil.newObjectNode();
-        return objectNode.put("home", homeValue);
     }
 
     private void verifyTenantAdministratorsAndTenantUsersAssignedToEdge() {

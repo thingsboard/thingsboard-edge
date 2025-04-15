@@ -59,6 +59,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.thingsboard.common.util.ExpressionFunctionsUtil.userDefinedFunctions;
+
 @Data
 public class CalculatedFieldCtx {
 
@@ -126,6 +128,7 @@ public class CalculatedFieldCtx {
             if (isValidExpression(expression)) {
                 this.customExpression = ThreadLocal.withInitial(() ->
                         new ExpressionBuilder(expression)
+                                .functions(userDefinedFunctions)
                                 .implicitMultiplication(true)
                                 .variables(this.arguments.keySet())
                                 .build()
@@ -134,6 +137,15 @@ public class CalculatedFieldCtx {
             } else {
                 throw new RuntimeException("Failed to init calculated field ctx. Invalid expression syntax.");
             }
+        }
+    }
+
+    public void stop() {
+        if (calculatedFieldScriptEngine != null) {
+            calculatedFieldScriptEngine.destroy();
+        }
+        if (customExpression != null) {
+            customExpression.remove();
         }
     }
 

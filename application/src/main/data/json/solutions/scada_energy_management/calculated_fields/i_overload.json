@@ -1,0 +1,46 @@
+{
+  "type": "SIMPLE",
+  "name": "Overload",
+  "entityId": {
+    "id": "e9c3bdd0-1503-11f0-8308-dfc38c65ed1c",
+    "entityType": "DEVICE"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1743763737771
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SIMPLE",
+    "arguments": {
+      "consumption": {
+        "refEntityId": {
+          "entityType": "DEVICE",
+          "id": "e9ce9340-1503-11f0-8308-dfc38c65ed1c"
+        },
+        "refEntityKey": {
+          "key": "consumption",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "powerDemand": {
+        "refEntityId": {
+          "entityType": "DEVICE",
+          "id": "e9ce9340-1503-11f0-8308-dfc38c65ed1c"
+        },
+        "refEntityKey": {
+          "key": "powerDemand",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      }
+    },
+    "expression": "consumption-powerDemand+700",
+    "output": {
+      "name": "overload",
+      "type": "TIME_SERIES"
+    }
+  }
+}
