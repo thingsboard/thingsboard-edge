@@ -139,6 +139,8 @@ monitoring:
         base_url: '${HTTP_INTEGRATION_BASE_URL:http://${monitoring.domain}}'
         # Whether to monitor IPs associated with the domain from base url
         check_domain_ips: '${HTTP_INTEGRATION_CHECK_DOMAIN_IPS:false}'
+        # Prefix for the target name
+        name_prefix: '${HTTP_INTEGRATION_TARGET_NAME_PREFIX:}'
     coap:
       # Enable CoAP integration checks
       enabled: '${COAP_INTEGRATION_MONITORING_ENABLED:false}'
@@ -149,6 +151,8 @@ monitoring:
         base_url: '${COAP_INTEGRATION_BASE_URL:coap://${monitoring.domain}}'
         # Whether to monitor IPs associated with the domain from base url
         check_domain_ips: '${COAP_INTEGRATION_CHECK_DOMAIN_IPS:false}'
+        # Prefix for the target name
+        name_prefix: '${COAP_INTEGRATION_TARGET_NAME_PREFIX:}'
 
   edqs:
     enabled: "${EDQS_MONITORING_ENABLED:false}"

@@ -93,7 +93,7 @@ public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringCo
 
 
     private Device getOrCreateDevice(TbClient tbClient) {
-        String deviceName = String.format("%s integration - %s", config.getIntegrationType().getName(), target.getBaseUrl());
+        String deviceName = String.format("%s %s integration - %s", target.getNamePrefix(), config.getIntegrationType().getName(), target.getBaseUrl()).trim();
         return tbClient.getTenantDevice(deviceName)
                 .orElseGet(() -> {
                     Device defaultDevice = ResourceUtils.getResource("integration/device.json", Device.class);
@@ -104,7 +104,7 @@ public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringCo
     }
 
     private Integration getOrCreateIntegration(ConverterId converterId, TbClient tbClient) {
-        String integrationName = String.format("%s integration", config.getIntegrationType().getName());
+        String integrationName = String.format("%s %s integration", target.getNamePrefix(), config.getIntegrationType().getName()).trim();
         return tbClient.getIntegrations(new PageLink(1, 0, integrationName)).getData()
                 .stream().findFirst()
                 .orElseGet(() -> {
@@ -130,6 +130,11 @@ public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringCo
                     log.info("Creating new converter '{}'", converterName);
                     return tbClient.saveConverter(defaultConverter);
                 });
+    }
+
+    @Override
+    protected boolean isCfMonitoringEnabled() {
+        return false;
     }
 
 }

@@ -44,6 +44,7 @@ public class IntegrationMonitoringTarget implements MonitoringTarget {
     private DeviceConfig device; // set manually during initialization
     private Integration integration; // set manually during initialization
     private boolean checkDomainIps;
+    private String namePrefix;
 
     @Override
     public UUID getDeviceId() {
