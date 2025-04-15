@@ -49,6 +49,8 @@ public interface EntityData<T extends EntityFields> {
 
     UUID getCustomerId();
 
+    UUID getPermissionCustomerId();
+
     void setCustomerId(UUID customerId);
 
     void setRepo(TenantRepo repo);
@@ -69,7 +71,9 @@ public interface EntityData<T extends EntityFields> {
 
     boolean removeTs(Integer keyId);
 
-    EntityType getOwnerType();
+    String getOwnerName();
+
+    String getOwnerType();
 
     DataPoint getDataPoint(DataKey key, QueryContext queryContext);
 

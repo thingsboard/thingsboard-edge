@@ -30,10 +30,7 @@
 ///
 
 import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
-import { PageComponent } from '@shared/components/page.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { UnplacedMapDataItem } from '@home/components/widget/lib/maps/data-layer/latest-map-data-layer';
 
@@ -44,7 +41,7 @@ import { UnplacedMapDataItem } from '@home/components/widget/lib/maps/data-layer
   styleUrls: ['./select-map-entity-panel.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class SelectMapEntityPanelComponent extends PageComponent implements OnInit {
+export class SelectMapEntityPanelComponent implements OnInit {
 
   @Input()
   entities: UnplacedMapDataItem[];
@@ -57,9 +54,7 @@ export class SelectMapEntityPanelComponent extends PageComponent implements OnIn
   selectedEntity: UnplacedMapDataItem = null;
 
   constructor(private fb: UntypedFormBuilder,
-              protected store: Store<AppState>,
               private popover: TbPopoverComponent) {
-    super(store);
   }
 
   ngOnInit(): void {

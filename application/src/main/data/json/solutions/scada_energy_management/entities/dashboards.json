@@ -1,0 +1,8 @@
+[
+  {
+    "name": "SCADA energy management",
+    "file": "scada_energy_management.json",
+    "group": "SCADA energy management",
+    "main": true
+  }
+]

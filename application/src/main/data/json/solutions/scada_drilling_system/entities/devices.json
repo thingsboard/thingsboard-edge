@@ -1,19 +1,19 @@
 [
   {
-    "name": "Drilling System Gateway",
+    "name": "Drilling system gateway",
     "type": "default",
     "additionalInfo": {
       "gateway": true
     },
     "sharedAttributes": {
-      "active_connectors": ["Drilling Gateway connector"],
-      "Drilling Gateway connector": {
+      "active_connectors": ["Drilling connector"],
+      "Drilling connector": {
         "mode": "basic",
-        "name": "Drilling Gateway connector",
+        "name": "Drilling connector",
         "type": "modbus",
         "enableRemoteLogging": false,
         "logLevel": "INFO",
-        "configuration": "drillingGatewayConnector.json",
+        "configuration": "drillingConnector.json",
         "configurationJson": {
           "master": {
             "slaves": [
@@ -31,7 +31,7 @@
                 "pollPeriod": 1000,
                 "unitId": 1,
                 "deviceName": "Drilling bit",
-                "deviceType": "default",
+                "deviceType": "Drilling bit",
                 "reportStrategy": {
                   "type": "ON_CHANGE_OR_REPORT_PERIOD",
                   "reportPeriod": 10000
@@ -45,26 +45,41 @@
                     "type": "16int",
                     "functionCode": 3,
                     "objectsCount": 1,
-                    "address": 6
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
                   },
                   {
                     "tag": "rop",
                     "type": "16int",
                     "functionCode": 3,
                     "objectsCount": 1,
-                    "address": 5
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "reset",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
                   }
                 ],
                 "timeseries": [
                   {
                     "tag": "running",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 1,
                     "objectsCount": 1,
                     "address": 1,
                     "reportStrategy": {
-                      "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 1000
+                      "type": "ON_CHANGE"
                     }
                   },
                   {
@@ -131,10 +146,17 @@
                 "rpc": [
                   {
                     "tag": "setRunning",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 5,
                     "objectsCount": 1,
                     "address": 1
+                  },
+                  {
+                    "tag": "reset",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 2
                   }
                 ]
               },
@@ -152,7 +174,7 @@
                 "pollPeriod": 1000,
                 "unitId": 2,
                 "deviceName": "Drilling mud",
-                "deviceType": "default",
+                "deviceType": "Drilling mud",
                 "connectAttemptTimeMs": 3000,
                 "connectAttemptCount": 3,
                 "waitAfterFailedAttemptsMs": 30000,
@@ -166,11 +188,14 @@
                     "type": "16int",
                     "functionCode": 3,
                     "objectsCount": 1,
-                    "address": 7
+                    "address": 7,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
                   },
                   {
                     "tag": "opened",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 1,
                     "objectsCount": 1,
                     "address": 2,
@@ -182,13 +207,12 @@
                 "timeseries": [
                   {
                     "tag": "running",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 1,
                     "objectsCount": 1,
                     "address": 1,
                     "reportStrategy": {
-                      "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 1000
+                      "type": "ON_CHANGE"
                     }
                   },
                   {
@@ -199,7 +223,7 @@
                     "address": 1,
                     "reportStrategy": {
                       "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 4000
+                      "reportPeriod": 30000
                     }
                   },
                   {
@@ -211,7 +235,7 @@
                     "divider": 10,
                     "reportStrategy": {
                       "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 5000
+                      "reportPeriod": 4000
                     }
                   },
                   {
@@ -233,7 +257,7 @@
                     "address": 4,
                     "reportStrategy": {
                       "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 4000
+                      "reportPeriod": 30000
                     }
                   },
                   {
@@ -244,7 +268,7 @@
                     "address": 5,
                     "reportStrategy": {
                       "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 5000
+                      "reportPeriod": 4000
                     }
                   },
                   {
@@ -263,14 +287,14 @@
                 "rpc": [
                   {
                     "tag": "setRunning",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 5,
                     "objectsCount": 1,
                     "address": 1
                   },
                   {
                     "tag": "setOpened",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 5,
                     "objectsCount": 1,
                     "address": 2
@@ -291,7 +315,7 @@
                 "pollPeriod": 1000,
                 "unitId": 3,
                 "deviceName": "Drilling rig",
-                "deviceType": "default",
+                "deviceType": "Drilling rig",
                 "reportStrategy": {
                   "type": "ON_CHANGE_OR_REPORT_PERIOD",
                   "reportPeriod": 10000
@@ -299,17 +323,17 @@
                 "connectAttemptTimeMs": 3000,
                 "connectAttemptCount": 3,
                 "waitAfterFailedAttemptsMs": 30000,
-                "attributes": [],
+                "attributes": [
+                ],
                 "timeseries": [
                   {
                     "tag": "running",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 1,
                     "objectsCount": 1,
                     "address": 1,
                     "reportStrategy": {
-                      "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 1000
+                      "type": "ON_CHANGE"
                     }
                   },
                   {
@@ -361,7 +385,7 @@
                 "rpc": [
                   {
                     "tag": "setRunning",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 5,
                     "objectsCount": 1,
                     "address": 1
@@ -382,7 +406,7 @@
                 "pollPeriod": 1000,
                 "unitId": 4,
                 "deviceName": "Preventer",
-                "deviceType": "default",
+                "deviceType": "Preventer",
                 "reportStrategy": {
                   "type": "ON_CHANGE_OR_REPORT_PERIOD",
                   "reportPeriod": 10000
@@ -390,17 +414,17 @@
                 "connectAttemptTimeMs": 3000,
                 "connectAttemptCount": 3,
                 "waitAfterFailedAttemptsMs": 30000,
-                "attributes": [],
+                "attributes": [
+                ],
                 "timeseries": [
                   {
                     "tag": "running",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 1,
                     "objectsCount": 1,
                     "address": 1,
                     "reportStrategy": {
-                      "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 1000
+                      "type": "ON_CHANGE"
                     }
                   },
                   {
@@ -455,7 +479,7 @@
                     "address": 5,
                     "reportStrategy": {
                       "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 4000
+                      "reportPeriod": 30000
                     }
                   },
                   {
@@ -466,7 +490,7 @@
                     "address": 6,
                     "reportStrategy": {
                       "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 4000
+                      "reportPeriod": 30000
                     }
                   },
                   {
@@ -485,7 +509,7 @@
                 "rpc": [
                   {
                     "tag": "setRunning",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 5,
                     "objectsCount": 1,
                     "address": 1
@@ -506,7 +530,7 @@
                 "pollPeriod": 1000,
                 "unitId": 5,
                 "deviceName": "Drawwork",
-                "deviceType": "default",
+                "deviceType": "Drawwork",
                 "connectAttemptTimeMs": 3000,
                 "connectAttemptCount": 3,
                 "waitAfterFailedAttemptsMs": 30000,
@@ -517,29 +541,34 @@
                 "attributes": [
                   {
                     "tag": "direction",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 1,
                     "objectsCount": 1,
-                    "address": 2
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
                   },
                   {
                     "tag": "drawworkSpeed",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 1,
                     "objectsCount": 1,
-                    "address": 3
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
                   }
                 ],
                 "timeseries": [
                   {
                     "tag": "running",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 1,
                     "objectsCount": 1,
                     "address": 1,
                     "reportStrategy": {
-                      "type": "ON_REPORT_PERIOD",
-                      "reportPeriod": 1000
+                      "type": "ON_CHANGE"
                     }
                   },
                   {
@@ -613,21 +642,21 @@
                 "rpc": [
                   {
                     "tag": "setRunning",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 5,
                     "objectsCount": 1,
                     "address": 1
                   },
                   {
                     "tag": "setDirection",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 5,
                     "objectsCount": 1,
                     "address": 2
                   },
                   {
                     "tag": "drawworkSpeed",
-                    "type": "bit",
+                    "type": "bits",
                     "functionCode": 5,
                     "objectsCount": 1,
                     "address": 3
@@ -636,8 +665,7 @@
               }
             ]
           }
-        },
-        "configVersion": "3.6.3"
+        }
       }
     },
     "relations": [],
@@ -651,7 +679,7 @@
     "relations": [
       {
         "entityType": "DEVICE",
-        "entityName": "Drilling System Gateway",
+        "entityName": "Drilling system gateway",
         "direction": "FROM",
         "type": "Created"
       }
@@ -666,7 +694,7 @@
   "relations": [
     {
       "entityType": "DEVICE",
-      "entityName": "Drilling System Gateway",
+      "entityName": "Drilling system Gateway",
       "direction": "FROM",
       "type": "Created"
     }
@@ -681,7 +709,7 @@
     "relations": [
       {
         "entityType": "DEVICE",
-        "entityName": "Drilling System Gateway",
+        "entityName": "Drilling system gateway",
         "direction": "FROM",
         "type": "Created"
       }
@@ -696,7 +724,7 @@
     "relations": [
       {
         "entityType": "DEVICE",
-        "entityName": "Drilling System Gateway",
+        "entityName": "Drilling system gateway",
         "direction": "FROM",
         "type": "Created"
       }
@@ -711,7 +739,7 @@
     "relations": [
       {
         "entityType": "DEVICE",
-        "entityName": "Drilling System Gateway",
+        "entityName": "Drilling system gateway",
         "direction": "FROM",
         "type": "Created"
       }

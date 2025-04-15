@@ -305,6 +305,8 @@ public class DeviceGroupOtaPackageServiceTest extends AbstractServiceTest {
 
         DeviceGroupOtaPackage foundDfg = deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(savedDgf.getId());
         Assert.assertNull(foundDfg);
+
+        Assert.assertTrue(entityGroupService.isEntityInGroup(tenantId, device.getId(), deviceGroup.getId()));
     }
 
     @Test

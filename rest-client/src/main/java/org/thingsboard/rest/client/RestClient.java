@@ -3902,6 +3902,19 @@ public class RestClient implements Closeable {
         }
     }
 
+    public Optional<JsonNode> unwrapRawPayload(JsonNode inputParams, IntegrationType integrationType) {
+        try {
+            ResponseEntity<JsonNode> jsonNode = restTemplate.postForEntity(baseURL + "/api/converter/unwrap/" + integrationType, inputParams, JsonNode.class);
+            return Optional.ofNullable(jsonNode.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
     public Optional<JsonNode> testDownLinkConverter(JsonNode inputParams) {
         try {
             ResponseEntity<JsonNode> jsonNode = restTemplate.postForEntity(baseURL + "/api/converter/testDownLink", inputParams, JsonNode.class);

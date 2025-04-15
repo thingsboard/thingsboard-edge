@@ -71,8 +71,7 @@
           <tb-entity-debug-settings-button
             class="mb-5 flex items-center"
             formControlName="debugSettings"
-            [entityLabel]="'debug-settings.integration' | translate"
-            [debugLimitsConfiguration]="integrationDebugPerTenantLimitsConfiguration"
+            [entityType]="EntityType.INTEGRATION"
           />
         </div>
         <div class="row flex flex-col gap-2">

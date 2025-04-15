@@ -34,7 +34,6 @@
   width: 342px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
   max-height: calc(100vh - 24px);
   min-height: 100%;
   @media #{$mat-sm} {

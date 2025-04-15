@@ -69,7 +69,7 @@
         } @else {
           <div class="tb-form-panel stroked no-gap no-padding-bottom">
             <div class="mb-4 flex items-center justify-between">
-              <div class="tb-form-panel-title" translate>converter.converter-short-name</div>
+              <div class="tb-form-panel-title" translate>converter.converter-type</div>
               <tb-toggle-select formControlName="type" appearance="fill">
                 @for (type of converterTypes; track type) {
                   <tb-toggle-option [value]="type">{{converterTypeTranslations.get(type) | translate}}</tb-toggle-option>
@@ -100,7 +100,7 @@
                                               formControlName="name"
                                               required
                                               [label]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name'] | translate"
-                                              [errorText]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name-require'] | translate">
+                                              [errorText]="entityTypeKeysTranslationMap.get(entityForm.get('configuration.type').value)['name-required'] | translate">
               </tb-string-pattern-autocomplete>
             </div>
           }
@@ -111,6 +111,7 @@
             [scriptLanguage]="entityForm.get('configuration.scriptLang').value"
             [disableUndefinedCheck]="entityForm.get('configuration.scriptLang').value === scriptLanguage.TBEL"
             [helpId]="functionHelpId"
+            [helpPopupStyle]="functionHelpPopupStyle"
             noValidate>
             <tb-toggle-select toolbarPrefixButton formControlName="scriptLang"
                               appearance="fill" class="editor-lang-selector min-w-16 gt-sm:min-w-30"
@@ -123,6 +124,7 @@
               </tb-toggle-option>
             </tb-toggle-select>
             <button toolbarSuffixButton
+                    type="button"
                     mat-icon-button
                     matTooltip="{{ testFunctionButtonLabel | translate }}"
                     matTooltipPosition="above"
@@ -175,14 +177,14 @@
                     <tb-string-items-list label="{{ 'converter.telemetry' | translate }}"
                                           placeholder="{{ 'action.add' | translate }}"
                                           formControlName="telemetry"
-                                          [fetchOptionsFn]="fetchLatestKey"
-                    >
+                                          allowUserValue
+                                          [fetchOptionsFn]="fetchLatestKey">
                     </tb-string-items-list>
                     <tb-string-items-list label="{{ 'converter.attributes' | translate }}"
                                           placeholder="{{ 'action.add' | translate }}"
                                           formControlName="attributes"
-                                          [fetchOptionsFn]="fetchLatestKey"
-                    >
+                                          allowUserValue
+                                          [fetchOptionsFn]="fetchLatestKey">
                     </tb-string-items-list>
                   }
                   <tb-string-items-list subscriptSizing="dynamic"
@@ -190,8 +192,8 @@
                                         hint="{{ 'converter.update-only-keys-list-hint' | translate }}"
                                         placeholder="{{ 'action.add' | translate }}"
                                         formControlName="updateOnlyKeys"
-                                        [fetchOptionsFn]="fetchLatestKey"
-                  >
+                                        allowUserValue
+                                        [fetchOptionsFn]="fetchLatestKey">
                   </tb-string-items-list>
                 </div>
               </ng-template>
@@ -224,8 +226,7 @@
     <tb-entity-debug-settings-button
       class="mb-5 flex items-center"
       formControlName="debugSettings"
-      [entityLabel]="'debug-settings.converter' | translate"
-      [debugLimitsConfiguration]="converterDebugPerTenantLimitsConfiguration"
+      [entityType]="EntityType.CONVERTER"
     />
   </div>
 </ng-template>

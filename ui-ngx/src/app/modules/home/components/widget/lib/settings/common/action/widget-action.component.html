@@ -52,7 +52,7 @@
     <div translate>widget-config.action</div>
     <mat-form-field class="flex-1" appearance="outline" subscriptSizing="dynamic">
       <mat-select required formControlName="type" placeholder="{{ 'widget-config.set' | translate }}">
-        <mat-option *ngFor="let actionType of widgetActionTypes" [value]="actionType">
+        <mat-option *ngFor="let actionType of actionTypes()" [value]="actionType">
           {{ widgetActionTypeTranslations.get(widgetActionType[actionType]) | translate }}
         </mat-option>
       </mat-select>
@@ -271,6 +271,7 @@
           [editorCompleter]="customActionEditorCompleter"
           withModules
           [helpId]="customFunctionHelpId"
+          [helpPopupStyle]="{width: '900px'}"
       ></tb-js-func>
     </ng-template>
     <ng-template [ngSwitchCase]="widgetActionType.placeMapItem">
@@ -284,12 +285,17 @@
           </mat-select>
         </mat-form-field>
       </div>
+      <tb-map-item-tooltips
+        [mapItemType]="actionTypeFormGroup.get('mapItemType').value"
+        formControlName="mapItemTooltips">
+      </tb-map-item-tooltips>
     </ng-template>
     <ng-template [ngSwitchCase]="widgetActionFormGroup.get('type').value === widgetActionType.customPretty
                                   || widgetActionFormGroup.get('type').value === widgetActionType.placeMapItem
                                   ? widgetActionFormGroup.get('type').value : ''">
       <tb-custom-action-pretty-editor
-          formControlName="customAction">
+        [widgetActionType]="widgetActionFormGroup.get('type').value"
+        formControlName="customAction">
       </tb-custom-action-pretty-editor>
     </ng-template>
     <ng-template [ngSwitchCase]="widgetActionType.mobileAction">

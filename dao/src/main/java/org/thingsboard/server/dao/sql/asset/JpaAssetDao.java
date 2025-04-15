@@ -231,8 +231,14 @@ public class JpaAssetDao extends JpaAbstractDao<AssetEntity, Asset> implements A
 
     @Override
     public PageData<ProfileEntityIdInfo> findProfileEntityIdInfos(PageLink pageLink) {
-        log.debug("Find profile device id infos by pageLink [{}]", pageLink);
+        log.debug("Find profile asset id infos by pageLink [{}]", pageLink);
         return nativeAssetRepository.findProfileEntityIdInfos(DaoUtil.toPageable(pageLink));
+    }
+
+    @Override
+    public PageData<ProfileEntityIdInfo> findProfileEntityIdInfosByTenantId(UUID tenantId, PageLink pageLink) {
+        log.debug("Find profile asset id infos by pageLink [{}]", pageLink);
+        return nativeAssetRepository.findProfileEntityIdInfosByTenantId(tenantId, DaoUtil.toPageable(pageLink));
     }
 
     @Override

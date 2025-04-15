@@ -65,11 +65,13 @@ import org.thingsboard.server.common.data.query.EntityGroupListFilter;
 import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityListFilter;
+import org.thingsboard.server.common.data.query.EntityNameFilter;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
 import org.thingsboard.server.common.msg.edqs.EdqsApiService;
+import org.thingsboard.server.common.stats.EdqsStatsService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -92,6 +94,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.query.EntityFilterType.ENTITY_GROUP_NAME;
+import static org.thingsboard.server.common.data.query.EntityFilterType.ENTITY_NAME;
 import static org.thingsboard.server.common.data.query.EntityFilterType.ENTITY_TYPE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateEntityDataPageLink;
@@ -146,6 +149,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     @Autowired
     @Lazy
     private EdqsApiService edqsApiService;
+
+    @Autowired
+    private EdqsStatsService edqsStatsService;
 
     @Override
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
@@ -289,15 +295,20 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityCountQuery(query);
 
+        long startNs = System.nanoTime();
+        Long result;
         if (edqsApiService.isEnabled() && validForEdqs(query) && !tenantId.isSysTenantId()) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityCountQuery(query)
                     .userPermissions(userPermissions)
                     .build();
             EdqsResponse response = processEdqsRequest(tenantId, customerId, request);
-            return response.getEntityCountQueryResult();
+            result = response.getEntityCountQueryResult();
+        } else {
+            result = entityQueryDao.countEntitiesByQuery(tenantId, customerId, userPermissions, query);
         }
-        return this.entityQueryDao.countEntitiesByQuery(tenantId, customerId, userPermissions, query);
+        edqsStatsService.reportEntityCountQuery(tenantId, query, System.nanoTime() - startNs);
+        return result;
     }
 
     @Override
@@ -307,28 +318,32 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateEntityDataQuery(query);
 
+        long startNs = System.nanoTime();
+        PageData<EntityData> result;
         if (edqsApiService.isEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityDataQuery(query)
                     .userPermissions(userPermissions)
                     .build();
             EdqsResponse response = processEdqsRequest(tenantId, customerId, request);
-            return response.getEntityDataQueryResult();
+            result = response.getEntityDataQueryResult();
+        } else {
+            if (!isValidForOptimization(query)) {
+                result = entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, query);
+            } else {
+                // 1 step - find entity data by filter and sort columns
+                PageData<EntityData> entityDataByQuery = findEntityIdsByFilterAndSorterColumns(tenantId, customerId, userPermissions, query);
+                if (entityDataByQuery == null || entityDataByQuery.getData().isEmpty()) {
+                    result = entityDataByQuery;
+                } else {
+                    // 2 step - find entity data by entity ids from the 1st step
+                    List<EntityData> entities = fetchEntityDataByIdsFromInitialQuery(tenantId, customerId, query, userPermissions, entityDataByQuery.getData());
+                    result = new PageData<>(entities, entityDataByQuery.getTotalPages(), entityDataByQuery.getTotalElements(), entityDataByQuery.hasNext());
+                }
+            }
         }
-
-        if (!isValidForOptimization(query)) {
-            return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, query);
-        }
-
-        // 1 step - find entity data by filter and sort columns
-        PageData<EntityData> entityDataByQuery = findEntityIdsByFilterAndSorterColumns(tenantId, customerId, userPermissions, query);
-        if (entityDataByQuery == null || entityDataByQuery.getData().isEmpty()) {
-            return entityDataByQuery;
-        }
-
-        // 2 step - find entity data by entity ids from the 1st step
-        List<EntityData> result = fetchEntityDataByIdsFromInitialQuery(tenantId, customerId, query, userPermissions, entityDataByQuery.getData());
-        return new PageData<>(result, entityDataByQuery.getTotalPages(), entityDataByQuery.getTotalElements(), entityDataByQuery.hasNext());
+        edqsStatsService.reportEntityDataQuery(tenantId, query, System.nanoTime() - startNs);
+        return result;
     }
 
     private boolean validForEdqs(EntityCountQuery query) {
@@ -433,6 +448,8 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             validateEntityTypeQuery((EntityTypeFilter) query.getEntityFilter());
         } else if (query.getEntityFilter().getType().equals(ENTITY_GROUP_NAME)) {
             validateGroupNameQuery((EntityGroupNameFilter) query.getEntityFilter());
+        } else if (query.getEntityFilter().getType().equals(ENTITY_NAME)) {
+            validateEntityNameQuery((EntityNameFilter) query.getEntityFilter());
         }
     }
 
@@ -442,6 +459,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     }
 
     private static void validateEntityTypeQuery(EntityTypeFilter filter) {
+        if (filter.getEntityType() == null) {
+            throw new IncorrectParameterException("Entity type is required");
+        }
+    }
+
+    private static void validateEntityNameQuery(EntityNameFilter filter) {
         if (filter.getEntityType() == null) {
             throw new IncorrectParameterException("Entity type is required");
         }

@@ -59,8 +59,8 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
 import { ConverterId } from '@shared/models/id/converter-id';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export interface IntegrationWizardData<T> extends AddEntityDialogData<T>{
   edgeTemplate: boolean;
@@ -109,7 +109,7 @@ export class IntegrationWizardDialogComponent extends
     integrationType: null,
   } as Converter;
 
-  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
+  EntityType = EntityType;
 
   private checkConnectionAllow = false;
 
@@ -218,6 +218,7 @@ export class IntegrationWizardDialogComponent extends
           this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
           this.uplinkConverterForm.get('newUplinkConverter').enable({emitEvent: false});
           this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
+          this.uplinkDataConverterComponent.updatedValidators();
           break;
       }
     });
@@ -240,6 +241,7 @@ export class IntegrationWizardDialogComponent extends
           this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
           this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
           this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+          this.downlinkDataConverterComponent.updatedValidators();
           break;
         default:
           this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
