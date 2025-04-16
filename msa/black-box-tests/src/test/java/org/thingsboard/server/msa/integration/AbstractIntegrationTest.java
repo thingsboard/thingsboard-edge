@@ -143,7 +143,12 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
 
     protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig,
                                             String routingKey, String secretKey, boolean isRemote) {
-        return createIntegration(type, config, uplinkConfig, null, routingKey, secretKey, isRemote, 1);
+        return createIntegration(type, config, uplinkConfig, null, routingKey, secretKey, isRemote);
+    }
+
+    protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig, JsonNode downlinkConfig,
+                                            String routingKey, String secretKey, boolean isRemote) {
+        return createIntegration(type, config, uplinkConfig, downlinkConfig, routingKey, secretKey, isRemote, 1);
     }
 
     protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig, JsonNode downlinkConfig,

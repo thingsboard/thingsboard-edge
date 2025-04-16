@@ -272,7 +272,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        createIntegration(MQTT, defaultConfig(SERVICE_NAME, SERVICE_PORT, DOWNLINK_TOPIC), configConverter, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false, 1);
+        createIntegration(MQTT, defaultConfig(SERVICE_NAME, SERVICE_PORT, DOWNLINK_TOPIC), configConverter, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false);
 
         sendMessageToBroker();
 

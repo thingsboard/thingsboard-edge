@@ -158,7 +158,7 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        createIntegration(AZURE_SERVICE_BUS, INTEGRATION_CONFIG, CONVERTER_CONFIG, DOWNLINK_CONVERTER_CONFIG, ROUTING_KEY, SECRET_KEY, false, 1);
+        createIntegration(AZURE_SERVICE_BUS, INTEGRATION_CONFIG, CONVERTER_CONFIG, DOWNLINK_CONVERTER_CONFIG, ROUTING_KEY, SECRET_KEY, false);
 
         //subscribe for service bus topic
         try (ServiceBusProcessorClient serviceBusProcessorClient = getDownlinkProcessorClient()) {

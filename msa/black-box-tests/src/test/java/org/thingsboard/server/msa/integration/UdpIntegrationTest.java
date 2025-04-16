@@ -257,7 +257,7 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
         JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
 
-        createIntegration(UDP, defaultJsonConfig(PORT), configConverter, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, true, 1);
+        createIntegration(UDP, defaultJsonConfig(PORT), configConverter, DOWNLINK_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, true);
 
         String jsonPayload = createPayloadForUplink().toString();
         EventLoopGroup group = new NioEventLoopGroup();
