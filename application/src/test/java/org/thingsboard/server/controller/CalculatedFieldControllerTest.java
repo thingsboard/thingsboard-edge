@@ -85,14 +85,18 @@ public class CalculatedFieldControllerTest extends AbstractControllerTest {
         assertThat(savedCalculatedField.getType()).isEqualTo(calculatedField.getType());
         assertThat(savedCalculatedField.getName()).isEqualTo(calculatedField.getName());
         assertThat(savedCalculatedField.getConfiguration()).isEqualTo(getCalculatedFieldConfig());
-        assertThat(savedCalculatedField.getVersion()).isEqualTo(1L);
+        // edge-only: optimistic locking mechanism is not used, so the version should be null
+        // See the 'doSave' method in the 'JpaAbstractDao' class for more details.
+        assertThat(savedCalculatedField.getVersion()).isEqualTo(null);
 
         savedCalculatedField.setName("Test CF");
 
         CalculatedField updatedCalculatedField = doPost("/api/calculatedField", savedCalculatedField, CalculatedField.class);
 
         assertThat(updatedCalculatedField.getName()).isEqualTo(savedCalculatedField.getName());
-        assertThat(updatedCalculatedField.getVersion()).isEqualTo(savedCalculatedField.getVersion() + 1);
+        // edge-only: optimistic locking mechanism is not used, so the version should be null
+        // See the 'doSave' method in the 'JpaAbstractDao' class for more details.
+        assertThat(updatedCalculatedField.getVersion()).isEqualTo(null);
 
         doDelete("/api/calculatedField/" + savedCalculatedField.getId().getId().toString())
                 .andExpect(status().isOk());
