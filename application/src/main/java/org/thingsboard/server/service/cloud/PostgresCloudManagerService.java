@@ -101,7 +101,7 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
     private void launchUplinkProcessing(String queueStartTsAttrKey, String queueSeqIdAttrKey, boolean isGeneralMsg, CloudEventFinder finder) {
         while (!Thread.interrupted()) {
             try {
-                if (initialized) {
+                if (initialized && !syncInProgress) {
                     if (isGeneralMsg || !isGeneralProcessInProgress) {
                         Long queueSeqIdStart = getLongAttrByKey(tenantId, queueSeqIdAttrKey).get();
                         TimePageLink pageLink = newCloudEventsAvailable(tenantId, queueSeqIdStart, queueStartTsAttrKey, finder);

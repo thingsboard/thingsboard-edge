@@ -184,10 +184,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     protected volatile boolean initialized;
     protected volatile boolean isGeneralProcessInProgress = false;
+    protected volatile boolean syncInProgress = false;
     private volatile boolean sendingInProgress = false;
-    private volatile boolean syncInProgress = false;
     private volatile boolean isRateLimitViolated = false;
     private volatile boolean initInProgress = false;
+    private volatile boolean shouldPerformInitialSync = true;
 
     protected void establishRpcConnection() {
         if (connectFuture != null) {
@@ -441,7 +442,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
             interruptPreviousSendUplinkMsgsTask();
-
             if (reconnectFuture != null) {
                 reconnectFuture.cancel(true);
                 reconnectFuture = null;
@@ -496,10 +496,13 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         if (edgeCustomerIdUpdated) {
             cloudCtx.getCustomerProcessor().createCustomerIfNotExists(tenantId, edgeConfiguration);
         }
-        // TODO: voba - should sync be executed in some other cases ???
-        log.trace("Sending sync request, fullSyncRequired {}", currentEdgeSettings.isFullSyncRequired());
-        edgeRpcClient.sendSyncRequestMsg(currentEdgeSettings.isFullSyncRequired());
-        syncInProgress = true;
+
+        if (shouldPerformInitialSync) {
+            log.trace("Sending sync request, fullSyncRequired {}", currentEdgeSettings.isFullSyncRequired());
+            edgeRpcClient.sendSyncRequestMsg(currentEdgeSettings.isFullSyncRequired());
+            syncInProgress = true;
+            shouldPerformInitialSync = false;
+        }
 
         edgeSettingsService.saveEdgeSettings(tenantId, currentEdgeSettings);
 
@@ -800,7 +803,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             orderedPendingMsgQueue.forEach(this::sendUplinkMsg);
 
             return latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
-         } catch (Exception e) {
+        } catch (Exception e) {
             log.error("Interrupted while waiting for latch, isGeneralProcessInProgress={}", isGeneralProcessInProgress, e);
             for (UplinkMsg value : pendingMsgMap.values()) {
                 log.warn("Message not send due to exception: {}", value);
@@ -831,6 +834,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @FunctionalInterface
     protected interface CloudEventFinder {
         PageData<CloudEvent> find(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+
     }
 
 }

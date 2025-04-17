@@ -135,7 +135,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
 
     private void processUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
         log.trace("[{}] starting processing cloud events", tenantId);
-        if (initialized) {
+        if (initialized && !syncInProgress) {
             isGeneralProcessInProgress = true;
             processMessages(msgs, consumer, true);
             isGeneralProcessInProgress = false;
@@ -145,7 +145,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
     }
 
     private void processTsUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
-        if (initialized && !isGeneralProcessInProgress) {
+        if (initialized && !syncInProgress && !isGeneralProcessInProgress) {
             processMessages(msgs, consumer, false);
         } else {
             sleep();
