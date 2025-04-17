@@ -47,4 +47,6 @@ public class Argument {
     private Integer limit;
     private Long timeWindow;
 
+    boolean currentOwner;
+
 }

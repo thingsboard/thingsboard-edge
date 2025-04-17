@@ -39,6 +39,8 @@ import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasOwnerId;
@@ -61,6 +63,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -360,6 +363,23 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         deleteFromGroupsAndAddToGroupAll(tenantId, entityId, targetOwnerId);
 
         clearOwners(entityId);
+    }
+
+    @Override
+    public Set<EntityId> getOwnerEntities(TenantId tenantId, EntityId ownerId) {
+        Set<EntityId> ownerEntities = new HashSet<>();
+        if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+            PageDataIterable<DeviceInfo> deviceIdInfos = new PageDataIterable<>(pageLink -> deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).customerId((CustomerId) ownerId).build(), pageLink), 1000);
+            deviceIdInfos.forEach(deviceInfo -> ownerEntities.add(deviceInfo.getId()));
+            PageDataIterable<Asset> assets = new PageDataIterable<>(pageLink -> assetService.findAssetsByTenantIdAndCustomerId(tenantId, (CustomerId) ownerId, pageLink), 1000);
+            assets.forEach(asset -> ownerEntities.add(asset.getId()));
+        } else if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+            PageDataIterable<DeviceInfo> deviceIdInfos = new PageDataIterable<>(pageLink -> deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId((TenantId) ownerId).customerId(new CustomerId(CustomerId.NULL_UUID)).build(), pageLink), 1000);
+            deviceIdInfos.forEach(deviceInfo -> ownerEntities.add(deviceInfo.getId()));
+            PageDataIterable<Asset> assets = new PageDataIterable<>(pageLink -> assetService.findAssetsByTenantIdAndCustomerId(tenantId, (CustomerId) ownerId, pageLink), 1000);
+            assets.forEach(asset -> ownerEntities.add(asset.getId()));
+        }
+        return ownerEntities;
     }
 
     private <T extends HasOwnerId> void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, T entity, Consumer<T> saveFunction)

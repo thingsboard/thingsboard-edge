@@ -73,6 +73,7 @@ public class CalculatedFieldCtx {
     private final Map<String, Argument> arguments;
     private final Map<ReferencedEntityKey, String> mainEntityArguments;
     private final Map<EntityId, Map<ReferencedEntityKey, String>> linkedEntityArguments;
+    private final Map<ReferencedEntityKey, String> ownerEntityArguments;
     private final List<String> argNames;
     private Output output;
     private String expression;
@@ -97,10 +98,13 @@ public class CalculatedFieldCtx {
         this.arguments = configuration.getArguments();
         this.mainEntityArguments = new HashMap<>();
         this.linkedEntityArguments = new HashMap<>();
+        this.ownerEntityArguments = new HashMap<>();
         for (Map.Entry<String, Argument> entry : arguments.entrySet()) {
             var refId = entry.getValue().getRefEntityId();
             var refKey = entry.getValue().getRefEntityKey();
-            if (refId == null || refId.equals(calculatedField.getEntityId())) {
+            if (refId == null && entry.getValue().isCurrentOwner()) {
+                ownerEntityArguments.put(refKey, entry.getKey());
+            } else if (refId == null || refId.equals(calculatedField.getEntityId())) {
                 mainEntityArguments.put(refKey, entry.getKey());
             } else {
                 linkedEntityArguments.computeIfAbsent(refId, key -> new HashMap<>()).put(refKey, entry.getKey());
@@ -192,6 +196,14 @@ public class CalculatedFieldCtx {
         return map != null && matchesTimeSeries(map, values);
     }
 
+    public boolean matchesOwner(List<TsKvEntry> values) {
+        return matchesTimeSeries(ownerEntityArguments, values);
+    }
+
+    public boolean matchesOwner(List<AttributeKvEntry> values, AttributeScope scope) {
+        return matchesAttributes(ownerEntityArguments, values, scope);
+    }
+
     private boolean matchesAttributes(Map<ReferencedEntityKey, String> argMap, List<AttributeKvEntry> values, AttributeScope scope) {
         for (AttributeKvEntry attrKv : values) {
             ReferencedEntityKey attrKey = new ReferencedEntityKey(attrKv.getKey(), ArgumentType.ATTRIBUTE, scope);
@@ -222,6 +234,14 @@ public class CalculatedFieldCtx {
 
     public boolean matchesKeys(List<String> keys) {
         return matchesTimeSeriesKeys(mainEntityArguments, keys);
+    }
+
+    public boolean matchesOwnerKeys(List<String> keys, AttributeScope scope) {
+        return matchesAttributesKeys(ownerEntityArguments, keys, scope);
+    }
+
+    public boolean matchesOwnerKeys(List<String> keys) {
+        return matchesTimeSeriesKeys(ownerEntityArguments, keys);
     }
 
     private boolean matchesAttributesKeys(Map<ReferencedEntityKey, String> argMap, List<String> keys, AttributeScope scope) {
