@@ -28,6 +28,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -117,7 +118,7 @@ public class RuleChainCloudProcessor extends BaseRuleChainProcessor {
 
                     RuleChainMetaData ruleChainMetaData = edgeCtx.getRuleChainService().loadRuleChainMetaData(cloudEvent.getTenantId(), ruleChainId);
                     RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = EdgeMsgConstructorUtils
-                            .constructRuleChainMetadataUpdatedMsg(msgType, ruleChainMetaData);
+                            .constructRuleChainMetadataUpdatedMsg(msgType, ruleChainMetaData, EdgeVersion.V_LATEST);
                     builder.addRuleChainMetadataUpdateMsg(ruleChainMetadataUpdateMsg);
 
                     msg = builder.build();

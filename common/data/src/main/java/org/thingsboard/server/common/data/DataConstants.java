@@ -150,8 +150,11 @@ public class DataConstants {
 
     public static final String EDGE_QUEUE_NAME = "Edge";
     public static final String EDGE_EVENT_QUEUE_NAME = "EdgeEvent";
+    public static final String TMP_MAIN_QUEUE_TOPIC = "tb_rule_engine.tmp";
 
     public static final String CF_QUEUE_NAME = "CalculatedFields";
     public static final String CF_STATES_QUEUE_NAME = "CalculatedFieldStates";
+
+    public static final String LATEST_TELEMETRY_SCOPE = "LATEST_TELEMETRY";
 
 }

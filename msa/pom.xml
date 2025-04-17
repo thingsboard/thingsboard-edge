@@ -50,6 +50,7 @@
         <module>monitoring</module>
         <module>edqs</module> -->
         <module>tb-edge</module>
+        <module>tb-edge-node</module>
     </modules>
 
     <profiles>

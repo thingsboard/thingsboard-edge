@@ -47,7 +47,7 @@ public class TopicService {
     @Value("${queue.edge.event-notifications-topic:tb_edge_event.notifications}")
     private String tbEdgeEventNotificationsTopic;
 
-    @Value("${queue.calculated_fields.notifications-topic:calculated_field.notifications}")
+    @Value("${queue.calculated-fields.notifications-topic:calculated_field.notifications}")
     private String tbCalculatedFieldNotificationsTopic;
 
     private final ConcurrentMap<String, TopicPartitionInfo> tbCoreNotificationTopics = new ConcurrentHashMap<>();
@@ -103,6 +103,9 @@ public class TopicService {
     }
 
     public String buildTopicName(String topic) {
+        if (topic == null) {
+            return null;
+        }
         return prefix.isBlank() ? topic : prefix + "." + topic;
     }
 
@@ -113,9 +116,9 @@ public class TopicService {
     public String buildConsumerGroupId(String servicePrefix, TenantId tenantId, String queueName, Integer partitionId) {
         return this.buildTopicName(
                 servicePrefix + queueName
-                + (tenantId.isSysTenantId() ? "" : ("-isolated-" + tenantId))
-                + "-consumer"
-                + suffix(partitionId));
+                        + (tenantId.isSysTenantId() ? "" : ("-isolated-" + tenantId))
+                        + "-consumer"
+                        + suffix(partitionId));
     }
 
     String suffix(Integer partitionId) {

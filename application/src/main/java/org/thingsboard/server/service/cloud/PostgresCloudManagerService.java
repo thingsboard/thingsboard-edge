@@ -23,7 +23,9 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 
 import javax.annotation.PreDestroy;
@@ -46,6 +48,14 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
     private ExecutorService executor;
     private ExecutorService tsExecutor;
 
+    @Override
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        if (ServiceType.TB_CORE.equals(event.getServiceType())) {
+            establishRpcConnection();
+        }
+    }
+
+
     @PostConstruct
     private void onInit() {
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("postgres-cloud-manager"));
@@ -53,7 +63,7 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
     }
 
     @PreDestroy
-    private void onDestroy() throws InterruptedException {
+    protected void onDestroy() throws InterruptedException {
         super.destroy();
         if (executor != null) {
             executor.shutdownNow();
@@ -76,7 +86,7 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
     private void launchUplinkProcessing(String queueStartTsAttrKey, String queueSeqIdAttrKey, boolean isGeneralMsg, CloudEventFinder finder) {
         while (!Thread.interrupted()) {
             try {
-                if (initialized) {
+                if (initialized && !syncInProgress) {
                     if (isGeneralMsg || !isGeneralProcessInProgress) {
                         Long queueSeqIdStart = getLongAttrByKey(tenantId, queueSeqIdAttrKey).get();
                         TimePageLink pageLink = newCloudEventsAvailable(tenantId, queueSeqIdStart, queueStartTsAttrKey, finder);

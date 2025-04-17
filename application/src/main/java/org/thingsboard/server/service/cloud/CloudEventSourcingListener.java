@@ -62,8 +62,8 @@ import java.util.List;
 public class CloudEventSourcingListener {
 
     private final TbClusterService tbClusterService;
-    private final CloudSynchronizationManager cloudSynchronizationManager;
     private final TenantService tenantService;
+    private final CloudSynchronizationManager cloudSynchronizationManager;
 
     private static final List<EntityType> COMMON_ENTITY_TYPES = Arrays.asList(
             EntityType.DEVICE,
@@ -114,12 +114,10 @@ public class CloudEventSourcingListener {
             return;
         }
         TenantId tenantId = event.getTenantId();
-
         if (!tenantId.isSysTenantId() && !tenantService.tenantExists(tenantId)) {
-            log.error("[{}] Ignoring DeleteEntityEvent because tenant does not exist: {}", tenantId, event);
+            log.debug("[{}] Ignoring DeleteEntityEvent because tenant does not exist: {}", tenantId, event);
             return;
         }
-
         try {
             if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())
                     && !(event.getEntity() instanceof AlarmComment)) {
@@ -131,7 +129,7 @@ public class CloudEventSourcingListener {
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
                     JacksonUtil.toString(event.getEntity()), type, actionType);
         } catch (Exception e) {
-            log.error("failed to process DeleteEntityEvent: {}", event);
+            log.error("failed to process DeleteEntityEvent: {}", event, e);
         }
     }
 
