@@ -1251,7 +1251,7 @@ public class ProtoUtils {
     }
 
     public static TransportProtos.ApiUsageStateProto toProto(ApiUsageState apiUsageState) {
-        return TransportProtos.ApiUsageStateProto.newBuilder()
+        var builder = TransportProtos.ApiUsageStateProto.newBuilder()
                 .setTenantProfileIdMSB(getMsb(apiUsageState.getTenantId()))
                 .setTenantProfileIdLSB(getLsb(apiUsageState.getTenantId()))
                 .setApiUsageStateIdMSB(getMsb(apiUsageState.getId()))
@@ -1267,9 +1267,13 @@ public class ProtoUtils {
                 .setTbelExecState(apiUsageState.getTbelExecState().name())
                 .setEmailExecState(apiUsageState.getEmailExecState().name())
                 .setSmsExecState(apiUsageState.getSmsExecState().name())
-                .setAlarmExecState(apiUsageState.getAlarmExecState().name())
-                .setVersion(apiUsageState.getVersion())
-                .build();
+                .setAlarmExecState(apiUsageState.getAlarmExecState().name());
+        // edge only
+        if (isNotNull(apiUsageState.getVersion())) {
+            builder.setVersion(apiUsageState.getVersion());
+        }
+
+        return builder.build();
     }
 
     public static ApiUsageState fromProto(TransportProtos.ApiUsageStateProto proto) {
@@ -1285,7 +1289,8 @@ public class ProtoUtils {
         apiUsageState.setEmailExecState(ApiUsageStateValue.valueOf(proto.getEmailExecState()));
         apiUsageState.setSmsExecState(ApiUsageStateValue.valueOf(proto.getSmsExecState()));
         apiUsageState.setAlarmExecState(ApiUsageStateValue.valueOf(proto.getAlarmExecState()));
-        apiUsageState.setVersion(proto.getVersion());
+        //edge only
+        apiUsageState.setVersion(proto.hasVersion() ? proto.getVersion() : null);
         return apiUsageState;
     }
 

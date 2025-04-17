@@ -1248,7 +1248,10 @@ public class DeviceProfileControllerTest extends AbstractControllerTest {
         Assert.assertEquals(count, deviceProfileNames.size());
     }
 
+    // ignore edge-only: optimistic locking mechanism is not used, so the version should be null
+    // See the 'doSave' method in the 'JpaAbstractDao' class for more details.
     @Test
+    @Ignore
     public void testSaveDeviceProfileWithOutdatedVersion() throws Exception {
         DeviceProfile deviceProfile = JacksonUtil.fromString(LWM2M_PROFILE_JSON, DeviceProfile.class);
         deviceProfile.setName("Device profile v1.0");
