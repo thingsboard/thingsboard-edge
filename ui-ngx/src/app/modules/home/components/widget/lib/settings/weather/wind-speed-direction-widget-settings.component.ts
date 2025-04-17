@@ -85,7 +85,7 @@ export class WindSpeedDirectionWidgetSettingsComponent extends WidgetSettingsCom
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...windSpeedDirectionDefaultSettings};
+    return windSpeedDirectionDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

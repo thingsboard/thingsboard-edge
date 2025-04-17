@@ -63,7 +63,7 @@ export class ScadaSymbolWidgetSettingsComponent extends WidgetSettingsComponent 
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...scadaSymbolWidgetDefaultSettings};
+    return scadaSymbolWidgetDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

@@ -69,7 +69,7 @@ export class ValueChartCardWidgetSettingsComponent extends WidgetSettingsCompone
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...valueChartCardDefaultSettings};
+    return valueChartCardDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

@@ -76,7 +76,7 @@ export class PowerButtonWidgetSettingsComponent extends WidgetSettingsComponent 
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...powerButtonDefaultSettings};
+    return powerButtonDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
