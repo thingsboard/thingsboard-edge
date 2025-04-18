@@ -114,6 +114,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.codec.binary.Base64.isBase64;
 import static org.eclipse.leshan.core.link.lwm2m.attributes.LwM2mAttributes.DIMENSION;
 import static org.eclipse.leshan.core.link.lwm2m.attributes.LwM2mAttributes.ENABLER_VERSION;
 import static org.eclipse.leshan.core.link.lwm2m.attributes.LwM2mAttributes.EVALUATE_MAXIMUM_PERIOD;
@@ -128,7 +129,6 @@ import static org.eclipse.leshan.core.link.lwm2m.attributes.LwM2mAttributes.SHOR
 import static org.eclipse.leshan.core.link.lwm2m.attributes.LwM2mAttributes.STEP;
 import static org.eclipse.leshan.core.model.ResourceModel.Type.OBJLNK;
 import static org.eclipse.leshan.core.model.ResourceModel.Type.OPAQUE;
-import static org.thingsboard.server.common.transport.util.JsonUtils.isBase64;
 import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.convertMultiResourceValuesFromRpcBody;
 import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.createModelsDefault;
 import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.fromVersionedIdToObjectId;
