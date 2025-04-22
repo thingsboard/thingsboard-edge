@@ -118,7 +118,7 @@ export class SignupComponent extends PageComponent {
             this.recaptchaComponent.resetCaptcha();
           }
         } else {
-          this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('fields.EMAIL').value).then(() => {});
+          this.router.navigateByUrl(`/signup/emailVerification?email=${this.emailToURLParam}`).then(() => {});
         }
       },
       error: () => {
@@ -129,7 +129,7 @@ export class SignupComponent extends PageComponent {
     });
   }
 
-  promptToResendEmailVerification() {
+  private promptToResendEmailVerification() {
     this.dialogService.confirm(
       this.translate.instant('signup.inactive-user-exists-title'),
       this.translate.instant('signup.inactive-user-exists-text'),
@@ -139,14 +139,14 @@ export class SignupComponent extends PageComponent {
       if (result) {
         this.authService.resendEmailActivation(this.signup.get('fields.EMAIL').value).subscribe(
           () => {
-            this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('fields.EMAIL').value).then(() => {});
+            this.router.navigateByUrl(`/signup/emailVerification?email=${this.emailToURLParam}`).then(() => {});
           }
         );
       }
     });
   }
 
-  validateSignUpRequest(): boolean {
+  private validateSignUpRequest(): boolean {
     if (this.passwordCheck !== this.signup.get('fields.PASSWORD').value) {
       this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('login.passwords-mismatch-error'),
         type: 'error' }));
@@ -218,4 +218,7 @@ export class SignupComponent extends PageComponent {
       });
   }
 
+  private get emailToURLParam(): string {
+    return encodeURIComponent(this.signup.get('fields.EMAIL').value);
+  }
 }
