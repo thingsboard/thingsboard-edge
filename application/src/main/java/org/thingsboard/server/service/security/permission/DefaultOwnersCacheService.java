@@ -376,7 +376,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         } else if (EntityType.TENANT.equals(ownerId.getEntityType())) {
             PageDataIterable<DeviceInfo> deviceIdInfos = new PageDataIterable<>(pageLink -> deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId((TenantId) ownerId).customerId(new CustomerId(CustomerId.NULL_UUID)).build(), pageLink), 1000);
             deviceIdInfos.forEach(deviceInfo -> ownerEntities.add(deviceInfo.getId()));
-            PageDataIterable<Asset> assets = new PageDataIterable<>(pageLink -> assetService.findAssetsByTenantIdAndCustomerId(tenantId, (CustomerId) ownerId, pageLink), 1000);
+            PageDataIterable<Asset> assets = new PageDataIterable<>(pageLink -> assetService.findAssetsByTenantIdAndCustomerId((TenantId) ownerId, new CustomerId(CustomerId.NULL_UUID), pageLink), 1000);
             assets.forEach(asset -> ownerEntities.add(asset.getId()));
         }
         return ownerEntities;

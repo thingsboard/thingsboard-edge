@@ -351,7 +351,10 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
     }
 
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, List<TsKvProto> data) {
-        return mapToArguments(ctx.getMainEntityArguments(), data);
+        Map<String, ArgumentEntry> allArguments = new HashMap<>();
+        allArguments.putAll(mapToArguments(ctx.getMainEntityArguments(), data));
+        allArguments.putAll(mapToArguments(ctx.getOwnerEntityArguments(), data));
+        return allArguments;
     }
 
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, EntityId entityId, List<TsKvProto> data) {
@@ -383,7 +386,10 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
     }
 
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, AttributeScopeProto scope, List<AttributeValueProto> attrDataList) {
-        return mapToArguments(ctx.getMainEntityArguments(), scope, attrDataList);
+        Map<String, ArgumentEntry> allArguments = new HashMap<>();
+        allArguments.putAll(mapToArguments(ctx.getMainEntityArguments(), scope, attrDataList));
+        allArguments.putAll(mapToArguments(ctx.getOwnerEntityArguments(), scope, attrDataList));
+        return allArguments;
     }
 
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, EntityId entityId, AttributeScopeProto scope, List<AttributeValueProto> attrDataList) {

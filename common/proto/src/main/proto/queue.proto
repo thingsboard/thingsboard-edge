@@ -862,6 +862,14 @@ message DeviceInactivityTimeoutUpdateProto {
   int64 inactivityTimeout = 5;
 }
 
+message EntityChangeOwnerMsg {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  string entityType = 3;
+  int64 entityIdMSB = 4;
+  int64 entityIdLSB = 5;
+}
+
 message CalculatedFieldTelemetryMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1815,6 +1823,7 @@ message ToCalculatedFieldMsg {
 
 message ToCalculatedFieldNotificationMsg {
   CalculatedFieldLinkedTelemetryMsgProto linkedTelemetryMsg = 1;
+  EntityChangeOwnerMsg changeOwnerMsg = 2;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

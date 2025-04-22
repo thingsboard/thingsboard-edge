@@ -99,6 +99,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ComponentLifecycleMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.EntityChangeOwnerMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.EntityDeleteMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -848,6 +849,18 @@ public class DefaultTbClusterService implements TbClusterService {
         if (entityId != null && (EntityType.DEVICE.equals(entityGroupType) || EntityType.DEVICE.equals(entityId.getEntityType()))) {
             pushDeviceUpdateMessage(tenantId, edgeId, entityId, action, entityGroupType);
         }
+    }
+
+    @Override
+    public void onEntityOwnerChanged(TenantId tenantId, EntityId entityId) {
+        EntityChangeOwnerMsg changeOwnerMsg = EntityChangeOwnerMsg.newBuilder()
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name())
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .build();
+        broadcastToCalculatedFields(ToCalculatedFieldNotificationMsg.newBuilder().setChangeOwnerMsg(changeOwnerMsg).build(), TbQueueCallback.EMPTY);
     }
 
     private void pushDeviceUpdateMessage(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action, EntityType entityGroupType) {

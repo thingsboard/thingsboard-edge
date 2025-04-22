@@ -163,4 +163,6 @@ public interface TbClusterService extends TbQueueClusterService {
 
     void onCalculatedFieldDeleted(CalculatedField calculatedField, TbQueueCallback callback);
 
+    void onEntityOwnerChanged(TenantId tenantId, EntityId entityId);
+
 }

@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.actors.calculatedField.CalculatedFieldChangeOwnerMsg;
 import org.thingsboard.server.actors.calculatedField.CalculatedFieldLinkedTelemetryMsg;
 import org.thingsboard.server.actors.calculatedField.CalculatedFieldTelemetryMsg;
 import org.thingsboard.server.common.data.DataConstants;
@@ -53,6 +54,7 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldLinkedTelemetryMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldTelemetryMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.EntityChangeOwnerMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
@@ -233,6 +235,8 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBa
         ToCalculatedFieldNotificationMsg toCfNotification = msg.getValue();
         if (toCfNotification.hasLinkedTelemetryMsg()) {
             forwardToActorSystem(toCfNotification.getLinkedTelemetryMsg(), callback);
+        } else if (toCfNotification.hasChangeOwnerMsg()) {
+            forwardToActorSystem(toCfNotification.getChangeOwnerMsg(), callback);
         }
     }
 
@@ -262,6 +266,12 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBa
         var tenantId = toTenantId(msg.getTenantIdMSB(), msg.getTenantIdLSB());
         var entityId = EntityIdFactory.getByTypeAndUuid(msg.getEntityType(), new UUID(msg.getEntityIdMSB(), msg.getEntityIdLSB()));
         actorContext.tell(new CalculatedFieldLinkedTelemetryMsg(tenantId, entityId, linkedMsg, callback));
+    }
+
+    private void forwardToActorSystem(EntityChangeOwnerMsg changeOwnerMsg, TbCallback callback) {
+        var tenantId = toTenantId(changeOwnerMsg.getTenantIdMSB(), changeOwnerMsg.getTenantIdLSB());
+        var entityId = EntityIdFactory.getByTypeAndUuid(changeOwnerMsg.getEntityType(), new UUID(changeOwnerMsg.getEntityIdMSB(), changeOwnerMsg.getEntityIdLSB()));
+        actorContext.tell(new CalculatedFieldChangeOwnerMsg(tenantId, entityId, changeOwnerMsg, callback));
     }
 
     private TenantId toTenantId(long tenantIdMSB, long tenantIdLSB) {

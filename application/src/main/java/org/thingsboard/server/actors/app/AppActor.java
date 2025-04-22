@@ -139,6 +139,7 @@ public class AppActor extends ContextAwareActor {
                 break;
             case CF_TELEMETRY_MSG:
             case CF_LINKED_TELEMETRY_MSG:
+            case CF_CHANGE_OWNER_MSG:
                 onToCalculatedFieldSystemActorMsg((ToCalculatedFieldSystemMsg) msg, false);
                 break;
             default:

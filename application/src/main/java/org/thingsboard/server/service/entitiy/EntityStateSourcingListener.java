@@ -273,6 +273,8 @@ public class EntityStateSourcingListener {
                 tbClusterService.onDeviceAssignedToTenant(tenant.getId(), device);
             }
             pushAssignedFromNotification(tenant, event.getTenantId(), device);
+        } else if (ActionType.CHANGE_OWNER.equals(event.getActionType())) {
+            tbClusterService.onEntityOwnerChanged(event.getTenantId(), event.getEntityId());
         }
     }
 

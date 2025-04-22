@@ -106,6 +106,9 @@ public class CalculatedFieldManagerActor extends AbstractCalculatedFieldActor {
             case CF_LINKED_TELEMETRY_MSG:
                 processor.onLinkedTelemetryMsg((CalculatedFieldLinkedTelemetryMsg) msg);
                 break;
+            case CF_CHANGE_OWNER_MSG:
+                processor.onChangeOwnerMsg((CalculatedFieldChangeOwnerMsg) msg);
+                break;
             default:
                 return false;
         }

@@ -317,4 +317,8 @@ public class CalculatedFieldCtx {
         return "Failed to init CF state. State size exceeds limit of " + (maxStateSize / 1024) + "Kb!";
     }
 
+    public boolean hasCurrentOwnerArg() {
+        return !ownerEntityArguments.isEmpty();
+    }
+
 }

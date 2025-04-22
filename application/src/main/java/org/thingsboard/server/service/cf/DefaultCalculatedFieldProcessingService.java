@@ -81,7 +81,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNot
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.PartitionService;
-import org.thingsboard.server.queue.discovery.QueueKey;
 import org.thingsboard.server.queue.util.TbRuleEngineComponent;
 import org.thingsboard.server.service.cf.ctx.CalculatedFieldEntityCtxId;
 import org.thingsboard.server.service.cf.ctx.state.ArgumentEntry;
@@ -91,6 +90,7 @@ import org.thingsboard.server.service.cf.ctx.state.ScriptCalculatedFieldState;
 import org.thingsboard.server.service.cf.ctx.state.SimpleCalculatedFieldState;
 import org.thingsboard.server.service.cf.ctx.state.SingleValueArgumentEntry;
 import org.thingsboard.server.service.cf.ctx.state.TsRollingArgumentEntry;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,6 +116,7 @@ public class DefaultCalculatedFieldProcessingService implements CalculatedFieldP
     private final TbClusterService clusterService;
     private final ApiLimitService apiLimitService;
     private final PartitionService partitionService;
+    private final OwnersCacheService ownersCacheService;
 
     private ListeningExecutorService calculatedFieldCallbackExecutor;
 
@@ -136,7 +137,7 @@ public class DefaultCalculatedFieldProcessingService implements CalculatedFieldP
     public ListenableFuture<CalculatedFieldState> fetchStateFromDb(CalculatedFieldCtx ctx, EntityId entityId) {
         Map<String, ListenableFuture<ArgumentEntry>> argFutures = new HashMap<>();
         for (var entry : ctx.getArguments().entrySet()) {
-            var argEntityId = entry.getValue().getRefEntityId() != null ? entry.getValue().getRefEntityId() : entityId;
+            var argEntityId = resolveEntityId(ctx.getTenantId(), entityId, entry.getValue());
             var argValueFuture = fetchKvEntry(ctx.getTenantId(), argEntityId, entry.getValue());
             argFutures.put(entry.getKey(), argValueFuture);
         }
@@ -162,7 +163,7 @@ public class DefaultCalculatedFieldProcessingService implements CalculatedFieldP
     public Map<String, ArgumentEntry> fetchArgsFromDb(TenantId tenantId, EntityId entityId, Map<String, Argument> arguments) {
         Map<String, ListenableFuture<ArgumentEntry>> argFutures = new HashMap<>();
         for (var entry : arguments.entrySet()) {
-            var argEntityId = entry.getValue().getRefEntityId() != null ? entry.getValue().getRefEntityId() : entityId;
+            var argEntityId = resolveEntityId(tenantId, entityId, entry.getValue());
             var argValueFuture = fetchKvEntry(tenantId, argEntityId, entry.getValue());
             argFutures.put(entry.getKey(), argValueFuture);
         }
@@ -256,6 +257,15 @@ public class DefaultCalculatedFieldProcessingService implements CalculatedFieldP
             builder.addLinks(toProto(link));
         }
         return builder.build();
+    }
+
+    private EntityId resolveEntityId(TenantId tenantId, EntityId entityId, Argument argument) {
+        if (argument.getRefEntityId() != null) {
+            return argument.getRefEntityId();
+        }
+        return argument.isCurrentOwner()
+                ? ownersCacheService.getOwner(tenantId, entityId)
+                : entityId;
     }
 
     private ListenableFuture<ArgumentEntry> fetchKvEntry(TenantId tenantId, EntityId entityId, Argument argument) {
