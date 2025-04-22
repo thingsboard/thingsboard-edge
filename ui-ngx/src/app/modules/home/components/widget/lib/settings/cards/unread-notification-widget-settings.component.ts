@@ -57,7 +57,7 @@ export class UnreadNotificationWidgetSettingsComponent extends WidgetSettingsCom
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...unreadNotificationDefaultSettings};
+    return unreadNotificationDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
