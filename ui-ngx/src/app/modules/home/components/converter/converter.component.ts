@@ -70,7 +70,7 @@ import { ConverterInfo, IntegrationsConvertersInfo, IntegrationType } from '@sha
 import { capitalize, deepClone, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { catchError, map } from 'rxjs/operators';
-import { forkJoin, Observable, of } from 'rxjs';
+import { forkJoin, merge, Observable, of } from 'rxjs';
 import { ContentType } from '@shared/models/constants';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -169,23 +169,23 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   ngOnInit() {
-    this.entityForm.get('type').valueChanges.pipe(
+    merge<[ConverterType, IntegrationType]>(
+      this.entityForm.get('type').valueChanges,
+      this.entityForm.get('integrationType').valueChanges
+    ).pipe(
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe((value: ConverterType) => {
-      this.onConverterTypeChanged(value);
+    ).subscribe(() => {
+      const converterType: ConverterType = this.entityForm.get('type').value;
       this.updateConverterVersion();
+      this.onConverterTypeChanged(converterType);
+      if (converterType === ConverterType.UPLINK) {
+        this.updateDefaultConfiguration(this.entityForm.get('integrationType').value);
+      }
     });
     this.entityForm.get('configuration.scriptLang').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
       this.onSetDefaultScriptBody(this.entityForm.get('type').value);
-    });
-    this.entityForm.get('integrationType').valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe((value: IntegrationType) => {
-      this.updateConverterVersion();
-      this.onSetDefaultScriptBody(this.entityForm.get('type').value);
-      this.updateDefaultConfiguration(value);
     });
     this.entityForm.get('configuration.type').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
@@ -307,7 +307,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           decoder: null,
           tbelDecoder: null
         }, {emitEvent: false});
-        this.updatedOnlyKeysValue(this.entityForm.get('integrationType').value);
       } else {
         this.entityForm.get('configuration').patchValue({
           encoder: null,
@@ -383,7 +382,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
     const converterVersion: ConverterVersion = this.entityForm.get('converterVersion').value;
 
-    if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(integrationType)) {
+    if (!isNotEmptyStr(scriptBody)) {
       const targetTemplateUrl = getTargetTemplateUrl(converterType, scriptLang, integrationType, converterVersion);
       this.resourcesService.loadJsonResource(targetTemplateUrl)
         .pipe(takeUntilDestroyed(this.destroyRef))
