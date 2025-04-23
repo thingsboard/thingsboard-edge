@@ -152,6 +152,24 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
         }
     }
 
+    public void process(CalculatedFieldArgumentResetMsg msg) throws CalculatedFieldException {
+        log.debug("[{}] Processing CF argument reset msg.", entityId);
+        var ctx = msg.getCtx();
+        var callback = new MultipleTbCallback(CALLBACKS_PER_CF, msg.getCallback());
+        try {
+            Map<String, Argument> ownerArgs = ctx.getArguments().entrySet().stream()
+                    .filter(entry -> entry.getValue().isCurrentOwner())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            Map<String, ArgumentEntry> fetchedArgs = cfService.fetchArgsFromDb(tenantId, entityId, ownerArgs);
+            fetchedArgs.values().forEach(arg -> arg.setForceResetPrevious(true));
+
+            processArgumentValuesUpdate(ctx, Collections.singletonList(ctx.getCfId()), callback, fetchedArgs, null, null);
+        } catch (Exception e) {
+            throw CalculatedFieldException.builder().ctx(ctx).eventEntity(entityId).cause(e).build();
+        }
+    }
+
     public void process(CalculatedFieldEntityDeleteMsg msg) {
         log.debug("[{}] Processing CF entity delete msg.", msg.getEntityId());
         if (this.entityId.equals(msg.getEntityId())) {

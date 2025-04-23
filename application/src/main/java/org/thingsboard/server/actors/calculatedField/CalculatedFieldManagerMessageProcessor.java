@@ -433,13 +433,15 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         if (!ownerEntities.isEmpty()) {
             MultipleTbCallback ownerEntitiesCallback = new MultipleTbCallback(ownerEntities.size(), callback);
             ownerEntities.forEach(entity -> {
-                var ownerEntityFields = getCalculatedFieldsByEntityId(entity);
-                var ownerEntityProfileFields = getCalculatedFieldsByEntityId(getProfileId(tenantId, entity));
-                if (!ownerEntityFields.isEmpty() || !ownerEntityProfileFields.isEmpty()) {
-                    log.debug("Pushing telemetry msg to specific actor [{}]", entity);
-                    getOrCreateActor(entity).tell(new EntityCalculatedFieldTelemetryMsg(msg, ownerEntityFields, ownerEntityProfileFields, ownerEntitiesCallback));
-                } else {
-                    ownerEntitiesCallback.onSuccess();
+                if (isMyPartition(entity, ownerEntitiesCallback)) {
+                    var ownerEntityFields = getCalculatedFieldsByEntityId(entity);
+                    var ownerEntityProfileFields = getCalculatedFieldsByEntityId(getProfileId(tenantId, entity));
+                    if (!ownerEntityFields.isEmpty() || !ownerEntityProfileFields.isEmpty()) {
+                        log.debug("Pushing telemetry msg to specific actor [{}]", entity);
+                        getOrCreateActor(entity).tell(new EntityCalculatedFieldTelemetryMsg(msg, ownerEntityFields, ownerEntityProfileFields, ownerEntitiesCallback));
+                    } else {
+                        ownerEntitiesCallback.onSuccess();
+                    }
                 }
             });
         } else {
@@ -501,9 +503,9 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         cfs.forEach(cf -> {
             if (isMyPartition(entityId, callback)) {
                 if (cf.hasCurrentOwnerArg()) {
-                    EntityInitCalculatedFieldMsg reinitMsg = new EntityInitCalculatedFieldMsg(tenantId, cf, callback, true);
+                    CalculatedFieldArgumentResetMsg argResetMsg = new CalculatedFieldArgumentResetMsg(tenantId, cf, callback);
                     log.debug("Pushing CF init msg to specific actor [{}]", entityId);
-                    getOrCreateActor(entityId).tell(reinitMsg);
+                    getOrCreateActor(entityId).tell(argResetMsg);
                 } else {
                     callback.onSuccess();
                 }
