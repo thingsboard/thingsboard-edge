@@ -29,63 +29,59 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { AuthService } from '@core/auth/auth.service';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { LoginResponse } from '@shared/models/login.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-email-verified',
   templateUrl: './email-verified.component.html',
   styleUrls: ['./email-verified.component.scss']
 })
-export class EmailVerifiedComponent extends PageComponent implements OnInit, OnDestroy {
+export class EmailVerifiedComponent extends PageComponent {
 
-  emailCode = '';
-  sub: Subscription;
-  loginResponse: LoginResponse;
-  activated: Subject<boolean> = new BehaviorSubject<boolean>(false);
+  activated: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   @HostBinding('class') class = 'tb-custom-css';
 
-  constructor(protected store: Store<AppState>,
-              private route: ActivatedRoute,
+  private emailCode = '';
+  private loginResponse: LoginResponse;
+
+  constructor(private route: ActivatedRoute,
               private router: Router,
               public wl: WhiteLabelingService,
               private authService: AuthService) {
-    super(store);
-  }
-
-  ngOnInit() {
-    this.sub = this.route
-      .queryParams
-      .subscribe(params => {
-        this.emailCode = params.emailCode || '';
+    super();
+    this.route.queryParams
+      .pipe(
+        first()
+      ).subscribe(params => {
+        this.emailCode = decodeURIComponent(params.emailCode || '');
         this.activateAndGetCredentials();
-      });
+      }
+    );
   }
 
-  ngOnDestroy(): void {
-    super.ngOnDestroy();
-    this.sub.unsubscribe();
+  login(): void {
+    if (this.loginResponse) {
+      this.authService.setUserFromJwtToken(this.loginResponse.token, this.loginResponse.refreshToken, true);
+    } else {
+      this.router.navigateByUrl(`/login`).then(() => {});
+    }
   }
 
-  activateAndGetCredentials(): void {
+  private activateAndGetCredentials(): void {
     this.authService.activateByEmailCode(this.emailCode).subscribe(
       (loginResponse) => {
         this.loginResponse = loginResponse;
         this.activated.next(true);
       }
     );
-  }
-
-  login(): void {
-    this.authService.setUserFromJwtToken(this.loginResponse.token, this.loginResponse.refreshToken, true);
   }
 
 }

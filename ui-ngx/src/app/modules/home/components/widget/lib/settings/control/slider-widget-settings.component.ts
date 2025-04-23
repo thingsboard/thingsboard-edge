@@ -82,7 +82,7 @@ export class SliderWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...sliderWidgetDefaultSettings};
+    return sliderWidgetDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

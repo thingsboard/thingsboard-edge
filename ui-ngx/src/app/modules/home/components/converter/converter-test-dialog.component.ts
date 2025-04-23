@@ -449,8 +449,8 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
             payload: value,
             metadata: value.metadata
           }, {emitEvent: false});
-          this.currentOriginalMsg.payload = value.payload;
-          this.currentOriginalMsg.metadata = value.metadata;
+          this.currentOriginalMsg.payload = msg.payload;
+          this.currentOriginalMsg.metadata = msg.metadata;
         })
       });
     }
