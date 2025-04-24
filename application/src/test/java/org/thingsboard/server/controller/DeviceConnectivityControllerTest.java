@@ -177,12 +177,12 @@ public class DeviceConnectivityControllerTest extends AbstractControllerTest {
         mqttProfile.setName("Mqtt device profile");
         mqttProfile.setType(DeviceProfileType.DEFAULT);
         mqttProfile.setTransportType(DeviceTransportType.MQTT);
-        DeviceProfileData mqttProfileData = new DeviceProfileData();
-        mqttProfileData.setConfiguration(new DefaultDeviceProfileConfiguration());
+        DeviceProfileData deviceProfileData = new DeviceProfileData();
+        deviceProfileData.setConfiguration(new DefaultDeviceProfileConfiguration());
         MqttDeviceProfileTransportConfiguration transportConfiguration = new MqttDeviceProfileTransportConfiguration();
         transportConfiguration.setDeviceTelemetryTopic(DEVICE_TELEMETRY_TOPIC);
-        mqttProfileData.setTransportConfiguration(transportConfiguration);
-        mqttProfile.setProfileData(mqttProfileData);
+        deviceProfileData.setTransportConfiguration(transportConfiguration);
+        mqttProfile.setProfileData(deviceProfileData);
         mqttProfile.setDefault(false);
         mqttProfile.setDefaultRuleChainId(null);
 
@@ -192,10 +192,10 @@ public class DeviceConnectivityControllerTest extends AbstractControllerTest {
         coapProfile.setName("Coap device profile");
         coapProfile.setType(DeviceProfileType.DEFAULT);
         coapProfile.setTransportType(DeviceTransportType.COAP);
-        DeviceProfileData coapProfileData = new DeviceProfileData();
-        coapProfileData.setConfiguration(new DefaultDeviceProfileConfiguration());
-        coapProfileData.setTransportConfiguration(new CoapDeviceProfileTransportConfiguration());
-        coapProfile.setProfileData(coapProfileData);
+        DeviceProfileData deviceProfileData2 = new DeviceProfileData();
+        deviceProfileData2.setConfiguration(new DefaultDeviceProfileConfiguration());
+        deviceProfileData2.setTransportConfiguration(new CoapDeviceProfileTransportConfiguration());
+        coapProfile.setProfileData(deviceProfileData);
         coapProfile.setDefault(false);
         coapProfile.setDefaultRuleChainId(null);
 
