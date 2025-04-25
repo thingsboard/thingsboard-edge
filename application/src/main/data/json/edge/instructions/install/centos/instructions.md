@@ -140,12 +140,11 @@ To configure ThingsBoard Edge, you  can use the following command to automatical
 
 ```bash
 sudo sh -c 'cat <<EOL >> /etc/tb-edge/conf/tb-edge.conf
-export CLOUD_ROUTING_KEY=<PUT_YOUR_EDGE_KEY_HERE>
-export CLOUD_ROUTING_SECRET=<PUT_YOUR_EDGE_SECRET_HERE>
-export CLOUD_RPC_HOST=thingsboard.cloud
-export CLOUD_RPC_PORT=7070
-export CLOUD_RPC_SSL_ENABLED=true
-export INTEGRATIONS_RPC_PORT=19090
+export CLOUD_ROUTING_KEY=${CLOUD_ROUTING_KEY}
+export CLOUD_ROUTING_SECRET=${CLOUD_ROUTING_SECRET}
+export CLOUD_RPC_HOST=${BASE_URL}
+export CLOUD_RPC_PORT=${CLOUD_RPC_PORT}
+export CLOUD_RPC_SSL_ENABLED=${CLOUD_RPC_SSL_ENABLED}
 EOL'
 {:copy-code}
 ```
