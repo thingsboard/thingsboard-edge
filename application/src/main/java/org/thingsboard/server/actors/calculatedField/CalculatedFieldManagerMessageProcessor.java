@@ -436,7 +436,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             callback.onSuccess();
         }
         // process all cfs related to owner entity
-        Set<EntityId> entities = ownerEntities.get(entityId);
+        Set<EntityId> entities = getOwnerEntities(entityId);
         if (!entities.isEmpty()) {
             MultipleTbCallback ownerEntitiesCallback = new MultipleTbCallback(entities.size(), callback);
             entities.forEach(entity -> {
@@ -552,6 +552,17 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         var result = entityIdCalculatedFieldLinks.get(entityId);
         if (result == null) {
             result = Collections.emptyList();
+        }
+        return result;
+    }
+
+    private Set<EntityId> getOwnerEntities(EntityId entityId) {
+        if (entityId == null) {
+            return Collections.emptySet();
+        }
+        var result = ownerEntities.get(entityId);
+        if (result == null) {
+            result = Collections.emptySet();
         }
         return result;
     }
