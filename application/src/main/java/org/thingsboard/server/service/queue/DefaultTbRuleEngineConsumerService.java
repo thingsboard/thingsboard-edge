@@ -68,6 +68,7 @@ import org.thingsboard.server.service.queue.ruleengine.TbRuleEngineConsumerConte
 import org.thingsboard.server.service.queue.ruleengine.TbRuleEngineQueueConsumerManager;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,8 +99,9 @@ public class DefaultTbRuleEngineConsumerService extends AbstractPartitionBasedCo
                                               PartitionService partitionService,
                                               ApplicationEventPublisher eventPublisher,
                                               JwtSettingsService jwtSettingsService,
-                                              CalculatedFieldCache calculatedFieldCache) {
-        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService, eventPublisher, jwtSettingsService);
+                                              CalculatedFieldCache calculatedFieldCache,
+                                              OwnersCacheService ownersCacheService) {
+        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService, eventPublisher, jwtSettingsService, ownersCacheService);
         this.ctx = ctx;
         this.tbDeviceRpcService = tbDeviceRpcService;
         this.queueService = queueService;
@@ -204,6 +206,9 @@ public class DefaultTbRuleEngineConsumerService extends AbstractPartitionBasedCo
             callback.onSuccess();
         } else if (nfMsg.getQueueDeleteMsgsCount() > 0) {
             deleteQueues(nfMsg.getQueueDeleteMsgsList());
+            callback.onSuccess();
+        } else if (nfMsg.hasChangeOwnerMsg()) {
+            handleChangeOwnerMsg(nfMsg.getChangeOwnerMsg());
             callback.onSuccess();
         } else {
             log.trace("Received notification with missing handler");

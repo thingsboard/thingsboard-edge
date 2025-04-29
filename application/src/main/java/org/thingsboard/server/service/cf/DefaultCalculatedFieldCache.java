@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.ProfileEntityIdInfo;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.CalculatedFieldLink;
 import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
@@ -46,13 +47,18 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldInitMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldLinkInitMsg;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
+import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -72,12 +78,17 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
     private final TbelInvokeService tbelInvokeService;
     private final ActorSystemContext actorSystemContext;
     private final ApiLimitService apiLimitService;
+    private final DeviceService deviceService;
+    private final AssetService assetService;
+    private final OwnersCacheService ownersCacheService;
 
     private final ConcurrentMap<CalculatedFieldId, CalculatedField> calculatedFields = new ConcurrentHashMap<>();
     private final ConcurrentMap<EntityId, List<CalculatedField>> entityIdCalculatedFields = new ConcurrentHashMap<>();
     private final ConcurrentMap<CalculatedFieldId, List<CalculatedFieldLink>> calculatedFieldLinks = new ConcurrentHashMap<>();
     private final ConcurrentMap<EntityId, List<CalculatedFieldLink>> entityIdCalculatedFieldLinks = new ConcurrentHashMap<>();
     private final ConcurrentMap<CalculatedFieldId, CalculatedFieldCtx> calculatedFieldsCtx = new ConcurrentHashMap<>();
+
+    private final ConcurrentMap<EntityId, Set<EntityId>> ownerEntities = new ConcurrentHashMap<>();
 
     @Value("${queue.calculated_fields.init_fetch_pack_size:50000}")
     @Getter
@@ -104,6 +115,26 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
                 .forEach(link ->
                         entityIdCalculatedFieldLinks.computeIfAbsent(link.getEntityId(), id -> new CopyOnWriteArrayList<>()).add(link)
                 );
+        PageDataIterable<ProfileEntityIdInfo> deviceIdInfos = new PageDataIterable<>(deviceService::findProfileEntityIdInfos, initFetchPackSize);
+        for (ProfileEntityIdInfo idInfo : deviceIdInfos) {
+            log.trace("Processing device record: {}", idInfo);
+            try {
+                EntityId owner = ownersCacheService.getOwner(idInfo.getTenantId(), idInfo.getEntityId());
+                ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(idInfo.getEntityId());
+            } catch (Exception e) {
+                log.error("Failed to process device record: {}", idInfo, e);
+            }
+        }
+        PageDataIterable<ProfileEntityIdInfo> assetIdInfos = new PageDataIterable<>(assetService::findProfileEntityIdInfos, initFetchPackSize);
+        for (ProfileEntityIdInfo idInfo : assetIdInfos) {
+            log.trace("Processing asset record: {}", idInfo);
+            try {
+                EntityId owner = ownersCacheService.getOwner(idInfo.getTenantId(), idInfo.getEntityId());
+                ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(idInfo.getEntityId());
+            } catch (Exception e) {
+                log.error("Failed to process asset record: {}", idInfo, e);
+            }
+        }
     }
 
     @Override
@@ -202,4 +233,24 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
         log.debug("[{}] evict calculated field links from cached links by entity id: {}", calculatedFieldId, oldCalculatedField);
     }
 
+    @Override
+    public Set<EntityId> getOwnerEntities(EntityId entityId) {
+        return ownerEntities.getOrDefault(entityId, Collections.emptySet());
+    }
+
+    @Override
+    public void updateOwnerEntities(EntityId owner, EntityId entityId) {
+        evictEntity(entityId);
+        ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(entityId);
+    }
+
+    @Override
+    public void evictEntity(EntityId entityId) {
+        ownerEntities.values().forEach(entities -> entities.remove(entityId));
+    }
+
+    @Override
+    public void evictOwner(EntityId owner) {
+        ownerEntities.remove(owner);
+    }
 }

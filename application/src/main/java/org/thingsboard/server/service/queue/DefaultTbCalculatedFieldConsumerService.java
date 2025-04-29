@@ -37,7 +37,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.ActorSystemContext;
-import org.thingsboard.server.actors.calculatedField.CalculatedFieldChangeOwnerMsg;
 import org.thingsboard.server.actors.calculatedField.CalculatedFieldLinkedTelemetryMsg;
 import org.thingsboard.server.actors.calculatedField.CalculatedFieldTelemetryMsg;
 import org.thingsboard.server.common.data.DataConstants;
@@ -46,6 +45,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.queue.QueueConfig;
+import org.thingsboard.server.common.msg.cf.CalculatedFieldChangeOwnerMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldPartitionChangeMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -75,6 +75,7 @@ import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.processing.AbstractPartitionBasedConsumerService;
 import org.thingsboard.server.service.queue.processing.IdMsgPair;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.List;
 import java.util.Set;
@@ -108,9 +109,10 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBa
                                                    ApplicationEventPublisher eventPublisher,
                                                    JwtSettingsService jwtSettingsService,
                                                    CalculatedFieldCache calculatedFieldCache,
-                                                   CalculatedFieldStateService stateService) {
+                                                   CalculatedFieldStateService stateService,
+                                                   OwnersCacheService ownersCacheService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService,
-                eventPublisher, jwtSettingsService);
+                eventPublisher, jwtSettingsService, ownersCacheService);
         this.queueFactory = tbQueueFactory;
         this.stateService = stateService;
     }
@@ -271,7 +273,7 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBa
     private void forwardToActorSystem(EntityChangeOwnerMsg changeOwnerMsg, TbCallback callback) {
         var tenantId = toTenantId(changeOwnerMsg.getTenantIdMSB(), changeOwnerMsg.getTenantIdLSB());
         var entityId = EntityIdFactory.getByTypeAndUuid(changeOwnerMsg.getEntityType(), new UUID(changeOwnerMsg.getEntityIdMSB(), changeOwnerMsg.getEntityIdLSB()));
-        actorContext.tell(new CalculatedFieldChangeOwnerMsg(tenantId, entityId, changeOwnerMsg, callback));
+        actorContext.tell(new CalculatedFieldChangeOwnerMsg(tenantId, entityId, callback));
     }
 
     private TenantId toTenantId(long tenantIdMSB, long tenantIdLSB) {

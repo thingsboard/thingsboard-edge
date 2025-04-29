@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.actors.calculatedField;
+package org.thingsboard.server.common.msg.cf;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -36,14 +36,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.ToCalculatedFieldSystemMsg;
 import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.gen.transport.TransportProtos.EntityChangeOwnerMsg;
 
 @Data
 public class CalculatedFieldChangeOwnerMsg implements ToCalculatedFieldSystemMsg {
 
     private final TenantId tenantId;
     private final EntityId entityId;
-    private final EntityChangeOwnerMsg proto;
     private final TbCallback callback;
 
     @Override

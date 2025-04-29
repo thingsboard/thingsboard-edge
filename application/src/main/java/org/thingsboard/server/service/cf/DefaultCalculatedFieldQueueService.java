@@ -61,7 +61,6 @@ import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -93,7 +92,6 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
     private final TbDeviceProfileCache deviceProfileCache;
     private final CalculatedFieldCache calculatedFieldCache;
     private final TbClusterService clusterService;
-    private final OwnersCacheService ownersCacheService;
 
     private static final Set<EntityType> supportedReferencedEntities = EnumSet.of(
             EntityType.DEVICE, EntityType.ASSET, EntityType.CUSTOMER, EntityType.TENANT
@@ -182,7 +180,7 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
                         .anyMatch(linkedEntityFilter);
             }
             if (!send) {
-                for (EntityId ownedEntity : ownersCacheService.getOwnerEntities(tenantId, entityId)) {
+                for (EntityId ownedEntity : calculatedFieldCache.getOwnerEntities(entityId)) {
                     if (calculatedFieldCache.getCalculatedFieldCtxsByEntityId(ownedEntity).stream().anyMatch(entityOwnerFilter)) {
                         send = true;
                         break;

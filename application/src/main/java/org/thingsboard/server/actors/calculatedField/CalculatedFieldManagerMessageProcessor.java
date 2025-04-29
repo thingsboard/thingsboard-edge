@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldCacheInitMsg;
+import org.thingsboard.server.common.msg.cf.CalculatedFieldChangeOwnerMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldEntityLifecycleMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldInitMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldInitProfileEntityMsg;
@@ -73,6 +74,7 @@ import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,6 +91,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
     private final Map<CalculatedFieldId, CalculatedFieldCtx> calculatedFields = new HashMap<>();
     private final Map<EntityId, List<CalculatedFieldCtx>> entityIdCalculatedFields = new HashMap<>();
     private final Map<EntityId, List<CalculatedFieldLink>> entityIdCalculatedFieldLinks = new HashMap<>();
+    private final Map<EntityId, Set<EntityId>> ownerEntities = new HashMap<>();
 
     private final CalculatedFieldProcessingService cfExecService;
     private final CalculatedFieldStateService cfStateService;
@@ -134,7 +137,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
 
     public void onCacheInitMsg(CalculatedFieldCacheInitMsg msg) {
         log.debug("[{}] Processing CF actor init message.", msg.getTenantId().getId());
-        initEntityProfileCache();
+        initEntitiesCache();
         initCalculatedFields();
         msg.getCallback().onSuccess();
     }
@@ -254,6 +257,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         if (profileId != null) {
             entityProfileCache.add(profileId, entityId);
         }
+        updateEntityOwner(entityId);
         if (!isMyPartition(entityId, callback)) {
             return;
         }
@@ -286,11 +290,14 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             } else {
                 callback.onSuccess();
             }
+        } else {
+            callback.onSuccess();
         }
     }
 
     private void onEntityDeleted(ComponentLifecycleMsg msg, TbCallback callback) {
         entityProfileCache.removeEntityId(msg.getEntityId());
+        ownerEntities.values().forEach(entities -> entities.remove(msg.getEntityId()));
         if (isMyPartition(msg.getEntityId(), callback)) {
             log.debug("Pushing entity lifecycle msg to specific actor [{}]", msg.getEntityId());
             getOrCreateActor(msg.getEntityId()).tell(new CalculatedFieldEntityDeleteMsg(tenantId, msg.getEntityId(), callback));
@@ -429,10 +436,10 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             callback.onSuccess();
         }
         // process all cfs related to owner entity
-        Set<EntityId> ownerEntities = ownersCacheService.getOwnerEntities(tenantId, entityId);
-        if (!ownerEntities.isEmpty()) {
-            MultipleTbCallback ownerEntitiesCallback = new MultipleTbCallback(ownerEntities.size(), callback);
-            ownerEntities.forEach(entity -> {
+        Set<EntityId> entities = ownerEntities.get(entityId);
+        if (!entities.isEmpty()) {
+            MultipleTbCallback ownerEntitiesCallback = new MultipleTbCallback(entities.size(), callback);
+            entities.forEach(entity -> {
                 if (isMyPartition(entity, ownerEntitiesCallback)) {
                     var ownerEntityFields = getCalculatedFieldsByEntityId(entity);
                     var ownerEntityProfileFields = getCalculatedFieldsByEntityId(getProfileId(tenantId, entity));
@@ -492,6 +499,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
     public void onChangeOwnerMsg(CalculatedFieldChangeOwnerMsg msg) {
         EntityId entityId = msg.getEntityId();
         log.debug("Received changed owner msg from entity [{}]", entityId);
+        updateEntityOwner(entityId);
         List<CalculatedFieldCtx> cfs = new ArrayList<>();
         cfs.addAll(getCalculatedFieldsByEntityId(entityId));
         cfs.addAll(getCalculatedFieldsByEntityId(getProfileId(tenantId, entityId)));
@@ -642,12 +650,14 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         });
     }
 
-    private void initEntityProfileCache() {
+    private void initEntitiesCache() {
         PageDataIterable<ProfileEntityIdInfo> deviceIdInfos = new PageDataIterable<>(pageLink -> deviceService.findProfileEntityIdInfosByTenantId(tenantId, pageLink), cfSettings.getInitTenantFetchPackSize());
         for (ProfileEntityIdInfo idInfo : deviceIdInfos) {
             log.trace("Processing device record: {}", idInfo);
             try {
                 entityProfileCache.add(idInfo.getProfileId(), idInfo.getEntityId());
+                EntityId owner = ownersCacheService.getOwner(idInfo.getTenantId(), idInfo.getEntityId());
+                ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(idInfo.getEntityId());
             } catch (Exception e) {
                 log.error("Failed to process device record: {}", idInfo, e);
             }
@@ -657,10 +667,18 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             log.trace("Processing asset record: {}", idInfo);
             try {
                 entityProfileCache.add(idInfo.getProfileId(), idInfo.getEntityId());
+                EntityId owner = ownersCacheService.getOwner(idInfo.getTenantId(), idInfo.getEntityId());
+                ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(idInfo.getEntityId());
             } catch (Exception e) {
                 log.error("Failed to process asset record: {}", idInfo, e);
             }
         }
+    }
+
+    private void updateEntityOwner(EntityId entityId) {
+        ownerEntities.values().forEach(entities -> entities.remove(entityId));
+        EntityId owner = ownersCacheService.getOwner(tenantId, entityId);
+        ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(entityId);
     }
 
 }

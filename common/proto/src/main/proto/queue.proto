@@ -1797,6 +1797,7 @@ message ToCoreNotificationMsg {
   ToEdqsCoreServiceMsg toEdqsCoreServiceMsg = 17;
   TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
   CustomMenuCacheInvalidateMsg customMenuCacheInvalidateMsg = 101;
+  EntityChangeOwnerMsg changeOwnerMsg = 102;
 }
 
 /* Messages to Edge queue that are handled by ThingsBoard Core Service */
@@ -1840,6 +1841,7 @@ message ToRuleEngineNotificationMsg {
   repeated QueueUpdateMsg queueUpdateMsgs = 3;
   repeated QueueDeleteMsg queueDeleteMsgs = 4;
   ComponentLifecycleMsgProto componentLifecycle = 5;
+  EntityChangeOwnerMsg changeOwnerMsg = 100;
 }
 
 /* Messages that are handled by ThingsBoard Transport Service */

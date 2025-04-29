@@ -699,6 +699,29 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
+    private void broadcast(EntityChangeOwnerMsg msg) {
+        UUID key = new UUID(msg.getEntityIdMSB(), msg.getEntityIdLSB());
+        TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineProducer = producerProvider.getRuleEngineNotificationsMsgProducer();
+        Set<String> tbRuleEngineServices = partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE);
+        TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toCoreNfProducer = producerProvider.getTbCoreNotificationsMsgProducer();
+        Set<String> tbCoreServices = partitionService.getAllServiceIds(ServiceType.TB_CORE);
+        for (String serviceId : tbCoreServices) {
+            TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, serviceId);
+            ToCoreNotificationMsg toCoreMsg = ToCoreNotificationMsg.newBuilder().setChangeOwnerMsg(msg).build();
+            toCoreNfProducer.send(tpi, new TbProtoQueueMsg<>(key, toCoreMsg), null);
+            toCoreNfs.incrementAndGet();
+        }
+        // No need to push notifications twice
+        tbRuleEngineServices.removeAll(tbCoreServices);
+
+        for (String serviceId : tbRuleEngineServices) {
+            TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_RULE_ENGINE, serviceId);
+            ToRuleEngineNotificationMsg toRuleEngineMsg = ToRuleEngineNotificationMsg.newBuilder().setChangeOwnerMsg(msg).build();
+            toRuleEngineProducer.send(tpi, new TbProtoQueueMsg<>(key, toRuleEngineMsg), null);
+            toRuleEngineNfs.incrementAndGet();
+        }
+    }
+
     @Scheduled(fixedDelayString = "${cluster.stats.print_interval_ms}")
     public void printStats() {
         if (statsEnabled) {
@@ -861,6 +884,7 @@ public class DefaultTbClusterService implements TbClusterService {
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
                 .build();
         broadcastToCalculatedFields(ToCalculatedFieldNotificationMsg.newBuilder().setChangeOwnerMsg(changeOwnerMsg).build(), TbQueueCallback.EMPTY);
+        broadcast(changeOwnerMsg);
     }
 
     private void pushDeviceUpdateMessage(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action, EntityType entityGroupType) {
