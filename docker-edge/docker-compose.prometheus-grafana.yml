@@ -29,21 +29,23 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
+version: '3.0'
+
 volumes:
-    prometheus_data: {}
-    grafana_data: {}
+  prometheus_data: {}
+  grafana_data: {}
 
 services:
 
   prometheus:
-    image: prom/prometheus:v2.1.0
+    image: prom/prometheus:v3.1.0
     volumes:
       - ./monitoring/prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
-      - 9090:9090
+      - 9090 # PE does not expose this port to avoid port binding conflict with load balancer exposed port
     restart: always
   grafana:
     image: grafana/grafana

@@ -70,6 +70,7 @@ services:
       CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
       CLOUD_RPC_PORT: "${CLOUD_RPC_PORT}"
+      CLOUD_RPC_SSL_ENABLED: "${CLOUD_RPC_SSL_ENABLED}"
     env_file:
       - tb-edge.env
     volumes:
@@ -97,6 +98,7 @@ services:
       CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
       CLOUD_RPC_PORT: "${CLOUD_RPC_PORT}"
+      CLOUD_RPC_SSL_ENABLED: "${CLOUD_RPC_SSL_ENABLED}"
     env_file:
       - tb-edge.env
     volumes:
@@ -124,6 +126,7 @@ services:
       CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
       CLOUD_RPC_PORT: "${CLOUD_RPC_PORT}"
+      CLOUD_RPC_SSL_ENABLED: "${CLOUD_RPC_SSL_ENABLED}"
     env_file:
       - tb-edge.env
     volumes:
