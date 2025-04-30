@@ -38,7 +38,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
@@ -47,7 +46,6 @@ import org.thingsboard.server.actors.calculatedField.MultipleTbCallback;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
 import org.thingsboard.server.common.data.cf.configuration.OutputType;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
@@ -57,11 +55,7 @@ import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
-import org.thingsboard.server.common.data.kv.BooleanDataEntry;
-import org.thingsboard.server.common.data.kv.DoubleDataEntry;
-import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
@@ -81,15 +75,11 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNot
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.PartitionService;
-import org.thingsboard.server.queue.discovery.QueueKey;
 import org.thingsboard.server.queue.util.TbRuleEngineComponent;
 import org.thingsboard.server.service.cf.ctx.CalculatedFieldEntityCtxId;
 import org.thingsboard.server.service.cf.ctx.state.ArgumentEntry;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldState;
-import org.thingsboard.server.service.cf.ctx.state.ScriptCalculatedFieldState;
-import org.thingsboard.server.service.cf.ctx.state.SimpleCalculatedFieldState;
-import org.thingsboard.server.service.cf.ctx.state.SingleValueArgumentEntry;
 import org.thingsboard.server.service.cf.ctx.state.TsRollingArgumentEntry;
 
 import java.util.ArrayList;
@@ -103,6 +93,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.SCOPE;
+import static org.thingsboard.server.utils.CalculatedFieldArgumentUtils.createDefaultKvEntry;
+import static org.thingsboard.server.utils.CalculatedFieldArgumentUtils.createStateByType;
+import static org.thingsboard.server.utils.CalculatedFieldArgumentUtils.transformSingleValueArgument;
 import static org.thingsboard.server.utils.CalculatedFieldUtils.toProto;
 
 @TbRuleEngineComponent
@@ -266,23 +259,14 @@ public class DefaultCalculatedFieldProcessingService implements CalculatedFieldP
                             attributesService.find(tenantId, entityId, argument.getRefEntityKey().getScope(), argument.getRefEntityKey().getKey()),
                             result -> result.or(() -> Optional.of(new BaseAttributeKvEntry(createDefaultKvEntry(argument), System.currentTimeMillis(), 0L))),
                             calculatedFieldCallbackExecutor)
-            );
+                    , calculatedFieldCallbackExecutor);
             case TS_LATEST -> transformSingleValueArgument(
                     Futures.transform(
                             timeseriesService.findLatest(tenantId, entityId, argument.getRefEntityKey().getKey()),
                             result -> result.or(() -> Optional.of(new BasicTsKvEntry(System.currentTimeMillis(), createDefaultKvEntry(argument), 0L))),
-                            calculatedFieldCallbackExecutor));
+                            calculatedFieldCallbackExecutor)
+                    , calculatedFieldCallbackExecutor);
         };
-    }
-
-    private ListenableFuture<ArgumentEntry> transformSingleValueArgument(ListenableFuture<Optional<? extends KvEntry>> kvEntryFuture) {
-        return Futures.transform(kvEntryFuture, kvEntry -> {
-            if (kvEntry.isPresent() && kvEntry.get().getValue() != null) {
-                return ArgumentEntry.createSingleValueArgument(kvEntry.get());
-            } else {
-                return new SingleValueArgumentEntry();
-            }
-        }, calculatedFieldCallbackExecutor);
     }
 
     private ListenableFuture<ArgumentEntry> fetchTsRolling(TenantId tenantId, EntityId entityId, Argument argument) {
@@ -297,28 +281,6 @@ public class DefaultCalculatedFieldProcessingService implements CalculatedFieldP
         ListenableFuture<List<TsKvEntry>> tsRollingFuture = timeseriesService.findAll(tenantId, entityId, List.of(query));
 
         return Futures.transform(tsRollingFuture, tsRolling -> tsRolling == null ? new TsRollingArgumentEntry(limit, timeWindow) : ArgumentEntry.createTsRollingArgument(tsRolling, limit, timeWindow), calculatedFieldCallbackExecutor);
-    }
-
-    private KvEntry createDefaultKvEntry(Argument argument) {
-        String key = argument.getRefEntityKey().getKey();
-        String defaultValue = argument.getDefaultValue();
-        if (StringUtils.isBlank(defaultValue)) {
-            return new StringDataEntry(key, null);
-        }
-        if (NumberUtils.isParsable(defaultValue)) {
-            return new DoubleDataEntry(key, Double.parseDouble(defaultValue));
-        }
-        if ("true".equalsIgnoreCase(defaultValue) || "false".equalsIgnoreCase(defaultValue)) {
-            return new BooleanDataEntry(key, Boolean.parseBoolean(defaultValue));
-        }
-        return new StringDataEntry(key, defaultValue);
-    }
-
-    private CalculatedFieldState createStateByType(CalculatedFieldCtx ctx) {
-        return switch (ctx.getCfType()) {
-            case SIMPLE -> new SimpleCalculatedFieldState(ctx.getArgNames());
-            case SCRIPT -> new ScriptCalculatedFieldState(ctx.getArgNames());
-        };
     }
 
     private static class TbCallbackWrapper implements TbQueueCallback {

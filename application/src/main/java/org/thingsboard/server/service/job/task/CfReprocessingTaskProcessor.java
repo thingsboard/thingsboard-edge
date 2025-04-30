@@ -28,28 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.service.job.task;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Data;
+import com.google.common.util.concurrent.SettableFuture;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.job.CfReprocessingTask;
+import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.queue.task.TaskProcessor;
+import org.thingsboard.server.queue.util.TbRuleEngineComponent;
+import org.thingsboard.server.service.cf.CalculatedFieldReprocessingService;
 
-import java.io.Serializable;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @Type(name = "CF_REPROCESSING", value = CfReprocessingJobConfiguration.class),
-        @Type(name = "DUMMY", value = DummyJobConfiguration.class),
-})
-@Data
-public abstract class JobConfiguration implements Serializable {
+@TbRuleEngineComponent
+@Component
+@RequiredArgsConstructor
+public class CfReprocessingTaskProcessor extends TaskProcessor<CfReprocessingTask> {
 
-    private List<TaskFailure> toReprocess;
+    private final CalculatedFieldReprocessingService cfReprocessingService;
 
-    public abstract JobType getType();
+    @Override
+    public void process(CfReprocessingTask task) throws Exception {
+        SettableFuture<Void> future = SettableFuture.create();
+        cfReprocessingService.reprocess(task, new TbCallback() {
+            @Override
+            public void onSuccess() {
+                future.set(null);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                future.setException(t);
+            }
+        });
+        future.get(1, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public JobType getJobType() {
+        return JobType.CF_REPROCESSING;
+    }
 
 }

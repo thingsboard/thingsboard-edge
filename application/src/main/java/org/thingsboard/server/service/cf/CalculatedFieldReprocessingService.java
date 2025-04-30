@@ -28,28 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.service.cf;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Data;
+import org.thingsboard.server.actors.calculatedField.CalculatedFieldException;
 
-import java.io.Serializable;
-import java.util.List;
+import org.thingsboard.server.common.data.job.CfReprocessingTask;
+import org.thingsboard.server.common.msg.queue.TbCallback;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @Type(name = "CF_REPROCESSING", value = CfReprocessingJobConfiguration.class),
-        @Type(name = "DUMMY", value = DummyJobConfiguration.class),
-})
-@Data
-public abstract class JobConfiguration implements Serializable {
+public interface CalculatedFieldReprocessingService {
 
-    private List<TaskFailure> toReprocess;
-
-    public abstract JobType getType();
+    void reprocess(CfReprocessingTask task, TbCallback callback) throws CalculatedFieldException;
 
 }

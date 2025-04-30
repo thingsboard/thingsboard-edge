@@ -45,6 +45,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
+import org.thingsboard.server.dao.service.validator.CalculatedFieldReprocessingValidator;
+import org.thingsboard.server.dao.service.validator.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -58,6 +60,7 @@ import java.util.Optional;
 public class DefaultTbCalculatedFieldService extends AbstractTbEntityService implements TbCalculatedFieldService {
 
     private final CalculatedFieldService calculatedFieldService;
+    private final CalculatedFieldReprocessingValidator cfReprocessingValidator;
 
     @Override
     public CalculatedField save(CalculatedField calculatedField, SecurityUser user) throws ThingsboardException {
@@ -109,6 +112,11 @@ public class DefaultTbCalculatedFieldService extends AbstractTbEntityService imp
     public void delete(CalculatedFieldId calculatedFieldId, User user) {
         CalculatedField calculatedField = calculatedFieldService.findById(user.getTenantId(), calculatedFieldId);
         delete(calculatedField, user);
+    }
+
+    @Override
+    public CFReprocessingValidationResponse validate(CalculatedField calculatedField) {
+        return cfReprocessingValidator.validate(calculatedField);
     }
 
     private void checkForEntityChange(CalculatedField oldCalculatedField, CalculatedField newCalculatedField) {

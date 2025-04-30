@@ -37,6 +37,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.job.CfReprocessingTask.CfReprocessingTaskFailure;
 import org.thingsboard.server.common.data.job.DummyTask.DummyTaskFailure;
 
 @Data
@@ -45,6 +46,7 @@ import org.thingsboard.server.common.data.job.DummyTask.DummyTaskFailure;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "jobType")
 @JsonSubTypes({
+        @Type(name = "CF_REPROCESSING", value = CfReprocessingTaskFailure.class),
         @Type(name = "DUMMY", value = DummyTaskFailure.class)
 })
 public abstract class TaskFailure {

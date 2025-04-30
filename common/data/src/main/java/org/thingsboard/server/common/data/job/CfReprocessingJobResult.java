@@ -30,26 +30,11 @@
  */
 package org.thingsboard.server.common.data.job;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Data;
+public class CfReprocessingJobResult extends JobResult {
 
-import java.io.Serializable;
-import java.util.List;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @Type(name = "CF_REPROCESSING", value = CfReprocessingJobConfiguration.class),
-        @Type(name = "DUMMY", value = DummyJobConfiguration.class),
-})
-@Data
-public abstract class JobConfiguration implements Serializable {
-
-    private List<TaskFailure> toReprocess;
-
-    public abstract JobType getType();
+    @Override
+    public JobType getJobType() {
+        return JobType.CF_REPROCESSING;
+    }
 
 }

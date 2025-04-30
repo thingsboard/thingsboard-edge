@@ -30,26 +30,58 @@
  */
 package org.thingsboard.server.common.data.job;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import org.thingsboard.server.common.data.cf.CalculatedField;
+import org.thingsboard.server.common.data.id.EntityId;
 
-import java.io.Serializable;
-import java.util.List;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @Type(name = "CF_REPROCESSING", value = CfReprocessingJobConfiguration.class),
-        @Type(name = "DUMMY", value = DummyJobConfiguration.class),
-})
 @Data
-public abstract class JobConfiguration implements Serializable {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
+@ToString(callSuper = true)
+public class CfReprocessingTask extends Task {
 
-    private List<TaskFailure> toReprocess;
+    private CalculatedField calculatedField;
+    private EntityId entityId;
+    private long startTs;
+    private long endTs;
 
-    public abstract JobType getType();
+    @Override
+    public Object getKey() {
+        return entityId;
+    }
+
+    @Override
+    public TaskFailure toFailure(Throwable error) {
+        return new CfReprocessingTaskFailure(entityId, error.getMessage());
+    }
+
+    @Override
+    public JobType getJobType() {
+        return JobType.CF_REPROCESSING;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @NoArgsConstructor
+    public static class CfReprocessingTaskFailure extends TaskFailure {
+
+        private EntityId entityId;
+
+        public CfReprocessingTaskFailure(EntityId entityId, String error) {
+            super(error);
+            this.entityId = entityId;
+        }
+
+        @Override
+        public JobType getJobType() {
+            return JobType.CF_REPROCESSING;
+        }
+
+    }
 
 }
