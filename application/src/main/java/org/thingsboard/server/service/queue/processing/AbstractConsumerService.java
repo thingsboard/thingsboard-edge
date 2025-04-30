@@ -243,7 +243,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         log.debug("[{}] Received change owner event: {}", tenantId, entityId);
         if (entityId.getEntityType().isOneOf(EntityType.ASSET, EntityType.DEVICE)) {
             EntityId owner = ownersCacheService.getOwner(tenantId, entityId);
-            calculatedFieldCache.updateOwnerEntities(owner, entityId);
+            calculatedFieldCache.updateOwnerEntities(tenantId, owner, entityId);
         }
     }
 

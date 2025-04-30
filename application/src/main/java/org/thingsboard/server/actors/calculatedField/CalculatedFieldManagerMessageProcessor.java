@@ -510,7 +510,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         MultipleTbCallback callback = new MultipleTbCallback(cfs.size(), msg.getCallback());
         cfs.forEach(cf -> {
             if (isMyPartition(entityId, callback)) {
-                if (cf.hasCurrentOwnerArg()) {
+                if (cf.hasDynamicSourceArg()) {
                     CalculatedFieldArgumentResetMsg argResetMsg = new CalculatedFieldArgumentResetMsg(tenantId, cf, callback);
                     log.debug("Pushing CF init msg to specific actor [{}]", entityId);
                     getOrCreateActor(entityId).tell(argResetMsg);

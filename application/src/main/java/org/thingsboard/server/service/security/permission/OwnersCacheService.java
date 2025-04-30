@@ -94,4 +94,6 @@ public interface OwnersCacheService {
 
     void changeEntityOwner(TenantId tenantId, EntityId entityId, EntityId targetOwnerId, EntityId currentOwnerId) throws ThingsboardException;
 
+    Set<EntityId> getOwnerEntities(TenantId tenantId, EntityId ownerId);
+
 }

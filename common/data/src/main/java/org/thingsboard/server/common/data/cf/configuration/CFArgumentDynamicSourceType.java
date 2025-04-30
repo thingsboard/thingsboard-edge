@@ -30,22 +30,6 @@
  */
 package org.thingsboard.server.common.data.cf.configuration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import org.springframework.lang.Nullable;
-import org.thingsboard.server.common.data.id.EntityId;
-
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class Argument {
-
-    @Nullable
-    private EntityId refEntityId;
-    private CFArgumentDynamicSourceType refDynamicSource;
-    private ReferencedEntityKey refEntityKey;
-    private String defaultValue;
-
-    private Integer limit;
-    private Long timeWindow;
-
+public enum CFArgumentDynamicSourceType {
+    CURRENT_OWNER
 }

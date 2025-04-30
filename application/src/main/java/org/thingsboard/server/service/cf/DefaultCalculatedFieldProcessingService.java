@@ -263,9 +263,13 @@ public class DefaultCalculatedFieldProcessingService implements CalculatedFieldP
         if (argument.getRefEntityId() != null) {
             return argument.getRefEntityId();
         }
-        return argument.isCurrentOwner()
-                ? ownersCacheService.getOwner(tenantId, entityId)
-                : entityId;
+        var refDynamicSource = argument.getRefDynamicSource();
+        if (refDynamicSource == null) {
+            return entityId;
+        }
+        return switch (refDynamicSource) {
+            case CURRENT_OWNER -> ownersCacheService.getOwner(tenantId, entityId);
+        };
     }
 
     private ListenableFuture<ArgumentEntry> fetchKvEntry(TenantId tenantId, EntityId entityId, Argument argument) {

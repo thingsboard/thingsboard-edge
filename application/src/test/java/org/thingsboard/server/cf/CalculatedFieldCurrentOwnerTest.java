@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.CalculatedFieldType;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
 import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
+import org.thingsboard.server.common.data.cf.configuration.CFArgumentDynamicSourceType;
 import org.thingsboard.server.common.data.cf.configuration.Output;
 import org.thingsboard.server.common.data.cf.configuration.OutputType;
 import org.thingsboard.server.common.data.cf.configuration.ReferencedEntityKey;
@@ -184,7 +185,7 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractControllerTest {
         Argument argument = new Argument();
         ReferencedEntityKey refEntityKey = new ReferencedEntityKey("attrKey", ArgumentType.ATTRIBUTE, AttributeScope.SERVER_SCOPE);
         argument.setRefEntityKey(refEntityKey);
-        argument.setCurrentOwner(true);
+        argument.setRefDynamicSource(CFArgumentDynamicSourceType.CURRENT_OWNER);
 
         config.setArguments(Map.of("a", argument));
 

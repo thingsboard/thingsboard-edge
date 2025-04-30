@@ -157,11 +157,11 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
         var ctx = msg.getCtx();
         var callback = new MultipleTbCallback(CALLBACKS_PER_CF, msg.getCallback());
         try {
-            Map<String, Argument> ownerArgs = ctx.getArguments().entrySet().stream()
-                    .filter(entry -> entry.getValue().isCurrentOwner())
+            Map<String, Argument> dynamicSourceArgs = ctx.getArguments().entrySet().stream()
+                    .filter(entry -> entry.getValue().getRefDynamicSource() != null)
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            Map<String, ArgumentEntry> fetchedArgs = cfService.fetchArgsFromDb(tenantId, entityId, ownerArgs);
+            Map<String, ArgumentEntry> fetchedArgs = cfService.fetchArgsFromDb(tenantId, entityId, dynamicSourceArgs);
             fetchedArgs.values().forEach(arg -> arg.setForceResetPrevious(true));
 
             processArgumentValuesUpdate(ctx, Collections.singletonList(ctx.getCfId()), callback, fetchedArgs, null, null);
@@ -371,7 +371,7 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, List<TsKvProto> data) {
         Map<String, ArgumentEntry> allArguments = new HashMap<>();
         allArguments.putAll(mapToArguments(ctx.getMainEntityArguments(), data));
-        allArguments.putAll(mapToArguments(ctx.getOwnerEntityArguments(), data));
+        allArguments.putAll(mapToArguments(ctx.getDynamicEntityArguments(), data));
         return allArguments;
     }
 
@@ -406,7 +406,7 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, AttributeScopeProto scope, List<AttributeValueProto> attrDataList) {
         Map<String, ArgumentEntry> allArguments = new HashMap<>();
         allArguments.putAll(mapToArguments(ctx.getMainEntityArguments(), scope, attrDataList));
-        allArguments.putAll(mapToArguments(ctx.getOwnerEntityArguments(), scope, attrDataList));
+        allArguments.putAll(mapToArguments(ctx.getDynamicEntityArguments(), scope, attrDataList));
         return allArguments;
     }
 

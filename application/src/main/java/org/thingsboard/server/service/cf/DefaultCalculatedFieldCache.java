@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.ActorSystemContext;
-import org.thingsboard.server.common.data.ProfileEntityIdInfo;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.CalculatedFieldLink;
 import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
@@ -47,9 +47,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldInitMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldLinkInitMsg;
-import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
-import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
@@ -78,8 +76,6 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
     private final TbelInvokeService tbelInvokeService;
     private final ActorSystemContext actorSystemContext;
     private final ApiLimitService apiLimitService;
-    private final DeviceService deviceService;
-    private final AssetService assetService;
     private final OwnersCacheService ownersCacheService;
 
     private final ConcurrentMap<CalculatedFieldId, CalculatedField> calculatedFields = new ConcurrentHashMap<>();
@@ -115,26 +111,6 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
                 .forEach(link ->
                         entityIdCalculatedFieldLinks.computeIfAbsent(link.getEntityId(), id -> new CopyOnWriteArrayList<>()).add(link)
                 );
-        PageDataIterable<ProfileEntityIdInfo> deviceIdInfos = new PageDataIterable<>(deviceService::findProfileEntityIdInfos, initFetchPackSize);
-        for (ProfileEntityIdInfo idInfo : deviceIdInfos) {
-            log.trace("Processing device record: {}", idInfo);
-            try {
-                EntityId owner = ownersCacheService.getOwner(idInfo.getTenantId(), idInfo.getEntityId());
-                ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(idInfo.getEntityId());
-            } catch (Exception e) {
-                log.error("Failed to process device record: {}", idInfo, e);
-            }
-        }
-        PageDataIterable<ProfileEntityIdInfo> assetIdInfos = new PageDataIterable<>(assetService::findProfileEntityIdInfos, initFetchPackSize);
-        for (ProfileEntityIdInfo idInfo : assetIdInfos) {
-            log.trace("Processing asset record: {}", idInfo);
-            try {
-                EntityId owner = ownersCacheService.getOwner(idInfo.getTenantId(), idInfo.getEntityId());
-                ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(idInfo.getEntityId());
-            } catch (Exception e) {
-                log.error("Failed to process asset record: {}", idInfo, e);
-            }
-        }
     }
 
     @Override
@@ -234,14 +210,26 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
     }
 
     @Override
-    public Set<EntityId> getOwnerEntities(EntityId entityId) {
-        return ownerEntities.getOrDefault(entityId, Collections.emptySet());
+    public Set<EntityId> getDynamicEntities(TenantId tenantId, EntityId entityId) {
+        if (entityId == null) {
+            return Collections.emptySet();
+        }
+        Set<EntityId> dynamicEntities = new HashSet<>();
+        if (entityId.getEntityType().isOneOf(EntityType.CUSTOMER, EntityType.TENANT)) {
+            dynamicEntities.addAll(getOwnerEntities(tenantId, entityId));
+        }
+        return dynamicEntities;
     }
 
     @Override
-    public void updateOwnerEntities(EntityId owner, EntityId entityId) {
+    public Set<EntityId> getOwnerEntities(TenantId tenantId, EntityId entityId) {
+        return ownerEntities.computeIfAbsent(entityId, owner -> ownersCacheService.getOwnerEntities(tenantId, entityId));
+    }
+
+    @Override
+    public void updateOwnerEntities(TenantId tenantId, EntityId owner, EntityId entityId) {
         evictEntity(entityId);
-        ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(entityId);
+        getOwnerEntities(tenantId, owner).add(entityId);
     }
 
     @Override

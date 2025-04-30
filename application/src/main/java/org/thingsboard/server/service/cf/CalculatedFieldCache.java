@@ -58,9 +58,11 @@ public interface CalculatedFieldCache {
 
     void evict(CalculatedFieldId calculatedFieldId);
 
-    Set<EntityId> getOwnerEntities(EntityId entityId);
+    Set<EntityId> getDynamicEntities(TenantId tenantId, EntityId entityId);
 
-    void updateOwnerEntities(EntityId owner, EntityId entityId);
+    Set<EntityId> getOwnerEntities(TenantId tenantId, EntityId entityId);
+
+    void updateOwnerEntities(TenantId tenantId, EntityId owner, EntityId entityId);
 
     void evictEntity(EntityId entityId);
 
