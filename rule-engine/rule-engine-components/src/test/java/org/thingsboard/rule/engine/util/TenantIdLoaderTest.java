@@ -74,6 +74,7 @@ import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
@@ -104,6 +105,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
@@ -206,6 +208,8 @@ public class TenantIdLoaderTest {
     private MobileAppBundleService mobileAppBundleService;
     @Mock
     private CalculatedFieldService calculatedFieldService;
+    @Mock
+    private JobService jobService;
 
     private TenantId tenantId;
     private TenantProfileId tenantProfileId;
@@ -523,6 +527,12 @@ public class TenantIdLoaderTest {
                 calculatedFieldLink.setTenantId(tenantId);
                 when(ctx.getCalculatedFieldService()).thenReturn(calculatedFieldService);
                 doReturn(calculatedFieldLink).when(calculatedFieldService).findCalculatedFieldLinkById(eq(tenantId), any());
+                break;
+            case JOB:
+                Job job = new Job();
+                job.setTenantId(tenantId);
+                when(ctx.getJobService()).thenReturn(jobService);
+                doReturn(job).when(jobService).findJobById(eq(tenantId), any());
                 break;
             default:
                 throw new RuntimeException("Unexpected originator EntityType " + entityType);

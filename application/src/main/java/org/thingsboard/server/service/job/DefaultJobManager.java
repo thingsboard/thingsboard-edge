@@ -1,0 +1,247 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.service.job;
+
+import jakarta.annotation.PreDestroy;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.id.JobId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.job.Job;
+import org.thingsboard.server.common.data.job.JobResult;
+import org.thingsboard.server.common.data.job.JobStats;
+import org.thingsboard.server.common.data.job.JobStatus;
+import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.data.job.Task;
+import org.thingsboard.server.common.data.job.TaskFailure;
+import org.thingsboard.server.common.data.job.TaskResult;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.dao.job.JobService;
+import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueConsumer;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
+import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
+import org.thingsboard.server.queue.task.JobStatsService;
+import org.thingsboard.server.queue.util.AfterStartUp;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@TbCoreComponent
+@Component
+@Slf4j
+public class DefaultJobManager implements JobManager {
+
+    private final JobService jobService;
+    private final JobStatsService jobStatsService;
+    private final Map<JobType, JobProcessor> jobProcessors;
+    private final Map<JobType, TbQueueProducer<TbProtoQueueMsg<TaskProto>>> taskProducers;
+    private final QueueConsumerManager<TbProtoQueueMsg<JobStatsMsg>> jobStatsConsumer;
+    private final ExecutorService executor;
+    private final ExecutorService consumerExecutor;
+
+    @Value("${queue.tasks.stats.processing_interval_ms:5000}")
+    private int statsProcessingInterval;
+
+    public DefaultJobManager(JobService jobService, JobStatsService jobStatsService, TbCoreQueueFactory queueFactory, List<JobProcessor> jobProcessors) {
+        this.jobService = jobService;
+        this.jobStatsService = jobStatsService;
+        this.jobProcessors = jobProcessors.stream().collect(Collectors.toMap(JobProcessor::getType, Function.identity()));
+        this.taskProducers = Arrays.stream(JobType.values()).collect(Collectors.toMap(Function.identity(), queueFactory::createTaskProducer));
+        this.executor = ThingsBoardExecutors.newWorkStealingPool(Math.max(4, Runtime.getRuntime().availableProcessors()), getClass());
+        this.consumerExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName("job-stats-consumer"));
+        this.jobStatsConsumer = QueueConsumerManager.<TbProtoQueueMsg<JobStatsMsg>>builder()
+                .name("job-stats")
+                .msgPackProcessor(this::processStats)
+                .pollInterval(125)
+                .consumerCreator(queueFactory::createJobStatsConsumer)
+                .consumerExecutor(consumerExecutor)
+                .build();
+    }
+
+    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
+    public void afterStartUp() {
+        jobStatsConsumer.subscribe();
+        jobStatsConsumer.launch();
+    }
+
+    @Override
+    public Job submitJob(Job job) {
+        log.debug("Submitting job: {}", job);
+        return jobService.submitJob(job.getTenantId(), job);
+    }
+
+    @Override
+    public void onJobUpdate(Job job) {
+        if (job.getStatus() == JobStatus.PENDING) {
+            executor.execute(() -> {
+                processJob(job);
+            });
+        }
+    }
+
+    private void processJob(Job job) {
+        TenantId tenantId = job.getTenantId();
+        JobId jobId = job.getId();
+        try {
+            JobProcessor processor = jobProcessors.get(job.getType());
+            List<TaskFailure> toReprocess = job.getConfiguration().getToReprocess();
+            if (toReprocess == null) {
+                int tasksCount = processor.process(job, this::submitTask); // todo: think about stopping tb - while tasks are being submitted
+                log.info("[{}][{}][{}] Submitted {} tasks", tenantId, jobId, job.getType(), tasksCount);
+                jobStatsService.reportAllTasksSubmitted(tenantId, jobId, tasksCount);
+            } else {
+                processor.reprocess(job, toReprocess, this::submitTask);
+                log.info("[{}][{}][{}] Submitted {} tasks for reprocessing", tenantId, jobId, job.getType(), toReprocess.size());
+            }
+        } catch (Throwable e) {
+            log.error("[{}][{}][{}] Failed to submit tasks", tenantId, jobId, job.getType(), e);
+            try {
+                jobService.markAsFailed(tenantId, jobId, ExceptionUtils.getStackTrace(e));
+            } catch (Throwable e2) {
+                log.error("[{}][{}] Failed to mark job as failed", tenantId, jobId, e2);
+            }
+        }
+    }
+
+    @Override
+    public void cancelJob(TenantId tenantId, JobId jobId) {
+        log.info("[{}][{}] Cancelling job", tenantId, jobId);
+        jobService.cancelJob(tenantId, jobId);
+    }
+
+    @Override
+    public void reprocessJob(TenantId tenantId, JobId jobId) {
+        log.info("[{}][{}] Reprocessing job", tenantId, jobId);
+        Job job = jobService.findJobById(tenantId, jobId);
+        if (job.getStatus() != JobStatus.FAILED) {
+            throw new IllegalArgumentException("Job is not failed");
+        }
+
+        JobResult result = job.getResult();
+        if (result.getGeneralError() != null) {
+            throw new IllegalArgumentException("Reprocessing not allowed since job has general error");
+        }
+        List<TaskFailure> failures = result.getFailures();
+        if (result.getFailedCount() > failures.size()) {
+            throw new IllegalArgumentException("Reprocessing not allowed since there are too many failures (more than " + failures.size() + ")");
+        }
+
+        result.setFailedCount(0);
+        result.setFailures(Collections.emptyList());
+
+        job.getConfiguration().setToReprocess(failures);
+
+        jobService.submitJob(tenantId, job);
+    }
+
+    private void submitTask(Task task) {
+        log.info("[{}][{}] Submitting task: {}", task.getTenantId(), task.getJobId(), task);
+        TaskProto taskProto = TaskProto.newBuilder()
+                .setValue(JacksonUtil.toString(task))
+                .build();
+
+        TbQueueProducer<TbProtoQueueMsg<TaskProto>> producer = taskProducers.get(task.getJobType());
+        TbProtoQueueMsg<TaskProto> msg = new TbProtoQueueMsg<>(task.getTenantId().getId(), taskProto); // one job at a time for a given tenant
+        producer.send(TopicPartitionInfo.builder().topic(producer.getDefaultTopic()).build(), msg, new TbQueueCallback() {
+            @Override
+            public void onSuccess(TbQueueMsgMetadata metadata) {
+                log.trace("Submitted task: {}", task);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("Failed to submit task: {}", task, t);
+            }
+        });
+    }
+
+    @SneakyThrows
+    private void processStats(List<TbProtoQueueMsg<JobStatsMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<JobStatsMsg>> consumer) {
+        Map<JobId, JobStats> stats = new HashMap<>();
+
+        for (TbProtoQueueMsg<JobStatsMsg> msg : msgs) {
+            JobStatsMsg statsMsg = msg.getValue();
+            TenantId tenantId = TenantId.fromUUID(new UUID(statsMsg.getTenantIdMSB(), statsMsg.getTenantIdLSB()));
+            JobId jobId = new JobId(new UUID(statsMsg.getJobIdMSB(), statsMsg.getJobIdLSB()));
+            JobStats jobStats = stats.computeIfAbsent(jobId, __ -> new JobStats(tenantId, jobId));
+
+            if (statsMsg.hasTaskResult()) {
+                TaskResult taskResult = JacksonUtil.fromString(statsMsg.getTaskResult().getValue(), TaskResult.class);
+                jobStats.getTaskResults().add(taskResult);
+            }
+            if (statsMsg.hasTotalTasksCount()) {
+                jobStats.setTotalTasksCount(statsMsg.getTotalTasksCount());
+            }
+        }
+
+        stats.forEach((jobId, jobStats) -> {
+            TenantId tenantId = jobStats.getTenantId();
+            try {
+                log.debug("[{}][{}] Processing job stats: {}", tenantId, jobId, stats);
+                jobService.processStats(tenantId, jobId, jobStats);
+            } catch (Exception e) {
+                log.error("[{}][{}] Failed to process job stats: {}", tenantId, jobId, jobStats, e);
+            }
+        });
+        consumer.commit();
+
+        Thread.sleep(statsProcessingInterval); // todo: test with bigger interval
+    }
+
+    @PreDestroy
+    private void destroy() {
+        jobStatsConsumer.stop();
+        executor.shutdownNow();
+        consumerExecutor.shutdownNow();
+    }
+
+}

@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
@@ -46,6 +47,8 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
@@ -132,6 +135,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbQueueAdmin cfAdmin;
     private final TbQueueAdmin edqsEventsAdmin;
     private final TbKafkaAdmin edqsRequestsAdmin;
+    private final TbQueueAdmin tasksAdmin;
 
     private final AtomicLong integrationConsumerCount = new AtomicLong();
     private final AtomicLong coreConsumerCount = new AtomicLong();
@@ -187,6 +191,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         this.cfAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCalculatedFieldConfigs());
         this.edqsEventsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsEventsConfigs());
         this.edqsRequestsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsRequestsConfigs());
+        this.tasksAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTasksConfigs());
     }
 
     @Override
@@ -643,6 +648,52 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
                 .maxPendingRequests(edqsConfig.getMaxPendingRequests())
                 .maxRequestTimeout(edqsConfig.getMaxRequestTimeout())
                 .pollInterval(edqsConfig.getPollInterval())
+                .build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TaskProto>> createTaskProducer(JobType jobType) {
+        return TbKafkaProducerTemplate.<TbProtoQueueMsg<TaskProto>>builder()
+                .clientId(jobType.name().toLowerCase() + "-task-producer-" + serviceInfoProvider.getServiceId())
+                .defaultTopic(topicService.buildTopicName(jobType.getTasksTopic()))
+                .settings(kafkaSettings)
+                .admin(tasksAdmin)
+                .build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<TaskProto>> createTaskConsumer(JobType jobType) {
+        return TbKafkaConsumerTemplate.<TbProtoQueueMsg<TaskProto>>builder()
+                .settings(kafkaSettings)
+                .topic(topicService.buildTopicName(jobType.getTasksTopic()))
+                .clientId(jobType.name().toLowerCase() + "-task-consumer-" + serviceInfoProvider.getServiceId())
+                .groupId(topicService.buildTopicName(jobType.name().toLowerCase() + "-task-consumer-group"))
+                .decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), TaskProto.parseFrom(msg.getData()), msg.getHeaders()))
+                .admin(tasksAdmin)
+                .statsService(consumerStatsService)
+                .build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<JobStatsMsg>> createJobStatsProducer() {
+        return TbKafkaProducerTemplate.<TbProtoQueueMsg<JobStatsMsg>>builder()
+                .clientId("job-stats-producer-" + serviceInfoProvider.getServiceId())
+                .defaultTopic(topicService.buildTopicName("jobs.stats"))
+                .settings(kafkaSettings)
+                .admin(tasksAdmin)
+                .build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<JobStatsMsg>> createJobStatsConsumer() {
+        return TbKafkaConsumerTemplate.<TbProtoQueueMsg<JobStatsMsg>>builder()
+                .settings(kafkaSettings)
+                .topic(topicService.buildTopicName("jobs.stats"))
+                .clientId("job-stats-consumer-" + serviceInfoProvider.getServiceId())
+                .groupId(topicService.buildTopicName("job-stats-consumer-group"))
+                .decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), JobStatsMsg.parseFrom(msg.getData()), msg.getHeaders()))
+                .admin(tasksAdmin)
+                .statsService(consumerStatsService)
                 .build();
     }
 

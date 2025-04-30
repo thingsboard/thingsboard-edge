@@ -107,6 +107,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
@@ -639,6 +640,11 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter
     private CalculatedFieldQueueService calculatedFieldQueueService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private JobService jobService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
