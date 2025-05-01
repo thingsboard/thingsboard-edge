@@ -69,7 +69,7 @@ public class CalculatedFieldReprocessingValidator {
     }
 
     private Optional<CFReprocessingValidationResponse> checkJobStatus(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
-        Job job = jobService.findJobByKey(tenantId, calculatedFieldId.getId().toString());
+        Job job = jobService.findLatestJobByKey(tenantId, calculatedFieldId.getId().toString());
         if (job != null && job.getStatus().isOneOf(QUEUED, PENDING, RUNNING)) {
             return Optional.of(CFReprocessingValidationResponse.invalid("Calculated field reprocessing is already " + job.getStatus().name().toLowerCase(), job.getStatus()));
         }
@@ -100,7 +100,7 @@ public class CalculatedFieldReprocessingValidator {
         return Optional.empty();
     }
 
-    public record CFReprocessingValidationResponse(boolean isValid, String message, JobStatus jobStatus) {
+    public record CFReprocessingValidationResponse(boolean isValid, String message, JobStatus lastJobStatus) {
 
         public static CFReprocessingValidationResponse valid() {
             return new CFReprocessingValidationResponse(true, null, null);

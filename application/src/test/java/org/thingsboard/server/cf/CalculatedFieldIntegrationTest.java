@@ -751,7 +751,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
                 });
 
         await().alias("reprocess -> perform calculation for device 2").atMost(TIMEOUT, TimeUnit.SECONDS)
-                .pollInterval(POLL_INTERVAL, TimeUnit.   SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     ObjectNode airDensity = getTimeSeries(testDevice2.getId(), startTs, endTs, "airDensity");
                     assertThat(airDensity).isNotNull();
@@ -826,7 +826,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
         var response = doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "/validate", CFReprocessingValidationResponse.class);
 
         assertThat(response.isValid()).isFalse();
-        assertThat(response.jobStatus().isOneOf(QUEUED, PENDING, RUNNING)).isTrue();
+        assertThat(response.lastJobStatus().isOneOf(QUEUED, PENDING, RUNNING)).isTrue();
     }
 
     private CalculatedField createScriptCalculatedField(EntityId entityId, EntityId refEntityId) {
