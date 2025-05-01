@@ -28,43 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.common.data.job.task;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.thingsboard.server.common.data.id.JobId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.job.JobType;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@SuperBuilder
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "jobType")
 @JsonSubTypes({
-        @Type(name = "CF_REPROCESSING", value = CfReprocessingTask.class),
-        @Type(name = "DUMMY", value = DummyTask.class)
+        @Type(name = "DUMMY", value = DummyTaskResult.class)
 })
-@SuperBuilder
-@AllArgsConstructor
-public abstract class Task {
+public abstract class TaskResult {
 
-    private TenantId tenantId;
-    private JobId jobId;
-    private int retries;
+    private boolean success;
+    private boolean discarded;
 
-    public Task() {
+    public TaskResult(boolean success) {
+        this.success = success;
     }
-
-    private int attempt = 0;
-
-    @JsonIgnore
-    public abstract Object getKey();
-
-    public abstract TaskFailure toFailure(Throwable error);
 
     public abstract JobType getJobType();
 

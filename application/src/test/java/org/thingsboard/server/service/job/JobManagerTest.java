@@ -41,11 +41,12 @@ import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.id.JobId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.job.DummyJobConfiguration;
-import org.thingsboard.server.common.data.job.DummyTask.DummyTaskFailure;
 import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.job.JobResult;
 import org.thingsboard.server.common.data.job.JobStatus;
 import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.data.job.task.DummyTask.DummyTaskFailure;
+import org.thingsboard.server.common.data.job.task.DummyTaskResult;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.job.JobService;
@@ -116,7 +117,7 @@ public class JobManagerTest extends AbstractControllerTest {
             Job job = findJobById(jobId);
             assertThat(job.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(job.getResult().getSuccessfulCount()).isEqualTo(tasksCount);
-            assertThat(job.getResult().getFailures()).isEmpty();
+            assertThat(job.getResult().getResults()).isEmpty();
             assertThat(job.getResult().getCompletedCount()).isEqualTo(tasksCount);
         });
     }
@@ -146,8 +147,8 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(jobResult.getSuccessfulCount()).isEqualTo(successfulTasks);
             assertThat(jobResult.getFailedCount()).isEqualTo(failedTasks);
             assertThat(jobResult.getTotalCount()).isEqualTo(successfulTasks + failedTasks);
-            assertThat(jobResult.getFailures().get(0).getError()).isEqualTo("error3"); // last error
-            assertThat(jobResult.getFailures().get(1).getError()).isEqualTo("error3"); // last error
+            assertThat(((DummyTaskResult) jobResult.getResults().get(0)).getFailure().getError()).isEqualTo("error3"); // last error
+            assertThat(((DummyTaskResult) jobResult.getResults().get(1)).getFailure().getError()).isEqualTo("error3"); // last error
             assertThat(jobResult.getCompletedCount()).isEqualTo(jobResult.getTotalCount());
         });
     }
@@ -368,7 +369,7 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(jobResult.getFailedCount()).isEqualTo(failedTasks);
 
             for (int i = 0, taskNumber = successfulTasks + 1; taskNumber <= totalTasksCount; i++, taskNumber++) {
-                DummyTaskFailure failure = (DummyTaskFailure) jobResult.getFailures().get(i);
+                DummyTaskFailure failure = ((DummyTaskResult) jobResult.getResults().get(i)).getFailure();
                 assertThat(failure.getNumber()).isEqualTo(taskNumber);
                 assertThat(failure.getError()).isEqualTo("error");
             }
@@ -382,7 +383,7 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(job.getResult().getSuccessfulCount()).isEqualTo(totalTasksCount);
             assertThat(job.getResult().getFailedCount()).isZero();
             assertThat(job.getResult().getTotalCount()).isEqualTo(totalTasksCount);
-            assertThat(job.getResult().getFailures()).isEmpty();
+            assertThat(job.getResult().getResults()).isEmpty();
         });
     }
 
@@ -415,7 +416,7 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(jobResult.getTotalCount()).isEqualTo(totalTasksCount);
 
             for (int i = 0, taskNumber = successfulTasks + 1; taskNumber <= totalTasksCount; i++, taskNumber++) {
-                DummyTaskFailure failure = (DummyTaskFailure) jobResult.getFailures().get(i);
+                DummyTaskFailure failure = ((DummyTaskResult) jobResult.getResults().get(i)).getFailure();
                 assertThat(failure.getNumber()).isEqualTo(taskNumber);
                 assertThat(failure.getError()).isEqualTo("error");
             }
@@ -432,7 +433,7 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(jobResult.getTotalCount()).isEqualTo(totalTasksCount);
 
             for (int i = 0, taskNumber = successfulTasks + failedTasks + 1; taskNumber <= totalTasksCount; i++, taskNumber++) {
-                DummyTaskFailure failure = (DummyTaskFailure) jobResult.getFailures().get(i);
+                DummyTaskFailure failure = ((DummyTaskResult) jobResult.getResults().get(i)).getFailure();
                 assertThat(failure.getNumber()).isEqualTo(taskNumber);
                 assertThat(failure.getError()).isEqualTo("error");
                 assertThat(failure.isFailAlways()).isTrue();

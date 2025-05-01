@@ -28,29 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.common.data.job.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.thingsboard.server.common.data.job.task.TaskResult;
+import lombok.experimental.SuperBuilder;
+import org.thingsboard.server.common.data.id.JobId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.job.JobType;
 
-import java.io.Serializable;
-import java.util.List;
+import java.util.Optional;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @Type(name = "CF_REPROCESSING", value = CfReprocessingJobConfiguration.class),
-        @Type(name = "DUMMY", value = DummyJobConfiguration.class),
-})
 @Data
-public abstract class JobConfiguration implements Serializable {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "jobType")
+@JsonSubTypes({
+        @Type(name = "CF_REPROCESSING", value = CfReprocessingTask.class),
+        @Type(name = "DUMMY", value = DummyTask.class)
+})
+@SuperBuilder
+@AllArgsConstructor
+public abstract class Task<R extends TaskResult> {
 
-    private List<TaskResult> toReprocess;
+    private TenantId tenantId;
+    private JobId jobId;
+    private int retries;
 
-    public abstract JobType getType();
+    public Task() {
+    }
+
+    private int attempt = 0;
+
+    @JsonIgnore
+    public abstract Object getKey();
+
+    public abstract R toResult(boolean discarded, Optional<Throwable> error);
+
+    public abstract JobType getJobType();
 
 }

@@ -28,21 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.common.data.job.task;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.data.job.task.DummyTask.DummyTaskFailure;
 
 @Data
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@Builder
-public class TaskResult {
+@SuperBuilder
+public class DummyTaskResult extends TaskResult {
 
-    private boolean success;
-    private boolean discarded;
-    private TaskFailure failure;
+    private static final DummyTaskResult SUCCESS = new DummyTaskResult(true);
+
+    private DummyTaskFailure failure;
+
+    public DummyTaskResult(boolean success) {
+        super(success);
+    }
+
+    public static DummyTaskResult success() {
+        return SUCCESS;
+    }
+
+    @Override
+    public JobType getJobType() {
+        return JobType.DUMMY;
+    }
 
 }
