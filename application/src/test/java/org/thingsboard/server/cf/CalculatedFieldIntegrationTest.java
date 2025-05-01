@@ -66,12 +66,17 @@ import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.controller.AbstractWebTest;
 import org.thingsboard.server.controller.CalculatedFieldControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.dao.service.validator.CalculatedFieldReprocessingValidator;
+import org.thingsboard.server.dao.service.validator.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.thingsboard.server.common.data.job.JobStatus.PENDING;
+import static org.thingsboard.server.common.data.job.JobStatus.QUEUED;
+import static org.thingsboard.server.common.data.job.JobStatus.RUNNING;
 
 @Slf4j
 @DaoSqlTest
@@ -82,17 +87,17 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
     private final String exampleScript =
             "var avgTemperature = temperature.mean(); // Get average temperature\n" +
-            "  var temperatureK = (avgTemperature - 32) * (5 / 9) + 273.15; // Convert Fahrenheit to Kelvin\n" +
-            "\n" +
-            "  // Estimate air pressure based on altitude\n" +
-            "  var pressure = 101325 * Math.pow((1 - 2.25577e-5 * altitude), 5.25588);\n" +
-            "\n" +
-            "  // Air density formula\n" +
-            "  var airDensity = pressure / (287.05 * temperatureK);\n" +
-            "\n" +
-            "  return {\n" +
-            "    \"airDensity\": toFixed(airDensity, 2)\n" +
-            "  };";
+                    "  var temperatureK = (avgTemperature - 32) * (5 / 9) + 273.15; // Convert Fahrenheit to Kelvin\n" +
+                    "\n" +
+                    "  // Estimate air pressure based on altitude\n" +
+                    "  var pressure = 101325 * Math.pow((1 - 2.25577e-5 * altitude), 5.25588);\n" +
+                    "\n" +
+                    "  // Air density formula\n" +
+                    "  var airDensity = pressure / (287.05 * temperatureK);\n" +
+                    "\n" +
+                    "  return {\n" +
+                    "    \"airDensity\": toFixed(airDensity, 2)\n" +
+                    "  };";
 
     @BeforeEach
     void setUp() throws Exception {
@@ -746,7 +751,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
                 });
 
         await().alias("reprocess -> perform calculation for device 2").atMost(TIMEOUT, TimeUnit.SECONDS)
-                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.   SECONDS)
                 .untilAsserted(() -> {
                     ObjectNode airDensity = getTimeSeries(testDevice2.getId(), startTs, endTs, "airDensity");
                     assertThat(airDensity).isNotNull();
@@ -769,6 +774,59 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
         });
+    }
+
+    @Test
+    public void testReprocessCalculatedFieldWhenConfigIsNotValid() throws Exception {
+        Device testDevice = createDevice("Test device", "1234567890");
+
+        CalculatedField calculatedField = new CalculatedField();
+        calculatedField.setEntityId(testDevice.getId());
+        calculatedField.setType(CalculatedFieldType.SIMPLE);
+        calculatedField.setName("A + 10");
+        calculatedField.setDebugSettings(DebugSettings.all());
+        calculatedField.setConfigurationVersion(1);
+
+        SimpleCalculatedFieldConfiguration config = new SimpleCalculatedFieldConfiguration();
+
+        Argument a = new Argument();
+        a.setRefEntityKey(new ReferencedEntityKey("a", ArgumentType.ATTRIBUTE, null));
+        config.setArguments(Map.of("a", a));
+        config.setExpression("a + 10");
+
+        Output output = new Output();
+        output.setName("result");
+        output.setType(OutputType.TIME_SERIES);
+        config.setOutput(output);
+
+        calculatedField.setConfiguration(config);
+
+        CalculatedField savedCalculatedField = doPost("/api/calculatedField", calculatedField, CalculatedField.class);
+
+        var response = doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "/validate", CFReprocessingValidationResponse.class);
+
+        assertThat(response.isValid()).isFalse();
+        assertThat(response.message()).isEqualTo(CalculatedFieldReprocessingValidator.NO_TELEMETRY_ARGS);
+    }
+
+    @Test
+    public void testReprocessCalculatedFieldWhenJobIsRunning() throws Exception {
+        Device testDevice = createDevice("Test device", "1234567890");
+        AssetProfile assetProfile = doPost("/api/assetProfile", createAssetProfile("Test Asset Profile"), AssetProfile.class);
+        Asset testAsset = createAsset("Test asset", assetProfile.getId());
+
+        long currentTime = System.currentTimeMillis();
+        // reprocessing time window(TW)
+        long startTs = currentTime - TimeUnit.SECONDS.toMillis(120);
+        long endTs = currentTime - TimeUnit.SECONDS.toMillis(45);
+
+        CalculatedField savedCalculatedField = createCalculatedField(testDevice.getId(), testAsset.getId());
+        doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "?startTs={startTs}&endTs={endTs}", startTs, endTs);
+
+        var response = doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "/validate", CFReprocessingValidationResponse.class);
+
+        assertThat(response.isValid()).isFalse();
+        assertThat(response.jobStatus().isOneOf(QUEUED, PENDING, RUNNING)).isTrue();
     }
 
     private CalculatedField createScriptCalculatedField(EntityId entityId, EntityId refEntityId) {

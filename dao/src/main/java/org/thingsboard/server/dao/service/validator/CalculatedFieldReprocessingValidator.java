@@ -70,9 +70,8 @@ public class CalculatedFieldReprocessingValidator {
 
     private Optional<CFReprocessingValidationResponse> checkJobStatus(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
         Job job = jobService.findJobByKey(tenantId, calculatedFieldId.getId().toString());
-        JobStatus jobStatus = job.getStatus();
-        if (jobStatus.isOneOf(QUEUED, PENDING, RUNNING)) {
-            return Optional.of(CFReprocessingValidationResponse.invalid("Calculated field reprocessing is already " + jobStatus.name().toLowerCase(), jobStatus));
+        if (job != null && job.getStatus().isOneOf(QUEUED, PENDING, RUNNING)) {
+            return Optional.of(CFReprocessingValidationResponse.invalid("Calculated field reprocessing is already " + job.getStatus().name().toLowerCase(), job.getStatus()));
         }
         return Optional.empty();
     }
