@@ -34,8 +34,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.job.JobType;
-import org.thingsboard.server.common.data.job.task.CfReprocessingTask.CfReprocessingTaskFailure;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -43,21 +43,41 @@ import org.thingsboard.server.common.data.job.task.CfReprocessingTask.CfReproces
 @SuperBuilder
 public class CfReprocessingTaskResult extends TaskResult {
 
-    private static final CfReprocessingTaskResult SUCCESS = new CfReprocessingTaskResult(true);
+    private static final CfReprocessingTaskResult SUCCESS = CfReprocessingTaskResult.builder().success(true).build();
+    private static final CfReprocessingTaskResult DISCARDED = CfReprocessingTaskResult.builder().discarded(true).build();
 
     private CfReprocessingTaskFailure failure;
-
-    public CfReprocessingTaskResult(boolean success) {
-        super(success);
-    }
 
     public static CfReprocessingTaskResult success() {
         return SUCCESS;
     }
 
+    public static CfReprocessingTaskResult failed(CfReprocessingTask task, Throwable error) {
+        CfReprocessingTaskResult result = new CfReprocessingTaskResult();
+        result.setFailure(CfReprocessingTaskFailure.builder()
+                .error(error.getMessage())
+                .entityId(task.getEntityId())
+                .build());
+        return result;
+    }
+
+    public static CfReprocessingTaskResult discarded() {
+        return DISCARDED;
+    }
+
     @Override
     public JobType getJobType() {
         return JobType.CF_REPROCESSING;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @NoArgsConstructor
+    @SuperBuilder
+    public static class CfReprocessingTaskFailure extends TaskFailure {
+
+        private EntityId entityId;
+
     }
 
 }

@@ -39,8 +39,6 @@ import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.job.JobType;
 
-import java.util.Optional;
-
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -59,31 +57,18 @@ public class CfReprocessingTask extends Task<CfReprocessingTaskResult> {
     }
 
     @Override
-    public CfReprocessingTaskResult toResult(boolean discarded, Optional<Throwable> error) {
-        var result = CfReprocessingTaskResult.builder();
-        result.discarded(discarded);
-        if (error.isPresent()) {
-            result.failure(CfReprocessingTaskFailure.builder()
-                    .error(error.map(Throwable::getMessage).orElse(null))
-                    .entityId(entityId)
-                    .build());
-        }
-        return result.build();
+    public CfReprocessingTaskResult toFailed(Throwable error) {
+        return CfReprocessingTaskResult.failed(this, error);
+    }
+
+    @Override
+    public CfReprocessingTaskResult toDiscarded() {
+        return CfReprocessingTaskResult.discarded();
     }
 
     @Override
     public JobType getJobType() {
         return JobType.CF_REPROCESSING;
-    }
-
-    @Data
-    @EqualsAndHashCode(callSuper = true)
-    @NoArgsConstructor
-    @SuperBuilder
-    public static class CfReprocessingTaskFailure extends TaskFailure {
-
-        private EntityId entityId;
-
     }
 
 }
