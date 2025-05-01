@@ -30,68 +30,89 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
 import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
 import org.thingsboard.server.common.data.cf.configuration.Output;
 import org.thingsboard.server.common.data.cf.configuration.OutputType;
+import org.thingsboard.server.common.data.id.CalculatedFieldId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.job.Job;
+import org.thingsboard.server.common.data.job.JobStatus;
+import org.thingsboard.server.dao.job.JobService;
 
 import java.util.Map;
+import java.util.Optional;
+
+import static org.thingsboard.server.common.data.job.JobStatus.PENDING;
+import static org.thingsboard.server.common.data.job.JobStatus.QUEUED;
+import static org.thingsboard.server.common.data.job.JobStatus.RUNNING;
 
 @Component
+@RequiredArgsConstructor
 public class CalculatedFieldReprocessingValidator {
 
+    public static final String NO_ARGUMENTS = "Calculated field has no arguments defined.";
+    public static final String NO_TELEMETRY_ARGS = "Calculated field must contain at least one time series based argument (TS_LATEST or TS_ROLLING).";
+    public static final String NO_OUTPUT = "Calculated field has no output defined.";
+    public static final String INVALID_OUTPUT_TYPE = "Calculated field with output type ATTRIBUTE cannot be reprocessed.";
+
+    private final JobService jobService;
+
     public CFReprocessingValidationResponse validate(CalculatedField calculatedField) {
-        CFReprocessingValidationResponse argsCheck = checkArguments(calculatedField.getConfiguration().getArguments());
-        if (!argsCheck.isValid()) {
-            return argsCheck;
-        }
-
-        CFReprocessingValidationResponse outputCheck = checkOutput(calculatedField.getConfiguration().getOutput());
-        if (!outputCheck.isValid()) {
-            return outputCheck;
-        }
-
-        return CFReprocessingValidationResponse.valid();
+        return checkJobStatus(calculatedField.getTenantId(), calculatedField.getId())
+                .or(() -> checkArguments(calculatedField.getConfiguration().getArguments()))
+                .or(() -> checkOutput(calculatedField.getConfiguration().getOutput()))
+                .orElse(CFReprocessingValidationResponse.valid());
     }
 
-    private CFReprocessingValidationResponse checkOutput(Output output) {
-        if (output == null) {
-            return CFReprocessingValidationResponse.invalid("Calculated field has no output defined.");
+    private Optional<CFReprocessingValidationResponse> checkJobStatus(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
+        Job job = jobService.findJobByKey(tenantId, calculatedFieldId.getId().toString());
+        JobStatus jobStatus = job.getStatus();
+        if (jobStatus.isOneOf(QUEUED, PENDING, RUNNING)) {
+            return Optional.of(CFReprocessingValidationResponse.invalid("Calculated field reprocessing is already " + jobStatus.name().toLowerCase(), jobStatus));
         }
-
-        if (OutputType.ATTRIBUTES.equals(output.getType())) {
-            return CFReprocessingValidationResponse.invalid("Calculated field with output type ATTRIBUTE cannot be reprocessed.");
-        }
-
-        return CFReprocessingValidationResponse.valid();
+        return Optional.empty();
     }
 
-    private CFReprocessingValidationResponse checkArguments(Map<String, Argument> arguments) {
+    private Optional<CFReprocessingValidationResponse> checkArguments(Map<String, Argument> arguments) {
         if (arguments == null || arguments.isEmpty()) {
-            return CFReprocessingValidationResponse.invalid("Calculated field has no arguments defined.");
+            return Optional.of(CFReprocessingValidationResponse.invalid(NO_ARGUMENTS));
         }
-
         boolean containsTelemetry = arguments.values().stream()
                 .anyMatch(arg -> ArgumentType.TS_LATEST.equals(arg.getRefEntityKey().getType()) ||
                         ArgumentType.TS_ROLLING.equals(arg.getRefEntityKey().getType()));
 
         if (!containsTelemetry) {
-            return CFReprocessingValidationResponse.invalid("Calculated field must contain at least one time series based argument (TS_LATEST or TS_ROLLING).");
+            return Optional.of(CFReprocessingValidationResponse.invalid(NO_TELEMETRY_ARGS));
         }
-
-        return CFReprocessingValidationResponse.valid();
+        return Optional.empty();
     }
 
-    public record CFReprocessingValidationResponse(boolean isValid, String message) {
+    private Optional<CFReprocessingValidationResponse> checkOutput(Output output) {
+        if (output == null) {
+            return Optional.of(CFReprocessingValidationResponse.invalid(NO_OUTPUT));
+        }
+        if (OutputType.ATTRIBUTES.equals(output.getType())) {
+            return Optional.of(CFReprocessingValidationResponse.invalid(INVALID_OUTPUT_TYPE));
+        }
+        return Optional.empty();
+    }
+
+    public record CFReprocessingValidationResponse(boolean isValid, String message, JobStatus jobStatus) {
 
         public static CFReprocessingValidationResponse valid() {
-            return new CFReprocessingValidationResponse(true, null);
+            return new CFReprocessingValidationResponse(true, null, null);
         }
 
         public static CFReprocessingValidationResponse invalid(String message) {
-            return new CFReprocessingValidationResponse(false, message);
+            return new CFReprocessingValidationResponse(false, message, null);
+        }
+
+        public static CFReprocessingValidationResponse invalid(String message, JobStatus jobStatus) {
+            return new CFReprocessingValidationResponse(false, message, jobStatus);
         }
 
     }
