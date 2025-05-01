@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.common.data.job.task;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -40,6 +40,9 @@ import lombok.Data;
 import lombok.experimental.SuperBuilder;
 import org.thingsboard.server.common.data.id.JobId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.job.JobType;
+
+import java.util.Optional;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -49,7 +52,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 })
 @SuperBuilder
 @AllArgsConstructor
-public abstract class Task {
+public abstract class Task<R extends TaskResult> {
 
     private TenantId tenantId;
     private JobId jobId;
@@ -63,7 +66,7 @@ public abstract class Task {
     @JsonIgnore
     public abstract Object getKey();
 
-    public abstract TaskFailure toFailure(Throwable error);
+    public abstract R toResult(boolean discarded, Optional<Throwable> error);
 
     public abstract JobType getJobType();
 

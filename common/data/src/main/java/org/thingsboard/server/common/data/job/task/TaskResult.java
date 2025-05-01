@@ -28,62 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.common.data.job.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-
-import java.util.List;
+import org.thingsboard.server.common.data.job.JobType;
 
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-@ToString(callSuper = true)
-public class DummyTask extends Task {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "jobType")
+@JsonSubTypes({
+        @Type(name = "DUMMY", value = DummyTaskResult.class)
+})
+public abstract class TaskResult {
 
-    private int number;
-    private long processingTimeMs;
-    private List<String> errors; // errors for each attempt
-    private boolean failAlways;
+    private boolean success;
+    private boolean discarded;
 
-    @Override
-    public Object getKey() {
-        return number;
+    public TaskResult(boolean success) {
+        this.success = success;
     }
 
-    @Override
-    public TaskFailure toFailure(Throwable error) {
-        return new DummyTaskFailure(number, failAlways, error.getMessage());
-    }
-
-    @Override
-    public JobType getJobType() {
-        return JobType.DUMMY;
-    }
-
-    @Data
-    @EqualsAndHashCode(callSuper = true)
-    @NoArgsConstructor
-    public static class DummyTaskFailure extends TaskFailure {
-
-        private int number;
-        private boolean failAlways;
-
-        public DummyTaskFailure(int number, boolean failAlways, String error) {
-            super(error);
-            this.number = number;
-            this.failAlways = failAlways;
-        }
-
-        @Override
-        public JobType getJobType() {
-            return JobType.DUMMY;
-        }
-
-    }
+    public abstract JobType getJobType();
 
 }

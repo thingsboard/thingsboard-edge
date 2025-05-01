@@ -28,28 +28,63 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.common.data.job.task;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
-import org.thingsboard.server.common.data.job.task.TaskResult;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import org.thingsboard.server.common.data.job.JobType;
 
-import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @Type(name = "DUMMY", value = DummyJobConfiguration.class),
-})
 @Data
-public abstract class JobConfiguration implements Serializable {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
+@ToString(callSuper = true)
+public class DummyTask extends Task<DummyTaskResult> {
 
-    private List<TaskResult> toReprocess;
+    private int number;
+    private long processingTimeMs;
+    private List<String> errors; // errors for each attempt
+    private boolean failAlways;
 
-    public abstract JobType getType();
+    @Override
+    public Object getKey() {
+        return number;
+    }
+
+    @Override
+    public DummyTaskResult toResult(boolean discarded, Optional<Throwable> error) {
+        var result = DummyTaskResult.builder();
+        result.discarded(discarded);
+        if (error.isPresent()) {
+            result.failure(DummyTaskFailure.builder()
+                    .error(error.map(Throwable::getMessage).orElse(null))
+                    .number(number)
+                    .failAlways(failAlways)
+                    .build());
+        }
+        return result.build();
+    }
+
+    @Override
+    public JobType getJobType() {
+        return JobType.DUMMY;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @EqualsAndHashCode(callSuper = true)
+    @SuperBuilder
+    public static class DummyTaskFailure extends TaskFailure { // todo: do we need separate structure?
+
+        private int number;
+        private boolean failAlways;
+
+    }
 
 }
