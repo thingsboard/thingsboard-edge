@@ -70,13 +70,13 @@ public class JpaJobDao extends JpaAbstractDao<JobEntity, Job> implements JobDao 
     }
 
     @Override
-    public Job findByKey(TenantId tenantId, String key) {
-        return DaoUtil.getData(jobRepository.findByTenantIdAndKey(tenantId.getId(), key));
+    public Job findLatestByKey(TenantId tenantId, String key) {
+        return DaoUtil.getData(jobRepository.findLatestByTenantIdAndKey(tenantId.getId(), key));
     }
 
     @Override
-    public boolean existsByKeyAndStatusOneOf(String key, JobStatus... statuses) {
-        return jobRepository.existsByKeyAndStatusIn(key, Arrays.stream(statuses).toList());
+    public boolean existsByTenantAndKeyAndStatusOneOf(TenantId tenantId, String key, JobStatus... statuses) {
+        return jobRepository.existsByTenantIdAndKeyAndStatusIn(tenantId.getId(), key, Arrays.stream(statuses).toList());
     }
 
     @Override
@@ -87,6 +87,11 @@ public class JpaJobDao extends JpaAbstractDao<JobEntity, Job> implements JobDao 
     @Override
     public Job findOldestByTenantIdAndTypeAndStatusForUpdate(TenantId tenantId, JobType type, JobStatus status) {
         return DaoUtil.getData(jobRepository.findOldestByTenantIdAndTypeAndStatusForUpdate(tenantId.getId(), type, status, Limit.of(1)));
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        jobRepository.deleteByTenantId(tenantId.getId());
     }
 
     @Override
