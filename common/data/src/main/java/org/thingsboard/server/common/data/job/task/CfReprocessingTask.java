@@ -28,49 +28,62 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.job.task;
+package org.thingsboard.server.common.data.job.task;
 
-import com.google.common.util.concurrent.SettableFuture;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.job.task.CfReprocessingTask;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import org.thingsboard.server.common.data.cf.CalculatedField;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.job.JobType;
-import org.thingsboard.server.common.data.job.task.CfReprocessingTaskResult;
-import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.queue.task.TaskProcessor;
-import org.thingsboard.server.queue.util.TbRuleEngineComponent;
-import org.thingsboard.server.service.cf.CalculatedFieldReprocessingService;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
-@TbRuleEngineComponent
-@Component
-@RequiredArgsConstructor
-public class CfReprocessingTaskProcessor extends TaskProcessor<CfReprocessingTask, CfReprocessingTaskResult> {
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
+@ToString(callSuper = true)
+public class CfReprocessingTask extends Task<CfReprocessingTaskResult> {
 
-    private final CalculatedFieldReprocessingService cfReprocessingService;
+    private CalculatedField calculatedField;
+    private EntityId entityId;
+    private long startTs;
+    private long endTs;
 
     @Override
-    public CfReprocessingTaskResult process(CfReprocessingTask task) throws Exception {
-        SettableFuture<Void> future = SettableFuture.create();
-        cfReprocessingService.reprocess(task, new TbCallback() {
-            @Override
-            public void onSuccess() {
-                future.set(null);
-            }
+    public Object getKey() {
+        return entityId;
+    }
 
-            @Override
-            public void onFailure(Throwable t) {
-                future.setException(t);
-            }
-        });
-        future.get(1, TimeUnit.MINUTES); // fixme
-        return CfReprocessingTaskResult.success();
+    @Override
+    public CfReprocessingTaskResult toResult(boolean discarded, Optional<Throwable> error) {
+        var result = CfReprocessingTaskResult.builder();
+        result.discarded(discarded);
+        if (error.isPresent()) {
+            result.failure(CfReprocessingTaskFailure.builder()
+                    .error(error.map(Throwable::getMessage).orElse(null))
+                    .entityId(entityId)
+                    .build());
+        }
+        return result.build();
     }
 
     @Override
     public JobType getJobType() {
         return JobType.CF_REPROCESSING;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @NoArgsConstructor
+    @SuperBuilder
+    public static class CfReprocessingTaskFailure extends TaskFailure {
+
+        private EntityId entityId;
+
     }
 
 }

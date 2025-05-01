@@ -32,7 +32,7 @@ package org.thingsboard.server.service.cf;
 
 import org.thingsboard.server.actors.calculatedField.CalculatedFieldException;
 
-import org.thingsboard.server.common.data.job.CfReprocessingTask;
+import org.thingsboard.server.common.data.job.task.CfReprocessingTask;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 
 public interface CalculatedFieldReprocessingService {

@@ -38,12 +38,13 @@ import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.job.CfReprocessingJobConfiguration;
-import org.thingsboard.server.common.data.job.CfReprocessingTask;
-import org.thingsboard.server.common.data.job.CfReprocessingTask.CfReprocessingTaskFailure;
 import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.job.JobType;
-import org.thingsboard.server.common.data.job.Task;
-import org.thingsboard.server.common.data.job.TaskFailure;
+import org.thingsboard.server.common.data.job.task.CfReprocessingTask;
+import org.thingsboard.server.common.data.job.task.CfReprocessingTask.CfReprocessingTaskFailure;
+import org.thingsboard.server.common.data.job.task.CfReprocessingTaskResult;
+import org.thingsboard.server.common.data.job.task.Task;
+import org.thingsboard.server.common.data.job.task.TaskResult;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
@@ -61,7 +62,7 @@ public class CfReprocessingJobProcessor implements JobProcessor {
     private final AssetService assetService;
 
     @Override
-    public int process(Job job, Consumer<Task> taskConsumer) throws Exception {
+    public int process(Job job, Consumer<Task<?>> taskConsumer) throws Exception {
         CfReprocessingJobConfiguration configuration = job.getConfiguration();
 
         CalculatedField calculatedField = calculatedFieldService.findById(job.getTenantId(), configuration.getCalculatedFieldId());
@@ -89,18 +90,18 @@ public class CfReprocessingJobProcessor implements JobProcessor {
     }
 
     @Override
-    public void reprocess(Job job, List<TaskFailure> failures, Consumer<Task> taskConsumer) throws Exception {
+    public void reprocess(Job job, List<TaskResult> taskFailures, Consumer<Task<?>> taskConsumer) throws Exception {
         CfReprocessingJobConfiguration configuration = job.getConfiguration();
         CalculatedField calculatedField = calculatedFieldService.findById(job.getTenantId(), configuration.getCalculatedFieldId());
 
-        for (TaskFailure failure : failures) {
-            CfReprocessingTaskFailure taskFailure = (CfReprocessingTaskFailure) failure;
-            EntityId entityId = taskFailure.getEntityId();
+        for (TaskResult taskFailure : taskFailures) {
+            CfReprocessingTaskFailure failure = ((CfReprocessingTaskResult) taskFailure).getFailure();
+            EntityId entityId = failure.getEntityId();
             taskConsumer.accept(createTask(job, job.getConfiguration(), calculatedField, entityId));
         }
     }
 
-    private Task createTask(Job job, CfReprocessingJobConfiguration configuration, CalculatedField calculatedField, EntityId entityId) {
+    private CfReprocessingTask createTask(Job job, CfReprocessingJobConfiguration configuration, CalculatedField calculatedField, EntityId entityId) {
         return CfReprocessingTask.builder()
                 .tenantId(job.getTenantId())
                 .jobId(job.getId())

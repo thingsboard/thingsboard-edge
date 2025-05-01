@@ -28,60 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.common.data.job.task;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import org.thingsboard.server.common.data.cf.CalculatedField;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.data.job.task.CfReprocessingTask.CfReprocessingTaskFailure;
 
 @Data
-@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 @SuperBuilder
-@ToString(callSuper = true)
-public class CfReprocessingTask extends Task {
+public class CfReprocessingTaskResult extends TaskResult {
 
-    private CalculatedField calculatedField;
-    private EntityId entityId;
-    private long startTs;
-    private long endTs;
+    private static final CfReprocessingTaskResult SUCCESS = new CfReprocessingTaskResult(true);
 
-    @Override
-    public Object getKey() {
-        return entityId;
+    private CfReprocessingTaskFailure failure;
+
+    public CfReprocessingTaskResult(boolean success) {
+        super(success);
     }
 
-    @Override
-    public TaskFailure toFailure(Throwable error) {
-        return new CfReprocessingTaskFailure(entityId, error.getMessage());
+    public static CfReprocessingTaskResult success() {
+        return SUCCESS;
     }
 
     @Override
     public JobType getJobType() {
         return JobType.CF_REPROCESSING;
-    }
-
-    @Data
-    @EqualsAndHashCode(callSuper = true)
-    @NoArgsConstructor
-    public static class CfReprocessingTaskFailure extends TaskFailure {
-
-        private EntityId entityId;
-
-        public CfReprocessingTaskFailure(EntityId entityId, String error) {
-            super(error);
-            this.entityId = entityId;
-        }
-
-        @Override
-        public JobType getJobType() {
-            return JobType.CF_REPROCESSING;
-        }
-
     }
 
 }
