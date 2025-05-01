@@ -28,36 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.mqtt;
+package org.thingsboard.server.config.mqtt;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
-import lombok.ToString;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
-@ToString
-@SuppressWarnings({"WeakerAccess", "unused"})
-public final class MqttConnectResult {
+@Data
+@Validated
+@Configuration
+@ConfigurationProperties(prefix = "mqtt.client.retransmission")
+public class MqttClientRetransmissionSettingsComponent {
 
-    private final boolean success;
-    private final MqttConnectReturnCode returnCode;
-    private final ChannelFuture closeFuture;
-
-    MqttConnectResult(boolean success, MqttConnectReturnCode returnCode, ChannelFuture closeFuture) {
-        this.success = success;
-        this.returnCode = returnCode;
-        this.closeFuture = closeFuture;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public MqttConnectReturnCode getReturnCode() {
-        return returnCode;
-    }
-
-    public ChannelFuture getCloseFuture() {
-        return closeFuture;
-    }
+    @PositiveOrZero
+    private int maxAttempts;
+    @PositiveOrZero
+    private long initialDelayMillis;
+    @PositiveOrZero
+    private double jitterFactor;
 
 }

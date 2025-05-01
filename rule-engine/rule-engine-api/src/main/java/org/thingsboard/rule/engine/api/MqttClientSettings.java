@@ -28,36 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.mqtt;
+package org.thingsboard.rule.engine.api;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
-import lombok.ToString;
+public interface MqttClientSettings {
 
-@ToString
-@SuppressWarnings({"WeakerAccess", "unused"})
-public final class MqttConnectResult {
+    int getRetransmissionMaxAttempts();
 
-    private final boolean success;
-    private final MqttConnectReturnCode returnCode;
-    private final ChannelFuture closeFuture;
+    long getRetransmissionInitialDelayMillis();
 
-    MqttConnectResult(boolean success, MqttConnectReturnCode returnCode, ChannelFuture closeFuture) {
-        this.success = success;
-        this.returnCode = returnCode;
-        this.closeFuture = closeFuture;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public MqttConnectReturnCode getReturnCode() {
-        return returnCode;
-    }
-
-    public ChannelFuture getCloseFuture() {
-        return closeFuture;
-    }
+    double getRetransmissionJitterFactor();
 
 }

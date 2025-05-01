@@ -28,36 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.mqtt;
+package org.thingsboard.server.config.mqtt;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.springframework.context.annotation.Configuration;
+import org.thingsboard.rule.engine.api.MqttClientSettings;
 
 @ToString
-@SuppressWarnings({"WeakerAccess", "unused"})
-public final class MqttConnectResult {
+@EqualsAndHashCode
+@Configuration
+@RequiredArgsConstructor
+public class MqttClientSettingsComponent implements MqttClientSettings {
 
-    private final boolean success;
-    private final MqttConnectReturnCode returnCode;
-    private final ChannelFuture closeFuture;
+    private final MqttClientRetransmissionSettingsComponent retransmissionSettingsComponent;
 
-    MqttConnectResult(boolean success, MqttConnectReturnCode returnCode, ChannelFuture closeFuture) {
-        this.success = success;
-        this.returnCode = returnCode;
-        this.closeFuture = closeFuture;
+    @Override
+    public int getRetransmissionMaxAttempts() {
+        return retransmissionSettingsComponent.getMaxAttempts();
     }
 
-    public boolean isSuccess() {
-        return success;
+    @Override
+    public long getRetransmissionInitialDelayMillis() {
+        return retransmissionSettingsComponent.getInitialDelayMillis();
     }
 
-    public MqttConnectReturnCode getReturnCode() {
-        return returnCode;
-    }
-
-    public ChannelFuture getCloseFuture() {
-        return closeFuture;
+    @Override
+    public double getRetransmissionJitterFactor() {
+        return retransmissionSettingsComponent.getJitterFactor();
     }
 
 }

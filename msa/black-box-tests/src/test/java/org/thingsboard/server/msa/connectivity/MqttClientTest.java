@@ -58,7 +58,6 @@ import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientCallback;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttHandler;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
@@ -97,7 +96,6 @@ import java.util.concurrent.TimeoutException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
-import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 
@@ -316,7 +314,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         assertThat(Objects.requireNonNull(requestFromServer).getMessage()).isEqualTo("{\"method\":\"getValue\",\"params\":true}");
 
-        Integer requestId = Integer.valueOf(Objects.requireNonNull(requestFromServer).getTopic().substring("v1/devices/me/rpc/request/".length()));
+        int requestId = Integer.parseInt(Objects.requireNonNull(requestFromServer).getTopic().substring("v1/devices/me/rpc/request/".length()));
         JsonObject clientResponse = new JsonObject();
         clientResponse.addProperty("response", "someResponse");
         // Send a response to the server's RPC request
@@ -355,7 +353,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         assertThat(Objects.requireNonNull(requestFromServer).getMessage()).isEqualTo("{\"method\":\"getValue\",\"params\":true}");
 
-        Integer requestId = Integer.valueOf(Objects.requireNonNull(requestFromServer).getTopic().substring("v1/devices/me/rpc/request/".length()));
+        int requestId = Integer.parseInt(Objects.requireNonNull(requestFromServer).getTopic().substring("v1/devices/me/rpc/request/".length()));
         JsonObject clientResponse = new JsonObject();
         clientResponse.addProperty("response", "someResponse");
         // Send a response to the server's RPC request
@@ -537,13 +535,13 @@ public class MqttClientTest extends AbstractContainerTest {
         mqttClient.on("/provision/response", listener, MqttQoS.AT_LEAST_ONCE).get(3 * timeoutMultiplier, TimeUnit.SECONDS);
         TimeUnit.SECONDS.sleep(2 * timeoutMultiplier);
         assertThat(subAckResult[0]).isNotNull();
-        assertThat(MqttReasonCodes.SubAck.GRANTED_QOS_1.equals(subAckResult[0]));
+        assertThat(MqttReasonCodes.SubAck.GRANTED_QOS_1).isEqualTo(subAckResult[0]);
 
         subAckResult[0] = null;
         mqttClient.on("v1/devices/me/attributes", listener, MqttQoS.AT_LEAST_ONCE).get(3 * timeoutMultiplier, TimeUnit.SECONDS);
         TimeUnit.SECONDS.sleep(2 * timeoutMultiplier);
         assertThat(subAckResult[0]).isNotNull();
-        assertThat(MqttReasonCodes.SubAck.TOPIC_FILTER_INVALID.equals(subAckResult[0]));
+        assertThat(MqttReasonCodes.SubAck.TOPIC_FILTER_INVALID).isEqualTo(subAckResult[0]);
 
         testRestClient.deleteDeviceIfExists(device.getId());
         updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.DISABLED);
@@ -613,7 +611,7 @@ public class MqttClientTest extends AbstractContainerTest {
                 .await()
                 .alias("Check device disconnect.")
                 .atMost(TIMEOUT*timeoutMultiplier, TimeUnit.SECONDS)
-                .until(() -> returnCodeByteValue.size() > 0);
+                .until(() -> !returnCodeByteValue.isEmpty());
 
         assertThat(returnCodeByteValueSecondClient).isEmpty();
         assertThat(returnCodeByteValue).isNotEmpty();
@@ -680,7 +678,7 @@ public class MqttClientTest extends AbstractContainerTest {
                 .stream()
                 .filter(RuleChain::isRoot)
                 .findFirst();
-        if (!defaultRuleChain.isPresent()) {
+        if (defaultRuleChain.isEmpty()) {
             fail("Root rule chain wasn't found");
         }
         return defaultRuleChain.get().getId();
@@ -730,6 +728,7 @@ public class MqttClientTest extends AbstractContainerTest {
         clientConfig.setClientId("MQTT client from test");
         clientConfig.setUsername(username);
         clientConfig.setProtocolVersion(mqttVersion);
+        clientConfig.setRetransmissionConfig(new MqttClientConfig.RetransmissionConfig(3, 5000L, 0.15d)); // same as defaults in thingsboard.yml as of time of this writing
         MqttClient mqttClient = MqttClient.create(clientConfig, listener, handlerExecutor);
         if (connect) {
             mqttClient.connect(TRANSPORT_HOST, TRANSPORT_PORT).get();
