@@ -55,10 +55,6 @@ public abstract class TaskResult {
     private boolean success;
     private boolean discarded;
 
-    public TaskResult(boolean success) {
-        this.success = success;
-    }
-
     public abstract JobType getJobType();
 
 }
