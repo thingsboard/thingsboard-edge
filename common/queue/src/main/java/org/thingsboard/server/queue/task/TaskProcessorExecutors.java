@@ -28,28 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.queue;
+package org.thingsboard.server.queue.task;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 
-@RequiredArgsConstructor
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 @Getter
-public enum ServiceType {
+@Lazy
+@Component
+public class TaskProcessorExecutors {
 
-    TB_CORE("TB Core"),
-    TB_RULE_ENGINE("TB Rule Engine"),
-    TB_TRANSPORT("TB Transport"),
-    JS_EXECUTOR("JS Executor"),
-    TB_INTEGRATION_EXECUTOR("TB Integration Executor"),
-    TB_VC_EXECUTOR("TB VC Executor"),
-    EDQS("TB Entity Data Query Service"),
-    TASK_PROCESSOR("Task Processor");
+    private ExecutorService consumersExecutor;
+    private ExecutorService mgmtExecutor;
+    private ScheduledExecutorService scheduler;
 
-    private final String label;
+    @PostConstruct
+    private void init() {
+        consumersExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName("task-consumer"));
+        mgmtExecutor = ThingsBoardExecutors.newWorkStealingPool(4, "task-consumer-mgmt");
+        scheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor("task-consumer-scheduler");
+    }
 
-    public static ServiceType of(String serviceType) {
-        return ServiceType.valueOf(serviceType.replace("-", "_").toUpperCase());
+    @PreDestroy
+    private void destroy() {
+        if (consumersExecutor != null) {
+            consumersExecutor.shutdownNow();
+        }
+        if (mgmtExecutor != null) {
+            mgmtExecutor.shutdownNow();
+        }
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+        }
     }
 
 }
