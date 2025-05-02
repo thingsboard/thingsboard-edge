@@ -30,10 +30,17 @@
  */
 package org.thingsboard.server.common.data.job;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Getter
 public enum JobType {
 
-    CF_REPROCESSING,
-    DUMMY;
+    CF_REPROCESSING("Calculated field reprocessing"),
+    DUMMY("Dummy job");
+
+    private final String title;
 
     public String getTasksTopic() {
         return "tasks." + name().toLowerCase();
