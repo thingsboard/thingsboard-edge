@@ -28,10 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.service.validator;
+package org.thingsboard.server.service.entitiy.cf;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
 import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
@@ -42,6 +43,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.job.JobStatus;
 import org.thingsboard.server.dao.job.JobService;
+import org.thingsboard.server.dao.usagerecord.ApiLimitService;
+import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
 
 import java.util.Map;
 import java.util.Optional;
@@ -54,16 +57,19 @@ import static org.thingsboard.server.common.data.job.JobStatus.RUNNING;
 @RequiredArgsConstructor
 public class CalculatedFieldReprocessingValidator {
 
-    public static final String NO_ARGUMENTS = "Calculated field has no arguments defined.";
-    public static final String NO_TELEMETRY_ARGS = "Calculated field must contain at least one time series based argument (TS_LATEST or TS_ROLLING).";
-    public static final String NO_OUTPUT = "Calculated field has no output defined.";
-    public static final String INVALID_OUTPUT_TYPE = "Calculated field with output type ATTRIBUTE cannot be reprocessed.";
+    public static final String NO_ARGUMENTS = "no arguments defined.";
+    public static final String NO_TELEMETRY_ARGS = "at least one time series based argument ('Latest telemtry' or 'Time series rolling') should be specified.";
+    public static final String NO_OUTPUT = "no output defined.";
+    public static final String INVALID_OUTPUT_TYPE = "output type 'Attribute' is not supported.";
 
     private final JobService jobService;
+    private final TbelInvokeService tbelInvokeService;
+    private final ApiLimitService apiLimitService;
 
     public CFReprocessingValidationResponse validate(CalculatedField calculatedField) {
         return checkJobStatus(calculatedField.getTenantId(), calculatedField.getId())
                 .or(() -> checkArguments(calculatedField.getConfiguration().getArguments()))
+                .or(() -> checkExpression(calculatedField))
                 .or(() -> checkOutput(calculatedField.getConfiguration().getOutput()))
                 .orElse(CFReprocessingValidationResponse.valid());
     }
@@ -90,6 +96,16 @@ public class CalculatedFieldReprocessingValidator {
         return Optional.empty();
     }
 
+    private Optional<CFReprocessingValidationResponse> checkExpression(CalculatedField calculatedField) {
+        CalculatedFieldCtx ctx = new CalculatedFieldCtx(calculatedField, tbelInvokeService, apiLimitService);
+        try {
+            ctx.init();
+            return Optional.of(CFReprocessingValidationResponse.valid());
+        } catch (Exception e) {
+            return Optional.of(CFReprocessingValidationResponse.invalid(e.getMessage()));
+        }
+    }
+
     private Optional<CFReprocessingValidationResponse> checkOutput(Output output) {
         if (output == null) {
             return Optional.of(CFReprocessingValidationResponse.invalid(NO_OUTPUT));
@@ -107,7 +123,7 @@ public class CalculatedFieldReprocessingValidator {
         }
 
         public static CFReprocessingValidationResponse invalid(String message) {
-            return new CFReprocessingValidationResponse(false, message, null);
+            return new CFReprocessingValidationResponse(false, "Calculated field cannot be reprocessed: " + message, null);
         }
 
         public static CFReprocessingValidationResponse invalid(String message, JobStatus jobStatus) {

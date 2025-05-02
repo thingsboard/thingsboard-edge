@@ -37,7 +37,7 @@ import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.service.validator.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface TbCalculatedFieldService {

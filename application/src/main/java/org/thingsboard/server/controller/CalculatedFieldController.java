@@ -73,11 +73,10 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.service.validator.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
-import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldScriptEngine;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldTbelScriptEngine;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
 import org.thingsboard.server.service.entitiy.cf.TbCalculatedFieldService;
 import org.thingsboard.server.service.job.JobManager;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -145,7 +144,6 @@ public class CalculatedFieldController extends BaseController {
             "}"
             + MARKDOWN_CODE_BLOCK_END
             + "\n\n Expected result JSON contains \"output\" and \"error\".";
-    private final ApiLimitService apiLimitService;
 
     @ApiOperation(value = "Create Or Update Calculated Field (saveCalculatedField)",
             notes = "Creates or Updates the Calculated Field. When creating calculated field, platform generates Calculated Field Id as " + UUID_WIKI_LINK +
