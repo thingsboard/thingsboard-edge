@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.job;
 
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ThrowingConsumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.job.JobStatus;
 import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.common.data.job.task.DummyTaskResult;
 import org.thingsboard.server.common.data.job.task.DummyTaskResult.DummyTaskFailure;
+import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.job.JobService;
@@ -100,7 +102,7 @@ public class JobManagerTest extends AbstractControllerTest {
                 .tenantId(tenantId)
                 .type(JobType.DUMMY)
                 .key("test-job")
-                .description("test job")
+                .description("Test job")
                 .configuration(DummyJobConfiguration.builder()
                         .successfulTasksCount(tasksCount)
                         .taskProcessingTimeMs(1000)
@@ -120,6 +122,11 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(job.getResult().getResults()).isEmpty();
             assertThat(job.getResult().getCompletedCount()).isEqualTo(tasksCount);
         });
+
+        checkJobNotification(notification -> {
+            assertThat(notification.getSubject()).isEqualTo("Dummy job completed");
+            assertThat(notification.getText()).isEqualTo("Test job completed: 5/5 successful, 0 failed");
+        });
     }
 
     @Test
@@ -130,7 +137,7 @@ public class JobManagerTest extends AbstractControllerTest {
                 .tenantId(tenantId)
                 .type(JobType.DUMMY)
                 .key("test-job")
-                .description("test job")
+                .description("Test job")
                 .configuration(DummyJobConfiguration.builder()
                         .successfulTasksCount(successfulTasks)
                         .failedTasksCount(failedTasks)
@@ -150,6 +157,11 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(((DummyTaskResult) jobResult.getResults().get(0)).getFailure().getError()).isEqualTo("error3"); // last error
             assertThat(((DummyTaskResult) jobResult.getResults().get(1)).getFailure().getError()).isEqualTo("error3"); // last error
             assertThat(jobResult.getCompletedCount()).isEqualTo(jobResult.getTotalCount());
+        });
+
+        checkJobNotification(notification -> {
+            assertThat(notification.getSubject()).isEqualTo("Dummy job failed");
+            assertThat(notification.getText()).isEqualTo("Test job failed: 3/5 successful, 2 failed");
         });
     }
 
@@ -326,7 +338,7 @@ public class JobManagerTest extends AbstractControllerTest {
                 .tenantId(tenantId)
                 .type(JobType.DUMMY)
                 .key("test-job")
-                .description("test job")
+                .description("Test job")
                 .configuration(DummyJobConfiguration.builder()
                         .generalError("Some error while submitting tasks")
                         .submittedTasksBeforeGeneralError(submittedTasks)
@@ -340,6 +352,11 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(job.getResult().getSuccessfulCount()).isBetween(1, submittedTasks);
             assertThat(job.getResult().getDiscardedCount()).isBetween(1, submittedTasks);
             assertThat(job.getResult().getTotalCount()).isNull();
+        });
+
+        checkJobNotification(notification -> {
+            assertThat(notification.getSubject()).isEqualTo("Dummy job failed");
+            assertThat(notification.getText()).isEqualTo("Test job failed: Some error while submitting tasks");
         });
     }
 
@@ -438,6 +455,16 @@ public class JobManagerTest extends AbstractControllerTest {
                 assertThat(failure.getError()).isEqualTo("error");
                 assertThat(failure.isFailAlways()).isTrue();
             }
+        });
+    }
+
+    private void checkJobNotification(ThrowingConsumer<Notification> assertFunction) {
+        await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+            Notification notification = getMyNotifications(true, 100).stream()
+                    .findFirst().orElse(null);
+            assertThat(notification).isNotNull();
+
+            assertFunction.accept(notification);
         });
     }
 
