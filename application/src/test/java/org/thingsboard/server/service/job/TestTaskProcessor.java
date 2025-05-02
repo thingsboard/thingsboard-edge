@@ -28,28 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.queue;
+package org.thingsboard.server.service.job;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.service.job.task.DummyTaskProcessor;
 
-@RequiredArgsConstructor
-@Getter
-public enum ServiceType {
-
-    TB_CORE("TB Core"),
-    TB_RULE_ENGINE("TB Rule Engine"),
-    TB_TRANSPORT("TB Transport"),
-    JS_EXECUTOR("JS Executor"),
-    TB_INTEGRATION_EXECUTOR("TB Integration Executor"),
-    TB_VC_EXECUTOR("TB VC Executor"),
-    EDQS("TB Entity Data Query Service"),
-    TASK_PROCESSOR("Task Processor");
-
-    private final String label;
-
-    public static ServiceType of(String serviceType) {
-        return ServiceType.valueOf(serviceType.replace("-", "_").toUpperCase());
-    }
-
+@Component
+public class TestTaskProcessor extends DummyTaskProcessor {
 }
