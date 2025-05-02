@@ -32,9 +32,11 @@ package org.thingsboard.server.service.job.task;
 
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.job.task.CfReprocessingTask;
 import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.data.job.task.CfReprocessingTask;
 import org.thingsboard.server.common.data.job.task.CfReprocessingTaskResult;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.queue.task.TaskProcessor;
@@ -48,7 +50,9 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class CfReprocessingTaskProcessor extends TaskProcessor<CfReprocessingTask, CfReprocessingTaskResult> {
 
-    private final CalculatedFieldReprocessingService cfReprocessingService;
+    @Autowired
+    @Lazy
+    private CalculatedFieldReprocessingService cfReprocessingService;
 
     @Override
     public CfReprocessingTaskResult process(CfReprocessingTask task) throws Exception {
