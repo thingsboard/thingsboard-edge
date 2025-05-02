@@ -65,6 +65,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -449,10 +450,11 @@ public class HashPartitionServiceTest {
     }
 
     private HashPartitionService createPartitionService() {
-        HashPartitionService partitionService = new HashPartitionService(serviceInfoProvider,
-                routingInfoService,
+        HashPartitionService partitionService = new HashPartitionService(
                 applicationEventPublisher,
-                queueRoutingInfoService,
+                serviceInfoProvider,
+                Optional.of(routingInfoService),
+                Optional.of(queueRoutingInfoService),
                 integrationExecutorSettings,
                 topicService);
         ReflectionTestUtils.setField(partitionService, "coreTopic", "tb.core");

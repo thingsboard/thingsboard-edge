@@ -28,18 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs;
+package org.thingsboard.common.util;
 
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.queue.discovery.TenantRoutingInfo;
-import org.thingsboard.server.queue.discovery.TenantRoutingInfoService;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
-@Service
-public class DummyTenantRoutingInfoService implements TenantRoutingInfoService {
-    @Override
-    public TenantRoutingInfo getRoutingInfo(TenantId tenantId) {
-        return null;
+import java.util.concurrent.TimeUnit;
+
+public class SetCache<K> {
+
+    private static final Object DUMMY_VALUE = Boolean.TRUE;
+
+    private final Cache<K, Object> cache;
+
+    public SetCache(long valueTtlMs) {
+        this.cache = Caffeine.newBuilder()
+                .expireAfterWrite(valueTtlMs, TimeUnit.MILLISECONDS)
+                .build();
+    }
+
+    public void add(K key) {
+        cache.put(key, DUMMY_VALUE);
+    }
+
+    public boolean contains(K key) {
+        return cache.asMap().containsKey(key);
+    }
+
+    public void remove(K key) {
+        cache.invalidate(key);
     }
 
 }
