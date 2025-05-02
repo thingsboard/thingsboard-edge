@@ -29,45 +29,26 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AuthUser, User } from '@shared/models/user.model';
-import { UserSettings } from '@shared/models/user-settings.models';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { TrendzSettings } from '@shared/models/trendz-settings.models';
+import { defaultHttpOptionsFromConfig } from '@core/http/http-utils';
 
-export interface SysParamsState {
-  userTokenAccessEnabled: boolean;
-  allowedDashboardIds: string[];
-  edgesSupportEnabled: boolean;
-  whiteLabelingAllowed: boolean;
-  customerWhiteLabelingAllowed: boolean;
-  hasRepository: boolean;
-  tbelEnabled: boolean;
-  persistDeviceStateToTelemetry: boolean;
-  mobileQrEnabled: boolean;
-  userSettings: UserSettings;
-  maxResourceSize: number;
-  maxDebugModeDurationMinutes: number;
-  maxDataPointsPerRollingArg: number;
-  maxArgumentsPerCF: number;
-  ruleChainDebugPerTenantLimitsConfiguration?: string;
-  calculatedFieldDebugPerTenantLimitsConfiguration?: string;
-  integrationDebugPerTenantLimitsConfiguration?: string;
-  converterDebugPerTenantLimitsConfiguration?: string;
-  availableLocales: string[];
-  trendzSettings: TrendzSettings;
-}
+@Injectable({
+  providedIn: 'root'
+})
+export class TrendzSettingsService {
 
-export interface SysParams extends SysParamsState {
-  maxDatapointsLimit: number;
-}
+  constructor(
+    private http: HttpClient
+  ) {}
 
-export interface AuthPayload extends SysParamsState {
-  authUser: AuthUser;
-  userDetails: User;
-  forceFullscreen: boolean;
-}
+  public getTrendzSettings(): Observable<TrendzSettings> {
+    return this.http.get<TrendzSettings>(`/api/trendz/settings`, defaultHttpOptionsFromConfig({ignoreLoading: true, ignoreErrors: true}))
+  }
 
-export interface AuthState extends AuthPayload {
-  isAuthenticated: boolean;
-  isUserLoaded: boolean;
-  lastPublicDashboardId: string;
+  public saveTrendzSettings(trendzSettings: TrendzSettings): Observable<TrendzSettings> {
+    return this.http.post<TrendzSettings>(`/api/trendz/settings`, trendzSettings, defaultHttpOptionsFromConfig({ignoreLoading: true, ignoreErrors: true}))
+  }
 }

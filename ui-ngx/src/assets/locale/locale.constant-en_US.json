@@ -577,7 +577,11 @@
         "mobile-settings": "Mobile settings",
         "firebase-service-account-file": "Firebase service account credentials JSON file",
         "select-firebase-service-account-file": "Drag and drop your Firebase service account credentials file or ",
-        "use-system-mobile-settings": "Use system mobile settings"
+        "use-system-mobile-settings": "Use system mobile settings",
+        "trendz": "Trendz",
+        "trendz-settings": "Trendz settings",
+        "trendz-url": "Trendz URL",
+        "trendz-enable": "Enable Trendz"
       },
     "alarm": {
         "alarm": "Alarm",
