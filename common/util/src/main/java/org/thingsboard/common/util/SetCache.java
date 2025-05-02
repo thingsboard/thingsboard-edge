@@ -28,40 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.job.task;
+package org.thingsboard.common.util;
 
-import lombok.RequiredArgsConstructor;
-import org.thingsboard.server.common.data.job.JobType;
-import org.thingsboard.server.common.data.job.task.DummyTask;
-import org.thingsboard.server.common.data.job.task.DummyTaskResult;
-import org.thingsboard.server.queue.task.TaskProcessor;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
-@RequiredArgsConstructor
-public class DummyTaskProcessor extends TaskProcessor<DummyTask, DummyTaskResult> {
+import java.util.concurrent.TimeUnit;
 
-    @Override
-    public DummyTaskResult process(DummyTask task) throws Exception {
-        if (task.getProcessingTimeMs() > 0) {
-            Thread.sleep(task.getProcessingTimeMs());
-        }
-        if (task.isFailAlways()) {
-            throw new RuntimeException(task.getErrors().get(0));
-        }
-        if (task.getErrors() != null && task.getAttempt() <= task.getErrors().size()) {
-            String error = task.getErrors().get(task.getAttempt() - 1);
-            throw new RuntimeException(error);
-        }
-        return DummyTaskResult.success();
+public class SetCache<K> {
+
+    private static final Object DUMMY_VALUE = Boolean.TRUE;
+
+    private final Cache<K, Object> cache;
+
+    public SetCache(long valueTtlMs) {
+        this.cache = Caffeine.newBuilder()
+                .expireAfterWrite(valueTtlMs, TimeUnit.MILLISECONDS)
+                .build();
     }
 
-    @Override
-    public long getTaskProcessingTimeout() {
-        return 2000;
+    public void add(K key) {
+        cache.put(key, DUMMY_VALUE);
     }
 
-    @Override
-    public JobType getJobType() {
-        return JobType.DUMMY;
+    public boolean contains(K key) {
+        return cache.asMap().containsKey(key);
+    }
+
+    public void remove(K key) {
+        cache.invalidate(key);
     }
 
 }
