@@ -67,8 +67,8 @@ import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.controller.AbstractWebTest;
 import org.thingsboard.server.controller.CalculatedFieldControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.dao.service.validator.CalculatedFieldReprocessingValidator;
-import org.thingsboard.server.dao.service.validator.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
