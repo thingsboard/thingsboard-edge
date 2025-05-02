@@ -312,6 +312,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     @Autowired
     protected InMemoryStorage storage;
 
+    @Autowired
     protected JdbcTemplate jdbcTemplate;
 
     @MockBean
