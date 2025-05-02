@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.job.JobStatus;
 import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.controller.AbstractWebTest;
 import org.thingsboard.server.controller.CalculatedFieldControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -583,6 +584,12 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(1);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(1);
+
+            Notification notification = getMyNotifications(true, 1).stream()
+                    .findFirst().orElse(null);
+            assertThat(notification).isNotNull();
+            assertThat(notification.getSubject()).isEqualTo("Calculated field reprocessing completed");
+            assertThat(notification.getText()).isEqualTo("Reprocessing of calculated field '" + savedCalculatedField.getName() + "' for device " + testDevice.getId() + " completed: 1/1 successful");
         });
     }
 
@@ -679,6 +686,12 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
+
+            Notification notification = getMyNotifications(true, 1).stream()
+                    .findFirst().orElse(null);
+            assertThat(notification).isNotNull();
+            assertThat(notification.getSubject()).isEqualTo("Calculated field reprocessing completed");
+            assertThat(notification.getText()).isEqualTo("Reprocessing of calculated field '" + savedCalculatedField.getName() + "' for device profile " + deviceProfile.getId() + " completed: 2/2 successful");
         });
     }
 
@@ -773,6 +786,12 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
+
+            Notification notification = getMyNotifications(true, 1).stream()
+                    .findFirst().orElse(null);
+            assertThat(notification).isNotNull();
+            assertThat(notification.getSubject()).isEqualTo("Calculated field reprocessing completed");
+            assertThat(notification.getText()).isEqualTo("Reprocessing of calculated field '" + savedCalculatedField.getName() + "' for device profile " + deviceProfile.getId() + " completed: 2/2 successful");
         });
     }
 

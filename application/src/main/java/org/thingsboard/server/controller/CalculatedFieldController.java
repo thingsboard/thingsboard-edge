@@ -311,9 +311,8 @@ public class CalculatedFieldController extends BaseController {
                 .type(JobType.CF_REPROCESSING)
                 .key(calculatedField.getId().toString())
                 .description("Reprocessing of calculated field '" + calculatedField.getName() +
-                        "' for " + entityId.getEntityType().getNormalName().toLowerCase() +
-                        " " + entityId.getId() +
-                        " from " + startTs + " to " + endTs)
+                             "' for " + entityId.getEntityType().getNormalName().toLowerCase() +
+                             " " + entityId.getId())
                 .configuration(CfReprocessingJobConfiguration.builder()
                         .calculatedFieldId(calculatedField.getId())
                         .startTs(startTs)
@@ -343,8 +342,7 @@ public class CalculatedFieldController extends BaseController {
             EntityType entityType = referencedEntityId.getEntityType();
             switch (entityType) {
                 case TENANT, CUSTOMER, ASSET, DEVICE -> checkEntityId(referencedEntityId, Operation.READ);
-                default ->
-                        throw new IllegalArgumentException("Calculated fields do not support '" + entityType + "' for referenced entities.");
+                default -> throw new IllegalArgumentException("Calculated fields do not support '" + entityType + "' for referenced entities.");
             }
         }
 
