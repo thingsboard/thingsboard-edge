@@ -28,21 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs;
+package org.thingsboard.server.queue.task;
 
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.queue.discovery.QueueRoutingInfo;
-import org.thingsboard.server.queue.discovery.QueueRoutingInfoService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
+import org.thingsboard.server.queue.TbQueueConsumer;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.memory.InMemoryStorage;
+import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
+import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
 
-import java.util.Collections;
-import java.util.List;
+@Component
+@ConditionalOnExpression("'${queue.type:null}'=='in-memory'")
+@RequiredArgsConstructor
+public class InMemoryTaskProcessorQueueFactory implements TaskProcessorQueueFactory {
 
-@Service
-public class DummyQueueRoutingInfoService implements QueueRoutingInfoService {
+    private final InMemoryStorage storage;
 
     @Override
-    public List<QueueRoutingInfo> getAllQueuesRoutingInfo() {
-        return Collections.emptyList();
+    public TbQueueConsumer<TbProtoQueueMsg<TaskProto>> createTaskConsumer(JobType jobType) {
+        return new InMemoryTbQueueConsumer<>(storage, jobType.getTasksTopic());
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<JobStatsMsg>> createJobStatsProducer() {
+        return new InMemoryTbQueueProducer<>(storage, "jobs.stats");
     }
 
 }
