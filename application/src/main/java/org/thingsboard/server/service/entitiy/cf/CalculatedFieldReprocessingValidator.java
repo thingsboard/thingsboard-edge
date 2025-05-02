@@ -57,10 +57,10 @@ import static org.thingsboard.server.common.data.job.JobStatus.RUNNING;
 @RequiredArgsConstructor
 public class CalculatedFieldReprocessingValidator {
 
-    public static final String NO_ARGUMENTS = "no arguments defined.";
-    public static final String NO_TELEMETRY_ARGS = "at least one time series based argument ('Latest telemtry' or 'Time series rolling') should be specified.";
-    public static final String NO_OUTPUT = "no output defined.";
-    public static final String INVALID_OUTPUT_TYPE = "output type 'Attribute' is not supported.";
+    public static final String NO_ARGUMENTS = "No arguments defined.";
+    public static final String NO_TELEMETRY_ARGS = "At least one time series based argument ('Latest telemtry' or 'Time series rolling') should be specified.";
+    public static final String NO_OUTPUT = "No output defined.";
+    public static final String INVALID_OUTPUT_TYPE = "Output type 'Attribute' is not supported.";
 
     private final JobService jobService;
     private final TbelInvokeService tbelInvokeService;
@@ -103,6 +103,8 @@ public class CalculatedFieldReprocessingValidator {
             return Optional.of(CFReprocessingValidationResponse.valid());
         } catch (Exception e) {
             return Optional.of(CFReprocessingValidationResponse.invalid(e.getMessage()));
+        } finally {
+            ctx.stop();
         }
     }
 
