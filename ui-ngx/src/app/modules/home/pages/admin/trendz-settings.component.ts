@@ -29,15 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
-import { select, Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TrendzSettingsService } from '@core/http/trendz-settings.service';
 import { TrendzSettings } from '@shared/models/trendz-settings.models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-trendz-settings',
@@ -48,10 +47,10 @@ export class TrendzSettingsComponent extends PageComponent implements OnInit, Ha
 
   trendzSettingsForm: FormGroup;
 
-  constructor(protected store: Store<AppState>,
-              private fb: FormBuilder,
-              private trendzSettingsService: TrendzSettingsService) {
-    super(store);
+  constructor(private fb: FormBuilder,
+              private trendzSettingsService: TrendzSettingsService,
+              private destroyRef: DestroyRef) {
+    super();
   }
 
   ngOnInit() {
@@ -65,26 +64,26 @@ export class TrendzSettingsComponent extends PageComponent implements OnInit, Ha
     });
 
     this.trendzSettingsForm.get('isTrendzEnabled').valueChanges
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe((enabled: boolean) => this.toggleUrlRequired(enabled));
   }
 
   toggleUrlRequired(enabled: boolean) {
     const trendzUrlControl = this.trendzSettingsForm.get('trendzUrl')!;
-    const validators = [Validators.pattern(/^(https?:\/\/)[^\s/$.?#].[^\s]*$/i)];
 
     if (enabled) {
-      validators.push(Validators.required);
+      trendzUrlControl.addValidators(Validators.required);
+    } else {
+      trendzUrlControl.removeValidators(Validators.required);
     }
 
-    trendzUrlControl.setValidators(validators);
     trendzUrlControl.updateValueAndValidity();
   }
 
   setTrendzSettings(trendzSettings: TrendzSettings) {
     this.trendzSettingsForm.reset({
       trendzUrl: trendzSettings?.baseUrl,
-      isTrendzEnabled: isDefinedAndNotNull(trendzSettings?.enabled) ?
-        trendzSettings?.enabled : false
+      isTrendzEnabled: trendzSettings?.enabled ?? false
     });
 
     this.toggleUrlRequired(this.trendzSettingsForm.get('isTrendzEnabled').value);
