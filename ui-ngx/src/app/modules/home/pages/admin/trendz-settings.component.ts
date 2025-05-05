@@ -37,6 +37,9 @@ import { TrendzSettingsService } from '@core/http/trendz-settings.service';
 import { TrendzSettings } from '@shared/models/trendz-settings.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Authority } from '@shared/models/authority.enum';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-trendz-settings',
@@ -44,12 +47,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrls: ['./trendz-settings.component.scss', './settings-card.scss']
 })
 export class TrendzSettingsComponent extends PageComponent implements OnInit, HasConfirmForm {
-
+  readonly = this.userPermissionsService.hasGenericPermission(Resource.ADMIN_SETTINGS, Operation.WRITE);
   trendzSettingsForm: FormGroup;
 
   constructor(private fb: FormBuilder,
               private trendzSettingsService: TrendzSettingsService,
-              private destroyRef: DestroyRef) {
+              private destroyRef: DestroyRef,
+              private userPermissionsService: UserPermissionsService,) {
     super();
   }
 
@@ -58,6 +62,10 @@ export class TrendzSettingsComponent extends PageComponent implements OnInit, Ha
       trendzUrl: [null, [Validators.pattern(/^(https?:\/\/)[^\s/$.?#].[^\s]*$/i)]],
       isTrendzEnabled: [false]
     });
+
+    if(this.readonly) {
+      this.trendzSettingsForm.disable({emitEvent: false});
+    };
 
     this.trendzSettingsService.getTrendzSettings().subscribe((trendzSettings) => {
       this.setTrendzSettings(trendzSettings);
@@ -95,7 +103,7 @@ export class TrendzSettingsComponent extends PageComponent implements OnInit, Ha
 
   save(): void {
     const trendzUrl = this.trendzSettingsForm.get('trendzUrl').value;
-    const isTrendzEnabled =   this.trendzSettingsForm.get('isTrendzEnabled').value;
+    const isTrendzEnabled = this.trendzSettingsForm.get('isTrendzEnabled').value;
 
     const trendzSettings: TrendzSettings = {
       baseUrl: trendzUrl,

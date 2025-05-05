@@ -1471,6 +1471,11 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   [
     MenuId.audit_log, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)
+  ],
+  [
+    MenuId.trendz_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.ADMIN_SETTINGS)
   ]
 ]);
 
