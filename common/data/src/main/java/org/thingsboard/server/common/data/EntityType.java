@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -91,7 +91,9 @@ public enum EntityType {
     DOMAIN(36),
     MOBILE_APP(37),
     MOBILE_APP_BUNDLE(38),
-    SECRET(39);
+    CALCULATED_FIELD(39),
+    CALCULATED_FIELD_LINK(40),
+    SECRET(41);
 
     @Getter
     private final int protoNumber; // Corresponds to EntityTypeProto
@@ -127,6 +129,18 @@ public enum EntityType {
         this.protoNumber = protoNumber;
         this.tableName = tableName;
         this.groupEntityType = groupEntityType;
+    }
+
+    public boolean isOneOf(EntityType... types) {
+        if (types == null) {
+            return false;
+        }
+        for (EntityType type : types) {
+            if (this == type) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

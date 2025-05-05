@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ import { animate, AnimationTriggerMetadata, style, transition, trigger } from '@
 import { ConnectedOverlayPositionChange } from '@angular/cdk/overlay';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { POSITION_MAP } from '@shared/models/overlay.models';
+import { ComponentRef, Injector, Renderer2, Type, ViewContainerRef } from '@angular/core';
 
 export const popoverMotion: AnimationTriggerMetadata = trigger('popoverMotion', [
   transition('void => active', [
@@ -103,3 +104,36 @@ export interface PopoverWithTrigger {
   trigger: Element;
   popoverComponent: TbPopoverComponent;
 }
+
+export interface DisplayPopoverConfig<T> extends Omit<DisplayPopoverWithComponentRefConfig<T>, 'componentRef'>{
+  hostView: ViewContainerRef;
+}
+
+export interface DisplayPopoverWithComponentRefConfig<T> {
+  componentRef: ComponentRef<TbPopoverComponent>
+  trigger: Element;
+  renderer: Renderer2;
+  componentType: Type<T>;
+  preferredPlacement?: PopoverPreferredPlacement;
+  hideOnClickOutside?: boolean;
+  injector?: Injector;
+  context?: any;
+  overlayStyle?: any;
+  popoverStyle?: any;
+  style?: any,
+  showCloseButton?: boolean;
+  visibleFn?: (visible: boolean) => void;
+  popoverContentStyle?: any;
+  isModal?: boolean;
+}
+
+export const defaultPopoverConfig: Partial<DisplayPopoverWithComponentRefConfig<any>> = {
+  preferredPlacement: 'top',
+  hideOnClickOutside: true,
+  overlayStyle: {},
+  popoverStyle: {},
+  showCloseButton: true,
+  visibleFn: () => {},
+  popoverContentStyle: {},
+  isModal: false
+};

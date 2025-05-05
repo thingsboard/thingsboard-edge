@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -215,16 +215,22 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
       if (this.popoverService.hasPopover(trigger)) {
         this.popoverService.hidePopover(trigger);
       } else {
-        const colorPickerPopover = this.popoverService.displayPopover(trigger, this.renderer,
-          this.viewContainerRef, ColorPickerPanelComponent, ['leftTopOnly', 'leftOnly', 'leftBottomOnly'], true, null,
-          {
+        const colorPickerPopover = this.popoverService.displayPopover({
+          trigger,
+          renderer: this.renderer,
+          hostView: this.viewContainerRef,
+          componentType: ColorPickerPanelComponent,
+          preferredPlacement: ['leftTopOnly', 'leftOnly', 'leftBottomOnly'],
+          context: {
             color: this.colorFormGroup.get('color').value,
             colorClearButton: this.colorClearButton,
             useThemePalette: this.useThemePalette,
             colorCancelButton: true
           },
-          {},
-          {}, {}, false, () => {}, {padding: '12px 4px 12px 12px'});
+          showCloseButton: false,
+          popoverContentStyle: {padding: '12px 4px 12px 12px'},
+          isModal: true
+        })
         colorPickerPopover.tbComponentRef.instance.popover = colorPickerPopover;
         colorPickerPopover.tbComponentRef.instance.colorSelected.subscribe((color) => {
           colorPickerPopover.hide();

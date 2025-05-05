@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,13 +50,13 @@ import java.util.UUID;
  */
 public interface PlatformIntegrationService {
 
-    void processUplinkData(AbstractIntegration info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+    Runnable processUplinkData(AbstractIntegration info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(AbstractIntegration info, UUID sessionId, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+    Runnable processUplinkData(AbstractIntegration info, UUID sessionId, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(AbstractIntegration info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+    Runnable processUplinkData(AbstractIntegration info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(AbstractIntegration info, EntityViewDataProto data, IntegrationCallback<Void> callback);
+    Runnable processUplinkData(AbstractIntegration info, EntityViewDataProto data, IntegrationCallback<Void> callback);
 
     void processUplinkData(AbstractIntegration info, TbMsg data, IntegrationApiCallback integrationApiCallback);
 

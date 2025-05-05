@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,15 +35,11 @@ import {
   Component,
   forwardRef,
   Input,
-  Renderer2,
-  ViewContainerRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
-import { TbPopoverService } from '@shared/components/popover.service';
 import { MatButton } from '@angular/material/button';
-import { EntityDebugSettingsPanelComponent } from './entity-debug-settings-panel.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, of, shareReplay, timer } from 'rxjs';
 import { SECOND, MINUTE } from '@shared/models/time/time.models';
@@ -53,6 +49,9 @@ import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
+import { AdditionalDebugActionConfig } from '@home/components/entity/debug/entity-debug-settings.model';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-entity-debug-settings-button',
@@ -69,13 +68,14 @@ import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR } from '@angular/f
       useExisting: forwardRef(() => EntityDebugSettingsButtonComponent),
       multi: true
     },
+    EntityDebugSettingsService
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EntityDebugSettingsButtonComponent implements ControlValueAccessor {
 
-  @Input() debugLimitsConfiguration: string;
-  @Input() entityLabel: string;
+  @Input() additionalActionConfig: AdditionalDebugActionConfig;
+  @Input({required: true}) entityType: EntityType;
 
   debugSettingsFormGroup = this.fb.group({
     failuresEnabled: [false],
@@ -106,11 +106,9 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
 
   private propagateChange: (settings: EntityDebugSettings) => void = () => {};
 
-  constructor(private popoverService: TbPopoverService,
-              private renderer: Renderer2,
-              private store: Store<AppState>,
-              private viewContainerRef: ViewContainerRef,
+  constructor(private store: Store<AppState>,
               private fb: FormBuilder,
+              private entityDebugSettingsService: EntityDebugSettingsService,
               private cd : ChangeDetectorRef,
   ) {
     this.debugSettingsFormGroup.valueChanges.pipe(
@@ -132,33 +130,22 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
     return this.debugSettingsFormGroup.get('allEnabledUntil').value;
   }
 
-  openDebugStrategyPanel($event: Event, matButton: MatButton): void {
+  onOpenDebugStrategyPanel($event: Event, matButton: MatButton): void {
     if ($event) {
       $event.stopPropagation();
     }
-    const trigger = matButton._elementRef.nativeElement;
-    const debugSettings = this.debugSettingsFormGroup.value;
-
-    if (this.popoverService.hasPopover(trigger)) {
-      this.popoverService.hidePopover(trigger);
-    } else {
-      const debugStrategyPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, EntityDebugSettingsPanelComponent, 'bottom', true, null,
-        {
-          ...debugSettings,
-          maxDebugModeDuration: this.maxDebugModeDuration,
-          debugLimitsConfiguration: this.debugLimitsConfiguration,
-          entityLabel: this.entityLabel
-        },
-        {},
-        {}, {}, true);
-      debugStrategyPopover.tbComponentRef.instance.popover = debugStrategyPopover;
-      debugStrategyPopover.tbComponentRef.instance.onSettingsApplied.subscribe((settings: EntityDebugSettings) => {
+    this.entityDebugSettingsService.openDebugStrategyPanel({
+      debugSettings: this.debugSettingsFormGroup.value,
+      debugConfig: {
+        maxDebugModeDuration: this.maxDebugModeDuration,
+        entityType: this.entityType,
+        additionalActionConfig: this.additionalActionConfig,
+      },
+      onSettingsAppliedFn: settings => {
         this.debugSettingsFormGroup.patchValue(settings);
         this.cd.markForCheck();
-        debugStrategyPopover.hide();
-      });
-    }
+      }
+    }, matButton._elementRef.nativeElement);
   }
 
   registerOnChange(fn: (settings: EntityDebugSettings) => void): void {
@@ -181,5 +168,6 @@ export class EntityDebugSettingsButtonComponent implements ControlValueAccessor 
     } else {
       this.debugSettingsFormGroup.enable({emitEvent: false});
     }
+    this.cd.markForCheck();
   }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -75,15 +75,12 @@ public class TbJsFilterNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        ctx.logJsEvalRequest();
         withCallback(scriptEngine.executeFilterAsync(msg),
                 filterResult -> {
-                    ctx.logJsEvalResponse();
                     ctx.tellNext(msg, filterResult ? TbNodeConnectionType.TRUE : TbNodeConnectionType.FALSE);
                 },
                 t -> {
                     ctx.tellFailure(msg, t);
-                    ctx.logJsEvalFailure();
                 }, ctx.getDbCallbackExecutor());
     }
 

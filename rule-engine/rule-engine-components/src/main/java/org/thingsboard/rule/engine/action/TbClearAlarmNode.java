@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -84,10 +84,8 @@ public class TbClearAlarmNode extends TbAbstractAlarmNode<TbClearAlarmNodeConfig
     }
 
     private ListenableFuture<TbAlarmResult> clearAlarm(TbContext ctx, TbMsg msg, Alarm alarm) {
-        ctx.logJsEvalRequest();
         ListenableFuture<JsonNode> asyncDetails = buildAlarmDetails(msg, alarm.getDetails());
         return Futures.transform(asyncDetails, details -> {
-            ctx.logJsEvalResponse();
             AlarmApiCallResult result = ctx.getAlarmService().clearAlarm(ctx.getTenantId(), alarm.getId(), System.currentTimeMillis(), details);
             if (result.isSuccessful()) {
                 return new TbAlarmResult(false, false, result.isCleared(), result.getAlarm());

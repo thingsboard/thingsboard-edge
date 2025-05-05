@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import java.util.Set;
 
 public final class DebugModeUtil {
 
-    private static final int DEBUG_MODE_DEFAULT_DURATION_MINUTES = 15;
+    public static final int DEBUG_MODE_DEFAULT_DURATION_MINUTES = 15;
 
     private DebugModeUtil() {
     }
@@ -83,4 +83,13 @@ public final class DebugModeUtil {
         }
     }
 
+    public static boolean isDebugFailuresAvailable(HasDebugSettings debugSettingsAware) {
+        if (isDebugAllAvailable(debugSettingsAware)) {
+            return true;
+        } else {
+            var debugSettings = debugSettingsAware.getDebugSettings();
+            return debugSettings != null && debugSettings.isFailuresEnabled();
+        }
+    }
+    
 }

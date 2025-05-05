@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -286,7 +286,7 @@ export const updateScadaSymbolMetadataInContent = (svgContent: string, metadata:
   const svgDoc = new DOMParser().parseFromString(svgContent, 'image/svg+xml');
   const parsererror = svgDoc.getElementsByTagName('parsererror');
   if (parsererror?.length) {
-    return parsererror[0].outerHTML;
+    throw Error(parsererror[0].textContent)
   }
   updateScadaSymbolMetadataInDom(svgDoc, metadata);
   return svgDoc.documentElement.outerHTML;

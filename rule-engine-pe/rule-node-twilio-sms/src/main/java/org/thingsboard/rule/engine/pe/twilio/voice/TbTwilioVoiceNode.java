@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,6 +59,7 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         configClazz = TbTwilioVoiceNodeConfiguration.class,
         nodeDescription = "Sends voice message via Twilio.",
         nodeDetails = "Will send message payload as voice message via Twilio, using Twilio text to speech service.",
+        uiResources = {"static/rulenode/twilio-config.js"},
         configDirective = "tbExternalNodeTwilioVoiceConfig",
         icon = "phone_in_talk",
         docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-voice-node"

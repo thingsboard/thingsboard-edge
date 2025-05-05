@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -99,17 +99,17 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
 
   selfRegistrationForm = this.fb.group({
     enabled: [false],
-    title: ['', Validators.required],
+    title: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
     notificationRecipient: this.fb.control<NotificationTargetId>(null, Validators.required),
     redirect: this.fb.group({
-      scheme: ['tbscheme', Validators.required],
-      host: ['app.pe.thingsboard.org', Validators.required]
+      scheme: ['tbscheme', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
+      host: ['app.pe.thingsboard.org', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]]
     }),
     signUpFields: [null],
     captcha: this.fb.group({
       version: this.fb.control<CaptchaVersion>('v3'),
-      siteKey: ['', Validators.required],
-      secretKey: ['', Validators.required],
+      siteKey: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
+      secretKey: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
       logActionName: [''],
       projectId: [{value: '', disabled: true}, Validators.required],
       androidKey: [{value: '', disabled: true}],
@@ -248,11 +248,17 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
           ? this.selfRegistrationForm.get('privacyPolicy').value
           : this.selfRegistrationForm.get('termsOfUse').value
       };
-      const editorPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, EditorPanelComponent, ['leftOnly', 'leftBottomOnly', 'leftTopOnly'], true, null,
-        ctx,
-        {},
-        {}, {}, false, () => {}, {padding: '16px 24px'});
+      const editorPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: EditorPanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: ['leftOnly', 'leftBottomOnly', 'leftTopOnly'],
+        context: ctx,
+        showCloseButton: false,
+        popoverContentStyle: {padding: '16px 24px'},
+        isModal: true
+      });
       editorPanelPopover.tbComponentRef.instance.popover = editorPanelPopover;
       editorPanelPopover.tbComponentRef.instance.editorContentApplied.subscribe((content) => {
         editorPanelPopover.hide();

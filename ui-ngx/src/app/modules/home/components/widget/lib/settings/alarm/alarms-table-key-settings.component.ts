@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,8 @@ export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
       columnSelectionToDisplay: 'enabled',
-      columnExportOption: 'onlyVisible'
+      columnExportOption: 'onlyVisible',
+      disableSorting: false
     };
   }
 
@@ -79,7 +80,8 @@ export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
-      columnExportOption: [settings.columnExportOption, []]
+      columnExportOption: [settings.columnExportOption, []],
+      disableSorting: [settings.disableSorting, []]
     });
   }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.QueryContext;
 
 import java.util.List;
 import java.util.UUID;
@@ -63,7 +64,7 @@ import static org.mockito.Mockito.times;
 public class DefaultQueryLogComponentTest {
 
     private TenantId tenantId;
-    private QueryContext ctx;
+    private SqlQueryContext ctx;
 
     @SpyBean
     private DefaultQueryLogComponent queryLog;
@@ -71,7 +72,7 @@ public class DefaultQueryLogComponentTest {
     @Before
     public void setUp() {
         tenantId = new TenantId(UUID.fromString("97275c1c-9cf2-4d25-a68d-933031158f84"));
-        ctx = new QueryContext(new QuerySecurityContext(tenantId, null, EntityType.ALARM, null, null));
+        ctx = new SqlQueryContext(new QueryContext(tenantId, null, EntityType.ALARM, null, null));
     }
 
     @Test

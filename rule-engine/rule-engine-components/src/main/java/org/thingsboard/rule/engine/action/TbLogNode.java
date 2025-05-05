@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -86,18 +86,15 @@ public class TbLogNode implements TbNode {
             return;
         }
 
-        ctx.logJsEvalRequest();
         Futures.addCallback(scriptEngine.executeToStringAsync(msg), new FutureCallback<String>() {
             @Override
             public void onSuccess(@Nullable String result) {
-                ctx.logJsEvalResponse();
                 log.info(result);
                 ctx.tellSuccess(msg);
             }
 
             @Override
             public void onFailure(Throwable t) {
-                ctx.logJsEvalResponse();
                 ctx.tellFailure(msg, t);
             }
         }, MoreExecutors.directExecutor()); //usually js responses runs on js callback executor

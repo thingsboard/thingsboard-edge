@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,17 +68,15 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.net.URI;
-import java.util.List;
 
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.LOGIN;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.PRIVACY_POLICY;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGISTRATION;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.TERMS_OF_USE;
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
-import static org.thingsboard.server.dao.service.DataValidator.isValidDomain;
 import static org.thingsboard.server.dao.service.DataValidator.isValidUrl;
-import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forTypeAndDomain;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
+import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forTypeAndDomain;
 
 @Service
 @Slf4j
@@ -677,6 +675,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
                 Domain domain = domainService.findDomainById(tenantId, whiteLabeling.getDomainId());
                 publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(type, domain.getName())));
             }
+            EdgeEventType edgeEventType = type.equals(LOGIN) ? EdgeEventType.LOGIN_WHITE_LABELING : EdgeEventType.WHITE_LABELING;
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(getEntityIdForEvent(tenantId, customerId))
+                    .edgeEventType(edgeEventType).actionType(ActionType.DELETED).body(JacksonUtil.toString(whiteLabeling)).build());
         }
     }
 

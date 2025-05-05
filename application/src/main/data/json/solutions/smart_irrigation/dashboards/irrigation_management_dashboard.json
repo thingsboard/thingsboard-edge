@@ -1,230 +1,11 @@
 {
-  "title": "Irrigation Management",
-  "image": null,
+  "title": "Irrigation management",
+  "image": "tb-image;/api/images/system/smart-irrigation.jpg",
   "mobileHide": false,
   "mobileOrder": null,
-  "name": "Irrigation Management",
   "configuration": {
     "description": "",
     "widgets": {
-      "c5f8412d-2ffb-4c44-7a7f-223ceea08d84": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "cd737d26-3068-aae0-d370-c93f8e7e1a00",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "name",
-                  "type": "entityField",
-                  "label": "Name",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.848379539472371
-                },
-                {
-                  "name": "perimeter",
-                  "type": "attribute",
-                  "label": "perimeter",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.7803202333041441
-                },
-                {
-                  "name": "cropType",
-                  "type": "attribute",
-                  "label": "cropType",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.13560061274453417
-                },
-                {
-                  "name": "avgMoisture",
-                  "type": "timeseries",
-                  "label": "avgMoisture",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.011152801250584377
-                },
-                {
-                  "name": "minMoistureThreshold",
-                  "type": "attribute",
-                  "label": "minMoistureThreshold",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.4441224029270672
-                },
-                {
-                  "name": "maxMoistureThreshold",
-                  "type": "attribute",
-                  "label": "maxMoistureThreshold",
-                  "color": "#3f51b5",
-                  "settings": {},
-                  "_hash": 0.024053653116780316
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1667907617960,
-                "endTimeMs": 1667994017960
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0,0,0,0.87)",
-          "padding": "0px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "Esri.WorldImagery",
-            "useCustomProvider": false,
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "1",
-            "lngKeyName": "1",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultCenterPosition": "0,0",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "posFunction": "return {x: origXPos, y: origYPos};",
-            "draggableMarker": false,
-            "showLabel": true,
-            "useLabelFunction": false,
-            "label": "${entityName}",
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": false,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": false,
-            "markerImageSize": 34,
-            "markerImages": [],
-            "showPolygon": true,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": false,
-            "showPolygonLabel": true,
-            "usePolygonLabelFunction": true,
-            "polygonLabelFunction": "var html = '<div>';\nhtml += '<div style=\"color: #FFF; font-weight: 600; text-align: center; padding-bottom: 8px;\">${entityName} (${cropType})</div>';\n\nvar avgMoisture = data['avgMoisture'];\nvar avgMoistureText = avgMoisture !== '' ?  Number(avgMoisture).toFixed(1) + '%' : 'n/a';\nvar minMoistureThreshold = data['minMoistureThreshold'];\nvar maxMoistureThreshold = data['maxMoistureThreshold'];\nvar color = '#FFFFFF';\nvar textColor = '#000000';\nif (avgMoisture < minMoistureThreshold || avgMoisture > maxMoistureThreshold) {\n    color = '#D12730';\n    textColor = '#FFFFFF';\n}\n\nhtml += '<div style=\"text-align: center;\"><span style=\"background: ' + color + '; color: ' + textColor + '; border-radius: 8px; padding: 4px;\">'+avgMoistureText+'</span></div>';\n\nhtml += '<div>';\n\nreturn html;",
-            "showPolygonTooltip": false,
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true
-          },
-          "title": "Fields",
-          "dropShadow": true,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "markerClick": [],
-            "polygonClick": [
-              {
-                "name": "Field details",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "field",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "6feadbe9-7088-fccc-2cbc-dcde695df002"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "c5f8412d-2ffb-4c44-7a7f-223ceea08d84",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
-      },
       "a6b597ee-cb21-ee9f-dc98-8673f1d976f1": {
         "type": "latest",
         "sizeX": 7.5,
@@ -237,7 +18,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -247,7 +31,11 @@
                 "startTimeMs": 1667907617960,
                 "endTimeMs": 1667994017960
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -525,7 +313,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -535,7 +326,11 @@
                 "startTimeMs": 1667907617961,
                 "endTimeMs": 1667994017961
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -822,7 +617,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -832,7 +630,11 @@
                 "startTimeMs": 1667907617961,
                 "endTimeMs": 1667994017961
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "NONE",
@@ -1091,681 +893,6 @@
         "id": "8fcd3aed-58d0-0cad-cf63-3a08e1be40a9",
         "typeFullFqn": "system.cards.entities_table"
       },
-      "7cfc3255-f459-6eb9-000e-70fef5afbcdb": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "name",
-                  "type": "entityField",
-                  "label": "Name",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.848379539472371
-                },
-                {
-                  "name": "perimeter",
-                  "type": "attribute",
-                  "label": "perimeter",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.7803202333041441
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1667907617961,
-                "endTimeMs": 1667994017961
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0,0,0,0.87)",
-          "padding": "0px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "OpenStreetMap.HOT",
-            "useCustomProvider": false,
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "1",
-            "lngKeyName": "1",
-            "defaultZoomLevel": 14,
-            "defaultCenterPosition": "49.348472, 32.108611",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "posFunction": "return {x: origXPos, y: origYPos};",
-            "draggableMarker": false,
-            "showLabel": false,
-            "useLabelFunction": false,
-            "label": "${entityName}",
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": false,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": false,
-            "markerImageSize": 34,
-            "markerImages": [],
-            "showPolygon": true,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": true,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "snappable": false,
-            "initDragMode": true,
-            "hideAllControlButton": false,
-            "hideDrawControlButton": false,
-            "hideEditControlButton": false,
-            "hideRemoveControlButton": false,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true,
-            "useIconCreateFunction": false
-          },
-          "title": "Fields",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "markerClick": []
-          },
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "7cfc3255-f459-6eb9-000e-70fef5afbcdb",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
-      },
-      "1503181d-ed67-4878-b497-f3809bf73675": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "7473a7a0-136a-63da-f2ca-f249a1336745",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "name",
-                  "type": "entityField",
-                  "label": "Name",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.848379539472371
-                },
-                {
-                  "name": "perimeter",
-                  "type": "attribute",
-                  "label": "perimeter",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.7803202333041441
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "type",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.683554616539082,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "61ca5437-6539-88f4-4f59-a9508eefdf1e",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.5728081182215903
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.3622534354244682
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "type",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.6996122480848663,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "moisture",
-                  "type": "timeseries",
-                  "label": "moisture",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.068068867797354
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1668004676539,
-                "endTimeMs": 1668091076539
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0,0,0,0.87)",
-          "padding": "0px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "Esri.WorldImagery",
-            "useCustomProvider": false,
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultZoomLevel": 15,
-            "defaultCenterPosition": "49.348472, 32.108611",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": true,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "draggableMarker": true,
-            "showLabel": false,
-            "showTooltip": false,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageFunction": "var type = data['type'];\nif (type === 'SI Soil Moisture Sensor') {\n    var text = getSensorText();\n    var defaultMarkerWidth = 20;\n    var width = defaultMarkerWidth + getTextWidth(text);\n    var svgStr = getSensorSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [defaultMarkerWidth / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [width * 0.5 - defaultMarkerWidth / 2, - (defaultMarkerWidth / 2)]\n    };\n} else {\n    return null;\n}\n\nfunction getSensorSvg(width, text) {\n    var color = '#FFFFFF';\n    var background = getSensorBackground(color, width);\n    var svgWidth = width;\n    var svgHeight = 20;\n    var opacity = 1;\n    var sensorSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        var transform = '8 0';\n        sensorSvg += '<text transform=\"translate(' + transform + ')\" fill=\"black\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"12\" font-weight=\"600\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    sensorSvg += '</svg>';\n    return sensorSvg;    \n}\n\nfunction getSensorBackground(color, width) {\n     if (width === 20) {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 35) + '\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"10\" y=\"0\" width=\"' + (width - 45) + '\" height=\"20\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getSensorText() {\n    if (data['moisture']) {\n        var moisture = Number(data['moisture']);\n        return moisture + '%';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
-            "markerImages": [],
-            "showPolygon": true,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": false,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "snappable": false,
-            "initDragMode": true,
-            "hideAllControlButton": false,
-            "hideDrawControlButton": false,
-            "hideEditControlButton": false,
-            "hideRemoveControlButton": true,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true
-          },
-          "title": "Fields",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "markerClick": []
-          },
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "1503181d-ed67-4878-b497-f3809bf73675",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
-      },
-      "8345be8d-e581-cbf5-3b22-a95bc191063f": {
-        "type": "latest",
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "name",
-                  "type": "entityField",
-                  "label": "Name",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.848379539472371
-                },
-                {
-                  "name": "perimeter",
-                  "type": "attribute",
-                  "label": "perimeter",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.7803202333041441
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "type",
-                  "color": "#9c27b0",
-                  "settings": {},
-                  "_hash": 0.03959817681570765,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "aa55618a-278a-0776-832d-fa1fe5769a2a",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.5728081182215903
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.3622534354244682
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "type",
-                  "color": "#607d8b",
-                  "settings": {},
-                  "_hash": 0.7731021658879498,
-                  "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "moisture",
-                  "type": "timeseries",
-                  "label": "moisture",
-                  "color": "#8bc34a",
-                  "settings": {},
-                  "_hash": 0.1472154755148487
-                },
-                {
-                  "name": "minMoistureThreshold",
-                  "type": "attribute",
-                  "label": "minMoistureThreshold",
-                  "color": "#ffeb3b",
-                  "settings": {},
-                  "_hash": 0.6726458750444104
-                },
-                {
-                  "name": "maxMoistureThreshold",
-                  "type": "attribute",
-                  "label": "maxMoistureThreshold",
-                  "color": "#03a9f4",
-                  "settings": {},
-                  "_hash": 0.41803536024678767
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1668004676539,
-                "endTimeMs": 1668091076539
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0,0,0,0.87)",
-          "padding": "0px",
-          "settings": {
-            "provider": "openstreet-map",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProvider": "Esri.WorldImagery",
-            "useCustomProvider": false,
-            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "xPosKeyName": "xPos",
-            "yPosKeyName": "yPos",
-            "defaultZoomLevel": 15,
-            "defaultCenterPosition": "49.348472, 32.108611",
-            "disableScrollZooming": false,
-            "disableDoubleClickZooming": false,
-            "disableZoomControl": false,
-            "fitMapBounds": false,
-            "useDefaultCenterPosition": false,
-            "mapPageSize": 16384,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "draggableMarker": false,
-            "showLabel": false,
-            "showTooltip": false,
-            "color": "#fe7569",
-            "useColorFunction": false,
-            "useMarkerImageFunction": true,
-            "markerImageFunction": "var type = data['type'];\nif (type === 'SI Soil Moisture Sensor') {\n    var text = getSensorText();\n    var defaultMarkerWidth = 20;\n    var width = defaultMarkerWidth + getTextWidth(text);\n    var svgStr = getSensorSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [defaultMarkerWidth / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [width * 0.5 - defaultMarkerWidth / 2, - (defaultMarkerWidth / 2)]\n    };\n} else {\n    return null;\n}\n\nfunction getSensorSvg(width, text) {\n    var moisture = data['moisture'];\n    var minMoistureThreshold = data['minMoistureThreshold'];\n    var maxMoistureThreshold = data['maxMoistureThreshold'];\n    var color = '#FFFFFF';\n    var textColor = '#000000';\n    if (typeof moisture === 'number' && (moisture < minMoistureThreshold || moisture > maxMoistureThreshold)) {\n        color = '#D12730';\n        textColor = '#FFFFFF';\n    }\n    var background = getSensorBackground(color, width);\n    var svgWidth = width;\n    var svgHeight = 20;\n    var opacity = 1;\n    var sensorSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        var transform = '8 0';\n        sensorSvg += '<text transform=\"translate(' + transform + ')\" fill=\"'+textColor+'\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"12\" font-weight=\"600\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    sensorSvg += '</svg>';\n    return sensorSvg;    \n}\n\nfunction getSensorBackground(color, width) {\n     if (width === 20) {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 35) + '\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"10\" y=\"0\" width=\"' + (width - 45) + '\" height=\"20\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getSensorText() {\n    if (data['moisture']) {\n        var moisture = Number(data['moisture']).toFixed(1);\n        return moisture + '%';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
-            "markerImages": [],
-            "showPolygon": true,
-            "polygonKeyName": "perimeter",
-            "editablePolygon": false,
-            "showPolygonLabel": false,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
-            "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "polygonColor": "#3388ff",
-            "polygonOpacity": 0.2,
-            "usePolygonColorFunction": false,
-            "polygonStrokeColor": "#3388ff",
-            "polygonStrokeOpacity": 1,
-            "polygonStrokeWeight": 3,
-            "usePolygonStrokeColorFunction": false,
-            "showCircle": false,
-            "circleKeyName": "perimeter",
-            "editableCircle": false,
-            "showCircleLabel": false,
-            "useCircleLabelFunction": false,
-            "circleLabel": "${entityName}",
-            "showCircleTooltip": false,
-            "showCircleTooltipAction": "click",
-            "autoCloseCircleTooltip": true,
-            "useCircleTooltipFunction": false,
-            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
-            "circleFillColor": "#3388ff",
-            "circleFillColorOpacity": 0.2,
-            "useCircleFillColorFunction": false,
-            "circleStrokeColor": "#3388ff",
-            "circleStrokeOpacity": 1,
-            "circleStrokeWeight": 3,
-            "useCircleStrokeColorFunction": false,
-            "useClusterMarkers": false,
-            "zoomOnClick": true,
-            "maxClusterRadius": 80,
-            "animate": true,
-            "spiderfyOnMaxZoom": false,
-            "showCoverageOnHover": true,
-            "chunkedLoading": false,
-            "removeOutsideVisibleBounds": true
-          },
-          "title": "Fields",
-          "dropShadow": false,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "markerClick": [
-              {
-                "name": "Moisture sensor details",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "moisture_sensor_details",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "popoverPreferredPlacement": "top",
-                "popoverHideOnClickOutside": true,
-                "popoverHideDashboardToolbar": true,
-                "popoverWidth": "300px",
-                "popoverHeight": "250px",
-                "popoverStyle": {},
-                "openInSeparateDialog": false,
-                "openInPopover": true,
-                "id": "f551c47e-12d1-7041-264a-ca98839c2f41"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "8345be8d-e581-cbf5-3b22-a95bc191063f",
-        "typeFullFqn": "system.maps_v2.openstreetmap"
-      },
       "1f66e5cb-041d-1a45-1abf-6f6ae3d91872": {
         "type": "latest",
         "sizeX": 5,
@@ -1787,7 +914,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1797,7 +927,11 @@
                 "startTimeMs": 1668004676539,
                 "endTimeMs": 1668091076539
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1810,7 +944,7 @@
           "padding": "0px",
           "settings": {
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%;\" fxLayout=\"column\">\n    <tb-dashboard-state \n        style=\"height: 160px; width: 100%;\"\n        [ctx]=\"ctx\"\n        stateId=\"moisture_sensor_details_brief\"\n        [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\"> \n    </tb-dashboard-state>\n    <mat-expansion-panel id=\"${entityId}\" class=\"tb-settings\" \n         (expandedChange)=\"showDetails = $event; ctx.popoverComponent?.resize($event ? '400px' : '300px', $event ? '570px' : '250px', 200)\">\n        <mat-expansion-panel-header fxLayout=\"row wrap\">\n            <mat-panel-description fxLayoutAlign=\"end center\">\n                View details\n            </mat-panel-description>\n        </mat-expansion-panel-header>\n        <ng-template matExpansionPanelContent>\n            <div style=\"height: 80px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_alarms\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n            <div style=\"height: 200px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_moisture\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n        </ng-template>\n    </mat-expansion-panel>\n</div>",
+            "markdownTextPattern": "<div class=\"main-layout flex flex-col\" style=\"width: 100%;\">\n    <tb-dashboard-state \n        style=\"height: 160px; width: 100%;\"\n        [ctx]=\"ctx\"\n        stateId=\"moisture_sensor_details_brief\"\n        [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\"> \n    </tb-dashboard-state>\n    <mat-expansion-panel id=\"${entityId}\" class=\"tb-settings\" \n         (expandedChange)=\"showDetails = $event; ctx.popoverComponent?.resize($event ? '400px' : '300px', $event ? '570px' : '250px', 200)\">\n        <mat-expansion-panel-header class=\"flex flex-row flex-wrap\">\n            <mat-panel-description class=\"items-center justify-end\">\n                View details\n            </mat-panel-description>\n        </mat-expansion-panel-header>\n        <ng-template matExpansionPanelContent>\n            <div style=\"height: 80px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_alarms\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n            <div style=\"height: 200px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_moisture\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n        </ng-template>\n    </mat-expansion-panel>\n</div>",
             "applyDefaultMarkdownStyle": true,
             "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff !important;\n}\n\n.tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n"
           },
@@ -1896,7 +1030,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1906,7 +1043,11 @@
                 "startTimeMs": 1668004676539,
                 "endTimeMs": 1668091076539
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -1985,7 +1126,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -1995,7 +1139,11 @@
                 "startTimeMs": 1668004676539,
                 "endTimeMs": 1668091076539
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2259,7 +1407,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2269,7 +1420,11 @@
                 "startTimeMs": 1668004676539,
                 "endTimeMs": 1668091076539
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2604,9 +1759,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": true,
             "hideAggInterval": true,
             "hideTimezone": true,
@@ -2697,7 +1849,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2707,7 +1862,11 @@
                 "startTimeMs": 1668004676539,
                 "endTimeMs": 1668091076539
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2720,7 +1879,7 @@
           "padding": "0px",
           "settings": {
             "useMarkdownTextFunction": true,
-            "markdownTextFunction": "var fieldData = data[0];\nvar irrigationEnabled = data[0]['irrigationState'] === 'ON';\nvar indicatorClass = irrigationEnabled ? 'status-on' : 'status-off';\nvar irrigationStatusText = irrigationEnabled ? 'ON' : 'OFF';\n\nreturn '<div class=\"irrigation-status-container\" fxLayout=\"row\" fxLayoutAlign=\"space-between center\">' +\n'<div class=\"irrigation-status-label\">Irrigation status</div>' +\n'<div class=\"irrigation-status\">'+\n  '<span class=\"indicator '+ indicatorClass +'\"></span>'+\n  '<span class=\"irrigation-status-text\">'+irrigationStatusText+'</span>'+\n'</div>' +\n'</div>';\n",
+            "markdownTextFunction": "var fieldData = data[0];\nvar irrigationEnabled = data[0]['irrigationState'] === 'ON';\nvar indicatorClass = irrigationEnabled ? 'status-on' : 'status-off';\nvar irrigationStatusText = irrigationEnabled ? 'ON' : 'OFF';\n\nreturn '<div class=\"irrigation-status-container flex flex-row items-center justify-between\">' +\n'<div class=\"irrigation-status-label\">Irrigation status</div>' +\n'<div class=\"irrigation-status\">'+\n  '<span class=\"indicator '+ indicatorClass +'\"></span>'+\n  '<span class=\"irrigation-status-text\">'+irrigationStatusText+'</span>'+\n'</div>' +\n'</div>';\n",
             "markdownCss": ".irrigation-status-container {\n    height: 100%; padding-left: 13px;\n}\n\n.irrigation-status-label {\n    font-size: 16px;\n    font-weight: 400;\n    color: #868D9C;\n}\n\n.indicator {\n    width: 24px; \n    height: 24px; \n    border-radius: 12px;\n    display: inline-block; \n    vertical-align: middle;\n    margin-right: 8px;\n}\n\n.indicator.status-on {\n    background: #198038;\n}\n\n.indicator.status-off {\n    background: #aaa;\n}\n\n.irrigation-status-text {\n    display: inline-block; \n    vertical-align: middle;\n    font-size: 24px;\n    font-weight: 700;\n    color: #000;\n}\n\n@media only screen and (min-width: 960px) and (max-width: 1200px) {\n    .irrigation-status-container {\n        padding-right: 13px;\n    }\n    \n    .indicator {\n        width: 16px; \n        height: 16px; \n        border-radius: 8px;\n        margin-right: 4px;\n    }\n    \n    .irrigation-status-text {\n        font-size: 16px;\n    }\n}"
           },
           "title": "New Markdown/HTML Card",
@@ -2783,7 +1942,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2793,7 +1955,11 @@
                 "startTimeMs": 1668004676539,
                 "endTimeMs": 1668091076539
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2876,7 +2042,92 @@
             "showTicks": false,
             "animation": true,
             "animationDuration": 500,
-            "animationRule": "linear"
+            "animationRule": "linear",
+            "barColor": {
+              "type": "range",
+              "color": "#5d5aec",
+              "colorFunction": "var temperature = value;\nif (typeof temperature !== undefined) {\n  var percent = (temperature + 60)/120 * 100;\n  return tinycolor.mix('blue', 'red', percent).toHexString();\n}\nreturn 'blue';",
+              "rangeList": {
+                "advancedMode": true,
+                "range": null,
+                "rangeAdvanced": [
+                  {
+                    "from": {
+                      "type": "constant",
+                      "value": null,
+                      "entityAlias": "",
+                      "entityKey": "",
+                      "entityKeyType": "attribute"
+                    },
+                    "to": {
+                      "type": "entity",
+                      "value": 25,
+                      "entityAlias": "Current field",
+                      "entityKey": "minMoistureThreshold",
+                      "entityKeyType": "attribute"
+                    },
+                    "color": "#f50b0b"
+                  },
+                  {
+                    "from": {
+                      "type": "entity",
+                      "value": 25,
+                      "entityAlias": "Current field",
+                      "entityKey": "minMoistureThreshold",
+                      "entityKeyType": "attribute"
+                    },
+                    "to": {
+                      "type": "entity",
+                      "value": 75,
+                      "entityAlias": "Current field",
+                      "entityKey": "maxMoistureThreshold",
+                      "entityKeyType": "attribute"
+                    },
+                    "color": "#5d5aec"
+                  },
+                  {
+                    "from": {
+                      "type": "entity",
+                      "value": 75,
+                      "entityAlias": "Current field",
+                      "entityKey": "maxMoistureThreshold",
+                      "entityKeyType": "attribute"
+                    },
+                    "to": {
+                      "type": "constant",
+                      "value": 100,
+                      "entityAlias": "",
+                      "entityKey": "",
+                      "entityKeyType": "attribute"
+                    },
+                    "color": "#f50b0b"
+                  }
+                ]
+              },
+              "gradient": {
+                "advancedMode": false,
+                "gradient": [
+                  "rgba(0, 255, 0, 1)",
+                  "rgba(255, 0, 0, 1)"
+                ],
+                "gradientAdvanced": [
+                  {
+                    "source": {
+                      "type": "constant"
+                    },
+                    "color": "rgba(0, 255, 0, 1)"
+                  },
+                  {
+                    "source": {
+                      "type": "constant"
+                    },
+                    "color": "rgba(255, 0, 0, 1)"
+                  }
+                ],
+                "minValue": 0,
+                "maxValue": 100
+              }
+            }
           },
           "title": "Avg moisture",
           "dropShadow": false,
@@ -2938,7 +2189,10 @@
               "realtimeType": 1,
               "interval": 1000,
               "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
             },
             "history": {
               "historyType": 0,
@@ -2948,7 +2202,11 @@
                 "startTimeMs": 1668004676539,
                 "endTimeMs": 1668091076539
               },
-              "quickInterval": "CURRENT_DAY"
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
             },
             "aggregation": {
               "type": "AVG",
@@ -2961,7 +2219,7 @@
           "padding": "8px",
           "settings": {
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"daily-water-consumption\" fxLayout=\"column\" fxLayoutAlign=\"center center\"><div class=\"text\">${DailyWaterConsumption:0} l</div></div>",
+            "markdownTextPattern": "<div class=\"daily-water-consumption flex flex-col items-center justify-center\"><div class=\"text\">${DailyWaterConsumption:0} l</div></div>",
             "markdownCss": ".daily-water-consumption {\n    width: 100%;\n    height: 100%;\n    padding: 0;\n}\n\n.daily-water-consumption .text {\n    font-weight: 700;\n    font-size: 36px;\n    color: #000;\n}\n\n@media only screen and (min-width: 960px) and (max-width: 1200px) {\n    .daily-water-consumption .text {\n        font-size: 24px;\n    }\n}"
           },
           "title": "Daily water consumption",
@@ -3094,9 +2352,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -3612,9 +2867,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -4442,6 +3694,1015 @@
         "row": 0,
         "col": 0,
         "id": "f99ce7c5-d0b0-0292-d803-78aba8ba3b31"
+      },
+      "ba981af4-bfce-68cd-cc3e-3dd4115614ed": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742901574447,
+                "endTimeMs": 1742987974447
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [],
+            "polygons": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "cd737d26-3068-aae0-d370-c93f8e7e1a00",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "name",
+                    "type": "entityField",
+                    "label": "Name",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4601760333309539
+                  },
+                  {
+                    "name": "cropType",
+                    "type": "attribute",
+                    "label": "cropType",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.46628418434543506
+                  },
+                  {
+                    "name": "avgMoisture",
+                    "type": "timeseries",
+                    "label": "avgMoisture",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7929434969054727
+                  },
+                  {
+                    "name": "minMoistureThreshold",
+                    "type": "attribute",
+                    "label": "minMoistureThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.5298517912865661
+                  },
+                  {
+                    "name": "maxMoistureThreshold",
+                    "type": "attribute",
+                    "label": "maxMoistureThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.750932505135
+                  }
+                ],
+                "label": {
+                  "show": true,
+                  "type": "function",
+                  "pattern": "${entityName}",
+                  "patternFunction": "var html = '<div>';\nhtml += '<div style=\"color: #FFF; font-weight: 600; text-align: center; padding-bottom: 8px;\">${entityName} (${cropType})</div>';\n\nvar avgMoisture = data['avgMoisture'];\nvar avgMoistureText = avgMoisture !== '' ?  Number(avgMoisture).toFixed(1) + '%' : 'n/a';\nvar minMoistureThreshold = data['minMoistureThreshold'];\nvar maxMoistureThreshold = data['maxMoistureThreshold'];\nvar color = '#FFFFFF';\nvar textColor = '#000000';\nif (avgMoisture < minMoistureThreshold || avgMoisture > maxMoistureThreshold) {\n    color = '#D12730';\n    textColor = '#FFFFFF';\n}\n\nhtml += '<div style=\"text-align: center;\"><span style=\"background: ' + color + '; color: ' + textColor + '; border-radius: 8px; padding: 4px;\">'+avgMoistureText+'</span></div>';\n\nhtml += '<div>';\n\nreturn html;"
+                },
+                "tooltip": {
+                  "show": false,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
+                  "offsetX": 0,
+                  "offsetY": -1
+                },
+                "click": {
+                  "type": "openDashboardState",
+                  "targetDashboardStateId": "field",
+                  "setEntityId": true,
+                  "stateEntityParamName": null,
+                  "openRightLayout": false,
+                  "openInSeparateDialog": false,
+                  "openInPopover": false
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "fillColor": {
+                  "type": "constant",
+                  "color": "rgba(51,136,255,0.2)"
+                },
+                "strokeColor": {
+                  "type": "constant",
+                  "color": "#3388ff"
+                },
+                "strokeWeight": 3,
+                "polygonKey": {
+                  "name": "perimeter",
+                  "label": "perimeter",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                }
+              }
+            ],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [
+              "metric"
+            ],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": null,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "0"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "ba981af4-bfce-68cd-cc3e-3dd4115614ed"
+      },
+      "3ae2cf24-0941-03fb-d93e-f25250bf5350": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742901977434,
+                "endTimeMs": 1742988377434
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "aa55618a-278a-0776-832d-fa1fe5769a2a",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "type",
+                    "type": "entityField",
+                    "label": "type",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.4920156422018893,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "moisture",
+                    "type": "timeseries",
+                    "label": "moisture",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.7377089925576237
+                  },
+                  {
+                    "name": "minMoistureThreshold",
+                    "type": "attribute",
+                    "label": "minMoistureThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.5240998179015635
+                  },
+                  {
+                    "name": "maxMoistureThreshold",
+                    "type": "attribute",
+                    "label": "maxMoistureThreshold",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.2745383225592155
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": false,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": null,
+                  "tagActions": null
+                },
+                "click": {
+                  "type": "openDashboardState",
+                  "targetDashboardStateId": "moisture_sensor_details",
+                  "setEntityId": true,
+                  "stateEntityParamName": null,
+                  "openRightLayout": false,
+                  "popoverPreferredPlacement": "top",
+                  "popoverHideOnClickOutside": true,
+                  "popoverHideDashboardToolbar": true,
+                  "popoverWidth": "300px",
+                  "popoverHeight": "250px",
+                  "popoverStyle": {},
+                  "openInSeparateDialog": false,
+                  "openInPopover": true
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "var type = data['type'];\nif (type === 'SI Soil Moisture Sensor') {\n    var text = getSensorText();\n    var defaultMarkerWidth = 20;\n    var width = defaultMarkerWidth + getTextWidth(text);\n    var svgStr = getSensorSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [defaultMarkerWidth / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [width * 0.5 - defaultMarkerWidth / 2, - (defaultMarkerWidth / 2)]\n    };\n} else {\n    return null;\n}\n\nfunction getSensorSvg(width, text) {\n    var moisture = data['moisture'];\n    var minMoistureThreshold = data['minMoistureThreshold'];\n    var maxMoistureThreshold = data['maxMoistureThreshold'];\n    var color = '#FFFFFF';\n    var textColor = '#000000';\n    if (typeof moisture === 'number' && (moisture < minMoistureThreshold || moisture > maxMoistureThreshold)) {\n        color = '#D12730';\n        textColor = '#FFFFFF';\n    }\n    var background = getSensorBackground(color, width);\n    var svgWidth = width;\n    var svgHeight = 20;\n    var opacity = 1;\n    var sensorSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        var transform = '8 0';\n        sensorSvg += '<text transform=\"translate(' + transform + ')\" fill=\"'+textColor+'\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"12\" font-weight=\"600\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    sensorSvg += '</svg>';\n    return sensorSvg;    \n}\n\nfunction getSensorBackground(color, width) {\n     if (width === 20) {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 35) + '\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"10\" y=\"0\" width=\"' + (width - 45) + '\" height=\"20\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getSensorText() {\n    if (data['moisture']) {\n        var moisture = Number(data['moisture']).toFixed(1);\n        return moisture + '%';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
+                  "images": null
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "name",
+                    "type": "entityField",
+                    "label": "Name",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.9160588481387533
+                  },
+                  {
+                    "name": "type",
+                    "type": "entityField",
+                    "label": "type",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.3448235727091016,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "${entityName}"
+                },
+                "tooltip": {
+                  "show": false,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
+                  "offsetX": 0,
+                  "offsetY": -1
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "fillColor": {
+                  "type": "constant",
+                  "color": "rgba(51,136,255,0.2)"
+                },
+                "strokeColor": {
+                  "type": "constant",
+                  "color": "#3388ff"
+                },
+                "strokeWeight": 3,
+                "polygonKey": {
+                  "name": "perimeter",
+                  "label": "perimeter",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                }
+              }
+            ],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [
+              "metric"
+            ],
+            "dragModeButton": false,
+            "fitMapBounds": false,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "0,0",
+            "defaultZoomLevel": 15,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "0"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "3ae2cf24-0941-03fb-d93e-f25250bf5350"
+      },
+      "f21e048f-cbeb-3a95-2751-e1afe17af804": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742903170580,
+                "endTimeMs": 1742989570580
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.roadmap}",
+                "provider": "openstreet",
+                "layerType": "OpenStreetMap.HOT",
+                "referenceLayer": null
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [],
+            "polygons": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "name",
+                    "type": "entityField",
+                    "label": "Name",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.010240480387154305
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "${entityName}"
+                },
+                "tooltip": {
+                  "show": false,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
+                  "offsetX": 0,
+                  "offsetY": -1
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [
+                    "add",
+                    "edit",
+                    "move",
+                    "remove"
+                  ],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "fillColor": {
+                  "type": "constant",
+                  "color": "rgba(51,136,255,0.2)"
+                },
+                "strokeColor": {
+                  "type": "constant",
+                  "color": "#3388ff"
+                },
+                "strokeWeight": 3,
+                "polygonKey": {
+                  "name": "perimeter",
+                  "label": "perimeter",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                }
+              }
+            ],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [
+              "metric"
+            ],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "49.348472, 32.108611",
+            "defaultZoomLevel": 14,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "0"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "f21e048f-cbeb-3a95-2751-e1afe17af804"
+      },
+      "59fbbebb-a7dc-8990-547c-8f0dc27738fa": {
+        "typeFullFqn": "system.map",
+        "type": "latest",
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1742909384356,
+                "endTimeMs": 1742995784356
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "mapType": "geoMap",
+            "layers": [
+              {
+                "label": "{i18n:widgets.maps.layer.satellite}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery"
+              },
+              {
+                "label": "{i18n:widgets.maps.layer.hybrid}",
+                "provider": "openstreet",
+                "layerType": "Esri.WorldImagery",
+                "referenceLayer": "openstreetmap_hybrid"
+              }
+            ],
+            "imageSource": null,
+            "markers": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "dsDeviceId": null,
+                "dsEntityAliasId": "61ca5437-6539-88f4-4f59-a9508eefdf1e",
+                "dsFilterId": null,
+                "additionalDataKeys": [
+                  {
+                    "name": "type",
+                    "type": "entityField",
+                    "label": "type",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.5334895778829469,
+                    "aggregationType": null,
+                    "units": null,
+                    "decimals": null,
+                    "funcBody": null,
+                    "usePostProcessing": null,
+                    "postFuncBody": null
+                  },
+                  {
+                    "name": "moisture",
+                    "type": "timeseries",
+                    "label": "moisture",
+                    "color": "#2196f3",
+                    "settings": {},
+                    "_hash": 0.8966400182081038
+                  }
+                ],
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "",
+                  "patternFunction": null
+                },
+                "tooltip": {
+                  "show": false,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "",
+                  "offsetX": 0,
+                  "offsetY": -1,
+                  "patternFunction": null,
+                  "tagActions": null
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "groups": null,
+                "edit": {
+                  "enabledActions": [
+                    "move"
+                  ],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "xKey": {
+                  "name": "latitude",
+                  "label": "latitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "yKey": {
+                  "name": "longitude",
+                  "label": "longitude",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "markerType": "image",
+                "markerShape": {
+                  "shape": "markerShape1",
+                  "size": 34,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerIcon": {
+                  "iconContainer": "iconContainer1",
+                  "icon": "mdi:lightbulb-on",
+                  "size": 48,
+                  "color": {
+                    "type": "constant",
+                    "color": "#307FE5"
+                  }
+                },
+                "markerImage": {
+                  "type": "function",
+                  "image": "/assets/markers/shape1.svg",
+                  "imageSize": 34,
+                  "imageFunction": "var type = data['type'];\nif (type === 'SI Soil Moisture Sensor') {\n    var text = getSensorText();\n    var defaultMarkerWidth = 20;\n    var width = defaultMarkerWidth + getTextWidth(text);\n    var svgStr = getSensorSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [defaultMarkerWidth / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [width * 0.5 - defaultMarkerWidth / 2, - (defaultMarkerWidth / 2)]\n    };\n} else {\n    return null;\n}\n\nfunction getSensorSvg(width, text) {\n    var color = '#FFFFFF';\n    var background = getSensorBackground(color, width);\n    var svgWidth = width;\n    var svgHeight = 20;\n    var opacity = 1;\n    var sensorSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        var transform = '8 0';\n        sensorSvg += '<text transform=\"translate(' + transform + ')\" fill=\"black\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"12\" font-weight=\"600\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    sensorSvg += '</svg>';\n    return sensorSvg;    \n}\n\nfunction getSensorBackground(color, width) {\n     if (width === 20) {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 35) + '\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"10\" y=\"0\" width=\"' + (width - 45) + '\" height=\"20\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getSensorText() {\n    if (data['moisture']) {\n        var moisture = Number(data['moisture']);\n        return moisture + '%';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
+                  "images": null
+                },
+                "markerOffsetX": 0.5,
+                "markerOffsetY": 1,
+                "markerClustering": {
+                  "enable": false,
+                  "zoomOnClick": true,
+                  "maxZoom": null,
+                  "maxClusterRadius": 80,
+                  "zoomAnimation": true,
+                  "showCoverageOnHover": true,
+                  "spiderfyOnMaxZoom": false,
+                  "chunkedLoad": false,
+                  "lazyLoad": true,
+                  "useClusterMarkerColorFunction": false,
+                  "clusterMarkerColorFunction": null
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "dsType": "entity",
+                "dsLabel": "",
+                "polygonKey": {
+                  "name": "perimeter",
+                  "label": "perimeter",
+                  "type": "attribute",
+                  "settings": {},
+                  "color": "#2196f3"
+                },
+                "fillColor": {
+                  "type": "constant",
+                  "color": "rgba(51,136,255,0.2)"
+                },
+                "strokeColor": {
+                  "type": "constant",
+                  "color": "#3388ff"
+                },
+                "strokeWeight": 3,
+                "label": {
+                  "show": false,
+                  "type": "pattern",
+                  "pattern": "${entityName}"
+                },
+                "tooltip": {
+                  "show": false,
+                  "trigger": "click",
+                  "autoclose": true,
+                  "type": "pattern",
+                  "pattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
+                  "offsetX": 0,
+                  "offsetY": -1
+                },
+                "click": {
+                  "type": "doNothing"
+                },
+                "edit": {
+                  "enabledActions": [],
+                  "attributeScope": "SERVER_SCOPE",
+                  "snappable": false
+                },
+                "dsEntityAliasId": "7473a7a0-136a-63da-f2ca-f249a1336745"
+              }
+            ],
+            "circles": [],
+            "additionalDataSources": [],
+            "controlsPosition": "topleft",
+            "zoomActions": [
+              "scroll",
+              "doubleClick",
+              "controlButtons"
+            ],
+            "scales": [
+              "metric"
+            ],
+            "dragModeButton": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "defaultCenterPosition": "49.348472, 32.108611",
+            "defaultZoomLevel": 15,
+            "mapPageSize": 16384,
+            "mapActionButtons": [],
+            "background": {
+              "type": "color",
+              "color": "#fff",
+              "overlay": {
+                "enabled": false,
+                "color": "rgba(255,255,255,0.72)",
+                "blur": 3
+              }
+            },
+            "padding": "0"
+          },
+          "title": "Map",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "margin": "0px",
+          "borderRadius": "",
+          "iconSize": "24px",
+          "titleIcon": "map",
+          "iconColor": "#1F6BDD",
+          "actions": {},
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "59fbbebb-a7dc-8990-547c-8f0dc27738fa"
       }
     },
     "states": {
@@ -4451,14 +4712,6 @@
         "layouts": {
           "main": {
             "widgets": {
-              "c5f8412d-2ffb-4c44-7a7f-223ceea08d84": {
-                "sizeX": 12,
-                "sizeY": 12,
-                "row": 0,
-                "col": 0,
-                "mobileOrder": 2,
-                "mobileHeight": 6
-              },
               "8ce15aad-9ab2-55ce-2628-a663814d27b1": {
                 "sizeX": 12,
                 "sizeY": 6,
@@ -4474,6 +4727,15 @@
                 "mobileHeight": 4,
                 "row": 6,
                 "col": 12
+              },
+              "ba981af4-bfce-68cd-cc3e-3dd4115614ed": {
+                "sizeX": 12,
+                "sizeY": 12,
+                "mobileOrder": 2,
+                "mobileHeight": 6,
+                "resizable": true,
+                "row": 0,
+                "col": 0
               }
             },
             "gridSettings": {
@@ -4485,7 +4747,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4510,13 +4773,6 @@
                 "col": 0,
                 "mobileOrder": 7,
                 "mobileHeight": 4
-              },
-              "8345be8d-e581-cbf5-3b22-a95bc191063f": {
-                "sizeX": 18,
-                "sizeY": 12,
-                "row": 10,
-                "col": 14,
-                "mobileOrder": 8
               },
               "fd1083dd-fad3-90c3-8eba-8a8fe0f1d93e": {
                 "sizeX": 14,
@@ -4560,6 +4816,14 @@
                 "mobileHeight": null,
                 "row": 0,
                 "col": 32
+              },
+              "3ae2cf24-0941-03fb-d93e-f25250bf5350": {
+                "sizeX": 18,
+                "sizeY": 12,
+                "mobileOrder": 8,
+                "resizable": true,
+                "row": 10,
+                "col": 14
               }
             },
             "gridSettings": {
@@ -4571,7 +4835,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4582,7 +4847,7 @@
         "layouts": {
           "main": {
             "widgets": {
-              "7cfc3255-f459-6eb9-000e-70fef5afbcdb": {
+              "f21e048f-cbeb-3a95-2751-e1afe17af804": {
                 "sizeX": 24,
                 "sizeY": 10,
                 "row": 0,
@@ -4598,7 +4863,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4609,7 +4875,7 @@
         "layouts": {
           "main": {
             "widgets": {
-              "1503181d-ed67-4878-b497-f3809bf73675": {
+              "59fbbebb-a7dc-8990-547c-8f0dc27738fa": {
                 "sizeX": 24,
                 "sizeY": 10,
                 "row": 0,
@@ -4625,7 +4891,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4652,7 +4919,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4679,7 +4947,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4706,7 +4975,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4735,7 +5005,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4762,7 +5033,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4789,7 +5061,8 @@
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
               "mobileRowHeight": 70,
-              "outerMargin": true
+              "outerMargin": true,
+              "layoutType": "default"
             }
           }
         }
@@ -4882,9 +5155,6 @@
     },
     "filters": {},
     "timewindow": {
-      "hideInterval": false,
-      "hideLastInterval": false,
-      "hideQuickInterval": false,
       "hideAggregation": false,
       "hideAggInterval": false,
       "hideTimezone": false,
@@ -4917,16 +5187,17 @@
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 4px 10px rgba(23, 33, 90, 0.08);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell .mat-sort-header-arrow {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell .mdc-checkbox__native-control:not(:indeterminate):not(:checked)~.mdc-checkbox__background, .tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-header-cell .mdc-checkbox__native-control:not(:indeterminate):not(:checked)~.mdc-checkbox__background {\n    border-color : #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-table .mat-mdc-cell button.mat-mdc-icon-button mat-icon {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator {\n    color: #868D9C !important;\n}\n\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator button.mat-mdc-icon-button {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-paginator .mat-mdc-select-value {\n    color: #868D9C !important;\n}\n"
     }
   },
+  "name": "Irrigation management",
   "resources": [
     {
-      "link": "/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "title": "\"Air Quality Monitoring\" dashboard widget \"New OpenStreetMap\" map image",
+      "link": "/api/images/system/smart-irrigation.jpg",
+      "title": "\"Smart irrigation\" dashboard image",
       "type": "IMAGE",
       "subType": "IMAGE",
-      "fileName": "air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
-      "publicResourceKey": "tqOwYO62300IxbMN7XadhrP23toIW8W4",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
+      "fileName": "smart-irrigation.jpg",
+      "publicResourceKey": "m2u11qupuwKHbsybQiIc4KjdZP2UpcZv",
+      "mediaType": "image/jpeg",
+      "data": "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",
       "public": true
     }
   ]

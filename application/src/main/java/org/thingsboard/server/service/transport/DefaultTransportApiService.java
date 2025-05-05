@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -383,7 +383,7 @@ public class DefaultTransportApiService implements TransportApiService {
                     }
                     entityGroupService.addEntityToEntityGroup(tenantId, groupSparkplugDevice.getId(), device.getId());
                 }
-                relationService.saveRelation(TenantId.SYS_TENANT_ID, new EntityRelation(gateway.getId(), device.getId(), "Created"));
+                relationService.saveRelation(tenantId, new EntityRelation(gateway.getId(), device.getId(), "Created"));
 
                 TbMsgMetaData metaData = new TbMsgMetaData();
                 CustomerId customerId = gateway.getCustomerId();

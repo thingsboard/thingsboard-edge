@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -69,7 +69,7 @@ import { MatSort, SortDirection } from '@angular/material/sort';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isDefinedAndNotNull, isNotEmptyStr, isNumber } from '@core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SchedulerEventDialogComponent,
@@ -105,6 +105,7 @@ import { hidePageSizePixelValue } from '@shared/models/constants';
 import { asRoughMs, rangeContainsMarker } from '@fullcalendar/core/internal';
 import _moment from 'moment';
 import { FormBuilder } from '@angular/forms';
+import { isValidPageStepCount, isValidPageStepIncrement } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -151,8 +152,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   mode = 'list';
 
   displayPagination = true;
-  pageSizeOptions: Array<number>;
-  defaultPageSize = 10;
+  pageSizeOptions: Array<number> = [];
+  defaultPageSize;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
   hidePageSize = false;
@@ -216,8 +217,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       const routerQueryParams: PageQueryParam = this.route.snapshot.queryParams;
       const sortOrder: SortOrder = {
         property: routerQueryParams?.property || this.defaultSortOrder,
-        direction: routerQueryParams?.direction || Direction.ASC
+        direction: routerQueryParams?.direction || Direction.DESC
       };
+      this.defaultPageSize = 10;
       this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
       if (routerQueryParams.hasOwnProperty('page')) {
@@ -346,10 +348,26 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     this.displayedColumns.push('actions');
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     const pageSize = this.settings.defaultPageSize;
-    if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
+    let pageStepIncrement = isValidPageStepIncrement(this.settings.pageStepIncrement) ? this.settings.pageStepIncrement : null;
+    let pageStepCount = isValidPageStepCount(this.settings.pageStepCount) ? this.settings.pageStepCount : null;
+
+    if (Number.isInteger(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
+      pageStepCount = 3;
+    }
+
+    for (let i = 1; i <= pageStepCount; i++) {
+      this.pageSizeOptions.push(pageStepIncrement * i);
+    }
+
     if (this.settings.defaultSortOrder && this.settings.defaultSortOrder.length) {
       this.defaultSortOrder = this.settings.defaultSortOrder;
     }

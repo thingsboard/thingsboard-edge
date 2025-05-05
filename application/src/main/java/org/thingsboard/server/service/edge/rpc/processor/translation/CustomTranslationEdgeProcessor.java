@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ package org.thingsboard.server.service.edge.rpc.processor.translation;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -54,9 +53,8 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationMsgConstructor;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
-import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,21 +65,16 @@ import java.util.UUID;
 @TbCoreComponent
 public class CustomTranslationEdgeProcessor extends BaseEdgeProcessor {
 
-    @Autowired
-    protected CustomTranslationMsgConstructor customTranslationMsgConstructor;
-
-    public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg result = null;
         try {
-            if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_7_0)) {
-                return null;
-            }
             CustomTranslation customTranslation = JacksonUtil.treeToValue(edgeEvent.getBody(), CustomTranslation.class);
             if (customTranslation == null) {
                 return null;
             }
             UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-            CustomTranslationUpdateMsg customTranslationMsg = customTranslationMsgConstructor.constructCustomTranslationMsg(msgType, customTranslation);
+            CustomTranslationUpdateMsg customTranslationMsg = EdgeMsgConstructorUtils.constructCustomTranslationMsg(msgType, customTranslation);
             result = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                     .setCustomTranslationUpdateMsg(customTranslationMsg)
@@ -92,7 +85,8 @@ public class CustomTranslationEdgeProcessor extends BaseEdgeProcessor {
         return result;
     }
 
-    public ListenableFuture<Void> processCustomTranslationNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+    @Override
+    public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(EdgeEventType.valueOf(edgeNotificationMsg.getEntityType()),
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
@@ -128,6 +122,11 @@ public class CustomTranslationEdgeProcessor extends BaseEdgeProcessor {
             }
         }
         return Futures.immediateFuture(null);
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.CUSTOM_TRANSLATION;
     }
 
 }

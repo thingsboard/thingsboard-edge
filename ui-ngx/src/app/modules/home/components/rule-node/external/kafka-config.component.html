@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -87,20 +87,6 @@
         {{ ackValue }}
       </mat-option>
     </mat-select>
-  </mat-form-field>
-  <mat-form-field class="mat-block">
-    <mat-label translate>rule-node-config.key-serializer</mat-label>
-    <input required matInput formControlName="keySerializer">
-    <mat-error *ngIf="kafkaConfigForm.get('keySerializer').hasError('required')">
-      {{ 'rule-node-config.key-serializer-required' | translate }}
-    </mat-error>
-  </mat-form-field>
-  <mat-form-field class="mat-block">
-    <mat-label translate>rule-node-config.value-serializer</mat-label>
-    <input required matInput formControlName="valueSerializer">
-    <mat-error *ngIf="kafkaConfigForm.get('valueSerializer').hasError('required')">
-      {{ 'rule-node-config.value-serializer-required' | translate }}
-    </mat-error>
   </mat-form-field>
   <label translate class="tb-title">rule-node-config.other-properties</label>
   <tb-kv-map-config-old

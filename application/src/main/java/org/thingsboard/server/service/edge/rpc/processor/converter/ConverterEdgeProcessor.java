@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,12 +35,13 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.converter.ConverterMsgConstructor;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
@@ -48,20 +49,25 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 @TbCoreComponent
 public class ConverterEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg convertConverterEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
-        var msgConstructor = ((ConverterMsgConstructor) edgeCtx.getConverterMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion));
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         if (msgType == UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE) {
             Converter converter = edgeCtx.getConverterService().findConverterById(edgeEvent.getTenantId(), converterId);
             if (converter != null) {
                 return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addConverterMsg(msgConstructor.constructConverterUpdateMsg(msgType, converter))
+                        .addConverterMsg(EdgeMsgConstructorUtils.constructConverterUpdateMsg(msgType, converter))
                         .build();
             }
         }
         return null;
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.CONVERTER;
     }
 
 }

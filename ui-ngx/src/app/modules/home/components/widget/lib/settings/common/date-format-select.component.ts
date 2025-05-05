@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -177,14 +177,16 @@ export class DateFormatSelectComponent implements OnInit, ControlValueAccessor {
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const ctx: any = {
-        dateFormat: deepClone(this.modelValue)
-      };
-      const dateFormatSettingsPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, DateFormatSettingsPanelComponent, 'top', true, null,
-        ctx,
-        {},
-        {}, {}, true);
+      const dateFormatSettingsPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: DateFormatSettingsPanelComponent,
+        hostView: this.viewContainerRef,
+        context: {
+          dateFormat: deepClone(this.modelValue)
+        },
+        isModal: true
+      });
       dateFormatSettingsPanelPopover.tbComponentRef.instance.popover = dateFormatSettingsPanelPopover;
       dateFormatSettingsPanelPopover.tbComponentRef.instance.dateFormatApplied.subscribe((dateFormat) => {
         dateFormatSettingsPanelPopover.hide();
@@ -202,15 +204,18 @@ export class DateFormatSelectComponent implements OnInit, ControlValueAccessor {
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const ctx: any = {
-        autoDateFormatSettings: mergeDeep({} as AutoDateFormatSettings,
-          defaultAutoDateFormatSettings, this.modelValue.autoDateFormatSettings)
-      };
-      const autoDateFormatSettingsPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, AutoDateFormatSettingsPanelComponent, ['leftOnly', 'leftTopOnly', 'leftBottomOnly'], true, null,
-        ctx,
-        {},
-        {}, {}, true);
+      const autoDateFormatSettingsPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: AutoDateFormatSettingsPanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: ['leftOnly', 'leftTopOnly', 'leftBottomOnly'],
+        context: {
+          autoDateFormatSettings: mergeDeep({} as AutoDateFormatSettings,
+            defaultAutoDateFormatSettings, this.modelValue.autoDateFormatSettings)
+        },
+        isModal: true
+      });
       autoDateFormatSettingsPanelPopover.tbComponentRef.instance.popover = autoDateFormatSettingsPanelPopover;
       autoDateFormatSettingsPanelPopover.tbComponentRef.instance.autoDateFormatSettingsApplied.subscribe((autoDateFormatSettings) => {
         autoDateFormatSettingsPanelPopover.hide();

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,8 +37,10 @@ import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.queue.TbQueueHandler;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
+import java.util.Collection;
+
 public interface TbCoreIntegrationApiService extends TbQueueHandler<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> {
 
-    void handle(TbProtoQueueMsg<ToCoreIntegrationMsg> msg, TbCallback callback);
+    void handle(Collection<TbProtoQueueMsg<ToCoreIntegrationMsg>> msg, TbCallback callback);
 
 }

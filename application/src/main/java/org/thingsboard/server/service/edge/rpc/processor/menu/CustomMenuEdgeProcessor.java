@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,9 +52,8 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.menu.CustomMenuMsgConstructor;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
-import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -67,13 +66,8 @@ public class CustomMenuEdgeProcessor extends BaseEdgeProcessor {
     @Autowired
     private CustomMenuService customMenuService;
 
-    @Autowired
-    private CustomMenuMsgConstructor customMenuMsgConstructor;
-
-    public DownlinkMsg convertCustomMenuEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
-        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0)) {
-            return null;
-        }
+    @Override
+    public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         CustomMenu customMenu = JacksonUtil.convertValue(edgeEvent.getBody(), CustomMenu.class);
         if (customMenu == null) {
             return null;
@@ -85,29 +79,32 @@ public class CustomMenuEdgeProcessor extends BaseEdgeProcessor {
             switch (edgeEvent.getAction()) {
                 case ADDED, UPDATED -> {
                     List<EntityId> entityIds = customMenuService.findCustomMenuAssigneeList(customMenu).stream().map(EntityInfo::getId).toList();
-                    customMenuProto = customMenuMsgConstructor.constructCustomMenuMsg(msgType, customMenu, entityIds);
+                    customMenuProto = EdgeMsgConstructorUtils.constructCustomMenuMsg(msgType, customMenu, entityIds);
                 }
                 case DELETED -> {
-                    customMenuProto = customMenuMsgConstructor.constructCustomMenuMsg(msgType, customMenu, null);
+                    customMenuProto = EdgeMsgConstructorUtils.constructCustomMenuMsg(msgType, customMenu, null);
                 }
             }
-            return DownlinkMsg.newBuilder()
-                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                    .setCustomMenuProto(customMenuProto)
-                    .build();
+            return DownlinkMsg.newBuilder().setDownlinkMsgId(EdgeUtils.nextPositiveInt()).setCustomMenuProto(customMenuProto).build();
         } catch (Exception e) {
             log.error("Error processing custom menu for edgeEvent [{}]", edgeEvent, e);
             return null;
         }
     }
 
-    public ListenableFuture<Void> processCustomMenuNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+    @Override
+    public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(EdgeEventType.valueOf(edgeNotificationMsg.getEntityType()),
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
         EdgeId sourceEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         return processActionForAllEdges(tenantId, type, actionType, entityId, JacksonUtil.toJsonNode(edgeNotificationMsg.getBody()), sourceEdgeId);
+    }
+
+    @Override
+    public EdgeEventType getEdgeEventType() {
+        return EdgeEventType.CUSTOM_MENU;
     }
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,6 +67,8 @@ public interface CustomerService extends EntityDaoService {
     void deleteCustomer(TenantId tenantId, CustomerId customerId);
 
     Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId);
+
+    Customer findPublicCustomer(TenantId tenantId, EntityId ownerId);
 
     EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId);
 

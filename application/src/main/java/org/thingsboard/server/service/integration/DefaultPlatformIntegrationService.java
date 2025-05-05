@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -259,12 +259,12 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
     }
 
     @Override
-    public void processUplinkData(AbstractIntegration integration, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        processUplinkData(integration, integration.getId().getId(), data, callback); //for local integration context sessionId is exact integrationId
+    public Runnable processUplinkData(AbstractIntegration integration, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
+        return processUplinkData(integration, integration.getId().getId(), data, callback); //for local integration context sessionId is exact integrationId
     }
 
     @Override
-    public void processUplinkData(AbstractIntegration integration, UUID sessionId, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
+    public Runnable processUplinkData(AbstractIntegration integration, UUID sessionId, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
         Device device = getOrCreateDevice(integration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
 
         TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
@@ -286,33 +286,37 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
 
         TransportProtos.SessionInfoProto sessionInfo = builder.build();
 
-        if (data.hasPostTelemetryMsg()) {
-            process(sessionInfo, data.getPostTelemetryMsg(), callback);
-        }
+        return () -> {
+            if (data.hasPostTelemetryMsg()) {
+                process(sessionInfo, data.getPostTelemetryMsg(), callback);
+            }
 
-        if (data.hasPostAttributesMsg()) {
-            process(sessionInfo, data.getPostAttributesMsg(), callback);
-        }
+            if (data.hasPostAttributesMsg()) {
+                process(sessionInfo, data.getPostAttributesMsg(), callback);
+            }
+        };
     }
 
     @Override
-    public void processUplinkData(AbstractIntegration configuration, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
+    public Runnable processUplinkData(AbstractIntegration configuration, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
         Asset asset = getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
 
-        if (data.hasPostTelemetryMsg()) {
-            process(asset, data.getPostTelemetryMsg(), callback);
-        }
+        return () -> {
+            if (data.hasPostTelemetryMsg()) {
+                process(asset, data.getPostTelemetryMsg(), callback);
+            }
 
-        if (data.hasPostAttributesMsg()) {
-            process(asset, data.getPostAttributesMsg(), callback);
-        }
+            if (data.hasPostAttributesMsg()) {
+                process(asset, data.getPostAttributesMsg(), callback);
+            }
+        };
     }
 
     @Override
-    public void processUplinkData(AbstractIntegration integrationInfo, EntityViewDataProto data, IntegrationCallback<Void> callback) {
+    public Runnable processUplinkData(AbstractIntegration integrationInfo, EntityViewDataProto data, IntegrationCallback<Void> callback) {
         Device device = getOrCreateDevice(integrationInfo, data.getDeviceName(), data.getDeviceType(), null, null, null);
         getOrCreateEntityView(integrationInfo, device, data);
-        callback.onSuccess(null);
+        return () -> callback.onSuccess(null);
     }
 
     @Override

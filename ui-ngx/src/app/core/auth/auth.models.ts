@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,10 @@ export interface SysParamsState {
   userSettings: UserSettings;
   maxResourceSize: number;
   maxDebugModeDurationMinutes: number;
+  maxDataPointsPerRollingArg: number;
+  maxArgumentsPerCF: number;
   ruleChainDebugPerTenantLimitsConfiguration?: string;
+  calculatedFieldDebugPerTenantLimitsConfiguration?: string;
   integrationDebugPerTenantLimitsConfiguration?: string;
   converterDebugPerTenantLimitsConfiguration?: string;
   availableLocales: string[];

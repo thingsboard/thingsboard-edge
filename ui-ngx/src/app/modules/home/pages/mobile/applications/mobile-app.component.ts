@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -181,11 +181,17 @@ export class MobileAppComponent extends EntityComponent<MobileApp> {
           ? this.entityForm.get('versionInfo.latestVersionReleaseNotes').value
           : this.entityForm.get('versionInfo.minVersionReleaseNotes').value
       };
-      const releaseNotesPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, EditorPanelComponent, ['leftOnly', 'leftBottomOnly', 'leftTopOnly'], true, null,
-        ctx,
-        {},
-        {}, {}, false, () => {}, {padding: '16px 24px'});
+      const releaseNotesPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        hostView: this.viewContainerRef,
+        componentType: EditorPanelComponent,
+        preferredPlacement: ['leftOnly', 'leftBottomOnly', 'leftTopOnly'],
+        context: ctx,
+        showCloseButton: false,
+        popoverContentStyle: {padding: '16px 24px'},
+        isModal: false
+      });
       releaseNotesPanelPopover.tbComponentRef.instance.popover = releaseNotesPanelPopover;
       releaseNotesPanelPopover.tbComponentRef.instance.editorContentApplied.subscribe((releaseNotes) => {
         releaseNotesPanelPopover.hide();

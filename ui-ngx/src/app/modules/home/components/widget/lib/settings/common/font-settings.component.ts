@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -124,11 +124,15 @@ export class FontSettingsComponent implements OnInit, ControlValueAccessor {
           ctx.previewText = previewText;
         }
       }
-      const fontSettingsPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, FontSettingsPanelComponent, 'left', true, null,
-        ctx,
-        {},
-        {}, {}, true);
+      const fontSettingsPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: FontSettingsPanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'left',
+        context: ctx,
+        isModal: true
+      });
       fontSettingsPanelPopover.tbComponentRef.instance.popover = fontSettingsPanelPopover;
       fontSettingsPanelPopover.tbComponentRef.instance.fontApplied.subscribe((font) => {
         fontSettingsPanelPopover.hide();

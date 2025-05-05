@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,10 +31,10 @@
 
 import {
   ImageResourceInfo,
-  ImageResourceInfoWithReferences,
+  ResourceInfoWithReferences,
   imageResourceType,
   ResourceSubType,
-  toImageDeleteResult
+  toResourceDeleteResult
 } from '@shared/models/resource.models';
 import { forkJoin, merge, Observable, of, Subject, Subscription } from 'rxjs';
 import { ImageService } from '@core/http/image.service';
@@ -82,9 +82,9 @@ import { ImageDialogComponent, ImageDialogData } from '@shared/components/image/
 import { ImportExportService } from '@shared/import-export/import-export.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import {
-  ImagesInUseDialogComponent,
-  ImagesInUseDialogData
-} from '@shared/components/image/images-in-use-dialog.component';
+  ResourcesInUseDialogComponent,
+  ResourcesInUseDialogData
+} from '@shared/components/resource/resources-in-use-dialog.component';
 import { ImagesDatasource } from '@shared/components/image/images-datasource';
 import { EmbedImageDialogComponent, EmbedImageDialogData } from '@shared/components/image/embed-image-dialog.component';
 
@@ -523,21 +523,30 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
       this.translate.instant('action.yes')).subscribe((result) => {
       if (result) {
         this.imageService.deleteImage(imageResourceType(image), image.resourceKey, false, {ignoreErrors: true}).pipe(
-          map(() => toImageDeleteResult(image)),
-          catchError((err) => of(toImageDeleteResult(image, err)))
+          map(() => toResourceDeleteResult(image)),
+          catchError((err) => of(toResourceDeleteResult(image, err)))
         ).subscribe(
           (deleteResult) => {
             if (deleteResult.success) {
               this.imageDeleted(itemIndex);
-            } else if (deleteResult.imageIsReferencedError) {
-              this.dialog.open<ImagesInUseDialogComponent, ImagesInUseDialogData,
-                ImageResourceInfo[]>(ImagesInUseDialogComponent, {
+            } else if (deleteResult.resourceIsReferencedError) {
+              const images = [{...image, ...{references: deleteResult.references}}];
+              const data = {
+                multiple: false,
+                resources: images,
+                configuration: {
+                  title: 'image.image-is-in-use',
+                  message: this.translate.instant('image.image-is-in-use-text', {title: images[0].title}),
+                  deleteText: 'image.delete-image-in-use-text',
+                  selectedText: 'image.selected-images',
+                  columns: ['select', 'preview', 'title', 'references']
+                }
+              };
+              this.dialog.open<ResourcesInUseDialogComponent, ResourcesInUseDialogData,
+                ImageResourceInfo[]>(ResourcesInUseDialogComponent, {
                 disableClose: true,
                 panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-                data: {
-                  multiple: false,
-                  images: [{...image, ...{references: deleteResult.references}}]
-                }
+                data
               }).afterClosed().subscribe((images) => {
                 if (images) {
                   this.imageService.deleteImage(imageResourceType(image), image.resourceKey, true).subscribe(
@@ -573,29 +582,38 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
         if (result) {
           const tasks = selectedImages.map((image) =>
             this.imageService.deleteImage(imageResourceType(image), image.resourceKey, false, {ignoreErrors: true}).pipe(
-              map(() => toImageDeleteResult(image)),
-              catchError((err) => of(toImageDeleteResult(image, err)))
+              map(() => toResourceDeleteResult(image)),
+              catchError((err) => of(toResourceDeleteResult(image, err)))
             )
           );
           forkJoin(tasks).subscribe(
             (deleteResults) => {
               const anySuccess = deleteResults.some(res => res.success);
-              const referenceErrors = deleteResults.filter(res => res.imageIsReferencedError);
+              const referenceErrors = deleteResults.filter(res => res.resourceIsReferencedError);
               const otherError = deleteResults.find(res => !res.success);
               if (anySuccess) {
                 this.updateData();
               }
               if (referenceErrors?.length) {
-                const imagesWithReferences: ImageResourceInfoWithReferences[] =
-                  referenceErrors.map(ref => ({...ref.image, ...{references: ref.references}}));
-                this.dialog.open<ImagesInUseDialogComponent, ImagesInUseDialogData,
-                  ImageResourceInfo[]>(ImagesInUseDialogComponent, {
+                const imagesWithReferences: ResourceInfoWithReferences[] =
+                  referenceErrors.map(ref => ({...ref.resource, ...{references: ref.references}}));
+                const data = {
+                  multiple: true,
+                  resources: imagesWithReferences,
+                  configuration: {
+                    title: 'image.images-are-in-use',
+                    message: this.translate.instant('image.images-are-in-use-text'),
+                    deleteText: 'image.delete-image-in-use-text',
+                    selectedText: 'image.selected-images',
+                    columns: ['select', 'preview', 'title', 'references'],
+                    datasource: new ImagesDatasource(null, imagesWithReferences, entity => true)
+                  }
+                };
+                this.dialog.open<ResourcesInUseDialogComponent, ResourcesInUseDialogData,
+                  ImageResourceInfo[]>(ResourcesInUseDialogComponent, {
                   disableClose: true,
                   panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-                  data: {
-                    multiple: true,
-                    images: imagesWithReferences
-                  }
+                  data
                 }).afterClosed().subscribe((forceDeleteImages) => {
                   if (forceDeleteImages && forceDeleteImages.length) {
                     const forceDeleteTasks = forceDeleteImages.map((image) =>

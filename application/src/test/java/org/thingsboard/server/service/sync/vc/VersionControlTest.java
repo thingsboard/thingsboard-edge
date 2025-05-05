@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,6 @@ import org.thingsboard.rule.engine.debug.TbMsgGeneratorNode;
 import org.thingsboard.rule.engine.debug.TbMsgGeneratorNodeConfiguration;
 import org.thingsboard.rule.engine.metadata.TbGetAttributesNode;
 import org.thingsboard.rule.engine.metadata.TbGetAttributesNodeConfiguration;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -58,11 +57,19 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.OtaPackage;
-import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.cf.CalculatedField;
+import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+import org.thingsboard.server.common.data.cf.configuration.Argument;
+import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
+import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
+import org.thingsboard.server.common.data.cf.configuration.Output;
+import org.thingsboard.server.common.data.cf.configuration.OutputType;
+import org.thingsboard.server.common.data.cf.configuration.ReferencedEntityKey;
+import org.thingsboard.server.common.data.cf.configuration.SimpleCalculatedFieldConfiguration;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.debug.DebugSettings;
@@ -104,8 +111,6 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
-import org.thingsboard.server.common.data.secret.Secret;
-import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
@@ -125,7 +130,6 @@ import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -140,7 +144,6 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.thingsboard.server.common.data.DataConstants.ENCRYPTION_KEY;
 
 @DaoSqlTest
 @TestPropertySource(properties = {
@@ -700,6 +703,69 @@ public class VersionControlTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testVcWithCalculatedFields_betweenTenants() throws Exception {
+        Asset asset = createAsset(null, null, "Asset 1");
+        Device device = createDevice(null, null, "Device 1", "test1");
+        CalculatedField calculatedField = createCalculatedField("CalculatedField1", device.getId(), asset.getId());
+        String versionId = createVersion("calculated fields of asset and device", EntityType.ASSET, EntityType.DEVICE, EntityType.DEVICE_PROFILE, EntityType.ASSET_PROFILE);
+
+        loginTenant2();
+        loadVersion(versionId, config -> {
+            config.setLoadCredentials(false);
+        }, EntityType.ASSET, EntityType.DEVICE, EntityType.DEVICE_PROFILE, EntityType.ASSET_PROFILE);
+
+        Asset importedAsset = findAsset(asset.getName());
+        Device importedDevice = findDevice(device.getName());
+        checkImportedEntity(tenantId1, device, tenantId2, importedDevice);
+        checkImportedEntity(tenantId1, asset, tenantId2, importedAsset);
+
+        List<CalculatedField> importedCalculatedFields = findCalculatedFieldsByEntityId(importedDevice.getId());
+        assertThat(importedCalculatedFields).size().isOne();
+        assertThat(importedCalculatedFields.get(0)).satisfies(importedField -> {
+            assertThat(importedField.getName()).isEqualTo(calculatedField.getName());
+            assertThat(importedField.getType()).isEqualTo(calculatedField.getType());
+            assertThat(importedField.getId()).isNotEqualTo(calculatedField.getId());
+        });
+    }
+
+    @Test
+    public void testVcWithReferencedCalculatedFields_betweenTenants() throws Exception {
+        Asset asset = createAsset(null, null, "Asset 1");
+        Device device = createDevice(null, null, "Device 1", "test1");
+        CalculatedField deviceCalculatedField = createCalculatedField("CalculatedField1", device.getId(), asset.getId());
+        CalculatedField assetCalculatedField = createCalculatedField("CalculatedField2", asset.getId(), device.getId());
+        String versionId = createVersion("calculated fields of asset and device", EntityType.ASSET, EntityType.DEVICE, EntityType.DEVICE_PROFILE, EntityType.ASSET_PROFILE);
+
+        loginTenant2();
+        loadVersion(versionId, config -> {
+            config.setLoadCredentials(false);
+        }, EntityType.ASSET, EntityType.DEVICE, EntityType.DEVICE_PROFILE, EntityType.ASSET_PROFILE);
+
+        Asset importedAsset = findAsset(asset.getName());
+        Device importedDevice = findDevice(device.getName());
+        checkImportedEntity(tenantId1, device, tenantId2, importedDevice);
+        checkImportedEntity(tenantId1, asset, tenantId2, importedAsset);
+
+        List<CalculatedField> importedDeviceCalculatedFields = findCalculatedFieldsByEntityId(importedDevice.getId());
+        assertThat(importedDeviceCalculatedFields).size().isOne();
+        assertThat(importedDeviceCalculatedFields.get(0)).satisfies(importedField -> {
+            assertThat(importedField.getName()).isEqualTo(deviceCalculatedField.getName());
+            assertThat(importedField.getType()).isEqualTo(deviceCalculatedField.getType());
+            assertThat(importedField.getId()).isNotEqualTo(deviceCalculatedField.getId());
+            assertThat(importedField.getConfiguration().getArguments().get("T").getRefEntityId()).isEqualTo(importedAsset.getId());
+        });
+
+        List<CalculatedField> importedAssetCalculatedFields = findCalculatedFieldsByEntityId(importedAsset.getId());
+        assertThat(importedAssetCalculatedFields).size().isOne();
+        assertThat(importedAssetCalculatedFields.get(0)).satisfies(importedField -> {
+            assertThat(importedField.getName()).isEqualTo(assetCalculatedField.getName());
+            assertThat(importedField.getType()).isEqualTo(assetCalculatedField.getType());
+            assertThat(importedField.getId()).isNotEqualTo(assetCalculatedField.getId());
+            assertThat(importedField.getConfiguration().getArguments().get("T").getRefEntityId()).isEqualTo(importedDevice.getId());
+        });
+    }
+
+    @Test
     public void testEntityGroupVcWithPermissions_sameTenant() throws Exception {
         EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
         EntityGroup deviceGroup = createEntityGroup(tenantId1, EntityType.DEVICE, "My devices");
@@ -762,38 +828,17 @@ public class VersionControlTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testSecretVc_sameTenant() throws Exception {
-        // key for tenantId1 to process encryption
-        createSecretEncryptionKey();
+    public void testVcWithCalculatedFields_sameTenant() throws Exception {
+        Asset asset = createAsset(null, null, "Asset 1");
+        CalculatedField calculatedField = createCalculatedField("CalculatedField", asset.getId(), asset.getId());
+        String versionId = createVersion("asset and field", EntityType.ASSET);
 
-        byte[] value = "Value".getBytes(StandardCharsets.UTF_8);
-        SecretInfo secretInfo = createSecret("Secret1", SecretType.TEXT, value);
-        String versionId = createVersion("secret", EntityType.SECRET);
-
-        loadVersion(versionId, EntityType.SECRET);
-        SecretInfo importedSecretInfo = findSecret(secretInfo.getName());
-        assertThat(importedSecretInfo.getId()).isEqualTo(secretInfo.getId());
-        assertThat(importedSecretInfo.getName()).isEqualTo(secretInfo.getName());
-        assertThat(importedSecretInfo.getType()).isEqualTo(secretInfo.getType());
-    }
-
-    @Test
-    public void testSecretVc_betweenTenants() throws Exception {
-        // key for tenantId1 to process encryption
-        createSecretEncryptionKey();
-
-        byte[] value = "Value".getBytes(StandardCharsets.UTF_8);
-        SecretInfo secretInfo = createSecret("Secret1", SecretType.TEXT, value);
-        String versionId = createVersion("secret", EntityType.SECRET);
-
-        loginTenant2();
-        createSecretEncryptionKey();
-        loadVersion(versionId, EntityType.SECRET);
-
-        SecretInfo importedSecretInfo = findSecret(secretInfo.getName());
-        checkImportedEntity(tenantId1, secretInfo, tenantId2, importedSecretInfo);
-        assertThat(importedSecretInfo.getName()).isEqualTo(secretInfo.getName());
-        assertThat(importedSecretInfo.getType()).isEqualTo(secretInfo.getType());
+        loadVersion(versionId, EntityType.ASSET);
+        CalculatedField importedCalculatedField = findCalculatedFieldByEntityId(asset.getId());
+        assertThat(importedCalculatedField.getId()).isEqualTo(calculatedField.getId());
+        assertThat(importedCalculatedField.getName()).isEqualTo(calculatedField.getName());
+        assertThat(importedCalculatedField.getConfiguration()).isEqualTo(calculatedField.getConfiguration());
+        assertThat(importedCalculatedField.getType()).isEqualTo(calculatedField.getType());
     }
 
     private <E extends ExportableEntity<?> & HasTenantId> void checkImportedEntity(TenantId tenantId1, E initialEntity, TenantId tenantId2, E importedEntity) {
@@ -908,6 +953,7 @@ public class VersionControlTest extends AbstractControllerTest {
             config.setSaveRelations(true);
             config.setSaveAttributes(true);
             config.setSaveCredentials(true);
+            config.setSaveCalculatedFields(true);
             config.setSavePermissions(true);
             config.setSaveGroupEntities(true);
             return config;
@@ -977,6 +1023,7 @@ public class VersionControlTest extends AbstractControllerTest {
             config.setLoadAttributes(true);
             config.setLoadRelations(true);
             config.setLoadCredentials(true);
+            config.setLoadCalculatedFields(true);
             config.setLoadPermissions(true);
             config.setLoadGroupEntities(true);
             config.setRemoveOtherEntities(false);
@@ -1225,6 +1272,38 @@ public class VersionControlTest extends AbstractControllerTest {
         return doPost("/api/v2/relation", relation, EntityRelation.class);
     }
 
+    private CalculatedField createCalculatedField(String name, EntityId entityId, EntityId referencedEntityId) {
+        CalculatedField calculatedField = new CalculatedField();
+        calculatedField.setEntityId(entityId);
+        calculatedField.setType(CalculatedFieldType.SIMPLE);
+        calculatedField.setName(name);
+        calculatedField.setConfigurationVersion(1);
+        calculatedField.setConfiguration(getCalculatedFieldConfig(referencedEntityId));
+        calculatedField.setVersion(1L);
+        return doPost("/api/calculatedField", calculatedField, CalculatedField.class);
+    }
+
+    private CalculatedFieldConfiguration getCalculatedFieldConfig(EntityId referencedEntityId) {
+        SimpleCalculatedFieldConfiguration config = new SimpleCalculatedFieldConfiguration();
+
+        Argument argument = new Argument();
+        argument.setRefEntityId(referencedEntityId);
+        ReferencedEntityKey refEntityKey = new ReferencedEntityKey("temperature", ArgumentType.TS_LATEST, null);
+        argument.setRefEntityKey(refEntityKey);
+
+        config.setArguments(Map.of("T", argument));
+
+        config.setExpression("T - (100 - H) / 5");
+
+        Output output = new Output();
+        output.setName("output");
+        output.setType(OutputType.TIME_SERIES);
+
+        config.setOutput(output);
+
+        return config;
+    }
+
     protected EntityGroup createEntityGroup(EntityId ownerId, EntityType groupType, String name) {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setOwnerId(ownerId);
@@ -1276,26 +1355,6 @@ public class VersionControlTest extends AbstractControllerTest {
         return doPost("/api/role", role, Role.class);
     }
 
-    private void createSecretEncryptionKey() {
-        AdminSettings encryptionSettings = new AdminSettings();
-        encryptionSettings.setKey(ENCRYPTION_KEY);
-
-        ObjectNode jsonValue = JacksonUtil.newObjectNode();
-        jsonValue.put("password", "password");
-        jsonValue.put("salt", "salt");
-
-        encryptionSettings.setJsonValue(jsonValue);
-        doPost("/api/admin/settings", encryptionSettings, AdminSettings.class);
-    }
-
-    private SecretInfo createSecret(String name, SecretType type, byte[] value) {
-        Secret secret = new Secret();
-        secret.setValue(value);
-        secret.setType(type);
-        secret.setName(name);
-        return doPost("/api/secret", secret, SecretInfo.class);
-    }
-
     protected GroupPermission createGroupPermission(EntityGroupId userGroupId, RoleId genericRoleId) {
         return createGroupPermission(userGroupId, genericRoleId, null, null);
     }
@@ -1327,7 +1386,6 @@ public class VersionControlTest extends AbstractControllerTest {
             assertThat(importedNode.getAdditionalInfo()).isEqualTo(initialNode.getAdditionalInfo());
         }
     }
-
 
     private Dashboard assignDashboardToCustomer(DashboardId dashboardId, CustomerId customerId) {
         return doPost("/api/customer/" + customerId + "/dashboard/" + dashboardId, Dashboard.class);
@@ -1364,7 +1422,6 @@ public class VersionControlTest extends AbstractControllerTest {
 
     private RuleChain findRuleChain(String name) throws Exception {
         return doGetTypedWithPageLink("/api/ruleChains?", new TypeReference<PageData<RuleChain>>() {}, new PageLink(100, 0, name)).getData().get(0);
-
     }
 
     private RuleChainMetaData findRuleChainMetaData(RuleChainId ruleChainId) throws Exception {
@@ -1391,8 +1448,12 @@ public class VersionControlTest extends AbstractControllerTest {
         return doGetTyped("/api/userGroup/" + userGroupId + "/groupPermissions?", new TypeReference<>() {});
     }
 
-    private SecretInfo findSecret(String name) throws Exception {
-        return doGetTypedWithPageLink("/api/secret/infos?", new TypeReference<PageData<SecretInfo>>() {}, new PageLink(100, 0, name)).getData().get(0);
+    private CalculatedField findCalculatedFieldByEntityId(EntityId entityId) throws Exception {
+        return doGetTypedWithPageLink("/api/" + entityId.getEntityType() + "/" + entityId.getId() + "/calculatedFields?", new TypeReference<PageData<CalculatedField>>() {}, new PageLink(100, 0)).getData().get(0);
+    }
+
+    private List<CalculatedField> findCalculatedFieldsByEntityId(EntityId entityId) throws Exception {
+        return doGetTypedWithPageLink("/api/" + entityId.getEntityType() + "/" + entityId.getId() + "/calculatedFields?", new TypeReference<PageData<CalculatedField>>() {}, new PageLink(100, 0)).getData();
     }
 
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ import {
   WidgetConfig,
   WidgetControllerDescriptor,
   WidgetExportType,
+  WidgetHeaderActionButtonType,
   WidgetType,
   widgetType,
   WidgetTypeDescriptor,
@@ -62,7 +63,15 @@ import {
   WidgetActionsApi,
   WidgetSubscriptionApi
 } from '@core/api/widget-api.models';
-import { ChangeDetectorRef, InjectionToken, Injector, NgZone, TemplateRef, Type } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  InjectionToken,
+  Injector,
+  NgZone, Renderer2,
+  TemplateRef,
+  Type,
+  ViewContainerRef
+} from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { RafService } from '@core/services/raf.service';
 import { WidgetTypeId } from '@shared/models/id/widget-type-id';
@@ -121,10 +130,11 @@ import { SharedTelemetrySubscriber, TelemetrySubscriber } from '@shared/models/t
 import { UserId } from '@shared/models/id/user-id';
 import { UserSettingsService } from '@core/http/user-settings.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
-import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeySettingsFunction } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import { UtilsService } from '@core/services/utils.service';
 import { CompiledTbFunction } from '@shared/models/js-function.models';
 import { FormProperty } from '@shared/models/dynamic-form.models';
+import { ExportableEntity } from '@shared/models/base-data';
 
 export interface IWidgetAction {
   name: string;
@@ -137,6 +147,12 @@ export type ShowWidgetHeaderActionFunction = (ctx: WidgetContext, data: Formatte
 export interface WidgetHeaderAction extends IWidgetAction {
   displayName: string;
   descriptor: WidgetActionDescriptor;
+  buttonType?: WidgetHeaderActionButtonType;
+  showIcon?:boolean;
+  buttonColor?: string;
+  buttonFillColor?: string;
+  buttonBorderColor?: string;
+  customButtonStyle?: {[key: string]: string};
   useShowWidgetHeaderActionFunction: boolean;
   showWidgetHeaderActionFunction: CompiledTbFunction<ShowWidgetHeaderActionFunction>;
 }
@@ -235,6 +251,8 @@ export class WidgetContext {
   http: HttpClient;
   sanitizer: DomSanitizer;
   router: Router;
+  renderer: Renderer2;
+  widgetContentContainer: ViewContainerRef;
   reportService: ReportService;
   wl: WhiteLabelingService;
 
@@ -321,6 +339,7 @@ export class WidgetContext {
   timeWindow?: WidgetTimewindow;
 
   embedTitlePanel?: boolean;
+  embedActionsPanel?: boolean;
   overflowVisible?: boolean;
 
   hideTitlePanel = false;
@@ -581,7 +600,7 @@ export interface IDynamicWidgetComponent {
   [key: string]: any;
 }
 
-export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescriptor {
+export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescriptor, ExportableEntity<WidgetTypeId> {
   widgetName: string;
   fullFqn: string;
   deprecated: boolean;
@@ -689,6 +708,7 @@ export const toWidgetInfo = (widgetTypeEntity: WidgetType): WidgetInfo => ({
   fullFqn: fullWidgetTypeFqn(widgetTypeEntity),
   deprecated: widgetTypeEntity.deprecated,
   scada: widgetTypeEntity.scada,
+  externalId: widgetTypeEntity.externalId,
   type: widgetTypeEntity.descriptor.type,
   sizeX: widgetTypeEntity.descriptor.sizeX,
   sizeY: widgetTypeEntity.descriptor.sizeY,
@@ -744,6 +764,7 @@ export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
     name: widgetInfo.widgetName,
     deprecated: widgetInfo.deprecated,
     scada: widgetInfo.scada,
+    externalId: widgetInfo.externalId,
     descriptor
   };
 };

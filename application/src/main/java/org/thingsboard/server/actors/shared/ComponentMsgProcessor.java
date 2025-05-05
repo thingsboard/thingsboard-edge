@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,8 @@ import org.thingsboard.server.common.data.tenant.profile.TenantProfileConfigurat
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.RuleNodeException;
+
+import java.util.concurrent.ScheduledFuture;
 
 @Slf4j
 public abstract class ComponentMsgProcessor<T extends EntityId> extends AbstractContextAwareMsgProcessor {
@@ -92,8 +94,8 @@ public abstract class ComponentMsgProcessor<T extends EntityId> extends Abstract
         start(context);
     }
 
-    public void scheduleStatsPersistTick(TbActorCtx context, long statsPersistFrequency) {
-        schedulePeriodicMsgWithDelay(context, new StatsPersistTick(), statsPersistFrequency, statsPersistFrequency);
+    public ScheduledFuture<?> scheduleStatsPersistTick(TbActorCtx context, long statsPersistFrequency) {
+        return schedulePeriodicMsgWithDelay(context, StatsPersistTick.INSTANCE, statsPersistFrequency, statsPersistFrequency);
     }
 
     protected boolean checkMsgValid(TbMsg tbMsg) {

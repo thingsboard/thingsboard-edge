@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,8 @@
 package org.thingsboard.rule.engine.geo;
 
 import lombok.Data;
+import org.thingsboard.common.util.geo.PerimeterType;
+import org.thingsboard.common.util.geo.RangeUnit;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 
 /**

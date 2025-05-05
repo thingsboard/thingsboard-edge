@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -137,7 +137,7 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.tcpConfigForm.reset(value.clientConfiguration, {emitEvent: false});
       if (!this.disabled) {
-        this.tcpConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: false});
+        this.tcpConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: true});
       }
     } else {
       this.propagateChangePending = true;
@@ -162,7 +162,7 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
       this.tcpConfigForm.disable({emitEvent: false});
     } else {
       this.tcpConfigForm.enable({emitEvent: false});
-      this.tcpConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: false});
+      this.tcpConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: true});
     }
   }
 
@@ -191,7 +191,7 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
       case HandlerConfigurationType.TEXT:
         this.tcpConfigForm.get('handlerConfiguration.maxFrameLength').enable({emitEvent: false});
         this.tcpConfigForm.get('handlerConfiguration.stripDelimiter').enable({emitEvent: false});
-        this.tcpConfigForm.get('handlerConfiguration.messageSeparator').enable({emitEvent: true});
+        this.tcpConfigForm.get('handlerConfiguration.messageSeparator').enable({onlySelf: true});
         break;
     }
     this.tcpConfigForm.get('handlerConfiguration.handlerType').enable({emitEvent: false});

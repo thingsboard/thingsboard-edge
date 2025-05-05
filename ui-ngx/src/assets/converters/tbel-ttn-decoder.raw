@@ -1,183 +1,64 @@
-var data = decodeToJson(payload);
+/**
+ * Decodes the incoming payload and returns a structured object containing telemetry data and attributes.
+ *
+ * @param {byte[]} input - The raw payload received as an array of bytes.
+ * @returns {Object} output - The structured output with decoded telemetry and attributes.
+ */
 
-var deviceName = data.end_device_ids.device_id + " " + data.end_device_ids.dev_eui;
-var deviceType = data.end_device_ids.application_ids.application_id;
-var groupName = null; // If groupName is not null - created device will be added to the entity group with such name.
-var customerName = null; // If customerName is not null - created devices will be assigned to customer with such name.
+function decodePayload(input) {
+    // Initialize the output object with empty attributes and telemetry for clarity.
+    var result = { attributes: {}, telemetry: {}};
 
-// use assetName and assetType instead of deviceName and deviceType
-// to automatically create assets instead of devices.
-// var assetName = 'Asset A';
-// var assetType = 'building';
+    // Decode serial number (SN) from the first 4 bytes of the payload.
+    // Press '?' icon in the top right corner to learn more about built in helper functions and capabilities.
+    result.attributes.sn = parseBytesToInt(input, 0, 4);
 
-// If you want to parse incoming data somehow, you can add your code to this function.
-// input: bytes
-// Note ts represents a timestamp in milliseconds since the Unix epoch (January 1, 1970)
-// expected output:
-//  {
-//    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": [{"ts": 1730898982391, "values": {"telemetryKey":"telemetryValue"}, {"ts": 1730518182391, "values": {"telemetryKey":"telemetryValue"}}]
-//  }
+    // Extract the timestamp from metadata (represented in milliseconds).
+    var timestamp = metadata.ts; // ts is the timestamp parsed from the incoming message's time, or returns the current time if it cannot be parsed.
 
-function decodeFrmPayload(input) {
-    var output = {
-        attributes: {}, telemetry: {}
+    // Initialize an object to store decoded key/value telemetry data.
+    var values = {};
+
+    // Decode battery level from the 5th byte of the payload.
+    values.battery = parseBytesToInt(input, 4, 1);
+
+    // Decode temperature from the 6th and 7th bytes of the payload (divided by 100).
+    values.temperature = parseBytesToInt(input, 5, 2) / 100.0;
+
+    // Decode saturation from the 8th byte of the payload.
+    values.saturation = parseBytesToInt(input, 7, 1);
+
+    // Combine the timestamp with values and add it to the telemetry.
+    result.telemetry = {
+        ts: timestamp,
+        values: values
     };
 
-    // --- Decoding code --- //
-    var decoded = {};
-
-    output.telemetry = [{
-        ts: timestamp,
-        values: decoded
-    }];
-
-    // --- Decoding code --- //
-    return output;
+    // Return the fully constructed output object.
+    return result;
+    // Same logic, less code:
+    // return {
+    //     attributes: {
+    //         sn: parseBytesToInt(input, 0, 4)
+    //     },
+    //     telemetry: {
+    //         ts: convertDateToTimestamp(extractDateFromMetadata()),
+    //         values: {
+    //             battery: parseBytesToInt(input, 4, 1),
+    //             temperature: parseBytesToInt(input, 5, 2) / 100.0,
+    //             saturation: parseBytesToInt(input, 7, 1)
+    //         }
+    //     }
+    // };
 }
 
+var result = decodePayload(payload);
+// Uncomment this code block to overwrite values set in the main configuration window. Useful if you extract device/asset/customer/group names from the payload;
+// result.type = 'DEVICE'; // Entity type allows you to choose type of created entity. Can be 'DEVICE' or 'ASSET'.
+// result.name = 'Temperature Sensor'; // Device or asset name (the value must be unique)
+// result.profile = 'IndustrialSensorProfile'; // Device or asset profile name.
+// result.customer = 'MyCustomer'; // If customer is not null - created entity will be assigned to customer with such name.
+// result.group = 'SensorsGroup'; // If group is not null - created entity will be added to the entity group with such name.
 
-// --- attributes and telemetry objects ---
-var telemetry = [];
-var attributes = {};
-// --- attributes and telemetry objects ---
-
-// --- Timestamp parsing
-var dateString = data.uplink_message.received_at;
-// If data is simulated or device doesn't send his own date string - we will use date from upcoming message, set by network server
-if ((data.simulated != null && data.simulated) || dateString == null) {
-    dateString = data.received_at;
-}
-
-timestamp = parseDateToTimestamp(dateString);
-// --- Timestamp parsing
-
-// Message parsing
-// To avoid paths in the decoded objects we passing false value to function as "pathInKey" argument.
-// Warning: pathInKey can cause already found fields to be overwritten with the last value found, e.g. receive_at from uplink_message will be written receive_at in the root.
-
-// Passing incoming bytes to decodeFrmPayload function, to get custom decoding
-var customDecoding = {};
-if (data.uplink_message.get("frm_payload") != null) {
-    customDecoding = decodeFrmPayload(base64ToBytes(data.uplink_message.frm_payload));
-}
-
-// Collecting data to result
-if (customDecoding.?telemetry.size() > 0) {
-    foreach(telemetryObj: customDecoding.telemetry) {
-        if (telemetryObj.ts != null && telemetryObj.values != null) {
-            telemetry.add(telemetryObj);
-        }
-    }
-}
-
-if (customDecoding.?attributes.size() > 0) {
-    attributes.putAll(customDecoding.attributes);
-}
-
-// You can add some keys manually to attributes or telemetry
-attributes.eui = data.end_device_ids.dev_eui;
-attributes.fPort = data.uplink_message.f_port;
-attributes.devAddr = data.end_device_ids.?dev_addr;
-
-// Uncomment to add more attributes;
-//attributes.applicationId = data.end_device_ids.?application_ids.?application_id;
-//attributes.spreadingFactor = data.uplink_message.?settings.?data_rate.?lora.?spreading_factor;
-//attributes.codeRate = data.uplink_message.?settings.?data_rate.?lora.?coding_rate;
-//attributes.tenantId = data.uplink_message.?network_ids.?tenant_id;
-//attributes.device_id = data.end_device_ids.?device_id;
-//attributes.join_eui = data.end_device_ids.?join_eui;
-//attributes.net_id = data.uplink_message.?network_ids.?net_id;
-//attributes.cluster_id = data.uplink_message.?network_ids.?cluster_id;
-//attributes.cluster_address = data.uplink_message.?network_ids.?cluster_address;
-//attributes.bandwidth = data.uplink_message.?settings.?data_rate.?lora.?bandwidth;
-//attributes.frequency = data.uplink_message.?settings.?frequency;
-
-if(Boolean.parseBoolean(metadata["includeGatewayInfo"])) {
-    var gatewayInfo = getGatewayInfo();
-    var addDataToTelemetry = {};
-
-    // You can add some keys manually to telemetry
-    addDataToTelemetry.snr = gatewayInfo.snr;
-    addDataToTelemetry.rssi = gatewayInfo.rssi;
-    addDataToTelemetry.channel = gatewayInfo.channel_index;
-    addDataToTelemetry.consumed_airtime = data.uplink_message.?consumed_airtime;
-    addDataToTelemetry.fCnt = data.uplink_message.?f_cnt;
-    // You can add some keys manually to telemetry
-
-    telemetry = processTelemetryData(telemetry, addDataToTelemetry);
-}
-
-var result = {
-    deviceName: deviceName,
-    deviceType: deviceType,
-//  assetName: assetName,
-//  assetType: assetType,
-    attributes: attributes,
-    telemetry: telemetry
-};
-
-addAdditionalInfoForDeviceMsg(result, customerName, groupName);
-
+// Return the final result object.
 return result;
-
-
-function addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName) {
-    if (customerName != null) {
-        deviceInfo.customerName = customerName;
-    }
-    if (groupName != null) {
-        deviceInfo.groupName = groupName;
-    }
-}
-
-function parseDateToTimestamp(dateString) {
-    var date = new Date(dateString);
-    var timestamp = date.getTime();
-
-    // If we cannot parse timestamp - we will use the current timestamp
-    if (timestamp == -1) {
-        timestamp = Date.now();
-    }
-
-    return timestamp;
-}
-
-function getGatewayInfo() {
-    var gatewayList = data.uplink_message.?rx_metadata;
-    var maxRssi = Integer. MIN_VALUE;
-    var gatewayInfo = {};
-
-    foreach (gateway : gatewayList) {
-        if(gateway.rssi > maxRssi) {
-            maxRssi = gateway.rssi;
-            gatewayInfo = gateway;
-        }
-    }
-
-    return gatewayInfo;
-}
-
-function processTelemetryData(telemetry, addDataToTelemetry) {
-    if (telemetry.size >= 1) {
-        telemetry = addDataToTelemetries(telemetry, addDataToTelemetry);
-    }
-    else {
-        telemetry.add(addDataToTelemetry);
-    }
-
-    return telemetry;
-}
-
-function addDataToTelemetries(telemetries, addDataToTelemetry) {
-    foreach(telemetry : telemetries) {
-        foreach(element : addDataToTelemetry.entrySet()) {
-            if(!telemetry["values"].keys.contains(element.key)) {
-                telemetry["values"][element.key] = element.value;
-            }
-        }
-    }
-
-    return telemetries;
-}
-

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -139,13 +139,15 @@ export const PowerModeTranslationMap = new Map<PowerMode, string>(
 
 export enum ObjectIDVer {
   V1_0 = '1.0',
-  V1_1 = '1.1'
+  V1_1 = '1.1',
+  V1_2 = '1.2',
 }
 
 export const ObjectIDVerTranslationMap = new Map<ObjectIDVer, string>(
   [
     [ObjectIDVer.V1_0, 'device-profile.lwm2m.default-object-id-ver.v1-0'],
-    [ObjectIDVer.V1_1, 'device-profile.lwm2m.default-object-id-ver.v1-1']
+    [ObjectIDVer.V1_1, 'device-profile.lwm2m.default-object-id-ver.v1-1'],
+    [ObjectIDVer.V1_2, 'device-profile.lwm2m.default-object-id-ver.v1-2'],
   ]
 );
 
@@ -182,6 +184,7 @@ export interface Lwm2mProfileConfigModels {
 
 export interface ClientLwM2mSettings {
   clientOnlyObserveAfterConnect: number;
+  useObject19ForOtaInfo?: boolean;
   fwUpdateStrategy: number;
   swUpdateStrategy: number;
   fwUpdateResource?: string;

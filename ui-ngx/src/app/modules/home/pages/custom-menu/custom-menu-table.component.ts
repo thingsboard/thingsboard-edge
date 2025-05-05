@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -196,16 +196,18 @@ export class CustomMenuTableComponent implements OnInit {
       if (this.popoverService.hasPopover(trigger)) {
         this.popoverService.hidePopover(trigger);
       } else {
-        const ctx = {
-          customMenuId: customMenu.id.id,
-          name: customMenu.name
-        };
-        const editCustomMenuNamePanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-          this.viewContainerRef, EditCustomMenuNamePanelComponent,
-          ['right', 'bottom', 'top'], true, null,
-          ctx,
-          {},
-          {}, {}, true);
+        const editCustomMenuNamePanelPopover = this.popoverService.displayPopover({
+          trigger,
+          renderer: this.renderer,
+          componentType: EditCustomMenuNamePanelComponent,
+          hostView: this.viewContainerRef,
+          preferredPlacement: ['right', 'bottom', 'top'],
+          context: {
+            customMenuId: customMenu.id.id,
+            name: customMenu.name
+          },
+          isModal: true
+        });
         editCustomMenuNamePanelPopover.tbComponentRef.instance.popover = editCustomMenuNamePanelPopover;
         editCustomMenuNamePanelPopover.tbComponentRef.instance.nameApplied.subscribe(() => {
           editCustomMenuNamePanelPopover.hide();

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -251,7 +251,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
     private void doProcess(TuyaIntegrationMsg msg) throws Exception {
         byte[] data = JacksonUtil.writeValueAsBytes(msg.getJson());
         Map<String, String> metadataMap = msg.getDeviceMetadata();
-        List<UplinkData> uplinkDataList = this.convertToUplinkDataList(this.context, data, new UplinkMetaData(ContentType.JSON, metadataMap));
+        List<UplinkData> uplinkDataList = this.convertToUplinkDataList(this.context, data, new UplinkMetaData<>(ContentType.JSON, metadataMap));
         if (uplinkDataList != null && !uplinkDataList.isEmpty()) {
             for (UplinkData uplinkData : uplinkDataList) {
                 UplinkData uplinkDataResult = UplinkData.builder().deviceName(uplinkData.getDeviceName())

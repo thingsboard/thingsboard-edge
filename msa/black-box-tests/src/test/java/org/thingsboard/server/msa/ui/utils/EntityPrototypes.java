@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -54,11 +55,25 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
 
 public class EntityPrototypes {
+
+    public static Tenant defaultTenantPrototype(String tenantName) {
+        Tenant tenant = new Tenant();
+        tenant.setTitle(tenantName);
+        return tenant;
+    }
+
+    public static Customer defaultCustomer(TenantId tenantId, String title) {
+        Customer customer = new Customer();
+        customer.setTenantId(tenantId);
+        customer.setTitle(title);
+        return customer;
+    }
 
     public static Customer defaultCustomerPrototype(String entityName) {
         Customer customer = new Customer();
@@ -78,6 +93,23 @@ public class EntityPrototypes {
         customer.setTitle(entityName);
         customer.setPhone("+1" + number);
         return customer;
+    }
+
+    public static User defaultTenantAdmin(TenantId tenantId, String email) {
+        User user = new User();
+        user.setTenantId(tenantId);
+        user.setEmail(email);
+        user.setAuthority(Authority.TENANT_ADMIN);
+        return user;
+    }
+
+    public static User defaultCustomerAdmin(TenantId tenantId, CustomerId customerId, String email) {
+        User user = new User();
+        user.setTenantId(tenantId);
+        user.setCustomerId(customerId);
+        user.setEmail(email);
+        user.setAuthority(Authority.CUSTOMER_USER);
+        return user;
     }
 
     public static RuleChain defaultRuleChainPrototype(String entityName) {

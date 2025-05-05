@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,7 @@ import {
 import { IAliasController } from '@core/api/widget-api.models';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
-import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeysCallbacks } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import { Datasource } from '@shared/models/widget.models';
 
 @Injectable()
@@ -174,22 +174,25 @@ export class ColorSettingsComponent implements OnInit, ControlValueAccessor, OnD
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const ctx: any = {
-        colorSettings: this.modelValue,
-        settingsComponents: this.colorSettingsComponentService.getOtherColorSettingsComponents(this),
-        aliasController: this.aliasController,
-        dataKeyCallbacks: this.dataKeyCallbacks,
-        datasource: this.datasource,
-        rangeAdvancedMode: this.rangeAdvancedMode,
-        gradientAdvancedMode: this.gradientAdvancedMode,
-        minValue: this.minValue,
-        maxValue: this.maxValue
-      };
-      const colorSettingsPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, ColorSettingsPanelComponent, 'left', true, null,
-        ctx,
-        {},
-        {}, {}, true);
+      const colorSettingsPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: ColorSettingsPanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'left',
+        context: {
+          colorSettings: this.modelValue,
+          settingsComponents: this.colorSettingsComponentService.getOtherColorSettingsComponents(this),
+          aliasController: this.aliasController,
+          dataKeyCallbacks: this.dataKeyCallbacks,
+          datasource: this.datasource,
+          rangeAdvancedMode: this.rangeAdvancedMode,
+          gradientAdvancedMode: this.gradientAdvancedMode,
+          minValue: this.minValue,
+          maxValue: this.maxValue
+        },
+        isModal: true
+      });
       colorSettingsPanelPopover.tbComponentRef.instance.popover = colorSettingsPanelPopover;
       colorSettingsPanelPopover.tbComponentRef.instance.colorSettingsApplied.subscribe((colorSettings) => {
         colorSettingsPanelPopover.hide();

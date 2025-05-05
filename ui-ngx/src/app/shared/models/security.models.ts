@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,9 @@ export enum Operation {
   IMPERSONATE = 'IMPERSONATE',
   CLAIM_DEVICES = 'CLAIM_DEVICES',
   SHARE_GROUP = 'SHARE_GROUP',
-  ASSIGN_TO_TENANT = 'ASSIGN_TO_TENANT'
+  ASSIGN_TO_TENANT = 'ASSIGN_TO_TENANT',
+  READ_CALCULATED_FIELD = 'READ_CALCULATED_FIELD',
+  WRITE_CALCULATED_FIELD = 'WRITE_CALCULATED_FIELD'
 }
 
 const operationTypeTranslations = new Map<Operation, string>();

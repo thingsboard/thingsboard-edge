@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -243,7 +243,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         if (StringUtils.isNotEmpty(options.getUriString())) {
             metadataMap.put("Option:uri", options.getUriString());
         }
-        return convertToUplinkDataList(context, msg.getPayloadBytes(), new UplinkMetaData(msg.getContentType(), metadataMap));
+        return convertToUplinkDataList(context, msg.getPayloadBytes(), new UplinkMetaData<>(msg.getContentType(), metadataMap));
     }
 
     private List<String> getResourceHierarchy(String path) {

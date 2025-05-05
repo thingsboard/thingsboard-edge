@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -211,8 +212,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                 entityData = new HashMap<>();
                 attributes = JacksonUtil.newObjectNode();
                 for (AttributeKvEntry attr : ssAttributes) {
-                    if (DefaultDeviceStateService.PERSISTENT_ATTRIBUTES.contains(attr.getKey())
-                            && !DefaultDeviceStateService.INACTIVITY_TIMEOUT.equals(attr.getKey())) {
+                    if (DefaultDeviceStateService.ACTIVITY_KEYS_WITHOUT_INACTIVITY_TIMEOUT.contains(attr.getKey())) {
                         continue;
                     }
                     if (attr.getDataType() == DataType.BOOLEAN && attr.getBooleanValue().isPresent()) {
@@ -259,7 +259,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             }
             Map<Long, Map<String, Object>> tsData = new HashMap<>();
             for (TsKvEntry tsKvEntry : tsKvEntries) {
-                if (DefaultDeviceStateService.PERSISTENT_ATTRIBUTES.contains(tsKvEntry.getKey())) {
+                if (DefaultDeviceStateService.ACTIVITY_KEYS_WITH_INACTIVITY_TIMEOUT.contains(tsKvEntry.getKey())) {
                     continue;
                 }
                 if (tsKvEntry.getKey().startsWith(DataConstants.RULE_NODE_STATE_PREFIX)) {
@@ -518,20 +518,9 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                 result.add(Futures.transformAsync(roleFuture, role -> {
                     if (role != null) {
                         if (RoleType.GENERIC.equals(role.getType())) {
-                            saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                    EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
-                                    groupPermission.getId(), null, null);
+                            saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermission.getId());
                         } else {
-                            ListenableFuture<Boolean> checkFuture =
-                                    entityGroupService.checkEdgeEntityGroupByIdAsync(edge.getTenantId(), edge.getId(), groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
-                            return Futures.transformAsync(checkFuture, exists -> {
-                                if (Boolean.TRUE.equals(exists)) {
-                                    saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                            EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
-                                            groupPermission.getId(), null, null);
-                                }
-                                return Futures.immediateFuture(null);
-                            }, dbCallbackExecutorService);
+                            return checkAndSaveGroupPermissionEvent(edge, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType(), groupPermission.getId());
                         }
                     }
                     return Futures.immediateFuture(null);
@@ -549,21 +538,31 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
         if (!groupPermissionsData.getData().isEmpty()) {
             List<ListenableFuture<Void>> result = new ArrayList<>();
             for (GroupPermission groupPermission : groupPermissionsData.getData()) {
-                ListenableFuture<Boolean> checkFuture =
-                        entityGroupService.checkEdgeEntityGroupByIdAsync(edge.getTenantId(), edge.getId(), groupPermission.getUserGroupId(), EntityType.USER);
-                result.add(Futures.transformAsync(checkFuture, exists -> {
-                    if (Boolean.TRUE.equals(exists)) {
-                        saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
-                                groupPermission.getId(), null, null);
-                    }
-                    return Futures.immediateFuture(null);
-                }, dbCallbackExecutorService));
+                if (groupPermission.isPublic()) {
+                    saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermission.getId());
+                } else {
+                    result.add(checkAndSaveGroupPermissionEvent(edge, groupPermission.getUserGroupId(), EntityType.USER, groupPermission.getId()));
+                }
             }
             return Futures.transform(Futures.allAsList(result), voids -> null, MoreExecutors.directExecutor());
         } else {
             return Futures.immediateFuture(null);
         }
+    }
+
+    private ListenableFuture<Void> checkAndSaveGroupPermissionEvent(Edge edge, EntityGroupId entityGroupId, EntityType entityGroupType, GroupPermissionId groupPermissionId) {
+        ListenableFuture<Boolean> checkFuture =
+                entityGroupService.checkEntityGroupAssignedToEdgeAsync(edge.getTenantId(), edge.getId(), entityGroupId, entityGroupType);
+        return Futures.transformAsync(checkFuture, exists -> {
+            if (Boolean.TRUE.equals(exists)) {
+                saveGroupPermissionEdgeEvent(edge.getTenantId(), edge.getId(), groupPermissionId);
+            }
+            return Futures.immediateFuture(null);
+        }, dbCallbackExecutorService);
+    }
+
+    private void saveGroupPermissionEdgeEvent(TenantId tenantId, EdgeId edgeId, GroupPermissionId groupPermissionId) {
+        saveEdgeEvent(tenantId, edgeId, EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED, groupPermissionId, null, null);
     }
 
     private ListenableFuture<Void> syncDevices(Edge edge, List<EntityId> entityIds, EntityGroupId entityGroupId) {

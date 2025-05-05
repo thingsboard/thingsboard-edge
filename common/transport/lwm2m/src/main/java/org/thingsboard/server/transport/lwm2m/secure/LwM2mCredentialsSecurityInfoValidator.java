@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -103,7 +103,7 @@ public class LwM2mCredentialsSecurityInfoValidator {
         }
 
         TbLwM2MSecurityInfo securityInfo = resultSecurityStore[0];
-        if (securityInfo.getSecurityMode() == null) {
+        if (securityInfo != null && securityInfo.getSecurityMode() == null) {
             throw new LwM2MAuthException();
         }
         return securityInfo;

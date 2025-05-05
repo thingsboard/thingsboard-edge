@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,14 +87,17 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.rule.TbRuleChainService;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
@@ -103,9 +107,11 @@ import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIG
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_TYPE_DESCRIPTION;
@@ -627,5 +633,38 @@ public class RuleChainController extends BaseController {
             result.add(ruleChain);
         }
         return checkNotNull(result);
+    }
+
+    @ApiOperation(value = "Get Rule Chains By Ids (getRuleChainsByIds)",
+            notes = "Requested rule chains must be owned by tenant which is performing the request. " +
+                    NEW_LINE + RBAC_READ_CHECK)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChains", params = {"ruleChainIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<RuleChain> getRuleChainsByIds(
+            @Parameter(description = "A list of rule chain ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
+            @RequestParam("ruleChainIds") String[] strRuleChainIds) throws Exception {
+        checkArrayParameter("ruleChainIds", strRuleChainIds);
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.RULE_CHAIN, Operation.READ)) {
+            return Collections.emptyList();
+        }
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<RuleChainId> ruleChainIds = new ArrayList<>();
+        for (String strRuleChainId : strRuleChainIds) {
+            ruleChainIds.add(new RuleChainId(toUUID(strRuleChainId)));
+        }
+        List<RuleChain> ruleChains = checkNotNull(ruleChainService.findRuleChainsByIdsAsync(tenantId, ruleChainIds).get());
+        return filterRuleChainsByReadPermission(ruleChains);
+    }
+
+    private List<RuleChain> filterRuleChainsByReadPermission(List<RuleChain> ruleChains) {
+        return ruleChains.stream().filter(ruleChain -> {
+            try {
+                return accessControlService.hasPermission(getCurrentUser(), Resource.RULE_CHAIN, Operation.READ, ruleChain.getId(), ruleChain);
+            } catch (ThingsboardException e) {
+                return false;
+            }
+        }).collect(Collectors.toList());
     }
 }

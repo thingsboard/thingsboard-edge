@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.msg.housekeeper.HousekeeperClient;
 import org.thingsboard.server.dao.eventsourcing.ActionCause;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
@@ -72,7 +73,7 @@ public class CleanUpService {
         EntityType entityType = entityId.getEntityType();
         try {
             log.trace("[{}][{}][{}] Handling entity deletion event", tenantId, entityType, entityId.getId());
-            if (!skippedEntities.contains(entityType)) {
+            if (shouldCleanUp(entityType, event.getEntity())) {
                 cleanUpRelatedData(tenantId, entityId);
             }
             if (entityType == EntityType.USER && event.getCause() != ActionCause.TENANT_DELETION) {
@@ -83,6 +84,10 @@ public class CleanUpService {
         }
     }
 
+    private boolean shouldCleanUp(EntityType entityType, Object entity) {
+        return !skippedEntities.contains(entityType) && !(EntityType.ENTITY_GROUP.equals(entityType) && entity instanceof DeviceGroupOtaPackage);
+    }
+
     public void cleanUpRelatedData(TenantId tenantId, EntityId entityId) {
         log.debug("[{}][{}][{}] Cleaning up related data", tenantId, entityId.getEntityType(), entityId.getId());
         relationService.deleteEntityRelations(tenantId, entityId);
@@ -90,6 +95,7 @@ public class CleanUpService {
         submitTask(HousekeeperTask.deleteTelemetry(tenantId, entityId));
         submitTask(HousekeeperTask.deleteEvents(tenantId, entityId));
         submitTask(HousekeeperTask.deleteAlarms(tenantId, entityId));
+        submitTask(HousekeeperTask.deleteCalculatedFields(tenantId, entityId));
     }
 
     public void removeTenantEntities(TenantId tenantId, EntityType... entityTypes) {

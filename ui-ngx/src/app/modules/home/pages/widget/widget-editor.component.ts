@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -831,11 +831,15 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
       const ctx: any = {
         modules: deepClone(this.controllerScriptModules)
       };
-      const modulesPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, JsFuncModulesComponent, ['leftOnly', 'leftTopOnly', 'leftBottomOnly'], true, null,
-        ctx,
-        {},
-        {}, {}, true);
+      const modulesPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        hostView: this.viewContainerRef,
+        componentType: JsFuncModulesComponent,
+        preferredPlacement: ['leftOnly', 'leftTopOnly', 'leftBottomOnly'],
+        context: ctx,
+        isModal: true
+      });
       modulesPanelPopover.tbComponentRef.instance.popover = modulesPanelPopover;
       modulesPanelPopover.tbComponentRef.instance.modulesApplied.subscribe((modules) => {
         modulesPanelPopover.hide();

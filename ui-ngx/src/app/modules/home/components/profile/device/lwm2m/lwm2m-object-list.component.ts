@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,8 +48,8 @@ import { DeviceProfileService } from '@core/http/device-profile.service';
 import { Direction } from '@shared/models/page/sort-order';
 import { isDefined, isDefinedAndNotNull, isObject, isString } from '@core/utils';
 import { PageLink } from '@shared/models/page/page-link';
-import { TruncatePipe } from '@shared/pipe/truncate.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'tb-profile-lwm2m-object-list',
@@ -94,13 +94,12 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
   @Output()
   removeList = new EventEmitter<any>();
 
-  @ViewChild('objectInput') objectInput: ElementRef<HTMLInputElement>;
+  @ViewChild('objectInput', {static: true}) objectInput: ElementRef<HTMLInputElement>;
+  @ViewChild('objectInput', {static: true, read: MatAutocompleteTrigger}) matAutocompleteTrigger: MatAutocompleteTrigger;
 
-  private propagateChange = (v: any) => {
-  }
+  private propagateChange: (value: any) => void = () => {};
 
-  constructor(public truncate: TruncatePipe,
-              private deviceProfileService: DeviceProfileService,
+  constructor(private deviceProfileService: DeviceProfileService,
               private fb: UntypedFormBuilder) {
     this.lwm2mListFormGroup = this.fb.group({
       objectsList: [this.objectsList],
@@ -128,7 +127,7 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   ngOnInit() {
@@ -154,6 +153,9 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
       this.lwm2mListFormGroup.disable({emitEvent: false});
       if (isDefined(this.objectInput)) {
         this.clear('', false);
+      }
+      if (this.matAutocompleteTrigger.panelOpen) {
+        this.matAutocompleteTrigger.closePanel();
       }
     } else {
       this.lwm2mListFormGroup.enable({emitEvent: false});
@@ -205,7 +207,7 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
   private fetchListObjects = (searchText: string): Observable<Array<ObjectLwM2M>> =>  {
     this.searchText = searchText;
     const pageLink = new PageLink(PAGE_SIZE_LIMIT, 0, this.searchText, {
-      property: 'id',
+      property: 'resourceKey',
       direction: Direction.ASC
     });
     return this.deviceProfileService.getLwm2mObjectsPage(pageLink);

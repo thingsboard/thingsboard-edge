@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,6 +46,7 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 
+import static org.eclipse.leshan.core.model.ResourceModel.Type.NONE;
 import static org.eclipse.leshan.core.model.ResourceModel.Type.OPAQUE;
 
 @Slf4j
@@ -68,12 +69,13 @@ public class LwM2mValueConverterImpl implements LwM2mValueConverter {
             return value;
         }
 
-        if (currentType == expectedType) {
-            /** expected type */
-            return value;
-        }
         if (currentType == null) {
             currentType = OPAQUE;
+        }
+
+        if (currentType == expectedType || currentType == NONE) {
+            /** expected type */
+            return value;
         }
 
         switch (expectedType) {

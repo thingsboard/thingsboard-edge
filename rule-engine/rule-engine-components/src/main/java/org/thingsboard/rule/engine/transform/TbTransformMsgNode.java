@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -72,13 +72,11 @@ public class TbTransformMsgNode extends TbAbstractTransformNode<TbTransformMsgNo
 
     @Override
     protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
-        ctx.logJsEvalRequest();
         return scriptEngine.executeUpdateAsync(msg);
     }
 
     @Override
     protected void transformFailure(TbContext ctx, TbMsg msg, Throwable t) {
-        ctx.logJsEvalFailure();
         super.transformFailure(ctx, msg, t);
     }
 

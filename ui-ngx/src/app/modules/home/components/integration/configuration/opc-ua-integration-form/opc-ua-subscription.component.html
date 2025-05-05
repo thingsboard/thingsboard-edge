@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -35,12 +35,12 @@
     <legend class="group-title" translate>integration.subscription-tags</legend>
     <div class="flex flex-1 flex-row items-center justify-start gap-2"
          *ngFor="let subscriptionTag of opcSubscriptionArrayControls; let i = index"
-         style="max-height: 60px;" [formGroup]="subscriptionTag">
-      <mat-form-field class="mat-block flex-1">
+         [formGroup]="subscriptionTag">
+      <mat-form-field class="mat-block flex-1" subscriptSizing="dynamic">
         <mat-label translate>integration.key</mat-label>
         <input matInput required formControlName="key">
       </mat-form-field>
-      <mat-form-field class="mat-block flex-1">
+      <mat-form-field class="mat-block flex-1" subscriptSizing="dynamic">
         <mat-label translate>integration.path</mat-label>
         <input matInput required formControlName="path">
       </mat-form-field>
@@ -64,6 +64,7 @@
     </div>
     <button mat-stroked-button color="primary"
             type="button"
+            class="mt-4"
             *ngIf="!disabled"
             (click)="addSubscriptionTag()"
             [matTooltip]="'integration.add-subscription-tag' | translate"

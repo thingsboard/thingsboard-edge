@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import { WidgetConfigComponentData, WidgetInfo } from '@home/models/widget-compo
 import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
-import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeySettingsFunction } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 
 export interface AddWidgetDialogData {
   dashboard: Dashboard;

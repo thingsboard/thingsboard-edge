@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -279,6 +279,9 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     }
 
     private void deleteCustomer(TenantId tenantId, CustomerId customerId, boolean deleteSubcustomers, boolean force) {
+        if (!force && calculatedFieldService.referencedInAnyCalculatedField(tenantId, customerId)) {
+            throw new DataValidationException("Can't delete customer that is referenced in calculated fields!");
+        }
         Customer customer = findCustomerById(tenantId, customerId);
         if (customer == null) {
             if (force) {
@@ -337,10 +340,20 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     @Override
     public Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicCustomer, tenantId [{}], ownerId [{}]", tenantId, ownerId);
+        var publicCustomer = findPublicCustomer(tenantId, ownerId);
+        if (publicCustomer != null) {
+            return publicCustomer;
+        }
+        return createPublicCustomer(tenantId, ownerId);
+    }
+
+    @Override
+    public Customer findPublicCustomer(TenantId tenantId, EntityId ownerId) {
+        log.trace("Executing findPublicCustomer, tenantId [{}], ownerId [{}]", tenantId, ownerId);
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         var publicCustomerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantId.getId(), ownerId.getId());
-        return publicCustomerOpt.orElseGet(() -> createPublicCustomer(tenantId, ownerId));
+        return publicCustomerOpt.orElse(null);
     }
 
     private Customer createPublicCustomer(TenantId tenantId, EntityId ownerId) {

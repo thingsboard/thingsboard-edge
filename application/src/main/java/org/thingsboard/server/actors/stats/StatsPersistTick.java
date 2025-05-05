@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,9 @@ package org.thingsboard.server.actors.stats;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
 
-public final class StatsPersistTick implements TbActorMsg {
+public enum StatsPersistTick implements TbActorMsg {
+    INSTANCE;
+
     @Override
     public MsgType getMsgType() {
         return MsgType.STATS_PERSIST_TICK_MSG;

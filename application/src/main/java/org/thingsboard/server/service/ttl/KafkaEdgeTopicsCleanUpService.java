@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,8 +68,6 @@ import static org.thingsboard.server.service.state.DefaultDeviceStateService.LAS
 @ConditionalOnExpression("'${queue.type:null}'=='kafka' && ${edges.enabled:true} && ${sql.ttl.edge_events.edge_events_ttl:0} > 0")
 public class KafkaEdgeTopicsCleanUpService extends AbstractCleanUpService {
 
-    private static final String EDGE_EVENT_TOPIC_NAME = "tb_edge_event.notifications.";
-
     private final TopicService topicService;
     private final TenantService tenantService;
     private final EdgeService edgeService;
@@ -78,6 +76,9 @@ public class KafkaEdgeTopicsCleanUpService extends AbstractCleanUpService {
 
     @Value("${sql.ttl.edge_events.edge_events_ttl:2628000}")
     private long ttlSeconds;
+
+    @Value("${queue.edge.event-notifications-topic:tb_edge_event.notifications}")
+    private String tbEdgeEventNotificationsTopic;
 
     public KafkaEdgeTopicsCleanUpService(PartitionService partitionService, EdgeService edgeService,
                                          TenantService tenantService, AttributesService attributesService,
@@ -101,7 +102,7 @@ public class KafkaEdgeTopicsCleanUpService extends AbstractCleanUpService {
             return;
         }
 
-        String edgeTopicPrefix = topicService.buildTopicName(EDGE_EVENT_TOPIC_NAME);
+        String edgeTopicPrefix = topicService.buildTopicName(tbEdgeEventNotificationsTopic);
         List<String> matchingTopics = topics.stream().filter(topic -> topic.startsWith(edgeTopicPrefix)).toList();
         if (matchingTopics.isEmpty()) {
             log.debug("No matching topics found with prefix [{}]. Skipping cleanup.", edgeTopicPrefix);
@@ -127,7 +128,7 @@ public class KafkaEdgeTopicsCleanUpService extends AbstractCleanUpService {
                             .ifPresentOrElse(lastConnectTime -> {
                                 String topic = topicService.buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edgeId).getTopic();
                                 if (kafkaAdmin.isTopicEmpty(topic)) {
-                                    kafkaAdmin.deleteTopic(topic);
+                                    deleteTopicAndConsumerGroup(topic);
                                     log.info("[{}] Removed outdated topic {} for edge {} older than {}",
                                             tenantId, topic, edgeId, Date.from(Instant.ofEpochMilli(currentTimeMillis - ttlMillis)));
                                 }
@@ -135,7 +136,7 @@ public class KafkaEdgeTopicsCleanUpService extends AbstractCleanUpService {
                                 Edge edge = edgeService.findEdgeById(tenantId, edgeId);
                                 if (edge == null) {
                                     String topic = topicService.buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edgeId).getTopic();
-                                    kafkaAdmin.deleteTopic(topic);
+                                    deleteTopicAndConsumerGroup(topic);
                                     log.info("[{}] Removed topic {} for deleted edge {}", tenantId, topic, edgeId);
                                 }
                             });
@@ -146,10 +147,15 @@ public class KafkaEdgeTopicsCleanUpService extends AbstractCleanUpService {
         } else {
             for (EdgeId edgeId : edgeIds) {
                 String topic = topicService.buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edgeId).getTopic();
-                kafkaAdmin.deleteTopic(topic);
+                deleteTopicAndConsumerGroup(topic);
             }
             log.info("[{}] Removed topics for not existing tenant and edges {}", tenantId, edgeIds);
         }
+    }
+
+    private void deleteTopicAndConsumerGroup(String topic) {
+        kafkaAdmin.deleteTopic(topic);
+        kafkaAdmin.deleteConsumerGroup(topic);
     }
 
     private boolean isTopicExpired(long lastConnectTime, long ttlMillis, long currentTimeMillis) {
@@ -160,9 +166,9 @@ public class KafkaEdgeTopicsCleanUpService extends AbstractCleanUpService {
         Map<TenantId, List<EdgeId>> tenantEdgeMap = new HashMap<>();
         for (String topic : topics) {
             try {
-                String remaining = topic.substring(prefix.length());
+                String remaining = topic.substring(prefix.length() + 1);
                 String[] parts = remaining.split("\\.");
-                TenantId tenantId = new TenantId(UUID.fromString(parts[0]));
+                TenantId tenantId = TenantId.fromUUID(UUID.fromString(parts[0]));
                 EdgeId edgeId = new EdgeId(UUID.fromString(parts[1]));
                 tenantEdgeMap.computeIfAbsent(tenantId, id -> new ArrayList<>()).add(edgeId);
             } catch (Exception e) {

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,12 +31,13 @@
 
 -->
 <button mat-stroked-button
+        type="button"
         class="tb-rounded-btn w-36 flex-1"
         color="primary"
         #matButton
         [class.active]="((isDebugAllActive$ | async) || failuresEnabled) && !disabled"
         [disabled]="disabled"
-        (click)="openDebugStrategyPanel($event, matButton)">
+        (click)="onOpenDebugStrategyPanel($event, matButton)">
   <mat-icon [color]="debugSettingsFormGroup.disabled ? 'inherit' : 'primary'">bug_report</mat-icon>
   @if (isDebugAllActive$ | async) {
     {{ (allEnabled$ | async) === false ? (allEnabledUntil | durationLeft) : (maxDebugModeDuration | milliSecondsToTimeString: true : true) }}

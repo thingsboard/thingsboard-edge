@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,7 +51,7 @@ public class JavaSerDesUtil {
         try (ObjectInputStream ois = new ObjectInputStream(is)) {
             return (T) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            log.error("Error during deserialization message, [{}]", e.getMessage());
+            log.error("Error during deserialization", e);
             return null;
         }
     }
@@ -65,7 +65,7 @@ public class JavaSerDesUtil {
             ois.writeObject(msq);
             return boas.toByteArray();
         } catch (IOException e) {
-            log.error("Error during serialization message, [{}]", e.getMessage());
+            log.error("Error during serialization", e);
             throw new RuntimeException(e);
         }
     }

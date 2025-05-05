@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,12 +30,14 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import {
+  ConvertedInputMsgParams,
+  ConvertedInputMsgResult,
   Converter,
   ConverterDebugInput,
   LatestConverterParameters,
@@ -46,6 +48,7 @@ import {
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
+import { IntegrationType } from '@shared/models/integration.models';
 
 @Injectable({
   providedIn: 'root'
@@ -57,12 +60,19 @@ export class ConverterService {
   ) { }
 
   public getConverters(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Converter>> {
-    return this.getConvertersByEdgeTemplate(pageLink, false, config);
+    return this.getConvertersByEdgeTemplate(pageLink, false, null, config);
   }
 
-  public getConvertersByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean, config?: RequestConfig): Observable<PageData<Converter>> {
-    return this.http.get<PageData<Converter>>(`/api/converters${pageLink.toQuery()}&isEdgeTemplate=${isEdgeTemplate}`,
-      defaultHttpOptionsFromConfig(config));
+  public getConvertersByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean, integrationType?: IntegrationType,
+                                     config?: RequestConfig): Observable<PageData<Converter>> {
+    let url = `/api/converters${pageLink.toQuery()}`;
+    if (isEdgeTemplate) {
+      url += `&isEdgeTemplate=${isEdgeTemplate}`;
+    }
+    if (integrationType) {
+      url += `&integrationType=${integrationType}`;
+    }
+    return this.http.get<PageData<Converter>>(url, defaultHttpOptionsFromConfig(config));
   }
 
   public getConvertersByIds(converterIds: Array<string>, config?: RequestConfig): Observable<Array<Converter>> {
@@ -106,12 +116,28 @@ export class ConverterService {
                                       config?: RequestConfig): Observable<ConverterDebugInput> {
     let url = `/api/converter/${converterId}/debugIn`;
     if (parameters) {
-      url += `?converterType=${parameters.converterType}`;
-      if (parameters.integrationName && parameters.integrationType) {
-        url += `&integrationType=${parameters.integrationType}&integrationName=${parameters.integrationName}`;
+      let params = new HttpParams();
+      if (parameters.converterType) {
+        params = params.set('converterType', parameters.converterType)
+      }
+      if (parameters.integrationType) {
+        params = params.set('integrationType', parameters.integrationType)
+      }
+      if (parameters.integrationName) {
+        params = params.set('integrationName', parameters.integrationName)
+      }
+      if (parameters.converterVersion) {
+        params = params.set('converterVersion', parameters.converterVersion)
+      }
+      if (params.toString()) {
+        url += `?${params.toString()}`;
       }
     }
     return this.http.get<ConverterDebugInput>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public unwrapRawPayload(integrationType: IntegrationType, msg: ConvertedInputMsgParams, config?: RequestConfig): Observable<ConvertedInputMsgResult> {
+    return this.http.post<ConvertedInputMsgResult>(`/api/converter/unwrap/${integrationType}`, msg, defaultHttpOptionsFromConfig(config));
   }
 
 }

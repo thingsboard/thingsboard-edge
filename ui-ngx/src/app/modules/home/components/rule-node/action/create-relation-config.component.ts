@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -96,7 +96,7 @@ export class CreateRelationConfigComponent extends RuleNodeConfigurationComponen
 
   protected updateValidators(emitEvent: boolean) {
     const entityType: EntityType = this.createRelationConfigForm.get('entityType').value;
-    if (entityType) {
+    if (entityType && entityType !== EntityType.TENANT) {
       this.createRelationConfigForm.get('entityNamePattern').setValidators([Validators.required, Validators.pattern(/.*\S.*/)]);
     } else {
       this.createRelationConfigForm.get('entityNamePattern').setValidators([]);

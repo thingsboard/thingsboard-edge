@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -69,8 +69,6 @@ export class KafkaConfigComponent extends RuleNodeConfigurationComponent {
       linger: [configuration ? configuration.linger : null, [Validators.min(0)]],
       bufferMemory: [configuration ? configuration.bufferMemory : null, [Validators.min(0)]],
       acks: [configuration ? configuration.acks : null, [Validators.required]],
-      keySerializer: [configuration ? configuration.keySerializer : null, [Validators.required]],
-      valueSerializer: [configuration ? configuration.valueSerializer : null, [Validators.required]],
       otherProperties: [configuration ? configuration.otherProperties : null, []],
       addMetadataKeyValuesAsKafkaHeaders: [configuration ? configuration.addMetadataKeyValuesAsKafkaHeaders : false, []],
       kafkaHeadersCharset: [configuration ? configuration.kafkaHeadersCharset : null, []]

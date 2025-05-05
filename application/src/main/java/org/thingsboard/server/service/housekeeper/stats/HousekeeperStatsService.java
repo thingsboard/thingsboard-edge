@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -121,7 +121,7 @@ public class HousekeeperStatsService {
             this.failedProcessingCounter = register("failedProcessing", statsFactory);
             this.reprocessedCounter = register("reprocessed", statsFactory);
             this.failedReprocessingCounter = register("failedReprocessing", statsFactory);
-            this.processingTimer = statsFactory.createTimer(StatsType.HOUSEKEEPER, "processingTime", "taskType", taskType.name());
+            this.processingTimer = statsFactory.createStatsTimer(StatsType.HOUSEKEEPER.getName(), "processingTime", "taskType", taskType.name());
         }
 
         private StatsCounter register(String statsName, StatsFactory statsFactory) {

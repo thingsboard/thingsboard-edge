@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -60,6 +60,7 @@ import { deepClone, snakeCase } from '@core/utils';
 import { DebugRuleNodeEventBody } from '@app/shared/models/event.models';
 import { Edge } from '@shared/models/edge.models';
 import { IModulesMap } from '@modules/common/modules-map.models';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 
 @Injectable({
   providedIn: 'root'
@@ -81,6 +82,13 @@ export class RuleChainService {
                        config?: RequestConfig): Observable<PageData<RuleChain>> {
     return this.http.get<PageData<RuleChain>>(`/api/ruleChains${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public getRuleChainsByIds(ruleChainIds: Array<string>, config?: RequestConfig): Observable<Array<RuleChain>> {
+    return this.http.get<Array<RuleChain>>(`/api/ruleChains?ruleChainIds=${ruleChainIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((converters) => sortEntitiesByIds(converters, ruleChainIds))
+    );
   }
 
   public getRuleChain(ruleChainId: string, config?: RequestConfig): Observable<RuleChain> {

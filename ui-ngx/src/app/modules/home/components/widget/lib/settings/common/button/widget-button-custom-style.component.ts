@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -139,19 +139,21 @@ export class WidgetButtonCustomStyleComponent implements OnInit, OnChanges, Cont
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const ctx: any = {
-        appearance: this.appearance,
-        borderRadius: this.borderRadius,
-        autoScale: this.autoScale,
-        state: this.state,
-        customStyle: this.modelValue
-      };
-      const widgetButtonCustomStylePanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, WidgetButtonCustomStylePanelComponent,
-        ['leftTopOnly', 'leftOnly', 'leftBottomOnly'], true, null,
-        ctx,
-        {},
-        {}, {}, true);
+      const widgetButtonCustomStylePanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: WidgetButtonCustomStylePanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: ['leftTopOnly', 'leftOnly', 'leftBottomOnly'],
+        context: {
+          appearance: this.appearance,
+          borderRadius: this.borderRadius,
+          autoScale: this.autoScale,
+          state: this.state,
+          customStyle: this.modelValue
+        },
+        isModal: true
+      });
       widgetButtonCustomStylePanelPopover.tbComponentRef.instance.popover = widgetButtonCustomStylePanelPopover;
       widgetButtonCustomStylePanelPopover.tbComponentRef.instance.customStyleApplied.subscribe((customStyle) => {
         widgetButtonCustomStylePanelPopover.hide();

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,12 +30,14 @@
  */
 package org.thingsboard.server.dao.sql.device;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.edqs.fields.DeviceFields;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
 
@@ -127,6 +129,14 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
                                              @Param("type") String type,
                                              @Param("textSearch") String textSearch,
                                              Pageable pageable);
+
+    @Query("SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
+            "AND d.deviceProfileId = :deviceProfileId " +
+            "AND (:textSearch IS NULL OR ilike(d.type, CONCAT('%', :textSearch, '%')) = true)")
+    Page<UUID> findIdsByTenantIdAndDeviceProfileId(@Param("tenantId") UUID tenantId,
+                                                   @Param("deviceProfileId") UUID deviceProfileId,
+                                                   @Param("textSearch") String textSearch,
+                                                   Pageable pageable);
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +
@@ -329,5 +339,10 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
 
     @Query("SELECT externalId FROM DeviceEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
+
+
+    @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.DeviceFields(d.id, d.createdTime, d.tenantId, d.customerId," +
+            "d.name, d.version, d.type, d.label, d.deviceProfileId, d.additionalInfo) FROM DeviceEntity d WHERE d.id > :id ORDER BY d.id")
+    List<DeviceFields> findNextBatch(@Param("id") UUID id, Limit limit);
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.ProfileEntityIdInfo;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -52,7 +53,7 @@ import java.util.UUID;
  * The Interface DeviceDao.
  *
  */
-public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCustomerEntityDao<Device, DeviceId> {
+public interface DeviceDao extends Dao<Device>, TenantEntityDao<Device>, ExportableCustomerEntityDao<Device, DeviceId> {
 
     /**
      * Save or update device object
@@ -90,6 +91,16 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCusto
      * @return the list of device objects
      */
     PageData<Device> findDevicesByTenantIdAndType(UUID tenantId, String type, PageLink pageLink);
+
+    /**
+     * Find device ids by tenantId, type and page link.
+     *
+     * @param tenantId the tenantId
+     * @param deviceProfileId the deviceProfileId
+     * @param pageLink the page link
+     * @return the list of device objects
+     */
+    PageData<DeviceId> findDeviceIdsByTenantIdAndDeviceProfileId(UUID tenantId, UUID deviceProfileId, PageLink pageLink);
 
     /**
      * Find devices by tenantId and devices Ids.
@@ -215,5 +226,9 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCusto
     Long countByDeviceProfileAndEmptyOtaPackage(UUID tenantId, UUID deviceProfileId, OtaPackageType type);
 
     PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink);
+
+    PageData<ProfileEntityIdInfo> findProfileEntityIdInfos(PageLink pageLink);
+
+    PageData<ProfileEntityIdInfo> findProfileEntityIdInfosByTenantId(UUID tenantId, PageLink pageLink);
 
 }

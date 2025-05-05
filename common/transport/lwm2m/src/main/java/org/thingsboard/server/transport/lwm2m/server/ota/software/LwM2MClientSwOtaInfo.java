@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,8 @@ import lombok.ToString;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.transport.lwm2m.server.ota.LwM2MClientOtaInfo;
 
+import static org.thingsboard.server.transport.lwm2m.server.ota.software.SoftwareUpdateResult.NOT_ENOUGH_STORAGE;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -57,12 +59,17 @@ public class LwM2MClientSwOtaInfo extends LwM2MClientOtaInfo<LwM2MSoftwareUpdate
 
     public void update(SoftwareUpdateResult result) {
         this.result = result;
+
+        if (result.getCode() >= NOT_ENOUGH_STORAGE.getCode()) {
+            failedPackageId = getPackageId(targetName, targetVersion);
+        }
         switch (result) {
             case INITIAL:
                 break;
-                //TODO: implement
+            case SUCCESSFULLY_INSTALLED:
+                retryAttempts = 0;
+                break;
             default:
-                failedPackageId = getPackageId(targetName, targetVersion);
                 break;
         }
     }

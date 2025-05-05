@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -72,7 +72,7 @@ export class SignalStrengthWidgetSettingsComponent extends WidgetSettingsCompone
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...signalStrengthDefaultSettings};
+    return signalStrengthDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

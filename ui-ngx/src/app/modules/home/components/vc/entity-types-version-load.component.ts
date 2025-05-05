@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ import {
   entityTypesWithoutRelatedData,
   EntityTypeVersionLoadConfig,
   exportableEntityTypes,
+  typesWithCalculatedFields,
   overrideEntityTypeTranslations
 } from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
@@ -93,6 +94,8 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
   loading = true;
 
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
+
+  readonly typesWithCalculatedFields = typesWithCalculatedFields;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
@@ -164,6 +167,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
           loadRelations: [config.loadRelations, []],
           loadAttributes: [config.loadAttributes, []],
           loadCredentials: [config.loadCredentials, []],
+          loadCalculatedFields: [config.loadCalculatedFields, []],
           loadPermissions: [config.loadPermissions, []],
           loadGroupEntities: [config.loadGroupEntities, []],
           autoGenerateIntegrationKey: [config.autoGenerateIntegrationKey, []],
@@ -202,6 +206,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
       loadAttributes: true,
       loadRelations: true,
       loadCredentials: true,
+      loadCalculatedFields: true,
       loadPermissions: true,
       loadGroupEntities: true,
       autoGenerateIntegrationKey: false,
@@ -253,16 +258,23 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
       if (this.popoverService.hasPopover(trigger)) {
         this.popoverService.hidePopover(trigger);
       } else {
-        const removeOtherEntitiesConfirmPopover = this.popoverService.displayPopover(trigger, this.renderer,
-          this.viewContainerRef, RemoveOtherEntitiesConfirmComponent, 'bottom', true, null,
-          {
+        const removeOtherEntitiesConfirmPopover = this.popoverService.displayPopover({
+          trigger,
+          renderer: this.renderer,
+          componentType: RemoveOtherEntitiesConfirmComponent,
+          hostView: this.viewContainerRef,
+          preferredPlacement: 'bottom',
+          context: {
             onClose: (result: boolean | null) => {
               removeOtherEntitiesConfirmPopover.hide();
               if (result) {
                 entityTypeControl.get('config').get('removeOtherEntities').patchValue(true, {emitEvent: true});
               }
             }
-          }, {}, {}, {}, false);
+          },
+          showCloseButton: false,
+          isModal: true
+        });
       }
     }
   }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -229,7 +229,7 @@ export class UtilsService {
     return parseException(exception, lineOffset);
   }
 
-  public customTranslation(translationValue: string, defaultValue: string): string {
+  public customTranslation(translationValue: string, defaultValue: string = translationValue): string {
     if (translationValue && isString(translationValue)) {
       if (translationValue.includes(`{${i18nPrefix}`)) {
         const matches = translationValue.match(i18nRegExp);

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>4.0.0PE-SNAPSHOT</version>
+    <version>4.1.0PE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard PE</name>
@@ -58,6 +58,7 @@
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <javax.xml.bind-api.version>2.4.0-b180830.0359</javax.xml.bind-api.version>
         <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
+        <tomcat.version>10.1.39</tomcat.version> <!--Remove after update spring-boot to new version-->
         <spring-boot.version>3.2.12</spring-boot.version>
         <spring-data.version>3.2.12</spring-data.version>
         <spring-data-redis.version>3.2.12</spring-data-redis.version>
@@ -102,11 +103,11 @@
         <zookeeper.version>3.9.2</zookeeper.version>
         <protobuf.version>3.25.5</protobuf.version> <!-- A Major v4 does not support by the pubsub yet-->
         <grpc.version>1.63.0</grpc.version>
-        <tbel.version>1.2.5</tbel.version>
+        <tbel.version>1.2.6</tbel.version>
         <lombok.version>1.18.32</lombok.version>
         <paho.client.version>1.2.5</paho.client.version>
         <paho.mqttv5.client.version>1.2.5</paho.mqttv5.client.version>
-        <netty.version>4.1.115.Final</netty.version>
+        <netty.version>4.1.119.Final</netty.version>
         <netty-tcnative.version>2.0.65.Final</netty-tcnative.version>
         <reactor-netty.version>1.1.18</reactor-netty.version>
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
@@ -195,6 +196,8 @@
         <weisj-jsvg.version>1.6.1</weisj-jsvg.version>
         <drewnoakes-metadata-extractor.version>2.19.0</drewnoakes-metadata-extractor.version>
         <firebase-admin.version>9.2.0</firebase-admin.version>
+        <snappy.version>1.1.10.5</snappy.version>
+        <rocksdbjni.version>9.10.0</rocksdbjni.version>
     </properties>
 
     <modules>
@@ -203,6 +206,7 @@
         <module>rule-engine</module>
         <module>rule-engine-pe</module>
         <module>dao</module>
+        <module>edqs</module>
         <module>transport</module>
         <module>integration</module>
         <module>ui-ngx</module>
@@ -890,6 +894,7 @@
                             <exclude>**/NetworkReceive.java</exclude>
                             <exclude>**/lwm2m-registry/**</exclude>
                             <exclude>**/test/resources/lwm2m/**</exclude>
+                            <exclude>**/resources/lwm2m/models/**</exclude>
                             <exclude>src/main/data/resources/**</exclude>
                         </excludes>
                         <mapping>
@@ -1160,6 +1165,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.common</groupId>
+                <artifactId>edqs</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard.common.script</groupId>
                 <artifactId>script-api</artifactId>
                 <version>${project.version}</version>
@@ -1275,6 +1285,21 @@
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
                 <version>${jaxb-runtime.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-el</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-websocket</artifactId>
+                <version>${tomcat.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -2516,6 +2541,16 @@
                 <groupId>com.google.auth</groupId>
                 <artifactId>google-auth-library-oauth2-http</artifactId>
                 <version>${google.oauth2-http.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>${snappy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.rocksdb</groupId>
+                <artifactId>rocksdbjni</artifactId>
+                <version>${rocksdbjni.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

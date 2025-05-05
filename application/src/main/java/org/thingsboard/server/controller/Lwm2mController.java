@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ package org.thingsboard.server.controller;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,6 +48,7 @@ import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MSe
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.config.annotations.ApiOperation;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.lwm2m.LwM2MService;
 
 import java.util.Map;
@@ -58,7 +58,7 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CU
 
 @Slf4j
 @RestController
-@ConditionalOnExpression("('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core') && '${transport.lwm2m.enabled:false}'=='true'")
+@TbCoreComponent
 @RequestMapping("/api")
 public class Lwm2mController extends BaseController {
 

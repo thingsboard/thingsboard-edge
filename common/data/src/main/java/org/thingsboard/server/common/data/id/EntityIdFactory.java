@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -146,6 +146,10 @@ public class EntityIdFactory {
                 return new DomainId(uuid);
             case MOBILE_APP_BUNDLE:
                 return new MobileAppBundleId(uuid);
+            case CALCULATED_FIELD:
+                return new CalculatedFieldId(uuid);
+            case CALCULATED_FIELD_LINK:
+                return new CalculatedFieldLinkId(uuid);
             case SECRET:
                 return new SecretId(uuid);
         }

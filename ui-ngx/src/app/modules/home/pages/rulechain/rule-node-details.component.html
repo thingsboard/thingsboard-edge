@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@
   </button>
 </div>
 <form [formGroup]="ruleNodeFormGroup" class="mat-padding">
-  <section class="title-row flex align-center">
+  <section class="title-row align-center flex">
     <mat-form-field class="mat-block flex-1">
       <mat-label translate>rulenode.name</mat-label>
       <input matInput formControlName="name" required>
@@ -53,8 +53,7 @@
       <tb-entity-debug-settings-button
         class="mr-2"
         formControlName="debugSettings"
-        [entityLabel]="'debug-settings.rule-node' | translate"
-        [debugLimitsConfiguration]="ruleChainDebugPerTenantLimitsConfiguration"
+        [entityType]="entityType.RULE_NODE"
       />
       <button mat-stroked-button
               class="tb-rounded-btn flex-1"

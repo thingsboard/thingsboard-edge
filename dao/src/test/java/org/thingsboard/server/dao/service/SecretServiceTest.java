@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -118,7 +118,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(retrievedInfo).isEqualTo(new SecretInfo(savedSecret));
 
         // update encrypted value
-        savedSecret.setEncodedValue("NewPassword");
+        savedSecret.setValue("NewPassword".getBytes(StandardCharsets.UTF_8));
         savedSecret = secretService.saveSecret(tenantId, savedSecret);
         retrievedSecret = secretService.findSecretById(tenantId, savedSecret.getId());
         assertThat(retrievedSecret).isEqualTo(savedSecret);

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { widgetActionTypes, widgetType } from '@shared/models/widget.models';
+import { widgetActionTypes, WidgetActionType, widgetType } from '@shared/models/widget.models';
 import {
   WidgetActionCallbacks,
   WidgetActionsData
@@ -47,6 +47,8 @@ export interface ManageWidgetActionsDialogData {
   actionsData: WidgetActionsData;
   callbacks: WidgetActionCallbacks;
   widgetType: widgetType;
+  defaultIconColor?: string;
+  additionalWidgetActionTypes?: WidgetActionType[];
 }
 
 @Component({

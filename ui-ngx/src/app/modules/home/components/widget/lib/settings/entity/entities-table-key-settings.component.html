@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -89,6 +89,11 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
+    </div>
+    <div class="tb-form-row">
+      <mat-slide-toggle class="mat-slide"  formControlName="disableSorting">
+        {{ 'widgets.table.disable-sorting' | translate }}
+      </mat-slide-toggle>
     </div>
   </div>
   <div class="tb-form-panel tb-slide-toggle">

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -54,7 +54,7 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { deepClone } from '@core/utils';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { UtilsService } from '@core/services/utils.service';
-import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { FormProperty } from '@shared/models/dynamic-form.models';
@@ -148,6 +148,10 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
 
   @Input()
   @coerceBoolean()
+  hideAlarmFilter = false;
+
+  @Input()
+  @coerceBoolean()
   forceSingleDatasource = false;
 
   @Input()
@@ -161,7 +165,8 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
 
   datasourcesMode: DatasourceType;
 
-  private propagateChange = (_val: any) => {};
+  private propagateChange: (value: any) => void;
+  private propagateChangePending = false;
 
   constructor(private fb: UntypedFormBuilder,
               private utils: UtilsService,
@@ -172,7 +177,7 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
 
   registerOnChange(fn: any): void {
     this.propagateChange = fn;
-    if (this.validate(null)) {
+    if (this.propagateChangePending) {
       setTimeout(() => {
         this.datasourcesUpdated(this.datasourcesFormGroup.get('datasources').value);
       }, 0);
@@ -238,7 +243,7 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
     if (this.singleDatasource && !this.datasourcesFormArray.length) {
       this.addDatasource(false);
     }
-    if (changed) {
+    if (changed || this.validate(null)) {
       setTimeout(() => {
         this.datasourcesUpdated(this.datasourcesFormGroup.get('datasources').value);
       }, 0);
@@ -340,7 +345,12 @@ export class DatasourcesComponent implements ControlValueAccessor, OnInit, Valid
     if (this.datasourcesOptional) {
       datasources = datasources ? datasources.filter(d => datasourceValid(d)) : [];
     }
-    this.propagateChange(datasources);
+    if (this.propagateChange) {
+      this.propagateChange(datasources);
+      this.propagateChangePending = false;
+    } else {
+      this.propagateChangePending = true;
+    }
   }
 
   public onDatasourceDrop(event: CdkDragDrop<string[]>) {

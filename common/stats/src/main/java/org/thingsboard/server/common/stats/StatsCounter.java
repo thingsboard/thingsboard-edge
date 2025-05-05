@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import io.micrometer.core.instrument.Counter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class StatsCounter extends DefaultCounter {
+public class StatsCounter extends DefaultCounter implements org.thingsboard.server.common.stats.Counter {
     private final String name;
 
     public StatsCounter(AtomicInteger aiCounter, Counter micrometerCounter, String name) {

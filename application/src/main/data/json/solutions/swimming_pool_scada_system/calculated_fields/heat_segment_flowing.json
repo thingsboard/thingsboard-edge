@@ -1,0 +1,51 @@
+{
+  "type": "SCRIPT",
+  "name": "Heat Segment Flowing",
+  "entityId": {
+    "id": "eea395b0-7c0a-11ef-baac-dd7fa92789f4",
+    "entityType": "ASSET"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1740999420009
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SCRIPT",
+    "arguments": {
+      "drainSegmentFlowing": {
+        "refEntityKey": {
+          "key": "drainSegmentFlowing",
+          "type": "ATTRIBUTE",
+          "scope": "SERVER_SCOPE"
+        },
+        "defaultValue": "false"
+      },
+      "filterSegmentFlowing": {
+        "refEntityKey": {
+          "key": "filterSegmentFlowing",
+          "type": "ATTRIBUTE",
+          "scope": "SERVER_SCOPE"
+        },
+        "defaultValue": "false"
+      },
+      "heatPumpIntakeValveOpened": {
+        "refEntityId": {
+          "entityType": "DEVICE",
+          "id": "eeb87d40-7c0a-11ef-baac-dd7fa92789f4"
+        },
+        "refEntityKey": {
+          "key": "opened",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": "0"
+      }
+    },
+    "expression": "var heatSegmentFlowing = filterSegmentFlowing && !drainSegmentFlowing && heatPumpIntakeValveOpened == 1;\n\nreturn {\n    \"heatSegmentFlowing\": heatSegmentFlowing\n};",
+    "output": {
+      "type": "ATTRIBUTES",
+      "scope": "SERVER_SCOPE"
+    }
+  }
+}

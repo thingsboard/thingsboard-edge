@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -222,6 +222,13 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         log.trace("Executing findEdgeByRoutingKey [{}]", routingKey);
         Validator.validateString(routingKey, "Incorrect edge routingKey for search request.");
         return edgeDao.findByRoutingKey(tenantId.getId(), routingKey);
+    }
+
+    @Override
+    public PageData<Edge> findActiveEdges(PageLink pageLink) {
+        log.trace("Executing findActiveEdges [{}]", pageLink);
+        Validator.validatePageLink(pageLink);
+        return edgeDao.findActiveEdges(pageLink);
     }
 
     @Override

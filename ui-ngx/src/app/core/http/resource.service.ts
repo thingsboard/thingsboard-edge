@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -105,8 +105,8 @@ export class ResourceService {
     return this.http.post<Resource>('/api/resource', resource, defaultHttpOptionsFromConfig(config));
   }
 
-  public deleteResource(resourceId: string, config?: RequestConfig) {
-    return this.http.delete(`/api/resource/${resourceId}`, defaultHttpOptionsFromConfig(config));
+  public deleteResource(resourceId: string, force = false, config?: RequestConfig) {
+    return this.http.delete(`/api/resource/${resourceId}?force=${force}`, defaultHttpOptionsFromConfig(config));
   }
 
 }

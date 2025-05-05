@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,6 +68,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.common.util.ExpressionFunctionsUtil.userDefinedFunctions;
 import static org.thingsboard.rule.engine.math.TbMathArgumentType.CONSTANT;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -325,6 +326,7 @@ public class TbMathNode implements TbNode {
                 var expr = customExpression.get();
                 if (expr == null) {
                     expr = new ExpressionBuilder(config.getCustomFunction())
+                            .functions(userDefinedFunctions)
                             .implicitMultiplication(true)
                             .variables(config.getArguments().stream().map(TbMathArgument::getName).collect(Collectors.toSet()))
                             .build();

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,9 +40,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class EntityExportSettings {
+
     private boolean exportRelations;
     private boolean exportAttributes;
     private boolean exportCredentials;
+    private boolean exportCalculatedFields;
     private boolean exportPermissions;
     private boolean exportGroupEntities;
+
 }

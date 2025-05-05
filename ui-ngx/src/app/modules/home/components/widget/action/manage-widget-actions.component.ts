@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,8 @@ import {
   Component,
   ElementRef,
   forwardRef,
-  Input, NgZone,
+  Input,
+  NgZone,
   OnDestroy,
   OnInit,
   ViewChild
@@ -43,8 +44,6 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { PageLink } from '@shared/models/page/page-link';
@@ -89,6 +88,8 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   @Input() widgetType: widgetType;
 
+  @Input() defaultIconColor: string;
+
   @Input() callbacks: WidgetActionCallbacks;
 
   @Input() actionSources: {[actionSourceId: string]: WidgetActionSource};
@@ -105,18 +106,18 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   @coerceBoolean()
   outlinedBorder = false;
 
-  innerValue: WidgetActionsData;
+  @Input() additionalWidgetActionTypes: WidgetActionType[];
 
   displayedColumns: string[];
   pageLink: PageLink;
   textSearchMode = false;
   hidePageSize = false;
   dataSource: WidgetActionsDatasource;
-
-  viewsInited = false;
-  dirtyValue = false;
   dragDisabled = true;
 
+  private actionsMap: {[actionSourceId: string]: Array<WidgetActionDescriptor>};
+  private viewsInited = false;
+  private dirtyValue = false;
   private widgetResize$: ResizeObserver;
   private destroyed = false;
 
@@ -127,15 +128,14 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   private propagateChange = (_: any) => {};
 
-  constructor(protected store: Store<AppState>,
-              private translate: TranslateService,
+  constructor(private translate: TranslateService,
               private utils: UtilsService,
               private dialog: MatDialog,
               private dialogs: DialogService,
               private cd: ChangeDetectorRef,
               private elementRef: ElementRef,
               private zone: NgZone) {
-    super(store);
+    super();
     const sortOrder: SortOrder = { property: 'actionSourceName', direction: Direction.ASC };
     this.pageLink = new PageLink(10, 0, null, sortOrder);
     this.dataSource = new WidgetActionsDatasource(this.translate, this.utils);
@@ -163,7 +163,6 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   }
 
   ngAfterViewInit() {
-
     fromEvent(this.searchInputField.nativeElement, 'keyup')
       .pipe(
         debounceTime(150),
@@ -188,10 +187,9 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
       this.dirtyValue = false;
       this.updateData(true);
     }
-
   }
 
-  updateData(reload: boolean = false) {
+  private updateData(reload: boolean = false) {
     this.pageLink.page = this.paginator.pageIndex;
     this.pageLink.pageSize = this.paginator.pageSize;
     this.pageLink.sortOrder.property = this.sort.active;
@@ -224,7 +222,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
     this.openWidgetActionDialog($event, action);
   }
 
-  openWidgetActionDialog($event: Event, action: WidgetActionDescriptorInfo = null) {
+  private openWidgetActionDialog($event: Event, action: WidgetActionDescriptorInfo = null) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -234,15 +232,15 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
       prevActionSourceId = action.actionSourceId;
     }
     const availableActionSources: {[actionSourceId: string]: WidgetActionSource} = {};
-    for (const id of Object.keys(this.innerValue.actionSources)) {
-      const actionSource = this.innerValue.actionSources[id];
+    for (const id of Object.keys(this.actionSources)) {
+      const actionSource = this.actionSources[id];
       if (actionSource.multiple) {
         availableActionSources[id] = actionSource;
       } else {
         if (!isAdd && action.actionSourceId === id) {
           availableActionSources[id] = actionSource;
         } else {
-          const existing = this.innerValue.actionsMap[id];
+          const existing = this.actionsMap[id];
           if (!existing || !existing.length) {
             availableActionSources[id] = actionSource;
           }
@@ -251,7 +249,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
     }
 
     const actionsData: WidgetActionsData = {
-      actionsMap: this.innerValue.actionsMap,
+      actionsMap: this.actionsMap,
       actionSources: availableActionSources
     };
 
@@ -267,7 +265,9 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         actionTypes: this.actionTypes,
         customFunctionArgs: this.customFunctionArgs,
         widgetType: this.widgetType,
-        isEntityGroup: this.isEntityGroup
+        defaultIconColor: this.defaultIconColor,
+        additionalWidgetActionTypes: this.additionalWidgetActionTypes,
+        isEntityGroup: this.isEntityGroup,
       }
     }).afterClosed().subscribe(
       (res) => {
@@ -305,7 +305,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   }
 
   private getOrCreateTargetActions(actionSourceId: string): Array<WidgetActionDescriptor> {
-    const actionsMap = this.innerValue.actionsMap;
+    const actionsMap = this.actionsMap;
     let targetActions = actionsMap[actionSourceId];
     if (!targetActions) {
       targetActions = [];
@@ -351,7 +351,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
     this.updateData();
   }
 
-  resetSortAndFilter(update: boolean = true) {
+  private resetSortAndFilter(update: boolean = true) {
     this.pageLink.textSearch = null;
     this.paginator.pageIndex = 0;
     const sortable = this.sort.sortables.get('actionSourceName');
@@ -366,7 +366,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -374,13 +374,14 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   }
 
   writeValue(actions?: {[actionSourceId: string]: Array<WidgetActionDescriptor>}): void {
-    this.innerValue = {
-      actionsMap: actions || {},
-      actionSources: this.actionSources || {}
-    };
+    this.actionsMap = actions ?? {};
     setTimeout(() => {
       if (!this.destroyed) {
-        this.dataSource.setActions(this.innerValue);
+        const actionData: WidgetActionsData = {
+          actionsMap: this.actionsMap,
+          actionSources: this.actionSources
+        };
+        this.dataSource.setActions(actionData);
         if (this.viewsInited) {
           this.resetSortAndFilter(true);
         } else {
@@ -392,6 +393,6 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   private onActionsUpdated() {
     this.updateData(true);
-    this.propagateChange(this.innerValue.actionsMap);
+    this.propagateChange(this.actionsMap);
   }
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import { AppState } from '@core/core.state';
 import { IAliasController } from '@core/api/widget-api.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { DataKey, Datasource, DatasourceType } from '@app/shared/models/widget.models';
-import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeysCallbacks } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import {
   ValueSourceConfig,
   ValueSourceType,

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -160,6 +161,11 @@ public class SolutionInstallContext {
 
     public void register(SchedulerEventDefinition definition, SchedulerEvent schedulerEvent) {
         register(definition.getJsonId(), schedulerEvent.getId());
+    }
+
+    public void register(CalculatedField calculatedField) {
+        register(calculatedField.getId());
+        createdEntities.put(calculatedField.getUuidId(), new CreatedEntityInfo(calculatedField.getName(), "Calculated field", "Tenant"));
     }
 
     public void put(EntitySearchKey entitySearchKey, EntityId entityId) {

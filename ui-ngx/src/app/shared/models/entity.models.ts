@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -219,6 +219,11 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     keyName: 'ownerType',
     name: 'entity-field.owner-type',
     value: 'ownerType'
+  },
+  additionalInfo: {
+    keyName: 'additionalInfo',
+    name: 'entity-field.additional-info',
+    value: 'additionalInfo'
   }
 };
 
@@ -238,6 +243,11 @@ export interface EntityDebugSettings {
   failuresEnabled?: boolean;
   allEnabled?: boolean;
   allEnabledUntil?: number;
+}
+
+export interface EntityTestScriptResult {
+  output: string;
+  error: string;
 }
 
 export type VersionedEntity = EntityInfoData & HasVersion | RuleChainMetaData;

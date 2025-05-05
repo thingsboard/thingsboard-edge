@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OtherConfiguration extends PowerSavingConfiguration {
 
+    private Boolean useObject19ForOtaInfo;
     private Integer fwUpdateStrategy;
     private Integer swUpdateStrategy;
     private Integer clientOnlyObserveAfterConnect;

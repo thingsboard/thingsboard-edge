@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -33,15 +33,6 @@ DROP VIEW IF EXISTS integration_info CASCADE;
 CREATE OR REPLACE VIEW integration_info as
 SELECT created_time, id, tenant_id, name, type, debug_settings, enabled, is_remote,
        allow_create_devices_or_assets, is_edge_template,
-       (SELECT cast(json_agg(element) as varchar)
-        FROM (SELECT sum(se.e_messages_processed + se.e_errors_occurred) element
-              FROM stats_event se
-              WHERE se.tenant_id = i.tenant_id
-                AND se.entity_id = i.id
-                AND ts >= (EXTRACT(EPOCH FROM current_timestamp) * 1000 - 24 * 60 * 60 * 1000)::bigint
-
-              GROUP BY ts / 3600000
-              ORDER BY ts / 3600000) stats) as stats,
        (CASE WHEN i.enabled THEN
                  (SELECT cast(json_v as varchar)
                   FROM attribute_kv
@@ -469,8 +460,15 @@ $$;
 
 DROP VIEW IF EXISTS widget_type_info_view CASCADE;
 CREATE OR REPLACE VIEW widget_type_info_view AS
-SELECT t.*
-     , COALESCE((t.descriptor::json->>'type')::text, '') as widget_type
+SELECT t.*,
+       COALESCE((t.descriptor::json->>'type')::text, '') as widget_type,
+       array_to_json(ARRAY(
+           SELECT json_build_object('id', wb.widgets_bundle_id, 'name', b.title)
+           FROM widgets_bundle_widget wb
+           JOIN widgets_bundle b ON wb.widgets_bundle_id = b.id
+           WHERE wb.widget_type_id = t.id
+           ORDER BY b.title
+       )) AS bundles
 FROM widget_type t;
 
 CREATE OR REPLACE PROCEDURE cleanup_timeseries_by_ttl(IN null_uuid uuid,

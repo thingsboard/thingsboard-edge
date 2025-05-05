@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -109,6 +109,12 @@ export class AppComponent implements OnInit {
     }
     // @ts-ignore
     this.translate.changeDefaultLang(env.defaultLang);
+    this.translate.setTranslation(undefined, {
+      "access": {
+        "refresh-token-expired": "Session has expired",
+        "refresh-token-failed": "Unable to refresh session"
+      }
+    }, true);
   }
 
   setupAuth() {

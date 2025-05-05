@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -180,6 +180,8 @@ message ConverterConfigurationProto {
   string configuration = 7;
   string additionalInfo = 8;
   optional string debugSettings = 9;
+  optional string integrationType = 10;
+  int32 converterVersion = 11;
 }
 
 /**
@@ -260,6 +262,8 @@ message ConverterProto {
   optional int64 externalIdLSB = 13;
   optional int64 version = 14;
   optional string debugSettings = 15;
+  optional string integrationType = 16;
+  int32 converterVersion = 17;
 }
 
 message IntegrationInfoListRequestProto {

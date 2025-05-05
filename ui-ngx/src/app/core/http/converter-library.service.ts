@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,8 +48,11 @@ export class ConverterLibraryService {
   ) {
   }
 
-  getVendors(integrationType: IntegrationType, config?: RequestConfig): Observable<Vendor[]> {
-    return this.http.get(`${this.baseUrl}/${integrationType}/vendors`, defaultHttpOptionsFromConfig(config)) as Observable<Vendor[]>;
+  getVendors(integrationType: IntegrationType, converterType: ConverterType, config?: RequestConfig): Observable<Vendor[]> {
+    return this.http.get(
+      `${this.baseUrl}/${integrationType}/vendors?converterType=${converterType.toLowerCase()}`,
+      defaultHttpOptionsFromConfig(config)
+    ) as Observable<Vendor[]>;
   }
 
   getModels(
@@ -59,7 +62,7 @@ export class ConverterLibraryService {
     config?: RequestConfig
   ): Observable<Model[]> {
     return this.http.get(
-      `${this.baseUrl}/${integrationType}/${vendorName}/models?converterType=${converterType.toLowerCase()}`,
+      `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/models?converterType=${converterType.toLowerCase()}`,
       defaultHttpOptionsFromConfig(config)
     ) as Observable<Model[]>;
   }
@@ -71,34 +74,22 @@ export class ConverterLibraryService {
     config?: RequestConfig
   ): Observable<Converter> {
     return this.http.get(
-      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}`,
+      `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/${encodeURIComponent(modelName)}/${converterType.toLowerCase()}`,
       defaultHttpOptionsFromConfig(config)
     ) as Observable<Converter>;
   }
 
-  getConverterMetaData(
-    integrationType: IntegrationType,
-    vendorName: string,
-    modelName: string,
-    converterType: ConverterType,
-    config?: RequestConfig
-  ) {
+  getConverterMetaData(integrationType: IntegrationType, vendorName: string, modelName: string, converterType: ConverterType, config?: RequestConfig): Observable<string> {
     return this.http.get(
-      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}/metadata`,
-      defaultHttpOptionsFromConfig(config)
+      `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/${encodeURIComponent(modelName)}/${converterType.toLowerCase()}/metadata`,
+      {...{responseType: 'text'}, ...defaultHttpOptionsFromConfig(config)}
     );
   }
 
-  getConverterPayload(
-    integrationType: IntegrationType,
-    vendorName: string,
-    modelName: string,
-    converterType: ConverterType,
-    config?: RequestConfig
-  ) {
+  getConverterPayload(integrationType: IntegrationType, vendorName: string, modelName: string, converterType: ConverterType, config?: RequestConfig): Observable<string> {
     return this.http.get(
-      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}/payload`,
-      defaultHttpOptionsFromConfig(config)
+      `${this.baseUrl}/${integrationType}/${encodeURIComponent(vendorName)}/${encodeURIComponent(modelName)}/${converterType.toLowerCase()}/payload`,
+      {...{responseType: 'text'}, ...defaultHttpOptionsFromConfig(config)}
     );
   }
 }

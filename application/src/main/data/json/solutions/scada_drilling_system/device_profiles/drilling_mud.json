@@ -1,0 +1,816 @@
+{
+  "name": "Drilling mud",
+  "description": "",
+  "image": "tb-image:ZHJpbGxpbmctbXVkLnN2Zw==:IkRyaWxsaW5nIG11ZCIgZGV2aWNlIHByb2ZpbGUgaW1hZ2U=:SU1BR0U=;data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NSIgaGVpZ2h0PSI2NSIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDY1IDY1Ij4KICA8ZyBjbGlwLXBhdGg9InVybCgjYSkiPgogICAgPHJlY3Qgd2lkdGg9IjY1IiBoZWlnaHQ9IjY1IiBmaWxsPSIjQzI3QjRGIiBmaWxsLW9wYWNpdHk9Ii4yIiByeD0iMTEuNSIvPgogICAgPGcgY2xpcC1wYXRoPSJ1cmwoI2IpIj4KICAgICAgPHJlY3Qgd2lkdGg9IjUyIiBoZWlnaHQ9IjUyIiB4PSI2LjUiIHk9IjYuNSIgZmlsbD0iI0MyN0I0RiIgcng9IjQuNDE5Ii8+CiAgICAgIDxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjIiIGQ9Ik0xNiAyMC42czAtNi42IDcuNy02LjZoMTcuNmM3LjcgMCA3LjcgNi42IDcuNyA2LjZ2MTkuOHMwIDYuNi03LjcgNi42SDIzLjdDMTYgNDcgMTYgNDAuNCAxNiA0MC40VjIwLjZaIi8+CiAgICAgIDxwYXRoIHN0cm9rZT0iI2ZmZiIgZD0iTTQ4LjUgMjAuNnYxOS44MWEyLjcyOCAyLjcyOCAwIDAgMS0uMDEzLjIzMyA2LjggNi44IDAgMCAxLS44ODEgMi44MDZjLS44NzIgMS40OTUtMi42MzIgMy4wNTItNi4zMDYgMy4wNTJIMjMuN2MtMy42NzQgMC01LjQzNC0xLjU1Ny02LjMwNi0zLjA1MmE2LjggNi44IDAgMCAxLS44OTQtMy4wMzlWMjAuNTlhMi42OTIgMi42OTIgMCAwIDEgLjAxMy0uMjMyIDYuOCA2LjggMCAwIDEgLjg4MS0yLjgwNmMuODcyLTEuNDk1IDIuNjMyLTMuMDUyIDYuMzA2LTMuMDUyaDE3LjZjMy42NzQgMCA1LjQzNCAxLjU1NyA2LjMwNiAzLjA1MmE2LjggNi44IDAgMCAxIC44OTQgMy4wMzh2LjAxWiIvPgogICAgICA8cGF0aCBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9Ii43NSIgZD0iTTE2IDIzLjk1NWgzM1Y0MGE3IDcgMCAwIDEtNyA3SDIzYTcgNyAwIDAgMS03LTdWMjMuOTU1WiIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMzgiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjI0IDE0LjQ5M0gyNyIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMTIiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjkgMTUuMTM0SDI3bS0xLjEuNjRIMjdtLTEuMS42NEgyN20tMS4xLjY0MUgyNyIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMzgiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjI0IDE3LjY5NUgyNyIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMTIiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjkgMTguMzM1SDI3bS0xLjEuNjRIMjdtLTEuMS42NDFIMjdtLTEuMS42NEgyNyIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMzgiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjI0IDIwLjg5NkgyNyIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMTIiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjkgMjEuNTM2SDI3bS0xLjEuNjQxSDI3bS0xLjEuNjRIMjdtLTEuMS42NEgyNyIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMzgiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjI0IDI0LjA5N0gyNyIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMTIiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjkgMjQuNzM4SDI3bS0xLjEuNjRIMjdtLTEuMS42NEgyN20tMS4xLjY0SDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4zOCIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuMjQgMjcuMjk5SDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4xMiIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuOSAyNy45MzlIMjdtLTEuMS42NEgyN20tMS4xLjY0SDI3bS0xLjEuNjQxSDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4zOCIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuMjQgMzAuNUgyNyIvPgogICAgICA8cGF0aCBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIuMTIiIHN0cm9rZS13aWR0aD0iLjE2NSIgZD0iTTI1LjkgMzEuMTRIMjdtLTEuMS42NEgyN20tMS4xLjY0MUgyN20tMS4xLjY0SDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4zOCIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuMjQgMzMuNzAxSDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4xMiIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuOSAzNC4zNDFIMjdtLTEuMS42NDFIMjdtLTEuMS42NEgyN20tMS4xLjY0SDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4zOCIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuMjQgMzYuOTAySDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4xMiIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuOSAzNy41NDJIMjdtLTEuMS42NDFIMjdtLTEuMS42NEgyN20tMS4xLjY0SDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4zOCIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuMjQgNDAuMTAzSDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4xMiIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuOSA0MC43NDRIMjdtLTEuMS42NEgyN20tMS4xLjY0SDI3bS0xLjEuNjQxSDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4zOCIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuMjQgNDMuMzA1SDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4xMiIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuOSA0My45NDVIMjdtLTEuMS42NEgyN20tMS4xLjY0SDI3bS0xLjEuNjQxSDI3Ii8+CiAgICAgIDxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9Ii4zOCIgc3Ryb2tlLXdpZHRoPSIuMTY1IiBkPSJNMjUuMjQgNDYuNTA2SDI3Ii8+CiAgICAgIDxwYXRoIGZpbGw9IiMwMDAiIGZpbGwtb3BhY2l0eT0iLjM4IiBkPSJNMjMuMDE3IDE0LjA1OFYxNWgtLjE1NXYtLjc1N2wtLjIzLjA3OHYtLjEyOWwuMzY2LS4xMzRoLjAxOVptLjk1MS4zOTR2LjE1M2EuNzAzLjcwMyAwIDAgMS0uMDIxLjE4OS4zMjcuMzI3IDAgMCAxLS4wNjIuMTI1LjI0Mi4yNDIgMCAwIDEtLjA5OC4wNzEuMzU4LjM1OCAwIDAgMS0uMjI5LjAwOC4yNS4yNSAwIDAgMS0uMTUtLjEyMi40MzcuNDM3IDAgMCAxLS4wNDEtLjExNS43NjEuNzYxIDAgMCAxLS4wMTQtLjE1NXYtLjE1NGEuNjcuNjcgMCAwIDEgLjAyMi0uMTg3LjMyOC4zMjggMCAwIDEgLjA2Mi0uMTI0LjIzOC4yMzggMCAwIDEgLjA5Ny0uMDcuMzQ4LjM0OCAwIDAgMSAuMTI2LS4wMjJjLjAzOCAwIC4wNzIuMDA0LjEwMy4wMTRhLjI0Mi4yNDIgMCAwIDEgLjE1LjEyLjM5LjM5IDAgMCAxIC4wNDEuMTE0Yy4wMS4wNDUuMDE0LjA5Ni4wMTQuMTU1Wm0tLjE1NS4xNzV2LS4xOThhLjY2Ni42NjYgMCAwIDAtLjAwNi0uMDk5LjI5Mi4yOTIgMCAwIDAtLjAyLS4wNzIuMTQ2LjE0NiAwIDAgMC0uMDMtLjA1LjEwOC4xMDggMCAwIDAtLjA0My0uMDI3LjE1LjE1IDAgMCAwLS4wNTQtLjAxLjE0Mi4xNDIgMCAwIDAtLjA2NC4wMTUuMTE1LjExNSAwIDAgMC0uMDQ4LjA0NC4yNC4yNCAwIDAgMC0uMDMuMDguNjMuNjMgMCAwIDAtLjAxLjExOXYuMTk4YzAgLjAzOC4wMDMuMDcyLjAwNy4xLjAwNS4wMy4wMTEuMDU0LjAyLjA3NS4wMDguMDIuMDE4LjAzNi4wMy4wNWEuMTE2LjExNiAwIDAgMCAuMDQzLjAyOC4xNTQuMTU0IDAgMCAwIC4wNTQuMDEuMTQ0LjE0NCAwIDAgMCAuMDY1LS4wMTUuMTIuMTIgMCAwIDAgLjA0Ny0uMDQ1LjI0Ni4yNDYgMCAwIDAgLjAzLS4wODIuNjUyLjY1MiAwIDAgMCAuMDEtLjEyWm0uOTItLjE3NXYuMTUzYS43MDMuNzAzIDAgMCAxLS4wMjMuMTg5LjMyNy4zMjcgMCAwIDEtLjA2MS4xMjUuMjQyLjI0MiAwIDAgMS0uMDk4LjA3MS4zNTguMzU4IDAgMCAxLS4yMjkuMDA4LjI1LjI1IDAgMCAxLS4xNS0uMTIyLjQzNy40MzcgMCAwIDEtLjA0MS0uMTE1Ljc2Ljc2IDAgMCAxLS4wMTQtLjE1NXYtLjE1NGEuNjcuNjcgMCAwIDEgLjAyMi0uMTg3LjMyOC4zMjggMCAwIDEgLjA2Mi0uMTI0LjIzOC4yMzggMCAwIDEgLjA5Ny0uMDcuMzQ4LjM0OCAwIDAgMSAuMTI2LS4wMjJjLjAzOCAwIC4wNzIuMDA0LjEwMy4wMTRhLjI0Mi4yNDIgMCAwIDEgLjE1LjEyLjM5LjM5IDAgMCAxIC4wNDEuMTE0Ljc1Ljc1IDAgMCAxIC4wMTQuMTU1Wm0tLjE1Ni4xNzV2LS4xOThhLjY2Ny42NjcgMCAwIDAtLjAwNi0uMDk5LjI5Mi4yOTIgMCAwIDAtLjAyLS4wNzIuMTQ2LjE0NiAwIDAgMC0uMDMtLjA1LjEwOC4xMDggMCAwIDAtLjA0My0uMDI3LjE1LjE1IDAgMCAwLS4wNTQtLjAxLjE0Mi4xNDIgMCAwIDAtLjA2NC4wMTUuMTE2LjExNiAwIDAgMC0uMDQ4LjA0NC4yNC4yNCAwIDAgMC0uMDMuMDguNjIyLjYyMiAwIDAgMC0uMDEuMTE5di4xOThjMCAuMDM4LjAwMy4wNzIuMDA3LjEuMDA1LjAzLjAxMS4wNTQuMDIuMDc1YS4xOC4xOCAwIDAgMCAuMDMuMDUuMTE3LjExNyAwIDAgMCAuMDQzLjAyOC4xNTQuMTU0IDAgMCAwIC4wNTQuMDEuMTQ0LjE0NCAwIDAgMCAuMDY1LS4wMTUuMTIuMTIgMCAwIDAgLjA0Ny0uMDQ1LjI0Ni4yNDYgMCAwIDAgLjAzLS4wODIuNjUyLjY1MiAwIDAgMCAuMDA5LS4xMlptLTEuMDk1IDMuMzVoLjAxM2EuNDEuNDEgMCAwIDAgLjE0OC0uMDIzLjIzOC4yMzggMCAwIDAgLjA5NS0uMDY1LjI1NS4yNTUgMCAwIDAgLjA1MS0uMDk5LjQ2OC40NjggMCAwIDAgLjAxNi0uMTIzdi0uMTYyYS4zNjkuMzY5IDAgMCAwLS4wMTMtLjEuMjA3LjIwNyAwIDAgMC0uMDMzLS4wNzMuMTQyLjE0MiAwIDAgMC0uMDUtLjA0NS4xMjQuMTI0IDAgMCAwLS4wNi0uMDE1LjEyNy4xMjcgMCAwIDAtLjA2NC4wMTcuMTQuMTQgMCAwIDAtLjA0Ny4wNDMuMjE0LjIxNCAwIDAgMC0uMDI5LjA2My4zLjMgMCAwIDAgMCAuMTUzLjIxLjIxIDAgMCAwIC4wMjguMDYzLjEzMi4xMzIgMCAwIDAgLjExMy4wNi4xNjEuMTYxIDAgMCAwIC4xMi0uMDUyLjE4NC4xODQgMCAwIDAgLjA1LS4xMTRsLjA1OS4wMThhLjI0LjI0IDAgMCAxLS4wMi4wOTcuMzAxLjMwMSAwIDAgMS0uMTQuMTQ4LjI2Ny4yNjcgMCAwIDEtLjIyMS0uMDAyLjI0OS4yNDkgMCAwIDEtLjA4NS0uMDcuMzA2LjMwNiAwIDAgMS0uMDUtLjEuNDE4LjQxOCAwIDAgMSAuMDAzLS4yNDYuMzE0LjMxNCAwIDAgMSAuMDYtLjEwNS4yNy4yNyAwIDAgMSAuMDk2LS4wNy4zMDcuMzA3IDAgMCAxIC4xMjgtLjAyNi4yOC4yOCAwIDAgMSAuMjMuMTEyLjM2OC4zNjggMCAwIDEgLjA2LjEyYy4wMTMuMDQ2LjAyLjA5Ni4wMi4xNDl2LjA1NGEuODQ4Ljg0OCAwIDAgMS0uMDE1LjE2LjUzNy41MzcgMCAwIDEtLjA0OS4xNDMuMzguMzggMCAwIDEtLjIxOC4xOTEuNTUuNTUgMCAwIDEtLjE4Mi4wMjhoLS4wMTR2LS4xMjlabTEuMjUtLjQyNXYuMTU0YS43MDMuNzAzIDAgMCAxLS4wMjIuMTg4LjMyNy4zMjcgMCAwIDEtLjA2Mi4xMjUuMjQyLjI0MiAwIDAgMS0uMDk3LjA3MS4zNjIuMzYyIDAgMCAxLS4yMjkuMDA4LjI1My4yNTMgMCAwIDEtLjE1LS4xMjIuNDM4LjQzOCAwIDAgMS0uMDQxLS4xMTUuNzU0Ljc1NCAwIDAgMS0uMDE0LS4xNTV2LS4xNTRhLjY3LjY3IDAgMCAxIC4wMjItLjE4Ny4zMy4zMyAwIDAgMSAuMDYyLS4xMjQuMjM4LjIzOCAwIDAgMSAuMDk3LS4wNy4zNDguMzQ4IDAgMCAxIC4xMjYtLjAyMmMuMDM4IDAgLjA3Mi4wMDQuMTAzLjAxNGEuMjQzLjI0MyAwIDAgMSAuMTUuMTJjLjAxOC4wMzIuMDMyLjA3LjA0MS4xMTQuMDEuMDQ1LjAxNC4wOTYuMDE0LjE1NVptLS4xNTUuMTc1di0uMTk4YS42NjYuNjY2IDAgMCAwLS4wMDYtLjA5OS4yOS4yOSAwIDAgMC0uMDItLjA3Mi4xNDUuMTQ1IDAgMCAwLS4wMy0uMDUuMTEuMTEgMCAwIDAtLjA0My0uMDI3LjE1LjE1IDAgMCAwLS4wNTQtLjAxLjE0My4xNDMgMCAwIDAtLjA2NC4wMTUuMTE3LjExNyAwIDAgMC0uMDQ4LjA0NC4yMzcuMjM3IDAgMCAwLS4wMy4wOC42MjIuNjIyIDAgMCAwLS4wMS4xMTl2LjE5OGMwIC4wMzguMDAzLjA3Mi4wMDcuMS4wMDUuMDMuMDExLjA1NC4wMi4wNzQuMDA4LjAyLjAxOC4wMzcuMDMuMDVhLjExNi4xMTYgMCAwIDAgLjA0My4wMy4xNTQuMTU0IDAgMCAwIC4wNTMuMDA4LjE0My4xNDMgMCAwIDAgLjA2Ni0uMDE0LjEyLjEyIDAgMCAwIC4wNDctLjA0NS4yNDQuMjQ0IDAgMCAwIC4wMy0uMDgyLjY0NC42NDQgMCAwIDAgLjAwOS0uMTJabS0uNjA3IDMuMjE3YS4yNTguMjU4IDAgMCAxLS4wNC4xNDguMjU0LjI1NCAwIDAgMS0uMTExLjA5LjM5LjM5IDAgMCAxLS4xNTcuMDMuMzk1LjM5NSAwIDAgMS0uMTU4LS4wMy4yNTUuMjU1IDAgMCAxLS4xMTEtLjA5LjI1Ny4yNTcgMCAwIDEtLjA0LS4xNDguMjQuMjQgMCAwIDEgLjA4NS0uMTg3LjMuMyAwIDAgMSAuMDk5LS4wNTMuMzkyLjM5MiAwIDAgMSAuMTIzLS4wMTljLjA2IDAgLjExMy4wMS4xNi4wMzNhLjI3LjI3IDAgMCAxIC4xMS4wOS4yMy4yMyAwIDAgMSAuMDQuMTM2Wm0tLjE1Ni0uMDA4YS4xNy4xNyAwIDAgMC0uMDE5LS4wODIuMTM1LjEzNSAwIDAgMC0uMDU0LS4wNTUuMTYzLjE2MyAwIDAgMC0uMDgtLjAyLjE2LjE2IDAgMCAwLS4wODEuMDIuMTM2LjEzNiAwIDAgMC0uMDU0LjA1NS4xNzQuMTc0IDAgMCAwLS4wMTguMDgyYzAgLjAzMi4wMDYuMDYuMDE4LjA4My4wMTMuMDIzLjAzLjA0LjA1NC4wNTIuMDIzLjAxMi4wNS4wMTguMDgyLjAxOGEuMTcxLjE3MSAwIDAgMCAuMDgtLjAxOC4xMjYuMTI2IDAgMCAwIC4wNTQtLjA1Mi4xNzIuMTcyIDAgMCAwIC4wMTgtLjA4M1ptLjEzNS0uNDI4YS4yMTYuMjE2IDAgMCAxLS4wMzcuMTI1LjI1Mi4yNTIgMCAwIDEtLjEwMi4wODcuMzQyLjM0MiAwIDAgMS0uMTQ4LjAzLjM0OC4zNDggMCAwIDEtLjE1LS4wMy4yNTguMjU4IDAgMCAxLS4xMDItLjA4Ny4yMi4yMiAwIDAgMS0uMDM3LS4xMjUuMjUuMjUgMCAwIDEgLjAzNy0uMTQuMjQuMjQgMCAwIDEgLjEwMi0uMDkuMzQ5LjM0OSAwIDAgMSAuMTQ5LS4wM2MuMDU2IDAgLjEwNS4wMS4xNDkuMDNhLjI0LjI0IDAgMCAxIC4xMDIuMDkuMjUzLjI1MyAwIDAgMSAuMDM3LjE0Wm0tLjE1NS4wMDZhLjE1NC4xNTQgMCAwIDAtLjAxNy0uMDc0LjEyLjEyIDAgMCAwLS4wNDYtLjA1LjEzMi4xMzIgMCAwIDAtLjA3LS4wMTguMTM2LjEzNiAwIDAgMC0uMDcuMDE3LjExNy4xMTcgMCAwIDAtLjA0Ni4wNS4xNjUuMTY1IDAgMCAwLS4wMTYuMDc1YzAgLjAyOC4wMDUuMDUzLjAxNi4wNzUuMDEuMDIxLjAyNi4wMzguMDQ2LjA1LjAyLjAxMi4wNDMuMDE4LjA3LjAxOGEuMTIyLjEyMiAwIDAgMCAuMTE2LS4wNjguMTY3LjE2NyAwIDAgMCAuMDE3LS4wNzVabS45MzguMTM4di4xNTNhLjcwMy43MDMgMCAwIDEtLjAyMi4xODkuMzI3LjMyNyAwIDAgMS0uMDYyLjEyNS4yNDMuMjQzIDAgMCAxLS4wOTcuMDcxLjM2Mi4zNjIgMCAwIDEtLjIyOS4wMDguMjUzLjI1MyAwIDAgMS0uMTUtLjEyMi40MzguNDM4IDAgMCAxLS4wNDEtLjExNS43NTMuNzUzIDAgMCAxLS4wMTQtLjE1NXYtLjE1NGEuNjcuNjcgMCAwIDEgLjAyMi0uMTg3LjMzLjMzIDAgMCAxIC4wNjItLjEyNC4yMzkuMjM5IDAgMCAxIC4wOTctLjA3LjM0OC4zNDggMCAwIDEgLjEyNi0uMDIyYy4wMzggMCAuMDcyLjAwNC4xMDMuMDE0YS4yNDEuMjQxIDAgMCAxIC4xNS4xMi4zOS4zOSAwIDAgMSAuMDQxLjExNGMuMDEuMDQ1LjAxNC4wOTYuMDE0LjE1NVptLS4xNTUuMTc1di0uMTk4YS42NjUuNjY1IDAgMCAwLS4wMDYtLjA5OS4yOS4yOSAwIDAgMC0uMDItLjA3My4xNDQuMTQ0IDAgMCAwLS4wMy0uMDQ5LjEwOC4xMDggMCAwIDAtLjA0My0uMDI3LjE0OC4xNDggMCAwIDAtLjA1NC0uMDEuMTQzLjE0MyAwIDAgMC0uMDY0LjAxNS4xMTYuMTE2IDAgMCAwLS4wNDguMDQ0LjIzOC4yMzggMCAwIDAtLjAzLjA4LjYyMi42MjIgMCAwIDAtLjAxLjExOXYuMTk4YzAgLjAzOC4wMDMuMDcxLjAwNy4xLjAwNS4wMy4wMTEuMDU0LjAyLjA3NGEuMTguMTggMCAwIDAgLjAzLjA1LjExNi4xMTYgMCAwIDAgLjA0My4wMy4xNTQuMTU0IDAgMCAwIC4wNTMuMDA4LjE0My4xNDMgMCAwIDAgLjA2Ni0uMDE0LjEyLjEyIDAgMCAwIC4wNDctLjA0NS4yNDUuMjQ1IDAgMCAwIC4wMy0uMDgyLjY0My42NDMgMCAwIDAgLjAwOS0uMTJabS0uNTk3IDIuNTM1di4wODVsLS4zNzUuODUzaC0uMTY0bC4zNzUtLjgxNWgtLjQ4NnYtLjEyM2guNjVabS43NTIuMzl2LjE1NGEuNzAzLjcwMyAwIDAgMS0uMDIyLjE4OC4zMjcuMzI3IDAgMCAxLS4wNjIuMTI1LjI0My4yNDMgMCAwIDEtLjA5Ny4wNzEuMzYyLjM2MiAwIDAgMS0uMjI5LjAwOC4yNTMuMjUzIDAgMCAxLS4xNS0uMTIyLjQzOC40MzggMCAwIDEtLjA0MS0uMTE1Ljc1My43NTMgMCAwIDEtLjAxNC0uMTU1di0uMTU0YS42Ny42NyAwIDAgMSAuMDIyLS4xODcuMzMuMzMgMCAwIDEgLjA2Mi0uMTI0LjIzOS4yMzkgMCAwIDEgLjA5Ny0uMDcuMzQ4LjM0OCAwIDAgMSAuMTI2LS4wMjJjLjAzOCAwIC4wNzIuMDA0LjEwMy4wMTRhLjI0MS4yNDEgMCAwIDEgLjE1LjEyLjM5LjM5IDAgMCAxIC4wNDEuMTE0Yy4wMS4wNDUuMDE0LjA5Ni4wMTQuMTU1Wm0tLjE1NS4xNzV2LS4xOThhLjY2NS42NjUgMCAwIDAtLjAwNi0uMDk5LjI5My4yOTMgMCAwIDAtLjAyLS4wNzIuMTQ1LjE0NSAwIDAgMC0uMDMtLjA1LjExLjExIDAgMCAwLS4wNDMtLjAyNy4xNS4xNSAwIDAgMC0uMDU0LS4wMS4xNDMuMTQzIDAgMCAwLS4wNjQuMDE1LjExNi4xMTYgMCAwIDAtLjA0OC4wNDQuMjM4LjIzOCAwIDAgMC0uMDMuMDguNjIyLjYyMiAwIDAgMC0uMDEuMTE5di4xOThjMCAuMDM4LjAwMy4wNzIuMDA3LjEuMDA1LjAzLjAxMS4wNTQuMDIuMDc1YS4xOC4xOCAwIDAgMCAuMDMuMDUuMTE2LjExNiAwIDAgMCAuMDQzLjAyOC4xNTQuMTU0IDAgMCAwIC4wNTMuMDEuMTQzLjE0MyAwIDAgMCAuMDY2LS4wMTUuMTIuMTIgMCAwIDAgLjA0Ny0uMDQ1LjI0NS4yNDUgMCAwIDAgLjAzLS4wODIuNjQzLjY0MyAwIDAgMCAuMDA5LS4xMlptLS43NTEgMi41MjloLjAydi4xMjdoLS4wMTJhLjM2Ny4zNjcgMCAwIDAtLjE0My4wMjYuMjY3LjI2NyAwIDAgMC0uMS4wNy4zMDMuMzAzIDAgMCAwLS4wNTcuMTA2LjQyOS40MjkgMCAwIDAtLjAxOS4xMjh2LjE0N2MwIC4wMzguMDA0LjA3LjAxMi4xLjAwOS4wMjguMDIuMDUyLjAzNS4wNzFhLjE1Ni4xNTYgMCAwIDAgLjA1MS4wNDNjLjAyLjAxLjA0LjAxNS4wNjMuMDE1YS4xNC4xNCAwIDAgMCAuMDYzLS4wMTQuMTQ2LjE0NiAwIDAgMCAuMDQ4LS4wNC4xNzkuMTc5IDAgMCAwIC4wMy0uMDYyLjI3NS4yNzUgMCAwIDAtLjAyOS0uMjE0LjEzNS4xMzUgMCAwIDAtLjExNC0uMDU3LjE2Ni4xNjYgMCAwIDAtLjA4NC4wMjIuMTguMTggMCAwIDAtLjA2LjA1Ny4xNDguMTQ4IDAgMCAwLS4wMjUuMDc0bC0uMDYtLjAyYS4zMzQuMzM0IDAgMCAxIC4wMjctLjEwNy4yNDIuMjQyIDAgMCAxIC4xNC0uMTMyLjI4Ni4yODYgMCAwIDEgLjEwMi0uMDE4LjIzNS4yMzUgMCAwIDEgLjIwMi4wOTZjLjAyMy4wMy4wMzkuMDYzLjA1LjFhLjQxLjQxIDAgMCAxLS4wMDQuMjQ0LjI5Ni4yOTYgMCAwIDEtLjA2LjEwMi4yNzIuMjcyIDAgMCAxLS4wOTcuMDY4LjMxNS4zMTUgMCAwIDEtLjEyNy4wMjUuMjk2LjI5NiAwIDAgMS0uMjM1LS4xMDkuMzY2LjM2NiAwIDAgMS0uMDYyLS4xMTcuNDU3LjQ1NyAwIDAgMS0uMDIxLS4xNHYtLjA2NWEuNzMuNzMgMCAwIDEgLjAyNy0uMjAyLjQ5Mi40OTIgMCAwIDEgLjA4My0uMTY4LjM5LjM5IDAgMCAxIC4xNDUtLjExNC40ODkuNDg5IDAgMCAxIC4yMS0uMDQyWm0uOTA2LjM5NnYuMTU0YS43MDQuNzA0IDAgMCAxLS4wMjIuMTg4LjMyOS4zMjkgMCAwIDEtLjA2Mi4xMjYuMjQzLjI0MyAwIDAgMS0uMDk3LjA3LjM1OS4zNTkgMCAwIDEtLjIyOS4wMDguMjUxLjI1MSAwIDAgMS0uMTUtLjEyMi40MzkuNDM5IDAgMCAxLS4wNDEtLjExNS43NTMuNzUzIDAgMCAxLS4wMTQtLjE1NXYtLjE1NGEuNjcuNjcgMCAwIDEgLjAyMi0uMTg3LjMyOS4zMjkgMCAwIDEgLjA2Mi0uMTI0LjIzOC4yMzggMCAwIDEgLjA5Ny0uMDcuMzQ4LjM0OCAwIDAgMSAuMTI2LS4wMjJjLjAzOCAwIC4wNzIuMDA0LjEwMy4wMTRhLjI0MS4yNDEgMCAwIDEgLjE1LjEyLjM5LjM5IDAgMCAxIC4wNDEuMTE1Ljc1Ljc1IDAgMCAxIC4wMTQuMTU0Wm0tLjE1NS4xNzV2LS4xOThhLjY2NS42NjUgMCAwIDAtLjAwNi0uMDk5LjI5My4yOTMgMCAwIDAtLjAyLS4wNzMuMTQ1LjE0NSAwIDAgMC0uMDMtLjA0OS4xMS4xMSAwIDAgMC0uMDQzLS4wMjcuMTUuMTUgMCAwIDAtLjA1NC0uMDEuMTQyLjE0MiAwIDAgMC0uMDY0LjAxNS4xMTYuMTE2IDAgMCAwLS4wNDguMDQ0LjIzNy4yMzcgMCAwIDAtLjAzLjA4LjYyMy42MjMgMCAwIDAtLjAxLjExOXYuMTk4YzAgLjAzOC4wMDMuMDcyLjAwNy4xLjAwNS4wMy4wMTEuMDU0LjAyLjA3NWEuMTguMTggMCAwIDAgLjAzLjA1LjExNS4xMTUgMCAwIDAgLjA0My4wMjhjLjAxNi4wMDYuMDM0LjAxLjA1My4wMWEuMTQ0LjE0NCAwIDAgMCAuMDY2LS4wMTUuMTIuMTIgMCAwIDAgLjA0Ny0uMDQ1LjI0NS4yNDUgMCAwIDAgLjAzLS4wODIuNjQzLjY0MyAwIDAgMCAuMDA5LS4xMlptLTEuMDU3IDMuMDM3LS4xMjQtLjAzLjA1LS40NzJoLjUwN3YuMTMxaC0uMzc3bC0uMDI2LjIzYS4zMTYuMzE2IDAgMCAxIC4yNjctLjAxNi4yMzYuMjM2IDAgMCAxIC4wOS4wNjNjLjAyNS4wMjcuMDQzLjA2LjA1Ni4wOTlhLjQxMi40MTIgMCAwIDEgMCAuMjUzLjI2LjI2IDAgMCAxLS4xNTMuMTY4LjM1My4zNTMgMCAwIDEtLjEzNi4wMjMuMzc3LjM3NyAwIDAgMS0uMTEyLS4wMTcuMzA3LjMwNyAwIDAgMS0uMDk2LS4wNS4yNi4yNiAwIDAgMS0uMDk4LS4yaC4xNTJhLjIuMiAwIDAgMCAuMDI1LjA3OGMuMDEzLjAyMS4wMy4wMzcuMDUzLjA0OGEuMTY1LjE2NSAwIDAgMCAuMDc2LjAxNy4xNTYuMTU2IDAgMCAwIC4wNjctLjAxMy4xMjcuMTI3IDAgMCAwIC4wNDctLjA0LjE3Ny4xNzcgMCAwIDAgLjAyOS0uMDYyLjMwMS4zMDEgMCAwIDAtLjAwMS0uMTU0LjE2NS4xNjUgMCAwIDAtLjAzMi0uMDYuMTM1LjEzNSAwIDAgMC0uMDUyLS4wMzguMTc1LjE3NSAwIDAgMC0uMDczLS4wMTQuMTguMTggMCAwIDAtLjA4NS4wMTYuMjY1LjI2NSAwIDAgMC0uMDU0LjA0Wm0xLjIxMi0uMTEydi4xNTNhLjcwMy43MDMgMCAwIDEtLjAyMi4xODkuMzI3LjMyNyAwIDAgMS0uMDYyLjEyNS4yNDEuMjQxIDAgMCAxLS4wOTcuMDcxLjM1OS4zNTkgMCAwIDEtLjIyOS4wMDguMjUxLjI1MSAwIDAgMS0uMTUtLjEyMi40MzcuNDM3IDAgMCAxLS4wNDEtLjExNS43NTQuNzU0IDAgMCAxLS4wMTQtLjE1NXYtLjE1NGEuNjcuNjcgMCAwIDEgLjAyMi0uMTg3LjMzLjMzIDAgMCAxIC4wNjItLjEyNC4yMzguMjM4IDAgMCAxIC4wOTctLjA3LjM0OC4zNDggMCAwIDEgLjEyNi0uMDIyYy4wMzggMCAuMDcyLjAwNC4xMDMuMDE0YS4yNDMuMjQzIDAgMCAxIC4xNS4xMi4zOS4zOSAwIDAgMSAuMDQxLjExNC43NS43NSAwIDAgMSAuMDE0LjE1NVptLS4xNTUuMTc1di0uMTk4YS42NjcuNjY3IDAgMCAwLS4wMDYtLjA5OS4yOTIuMjkyIDAgMCAwLS4wMi0uMDcyLjE0NS4xNDUgMCAwIDAtLjAzLS4wNS4xMS4xMSAwIDAgMC0uMDQzLS4wMjcuMTUuMTUgMCAwIDAtLjA1NC0uMDEuMTQyLjE0MiAwIDAgMC0uMDY0LjAxNS4xMTYuMTE2IDAgMCAwLS4wNDguMDQ0LjIzNy4yMzcgMCAwIDAtLjAzLjA4LjYyMi42MjIgMCAwIDAtLjAxLjExOXYuMTk5YzAgLjAzNy4wMDMuMDcuMDA3LjFhLjMyLjMyIDAgMCAwIC4wMi4wNzMuMTguMTggMCAwIDAgLjAzLjA1LjExNy4xMTcgMCAwIDAgLjA0My4wMy4xNTQuMTU0IDAgMCAwIC4wNTMuMDA4LjE0NC4xNDQgMCAwIDAgLjA2Ni0uMDE0LjEyLjEyIDAgMCAwIC4wNDctLjA0NS4yNDQuMjQ0IDAgMCAwIC4wMy0uMDgyLjY0My42NDMgMCAwIDAgLjAwOS0uMTJabS0uNTc0IDMuMTM5di4xMjNoLS42NzdsLS4wMDUtLjA5My40MDUtLjYzNWguMTI0bC0uMTM0LjIzMS0uMjMzLjM3M2guNTJabS0uMTE3LS42MDV2LjkzOWgtLjE1NXYtLjkzOWguMTU1Wm0uODQ2LjM5MXYuMTU0YS43MDMuNzAzIDAgMCAxLS4wMjIuMTg4LjMyNy4zMjcgMCAwIDEtLjA2Mi4xMjUuMjQyLjI0MiAwIDAgMS0uMDk3LjA3MS4zNjIuMzYyIDAgMCAxLS4yMjkuMDA4LjI1My4yNTMgMCAwIDEtLjE1LS4xMjIuNDM4LjQzOCAwIDAgMS0uMDQxLS4xMTUuNzU0Ljc1NCAwIDAgMS0uMDE0LS4xNTV2LS4xNTRhLjY3LjY3IDAgMCAxIC4wMjItLjE4Ny4zMy4zMyAwIDAgMSAuMDYyLS4xMjQuMjM4LjIzOCAwIDAgMSAuMDk3LS4wNy4zNDguMzQ4IDAgMCAxIC4xMjYtLjAyMmMuMDM4IDAgLjA3Mi4wMDQuMTAzLjAxNGEuMjQzLjI0MyAwIDAgMSAuMTUuMTJjLjAxOC4wMzIuMDMyLjA3LjA0MS4xMTQuMDEuMDQ1LjAxNC4wOTYuMDE0LjE1NVptLS4xNTUuMTc1di0uMTk4YS42NjYuNjY2IDAgMCAwLS4wMDYtLjA5OS4yOS4yOSAwIDAgMC0uMDItLjA3Mi4xNDUuMTQ1IDAgMCAwLS4wMy0uMDUuMTEuMTEgMCAwIDAtLjA0My0uMDI3LjE1LjE1IDAgMCAwLS4wNTQtLjAxLjE0My4xNDMgMCAwIDAtLjA2NC4wMTUuMTE3LjExNyAwIDAgMC0uMDQ4LjA0NC4yMzcuMjM3IDAgMCAwLS4wMy4wOC42MjIuNjIyIDAgMCAwLS4wMS4xMTl2LjE5OGMwIC4wMzguMDAzLjA3Mi4wMDcuMS4wMDUuMDMuMDExLjA1NC4wMi4wNzUuMDA4LjAyLjAxOC4wMzYuMDMuMDVhLjExNi4xMTYgMCAwIDAgLjA0My4wMjguMTU0LjE1NCAwIDAgMCAuMDUzLjAxLjE0My4xNDMgMCAwIDAgLjA2Ni0uMDE1LjEyLjEyIDAgMCAwIC4wNDctLjA0NS4yNDQuMjQ0IDAgMCAwIC4wMy0uMDgyLjY0NC42NDQgMCAwIDAgLjAwOS0uMTJaTTIzLjU0IDM2LjE2aC4wOTJhLjE5Mi4xOTIgMCAwIDAgLjA5LS4wMTguMTIyLjEyMiAwIDAgMCAuMDUzLS4wNTIuMTU5LjE1OSAwIDAgMCAuMDE3LS4wNzUuMTY2LjE2NiAwIDAgMC0uMDE2LS4wNzYuMTA5LjEwOSAwIDAgMC0uMDQ3LS4wNS4xNjYuMTY2IDAgMCAwLS4wODEtLjAxNy4xNjQuMTY0IDAgMCAwLS4wNzUuMDE3LjEyNi4xMjYgMCAwIDAtLjA3MS4xMTdoLS4xNTZjMC0uMDUuMDEzLS4wOTQuMDM5LS4xMzNhLjI2OC4yNjggMCAwIDEgLjEwNy0uMDkuMzQ0LjM0NCAwIDAgMSAuMTUzLS4wMzRjLjA2MSAwIC4xMTQuMDEuMTU5LjAzLjA0Ni4wMi4wODEuMDUuMTA2LjA4OS4wMjYuMDQuMDM4LjA4OC4wMzguMTQ3YS4xOTYuMTk2IDAgMCAxLS4wMTguMDgxLjIzNi4yMzYgMCAwIDEtLjA1Ni4wNzUuMjg4LjI4OCAwIDAgMS0uMDkxLjA1NS4zNTguMzU4IDAgMCAxLS4xMjcuMDJoLS4xMTd2LS4wODZabTAgLjEyMnYtLjA4NWguMTE2Yy4wNTUgMCAuMTAyLjAwNi4xNC4wMTkuMDQuMDEzLjA3MS4wMy4wOTYuMDUzYS4yMDIuMjAyIDAgMCAxIC4wNTMuMDc3LjI3Ni4yNzYgMCAwIDEtLjAwNi4yMDkuMjM4LjIzOCAwIDAgMS0uMDY3LjA4Ni4yOTYuMjk2IDAgMCAxLS4xLjA1NC40MTUuNDE1IDAgMCAxLS4yNDIuMDAxLjMxNy4zMTcgMCAwIDEtLjEtLjA1LjI0Ny4yNDcgMCAwIDEtLjA2OS0uMDgzLjI1Ni4yNTYgMCAwIDEtLjAyNS0uMTE2aC4xNTVjMCAuMDI4LjAwNy4wNTMuMDIuMDc0YS4xMzguMTM4IDAgMCAwIC4wNTUuMDUuMTguMTggMCAwIDAgLjA4My4wMTguMTkuMTkgMCAwIDAgLjA4NC0uMDE3LjEyLjEyIDAgMCAwIC4wNTQtLjA1Mi4xNjUuMTY1IDAgMCAwIC4wMi0uMDgyLjE2Ni4xNjYgMCAwIDAtLjAyMi0uMDkuMTI1LjEyNSAwIDAgMC0uMDYtLjA1LjIzNS4yMzUgMCAwIDAtLjA5My0uMDE2aC0uMDkzWm0xLjE5Mi0uMTN2LjE1NGEuNzAzLjcwMyAwIDAgMS0uMDIyLjE4OC4zMjcuMzI3IDAgMCAxLS4wNjIuMTI1LjI0My4yNDMgMCAwIDEtLjA5Ny4wNzEuMzYyLjM2MiAwIDAgMS0uMjI5LjAwOC4yNTMuMjUzIDAgMCAxLS4xNS0uMTIyLjQzOC40MzggMCAwIDEtLjA0MS0uMTE1Ljc1My43NTMgMCAwIDEtLjAxNC0uMTU1di0uMTU0YS42Ny42NyAwIDAgMSAuMDIyLS4xODcuMzMuMzMgMCAwIDEgLjA2Mi0uMTI0LjIzOS4yMzkgMCAwIDEgLjA5Ny0uMDcuMzQ4LjM0OCAwIDAgMSAuMTI2LS4wMjJjLjAzOCAwIC4wNzIuMDA0LjEwMy4wMTRhLjI0MS4yNDEgMCAwIDEgLjE1LjEyLjM5LjM5IDAgMCAxIC4wNDEuMTE0Yy4wMS4wNDUuMDE0LjA5Ni4wMTQuMTU1Wm0tLjE1NS4xNzV2LS4xOThhLjY2NS42NjUgMCAwIDAtLjAwNi0uMDk5LjI5LjI5IDAgMCAwLS4wMi0uMDcyLjE0NC4xNDQgMCAwIDAtLjAzLS4wNS4xMDguMTA4IDAgMCAwLS4wNDMtLjAyNy4xNDguMTQ4IDAgMCAwLS4wNTQtLjAxLjE0My4xNDMgMCAwIDAtLjA2NC4wMTUuMTE2LjExNiAwIDAgMC0uMDQ4LjA0NC4yMzguMjM4IDAgMCAwLS4wMy4wOC42MjIuNjIyIDAgMCAwLS4wMS4xMTl2LjE5OGMwIC4wMzguMDAzLjA3Mi4wMDcuMS4wMDUuMDMuMDExLjA1NC4wMi4wNzRhLjE4LjE4IDAgMCAwIC4wMy4wNS4xMTYuMTE2IDAgMCAwIC4wNDMuMDMuMTU0LjE1NCAwIDAgMCAuMDUzLjAwOC4xNDMuMTQzIDAgMCAwIC4wNjYtLjAxNC4xMi4xMiAwIDAgMCAuMDQ3LS4wNDUuMjQ1LjI0NSAwIDAgMCAuMDMtLjA4Mi42NDMuNjQzIDAgMCAwIC4wMDktLjEyWm0tLjU5MSAzLjM0OXYuMTI0aC0uNjN2LS4xMDZsLjMwNi0uMzM0Yy4wMzQtLjAzNy4wNi0uMDcuMDgtLjA5N2EuMzIuMzIgMCAwIDAgLjA0LS4wNzUuMTkxLjE5MSAwIDAgMC0uMDA0LS4xNDMuMTIzLjEyMyAwIDAgMC0uMDQ4LS4wNTMuMTQuMTQgMCAwIDAtLjA3Ny0uMDIuMTYuMTYgMCAwIDAtLjA4Ny4wMjIuMTQyLjE0MiAwIDAgMC0uMDU0LjA2My4yMTUuMjE1IDAgMCAwLS4wMTguMDloLS4xNTVjMC0uMDU0LjAxMi0uMTA0LjAzNy0uMTVhLjI3NC4yNzQgMCAwIDEgLjEwOC0uMTA4LjM0LjM0IDAgMCAxIC4xNzEtLjA0Yy4wNjMgMCAuMTE2LjAxLjE2LjAzMWEuMjI1LjIyNSAwIDAgMSAuMS4wOS4yNzkuMjc5IDAgMCAxIC4wMi4yMjQuNDE1LjQxNSAwIDAgMS0uMDQuMDg3Ljc0MS43NDEgMCAwIDEtLjA2MS4wODUgMS41NiAxLjU2IDAgMCAxLS4wNzguMDg3bC0uMjAzLjIyM2guNDMzWm0uNzQ2LS40MjR2LjE1NGEuNzAzLjcwMyAwIDAgMS0uMDIyLjE4OC4zMjcuMzI3IDAgMCAxLS4wNjIuMTI1LjI0My4yNDMgMCAwIDEtLjA5Ny4wNzEuMzYyLjM2MiAwIDAgMS0uMjI5LjAwOC4yNTMuMjUzIDAgMCAxLS4xNS0uMTIyLjQzOC40MzggMCAwIDEtLjA0MS0uMTE1Ljc1My43NTMgMCAwIDEtLjAxNC0uMTU1di0uMTU0YS42Ny42NyAwIDAgMSAuMDIyLS4xODcuMzMuMzMgMCAwIDEgLjA2Mi0uMTI0LjIzOS4yMzkgMCAwIDEgLjA5Ny0uMDcuMzQ4LjM0OCAwIDAgMSAuMTI2LS4wMjJjLjAzOCAwIC4wNzIuMDA0LjEwMy4wMTRhLjI0MS4yNDEgMCAwIDEgLjE1LjEyLjM5LjM5IDAgMCAxIC4wNDEuMTE0Yy4wMS4wNDUuMDE0LjA5Ni4wMTQuMTU1Wm0tLjE1NS4xNzV2LS4xOThhLjY2NS42NjUgMCAwIDAtLjAwNi0uMDk5LjI5My4yOTMgMCAwIDAtLjAyLS4wNzMuMTQ1LjE0NSAwIDAgMC0uMDMtLjA0OC4xMS4xMSAwIDAgMC0uMDQzLS4wMjguMTUuMTUgMCAwIDAtLjA1NC0uMDEuMTQzLjE0MyAwIDAgMC0uMDY0LjAxNS4xMTYuMTE2IDAgMCAwLS4wNDguMDQ0LjIzOC4yMzggMCAwIDAtLjAzLjA4LjYyMi42MjIgMCAwIDAtLjAxLjExOXYuMTk5YzAgLjAzNy4wMDMuMDcuMDA3LjFhLjM0NC4zNDQgMCAwIDAgLjAyLjA3NC4xOC4xOCAwIDAgMCAuMDMuMDUuMTE2LjExNiAwIDAgMCAuMDQzLjAyOC4xNTQuMTU0IDAgMCAwIC4wNTMuMDEuMTQzLjE0MyAwIDAgMCAuMDY2LS4wMTUuMTIuMTIgMCAwIDAgLjA0Ny0uMDQ1LjI0NS4yNDUgMCAwIDAgLjAzLS4wODIuNjQzLjY0MyAwIDAgMCAuMDA5LS4xMlptLS43OTcgMi41MzF2Ljk0MmgtLjE1NXYtLjc1N2wtLjIzLjA3OHYtLjEyOWwuMzY3LS4xMzRoLjAxOVptLjk1Mi4zOTR2LjE1NGEuNzA0LjcwNCAwIDAgMS0uMDIyLjE4OC4zMjkuMzI5IDAgMCAxLS4wNjIuMTI1LjI0My4yNDMgMCAwIDEtLjA5Ny4wNzEuMzU5LjM1OSAwIDAgMS0uMjI5LjAwOC4yNTEuMjUxIDAgMCAxLS4xNS0uMTIyLjQzOS40MzkgMCAwIDEtLjA0MS0uMTE1Ljc1My43NTMgMCAwIDEtLjAxNC0uMTU1di0uMTU0YS42Ny42NyAwIDAgMSAuMDIyLS4xODcuMzI5LjMyOSAwIDAgMSAuMDYyLS4xMjQuMjM4LjIzOCAwIDAgMSAuMDk3LS4wNy4zNDguMzQ4IDAgMCAxIC4xMjYtLjAyMmMuMDM4IDAgLjA3Mi4wMDQuMTAzLjAxNGEuMjQxLjI0MSAwIDAgMSAuMTUuMTIuMzkuMzkgMCAwIDEgLjA0MS4xMTQuNzUuNzUgMCAwIDEgLjAxNC4xNTVabS0uMTU1LjE3NnYtLjE5OWEuNjY1LjY2NSAwIDAgMC0uMDA2LS4wOTkuMjkzLjI5MyAwIDAgMC0uMDItLjA3Mi4xNDUuMTQ1IDAgMCAwLS4wMy0uMDUuMTEuMTEgMCAwIDAtLjA0My0uMDI3LjE1LjE1IDAgMCAwLS4wNTQtLjAxLjE0Mi4xNDIgMCAwIDAtLjA2NC4wMTUuMTE2LjExNiAwIDAgMC0uMDQ4LjA0NC4yMzcuMjM3IDAgMCAwLS4wMy4wOC42MjMuNjIzIDAgMCAwLS4wMS4xMTl2LjE5OWMwIC4wMzcuMDAzLjA3LjAwNy4xYS4zNDQuMzQ0IDAgMCAwIC4wMi4wNzQuMTguMTggMCAwIDAgLjAzLjA1LjExNS4xMTUgMCAwIDAgLjA0My4wMjhjLjAxNi4wMDYuMDM0LjAxLjA1My4wMWEuMTQ0LjE0NCAwIDAgMCAuMDY2LS4wMTUuMTIuMTIgMCAwIDAgLjA0Ny0uMDQ1LjI0NS4yNDUgMCAwIDAgLjAzLS4wODIuNjQzLjY0MyAwIDAgMCAuMDA5LS4xMlptLjE1NSAyLjkyNHYuMTU0YS43MDMuNzAzIDAgMCAxLS4wMjIuMTg4LjMyNy4zMjcgMCAwIDEtLjA2Mi4xMjUuMjQxLjI0MSAwIDAgMS0uMDk3LjA3MS4zNTkuMzU5IDAgMCAxLS4yMjkuMDA4LjI1MS4yNTEgMCAwIDEtLjE1LS4xMjIuNDM3LjQzNyAwIDAgMS0uMDQxLS4xMTUuNzU0Ljc1NCAwIDAgMS0uMDE0LS4xNTZ2LS4xNTNhLjY3LjY3IDAgMCAxIC4wMjItLjE4Ny4zMy4zMyAwIDAgMSAuMDYyLS4xMjQuMjM4LjIzOCAwIDAgMSAuMDk3LS4wNy4zNDguMzQ4IDAgMCAxIC4xMjYtLjAyMmMuMDM4IDAgLjA3Mi4wMDQuMTAzLjAxNGEuMjQzLjI0MyAwIDAgMSAuMTUuMTIuMzkuMzkgMCAwIDEgLjA0MS4xMTQuNzUuNzUgMCAwIDEgLjAxNC4xNTVabS0uMTU1LjE3NXYtLjE5OGEuNjY3LjY2NyAwIDAgMC0uMDA2LS4wOTkuMjkyLjI5MiAwIDAgMC0uMDItLjA3Mi4xNDUuMTQ1IDAgMCAwLS4wMy0uMDUuMTEuMTEgMCAwIDAtLjA0My0uMDI3LjE1LjE1IDAgMCAwLS4wNTQtLjAxLjE0Mi4xNDIgMCAwIDAtLjA2NC4wMTUuMTE2LjExNiAwIDAgMC0uMDQ4LjA0NC4yMzcuMjM3IDAgMCAwLS4wMy4wOC42MjIuNjIyIDAgMCAwLS4wMS4xMTl2LjE5OGMwIC4wMzguMDAzLjA3Mi4wMDcuMS4wMDUuMDMuMDExLjA1NC4wMi4wNzVhLjE4LjE4IDAgMCAwIC4wMy4wNS4xMTcuMTE3IDAgMCAwIC4wNDMuMDI4LjE1NC4xNTQgMCAwIDAgLjA1My4wMS4xNDQuMTQ0IDAgMCAwIC4wNjYtLjAxNS4xMi4xMiAwIDAgMCAuMDQ3LS4wNDUuMjQ0LjI0NCAwIDAgMCAuMDMtLjA4Mi42NDMuNjQzIDAgMCAwIC4wMDktLjEyWiIvPgogICAgICA8cGF0aCBmaWxsPSIjZmZmIiBkPSJtMzMuMDUgNTUuMTE0LTEuOTE0LTMuODI4aDMuODI4bC0xLjkxNCAzLjgyOFoiLz4KICAgICAgPHBhdGggc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9Ii4zOTYiIGQ9Ik0zMy4wNSA0N3YxMy4yIi8+CiAgICA8L2c+CiAgPC9nPgogIDxkZWZzPgogICAgPGNsaXBQYXRoIGlkPSJhIj4KICAgICAgPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMGg2NXY2NUgweiIvPgogICAgPC9jbGlwUGF0aD4KICAgIDxjbGlwUGF0aCBpZD0iYiI+CiAgICAgIDxyZWN0IHdpZHRoPSI1MiIgaGVpZ2h0PSI1MiIgeD0iNi41IiB5PSI2LjUiIGZpbGw9IiNmZmYiIHJ4PSI0LjQxOSIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+Cjwvc3ZnPgo=",
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": null,
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "defaultEdgeRuleChainId": null,
+  "default": false,
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": [
+      {
+        "id": "33400d2c-41d6-a62f-c9ab-decf10dcca14",
+        "alarmType": "Flow Rate",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "flowRate"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 100,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "flowRate"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 50,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 100,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 30,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "flowRate"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 30,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 50,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "3bf00e5a-6118-a1de-aa45-8006b2d2ae39",
+        "alarmType": "Density",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "density"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "NUMERIC",
+                        "operation": "GREATER_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 1.8,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 1,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "density"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 1.5,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 1.8,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 1,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 1.2,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "density"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 1.2,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 1.5,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "715501ae-e0ba-fe48-2f06-595037ea284c",
+        "alarmType": "Temperature",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "temperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 100,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "temperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 80,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 100,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 50,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "temperature"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 50,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 80,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "7a826942-3f01-0f62-47d2-8aab3f902e1b",
+        "alarmType": "Pressure",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "pressure"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER",
+                    "value": {
+                      "defaultValue": 50,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "pressure"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "COMPLEX",
+                        "operation": "AND",
+                        "predicates": [
+                          {
+                            "type": "NUMERIC",
+                            "operation": "GREATER_OR_EQUAL",
+                            "value": {
+                              "defaultValue": 30,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          },
+                          {
+                            "type": "NUMERIC",
+                            "operation": "LESS",
+                            "value": {
+                              "defaultValue": 50,
+                              "userValue": null,
+                              "dynamicValue": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 10,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "pressure"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 10,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 30,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      }
+    ]
+  }
+}

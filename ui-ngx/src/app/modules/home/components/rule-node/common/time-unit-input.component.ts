@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -192,7 +192,7 @@ export class TimeUnitInputComponent implements ControlValueAccessor, Validator, 
   }
 
   private updatedModel(value: Partial<TimeUnitInputModel>, forceUpdated = false) {
-    const time = value.time * this.timeIntervalsInSec.get(value.timeUnit);
+    const time = isDefinedAndNotNull(value.time) ? value.time * this.timeIntervalsInSec.get(value.timeUnit) : null;
     if (this.modelValue !== time || forceUpdated) {
       this.modelValue = time;
       this.propagateChange(time);

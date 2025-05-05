@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.tenant.profile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -42,6 +43,7 @@ public class TenantProfileData implements Serializable {
 
     private static final long serialVersionUID = -3642550257035920976L;
 
+    @Valid
     @Schema(description = "Complex JSON object that contains profile settings: max devices, max assets, rate limits, etc.")
     private TenantProfileConfiguration configuration;
 

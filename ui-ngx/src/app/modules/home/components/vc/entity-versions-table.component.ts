@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -235,9 +235,13 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const createVersionPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, EntityVersionCreateComponent, 'leftTop', true, null,
-        {
+      const createVersionPopover =  this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: EntityVersionCreateComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'leftTop',
+        context: {
           branch: this.branch,
           entityId: this.entityId,
           groupType: this.groupType,
@@ -254,8 +258,11 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
             }
           }
         },
-        {maxHeight: '100vh', height: '100%', padding: '10px'},
-        {width: '400px', minWidth: '100%', maxWidth: '100%'}, {}, false);
+        showCloseButton: false,
+        overlayStyle: {maxHeight: '100vh', height: '100%', padding: '10px'},
+        popoverStyle: {width: '400px', minWidth: '100%', maxWidth: '100%'},
+        isModal: true
+      });
       createVersionPopover.tbComponentRef.instance.popoverComponent = createVersionPopover;
     }
   }
@@ -268,9 +275,13 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const complexCreateVersionPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, ComplexVersionCreateComponent, 'leftTop', true, null,
-        {
+      const complexCreateVersionPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: ComplexVersionCreateComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'leftTop',
+        context: {
           branch: this.branch,
           onClose: (result: VersionCreationResult | null, branch: string | null) => {
             complexCreateVersionPopover.hide();
@@ -283,8 +294,10 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
             }
           }
         },
-        {maxHeight: '90vh', height: '100%', padding: '10px'},
-        {}, {}, false);
+        showCloseButton: false,
+        overlayStyle: {maxHeight: '90vh', height: '100%', padding: '10px'},
+        isModal: true
+      });
       complexCreateVersionPopover.tbComponentRef.instance.popoverComponent = complexCreateVersionPopover;
     }
   }
@@ -297,16 +310,23 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const diffVersionPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, EntityVersionDiffComponent, 'leftTop', true, null,
-        {
+      const diffVersionPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: EntityVersionDiffComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'leftTop',
+        context: {
           versionName: entityVersion.name,
           versionId: entityVersion.id,
           groupType: this.groupType,
           entityId: this.entityId,
           externalEntityId: this.externalEntityIdValue,
           readonly: this.readonly
-        }, {}, {}, {}, false);
+        },
+        showCloseButton: false,
+        isModal: true
+      });
       diffVersionPopover.tbComponentRef.instance.popoverComponent = diffVersionPopover;
       diffVersionPopover.tbComponentRef.instance.versionRestored.subscribe(() => {
         this.versionRestored.emit();
@@ -322,9 +342,13 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const restoreVersionPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, EntityVersionRestoreComponent, 'leftTop', true, null,
-        {
+      const restoreVersionPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: EntityVersionRestoreComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'leftTop',
+        context: {
           versionName: entityVersion.name,
           versionId: entityVersion.id,
           groupType: this.groupType,
@@ -337,8 +361,11 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
             }
           }
         },
-        {maxHeight: '100vh', height: '100%', padding: '10px'},
-        {width: '400px', minWidth: '100%', maxWidth: '100%'}, {}, false);
+        showCloseButton: false,
+        overlayStyle: {maxHeight: '100vh', height: '100%', padding: '10px'},
+        popoverStyle: {width: '400px', minWidth: '100%', maxWidth: '100%'},
+        isModal: true
+      });
       restoreVersionPopover.tbComponentRef.instance.popoverComponent = restoreVersionPopover;
     }
   }
@@ -351,17 +378,23 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const restoreEntitiesVersionPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, ComplexVersionLoadComponent, 'leftTop', true, null,
-        {
+      const restoreEntitiesVersionPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: ComplexVersionLoadComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: 'leftTop',
+        context: {
           versionName: entityVersion.name,
           versionId: entityVersion.id,
           onClose: (result: VersionLoadResult | null) => {
             restoreEntitiesVersionPopover.hide();
           }
         },
-        {maxHeight: '80vh', height: '100%', padding: '10px'},
-        {}, {}, false);
+        showCloseButton: false,
+        overlayStyle: {maxHeight: '80vh', height: '100%', padding: '10px'},
+        isModal: true
+      });
       restoreEntitiesVersionPopover.tbComponentRef.instance.popoverComponent = restoreEntitiesVersionPopover;
     }
   }

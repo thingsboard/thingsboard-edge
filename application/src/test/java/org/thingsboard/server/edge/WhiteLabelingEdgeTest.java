@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -130,6 +130,8 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         Assert.assertNotNull(whiteLabeling);
         WhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WhiteLabelingParams.class);
         Assert.assertEquals(updatedAppTitle, result.getAppTitle());
+
+        resetWlAndVerify("/api/whiteLabel/currentWhiteLabelParams");
     }
 
     @Test
@@ -205,6 +207,18 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         Assert.assertNotNull(whiteLabeling);
         LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
         Assert.assertEquals(savedDomain.getId(), result.getDomainId());
+
+        resetWlAndVerify("/api/whiteLabel/currentLoginWhiteLabelParams");
+    }
+
+    private void resetWlAndVerify(String urlTemplate) throws Exception {
+        edgeImitator.expectMessageAmount(1);
+        doDelete(urlTemplate);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof WhiteLabelingProto);
+        WhiteLabelingProto login = (WhiteLabelingProto) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, login.getMsgType());
     }
 
     @Test

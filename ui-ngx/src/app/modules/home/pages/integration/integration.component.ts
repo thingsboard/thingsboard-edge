@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,7 @@ import { isDefined } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import { IntegrationService } from '@core/http/integration.service';
 import { PageLink } from '@shared/models/page/page-link';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-integration',
@@ -60,7 +60,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
 
   integrationScope: 'tenant' | 'edges' | 'edge';
 
-  readonly integrationDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).integrationDebugPerTenantLimitsConfiguration;
+  EntityType = EntityType;
 
   private integrationType: IntegrationType;
 

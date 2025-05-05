@@ -1,7 +1,7 @@
 [
   {
     "id": "temperature_sensors",
-    "title": "Temperature & Humidity Sensors",
+    "title": "Temperature & Humidity sensors",
     "level": "MAKER",
     "installTimeoutMs": 2000,
     "previewImageUrl": "https://img.thingsboard.io/solutions/temperature_sensors/temperature-sensors-preview.png",
@@ -34,7 +34,7 @@
   },
   {
     "id": "fuel_level_monitoring",
-    "title": "Fuel Level Monitoring",
+    "title": "Fuel level monitoring",
     "level": "MAKER",
     "installTimeoutMs": 15000,
     "previewImageUrl": "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-1.png",
@@ -45,7 +45,7 @@
   },
   {
     "id": "swimming_pool_scada_system",
-    "title": "Swimming Pool SCADA system",
+    "title": "Swimming pool SCADA system",
     "level": "MAKER",
     "installTimeoutMs": 0,
     "previewImageUrl": "https://img.thingsboard.io/solutions/swimming_pool_scada_system/hp-swimming-pool-1.png",
@@ -57,8 +57,34 @@
     "tenantAttributeKeys": []
   },
   {
+    "id": "scada_drilling_system",
+    "title": "SCADA Oil & Gas drilling system",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 0,
+    "previewImageUrl": "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png",
+    "videoPreviewImageUrl": "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png",
+    "previewMp4Url": "https://video.thingsboard.io/usecases/hp-drilling-scada-system.mp4",
+    "previewWebmUrl": "https://video.thingsboard.io/usecases/hp-drilling-scada-system.webm",
+    "imageUrls": ["https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-1.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-2.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-3.png", "https://img.thingsboard.io/solutions/scada_drilling_system/hp-scada-systems-in-drilling-4.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
+  },
+  {
+    "id": "scada_energy_management",
+    "title": "SCADA Energy management",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 0,
+    "previewImageUrl": "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-1.png",
+    "videoPreviewImageUrl": "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-1.png",
+    "previewMp4Url": "https://video.thingsboard.io/usecases/scada-energy-management.mp4",
+    "previewWebmUrl": "https://video.thingsboard.io/usecases/scada-energy-management.webm",
+    "imageUrls": ["https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-1.png", "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-2.png", "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-3.png", "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-4.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
+  },
+  {
     "id": "air_quality_index",
-    "title": "Air Quality Monitoring",
+    "title": "Air quality monitoring",
     "level": "PROTOTYPE",
     "installTimeoutMs": 5000,
     "previewImageUrl": "https://img.thingsboard.io/solutions/air_quality_index/aqi-dashboard-preview.png",
@@ -84,7 +110,7 @@
   },
   {
     "id": "smart_retail",
-    "title": "Smart Retail",
+    "title": "Smart retail",
     "level": "PROTOTYPE",
     "installTimeoutMs": 10000,
     "previewImageUrl": "https://img.thingsboard.io/solutions/smart_retail/smart-retail-preview.png",
@@ -97,7 +123,7 @@
   },
   {
     "id": "smart_irrigation",
-    "title": "Smart Irrigation",
+    "title": "Smart irrigation",
     "level": "PROTOTYPE",
     "installTimeoutMs": 20000,
     "previewImageUrl": "https://img.thingsboard.io/solutions/smart_irrigation/smart-irrigation-preview.png",
@@ -110,7 +136,7 @@
   },
   {
     "id": "assisted_living",
-    "title": "Assisted Living",
+    "title": "Assisted living",
     "level": "PROTOTYPE",
     "installTimeoutMs": 5000,
     "previewImageUrl": "https://img.thingsboard.io/solutions/assisted_living/assisted-living-preview.png",
@@ -123,7 +149,7 @@
   },
   {
     "id": "waste_monitoring",
-    "title": "Waste Management",
+    "title": "Waste management",
     "level": "PROTOTYPE",
     "installTimeoutMs": 5000,
     "previewImageUrl": "https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-preview.png",

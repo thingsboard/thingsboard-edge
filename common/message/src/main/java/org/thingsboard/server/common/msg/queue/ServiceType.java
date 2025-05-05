@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,8 @@ public enum ServiceType {
     TB_TRANSPORT("TB Transport"),
     JS_EXECUTOR("JS Executor"),
     TB_INTEGRATION_EXECUTOR("TB Integration Executor"),
-    TB_VC_EXECUTOR("TB VC Executor");
+    TB_VC_EXECUTOR("TB VC Executor"),
+    EDQS("TB Entity Data Query Service");
 
     private final String label;
 

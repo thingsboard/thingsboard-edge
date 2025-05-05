@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -88,6 +88,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { CustomMenuItemPanelComponent } from '@home/pages/custom-menu/custom-menu-item-panel.component';
 import { Observable, Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DisplayPopoverConfig } from '@shared/components/popover.models';
 
 @Component({
   selector: 'tb-custom-menu-item-row',
@@ -296,29 +297,33 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const ctx: any = {
-        disabled: this.disabled,
-        scope: this.scope,
-        menuItem: deepClone(this.modelValue)
+      const config: DisplayPopoverConfig<any> = {
+        trigger,
+        renderer: this.renderer,
+        componentType: undefined,
+        hostView: this.viewContainerRef,
+        preferredPlacement: ['right', 'bottom', 'top'],
+        context: {
+          disabled: this.disabled,
+          scope: this.scope,
+          menuItem: deepClone(this.modelValue)
+        },
+        showCloseButton: false,
+        popoverContentStyle: {padding: '16px 24px'},
+        isModal: true
       };
       if (this.isDefaultMenuItem) {
-        const defaultMenuItemPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-          this.viewContainerRef, DefaultMenuItemPanelComponent, ['right', 'bottom', 'top'], true, null,
-          ctx,
-          {},
-          {}, {}, false, () => {}, {padding: '16px 24px'});
+        config.componentType = DefaultMenuItemPanelComponent;
+        const defaultMenuItemPanelPopover = this.popoverService.displayPopover(config);
         defaultMenuItemPanelPopover.tbComponentRef.instance.popover = defaultMenuItemPanelPopover;
         defaultMenuItemPanelPopover.tbComponentRef.instance.defaultMenuItemApplied.subscribe((menuItem) => {
           defaultMenuItemPanelPopover.hide();
           this.afterMenuItemEdit(menuItem);
         });
       } else {
-        ctx.subItem = this.level > 0;
-        const customMenuItemPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-          this.viewContainerRef, CustomMenuItemPanelComponent, ['right', 'bottom', 'top'], true, null,
-          ctx,
-          {},
-          {}, {}, false, () => {}, {padding: '16px 24px'});
+        config.componentType = CustomMenuItemPanelComponent;
+        config.context.subItem = this.level > 0;
+        const customMenuItemPanelPopover = this.popoverService.displayPopover(config);
         customMenuItemPanelPopover.tbComponentRef.instance.popover = customMenuItemPanelPopover;
         customMenuItemPanelPopover.tbComponentRef.instance.customMenuItemApplied.subscribe((menuItem) => {
           customMenuItemPanelPopover.hide();

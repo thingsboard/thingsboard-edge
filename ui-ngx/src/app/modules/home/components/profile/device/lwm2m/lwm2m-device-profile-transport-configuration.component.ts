@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -119,6 +119,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
       bootstrap: [[]],
       clientLwM2mSettings: this.fb.group({
         clientOnlyObserveAfterConnect: [1, []],
+        useObject19ForOtaInfo: [false],
         fwUpdateStrategy: [1, []],
         swUpdateStrategy: [1, []],
         fwUpdateResource: [{value: '', disabled: true}, []],
@@ -277,6 +278,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
         bootstrapServerUpdateEnable: this.configurationValue.bootstrapServerUpdateEnable || false,
         clientLwM2mSettings: {
           clientOnlyObserveAfterConnect: this.configurationValue.clientLwM2mSettings.clientOnlyObserveAfterConnect,
+          useObject19ForOtaInfo: this.configurationValue.clientLwM2mSettings.useObject19ForOtaInfo ?? false,
           fwUpdateStrategy: this.configurationValue.clientLwM2mSettings.fwUpdateStrategy || 1,
           swUpdateStrategy: this.configurationValue.clientLwM2mSettings.swUpdateStrategy || 1,
           fwUpdateResource: this.configurationValue.clientLwM2mSettings.fwUpdateResource || '',

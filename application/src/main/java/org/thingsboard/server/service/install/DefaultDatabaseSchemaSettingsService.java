@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,7 @@ public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSetti
 
     // This list should include all versions which are compatible for the upgrade.
     // The compatibility cycle usually breaks when we have some scripts written in Java that may not work after new release.
-    private static final List<String> SUPPORTED_VERSIONS_FOR_UPGRADE = List.of("3.9.0");
+    private static final List<String> SUPPORTED_VERSIONS_FOR_UPGRADE = List.of("4.0.0", "4.0.1");
 
     private final ProjectInfo projectInfo;
     private final JdbcTemplate jdbcTemplate;

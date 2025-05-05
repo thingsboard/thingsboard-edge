@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -95,6 +95,10 @@ public class HousekeeperTask implements Serializable {
 
     public static HousekeeperTask deleteTenantEntities(TenantId tenantId, EntityType entityType) {
         return new TenantEntitiesDeletionHousekeeperTask(tenantId, entityType);
+    }
+
+    public static HousekeeperTask deleteCalculatedFields(TenantId tenantId, EntityId entityId) {
+        return new HousekeeperTask(tenantId, entityId, HousekeeperTaskType.DELETE_CALCULATED_FIELDS);
     }
 
     @JsonIgnore

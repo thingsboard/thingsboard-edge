@@ -1,0 +1,99 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div [formGroup]="layerFormGroup" class="tb-form-table-row tb-map-layer-row">
+  <mat-form-field class="tb-inline-field tb-label-field" appearance="outline" subscriptSizing="dynamic">
+    <input matInput formControlName="label" [placeholder]="labelPlaceholder()">
+  </mat-form-field>
+  <mat-form-field class="tb-inline-field tb-provider-field" appearance="outline" subscriptSizing="dynamic">
+    <mat-select formControlName="provider" required>
+      <mat-option *ngFor="let provider of mapProviders" [value]="provider">
+        {{ mapProviderTranslationMap.get(provider) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field *ngIf="MapProvider.openstreet === layerFormGroup.get('provider').value"
+                  class="tb-inline-field tb-layer-field" appearance="outline" subscriptSizing="dynamic">
+    <mat-select formControlName="layerType" required>
+      <mat-option *ngFor="let layerType of openStreetLayerTypes" [value]="layerType">
+        {{ openStreetMapLayerTranslationMap.get(layerType) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field *ngIf="MapProvider.google === layerFormGroup.get('provider').value"
+                  class="tb-inline-field tb-layer-field" appearance="outline" subscriptSizing="dynamic">
+    <mat-select formControlName="layerType" required>
+      <mat-option *ngFor="let layerType of googleMapLayerTypes" [value]="layerType">
+        {{ googleMapLayerTranslationMap.get(layerType) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field *ngIf="MapProvider.here === layerFormGroup.get('provider').value"
+                  class="tb-inline-field tb-layer-field" appearance="outline" subscriptSizing="dynamic">
+    <mat-select formControlName="layerType" required>
+      <mat-option *ngFor="let layerType of hereLayerTypes" [value]="layerType">
+        {{ hereLayerTranslationMap.get(layerType) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field *ngIf="MapProvider.tencent === layerFormGroup.get('provider').value"
+                  class="tb-inline-field tb-layer-field" appearance="outline" subscriptSizing="dynamic">
+    <mat-select formControlName="layerType" required>
+      <mat-option *ngFor="let layerType of tencentLayerTypes" [value]="layerType">
+        {{ tencentLayerTranslationMap.get(layerType) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field *ngIf="MapProvider.custom === layerFormGroup.get('provider').value"
+                  class="tb-inline-field tb-layer-field" appearance="outline" subscriptSizing="dynamic">
+    <input matInput formControlName="tileUrl" required placeholder="{{ 'widget-config.set' | translate }}">
+  </mat-form-field>
+  <div class="tb-form-table-row-cell-buttons">
+    <button type="button"
+            mat-icon-button
+            #matButton
+            (click)="editLayer($event, matButton)"
+            matTooltip="{{ 'widgets.maps.layer.layer-settings' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>settings</mat-icon>
+    </button>
+    <div class="tb-remove-button">
+      <button type="button"
+              mat-icon-button
+              (click)="layerRemoved.emit()"
+              matTooltip="{{ 'widgets.maps.layer.remove-layer' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

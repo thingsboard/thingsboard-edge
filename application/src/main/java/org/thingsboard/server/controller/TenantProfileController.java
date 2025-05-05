@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -179,7 +180,12 @@ public class TenantProfileController extends BaseController {
                     "      \"queueStatsTtlDays\": 0,\n" +
                     "      \"ruleEngineExceptionsTtlDays\": 0,\n" +
                     "      \"blobEntityTtlDays\": 0,\n" +
-                    "      \"warnThreshold\": 0\n" +
+                    "      \"warnThreshold\": 0,\n" +
+                    "      \"maxCalculatedFieldsPerEntity\": 5,\n" +
+                    "      \"maxArgumentsPerCF\": 10,\n" +
+                    "      \"maxDataPointsPerRollingArg\": 1000,\n" +
+                    "      \"maxStateSizeInKBytes\": 32,\n" +
+                    "      \"maxSingleValueArgumentSizeInKBytes\": 2" +
                     "    }\n" +
                     "  },\n" +
                     "  \"default\": false\n" +
@@ -191,7 +197,7 @@ public class TenantProfileController extends BaseController {
     @RequestMapping(value = "/tenantProfile", method = RequestMethod.POST)
     @ResponseBody
     public TenantProfile saveTenantProfile(@Parameter(description = "A JSON value representing the tenant profile.")
-                                           @RequestBody TenantProfile tenantProfile) throws ThingsboardException {
+                                           @Valid @RequestBody TenantProfile tenantProfile) throws ThingsboardException {
         TenantProfile oldProfile;
         if (tenantProfile.getId() == null) {
             accessControlService.checkPermission(getCurrentUser(), Resource.TENANT_PROFILE, Operation.CREATE);

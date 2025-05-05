@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay, timer } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
@@ -49,6 +49,8 @@ import {
 })
 export class IntegrationService {
 
+  private integrationsConvertersInfo$!: Observable<IntegrationsConvertersInfo>
+
   constructor(
     private http: HttpClient
   ) { }
@@ -59,6 +61,16 @@ export class IntegrationService {
 
   public getIntegrationsConvertersInfo(config?: RequestConfig): Observable<IntegrationsConvertersInfo> {
     return this.http.get<IntegrationsConvertersInfo>(`/api/integrations/converters/info`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getIntegrationsConvertersInfoCached(config?: RequestConfig): Observable<IntegrationsConvertersInfo> {
+    if (!this.integrationsConvertersInfo$) {
+      this.integrationsConvertersInfo$ = this.http.get<IntegrationsConvertersInfo>(`/api/integrations/converters/info`, defaultHttpOptionsFromConfig(config)).pipe(
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+      timer(3600000).subscribe(() => this.integrationsConvertersInfo$ = null);
+    }
+    return this.integrationsConvertersInfo$;
   }
 
   public getIntegrationsInfo(pageLink: PageLink, isEdgeTemplate: boolean,

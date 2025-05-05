@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -84,17 +84,17 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback).run();
     }
 
     @Override
     public void processUplinkData(AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
-        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback).run();
     }
 
     @Override
     public void createEntityView(EntityViewDataProto data, IntegrationCallback<Void> callback) {
-        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback).run();
     }
 
     @Override

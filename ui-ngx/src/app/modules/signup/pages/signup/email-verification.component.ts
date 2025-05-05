@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,53 +29,38 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { AuthService } from '@core/auth/auth.service';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-email-verification',
   templateUrl: './email-verification.component.html',
   styleUrls: ['./email-verification.component.scss']
 })
-export class EmailVerificationComponent extends PageComponent implements OnInit, OnDestroy {
-
-  email = '';
-  sub: Subscription;
+export class EmailVerificationComponent extends PageComponent {
 
   @HostBinding('class') class = 'tb-custom-css';
 
-  constructor(protected store: Store<AppState>,
-              private route: ActivatedRoute,
-              private router: Router,
+  private email = '';
+
+  constructor(private route: ActivatedRoute,
               public wl: WhiteLabelingService,
               private authService: AuthService) {
-    super(store);
-  }
-
-  ngOnInit() {
-    this.sub = this.route
-      .queryParams
-      .subscribe(params => {
-        this.email = params.email || '';
-      });
-  }
-
-  ngOnDestroy(): void {
-    super.ngOnDestroy();
-    this.sub.unsubscribe();
+    super();
+    this.route.queryParams
+      .pipe(
+        first()
+      ).subscribe(params => {
+        this.email = decodeURIComponent(params.email || '');
+      }
+    );
   }
 
   resendEmail(): void {
-    this.authService.resendEmailActivation(this.email).subscribe(
-      () => {
-        this.router.navigateByUrl('/signup/emailVerification?email=' + this.email);
-      }
-    );
+    this.authService.resendEmailActivation(this.email).subscribe(() => {});
   }
 }

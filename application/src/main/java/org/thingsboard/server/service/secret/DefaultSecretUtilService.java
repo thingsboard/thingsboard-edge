@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,8 +51,6 @@ import java.util.HexFormat;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.server.common.data.DataConstants.ENCRYPTION_KEY;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -95,7 +93,8 @@ public class DefaultSecretUtilService implements SecretUtilService {
         return encryptorMap.computeIfAbsent(tenantId, id -> {
             AttributeKvEntry attribute;
             try {
-                attribute = attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, ENCRYPTION_KEY).get().orElse(null);
+                // TO CHANGE for separate table, IT WAS FOR TESTING
+                attribute = attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, "encryption_key").get().orElse(null);
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
@@ -64,6 +65,8 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     @Length(fieldName = "name")
     private String name;
     private ConverterType type;
+    @Setter
+    private IntegrationType integrationType;
     @Deprecated
     private boolean debugMode;
     private DebugSettings debugSettings;
@@ -71,6 +74,10 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     @NoXss
     private JsonNode additionalInfo;
     private boolean edgeTemplate;
+
+    @Getter
+    @Setter
+    private Integer converterVersion;
 
     @Getter
     @Setter
@@ -92,6 +99,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.tenantId = converter.getTenantId();
         this.name = converter.getName();
         this.type = converter.getType();
+        this.integrationType = converter.getIntegrationType();
         this.debugSettings = converter.getDebugSettings();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
@@ -141,6 +149,11 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
 
     public void setType(ConverterType type) {
         this.type = type;
+    }
+
+    @Schema(description = "The type of the integration to which the converter is dedicated")
+    public IntegrationType getIntegrationType() {
+        return integrationType;
     }
 
     @Schema(description = "Enable/disable debug. ", example = "false", deprecated = true)
@@ -199,6 +212,11 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.CONVERTER;
+    }
+
+    @JsonIgnore
+    public boolean isDedicated() {
+        return integrationType != null && converterVersion != null && converterVersion == 2;
     }
 
 }

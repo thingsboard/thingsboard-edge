@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -107,7 +108,7 @@ public class SecretControllerTest extends AbstractControllerTest {
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         secret = constructSecret(savedSecret);
-        secret.setEncodedValue("UpdatedPassword");
+        secret.setValue("UpdatedPassword".getBytes(StandardCharsets.UTF_8));
 
         SecretInfo updatedSecret = doPost("/api/secret", secret, SecretInfo.class);
         retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, updatedSecret.getId().getId());
@@ -174,7 +175,7 @@ public class SecretControllerTest extends AbstractControllerTest {
     private Secret constructSecret(String name, String value) {
         Secret secret = new Secret();
         secret.setName(name);
-        secret.setEncodedValue(value);
+        secret.setValue(value.getBytes(StandardCharsets.UTF_8));
         return secret;
     }
 

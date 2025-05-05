@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -183,17 +183,20 @@ export class DynamicFormPropertyRowComponent implements ControlValueAccessor, On
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      const ctx: any = {
-        isAdd: add,
-        disabled: this.disabled,
-        booleanPropertyIds: this.booleanPropertyIds,
-        property: deepClone(this.modelValue)
-      };
-      const dynamicFormPropertyPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, DynamicFormPropertyPanelComponent, ['leftOnly', 'leftTopOnly', 'leftBottomOnly'], true, null,
-        ctx,
-        {},
-        {}, {}, true);
+      const dynamicFormPropertyPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: DynamicFormPropertyPanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: ['leftOnly', 'leftTopOnly', 'leftBottomOnly'],
+        context: {
+          isAdd: add,
+          disabled: this.disabled,
+          booleanPropertyIds: this.booleanPropertyIds,
+          property: deepClone(this.modelValue)
+        },
+        isModal: true
+      });
       dynamicFormPropertyPanelPopover.tbComponentRef.instance.popover = dynamicFormPropertyPanelPopover;
       dynamicFormPropertyPanelPopover.tbComponentRef.instance.propertySettingsApplied.subscribe((property) => {
         dynamicFormPropertyPanelPopover.hide();

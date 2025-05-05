@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -137,7 +137,9 @@ export class WidgetActionsPanelComponent implements ControlValueAccessor, OnInit
         widgetTitle: this.widgetConfigComponent.modelValue.widgetName,
         callbacks: this.widgetConfigComponent.widgetConfigCallbacks,
         actionsData,
-        widgetType: this.widgetConfigComponent.widgetType
+        widgetType: this.widgetConfigComponent.widgetType,
+        defaultIconColor: this.widgetConfigComponent.widgetSettings.get('color').value,
+        additionalWidgetActionTypes: this.widgetConfigComponent.modelValue.typeParameters.additionalWidgetActionTypes
       }
     }).afterClosed().subscribe(
       (res) => {

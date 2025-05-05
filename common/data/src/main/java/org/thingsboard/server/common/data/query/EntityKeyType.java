@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,4 +38,8 @@ public enum EntityKeyType {
     TIME_SERIES,
     ENTITY_FIELD,
     ALARM_FIELD;
+
+    public boolean isAttribute() {
+        return this == ATTRIBUTE || this == CLIENT_ATTRIBUTE || this == SHARED_ATTRIBUTE || this == SERVER_ATTRIBUTE;
+    }
 }

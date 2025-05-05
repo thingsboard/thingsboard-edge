@@ -1,0 +1,749 @@
+[
+  {
+    "name": "Drilling system gateway",
+    "type": "default",
+    "additionalInfo": {
+      "gateway": true
+    },
+    "sharedAttributes": {
+      "active_connectors": ["Drilling connector"],
+      "Drilling connector": {
+        "mode": "basic",
+        "name": "Drilling connector",
+        "type": "modbus",
+        "enableRemoteLogging": false,
+        "logLevel": "INFO",
+        "configuration": "drillingConnector.json",
+        "configurationJson": {
+          "master": {
+            "slaves": [
+              {
+                "host": "host.docker.internal",
+                "port": 5035,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Drilling bit",
+                "deviceType": "Drilling bit",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [
+                  {
+                    "tag": "depth",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "rop",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "reset",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  }
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "temperature",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "position",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "vibration",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "pressure",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  }
+                ],
+                "attributeUpdates": [
+                  {
+                    "tag": "rop",
+                    "type": "16int",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 5
+                  },
+                  {
+                    "tag": "depth",
+                    "type": "16int",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 6
+                  }
+                ],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  },
+                  {
+                    "tag": "reset",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 2
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5036,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 2,
+                "deviceName": "Drilling mud",
+                "deviceType": "Drilling mud",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [
+                  {
+                    "tag": "tankCapacity",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 7,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  }
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "gasCut",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 30000
+                    }
+                  },
+                  {
+                    "tag": "density",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "flowRate",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "liquidVolume",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 30000
+                    }
+                  },
+                  {
+                    "tag": "pressure",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "temperature",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  },
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 2
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5037,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 3,
+                "deviceName": "Drilling rig",
+                "deviceType": "Drilling rig",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "lineHoistSpeed",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "hookLoad",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "speed",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "pressure",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5038,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 4,
+                "deviceName": "Preventer",
+                "deviceType": "Preventer",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "equipmentTemperature",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "vibration",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "mudTemperature",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "flowRate",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "gasCut",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 30000
+                    }
+                  },
+                  {
+                    "tag": "leak",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 30000
+                    }
+                  },
+                  {
+                    "tag": "pressure",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 7,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  }
+                ]
+              },
+              {
+                "host": "host.docker.internal",
+                "port": 5039,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 5,
+                "deviceName": "Drawwork",
+                "deviceType": "Drawwork",
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 10000
+                },
+                "attributes": [
+                  {
+                    "tag": "direction",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "drawworkSpeed",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  }
+                ],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_CHANGE"
+                    }
+                  },
+                  {
+                    "tag": "length",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "speed",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "inclination",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "position",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "tension",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  },
+                  {
+                    "tag": "vibration",
+                    "type": "16int",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 4000
+                    }
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 1
+                  },
+                  {
+                    "tag": "setDirection",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 2
+                  },
+                  {
+                    "tag": "drawworkSpeed",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 3
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "relations": [],
+    "jsonId": "602d9517-5c68-48b2-84e4-54d64636ba5d"
+  },
+  {
+    "name": "Drilling bit",
+    "type": "Drilling bit",
+    "group": "Drilling System Devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Drilling system gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "cb3cba20-117e-4671-b71d-ad4c6d553098"
+  },
+  {
+  "name": "Drilling mud",
+  "type": "Drilling mud",
+  "group": "Drilling System Devices",
+  "attributes": {},
+  "relations": [
+    {
+      "entityType": "DEVICE",
+      "entityName": "Drilling system Gateway",
+      "direction": "FROM",
+      "type": "Created"
+    }
+  ],
+  "jsonId": "4835ad2c-bb0a-45ca-a2dd-b8f73577bfaf"
+},
+  {
+    "name": "Drilling rig",
+    "type": "Drilling rig",
+    "group": "Drilling System Devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Drilling system gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "6bf90734-70e5-4062-8ee3-c77f81f99ec2"
+  },
+  {
+    "name": "Preventer",
+    "type": "Preventer",
+    "group": "Drilling System Devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Drilling system gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "ecd39da2-cfa8-4b0d-a6bd-172ce0fca61b"
+  },
+  {
+    "name": "Drawwork",
+    "type": "Drawwork",
+    "group": "Drilling System Devices",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "DEVICE",
+        "entityName": "Drilling system gateway",
+        "direction": "FROM",
+        "type": "Created"
+      }
+    ],
+    "jsonId": "e1cd06b2-ddf3-41fc-9539-1a88f7b2e5b2"
+  }
+]

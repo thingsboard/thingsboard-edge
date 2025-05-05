@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,11 +40,8 @@ import {
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { formatValue, mergeDeepIgnoreArray } from '@core/utils';
-import {
-  rangeChartDefaultSettings,
-  RangeChartWidgetSettings
-} from '@home/components/widget/lib/chart/range-chart-widget.models';
+import { formatValue } from '@core/utils';
+import { rangeChartDefaultSettings } from '@home/components/widget/lib/chart/range-chart-widget.models';
 import { DateFormatProcessor, DateFormatSettings } from '@shared/models/widget-settings.models';
 import {
   lineSeriesStepTypes,
@@ -114,7 +111,7 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected defaultSettings(): WidgetSettings {
-    return mergeDeepIgnoreArray<RangeChartWidgetSettings>({} as RangeChartWidgetSettings, rangeChartDefaultSettings);
+    return rangeChartDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

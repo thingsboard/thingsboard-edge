@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -121,6 +121,8 @@ import {
   ExportResourceDialogDialogResult
 } from '@shared/import-export/export-resource-dialog.component';
 import { FormProperty, propertyValid } from '@shared/models/dynamic-form.models';
+import { CalculatedFieldsService } from '@core/http/calculated-fields.service';
+import { CalculatedField } from '@shared/models/calculated-field.models';
 
 export type editMissingAliasesFunction = (widgets: Array<Widget>, isSingleWidget: boolean,
                                           customTitle: string, missingEntityAliases: EntityAliases) => Observable<EntityAliases>;
@@ -152,6 +154,7 @@ export class ImportExportService {
               private imageService: ImageService,
               private utils: UtilsService,
               private itembuffer: ItemBufferService,
+              private calculatedFieldsService: CalculatedFieldsService,
               private dialog: MatDialog) {
 
   }
@@ -204,6 +207,25 @@ export class ImportExportService {
         }
       }),
       catchError(() => of(null))
+    );
+  }
+
+  public exportCalculatedField(calculatedFieldId: string): void {
+    this.calculatedFieldsService.getCalculatedFieldById(calculatedFieldId).subscribe({
+      next: (calculatedField) => {
+        let name = calculatedField.name;
+        name = name.toLowerCase().replace(/\W/g, '_');
+        this.exportToPc(this.prepareCalculatedFieldExport(calculatedField), name);
+      },
+      error: (e) => {
+        this.handleExportError(e, 'calculated-fields.export-failed-error');
+      }
+    });
+  }
+
+  public openCalculatedFieldImportDialog(): Observable<CalculatedField> {
+    return this.openImportDialog('calculated-fields.import', 'calculated-fields.file').pipe(
+      catchError(() => of(null)),
     );
   }
 
@@ -345,23 +367,23 @@ export class ImportExportService {
                             }
                           }
                           return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
-                            aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize);
+                            aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize, widgetItem.widgetExportInfo);
                         }
                       ));
                     } else {
                       return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
-                        aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize);
+                        aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize, widgetItem.widgetExportInfo);
                     }
                   }
                 )
               );
             } else {
               return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
-                aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize);
+                aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize, widgetItem.widgetExportInfo);
             }
           } else {
             return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
-              aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize);
+              aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction, originalColumns, originalSize, widgetItem.widgetExportInfo);
           }
         }
       }),
@@ -884,7 +906,7 @@ export class ImportExportService {
   private processCSVCell(cellData: any): any {
     if (isString(cellData)) {
       let result = cellData.replace(/"/g, '""');
-      if (result.search(/([",\n])/g) >= 0) {
+      if (result.search(/([",;\n])/g) >= 0) {
         result = `"${result}"`;
       }
       return result;
@@ -1212,11 +1234,11 @@ export class ImportExportService {
                             filtersInfo: FiltersInfo,
                             onAliasesUpdateFunction: () => void,
                             onFiltersUpdateFunction: () => void,
-                            originalColumns: number, originalSize: WidgetSize): Observable<ImportWidgetResult> {
+                            originalColumns: number, originalSize: WidgetSize, widgetExportInfo: any): Observable<ImportWidgetResult> {
     return targetLayoutFunction().pipe(
       mergeMap((targetLayout) => this.itembuffer.addWidgetToDashboard(dashboard, targetState, targetLayout,
           widget, aliasesInfo, filtersInfo, onAliasesUpdateFunction, onFiltersUpdateFunction,
-          originalColumns, originalSize, -1, -1).pipe(
+          originalColumns, originalSize, -1, -1, 'default', widgetExportInfo).pipe(
           map(() => ({widget, layoutId: targetLayout} as ImportWidgetResult))
         )
     ));
@@ -1418,6 +1440,11 @@ export class ImportExportService {
     profile = this.prepareExport(profile);
     profile.default = false;
     return profile;
+  }
+
+  private prepareCalculatedFieldExport(calculatedField: CalculatedField): CalculatedField {
+    delete calculatedField.entityId;
+    return this.prepareExport(calculatedField);
   }
 
   private getIncludeResourcesPreference(key: SupportEntityResources): Observable<boolean> {

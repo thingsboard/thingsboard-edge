@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor.dashboard;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -51,7 +52,7 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
 
     protected boolean saveOrUpdateDashboard(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg) throws ThingsboardException {
         boolean created = false;
-        Dashboard dashboard = constructDashboardFromUpdateMsg(tenantId, dashboardId, dashboardUpdateMsg);
+        Dashboard dashboard = JacksonUtil.fromString(dashboardUpdateMsg.getEntity(), Dashboard.class, true);
         if (dashboard == null) {
             throw new RuntimeException("[{" + tenantId + "}] dashboardUpdateMsg {" + dashboardUpdateMsg + "} cannot be converted to dashboard");
         }
@@ -83,7 +84,5 @@ public abstract class BaseDashboardProcessor extends BaseEdgeProcessor {
             safeAddEntityToGroup(tenantId, new EntityGroupId(entityGroupUUID), dashboardId);
         }
     }
-
-    protected abstract Dashboard constructDashboardFromUpdateMsg(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg);
 
 }

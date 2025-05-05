@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -407,5 +407,12 @@ public class LwM2MTransportUtil {
         } else {
             serverCoapConfig.set(DTLS_CONNECTION_ID_NODE_ID, null);
         }
+    }
+
+    public static int calculateSzx(int size) {
+        if (size < 16 || size > 1024 || (size & (size - 1)) != 0) {
+            throw new IllegalArgumentException("Size must be a power of 2 between 16 and 1024.");
+        }
+        return (int) (Math.log(size / 16) / Math.log(2));
     }
 }

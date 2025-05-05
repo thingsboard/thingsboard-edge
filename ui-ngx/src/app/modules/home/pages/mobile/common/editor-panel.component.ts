@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -62,10 +62,10 @@ export class EditorPanelComponent implements OnInit {
   tinyMceOptions: Partial<EditorOptions> = {
     base_url: '/assets/tinymce',
     suffix: '.min',
-    plugins: ['lists'],
+    plugins: ['link', 'table', 'image', 'imagetools', 'lists'],
     menubar: 'edit insert view format',
     toolbar: ['fontfamily fontsize | bold italic underline strikethrough forecolor backcolor',
-      'alignleft aligncenter alignright alignjustify | bullist'],
+      'alignleft aligncenter alignright alignjustify | bullist | link table image'],
     toolbar_mode: 'sliding',
     height: 400,
     autofocus: false,

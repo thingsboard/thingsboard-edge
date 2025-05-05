@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -49,9 +50,13 @@ import java.util.UUID;
  * The Interface EdgeDao.
  *
  */
-public interface EdgeDao extends Dao<Edge>, TenantEntityDao {
+public interface EdgeDao extends Dao<Edge>, TenantEntityDao<Edge> {
 
     Edge save(TenantId tenantId, Edge edge);
+
+    EdgeInfo findEdgeInfoById(TenantId tenantId, UUID edgeId);
+
+    PageData<Edge> findActiveEdges(PageLink pageLink);
 
     PageData<EdgeId> findEdgeIdsByTenantId(UUID tenantId, PageLink pageLink);
 

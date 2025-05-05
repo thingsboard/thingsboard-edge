@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,8 @@
 
 import {
   AfterContentChecked,
-  AfterContentInit, AfterViewChecked,
+  AfterContentInit,
+  AfterViewChecked,
   AfterViewInit,
   ChangeDetectorRef,
   Component,
@@ -40,17 +41,20 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
-  Input, NgZone,
+  Input,
+  NgZone,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
   QueryList,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject, Subscription } from 'rxjs';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { coerceBoolean } from '@shared/decorators/coercion';
@@ -61,6 +65,7 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 export interface ToggleHeaderOption {
   name: string;
   value: any;
+  error$?: Observable<string>;
 }
 
 export type ToggleHeaderAppearance = 'fill' | 'fill-invert' | 'stroked';
@@ -74,9 +79,13 @@ export type ScrollDirection = 'after' | 'before';
   }
 )
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
-export class ToggleOption {
+export class ToggleOption implements OnChanges, OnDestroy {
 
   @Input() value: any;
+
+  @Input() error: string;
+
+  currentError = new ReplaySubject<string>(1);
 
   get viewValue(): string {
     return (this._element?.nativeElement.textContent || '').trim();
@@ -85,6 +94,18 @@ export class ToggleOption {
   constructor(
     private _element: ElementRef<HTMLElement>
   ) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes?.error) {
+      if (changes.error.currentValue !== changes.error.previousValue) {
+        this.currentError.next(this.error);
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    this.currentError.complete();
+  }
 }
 
 @Directive()
@@ -117,8 +138,10 @@ export abstract class _ToggleBase extends PageComponent implements AfterContentI
       this.options.length = 0;
       this.toggleOptions.forEach(option => {
         this.options.push(
-          { name: option.viewValue,
-            value: option.value
+          {
+            name: option.viewValue,
+            value: option.value,
+            error$: option.currentError.asObservable()
           }
         );
       });

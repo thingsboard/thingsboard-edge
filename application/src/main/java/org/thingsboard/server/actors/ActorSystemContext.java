@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,15 +44,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.ComponentDescriptorService;
+import org.thingsboard.rule.engine.api.DeviceStateManager;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceStateManager;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.notification.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
@@ -60,18 +59,23 @@ import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
+import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.event.CalculatedFieldDebugEvent;
 import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.event.RuleChainDebugEvent;
 import org.thingsboard.server.common.data.event.RuleNodeDebugEvent;
+import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
+import org.thingsboard.server.common.data.limit.LimitedApi;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -87,6 +91,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -127,13 +132,19 @@ import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.discovery.DiscoveryService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.settings.TbQueueCalculatedFieldSettings;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+import org.thingsboard.server.service.cf.CalculatedFieldProcessingService;
+import org.thingsboard.server.service.cf.CalculatedFieldQueueService;
+import org.thingsboard.server.service.cf.CalculatedFieldStateService;
+import org.thingsboard.server.service.cf.ctx.state.ArgumentEntry;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
@@ -159,12 +170,17 @@ import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.TbCoreToTransportService;
+import org.thingsboard.server.utils.DebugModeRateLimitsConfig;
 
 import java.util.Collections;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -190,6 +206,18 @@ public class ActorSystemContext {
         @Override
         public void onFailure(Throwable th) {
             log.error("Could not save debug Event for Node", th);
+        }
+    };
+
+    private static final FutureCallback<Void> CALCULATED_FIELD_DEBUG_EVENT_ERROR_CALLBACK = new FutureCallback<>() {
+        @Override
+        public void onSuccess(@Nullable Void event) {
+
+        }
+
+        @Override
+        public void onFailure(Throwable th) {
+            log.error("Could not save debug Event for Calculated Field", th);
         }
     };
 
@@ -248,7 +276,7 @@ public class ActorSystemContext {
 
     @Autowired(required = false)
     @Getter
-    private RuleEngineDeviceStateManager deviceStateManager;
+    private DeviceStateManager deviceStateManager;
 
     @Autowired
     @Getter
@@ -335,6 +363,7 @@ public class ActorSystemContext {
     @Getter
     private TbEntityViewService tbEntityViewService;
 
+    @Lazy
     @Autowired
     @Getter
     private TelemetrySubscriptionService tsSubService;
@@ -360,25 +389,32 @@ public class ActorSystemContext {
     private MailExecutorService mailExecutor;
 
     @Autowired
-    @Getter private ConverterService converterService;
+    @Getter
+    private ConverterService converterService;
 
     @Autowired
-    @Getter private IntegrationService integrationService;
+    @Getter
+    private IntegrationService integrationService;
 
     @Autowired
-    @Getter private EntityGroupService entityGroupService;
+    @Getter
+    private EntityGroupService entityGroupService;
 
     @Autowired
-    @Getter private ReportService reportService;
+    @Getter
+    private ReportService reportService;
 
     @Autowired
-    @Getter private BlobEntityService blobEntityService;
+    @Getter
+    private BlobEntityService blobEntityService;
 
     @Autowired
-    @Getter private GroupPermissionService groupPermissionService;
+    @Getter
+    private GroupPermissionService groupPermissionService;
 
     @Autowired
-    @Getter private RoleService roleService;
+    @Getter
+    private RoleService roleService;
 
     @Autowired
     @Getter
@@ -461,14 +497,14 @@ public class ActorSystemContext {
     @Getter
     private SlackService slackService;
 
+    @Autowired
+    @Getter
+    private CalculatedFieldService calculatedFieldService;
+
     @Lazy
     @Autowired(required = false)
     @Getter
     private ClaimDevicesService claimDevicesService;
-
-    @Autowired
-    @Getter
-    private JsInvokeStats jsInvokeStats;
 
     //TODO: separate context for TbCore and TbRuleEngine
     @Autowired(required = false)
@@ -491,6 +527,26 @@ public class ActorSystemContext {
     @Getter
     private OwnersCacheService ownersCacheService;
 
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private ApiLimitService apiLimitService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private RateLimitService rateLimitService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private DebugModeRateLimitsConfig debugModeRateLimitsConfig;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private TbQueueCalculatedFieldSettings calculatedFieldSettings;
+
     /**
      * The following Service will be null if we operate in tb-core mode
      */
@@ -509,11 +565,13 @@ public class ActorSystemContext {
 
     @Lazy
     @Autowired(required = false)
-    @Getter private PlatformIntegrationService platformIntegrationService;
+    @Getter
+    private PlatformIntegrationService platformIntegrationService;
 
     @Lazy
     @Autowired(required = false)
-    @Getter private DataConverterService dataConverterService;
+    @Getter
+    private DataConverterService dataConverterService;
 
     @Lazy
     @Autowired(required = false)
@@ -578,6 +636,21 @@ public class ActorSystemContext {
     @Lazy
     @Autowired(required = false)
     @Getter
+    private CalculatedFieldProcessingService calculatedFieldProcessingService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private CalculatedFieldStateService calculatedFieldStateService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private CalculatedFieldQueueService calculatedFieldQueueService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
     private SecretConfigurationService secretConfigurationService;
 
     @Lazy
@@ -587,7 +660,7 @@ public class ActorSystemContext {
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
-    private long maxConcurrentSessionsPerDevice;
+    private int maxConcurrentSessionsPerDevice;
 
     @Value("${actors.session.sync.timeout:10000}")
     @Getter
@@ -625,17 +698,6 @@ public class ActorSystemContext {
         this.localCacheType = "caffeine".equals(cacheType);
     }
 
-    @Scheduled(fixedDelayString = "${actors.statistics.js_print_interval_ms}")
-    public void printStats() {
-        if (statisticsEnabled) {
-            if (jsInvokeStats.getRequests() > 0 || jsInvokeStats.getResponses() > 0 || jsInvokeStats.getFailures() > 0) {
-                log.info("Rule Engine JS Invoke Stats: requests [{}] responses [{}] failures [{}]",
-                        jsInvokeStats.getRequests(), jsInvokeStats.getResponses(), jsInvokeStats.getFailures());
-                jsInvokeStats.reset();
-            }
-        }
-    }
-
     @Value("${actors.tenant.create_components_on_init:true}")
     @Getter
     private boolean tenantComponentsInitEnabled;
@@ -655,14 +717,6 @@ public class ActorSystemContext {
     @Value("${transport.sessions.report_timeout:3000}")
     @Getter
     private long sessionReportTimeout;
-
-    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled:true}")
-    @Getter
-    private boolean debugPerTenantEnabled;
-
-    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.configuration:50000:3600}")
-    @Getter
-    private String debugPerTenantLimitsConfiguration;
 
     @Value("${actors.rpc.submit_strategy:BURST}")
     @Getter
@@ -687,6 +741,10 @@ public class ActorSystemContext {
     @Value("${state.rule.node.deviceState.rateLimit:1:1,30:60,60:3600}")
     @Getter
     private String deviceStateNodeRateLimitConfig;
+
+    @Value("${actors.calculated_fields.calculation_timeout:5}")
+    @Getter
+    private long cfCalculationResultTimeout;
 
     @Getter
     @Setter
@@ -834,9 +892,9 @@ public class ActorSystemContext {
     }
 
     private boolean checkLimits(TenantId tenantId, TbMsg tbMsg, Throwable error) {
-        if (debugPerTenantEnabled) {
+        if (debugModeRateLimitsConfig.isRuleChainDebugPerTenantLimitsEnabled()) {
             DebugTbRateLimits debugTbRateLimits = debugPerTenantLimits.computeIfAbsent(tenantId, id ->
-                    new DebugTbRateLimits(new TbRateLimits(debugPerTenantLimitsConfiguration), false));
+                    new DebugTbRateLimits(new TbRateLimits(debugModeRateLimitsConfig.getRuleChainDebugPerTenantLimitsConfiguration()), false));
 
             if (!debugTbRateLimits.getTbRateLimits().tryConsume()) {
                 if (!debugTbRateLimits.isRuleChainEventSaved()) {
@@ -866,6 +924,51 @@ public class ActorSystemContext {
         Futures.addCallback(future, RULE_CHAIN_DEBUG_EVENT_ERROR_CALLBACK, MoreExecutors.directExecutor());
     }
 
+    public void persistCalculatedFieldDebugEvent(TenantId tenantId, CalculatedFieldId calculatedFieldId, EntityId entityId, Map<String, ArgumentEntry> arguments, UUID tbMsgId, TbMsgType tbMsgType, String result, String errorMessage) {
+        if (checkLimits(tenantId)) {
+            try {
+                CalculatedFieldDebugEvent.CalculatedFieldDebugEventBuilder eventBuilder = CalculatedFieldDebugEvent.builder()
+                        .tenantId(tenantId)
+                        .entityId(calculatedFieldId.getId())
+                        .serviceId(getServiceId())
+                        .calculatedFieldId(calculatedFieldId)
+                        .eventEntity(entityId);
+                if (tbMsgId != null) {
+                    eventBuilder.msgId(tbMsgId);
+                }
+                if (tbMsgType != null) {
+                    eventBuilder.msgType(tbMsgType.name());
+                }
+                if (arguments != null) {
+                    eventBuilder.arguments(JacksonUtil.toString(
+                            arguments.entrySet().stream()
+                                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toTbelCfArg()))
+                    ));
+                }
+                if (result != null) {
+                    eventBuilder.result(result);
+                }
+                if (errorMessage != null) {
+                    eventBuilder.error(errorMessage);
+                }
+
+                ListenableFuture<Void> future = eventService.saveAsync(eventBuilder.build());
+                Futures.addCallback(future, CALCULATED_FIELD_DEBUG_EVENT_ERROR_CALLBACK, MoreExecutors.directExecutor());
+            } catch (IllegalArgumentException ex) {
+                log.warn("Failed to persist calculated field debug message", ex);
+            }
+        }
+    }
+
+    private boolean checkLimits(TenantId tenantId) {
+        if (debugModeRateLimitsConfig.isCalculatedFieldDebugPerTenantLimitsEnabled() &&
+                !rateLimitService.checkRateLimit(LimitedApi.CALCULATED_FIELD_DEBUG_EVENTS, (Object) tenantId, debugModeRateLimitsConfig.getCalculatedFieldDebugPerTenantLimitsConfiguration())) {
+            log.trace("[{}] Calculated field debug event limits exceeded!", tenantId);
+            return false;
+        }
+        return true;
+    }
+
     public static Exception toException(Throwable error) {
         return Exception.class.isInstance(error) ? (Exception) error : new Exception(error);
     }
@@ -878,9 +981,9 @@ public class ActorSystemContext {
         appActor.tellWithHighPriority(tbActorMsg);
     }
 
-    public void schedulePeriodicMsgWithDelay(TbActorRef ctx, TbActorMsg msg, long delayInMs, long periodInMs) {
+    public ScheduledFuture<?> schedulePeriodicMsgWithDelay(TbActorRef ctx, TbActorMsg msg, long delayInMs, long periodInMs) {
         log.debug("Scheduling periodic msg {} every {} ms with delay {} ms", msg, periodInMs, delayInMs);
-        getScheduler().scheduleWithFixedDelay(() -> ctx.tell(msg), delayInMs, periodInMs, TimeUnit.MILLISECONDS);
+        return getScheduler().scheduleWithFixedDelay(() -> ctx.tell(msg), delayInMs, periodInMs, TimeUnit.MILLISECONDS);
     }
 
     public void scheduleMsgWithDelay(TbActorRef ctx, TbActorMsg msg, long delayInMs) {

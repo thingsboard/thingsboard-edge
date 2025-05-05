@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -60,11 +60,12 @@ import { catchError, debounceTime, distinctUntilChanged, map, takeUntil, tap } f
 import { TranslateService } from '@ngx-translate/core';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
-import { isDefined, isNotEmptyStr, isNumber } from '@core/utils';
+import { isDefined, isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { DialogService } from '@core/services/dialog.service';
 import { UtilsService } from '@core/services/utils.service';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { FormBuilder } from '@angular/forms';
+import { isValidPageStepCount, isValidPageStepIncrement } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-blob-entities',
@@ -101,8 +102,8 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
   displayCustomer = true;
 
   displayPagination = true;
-  pageSizeOptions;
-  defaultPageSize = 10;
+  pageSizeOptions = [];
+  defaultPageSize;
   defaultSortOrder = 'createdTime';
   defaultType: string;
   hidePageSize = false;
@@ -148,6 +149,7 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
         this.displayedColumns.unshift('select');
       }
       const sortOrder: SortOrder = { property: this.defaultSortOrder, direction: Direction.ASC };
+      this.defaultPageSize = 10;
       this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.timewindow = historyInterval(DAY);
       const currentTime = Date.now();
@@ -201,10 +203,26 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     this.displayedColumns.push('actions');
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     const pageSize = this.settings.defaultPageSize;
-    if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
+    let pageStepIncrement = isValidPageStepIncrement(this.settings.pageStepIncrement) ? this.settings.pageStepIncrement : null;
+    let pageStepCount = isValidPageStepCount(this.settings.pageStepCount) ? this.settings.pageStepCount : null;
+
+    if (Number.isInteger(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
+      pageStepCount = 3;
+    }
+
+    for (let i = 1; i <= pageStepCount; i++) {
+      this.pageSizeOptions.push(pageStepIncrement * i);
+    }
+
     if (this.settings.defaultSortOrder && this.settings.defaultSortOrder.length) {
       this.defaultSortOrder = this.settings.defaultSortOrder;
     }

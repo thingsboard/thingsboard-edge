@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -149,6 +149,7 @@ public class ControllerConstants {
     protected static final String AUDIT_LOG_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on one of the next properties: entityType, entityName, userName, actionType, actionStatus.";
     protected static final String ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the entity group name.";
     protected static final String ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION = "Whether to include shared entity groups.";
+    protected static final String CF_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the calculated field name.";
     protected static final String SORT_PROPERTY_DESCRIPTION = "Property of entity to sort by";
 
     protected static final String SORT_ORDER_DESCRIPTION = "Sort order. ASC (ASCENDING) or DESC (DESCENDING)";
@@ -242,6 +243,29 @@ public class ControllerConstants {
             "   \"eventType\":\"DEBUG_RULE_NODE\",\n" + DEBUG_FILTER_OBJ + MARKDOWN_CODE_BLOCK_END;
     protected static final String EVENT_DEBUG_RULE_CHAIN_FILTER_OBJ = MARKDOWN_CODE_BLOCK_START + "{\n" +
             "   \"eventType\":\"DEBUG_RULE_CHAIN\",\n" + DEBUG_FILTER_OBJ + MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String EVENT_DEBUG_CALCULATED_FIELD_FILTER_OBJ = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"eventType\":\"DEBUG_CALCULATED_FIELD\",\n" +
+            "   \"server\":\"ip-172-31-24-152\",\n" +
+            "   \"isError\":\"false\",\n" +
+            "   \"errorStr\":\"Error Message\"\n" +
+            "   \"entityId\":\"cf4b8741-f618-471f-ae08-d881ca7f9fe9\",\n" +
+            "   \"msgId\":\"5cf7d3a0-aee7-40dd-a737-ade05528e7eb\",\n" +
+            "   \"msgType\":\"POST_TELEMETRY_REQUEST\",\n" +
+            "   \"arguments\":\"{\n" +
+            "    \"x\": {\n" +
+            "      \"ts\": 1739432016629,\n" +
+            "      \"value\": 20\n" +
+            "    },\n" +
+            "    \"y\": {\n" +
+            "      \"ts\": 1739429717656,\n" +
+            "      \"value\": 12\n" +
+            "    }\n" +
+            "  }\",\n" +
+            "   \"result\":\"{\n" +
+            "    \"x + y\": 32\n" +
+            "  }\",\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
 
     protected static final String IS_BOOTSTRAP_SERVER_PARAM_DESCRIPTION = "A Boolean value representing the Server SecurityInfo for future Bootstrap client mode settings. Values: 'true' for Bootstrap Server; 'false' for Lwm2m Server. ";
 
@@ -576,6 +600,7 @@ public class ControllerConstants {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     protected static final String DEFAULT_DASHBOARD = "defaultDashboardId";
+    protected static final String DEFAULT_DASHBOARD_FULLSCREEN = "defaultDashboardFullscreen";
     protected static final String HOME_DASHBOARD = "homeDashboardId";
 
     protected static final String SINGLE_ENTITY = "\n\n## Single Entity\n\n" +
@@ -2042,7 +2067,8 @@ public class ControllerConstants {
             CONVERTER_TEST_UPLINK_INPUT + NEW_LINE +
             " * 'metadata' - integration metadata; \n" +
             " * 'payload' - base64 string representation of the data; \n" +
-            " * 'decoder' - string representation of the decoder configuration." + NEW_LINE +
+            " * 'decoder' - string representation of the decoder configuration; \n" +
+            " * 'converter' - JSON object representing converter." + NEW_LINE +
             "## Response Body Example" + NEW_LINE +
             CONVERTER_TEST_UPLINK_OUTPUT + NEW_LINE +
             " * 'output' - string representation of the output message; \n" +
@@ -2061,6 +2087,21 @@ public class ControllerConstants {
             "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempValue = msg.temp;\\ndata.humValue = msg.humidity;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
             "}" +
             MARKDOWN_CODE_BLOCK_END;
+
+    static final String DEDICATED_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "   },\n" +
+            "   \"payload\":\"ewogICAgImRhdGEiOiAiZGF0YSIKfQ==\",\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            " * 'metadata' - integration metadata; \n" +
+            " * 'payload' - JSON object representing the input raw message." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            " * 'metadata' - integration metadata enriched with the data from the input message; \n" +
+            " * 'payload' - base64 string representation of the payload from the unwrapped input message; \n" +
+            " * 'contentType' - string representation payload contentType.";
 
     private static final String CONVERTER_TEST_DOWNLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
             "{\n" +
@@ -2135,7 +2176,7 @@ public class ControllerConstants {
     "    \"session_key_id\": \"AYfg8rhha5n+FWx0ZaAprA==\",\n" +
     "    \"f_port\": 85,\n" +
     "    \"f_cnt\": 5017,\n" +
-    "    \"frm_payload\": \"AXVeAwABBAAB\",\n" +
+    "    \"frm_payload\": \"Ae0DM18OTGM=\",\n" +
     "    \"rx_metadata\": [{\n" +
     "        \"gateway_ids\": {\n" +
     "            \"gateway_id\": \"eui-6A7E111A10000000\",\n" +
@@ -2213,7 +2254,7 @@ public class ControllerConstants {
     "    \"session_key_id\": \"AYfqmb0pc/1uRZv9xUydgQ==\",\n" +
     "    \"f_port\": 85,\n" +
     "    \"f_cnt\": 10335,\n" +
-    "    \"frm_payload\": \"AXVeAwABBAAB\",\n" +
+    "    \"frm_payload\": \"Ae0DM18OTGM=\",\n" +
     "    \"rx_metadata\": [{\n" +
     "        \"gateway_ids\": {\n" +
     "            \"gateway_id\": \"eui-6a7e111a10000000\",\n" +
@@ -2268,7 +2309,7 @@ public class ControllerConstants {
     "    \"ack\": false,\n" +
     "    \"bat\": 94,\n" +
     "    \"offline\": false,\n" +
-    "    \"data\": \"01755e030001040001\"\n" +
+    "    \"data\": \"01ed03335f0e4c63\"\n" +
     "}\n";
 
     static final String DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE = "{\n" +
@@ -2291,7 +2332,7 @@ public class ControllerConstants {
     "       \"fCnt\": 4,\n" +
     "       \"fPort\": 85,\n" +
     "       \"confirmed\": false,\n" +
-    "       \"data\": \"AXVdAwABBAAA\",\n" +
+    "       \"data\": \"Ae0DM18OTGM=\",\n" +
     "       \"rxInfo\": [{\n" +
     "           \"gatewayId\": \"6a7e111a10000000\",\n" +
     "           \"uplinkId\": 24022,\n" +
@@ -2414,6 +2455,154 @@ public class ControllerConstants {
             "    \"humidity\":80\n" +
             "  }\n" +
             "}\n";
+
+    static final String DEFAULT_THINGSPARK_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "    \"DevEUI_uplink\": {\n" +
+            "        \"Time\": \"2024-11-28T21:08:22.138+00:00\",\n" +
+            "        \"DevEUI\": \"1000000000000001\",\n" +
+            "        \"FPort\": 1,\n" +
+            "        \"FCntUp\": 26,\n" +
+            "        \"LostUplinksAS\": 0,\n" +
+            "        \"ADRbit\": 1,\n" +
+            "        \"MType\": 2,\n" +
+            "        \"FCntDn\": 2,\n" +
+            "        \"payload_hex\": \"01ed03335f0e4c63\",\n" +
+            "        \"mic_hex\": \"e7214986\",\n" +
+            "        \"Lrcid\": \"00000211\",\n" +
+            "        \"LrrRSSI\": -114,\n" +
+            "        \"LrrSNR\": 4.75,\n" +
+            "        \"LrrESP\": -115.2547,\n" +
+            "        \"SpFact\": 9,\n" +
+            "        \"SubBand\": \"G0\",\n" +
+            "        \"Channel\": \"LC1\",\n" +
+            "        \"Lrrid\": \"100019D4\",\n" +
+            "        \"Late\": 0,\n" +
+            "        \"LrrLAT\": 32.516357,\n" +
+            "        \"LrrLON\": -106.824348,\n" +
+            "        \"Lrrs\": {\n" +
+            "            \"Lrr\": [{\n" +
+            "                \"Lrrid\": \"100019D4\",\n" +
+            "                \"Chain\": 0,\n" +
+            "                \"LrrRSSI\": -114,\n" +
+            "                \"LrrSNR\": 4.75,\n" +
+            "                \"LrrESP\": -115.2547\n" +
+            "            }]\n" +
+            "        },\n" +
+            "        \"DevLrrCnt\": 1,\n" +
+            "        \"CustomerID\": \"100045194\",\n" +
+            "        \"CustomerData\": {\n" +
+            "            \"loc\": {\n" +
+            "                \"lat\": \"32.592782\",\n" +
+            "                \"lon\": \"-106.927742\"\n" +
+            "            },\n" +
+            "            \"alr\": {\n" +
+            "                \"pro\": \"DL/TBRG\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            },\n" +
+            "            \"tags\": [\"EnvironSens\", \"RainGauge\", \"CDRRC\"],\n" +
+            "            \"doms\": [],\n" +
+            "            \"name\": \"RainGauge 5483_Test\"\n" +
+            "        },\n" +
+            "        \"BaseStationData\": {\n" +
+            "            \"doms\": [],\n" +
+            "            \"name\": \"iStation US #6_CDRRC_Summerford\"\n" +
+            "        },\n" +
+            "        \"ModelCfg\": \"0\",\n" +
+            "        \"DriverCfg\": {\n" +
+            "            \"mod\": {\n" +
+            "                \"pId\": \"dl\",\n" +
+            "                \"mId\": \"dl-tbrg\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            },\n" +
+            "            \"app\": {\n" +
+            "                \"pId\": \"dl\",\n" +
+            "                \"mId\": \"dl-tbrg\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            }\n" +
+            "        },\n" +
+            "        \"InstantPER\": 0,\n" +
+            "        \"MeanPER\": 0.037037,\n" +
+            "        \"DevAddr\": \"00FDA112\",\n" +
+            "        \"TxPower\": 18,\n" +
+            "        \"NbTrans\": 2,\n" +
+            "        \"Frequency\": 902.5,\n" +
+            "        \"DynamicClass\": \"A\"\n" +
+            "    }\n" +
+            "}";
+
+    static final String DEFAULT_TPE_UPLINK_CONVERTER_MESSAGE = "{\n" +
+            "    \"DevEUI_uplink\": {\n" +
+            "        \"Time\": \"2024-11-28T21:08:22.138+00:00\",\n" +
+            "        \"DevEUI\": \"1000000000000001\",\n" +
+            "        \"FPort\": 1,\n" +
+            "        \"FCntUp\": 26,\n" +
+            "        \"LostUplinksAS\": 0,\n" +
+            "        \"ADRbit\": 1,\n" +
+            "        \"MType\": 2,\n" +
+            "        \"FCntDn\": 2,\n" +
+            "        \"payload_hex\": \"01ed03335f0e4c63\",\n" +
+            "        \"mic_hex\": \"e7214986\",\n" +
+            "        \"Lrcid\": \"00000211\",\n" +
+            "        \"LrrRSSI\": -114,\n" +
+            "        \"LrrSNR\": 4.75,\n" +
+            "        \"LrrESP\": -115.2547,\n" +
+            "        \"SpFact\": 9,\n" +
+            "        \"SubBand\": \"G0\",\n" +
+            "        \"Channel\": \"LC1\",\n" +
+            "        \"Lrrid\": \"100019D4\",\n" +
+            "        \"Late\": 0,\n" +
+            "        \"LrrLAT\": 32.516357,\n" +
+            "        \"LrrLON\": -106.824348,\n" +
+            "        \"Lrrs\": {\n" +
+            "            \"Lrr\": [{\n" +
+            "                \"Lrrid\": \"100019D4\",\n" +
+            "                \"Chain\": 0,\n" +
+            "                \"LrrRSSI\": -114,\n" +
+            "                \"LrrSNR\": 4.75,\n" +
+            "                \"LrrESP\": -115.2547\n" +
+            "            }]\n" +
+            "        },\n" +
+            "        \"DevLrrCnt\": 1,\n" +
+            "        \"CustomerID\": \"100045194\",\n" +
+            "        \"CustomerData\": {\n" +
+            "            \"loc\": {\n" +
+            "                \"lat\": \"32.592782\",\n" +
+            "                \"lon\": \"-106.927742\"\n" +
+            "            },\n" +
+            "            \"alr\": {\n" +
+            "                \"pro\": \"DL/TBRG\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            },\n" +
+            "            \"tags\": [\"EnvironSens\", \"RainGauge\", \"CDRRC\"],\n" +
+            "            \"doms\": [],\n" +
+            "            \"name\": \"RainGauge 5483_Test\"\n" +
+            "        },\n" +
+            "        \"BaseStationData\": {\n" +
+            "            \"doms\": [],\n" +
+            "            \"name\": \"iStation US #6_CDRRC_Summerford\"\n" +
+            "        },\n" +
+            "        \"ModelCfg\": \"0\",\n" +
+            "        \"DriverCfg\": {\n" +
+            "            \"mod\": {\n" +
+            "                \"pId\": \"dl\",\n" +
+            "                \"mId\": \"dl-tbrg\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            },\n" +
+            "            \"app\": {\n" +
+            "                \"pId\": \"dl\",\n" +
+            "                \"mId\": \"dl-tbrg\",\n" +
+            "                \"ver\": \"1\"\n" +
+            "            }\n" +
+            "        },\n" +
+            "        \"InstantPER\": 0,\n" +
+            "        \"MeanPER\": 0.037037,\n" +
+            "        \"DevAddr\": \"00FDA112\",\n" +
+            "        \"TxPower\": 18,\n" +
+            "        \"NbTrans\": 2,\n" +
+            "        \"Frequency\": 902.5,\n" +
+            "        \"DynamicClass\": \"A\"\n" +
+            "    }\n" +
+            "}";
 
     // Default converter uplinks messages
 

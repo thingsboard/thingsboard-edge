@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,6 @@ import {
   AggregatedValueCardKeyPosition,
   aggregatedValueCardKeyPositionTranslations
 } from '@home/components/widget/lib/cards/aggregated-value-card.models';
-import { constantColor } from '@shared/models/widget-settings.models';
 
 @Component({
   selector: 'tb-aggregated-value-card-key-settings',
@@ -65,7 +64,7 @@ export class AggregatedValueCardKeySettingsComponent extends WidgetSettingsCompo
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...aggregatedValueCardDefaultKeySettings};
+    return aggregatedValueCardDefaultKeySettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.converter;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.converter.DedicatedScriptUplinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDataConverter;
@@ -137,17 +138,17 @@ public class DefaultDataConverterService implements DataConverterService {
     }
 
     private TBDataConverter initConverter(Converter converter) {
-        switch (converter.getType()) {
-            case UPLINK:
-                ScriptUplinkDataConverter uplink = new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
-                uplink.init(converter);
-                return uplink;
-            case DOWNLINK:
-                ScriptDownlinkDataConverter downlink = new ScriptDownlinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
-                downlink.init(converter);
-                return downlink;
-            default:
-                throw new RuntimeException("Not Implemented!");
-        }
+        var dataConverter = switch (converter.getType()) {
+            case UPLINK -> {
+                if (converter.isDedicated()) {
+                    yield new DedicatedScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
+                } else {
+                    yield new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
+                }
+            }
+            case DOWNLINK -> new ScriptDownlinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
+        };
+        dataConverter.init(converter);
+        return dataConverter;
     }
 }

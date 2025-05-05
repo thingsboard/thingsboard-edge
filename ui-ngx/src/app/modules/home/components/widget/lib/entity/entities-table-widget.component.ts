@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,6 @@ import {
   hashCode,
   isDefined,
   isDefinedAndNotNull,
-  isNumber,
   isObject,
   isUndefined
 } from '@core/utils';
@@ -114,6 +113,8 @@ import {
   getHeaderTitle,
   getRowStyleInfo,
   getTableCellButtonActions,
+  isValidPageStepCount,
+  isValidPageStepIncrement,
   noDataMessage,
   prepareTableCellButtonActions,
   RowStyleInfo,
@@ -182,7 +183,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   public enableStickyHeader = true;
   public enableStickyAction = true;
   public showCellActionsMenu = true;
-  public pageSizeOptions;
+  public pageSizeOptions = [];
   public pageLink: EntityDataPageLink;
   public sortOrderProperty: string;
   public textSearchMode = false;
@@ -204,7 +205,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private widgetResize$: ResizeObserver;
   private destroy$ = new Subject<void>();
 
-  private defaultPageSize = 10;
+  private defaultPageSize;
   private defaultSortOrder = 'entityName';
 
   private contentsInfo: {[key: string]: CellContentInfo} = {};
@@ -360,10 +361,25 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.rowStylesInfo = getRowStyleInfo(this.ctx, this.settings, 'entity, ctx');
 
     const pageSize = this.settings.defaultPageSize;
-    if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
+    let pageStepIncrement = isValidPageStepIncrement(this.settings.pageStepIncrement) ? this.settings.pageStepIncrement : null;
+    let pageStepCount = isValidPageStepCount(this.settings.pageStepCount) ? this.settings.pageStepCount : null;
+
+    if (Number.isInteger(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
-    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+
+    if (!this.defaultPageSize) {
+      this.defaultPageSize = pageStepIncrement ?? 10;
+    }
+
+    if (!isDefinedAndNotNull(pageStepIncrement) || !isDefinedAndNotNull(pageStepCount)) {
+      pageStepIncrement = this.defaultPageSize;
+      pageStepCount = 3;
+    }
+
+    for (let i = 1; i <= pageStepCount; i++) {
+      this.pageSizeOptions.push(pageStepIncrement * i);
+    }
     this.pageLink.pageSize = this.displayPagination ? this.defaultPageSize : 1024;
 
     this.noDataDisplayMessageText =
@@ -500,7 +516,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         dataKey.label = this.utils.customTranslation(dataKey.label, dataKey.label);
         dataKey.title = getHeaderTitle(dataKey, keySettings, this.utils);
         dataKey.def = 'def' + this.columns.length;
-        dataKey.sortable = !dataKey.usePostProcessing && (!dataKey.aggregationType || dataKey.aggregationType === AggregationType.NONE);
+        dataKey.sortable = !keySettings.disableSorting && !dataKey.usePostProcessing
+          && (!dataKey.aggregationType ||dataKey.aggregationType === AggregationType.NONE);
         if (dataKey.type === DataKeyType.entityField &&
           !isDefined(keySettings.columnWidth) || keySettings.columnWidth === '0px') {
           const entityField = entityFields[dataKey.name];
@@ -550,7 +567,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     if ($event) {
       $event.stopPropagation();
     }
-    const target = $event.target || $event.srcElement || $event.currentTarget;
+    const target = $event.target || $event.currentTarget;
     const config = new OverlayConfig({
       panelClass: 'tb-panel-container',
       backdropClass: 'cdk-overlay-transparent-backdrop',
@@ -894,13 +911,21 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         keyFilters: datasource.keyFilters,
         pageLink
       };
+      const allColumns = this.columns.filter(c => c.entityKey);
       const exportedColumns = this.columns.filter(
         c => this.includeColumnInExport(c) && c.entityKey);
 
-      query.entityFields = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
+      query.entityFields = allColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
                                                        entityFields[c.entityKey.key]).map(c => c.entityKey);
-      query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
+      query.latestValues = allColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
                                                        c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey);
+
+      if (query.entityFields.every(entityField => entityField.key !== entityFields.name.keyName)) {
+        query.entityFields.push({ key: entityFields.name.keyName, type: EntityKeyType.ENTITY_FIELD });
+      }
+      if (query.entityFields.every(entityField => entityField.key !== entityFields.label.keyName)) {
+        query.entityFields.push({ key: entityFields.label.keyName, type: EntityKeyType.ENTITY_FIELD });
+      }
 
       return this.entityService.findEntityDataByQuery(query).pipe(
         expand(data => {
@@ -913,7 +938,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         }),
         switchMap(data => data.data.length ?
           forkJoin(data.data.map((e, index) =>
-            from(this.queryEntityDataToExportedData(e, index, exportedColumns)))) : of(data.data)),
+            from(this.queryEntityDataToExportedData(e, index, allColumns, exportedColumns)))) : of(data.data)),
         concatMap((data) => data),
         toArray()
       );
@@ -954,7 +979,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
   private async queryEntityDataToExportedData(queryEntityData: QueryEntityData,
                                         index: number,
-                                        columns: EntityColumn[]): Promise<{[key: string]: any}> {
+                                        allColumns: EntityColumn[],
+                                        exportedColumns: EntityColumn[]): Promise<{[key: string]: any}> {
     const entity: EntityData = {
       entityName: '',
       id: queryEntityData.entityId,
@@ -965,7 +991,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       entity.entityName = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'name', '');
       entity.entityLabel = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'label', entity.entityName);
     }
-    for (const column of columns) {
+    for (const column of allColumns) {
       if (!['entityName', 'entityLabel', 'entityType'].includes(column.label)) {
         if (latest) {
           let dataValue: any = '';
@@ -1013,7 +1039,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       }
     }
     const dataObj: { [key: string]: any } = {};
-    for (const column of columns) {
+    for (const column of exportedColumns) {
       dataObj[column.title] = await firstValueFrom(this.cellContent(entity, column, index, false, true));
     }
     return dataObj;
