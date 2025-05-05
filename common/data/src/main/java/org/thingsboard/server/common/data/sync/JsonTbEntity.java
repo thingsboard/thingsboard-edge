@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.notification.targets.NotificationTarge
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
@@ -81,7 +82,8 @@ import java.lang.annotation.Target;
         @Type(name = "NOTIFICATION_TEMPLATE", value = NotificationTemplate.class),
         @Type(name = "NOTIFICATION_TARGET", value = NotificationTarget.class),
         @Type(name = "NOTIFICATION_RULE", value = NotificationRule.class),
-        @Type(name = "TB_RESOURCE", value = TbResource.class)
+        @Type(name = "TB_RESOURCE", value = TbResource.class),
+        @Type(name = "SECRET", value = Secret.class)
 })
 @JsonIgnoreProperties(value = {"tenantId", "createdTime", "version"}, ignoreUnknown = true)
 public @interface JsonTbEntity {

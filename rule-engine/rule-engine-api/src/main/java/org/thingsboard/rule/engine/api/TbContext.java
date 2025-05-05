@@ -372,6 +372,8 @@ public interface TbContext {
 
     SlackService getSlackService();
 
+    ComponentDescriptorService getComponentDescriptorService();
+
     boolean isExternalNodeForceAck();
 
     /**

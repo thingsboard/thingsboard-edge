@@ -182,8 +182,7 @@ public class DeviceProfileServiceImpl extends CachedVersionedEntityService<Devic
     @Override
     public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate, boolean publishSaveEvent) {
         log.trace("Executing saveDeviceProfile [{}]", deviceProfile);
-        if (deviceProfile.getProfileData() != null && deviceProfile.getProfileData().getProvisionConfiguration() instanceof X509CertificateChainProvisionConfiguration) {
-            X509CertificateChainProvisionConfiguration x509Configuration = (X509CertificateChainProvisionConfiguration) deviceProfile.getProfileData().getProvisionConfiguration();
+        if (deviceProfile.getProfileData() != null && deviceProfile.getProfileData().getProvisionConfiguration() instanceof X509CertificateChainProvisionConfiguration x509Configuration) {
             if (x509Configuration.getProvisionDeviceSecret() != null) {
                 formatDeviceProfileCertificate(deviceProfile, x509Configuration);
             }

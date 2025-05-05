@@ -58,6 +58,7 @@ import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ConverterRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
@@ -94,6 +95,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     private final ConverterService converterService;
     private final TbTenantProfileCache tenantProfileCache;
     private final PlatformIntegrationService platformIntegrationService;
+    private final SecretConfigurationService secretConfigurationService;
 
     @Value("${queue.integration_api.max_pending_requests:10000}")
     private int maxPendingRequests;
@@ -217,6 +219,8 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
         return Futures.transform(future, integration -> {
             var builder = IntegrationApiResponseMsg.newBuilder();
             if (integration != null) {
+                var config = secretConfigurationService.replaceSecretPlaceholders(tenantId, integration.getConfiguration());
+                integration.setConfiguration(config);
                 builder.setIntegrationResponse(ProtoUtils.toProto(integration));
             }
             return builder.build();

@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -51,6 +50,8 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
+import org.thingsboard.server.dao.secret.SecretService;
 
 import java.util.Set;
 
@@ -74,6 +75,10 @@ public interface TbPeContext {
     ConverterService getConverterService();
 
     SchedulerEventService getSchedulerEventService();
+
+    SecretService getSecretService();
+
+    SecretConfigurationService getSecretConfigurationService();
 
     EntityId getOwner(TenantId tenantId, EntityId entityId);
 

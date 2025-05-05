@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.actors.ruleChain;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -41,6 +42,7 @@ import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -194,7 +196,12 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         if (ruleNode != null) {
             Class<?> componentClazz = Class.forName(ruleNode.getType());
             tbNode = (TbNode) (componentClazz.getDeclaredConstructor().newInstance());
-            tbNode.init(defaultCtx, new TbNodeConfiguration(ruleNode.getConfiguration()));
+            JsonNode ruleNodeConfig = ruleNode.getConfiguration();
+            ComponentDescriptor componentDescriptor = defaultCtx.getComponentDescriptorService().findByClazz(tenantId, ruleNode.getType());
+            if (componentDescriptor.isHasSecrets()) {
+                ruleNodeConfig = defaultCtx.getSecretConfigurationService().replaceSecretPlaceholders(tenantId, ruleNodeConfig);
+            }
+            tbNode.init(defaultCtx, new TbNodeConfiguration(ruleNodeConfig));
         }
         return tbNode;
     }

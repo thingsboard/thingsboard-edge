@@ -36,8 +36,10 @@ import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.Arrays;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.api.ComponentDescriptorService;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -88,7 +90,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -137,6 +138,8 @@ import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
@@ -942,6 +945,11 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public ComponentDescriptorService getComponentDescriptorService() {
+        return mainCtx.getComponentDescriptorService();
+    }
+
+    @Override
     public boolean isExternalNodeForceAck() {
         return mainCtx.isExternalNodeForceAck();
     }
@@ -1204,6 +1212,16 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public SchedulerEventService getSchedulerEventService() {
         return mainCtx.getSchedulerEventService();
+    }
+
+    @Override
+    public SecretService getSecretService() {
+        return mainCtx.getSecretService();
+    }
+
+    @Override
+    public SecretConfigurationService getSecretConfigurationService() {
+        return mainCtx.getSecretConfigurationService();
     }
 
     private TbMsgMetaData getActionMetaData(RuleNodeId ruleNodeId) {

@@ -88,12 +88,12 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
@@ -104,6 +104,7 @@ import static org.hamcrest.core.AnyOf.anyOf;
 import static org.thingsboard.server.common.data.StringUtils.isEmpty;
 
 public class TestRestClient {
+
     private static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
     private static final String CONTENT_TYPE_HEADER = "Content-Type";
     private final RequestSpecification requestSpec;
@@ -972,11 +973,10 @@ public class TestRestClient {
                 .get("/api/tenant/devices?deviceName={deviceName}")
                 .then()
                 .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
-        if(((ValidatableResponseImpl) response).extract().response().getStatusCode()==HTTP_OK){
-            return   response.extract()
-                    .as(Device.class);
+        if (((ValidatableResponseImpl) response).extract().response().getStatusCode() == HTTP_OK) {
+            return response.extract().as(Device.class);
         } else {
-            return  null;
+            return null;
         }
     }
 
@@ -1015,4 +1015,15 @@ public class TestRestClient {
                 .then()
                 .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
     }
+
+    public Secret saveSecret(Secret secret) {
+        return given().spec(requestSpec)
+                .body(secret)
+                .post("/api/secret")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Secret.class);
+    }
+
 }

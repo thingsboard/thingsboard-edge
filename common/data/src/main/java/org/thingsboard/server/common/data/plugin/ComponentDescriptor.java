@@ -70,6 +70,8 @@ public class ComponentDescriptor extends BaseData<ComponentDescriptorId> {
     @Getter @Setter private String actions;
     @Schema(description = "Indicates that the RuleNode supports queue name configuration.", accessMode = Schema.AccessMode.READ_ONLY, example = "true")
     @Getter @Setter private boolean hasQueueName;
+    @Schema(description = "Indicates that the RuleNode configuration uses secrets placeholders.", accessMode = Schema.AccessMode.READ_ONLY, example = "true")
+    @Getter @Setter private boolean hasSecrets;
 
     public ComponentDescriptor() {
         super();
@@ -90,6 +92,7 @@ public class ComponentDescriptor extends BaseData<ComponentDescriptorId> {
         this.configurationVersion = plugin.getConfigurationVersion();
         this.actions = plugin.getActions();
         this.hasQueueName = plugin.isHasQueueName();
+        this.hasSecrets = plugin.isHasSecrets();
     }
 
     @Schema(description = "JSON object with the descriptor Id. " +
@@ -122,6 +125,7 @@ public class ComponentDescriptor extends BaseData<ComponentDescriptorId> {
         if (configurationVersion != that.configurationVersion) return false;
         if (clusteringMode != that.clusteringMode) return false;
         if (hasQueueName != that.isHasQueueName()) return false;
+        if (hasSecrets != that.isHasSecrets()) return false;
         return Objects.equals(clazz, that.clazz);
     }
 
@@ -135,6 +139,7 @@ public class ComponentDescriptor extends BaseData<ComponentDescriptorId> {
         result = 31 * result + (actions != null ? actions.hashCode() : 0);
         result = 31 * result + (clusteringMode != null ? clusteringMode.hashCode() : 0);
         result = 31 * result + (hasQueueName ? 1 : 0);
+        result = 31 * result + (hasSecrets ? 1 : 0);
         return result;
     }
 

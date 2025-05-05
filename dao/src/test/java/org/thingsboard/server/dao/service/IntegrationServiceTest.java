@@ -86,7 +86,6 @@ public class IntegrationServiceTest extends AbstractServiceTest {
 
     private final ObjectNode INTEGRATION_CONFIGURATION = JacksonUtil.newObjectNode()
             .putObject("metadata").put("key1", "val1");
-    ;
 
     private final List<Integration> savedIntegrations = new LinkedList<>();
 

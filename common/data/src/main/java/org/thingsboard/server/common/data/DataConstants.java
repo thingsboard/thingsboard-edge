@@ -171,4 +171,6 @@ public class DataConstants {
     public static final String EDGE_QUEUE_NAME = "Edge";
     public static final String EDGE_EVENT_QUEUE_NAME = "EdgeEvent";
 
+    public static final String ENCRYPTION_KEY = "encryptionKey";
+
 }

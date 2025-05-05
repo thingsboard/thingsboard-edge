@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.common.util.JacksonUtil;
 
 public class MQTTIntegrationPrototypes {
+
     private static final String CONFIG_INTEGRATION = "{\n" +
             "  \"clientConfiguration\": {\n" +
             "    \"host\": \"%s\",\n" +
@@ -69,7 +70,7 @@ public class MQTTIntegrationPrototypes {
             "    \"credentials\": {\n" +
             "      \"type\": \"basic\",\n" +
             "      \"username\": \"username\",\n" +
-            "      \"password\": \"pass\"\n" +
+            "      \"password\": \"%s\"\n" +
             "    }\n" +
             "  },\n" +
             "  \"downlinkTopicPattern\": \"%s\",\n" +
@@ -112,15 +113,16 @@ public class MQTTIntegrationPrototypes {
             "  \"metadata\": {}\n" +
             "}";
 
-    public static JsonNode defaultConfig(String serviceName, int servicePort, String topic){
+    public static JsonNode defaultConfig(String serviceName, int servicePort, String topic) {
         return JacksonUtil.toJsonNode(String.format(CONFIG_INTEGRATION, serviceName, servicePort, topic));
     }
 
-    public static JsonNode configWithBasicCreds(String serviceName, int servicePort, String topic){
-        return JacksonUtil.toJsonNode(String.format(CONFIG_INTEGRATION_WITH_BASIC_CREDS, serviceName, servicePort, topic));
+    public static JsonNode configWithBasicCreds(String serviceName, int servicePort, String password, String topic) {
+        return JacksonUtil.toJsonNode(String.format(CONFIG_INTEGRATION_WITH_BASIC_CREDS, serviceName, servicePort, password, topic));
     }
 
-    public static JsonNode configWithPemCreds(String serviceName, int servicePort, String topic, String pem){
-        return JacksonUtil.toJsonNode(String.format(CONFIG_INTEGRATION_WITH_PEM_CREDS, serviceName, servicePort, topic, pem ,pem, pem));
+    public static JsonNode configWithPemCreds(String serviceName, int servicePort, String topic, String pem) {
+        return JacksonUtil.toJsonNode(String.format(CONFIG_INTEGRATION_WITH_PEM_CREDS, serviceName, servicePort, topic, pem, pem, pem));
     }
+
 }

@@ -44,6 +44,7 @@ import org.thingsboard.rule.engine.debug.TbMsgGeneratorNode;
 import org.thingsboard.rule.engine.debug.TbMsgGeneratorNodeConfiguration;
 import org.thingsboard.rule.engine.metadata.TbGetAttributesNode;
 import org.thingsboard.rule.engine.metadata.TbGetAttributesNodeConfiguration;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -57,6 +58,7 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -102,6 +104,8 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
+import org.thingsboard.server.common.data.secret.Secret;
+import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
@@ -121,6 +125,7 @@ import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -135,6 +140,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.thingsboard.server.common.data.DataConstants.ENCRYPTION_KEY;
 
 @DaoSqlTest
 @TestPropertySource(properties = {
@@ -755,6 +761,41 @@ public class VersionControlTest extends AbstractControllerTest {
         });
     }
 
+    @Test
+    public void testSecretVc_sameTenant() throws Exception {
+        // key for tenantId1 to process encryption
+        createSecretEncryptionKey();
+
+        byte[] value = "Value".getBytes(StandardCharsets.UTF_8);
+        SecretInfo secretInfo = createSecret("Secret1", SecretType.TEXT, value);
+        String versionId = createVersion("secret", EntityType.SECRET);
+
+        loadVersion(versionId, EntityType.SECRET);
+        SecretInfo importedSecretInfo = findSecret(secretInfo.getName());
+        assertThat(importedSecretInfo.getId()).isEqualTo(secretInfo.getId());
+        assertThat(importedSecretInfo.getName()).isEqualTo(secretInfo.getName());
+        assertThat(importedSecretInfo.getType()).isEqualTo(secretInfo.getType());
+    }
+
+    @Test
+    public void testSecretVc_betweenTenants() throws Exception {
+        // key for tenantId1 to process encryption
+        createSecretEncryptionKey();
+
+        byte[] value = "Value".getBytes(StandardCharsets.UTF_8);
+        SecretInfo secretInfo = createSecret("Secret1", SecretType.TEXT, value);
+        String versionId = createVersion("secret", EntityType.SECRET);
+
+        loginTenant2();
+        createSecretEncryptionKey();
+        loadVersion(versionId, EntityType.SECRET);
+
+        SecretInfo importedSecretInfo = findSecret(secretInfo.getName());
+        checkImportedEntity(tenantId1, secretInfo, tenantId2, importedSecretInfo);
+        assertThat(importedSecretInfo.getName()).isEqualTo(secretInfo.getName());
+        assertThat(importedSecretInfo.getType()).isEqualTo(secretInfo.getType());
+    }
+
     private <E extends ExportableEntity<?> & HasTenantId> void checkImportedEntity(TenantId tenantId1, E initialEntity, TenantId tenantId2, E importedEntity) {
         assertThat(initialEntity.getTenantId()).isEqualTo(tenantId1);
         assertThat(importedEntity.getTenantId()).isEqualTo(tenantId2);
@@ -1235,6 +1276,26 @@ public class VersionControlTest extends AbstractControllerTest {
         return doPost("/api/role", role, Role.class);
     }
 
+    private void createSecretEncryptionKey() {
+        AdminSettings encryptionSettings = new AdminSettings();
+        encryptionSettings.setKey(ENCRYPTION_KEY);
+
+        ObjectNode jsonValue = JacksonUtil.newObjectNode();
+        jsonValue.put("password", "password");
+        jsonValue.put("salt", "salt");
+
+        encryptionSettings.setJsonValue(jsonValue);
+        doPost("/api/admin/settings", encryptionSettings, AdminSettings.class);
+    }
+
+    private SecretInfo createSecret(String name, SecretType type, byte[] value) {
+        Secret secret = new Secret();
+        secret.setValue(value);
+        secret.setType(type);
+        secret.setName(name);
+        return doPost("/api/secret", secret, SecretInfo.class);
+    }
+
     protected GroupPermission createGroupPermission(EntityGroupId userGroupId, RoleId genericRoleId) {
         return createGroupPermission(userGroupId, genericRoleId, null, null);
     }
@@ -1266,6 +1327,7 @@ public class VersionControlTest extends AbstractControllerTest {
             assertThat(importedNode.getAdditionalInfo()).isEqualTo(initialNode.getAdditionalInfo());
         }
     }
+
 
     private Dashboard assignDashboardToCustomer(DashboardId dashboardId, CustomerId customerId) {
         return doPost("/api/customer/" + customerId + "/dashboard/" + dashboardId, Dashboard.class);
@@ -1327,6 +1389,10 @@ public class VersionControlTest extends AbstractControllerTest {
 
     private List<GroupPermissionInfo> findGroupPermissions(EntityGroupId userGroupId) throws Exception {
         return doGetTyped("/api/userGroup/" + userGroupId + "/groupPermissions?", new TypeReference<>() {});
+    }
+
+    private SecretInfo findSecret(String name) throws Exception {
+        return doGetTypedWithPageLink("/api/secret/infos?", new TypeReference<PageData<SecretInfo>>() {}, new PageLink(100, 0, name)).getData().get(0);
     }
 
 }

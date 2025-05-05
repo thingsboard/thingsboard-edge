@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.debug.TbMsgGeneratorNode;
@@ -52,6 +53,7 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -97,6 +99,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
@@ -119,6 +122,8 @@ import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.secret.SecretService;
+import org.thingsboard.server.dao.secret.SecretUtilService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.service.action.EntityActionService;
@@ -130,6 +135,7 @@ import org.thingsboard.server.service.security.permission.UserPermissionsService
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 import org.thingsboard.server.service.sync.vc.data.SimpleEntitiesExportCtx;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -160,6 +166,9 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
     private UserPermissionsService userPermissionsService;
     @SpyBean
     private AccessControlService accessControlService;
+
+    @MockBean
+    private SecretUtilService secretUtilService;
 
     @Autowired
     protected EntitiesExportImportService exportImportService;
@@ -193,6 +202,8 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
     protected ConverterService converterService;
     @Autowired
     protected RoleService roleService;
+    @Autowired
+    protected SecretService secretService;
 
     protected TenantId tenantId1;
     protected User tenantAdmin1;
@@ -245,9 +256,13 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
         EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
         createGroupPermission(tenantId1, userGroup.getId(), role.getId());
 
+        byte[] secretValue = "Password".getBytes(StandardCharsets.UTF_8);
+        Mockito.when(secretUtilService.encrypt(eq(tenantId1), any(), any())).thenReturn(secretValue);
+        Secret secret = createSecret(tenantId1, "Secret 1", secretValue, SecretType.TEXT);
+
         Map<EntityType, EntityExportData> entitiesExportData = Stream.of(customer.getId(), asset.getId(), device.getId(),
                         ruleChain.getId(), dashboard.getId(), assetProfile.getId(), deviceProfile.getId(), converter.getId(),
-                        integration.getId(), role.getId(), userGroup.getId())
+                        integration.getId(), role.getId(), userGroup.getId(), secret.getId())
                 .map(entityId -> {
                     try {
                         return exportEntity(tenantAdmin1, entityId, EntityExportSettings.builder()
@@ -300,7 +315,6 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
         verify(entityActionService, Mockito.never()).logEntityAction(any(), eq(importedAsset.getId()), eq(importedAsset),
                 any(), eq(ActionType.UPDATED), isNull());
 
-
         EntityExportData<Asset> updatedAssetEntity = getAndClone(entitiesExportData, EntityType.ASSET);
         updatedAssetEntity.getEntity().setLabel("t" + updatedAssetEntity.getEntity().getLabel());
         Asset updatedAsset = importEntity(tenantAdmin2, updatedAssetEntity).getSavedEntity();
@@ -341,6 +355,9 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
         Role importedRole = (Role) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.ROLE)).getSavedEntity();
         verify(userPermissionsService).onRoleUpdated(argThat(r -> r.getId().equals(importedRole.getId())));
         verify(entityActionService).logEntityAction(any(), eq(importedRole.getId()), notNull(), any(), eq(ActionType.ADDED), isNull());
+
+        Secret importedSecret = (Secret) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.SECRET)).getSavedEntity();
+        verify(entityActionService).logEntityAction(any(), eq(importedSecret.getId()), notNull(), any(), eq(ActionType.ADDED), isNull());
     }
 
     @Test
@@ -683,6 +700,16 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
         groupPermission.setEntityGroupId(entityGroupId);
         groupPermission.setEntityGroupType(entityGroupType);
         return groupPermissionService.saveGroupPermission(tenantId, groupPermission);
+    }
+
+    private Secret createSecret(TenantId tenantId, String name, byte[] value, SecretType type) {
+        Secret secret = new Secret();
+        secret.setTenantId(tenantId);
+        secret.setName(name);
+        secret.setValue(value);
+        secret.setType(type);
+        var savedSecret = secretService.saveSecret(tenantId, secret);
+        return secretService.findSecretById(tenantId, savedSecret.getId());
     }
 
     protected <E extends ExportableEntity<I>, I extends EntityId> EntityExportData<E> exportEntity(User user, I entityId) throws Exception {

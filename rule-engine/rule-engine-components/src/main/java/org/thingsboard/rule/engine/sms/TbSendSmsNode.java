@@ -51,7 +51,8 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         nodeDescription = "Sends SMS message via SMS provider.",
         nodeDetails = "Will send SMS message by populating target phone numbers and sms message fields using values derived from message metadata.",
         configDirective = "tbExternalNodeSendSmsConfig",
-        icon = "sms"
+        icon = "sms",
+        hasSecrets = true
 )
 public class TbSendSmsNode extends TbAbstractExternalNode {
 

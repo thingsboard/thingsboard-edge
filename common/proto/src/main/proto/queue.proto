@@ -78,6 +78,7 @@ enum EntityTypeProto {
   DOMAIN                = 36;
   MOBILE_APP            = 37;
   MOBILE_APP_BUNDLE     = 38;
+  SECRET                = 39;
 }
 
 /**

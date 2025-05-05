@@ -76,3 +76,5 @@ DO $$
 $$;
 
 -- UPDATE SAVE TIME SERIES NODES END
+
+ALTER TABLE component_descriptor ADD COLUMN IF NOT EXISTS has_secrets boolean default false;

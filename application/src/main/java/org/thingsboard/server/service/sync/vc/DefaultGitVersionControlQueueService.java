@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.vc.BranchInfo;
 import org.thingsboard.server.common.data.sync.vc.EntityVersion;
@@ -165,6 +166,11 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
         }
 
         log.debug("Executing addToCommit [{}][{}][{}]", entityData.getEntityType(), entityData.getEntity().getId(), commit.getRequestId());
+        if (entityData.getEntity() instanceof Secret secret) {
+            log.error("secret addToCommit {}", JacksonUtil.toString(secret.getValue()));
+            log.error("simple {}", JacksonUtil.toString(secret));
+            log.error("pretty {}", JacksonUtil.toPrettyString(secret));
+        }
         String entityDataJson = JacksonUtil.toPrettyString(entityData.sort());
 
         Iterable<String> entityDataChunks = StringUtils.split(entityDataJson, msgChunkSize);

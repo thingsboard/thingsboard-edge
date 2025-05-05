@@ -56,7 +56,8 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
         clusteringMode = ComponentClusteringMode.SINGLETON,
         nodeDescription = "Publish messages to the Azure IoT Hub",
         nodeDetails = "Will publish message payload to the Azure IoT Hub with QoS <b>AT_LEAST_ONCE</b>.",
-        configDirective = "tbExternalNodeAzureIotHubConfig"
+        configDirective = "tbExternalNodeAzureIotHubConfig",
+        hasSecrets = true
 )
 public class TbAzureIotHubNode extends TbMqttNode {
     @Override

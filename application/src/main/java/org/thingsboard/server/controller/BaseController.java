@@ -133,6 +133,7 @@ import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
@@ -169,6 +170,8 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
+import org.thingsboard.server.common.data.secret.Secret;
+import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.util.ThrowingBiFunction;
@@ -211,6 +214,7 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -478,6 +482,9 @@ public abstract class BaseController {
 
     @Autowired
     protected NotificationTargetService notificationTargetService;
+
+    @Autowired
+    protected SecretService secretService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -988,6 +995,9 @@ public abstract class BaseController {
                 case MOBILE_APP_BUNDLE:
                     checkMobileAppBundleId(new MobileAppBundleId(entityId.getId()), operation);
                     return;
+                case SECRET:
+                    checkSecretId(new SecretId(entityId.getId()), operation);
+                    return;
                 default:
                     checkEntityId(entityId, entitiesService::findEntityByTenantIdAndId, operation);
             }
@@ -1245,6 +1255,15 @@ public abstract class BaseController {
 
     NotificationTarget checkNotificationTargetId(NotificationTargetId notificationTargetId, Operation operation) throws ThingsboardException {
         return checkEntityId(notificationTargetId, notificationTargetService::findNotificationTargetById, operation);
+    }
+
+    SecretInfo checkSecretId(SecretId secretId, Operation operation) throws ThingsboardException {
+        return checkEntityId(secretId, secretService::findSecretInfoById, operation);
+    }
+
+    // TODO: DELETE, THIS ONE IS TEMPORARY
+    Secret checkSecretIdTest(SecretId secretId, Operation operation) throws ThingsboardException {
+        return checkEntityId(secretId, secretService::findSecretById, operation);
     }
 
     protected <I extends EntityId> I emptyId(EntityType entityType) {

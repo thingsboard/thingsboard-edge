@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.rule.node;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
@@ -55,6 +56,7 @@ import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.DisableUIListeners;
@@ -69,7 +71,6 @@ import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.fail;
@@ -96,11 +97,16 @@ public class MqttNodeTest extends AbstractContainerTest {
 
     @Test
     public void telemetryUpload() throws Exception {
+        String password = "pass";
+        Secret secret = createSecret(password);
+        String formattedSecret = "${secret:" + secret.getName() + "}";
+
         RuleChainId defaultRuleChainId = getDefaultRuleChainId();
 
-        createRootRuleChainWithTestNode("MqttRuleNodeTestMetadata.json", "org.thingsboard.rule.engine.mqtt.TbMqttNode", 2);
-
         DeviceCredentials deviceCredentials = testRestClient.getDeviceCredentialsByDeviceId(device.getId());
+
+        createRootRuleChainWithTestNode("MqttRuleNodeTestMetadata.json", "org.thingsboard.rule.engine.mqtt.TbMqttNode", 2,
+                deviceCredentials.getCredentialsId(), formattedSecret);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
@@ -112,6 +118,7 @@ public class MqttNodeTest extends AbstractContainerTest {
         MqttClient mqttClient = new MqttClient("tcp://localhost:1883", StringUtils.randomAlphanumeric(10), new MemoryPersistence());
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setUserName(deviceCredentials.getCredentialsId());
+        mqttConnectOptions.setPassword(password.toCharArray());
         mqttClient.connect(mqttConnectOptions);
         mqttClient.publish("v1/devices/me/telemetry", new MqttMessage(createPayload().toString().getBytes()));
 
@@ -131,7 +138,7 @@ public class MqttNodeTest extends AbstractContainerTest {
                 .await()
                 .alias("Get integration events")
                 .atMost(10, TimeUnit.SECONDS)
-                .until(() -> messageListener.getEvents().size() > 0);
+                .until(() -> !messageListener.getEvents().isEmpty());
 
         BlockingQueue<MqttEvent> events = messageListener.getEvents();
         JsonNode actual = JacksonUtil.toJsonNode(Objects.requireNonNull(events.poll()).message);
@@ -182,12 +189,13 @@ public class MqttNodeTest extends AbstractContainerTest {
         return defaultRuleChain.get().getId();
     }
 
-    protected RuleChainId createRootRuleChainWithTestNode(String ruleChainMetadataFile, String ruleNodeType, int eventsCount) throws Exception {
+    protected RuleChainId createRootRuleChainWithTestNode(String ruleChainMetadataFile, String ruleNodeType, int eventsCount, String username, String password) throws Exception {
         RuleChain newRuleChain = new RuleChain();
         newRuleChain.setName("testRuleChain");
         RuleChain ruleChain = testRestClient.postRuleChain(newRuleChain);
 
         JsonNode configuration = JacksonUtil.OBJECT_MAPPER.readTree(this.getClass().getClassLoader().getResourceAsStream(ruleChainMetadataFile));
+        replaceCredentialsInConfiguration(configuration, username, password);
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
@@ -208,12 +216,27 @@ public class MqttNodeTest extends AbstractContainerTest {
                     PageData<EventInfo> events = testRestClient.getEvents(node.getId(), EventType.LC_EVENT, ruleChain.getTenantId(), new TimePageLink(1024));
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
                                     "STARTED".equals(eventInfo.getBody().get("event").asText()) &&
-                                            "true".equals(eventInfo.getBody().get("success").asText()))
-                            .collect(Collectors.toList());
+                                            "true".equals(eventInfo.getBody().get("success").asText())).toList();
 
                     return eventInfos.size() == eventsCount;
                 });
 
         return ruleChain.getId();
     }
+
+    private void replaceCredentialsInConfiguration(JsonNode configuration, String username, String password) {
+        JsonNode credentialsNode = configuration.path("nodes").get(0).get("configuration").path("credentials");
+        if (credentialsNode.isObject()) {
+            ((ObjectNode) credentialsNode).put("username", username);
+            ((ObjectNode) credentialsNode).put("password", password);
+        }
+    }
+
+    private Secret createSecret(String password) {
+        Secret secret = new Secret();
+        secret.setName("mqtt_node_secret");
+        secret.setEncodedValue(password);
+        return testRestClient.saveSecret(secret);
+    }
+
 }

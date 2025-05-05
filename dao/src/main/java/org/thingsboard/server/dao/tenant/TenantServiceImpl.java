@@ -53,8 +53,8 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
-import org.thingsboard.server.dao.mobile.QrCodeSettingService;
 import org.thingsboard.server.dao.menu.CustomMenuService;
+import org.thingsboard.server.dao.mobile.QrCodeSettingService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -220,7 +220,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
                 EntityType.OTA_PACKAGE, EntityType.RPC, EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST,
                 EntityType.NOTIFICATION_RULE, EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET,
                 EntityType.QUEUE_STATS, EntityType.CUSTOMER, EntityType.DOMAIN, EntityType.MOBILE_APP_BUNDLE,
-                EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT
+                EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT, EntityType.SECRET
         );
     }
 

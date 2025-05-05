@@ -109,6 +109,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.MOBILE_APP, tenantStandaloneEntityPermissionChecker);
         put(Resource.MOBILE_APP_BUNDLE, tenantStandaloneEntityPermissionChecker);
         put(Resource.DOMAIN, tenantStandaloneEntityPermissionChecker);
+        put(Resource.SECRET, tenantStandaloneEntityPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {

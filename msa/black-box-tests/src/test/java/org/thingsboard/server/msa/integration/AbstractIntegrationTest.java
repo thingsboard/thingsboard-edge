@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.DisableUIListeners;
 
@@ -248,8 +249,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                     PageData<EventInfo> events = testRestClient.getEvents(ruleChain.getId(), EventType.LC_EVENT, ruleChain.getTenantId(), new TimePageLink(1024));
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
                                     "UPDATED".equals(eventInfo.getBody().get("event").asText()) &&
-                                            "true".equals(eventInfo.getBody().get("success").asText()))
-                            .collect(Collectors.toList());
+                                            "true".equals(eventInfo.getBody().get("success").asText())).toList();
 
                     return eventInfos.size() == 4;
                 });
@@ -273,4 +273,12 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                             && msgType.equals(event.getBody().get("msgType").asText());
                 });
     }
+
+    protected Secret createSecret(String password) {
+        Secret secret = new Secret();
+        secret.setName("integration_secret");
+        secret.setEncodedValue(password);
+        return testRestClient.saveSecret(secret);
+    }
+
 }

@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -177,6 +178,7 @@ public class TenantIdLoader {
                 } else {
                     tenantEntity = null;
                 }
+                break;
             case CONVERTER:
                 tenantEntity = ctx.getPeContext().getConverterService().findConverterById(ctxTenantId, new ConverterId(id));
                 break;
@@ -194,6 +196,9 @@ public class TenantIdLoader {
                 break;
             case GROUP_PERMISSION:
                 tenantEntity = ctx.getPeContext().getGroupPermissionService().findGroupPermissionById(ctxTenantId, new GroupPermissionId(id));
+                break;
+            case SECRET:
+                tenantEntity = ctx.getPeContext().getSecretService().findSecretInfoById(ctxTenantId, new SecretId(id));
                 break;
             case QUEUE_STATS:
                 tenantEntity = ctx.getQueueStatsService().findQueueStatsById(ctxTenantId, new QueueStatsId(id));

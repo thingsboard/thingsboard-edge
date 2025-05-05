@@ -43,6 +43,7 @@ import org.springframework.core.env.Profiles;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.ComponentDescriptorService;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeDefinition;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -55,7 +56,6 @@ import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.rule.RuleChainType;
-import org.thingsboard.server.dao.component.ComponentDescriptorService;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -205,6 +205,7 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
             scannedComponent.setScope(ruleNodeAnnotation.scope());
             scannedComponent.setClusteringMode(ruleNodeAnnotation.clusteringMode());
             scannedComponent.setHasQueueName(ruleNodeAnnotation.hasQueueName());
+            scannedComponent.setHasSecrets(ruleNodeAnnotation.hasSecrets());
             NodeDefinition nodeDefinition = prepareNodeDefinition(clazz, ruleNodeAnnotation);
             ObjectNode configurationDescriptor = JacksonUtil.newObjectNode();
             JsonNode node = JacksonUtil.valueToTree(nodeDefinition);

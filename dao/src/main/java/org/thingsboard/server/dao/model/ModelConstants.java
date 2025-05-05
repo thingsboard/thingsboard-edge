@@ -475,6 +475,7 @@ public class ModelConstants {
     public static final String COMPONENT_DESCRIPTOR_CONFIGURATION_VERSION_PROPERTY = "configuration_version";
     public static final String COMPONENT_DESCRIPTOR_ACTIONS_PROPERTY = "actions";
     public static final String COMPONENT_DESCRIPTOR_HAS_QUEUE_NAME_PROPERTY = "has_queue_name";
+    public static final String COMPONENT_DESCRIPTOR_HAS_SECRETS_PROPERTY = "has_secrets";
 
     /**
      * Event constants.
@@ -902,6 +903,15 @@ public class ModelConstants {
     public static final String QR_CODE_SETTINGS_IOS_ENABLED_PROPERTY = "ios_enabled";
     public static final String QR_CODE_SETTINGS_BUNDLE_ID_PROPERTY = "mobile_app_bundle_id";
     public static final String QR_CODE_SETTINGS_CONFIG_PROPERTY = "qr_code_config";
+
+    /**
+     * Secret constants.
+     */
+    public static final String SECRET_TABLE_NAME = "secret";
+    public static final String SECRET_NAME_COLUMN = "name";
+    public static final String SECRET_TYPE_COLUMN = "type";
+    public static final String SECRET_VALUE_COLUMN = "value";
+    public static final String SECRET_DESCRIPTION_COLUMN = "description";
 
     protected static final String[] NONE_AGGREGATION_COLUMNS = new String[]{LONG_VALUE_COLUMN, DOUBLE_VALUE_COLUMN, BOOLEAN_VALUE_COLUMN, STRING_VALUE_COLUMN, JSON_VALUE_COLUMN, KEY_COLUMN, TS_COLUMN};
 

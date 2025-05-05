@@ -48,6 +48,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.ComponentDescriptorService;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -120,6 +121,8 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.rule.RuleNodeStateService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -217,6 +220,11 @@ public class ActorSystemContext {
     @Getter
     @Setter
     private ComponentDiscoveryService componentService;
+
+    @Autowired
+    @Getter
+    @Setter
+    private ComponentDescriptorService componentDescriptorService;
 
     @Autowired
     @Getter
@@ -566,6 +574,16 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter
     private SchedulerEventService schedulerEventService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private SecretConfigurationService secretConfigurationService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private SecretService secretService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter

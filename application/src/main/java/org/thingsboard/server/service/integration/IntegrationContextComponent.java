@@ -54,6 +54,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
@@ -148,6 +149,9 @@ public class IntegrationContextComponent {
 
     @Autowired
     private IntegrationRateLimitService rateLimitService;
+
+    @Autowired
+    private SecretConfigurationService secretConfigurationService;
 
     @Lazy
     @Autowired

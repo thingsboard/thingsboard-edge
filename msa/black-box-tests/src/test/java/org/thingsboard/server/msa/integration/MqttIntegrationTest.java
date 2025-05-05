@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.msa.TestProperties;
 
 import java.nio.charset.StandardCharsets;
@@ -224,14 +225,18 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void telemetryUploadWithBasicCreds() throws Exception {
-        createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
+    public void telemetryUploadWithBasicCredentialsUsingSecrets() throws Exception {
+        String password = "pass";
+        Secret secret = createSecret(password);
+        String formattedSecret = "${secret:" + secret.getName() + "}";
+
+        createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, formattedSecret, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
 
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setKeepAliveInterval(30);
         connOpts.setCleanSession(true);
         connOpts.setUserName("userName");
-        connOpts.setPassword("pass".toCharArray());
+        connOpts.setPassword(password.toCharArray());
 
         sendMessageToBroker(connOpts);
 

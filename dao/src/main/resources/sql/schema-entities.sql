@@ -173,7 +173,8 @@ CREATE TABLE IF NOT EXISTS component_descriptor (
     scope varchar(255),
     type varchar(255),
     clustering_mode varchar(255),
-    has_queue_name boolean DEFAULT false
+    has_queue_name boolean DEFAULT false,
+    has_secrets boolean DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS customer (
@@ -660,6 +661,19 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     configuration varchar(10000000),
     enabled boolean,
     version BIGINT DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS secret (
+    id uuid NOT NULL CONSTRAINT secret_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    name varchar(255),
+    type varchar(255),
+    description varchar(1024),
+    value bytea,
+    external_id uuid,
+    CONSTRAINT secret_unq_key UNIQUE (tenant_id, name),
+    CONSTRAINT secret_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (

@@ -87,7 +87,8 @@ public enum Resource {
     NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
             EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE),
     MOBILE_APP_SETTINGS,
-    CUSTOM_MENU;
+    CUSTOM_MENU,
+    SECRET(EntityType.SECRET);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -164,6 +165,7 @@ public enum Resource {
         operationsByResource.put(Resource.VERSION_CONTROL, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE));
         operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
         operationsByResource.put(Resource.MOBILE_APP_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
+        operationsByResource.put(Resource.SECRET, Operation.crudOperations);
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, Set.of(
                 Resource.ALL,
@@ -233,7 +235,8 @@ public enum Resource {
                 Resource.QUEUE_STATS,
                 Resource.VERSION_CONTROL,
                 Resource.NOTIFICATION,
-                Resource.MOBILE_APP_SETTINGS
+                Resource.MOBILE_APP_SETTINGS,
+                Resource.SECRET
         ));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, Set.of(

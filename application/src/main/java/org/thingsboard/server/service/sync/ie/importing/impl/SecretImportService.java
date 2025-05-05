@@ -28,34 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.component;
+package org.thingsboard.server.service.sync.ie.importing.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.ComponentDescriptorId;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
-import org.thingsboard.server.common.data.plugin.ComponentScope;
-import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.secret.Secret;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+import org.thingsboard.server.dao.secret.SecretService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
-/**
- * @author Andrew Shvayka
- */
-public interface ComponentDescriptorService {
+@Service
+@TbCoreComponent
+@RequiredArgsConstructor
+public class SecretImportService extends BaseEntityImportService<SecretId, Secret, EntityExportData<Secret>> {
 
-    ComponentDescriptor saveComponent(TenantId tenantId, ComponentDescriptor component);
+    private final SecretService secretService;
 
-    ComponentDescriptor findById(TenantId tenantId, ComponentDescriptorId componentId);
+    @Override
+    protected void setOwner(TenantId tenantId, Secret secret, IdProvider idProvider) {
+        secret.setTenantId(tenantId);
+    }
 
-    ComponentDescriptor findByClazz(TenantId tenantId, String clazz);
+    @Override
+    protected Secret prepare(EntitiesImportCtx ctx, Secret secret, Secret oldEntity, EntityExportData<Secret> exportData, IdProvider idProvider) {
+        return secret;
+    }
 
-    PageData<ComponentDescriptor> findByTypeAndPageLink(TenantId tenantId, ComponentType type, PageLink pageLink);
+    @Override
+    protected Secret deepCopy(Secret secret) {
+        return new Secret(secret);
+    }
 
-    PageData<ComponentDescriptor> findByScopeAndTypeAndPageLink(TenantId tenantId, ComponentScope scope, ComponentType type, PageLink pageLink);
+    @Override
+    protected Secret saveOrUpdate(EntitiesImportCtx ctx, Secret entity, EntityExportData<Secret> exportData, IdProvider idProvider) {
+        var savedSecret = secretService.saveSecretWithoutEncryption(ctx.getTenantId(), entity);
+        return secretService.findSecretById(ctx.getTenantId(), savedSecret.getId());
+    }
 
-    boolean validate(TenantId tenantId, ComponentDescriptor component, JsonNode configuration);
-
-    void deleteByClazz(TenantId tenantId, String clazz);
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.SECRET;
+    }
 
 }
