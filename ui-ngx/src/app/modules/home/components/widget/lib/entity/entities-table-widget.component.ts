@@ -64,7 +64,6 @@ import {
   hashCode,
   isDefined,
   isDefinedAndNotNull,
-  isNumber,
   isObject,
   isUndefined
 } from '@core/utils';
@@ -114,6 +113,8 @@ import {
   getHeaderTitle,
   getRowStyleInfo,
   getTableCellButtonActions,
+  isValidPageStepCount,
+  isValidPageStepIncrement,
   noDataMessage,
   prepareTableCellButtonActions,
   RowStyleInfo,
@@ -360,10 +361,10 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.rowStylesInfo = getRowStyleInfo(this.ctx, this.settings, 'entity, ctx');
 
     const pageSize = this.settings.defaultPageSize;
-    let pageStepIncrement = this.settings.pageStepIncrement;
-    let pageStepCount = this.settings.pageStepCount;
+    let pageStepIncrement = isValidPageStepIncrement(this.settings.pageStepIncrement) ? this.settings.pageStepIncrement : null;
+    let pageStepCount = isValidPageStepCount(this.settings.pageStepCount) ? this.settings.pageStepCount : null;
 
-    if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
+    if (Number.isInteger(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
 
