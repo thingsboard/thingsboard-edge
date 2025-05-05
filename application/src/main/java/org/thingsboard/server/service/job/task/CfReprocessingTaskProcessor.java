@@ -33,6 +33,7 @@ package org.thingsboard.server.service.job.task;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.job.JobType;
@@ -43,8 +44,6 @@ import org.thingsboard.server.queue.task.TaskProcessor;
 import org.thingsboard.server.queue.util.TbRuleEngineComponent;
 import org.thingsboard.server.service.cf.CalculatedFieldReprocessingService;
 
-import java.util.concurrent.TimeUnit;
-
 @TbRuleEngineComponent
 @Component
 @RequiredArgsConstructor
@@ -54,22 +53,20 @@ public class CfReprocessingTaskProcessor extends TaskProcessor<CfReprocessingTas
     @Lazy
     private CalculatedFieldReprocessingService cfReprocessingService;
 
+    @Value("${queue.calculated_fields.reprocessing_timeout:60000}")
+    private int timeoutMs;
+
     @Override
     public CfReprocessingTaskResult process(CfReprocessingTask task) throws Exception {
         SettableFuture<Void> future = SettableFuture.create();
-        cfReprocessingService.reprocess(task, new TbCallback() {
-            @Override
-            public void onSuccess() {
-                future.set(null);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                future.setException(t);
-            }
-        });
-        future.get(1, TimeUnit.MINUTES); // fixme
+        cfReprocessingService.reprocess(task, TbCallback.wrap(future));
+        wait(future);
         return CfReprocessingTaskResult.success();
+    }
+
+    @Override
+    public long getTaskProcessingTimeout() {
+        return timeoutMs;
     }
 
     @Override
