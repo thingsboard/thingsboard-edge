@@ -20,7 +20,7 @@ version: '3.8'
 services:
   mytbedge:
     restart: always
-    image: "thingsboard/tb-edge-pe:3.9.1EDGEPE"
+    image: "thingsboard/tb-edge:${TB_EDGE_VERSION}"
     ports:
       - "8080:8080"
       - "1883:1883"
@@ -28,10 +28,10 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tb-edge
       EDGE_LICENSE_INSTANCE_DATA_FILE: /data/instance-edge-license.data
-      CLOUD_ROUTING_KEY: PUT_YOUR_EDGE_KEY_HERE # e.g. 19ea7ee8-5e6d-e642-4f32-05440a529015
-      CLOUD_ROUTING_SECRET: PUT_YOUR_EDGE_SECRET_HERE # e.g. bztvkvfqsye7omv9uxlp
-      CLOUD_RPC_HOST: PUT_YOUR_CLOUD_IP # e.g. 192.168.1.1 or thingsboard.cloud
-      CLOUD_RPC_SSL_ENABLED: 'false' # set it to 'true' if you are connecting edge to thingsboard.cloud 
+      CLOUD_ROUTING_KEY: ${CLOUD_ROUTING_KEY}
+      CLOUD_ROUTING_SECRET: ${CLOUD_ROUTING_SECRET}
+      CLOUD_RPC_HOST: ${BASE_URL}
+      CLOUD_RPC_SSL_ENABLED: ${CLOUD_RPC_SSL_ENABLED}
     volumes:
       - tb-edge-data:/data
       - tb-edge-logs:/var/log/tb-edge
