@@ -47,7 +47,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
   styleUrls: ['./trendz-settings.component.scss', './settings-card.scss']
 })
 export class TrendzSettingsComponent extends PageComponent implements OnInit, HasConfirmForm {
-  readonly = this.userPermissionsService.hasGenericPermission(Resource.ADMIN_SETTINGS, Operation.WRITE);
+  readonly = !this.userPermissionsService.hasGenericPermission(Resource.ADMIN_SETTINGS, Operation.WRITE);
   trendzSettingsForm: FormGroup;
 
   constructor(private fb: FormBuilder,
