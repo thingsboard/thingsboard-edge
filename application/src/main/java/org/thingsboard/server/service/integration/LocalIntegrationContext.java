@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.gson.Gson;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.Getter;
@@ -44,6 +43,7 @@ import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.util.IntegrationMqttClientSettingsComponent;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
@@ -65,21 +65,31 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     private static final String DEVICE_VIEW_NAME_ENDING = "_View";
 
-    protected final IntegrationContextComponent ctx;
-    protected final Integration configuration;
-    protected final ConverterContext uplinkConverterContext;
-    protected final ConverterContext downlinkConverterContext;
-    private final Gson gson = new Gson();
+    private final IntegrationContextComponent ctx;
+    private final Integration configuration;
+    private final ConverterContext uplinkConverterContext;
+    private final ConverterContext downlinkConverterContext;
+
+    private final IntegrationMqttClientSettingsComponent integrationMqttClientSettingsComponent;
 
     @Getter
     @Value("${integrations.init.connection_timeout_sec:10}")
     private int integrationConnectTimeoutSec;
 
-    public LocalIntegrationContext(IntegrationContextComponent ctx, Integration configuration) {
+    public LocalIntegrationContext(
+            IntegrationContextComponent ctx,
+            Integration configuration,
+            IntegrationMqttClientSettingsComponent integrationMqttClientSettingsComponent
+    ) {
         this.ctx = ctx;
         this.configuration = configuration;
-        this.uplinkConverterContext = new LocalConverterContext(ctx.getConverterContextComponent(), configuration.getTenantId(), configuration.getDefaultConverterId());
-        this.downlinkConverterContext = new LocalConverterContext(ctx.getConverterContextComponent(), configuration.getTenantId(), configuration.getDownlinkConverterId());
+        this.integrationMqttClientSettingsComponent = integrationMqttClientSettingsComponent;
+
+        var tenantId = configuration.getTenantId();
+        var converterContextComponent = ctx.getConverterContextComponent();
+
+        uplinkConverterContext = new LocalConverterContext(converterContextComponent, tenantId, configuration.getDefaultConverterId());
+        downlinkConverterContext = new LocalConverterContext(converterContextComponent, tenantId, configuration.getDownlinkConverterId());
     }
 
     @Override
@@ -99,7 +109,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processCustomMsg(TbMsg tbMsg, IntegrationCallback<Void> callback) {
-        ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, callback);
+        ctx.getPlatformIntegrationService().process(configuration.getTenantId(), tbMsg, callback);
         if (callback != null) {
             callback.onSuccess(null);
         }
@@ -210,4 +220,20 @@ public class LocalIntegrationContext implements IntegrationContext {
     public Optional<IntegrationRateLimitService> getRateLimitService() {
         return Optional.of(ctx.getRateLimitService());
     }
+
+    @Override
+    public int getMqttClientRetransmissionMaxAttempts() {
+        return integrationMqttClientSettingsComponent.getRetransmissionMaxAttempts();
+    }
+
+    @Override
+    public long getMqttClientRetransmissionInitialDelayMillis() {
+        return integrationMqttClientSettingsComponent.getRetransmissionInitialDelayMillis();
+    }
+
+    @Override
+    public double getMqttClientRetransmissionJitterFactor() {
+        return integrationMqttClientSettingsComponent.getRetransmissionJitterFactor();
+    }
+
 }
