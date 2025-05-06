@@ -28,42 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job.task;
+package org.thingsboard.server.service.telemetry;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.experimental.SuperBuilder;
-import org.thingsboard.server.common.data.id.JobId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.job.JobType;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.kv.Aggregation;
+import org.thingsboard.server.common.data.kv.IntervalType;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "jobType")
-@JsonSubTypes({
-        @Type(name = "DUMMY", value = DummyTask.class)
-})
-@SuperBuilder
-@AllArgsConstructor
-public abstract class Task<R extends TaskResult> {
+import java.util.List;
 
-    private TenantId tenantId;
-    private JobId jobId;
-    private int retries;
+public interface TbTelemetryService {
 
-    public Task() {
-    }
-
-    private int attempt = 0;
-
-    public abstract R toFailed(Throwable error);
-
-    public abstract R toDiscarded();
-
-    public abstract JobType getJobType();
+    ListenableFuture<List<TsKvEntry>> getTimeseries(EntityId entityId,
+                                                   List<String> keys,
+                                                   Long startTs,
+                                                   Long endTs,
+                                                   IntervalType intervalType,
+                                                   Long interval,
+                                                   String timeZone,
+                                                   Integer limit,
+                                                   Aggregation agg,
+                                                   String orderBy,
+                                                   Boolean useStrictDataTypes,
+                                                   SecurityUser currentUser) throws ThingsboardException;
 
 }
