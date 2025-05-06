@@ -52,11 +52,6 @@ public class CfReprocessingTask extends Task<CfReprocessingTaskResult> {
     private long endTs;
 
     @Override
-    public Object getKey() {
-        return entityId;
-    }
-
-    @Override
     public CfReprocessingTaskResult toFailed(Throwable error) {
         return CfReprocessingTaskResult.failed(this, error);
     }
