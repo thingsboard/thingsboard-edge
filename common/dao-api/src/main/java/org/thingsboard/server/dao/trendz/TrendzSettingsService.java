@@ -28,36 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.trendz;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.trendz.TrendzSettings;
 
-import java.util.List;
-import java.util.Set;
+public interface TrendzSettingsService {
 
-@Data
-public class SystemParams {
-    boolean userTokenAccessEnabled;
-    List<String> allowedDashboardIds;
-    boolean edgesSupportEnabled;
-    boolean hasRepository;
-    boolean tbelEnabled;
-    boolean persistDeviceStateToTelemetry;
-    JsonNode userSettings;
-    long maxDatapointsLimit;
-    long maxResourceSize;
-    boolean whiteLabelingAllowed;
-    boolean customerWhiteLabelingAllowed;
-    Set<String> availableLocales;
-    boolean mobileQrEnabled;
-    int maxDebugModeDurationMinutes;
-    String ruleChainDebugPerTenantLimitsConfiguration;
-    String integrationDebugPerTenantLimitsConfiguration;
-    String converterDebugPerTenantLimitsConfiguration;
-    String calculatedFieldDebugPerTenantLimitsConfiguration;
-    long maxArgumentsPerCF;
-    long maxDataPointsPerRollingArg;
-    TrendzSettings trendzSettings;
+    void saveTrendzSettings(TenantId tenantId, TrendzSettings settings);
+
+    TrendzSettings findTrendzSettings(TenantId tenantId);
+
+    void deleteTrendzSettings(TenantId tenantId);
+
 }

@@ -28,36 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+ @import "../../../../../scss/constants";
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
-import org.thingsboard.server.common.data.trendz.TrendzSettings;
+:host {
+  .mat-mdc-card-header {
+    min-height: 64px;
+  }
 
-import java.util.List;
-import java.util.Set;
+  .tb-trendz-section {
+    margin: 16px 0;
+  }
 
-@Data
-public class SystemParams {
-    boolean userTokenAccessEnabled;
-    List<String> allowedDashboardIds;
-    boolean edgesSupportEnabled;
-    boolean hasRepository;
-    boolean tbelEnabled;
-    boolean persistDeviceStateToTelemetry;
-    JsonNode userSettings;
-    long maxDatapointsLimit;
-    long maxResourceSize;
-    boolean whiteLabelingAllowed;
-    boolean customerWhiteLabelingAllowed;
-    Set<String> availableLocales;
-    boolean mobileQrEnabled;
-    int maxDebugModeDurationMinutes;
-    String ruleChainDebugPerTenantLimitsConfiguration;
-    String integrationDebugPerTenantLimitsConfiguration;
-    String converterDebugPerTenantLimitsConfiguration;
-    String calculatedFieldDebugPerTenantLimitsConfiguration;
-    long maxArgumentsPerCF;
-    long maxDataPointsPerRollingArg;
-    TrendzSettings trendzSettings;
+  .tb-trendz-url {
+      @media #{$mat-gt-sm} {
+        padding-right: 12px;
+      }
+
+      @media #{$mat-lt-md} {
+        padding-bottom: 12px;
+      }
+  }
 }

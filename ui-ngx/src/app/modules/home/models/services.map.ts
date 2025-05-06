@@ -76,6 +76,7 @@ import { UsageInfoService } from '@core/http/usage-info.service';
 import { EventService } from '@core/http/event.service';
 import { AuditLogService } from '@core/http/audit-log.service';
 import { BlobEntityService } from '@core/http/blob-entity.service';
+import { TrendzSettingsService } from '@core/http/trendz-settings.service';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -125,6 +126,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['auditLogService', AuditLogService],
    ['actionNotificationShow', ActionNotificationShow],
    ['actionNotificationHide', ActionNotificationHide],
-   ['store', Store]
+   ['store', Store],
+   ['trendzSettingsService', TrendzSettingsService]
   ]
 );
