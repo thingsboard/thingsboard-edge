@@ -28,42 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job.task;
+package org.thingsboard.server.service.telemetry;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
-import org.thingsboard.server.common.data.job.JobType;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.kv.Aggregation;
+import org.thingsboard.server.common.data.kv.IntervalType;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder
-@ToString(callSuper = true)
-public class DummyTask extends Task<DummyTaskResult> {
+public interface TbTelemetryService {
 
-    private int number;
-    private long processingTimeMs;
-    private List<String> errors; // errors for each attempt
-    private boolean failAlways;
-
-    @Override
-    public DummyTaskResult toFailed(Throwable error) {
-        return DummyTaskResult.failed(this, error);
-    }
-
-    @Override
-    public DummyTaskResult toDiscarded() {
-        return DummyTaskResult.discarded();
-    }
-
-    @Override
-    public JobType getJobType() {
-        return JobType.DUMMY;
-    }
+    ListenableFuture<List<TsKvEntry>> getTimeseries(EntityId entityId,
+                                                   List<String> keys,
+                                                   Long startTs,
+                                                   Long endTs,
+                                                   IntervalType intervalType,
+                                                   Long interval,
+                                                   String timeZone,
+                                                   Integer limit,
+                                                   Aggregation agg,
+                                                   String orderBy,
+                                                   Boolean useStrictDataTypes,
+                                                   SecurityUser currentUser) throws ThingsboardException;
 
 }
