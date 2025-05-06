@@ -77,3 +77,4 @@ export * from './user-permissions.service';
 export * from './white-labeling.service';
 export * from './widget.service';
 export * from './usage-info.service';
+export * from './trendz-settings.service'
