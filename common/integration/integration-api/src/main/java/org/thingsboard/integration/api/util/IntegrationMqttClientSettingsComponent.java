@@ -28,36 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.mqtt;
+package org.thingsboard.integration.api.util;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
-import lombok.ToString;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-@ToString
-@SuppressWarnings({"WeakerAccess", "unused"})
-public final class MqttConnectResult {
+@Data
+@Configuration
+public class IntegrationMqttClientSettingsComponent {
 
-    private final boolean success;
-    private final MqttConnectReturnCode returnCode;
-    private final ChannelFuture closeFuture;
+    @Value("${mqtt.client.retransmission.max_attempts:3}")
+    private int retransmissionMaxAttempts;
 
-    MqttConnectResult(boolean success, MqttConnectReturnCode returnCode, ChannelFuture closeFuture) {
-        this.success = success;
-        this.returnCode = returnCode;
-        this.closeFuture = closeFuture;
-    }
+    @Value("${mqtt.client.retransmission.initial_delay_millis:5000}")
+    private long retransmissionInitialDelayMillis;
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public MqttConnectReturnCode getReturnCode() {
-        return returnCode;
-    }
-
-    public ChannelFuture getCloseFuture() {
-        return closeFuture;
-    }
+    @Value("${mqtt.client.retransmission.jitter_factor:0.15}")
+    private double retransmissionJitterFactor;
 
 }

@@ -151,4 +151,12 @@ public interface IntegrationContext {
 
     int getIntegrationConnectTimeoutSec();
 
+    // Configuration parameters for the MQTT client that is used in MQTT-based integrations
+
+    int getMqttClientRetransmissionMaxAttempts();
+
+    long getMqttClientRetransmissionInitialDelayMillis();
+
+    double getMqttClientRetransmissionJitterFactor();
+
 }
