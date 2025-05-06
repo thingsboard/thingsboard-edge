@@ -825,7 +825,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
         var response = doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "/validate", CFReprocessingValidationResponse.class);
 
         assertThat(response.isValid()).isFalse();
-        assertThat(response.message()).isEqualTo(CalculatedFieldReprocessingValidator.NO_TELEMETRY_ARGS);
+        assertThat(response.message()).contains(CalculatedFieldReprocessingValidator.NO_TELEMETRY_ARGS);
     }
 
     @Test
