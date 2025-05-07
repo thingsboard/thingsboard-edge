@@ -92,7 +92,7 @@ export class SegmentedButtonWidgetSettingsComponent extends WidgetSettingsCompon
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...segmentedButtonDefaultSettings};
+    return segmentedButtonDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

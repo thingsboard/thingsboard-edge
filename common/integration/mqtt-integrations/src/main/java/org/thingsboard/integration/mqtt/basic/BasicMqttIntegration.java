@@ -51,6 +51,7 @@ import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.integration.mqtt.MqttTopicFilter;
 import org.thingsboard.mqtt.MqttClientCallback;
+import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -90,8 +91,16 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             return;
         }
         log.debug("[{}][{}] MQTT Integration initializing MQTT client", configuration.getId(), configuration.getName());
-        mqttClient = initClient(getOwnerId(this.configuration), mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
+
+        mqttClient = initClient(
+                getOwnerId(this.configuration),
+                mqttClientConfiguration,
+                (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)),
+                getRetransmissionConfig(context)
+        );
+
         subscribeToTopics();
+
         this.downlinkTopicPattern = getDownlinkTopicPattern();
         this.mqttClient.setCallback(new MqttClientCallback() {
             @Override
@@ -126,12 +135,25 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
                 log.debug("Reduce connection timeout sec down to the limit [{}]", mqttClientConfiguration.getConnectTimeoutSec());
                 mqttClientConfiguration.setConnectTimeoutSec(ctx.getIntegrationConnectTimeoutSec());
             }
-            mqttClient = initClient(getOwnerId(integration), mqttClientConfiguration, (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)));
+            mqttClient = initClient(
+                    getOwnerId(integration),
+                    mqttClientConfiguration,
+                    (topic, data) -> processAsync(new BasicMqttIntegrationMsg(topic, data)),
+                    getRetransmissionConfig(context)
+            );
         } catch (RuntimeException e) {
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         } catch (Exception e) {
             log.error(e.getMessage());
         }
+    }
+
+    private static MqttClientConfig.RetransmissionConfig getRetransmissionConfig(IntegrationContext context) {
+        return new MqttClientConfig.RetransmissionConfig(
+                context.getMqttClientRetransmissionMaxAttempts(),
+                context.getMqttClientRetransmissionInitialDelayMillis(),
+                context.getMqttClientRetransmissionJitterFactor()
+        );
     }
 
     private void subscribeToTopics() throws java.io.IOException {

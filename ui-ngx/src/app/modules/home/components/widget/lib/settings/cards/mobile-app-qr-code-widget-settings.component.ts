@@ -68,7 +68,7 @@ export class MobileAppQrCodeWidgetSettingsComponent extends WidgetSettingsCompon
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...mobileAppQrCodeWidgetDefaultSettings};
+    return mobileAppQrCodeWidgetDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

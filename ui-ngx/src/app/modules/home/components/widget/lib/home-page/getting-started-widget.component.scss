@@ -53,9 +53,6 @@
   .tb-get-started-container {
     flex: 1;
     overflow: auto;
-    mat-stepper {
-      transform: scale(1); //fixed blur content
-    }
   }
 }
 

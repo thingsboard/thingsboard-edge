@@ -53,6 +53,7 @@ import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.integration.api.util.IntegrationMqttClientSettingsComponent;
 import org.thingsboard.integration.api.util.IntegrationUtil;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.remote.RemoteIntegrationContext;
@@ -143,6 +144,9 @@ public class RemoteIntegrationManagerService {
 
     @Autowired
     private LogSettingsComponent logSettingsComponent;
+
+    @Autowired
+    private IntegrationMqttClientSettingsComponent integrationMqttClientSettingsComponent;
 
     @Autowired(required = false)
     private CoapServerService coapServerService;
@@ -264,12 +268,11 @@ public class RemoteIntegrationManagerService {
                     downlinkDataConverter = createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter());
                 }
 
-                TbIntegrationInitParams params = new TbIntegrationInitParams(
-                        new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService,
-                                configuration, clientId, port),
-                        configuration,
-                        uplinkDataConverter,
-                        downlinkDataConverter);
+                var ctx = new RemoteIntegrationContext(
+                        eventStorage, schedulerService, generalExecutorService, callBackExecutorService,
+                        configuration, clientId, port, integrationMqttClientSettingsComponent
+                );
+                var params = new TbIntegrationInitParams(ctx, configuration, uplinkDataConverter, downlinkDataConverter);
                 integration.init(params);
                 if (updatingIntegration) {
                     integrationEvent = ComponentLifecycleEvent.UPDATED;

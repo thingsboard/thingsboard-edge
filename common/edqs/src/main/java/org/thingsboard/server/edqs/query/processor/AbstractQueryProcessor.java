@@ -32,6 +32,8 @@ package org.thingsboard.server.edqs.query.processor;
 
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edqs.DataPoint;
 import org.thingsboard.server.common.data.permission.QueryContext;
 import org.thingsboard.server.common.data.query.EntityFilter;
 import org.thingsboard.server.edqs.data.EntityData;
@@ -103,7 +105,7 @@ public abstract class AbstractQueryProcessor<T extends EntityFilter> implements 
 
     protected SortableEntityData toSortData(EntityData<?> ed, boolean readAttrs, boolean readTs) {
         SortableEntityData sortData = new SortableEntityData(ed);
-        sortData.setSortValue(getSortValue(ed, sortKey));
+        sortData.setSortValue(getSortValue(ed, sortKey, ctx));
         sortData.setReadAttrs(readAttrs);
         sortData.setReadTs(readTs);
         return sortData;
@@ -126,7 +128,7 @@ public abstract class AbstractQueryProcessor<T extends EntityFilter> implements 
     }
 
     protected static boolean checkCustomerHierarchy(Set<UUID> customers, EntityData<?> ed) {
-        return ed.getCustomerId() != null && customers.contains(ed.getCustomerId());
+        return ed.getPermissionCustomerId() != null && customers.contains(ed.getPermissionCustomerId());
     }
 
     protected void process(Collection<EntityData<?>> entities, Consumer<EntityData<?>> processor) {

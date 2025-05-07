@@ -58,7 +58,7 @@ public interface SchedulerEventRepository extends JpaRepository<SchedulerEventEn
     Page<SchedulerEventEntity> findByTenantId(UUID tenantId, Pageable pageable);
 
     @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.SchedulerEventFields(e.id, e.createdTime, " +
-            "e.tenantId, e.customerId, e.name, e.version, e.type, e.additionalInfo, e.originatorId, e.originatorType) " +
+            "e.tenantId, e.customerId, e.name, e.version, e.type, e.schedule, e.configuration, e.additionalInfo, e.originatorId, e.originatorType) " +
             "FROM SchedulerEventEntity e WHERE e.id > :id ORDER BY e.id")
     List<SchedulerEventFields> findNextBatch(@Param("id") UUID id, Limit limit);
 

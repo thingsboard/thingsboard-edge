@@ -50,13 +50,13 @@ import java.util.UUID;
  */
 public interface PlatformIntegrationService {
 
-    void processUplinkData(AbstractIntegration info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+    Runnable processUplinkData(AbstractIntegration info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(AbstractIntegration info, UUID sessionId, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+    Runnable processUplinkData(AbstractIntegration info, UUID sessionId, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(AbstractIntegration info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+    Runnable processUplinkData(AbstractIntegration info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(AbstractIntegration info, EntityViewDataProto data, IntegrationCallback<Void> callback);
+    Runnable processUplinkData(AbstractIntegration info, EntityViewDataProto data, IntegrationCallback<Void> callback);
 
     void processUplinkData(AbstractIntegration info, TbMsg data, IntegrationApiCallback integrationApiCallback);
 

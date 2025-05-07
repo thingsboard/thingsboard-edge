@@ -74,7 +74,7 @@ public class EntitiesByGroupQueryProcessor extends AbstractSingleEntityTypeQuery
             CombinedPermissions permissions = getCombinedPermissions(ed.getId(), checkCustomerHierarchy(customers, ed), readAttrPermissions, readTsPermissions, groupPermissions);
             if (permissions.isRead()) {
                 SortableEntityData sortData = new SortableEntityData(ed);
-                sortData.setSortValue(getSortValue(ed, sortKey));
+                sortData.setSortValue(getSortValue(ed, sortKey, ctx));
                 sortData.setReadAttrs(permissions.isReadAttrs());
                 sortData.setReadTs(permissions.isReadTs());
                 result.add(sortData);

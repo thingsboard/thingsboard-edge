@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
 import org.thingsboard.server.common.data.util.ThrowingRunnable;
-import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -77,7 +76,6 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     private final Map<EntityType, EntityImportService<?, ?, ?>> importServices = new HashMap<>();
 
     private final RelationService relationService;
-    private final CalculatedFieldService calculatedFieldService;
     private final RateLimitService rateLimitService;
     private final TbLogEntityActionService logEntityActionService;
 

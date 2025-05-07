@@ -67,7 +67,7 @@ public class ApiUsageStateQueryProcessor extends AbstractSingleEntityTypeQueryPr
         if (entities.isEmpty() || !matches(ed)) {
             return Collections.emptyList();
         } else {
-            boolean genericRead = customerId.equals(ed.getCustomerId());
+            boolean genericRead = customerId.equals(ed.getPermissionCustomerId());
             CombinedPermissions permissions = getCombinedPermissions(ed.getId(), genericRead, readAttrPermissions, readTsPermissions, groupPermissions);
             if (permissions.isRead()) {
                 SortableEntityData sortData = toSortData(customerData, permissions);

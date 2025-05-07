@@ -311,6 +311,8 @@ public class FieldsUtil {
                 .name(entity.getName())
                 .type(entity.getType())
                 .originatorId(entity.getOriginatorId())
+                .schedule(getText(entity.getSchedule()))
+                .configuration(getText(entity.getConfiguration()))
                 .additionalInfo(getText(entity.getAdditionalInfo()))
                 .version(entity.getVersion())
                 .build();
@@ -401,7 +403,7 @@ public class FieldsUtil {
     }
 
     public static String getText(JsonNode node) {
-        return node != null ? node.toString() : "";
+        return node != null && !node.isNull() ? node.toString() : "";
     }
 
     private static UUID getCustomerId(CustomerId customerId) {

@@ -71,7 +71,7 @@ export class ActionButtonWidgetSettingsComponent extends WidgetSettingsComponent
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...actionButtonDefaultSettings};
+    return actionButtonDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

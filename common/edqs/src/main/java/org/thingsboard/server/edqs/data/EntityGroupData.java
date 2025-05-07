@@ -59,10 +59,6 @@ public class EntityGroupData extends BaseEntityData<EntityGroupFields> {
         return entitiesById.put(ed.getId(), ed) == null;
     }
 
-    public boolean remove(EntityData<?> ed) {
-        return entitiesById.remove(ed.getId()) != null;
-    }
-
     public EntityData<?> getEntity(UUID entityId) {
         return entitiesById.get(entityId);
     }
@@ -70,4 +66,5 @@ public class EntityGroupData extends BaseEntityData<EntityGroupFields> {
     public boolean remove(UUID toId) {
         return entitiesById.remove(toId) != null;
     }
+
 }

@@ -1,0 +1,46 @@
+{
+  "type": "SIMPLE",
+  "name": "Average input voltage",
+  "entityId": {
+    "id": "e9b12030-1503-11f0-8308-dfc38c65ed1c",
+    "entityType": "DEVICE"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1743758241959
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SIMPLE",
+    "arguments": {
+      "inputVoltageL1": {
+        "refEntityKey": {
+          "key": "inputVoltageL1",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "inputVoltageL2": {
+        "refEntityKey": {
+          "key": "inputVoltageL2",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "inputVoltageL3": {
+        "refEntityKey": {
+          "key": "inputVoltageL3",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      }
+    },
+    "expression": "(inputVoltageL1+inputVoltageL2+inputVoltageL3)/3",
+    "output": {
+      "name": "inputVoltage",
+      "type": "TIME_SERIES",
+      "decimalsByDefault": 0
+    }
+  }
+}

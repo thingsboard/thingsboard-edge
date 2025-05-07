@@ -49,6 +49,7 @@ import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.MqttClientSettings;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.SmsService;
@@ -136,11 +137,11 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.discovery.DiscoveryService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.settings.TbQueueCalculatedFieldSettings;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cf.CalculatedFieldProcessingService;
 import org.thingsboard.server.service.cf.CalculatedFieldQueueService;
 import org.thingsboard.server.service.cf.CalculatedFieldStateService;
-import org.thingsboard.server.service.cf.cache.CalculatedFieldEntityProfileCache;
 import org.thingsboard.server.service.cf.ctx.state.ArgumentEntry;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
@@ -534,6 +535,11 @@ public class ActorSystemContext {
     @Getter
     private DebugModeRateLimitsConfig debugModeRateLimitsConfig;
 
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private TbQueueCalculatedFieldSettings calculatedFieldSettings;
+
     /**
      * The following Service will be null if we operate in tb-core mode
      */
@@ -635,11 +641,6 @@ public class ActorSystemContext {
     @Getter
     private CalculatedFieldQueueService calculatedFieldQueueService;
 
-    @Lazy
-    @Autowired(required = false)
-    @Getter
-    private CalculatedFieldEntityProfileCache calculatedFieldEntityProfileCache;
-
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
     private int maxConcurrentSessionsPerDevice;
@@ -727,6 +728,10 @@ public class ActorSystemContext {
     @Value("${actors.calculated_fields.calculation_timeout:5}")
     @Getter
     private long cfCalculationResultTimeout;
+
+    @Autowired
+    @Getter
+    private MqttClientSettings mqttClientSettings;
 
     @Getter
     @Setter

@@ -43,6 +43,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.converter.wrapper.ConverterUnwrapper;
+import org.thingsboard.integration.api.converter.wrapper.ConverterUnwrapperFactory;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -52,6 +54,7 @@ import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
@@ -82,6 +85,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     protected final Map<String, Map<String, String>> currentUpdateOnlyTelemetryPerEntity = new ConcurrentHashMap<>();
     protected final Map<String, Map<String, String>> currentUpdateOnlyAttributesPerEntity = new ConcurrentHashMap<>();
 
+    private ConverterUnwrapper converterUnwrapper;
+
     public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
         super(jsInvokeService, tbelInvokeService, logSettings);
     }
@@ -100,12 +105,33 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
         this.currentUpdateOnlyTelemetryPerEntity.values().forEach(entityKeys -> entityKeys.keySet().retainAll(this.updateOnlyKeys));
         this.currentUpdateOnlyAttributesPerEntity.values().forEach(entityKeys -> entityKeys.keySet().retainAll(this.updateOnlyKeys));
+
+        if (configuration.isDedicated()) {
+            var integrationType = configuration.getIntegrationType();
+            this.converterUnwrapper = ConverterUnwrapperFactory
+                    .getUnwrapper(integrationType)
+                    .orElseThrow(() -> new IllegalArgumentException("Unsupported integrationType: " + integrationType));
+        }
     }
 
     @Override
     public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata, ExecutorService callBackExecutorService) throws Exception {
+        final byte[] srcData = data;
+        final UplinkMetaData srcMetadata = metadata;
+        final byte[] finalData;
+        final UplinkMetaData finalMetadata;
+
+        if (configuration.isDedicated()) {
+            TbPair<byte[], UplinkMetaData<Object>> wrappedPair = converterUnwrapper.unwrap(data, metadata);
+            finalData = wrappedPair.getFirst();
+            finalMetadata = wrappedPair.getSecond();
+        } else {
+            finalData = data;
+            finalMetadata = metadata;
+        }
+
         long startTime = System.currentTimeMillis();
-        ListenableFuture<String> convertFuture = doConvertUplink(data, metadata);
+        ListenableFuture<String> convertFuture = doConvertUplink(finalData, finalMetadata);
         ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, rawResult -> {
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Uplink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
@@ -114,20 +140,20 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
             List<UplinkData> resultList = new ArrayList<>();
             if (element.isJsonArray()) {
                 for (JsonElement uplinkJson : element.getAsJsonArray()) {
-                    resultList.add(parseUplinkData(uplinkJson.getAsJsonObject(), metadata));
+                    resultList.add(parseUplinkData(uplinkJson.getAsJsonObject(), finalMetadata));
                 }
             } else if (element.isJsonObject()) {
-                resultList.add(parseUplinkData(element.getAsJsonObject(), metadata));
+                resultList.add(parseUplinkData(element.getAsJsonObject(), finalMetadata));
             }
             if (DebugModeUtil.isDebugAllAvailable(configuration)) {
                 if (context.getRateLimitService().map(s -> s.checkLimit(configuration.getTenantId(), configuration.getId(), false)).orElse(true)) {
-                    persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
+                    persistUplinkDebug(context, srcMetadata.getContentType(), srcData, rawResult, srcMetadata);
                 } else {
                     if (context.getRateLimitService().get().alreadyProcessed(configuration.getId(), EntityType.CONVERTER)) {
                         log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), configuration.getId(), EntityType.CONVERTER);
                     } else {
                         TbRateLimitsException exception = new TbRateLimitsException(EntityType.CONVERTER, "Converter debug rate limits reached!");
-                        persistUplinkDebug(context, metadata.getContentType(), data, metadata, exception);
+                        persistUplinkDebug(context, srcMetadata.getContentType(), srcData, srcMetadata, exception);
                     }
                 }
             }
@@ -137,7 +163,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         }, t -> {
             if (t instanceof Exception) {
                 if (DebugModeUtil.isDebugIntegrationFailuresAvailable(configuration)) {
-                    persistUplinkDebug(context, metadata.getContentType(), data, metadata, (Exception) t);
+                    persistUplinkDebug(context, srcMetadata.getContentType(), srcData, srcMetadata, (Exception) t);
                 }
             } else {
                 log.warn("[{}][{}] Unhandled exception: ", configuration.getId(), configuration.getName(), t);

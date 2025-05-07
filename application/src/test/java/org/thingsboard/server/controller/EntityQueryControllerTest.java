@@ -562,7 +562,8 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         );
         EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
         List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
-        List<EntityKey> latestValues = Collections.singletonList(new EntityKey(EntityKeyType.ATTRIBUTE, "temperature"));
+        List<EntityKey> latestValues = List.of(new EntityKey(EntityKeyType.ATTRIBUTE, "temperature"),
+                new EntityKey(EntityKeyType.ATTRIBUTE, "non-existing-attribute"));
 
         EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, latestValues, null);
         PageData<EntityData> data = findByQueryAndCheck(query, 67);
@@ -579,6 +580,14 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
                 entityData.getLatest().get(EntityKeyType.ATTRIBUTE).get("temperature").getValue()).collect(Collectors.toList());
         List<String> deviceTemperatures = temperatures.stream().map(aLong -> Long.toString(aLong)).collect(Collectors.toList());
         Assert.assertEquals(deviceTemperatures, loadedTemperatures);
+
+        // check ts value == 0, value is empty string for non-existing data points
+        List<TsValue> loadedNonExistingAttributes = loadedEntities.stream().map(entityData ->
+                entityData.getLatest().get(EntityKeyType.ATTRIBUTE).get("non-existing-attribute")).toList();
+        loadedNonExistingAttributes.forEach(tsValue -> {
+            assertThat(tsValue.getTs()).isEqualTo(0L);
+            assertThat(tsValue.getValue()).isEqualTo("");
+        });
 
         pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
         KeyFilter highTemperatureFilter = new KeyFilter();

@@ -406,7 +406,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         Domain domain = new Domain();
         domain.setName(domainName);
         domain.setOauth2Enabled(true);
-        domain.setPropagateToEdge(true);
+        domain.setPropagateToEdge(false);
         return domain;
     }
 

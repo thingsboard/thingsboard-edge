@@ -445,6 +445,7 @@ enum EdgeEntityType {
 
 message WhiteLabelingProto {
   string entity = 1;
+  optional UpdateMsgType msgType = 2;
 }
 
 message CustomMenuProto {
