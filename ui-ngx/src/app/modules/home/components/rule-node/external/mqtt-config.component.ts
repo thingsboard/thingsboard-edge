@@ -33,6 +33,7 @@ import { Component } from '@angular/core';
 import { isNotEmptyStr } from '@core/public-api';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import { MqttVersions, MqttVersionTranslation } from '@shared/models/device.models';
 
 @Component({
   selector: 'tb-external-node-mqtt-config',
@@ -42,6 +43,9 @@ import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/m
 export class MqttConfigComponent extends RuleNodeConfigurationComponent {
 
   mqttConfigForm: UntypedFormGroup;
+
+  mqttVersions = MqttVersions;
+  mqttVersionTranslation = MqttVersionTranslation;
 
   constructor(private fb: UntypedFormBuilder) {
     super();
@@ -67,6 +71,7 @@ export class MqttConfigComponent extends RuleNodeConfigurationComponent {
       cleanSession: [configuration ? configuration.cleanSession : false, []],
       retainedMessage: [configuration ? configuration.retainedMessage : false, []],
       ssl: [configuration ? configuration.ssl : false, []],
+      protocolVersion: [configuration ? configuration.protocolVersion : null, []],
       credentials: [configuration ? configuration.credentials : null, []]
     });
   }
