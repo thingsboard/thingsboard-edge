@@ -163,15 +163,10 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       new DateEntityTableColumn<IntegrationInfo>('createdTime', 'common.created-time', this.datePipe, '15%'),
       new EntityTableColumn<IntegrationInfo>('name', 'converter.name', '15%', this.entityTitle),
       new EntityTableColumn<IntegrationInfo>('type', 'converter.type', '51%', (integration) => this.translate.instant(integrationTypeInfoMap.get(integration.type).name)),
-      new EntityTableColumn<IntegrationInfo>('status', 'integration.status.status', '80px',
-        integration => this.integrationStatus(integration),
-        integration => this.integrationStatusStyle(integration), false),
-      new EntityTableColumn<IntegrationInfo>('remote', 'integration.remote', '60px',
-        integration => checkBoxCell(integration.remote), () => ({}), false)
     );
 
     if (this.componentsData.integrationScope !== "edges") {
-      columns.splice(3, 0,
+      columns.push(
         new ChartEntityTableColumn<IntegrationInfo>('dailyRate', 'integration.daily-activity', '9%',
           (integration) => integration.stats,
           () => ({
@@ -188,6 +183,14 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
           }))
       );
     }
+
+    columns.push(
+      new EntityTableColumn<IntegrationInfo>('status', 'integration.status.status', '80px',
+        integration => this.integrationStatus(integration),
+        integration => this.integrationStatusStyle(integration), false),
+      new EntityTableColumn<IntegrationInfo>('remote', 'integration.remote', '60px',
+        integration => checkBoxCell(integration.remote), () => ({}), false)
+    );
 
     return columns;
   }
