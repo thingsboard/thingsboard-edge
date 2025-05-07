@@ -45,6 +45,7 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
+import org.thingsboard.integration.api.util.IntegrationMqttClientSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.JavaSerDesUtil;
@@ -80,22 +81,33 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     private final TbIntegrationExecutorContextComponent contextComponent;
     private final Integration configuration;
     private final IntegrationInfoProto integrationInfoProto;
+
     private final LogSettingsComponent logSettingsComponent;
+    private final IntegrationMqttClientSettingsComponent integrationMqttClientSettingsComponent;
+
     private final EventStorageService eventStorageService;
 
     @Getter
     @Value("${integrations.init.connection_timeout_sec:10}")
     private int integrationConnectTimeoutSec;
 
-    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService, IntegrationStatisticsService statisticsService,
-                                                   TbIntegrationExecutorContextComponent contextComponent, LogSettingsComponent logSettingsComponent,
-                                                   Integration configuration, EventStorageService eventStorageService) {
+    public TbIntegrationExecutorIntegrationContext(
+            String serviceId,
+            IntegrationApiService apiService,
+            IntegrationStatisticsService statisticsService,
+            TbIntegrationExecutorContextComponent contextComponent,
+            LogSettingsComponent logSettingsComponent,
+            IntegrationMqttClientSettingsComponent integrationMqttClientSettingsComponent,
+            Integration configuration,
+            EventStorageService eventStorageService
+    ) {
         this.serviceId = serviceId;
         this.apiService = apiService;
         this.statisticsService = statisticsService;
         this.contextComponent = contextComponent;
         this.configuration = configuration;
         this.logSettingsComponent = logSettingsComponent;
+        this.integrationMqttClientSettingsComponent = integrationMqttClientSettingsComponent;
         this.integrationInfoProto = ProtoUtils.toProto((AbstractIntegration) configuration);
         this.eventStorageService = eventStorageService;
     }
@@ -117,19 +129,19 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
-        log.trace("Received uplink: {}", uplinkData);
+        log.trace("Received device uplink: {}", uplinkData);
         apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
     }
 
     @Override
     public void processUplinkData(AssetUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
-        log.trace("Received uplink: {}", uplinkData);
+        log.trace("Received asset uplink: {}", uplinkData);
         apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
     }
 
     @Override
     public void createEntityView(EntityViewDataProto uplinkData, IntegrationCallback<Void> callback) {
-        log.trace("Received uplink: {}", uplinkData);
+        log.trace("Received entity view uplink: {}", uplinkData);
         apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
     }
 
@@ -268,5 +280,22 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         public Optional<IntegrationRateLimitService> getRateLimitService() {
             return Optional.of(contextComponent.getRateLimitService());
         }
+
     }
+
+    @Override
+    public int getMqttClientRetransmissionMaxAttempts() {
+        return integrationMqttClientSettingsComponent.getRetransmissionMaxAttempts();
+    }
+
+    @Override
+    public long getMqttClientRetransmissionInitialDelayMillis() {
+        return integrationMqttClientSettingsComponent.getRetransmissionInitialDelayMillis();
+    }
+
+    @Override
+    public double getMqttClientRetransmissionJitterFactor() {
+        return integrationMqttClientSettingsComponent.getRetransmissionJitterFactor();
+    }
+
 }

@@ -33,6 +33,7 @@ import { AuthPayload, AuthState } from './auth.models';
 import { AuthActions, AuthActionTypes } from './auth.actions';
 import { initialUserSettings, UserSettings } from '@shared/models/user-settings.models';
 import { environment as env } from '@env/environment';
+import { initialTrendzSettings } from '@shared/models/trendz-settings.models';
 import { unset } from '@core/utils';
 
 const emptyUserAuthState: AuthPayload = {
@@ -53,7 +54,8 @@ const emptyUserAuthState: AuthPayload = {
   maxDebugModeDurationMinutes: 0,
   userSettings: initialUserSettings,
   allowedDashboardIds: [],
-  availableLocales: env.supportedLangs
+  availableLocales: env.supportedLangs,
+  trendzSettings: initialTrendzSettings
 };
 
 export const initialState: AuthState = {

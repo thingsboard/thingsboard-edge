@@ -33,21 +33,21 @@ package org.thingsboard.server.service.integration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.util.IntegrationMqttClientSettingsComponent;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 @TbCoreComponent
 @RequiredArgsConstructor
 @Service
 public class TbCoreIntegrationContextProvider implements IntegrationContextProvider {
 
-    private final DbCallbackExecutorService callbackExecutorService;
     private final IntegrationContextComponent contextComponent;
+    private final IntegrationMqttClientSettingsComponent integrationMqttClientSettingsComponent;
 
     @Override
     public IntegrationContext buildIntegrationContext(Integration configuration) {
-        return new LocalIntegrationContext(contextComponent, configuration);
+        return new LocalIntegrationContext(contextComponent, configuration, integrationMqttClientSettingsComponent);
     }
 
 }
