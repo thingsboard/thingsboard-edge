@@ -977,7 +977,7 @@ message IntegrationDownlinkMsgProto {
     int64 tenantIdLSB = 2;
     int64 integrationIdMSB = 3;
     int64 integrationIdLSB = 4;
-    bytes data = 5 [deprecated = true];
+    bytes data = 5 [deprecated = true]; // for removal in 4.2
     msgqueue.TbMsgProto dataProto = 6;
 }
 

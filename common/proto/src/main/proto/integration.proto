@@ -129,7 +129,7 @@ message IntegrationStatisticsProto {
 message DeviceDownlinkDataProto {
   string deviceName = 1;
   string deviceType = 2;
-  bytes tbMsg = 3 [deprecated = true];
+  bytes tbMsg = 3 [deprecated = true]; // for removal in 4.2
   msgqueue.TbMsgProto tbMsgProto = 4;
 }
 
@@ -196,7 +196,7 @@ message UplinkMsg {
   repeated EntityViewDataProto entityViewData = 3;
   repeated IntegrationStatisticsProto integrationStatistics = 4;
   repeated TbEventProto eventsData = 5;
-  repeated bytes tbMsg = 6 [deprecated = true];
+  repeated bytes tbMsg = 6 [deprecated = true]; // for removal in 4.2
   repeated AssetUplinkDataProto assetData = 7;
   repeated msgqueue.TbMsgProto tbMsgProto = 8;
 }
@@ -361,7 +361,7 @@ message ToCoreIntegrationMsg {
   DeviceUplinkDataProto deviceUplinkProto = 2;
   AssetUplinkDataProto assetUplinkProto = 3;
   EntityViewDataProto entityViewDataProto = 4;
-  bytes customTbMsg = 5 [deprecated = true];
+  bytes customTbMsg = 5 [deprecated = true]; // for removal in 4.2
   TbIntegrationEventProto eventProto = 6;
   TbIntegrationTsDataProto tsDataProto = 7;
   msgqueue.TbMsgProto customTbMsgProto = 8;
