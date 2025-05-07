@@ -59,7 +59,7 @@
     padding: unset;
 
     &:hover {
-      color: $tb-primary-color;
+      color: var(--tb-primary-500);
       opacity: unset;
     }
   }
