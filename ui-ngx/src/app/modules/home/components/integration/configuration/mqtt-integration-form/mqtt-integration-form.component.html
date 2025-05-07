@@ -70,6 +70,16 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
+      <mat-form-field class="flex flex-1" subscriptSizing="dynamic">
+        <mat-label translate>device-profile.mqtt-protocol-version</mat-label>
+        <mat-select formControlName="protocolVersion">
+          @for (version of mqttVersions; track version) {
+            <mat-option [value]="version">
+              {{ mqttVersionTranslation.get(version) }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
       <div class="row flex flex-col gap-2">
         <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
                           formControlName="cleanSession" style="padding: 16px;">
