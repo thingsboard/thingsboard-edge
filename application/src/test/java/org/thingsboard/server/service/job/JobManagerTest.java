@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.job;
 
-import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ThrowingConsumer;
 import org.junit.After;
 import org.junit.Before;
@@ -49,13 +48,12 @@ import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.common.data.job.task.DummyTaskResult;
 import org.thingsboard.server.common.data.job.task.DummyTaskResult.DummyTaskFailure;
 import org.thingsboard.server.common.data.notification.Notification;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.controller.AbstractControllerTest;
-import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.queue.task.JobStatsService;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,9 +73,6 @@ public class JobManagerTest extends AbstractControllerTest {
 
     @Autowired
     private JobManager jobManager;
-
-    @Autowired
-    private JobService jobService;
 
     @SpyBean
     private TestTaskProcessor taskProcessor;
@@ -153,8 +148,9 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(jobResult.getSuccessfulCount()).isEqualTo(successfulTasks);
             assertThat(jobResult.getFailedCount()).isEqualTo(failedTasks);
             assertThat(jobResult.getTotalCount()).isEqualTo(successfulTasks + failedTasks);
-            assertThat(((DummyTaskResult) jobResult.getResults().get(0)).getFailure().getError()).isEqualTo("error3"); // last error
-            assertThat(((DummyTaskResult) jobResult.getResults().get(1)).getFailure().getError()).isEqualTo("error3"); // last error
+            assertThat(getFailures(jobResult)).hasSize(2).allSatisfy(failure -> {
+                assertThat(failure.getError()).isEqualTo("error3"); // last error
+            });
             assertThat(jobResult.getCompletedCount()).isEqualTo(jobResult.getTotalCount());
         });
 
@@ -269,7 +265,7 @@ public class JobManagerTest extends AbstractControllerTest {
 
         Thread.sleep(3000);
         verify(jobStatsService, never()).reportTaskResult(any(), any(), any());
-        Assertions.assertThat(jobService.findJobsByTenantId(tenantId, new PageLink(100, 0)).getData()).isEmpty();
+        assertThat(findJobs()).isEmpty();
     }
 
     @Test
@@ -291,7 +287,7 @@ public class JobManagerTest extends AbstractControllerTest {
         }
 
         await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-            List<Job> jobs = findJobs();
+            List<Job> jobs = findJobs(JobType.DUMMY);
             assertThat(jobs).hasSize(jobsCount);
             Job firstJob = jobs.get(2); // ordered by createdTime descending
             assertThat(firstJob.getStatus()).isEqualTo(JobStatus.RUNNING);
@@ -406,8 +402,9 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(jobResult.getSuccessfulCount()).isEqualTo(successfulTasks);
             assertThat(jobResult.getFailedCount()).isEqualTo(failedTasks);
 
+            List<DummyTaskFailure> failures = getFailures(jobResult);
             for (int i = 0, taskNumber = successfulTasks + 1; taskNumber <= totalTasksCount; i++, taskNumber++) {
-                DummyTaskFailure failure = ((DummyTaskResult) jobResult.getResults().get(i)).getFailure();
+                DummyTaskFailure failure = failures.get(i);
                 assertThat(failure.getNumber()).isEqualTo(taskNumber);
                 assertThat(failure.getError()).isEqualTo("error");
             }
@@ -453,8 +450,9 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(jobResult.getFailedCount()).isEqualTo(failedTasks + permanentlyFailedTasks);
             assertThat(jobResult.getTotalCount()).isEqualTo(totalTasksCount);
 
+            List<DummyTaskFailure> failures = getFailures(jobResult);
             for (int i = 0, taskNumber = successfulTasks + 1; taskNumber <= totalTasksCount; i++, taskNumber++) {
-                DummyTaskFailure failure = ((DummyTaskResult) jobResult.getResults().get(i)).getFailure();
+                DummyTaskFailure failure = failures.get(i);
                 assertThat(failure.getNumber()).isEqualTo(taskNumber);
                 assertThat(failure.getError()).isEqualTo("error");
             }
@@ -470,8 +468,9 @@ public class JobManagerTest extends AbstractControllerTest {
             assertThat(jobResult.getFailedCount()).isEqualTo(permanentlyFailedTasks);
             assertThat(jobResult.getTotalCount()).isEqualTo(totalTasksCount);
 
+            List<DummyTaskFailure> failures = getFailures(jobResult);
             for (int i = 0, taskNumber = successfulTasks + failedTasks + 1; taskNumber <= totalTasksCount; i++, taskNumber++) {
-                DummyTaskFailure failure = ((DummyTaskResult) jobResult.getResults().get(i)).getFailure();
+                DummyTaskFailure failure = failures.get(i);
                 assertThat(failure.getNumber()).isEqualTo(taskNumber);
                 assertThat(failure.getError()).isEqualTo("error");
                 assertThat(failure.isFailAlways()).isTrue();
@@ -489,6 +488,11 @@ public class JobManagerTest extends AbstractControllerTest {
         });
     }
 
-    // todo: job with zero tasks
+    private List<DummyTaskFailure> getFailures(JobResult jobResult) {
+        return jobResult.getResults().stream()
+                .map(taskResult -> ((DummyTaskResult) taskResult).getFailure())
+                .sorted(Comparator.comparingInt(DummyTaskFailure::getNumber))
+                .toList();
+    }
 
 }

@@ -321,7 +321,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const integrationType: IntegrationType = this.entityForm.get('integrationType').value;
     if (isNotEmptyStr(integrationType)) {
       const converterType: ConverterType = this.entityForm.get('type').value;
-      const converterInfo: ConverterInfo = this.integrationsConvertersInfo[integrationType]?.[converterType.toLocaleLowerCase()];
+      const converterInfo: ConverterInfo = this.integrationsConvertersInfo?.[integrationType]?.[converterType.toLocaleLowerCase()];
       if (converterInfo?.keys?.length) {
         this.entityForm.get('converterVersion').setValue(2, {emitEvent: false});
       } else {
@@ -357,7 +357,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     if (this.entityForm.get('converterVersion').value === 2) {
       const converterType: ConverterType = this.entityForm.get('type').value;
       const integrationType: IntegrationType = this.entityForm.get('integrationType').value;
-      const converterInfo: ConverterInfo = this.integrationsConvertersInfo[integrationType]?.[converterType.toLocaleLowerCase()];
+      const converterInfo: ConverterInfo = this.integrationsConvertersInfo?.[integrationType]?.[converterType.toLocaleLowerCase()];
       this.predefinedConverterKeys = converterInfo.keys.map(value => ({name: value, value}));
       this.predefinedKeys = deepClone(converterInfo.keys);
     } else {

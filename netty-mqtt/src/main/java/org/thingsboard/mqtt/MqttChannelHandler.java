@@ -72,7 +72,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) {
         if (msg.decoderResult().isSuccess()) {
             switch (msg.fixedHeader().messageType()) {
                 case CONNACK:
@@ -135,6 +135,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
                 this.client.getClientConfig().getUsername(),
                 this.client.getClientConfig().getPassword() != null ? this.client.getClientConfig().getPassword().getBytes(CharsetUtil.UTF_8) : null
         );
+        log.debug("{} Sending CONNECT", client.getClientConfig().getOwnerId());
         ctx.channel().writeAndFlush(new MqttConnectMessage(fixedHeader, variableHeader, payload));
     }
 
@@ -188,6 +189,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     }
 
     private void handleConack(Channel channel, MqttConnAckMessage message) {
+        log.debug("{} Handling CONNACK", client.getClientConfig().getOwnerId());
         switch (message.variableHeader().connectReturnCode()) {
             case CONNECTION_ACCEPTED:
                 this.connectFuture.setSuccess(new MqttConnectResult(true, MqttConnectReturnCode.CONNECTION_ACCEPTED, channel.closeFuture()));
@@ -234,9 +236,9 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
         }
         pendingSubscription.onSubackReceived();
         for (MqttPendingSubscription.MqttPendingHandler handler : pendingSubscription.getHandlers()) {
-            MqttSubscription subscription = new MqttSubscription(pendingSubscription.getTopic(), handler.getHandler(), handler.isOnce());
+            MqttSubscription subscription = new MqttSubscription(pendingSubscription.getTopic(), handler.handler(), handler.once());
             this.client.getSubscriptions().put(pendingSubscription.getTopic(), subscription);
-            this.client.getHandlerToSubscription().put(handler.getHandler(), subscription);
+            this.client.getHandlerToSubscription().put(handler.handler(), subscription);
         }
         this.client.getPendingSubscribeTopics().remove(pendingSubscription.getTopic());
 
@@ -297,17 +299,16 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     }
 
     private void handlePuback(MqttPubAckMessage message) {
-        MqttPendingPublish pendingPublish = this.client.getPendingPublishes().get(message.variableHeader().messageId());
-        if (pendingPublish == null) {
-            return;
-        }
-        pendingPublish.getFuture().setSuccess(null);
-        pendingPublish.onPubackReceived();
-        this.client.getPendingPublishes().remove(message.variableHeader().messageId());
-        pendingPublish.getPayload().release();
-        if (this.client.getCallback() != null) {
-            this.client.getCallback().onPubAck(message);
-        }
+        log.trace("{} Handling PUBACK", client.getClientConfig().getOwnerId());
+        client.getPendingPublishes().computeIfPresent(message.variableHeader().messageId(), (__, pendingPublish) -> {
+            pendingPublish.getFuture().setSuccess(null);
+            pendingPublish.onPubackReceived();
+            pendingPublish.getPayload().release();
+            if (client.getCallback() != null) {
+                client.getCallback().onPubAck(message);
+            }
+            return null;
+        });
     }
 
     private void handlePubrec(Channel channel, MqttMessage message) {
@@ -350,6 +351,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     }
 
     private void handleDisconnect(MqttMessage message) {
+        log.debug("{} Handling DISCONNECT", client.getClientConfig().getOwnerId());
         if (this.client.getCallback() != null) {
             this.client.getCallback().onDisconnect(message);
         }

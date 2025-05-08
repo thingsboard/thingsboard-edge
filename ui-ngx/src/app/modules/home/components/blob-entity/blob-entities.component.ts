@@ -60,11 +60,12 @@ import { catchError, debounceTime, distinctUntilChanged, map, takeUntil, tap } f
 import { TranslateService } from '@ngx-translate/core';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
-import { isDefined, isDefinedAndNotNull, isNotEmptyStr, isNumber } from '@core/utils';
+import { isDefined, isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { DialogService } from '@core/services/dialog.service';
 import { UtilsService } from '@core/services/utils.service';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { FormBuilder } from '@angular/forms';
+import { isValidPageStepCount, isValidPageStepIncrement } from '@home/components/widget/lib/table-widget.models';
 
 @Component({
   selector: 'tb-blob-entities',
@@ -202,10 +203,10 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     this.displayedColumns.push('actions');
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     const pageSize = this.settings.defaultPageSize;
-    let pageStepIncrement = this.settings.pageStepIncrement;
-    let pageStepCount = this.settings.pageStepCount;
+    let pageStepIncrement = isValidPageStepIncrement(this.settings.pageStepIncrement) ? this.settings.pageStepIncrement : null;
+    let pageStepCount = isValidPageStepCount(this.settings.pageStepCount) ? this.settings.pageStepCount : null;
 
-    if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
+    if (Number.isInteger(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
 

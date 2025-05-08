@@ -61,6 +61,7 @@ import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.service.validator.TenantDataValidator;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
+import org.thingsboard.server.dao.trendz.TrendzSettingsService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -104,6 +105,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private QrCodeSettingService qrCodeSettingService;
     @Autowired
     private CustomMenuService customMenuService;
+    @Autowired
+    private TrendzSettingsService trendzSettingsService;
     @Autowired
     private TenantDataValidator tenantValidator;
     @Autowired
@@ -202,10 +205,11 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         userService.deleteAllByTenantId(tenantId);
         whiteLabelingService.deleteAllTenantWhiteLabeling(tenantId);
         customTranslationService.deleteCustomTranslationByTenantId(tenantId);
+        notificationSettingsService.deleteNotificationSettings(tenantId);
+        trendzSettingsService.deleteTrendzSettings(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         qrCodeSettingService.deleteByTenantId(tenantId);
         customMenuService.deleteByTenantId(tenantId);
-        notificationSettingsService.deleteNotificationSettings(tenantId);
 
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));

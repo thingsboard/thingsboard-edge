@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.job;
 import org.thingsboard.server.common.data.id.JobId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.job.Job;
+import org.thingsboard.server.common.data.job.JobFilter;
 import org.thingsboard.server.common.data.job.JobStatus;
 import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -41,7 +42,7 @@ import org.thingsboard.server.dao.Dao;
 
 public interface JobDao extends Dao<Job> {
 
-    PageData<Job> findByTenantId(TenantId tenantId, PageLink pageLink);
+    PageData<Job> findByTenantIdAndFilter(TenantId tenantId, JobFilter filter, PageLink pageLink);
 
     Job findByIdForUpdate(TenantId tenantId, JobId jobId);
 

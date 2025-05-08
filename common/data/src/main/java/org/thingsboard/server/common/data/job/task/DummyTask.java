@@ -35,9 +35,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.job.JobType;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -59,6 +62,11 @@ public class DummyTask extends Task<DummyTaskResult> {
     @Override
     public DummyTaskResult toDiscarded() {
         return DummyTaskResult.discarded();
+    }
+
+    @Override
+    public EntityId getEntityId() {
+        return new DeviceId(UUID.randomUUID());
     }
 
     @Override
