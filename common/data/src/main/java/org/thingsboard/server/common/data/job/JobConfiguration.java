@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.job;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -50,6 +51,7 @@ public abstract class JobConfiguration implements Serializable {
 
     private List<TaskResult> toReprocess;
 
+    @JsonIgnore
     public abstract JobType getType();
 
 }

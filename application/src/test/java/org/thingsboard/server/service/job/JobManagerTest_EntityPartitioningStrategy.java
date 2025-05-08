@@ -28,50 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job.task;
+package org.thingsboard.server.service.job;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.job.JobType;
+import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.util.List;
-import java.util.UUID;
+@DaoSqlTest
+@TestPropertySource(properties = {
+        "queue.tasks.stats.processing_interval_ms=0",
+        "queue.tasks.partitioning_strategy=entity",
+        "queue.tasks.partitions_per_type=DUMMY:100;DUMMY:50"
+})
+public class JobManagerTest_EntityPartitioningStrategy extends JobManagerTest {
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder
-@ToString(callSuper = true)
-public class DummyTask extends Task<DummyTaskResult> {
-
-    private int number;
-    private long processingTimeMs;
-    private List<String> errors; // errors for each attempt
-    private boolean failAlways;
+    /*
+    * Some tests are overridden because they are based on
+    * tenant partitioning strategy (subsequent tasks processing within a tenant)
+    * */
 
     @Override
-    public DummyTaskResult toFailed(Throwable error) {
-        return DummyTaskResult.failed(this, error);
+    public void testCancelJob_simulateTaskProcessorRestart() throws Exception {
     }
 
     @Override
-    public DummyTaskResult toDiscarded() {
-        return DummyTaskResult.discarded();
-    }
+    public void testGeneralJobError() {
 
-    @Override
-    public EntityId getEntityId() {
-        return new DeviceId(UUID.randomUUID());
-    }
-
-    @Override
-    public JobType getJobType() {
-        return JobType.DUMMY;
     }
 
 }

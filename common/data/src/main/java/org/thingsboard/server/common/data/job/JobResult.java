@@ -73,7 +73,7 @@ public abstract class JobResult implements Serializable {
             discardedCount++;
         } else {
             failedCount++;
-            if (results.size() < 1000) { // preserving only first 1000 errors, not reprocessing if there are more failures
+            if (results.size() < 100) { // preserving only first 100 errors, not reprocessing if there are more failures
                 results.add(taskResult);
             }
         }
@@ -82,6 +82,7 @@ public abstract class JobResult implements Serializable {
     @JsonIgnore
     public abstract String getDescription();
 
+    @JsonIgnore
     public abstract JobType getJobType();
 
 }
