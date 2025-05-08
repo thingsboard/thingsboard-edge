@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.job.task;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.job.JobType;
 public class CfReprocessingTask extends Task<CfReprocessingTaskResult> {
 
     private CalculatedField calculatedField;
+    @JsonProperty // because 'entityId' property has the same name as json-ignored abstract getEntityId()
     private EntityId entityId;
     private long startTs;
     private long endTs;
@@ -59,6 +61,11 @@ public class CfReprocessingTask extends Task<CfReprocessingTaskResult> {
     @Override
     public CfReprocessingTaskResult toDiscarded() {
         return CfReprocessingTaskResult.discarded();
+    }
+
+    @Override
+    public EntityId getEntityId() {
+        return entityId;
     }
 
     @Override

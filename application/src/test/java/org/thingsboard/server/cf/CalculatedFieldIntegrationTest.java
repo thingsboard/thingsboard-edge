@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
@@ -81,6 +82,10 @@ import static org.thingsboard.server.common.data.job.JobStatus.RUNNING;
 
 @Slf4j
 @DaoSqlTest
+@TestPropertySource(properties = {
+        "queue.tasks.partitioning_strategy=entity",
+        "queue.tasks.partitions_per_type=CF_REPROCESSING:24"
+})
 public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTest {
 
     public static final int TIMEOUT = 60;
