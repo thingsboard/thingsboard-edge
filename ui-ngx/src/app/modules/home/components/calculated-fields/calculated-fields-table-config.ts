@@ -93,6 +93,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
               private importExportService: ImportExportService,
               private entityDebugSettingsService: EntityDebugSettingsService,
               private readonly: boolean = false,
+              private hideClearEventAction: boolean = false,
   ) {
     super();
     this.tableTitle = this.translate.instant('entity.type-calculated-fields');
@@ -255,6 +256,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         tenantId: this.tenantId,
         value: calculatedField,
         getTestScriptDialogFn: this.getTestScriptDialog.bind(this),
+        hideClearEventAction: this.hideClearEventAction
       }
     })
       .afterClosed()
