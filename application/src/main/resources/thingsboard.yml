@@ -2085,6 +2085,8 @@ queue:
     # Interval in milliseconds to poll api response from integration executor microservices
     response_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_RESPONSE_POLL_INTERVAL_MS:25}"
   tasks:
+    # Poll interval in milliseconds for tasks topics
+    poll_interval: "${TB_QUEUE_TASKS_POLL_INTERVAL_MS:500}"
     # Partitions count for tasks queues
     partitions: "${TB_QUEUE_TASKS_PARTITIONS:12}"
     # Custom partitions count for tasks queues per type. Format: 'TYPE1:24;TYPE2:36', e.g. 'CF_REPROCESSING:24;TENANT_EXPORT:6'
