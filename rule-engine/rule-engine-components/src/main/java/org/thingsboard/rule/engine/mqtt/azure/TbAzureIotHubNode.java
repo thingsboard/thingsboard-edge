@@ -30,7 +30,6 @@
  */
 package org.thingsboard.rule.engine.mqtt.azure;
 
-import io.netty.handler.codec.mqtt.MqttVersion;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.AzureIotHubUtil;
 import org.thingsboard.mqtt.MqttClient;
@@ -59,6 +58,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
         configDirective = "tbExternalNodeAzureIotHubConfig"
 )
 public class TbAzureIotHubNode extends TbMqttNode {
+
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         super.init(ctx);
@@ -80,7 +80,6 @@ public class TbAzureIotHubNode extends TbMqttNode {
     }
 
     protected void prepareMqttClientConfig(MqttClientConfig config) {
-        config.setProtocolVersion(MqttVersion.MQTT_3_1_1);
         config.setUsername(AzureIotHubUtil.buildUsername(mqttNodeConfiguration.getHost(), config.getClientId()));
         ClientCredentials credentials = mqttNodeConfiguration.getCredentials();
         if (CredentialsType.SAS == credentials.getType()) {
@@ -91,4 +90,5 @@ public class TbAzureIotHubNode extends TbMqttNode {
     MqttClient initAzureClient(TbContext ctx) throws Exception {
         return initClient(ctx);
     }
+
 }
