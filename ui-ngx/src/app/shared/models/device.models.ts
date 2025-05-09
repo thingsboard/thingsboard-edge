@@ -51,7 +51,7 @@ import {
   PowerMode
 } from '@home/components/profile/device/lwm2m/lwm2m-profile-config.models';
 import { PageLink } from '@shared/models/page/page-link';
-import { isDefinedAndNotNull, isNumber } from '@core/utils';
+import { isDefinedAndNotNull } from '@core/utils';
 
 export enum DeviceProfileType {
   DEFAULT = 'DEFAULT',
@@ -914,12 +914,12 @@ export const getAlarmScheduleRangeText = (startsOn: Date | number, endsOn: Date 
 };
 
 export enum MqttVersion {
-  MQTT_3_1 = 3,
-  MQTT_3_1_1 = 4,
-  MQTT_5 = 5
+  MQTT_3_1 = 'MQTT_3_1',
+  MQTT_3_1_1 = 'MQTT_3_1_1',
+  MQTT_5 = 'MQTT_5'
 }
 
-export const MqttVersions = Object.values(MqttVersion).filter(v => isNumber(v)) as MqttVersion[];
+export const MqttVersions = Object.values(MqttVersion);
 
 export const MqttVersionTranslation = new Map<MqttVersion, string>([
   [MqttVersion.MQTT_3_1, 'MQTT 3.1'],
