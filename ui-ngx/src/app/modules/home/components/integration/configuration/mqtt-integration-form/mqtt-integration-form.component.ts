@@ -45,7 +45,7 @@ import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { IntegrationCredentialType, MqttIntegration } from '@shared/models/integration.models';
-import { MqttVersion, MqttVersions, MqttVersionTranslation } from '@shared/models/device.models';
+import { DEFAULT_MQTT_VERSION } from '@shared/components/mqtt-version-select.component';
 
 @Component({
   selector: 'tb-mqtt-integration-form',
@@ -69,8 +69,6 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements OnI
   mqttIntegrationConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
-  mqttVersions = MqttVersions;
-  mqttVersionTranslation = MqttVersionTranslation;
 
   private propagateChange = (v: any) => { };
 
@@ -86,7 +84,7 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements OnI
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
         clientId: [''],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
-        protocolVersion: [MqttVersion.MQTT_3_1_1],
+        protocolVersion: [DEFAULT_MQTT_VERSION],
         credentials: [{
           type: IntegrationCredentialType.Anonymous
         }],
