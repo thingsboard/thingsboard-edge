@@ -44,6 +44,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { IbmWatsonIotIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
+import { DEFAULT_MQTT_VERSION } from '@shared/components/mqtt-version-select.component';
 
 @Component({
   selector: 'tb-ibm-watson-iot-integration-form',
@@ -88,6 +89,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
         filter: 'iot-2/type/+/id/+/evt/+/fmt/+',
         qos: 0
       }], Validators.required],
+      protocolVersion: [DEFAULT_MQTT_VERSION],
       downlinkTopicPattern: ['iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}', [Validators.required]],
     });
 

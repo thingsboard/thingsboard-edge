@@ -52,6 +52,7 @@ import {
   ttnVersionMap
 } from '@home/components/integration/integration.models';
 import { IntegrationCredentialType, TtnIntegration, } from '@shared/models/integration.models';
+import { DEFAULT_MQTT_VERSION } from '@shared/components/mqtt-version-select.component';
 
 @Component({
   selector: 'tb-ttn-integration-form',
@@ -98,6 +99,7 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
         ssl: [true],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
+        protocolVersion: [DEFAULT_MQTT_VERSION],
         credentials: [{
           type: 'basic',
           username: '',

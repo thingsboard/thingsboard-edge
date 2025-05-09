@@ -101,6 +101,7 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
+      <tb-mqtt-version-select subscriptSizing="fixed" formControlName="protocolVersion"></tb-mqtt-version-select>
       <section class="row flex flex-row xs:flex-col gt-xs:gap-2">
         <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.max-bytes-in-message</mat-label>
