@@ -28,36 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.exception;
+package org.thingsboard.server.service.security.auth;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 
-public enum ThingsboardErrorCode {
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class AuthExceptionHandler extends OncePerRequestFilter {
 
-    GENERAL(2),
-    AUTHENTICATION(10),
-    JWT_TOKEN_EXPIRED(11),
-    CREDENTIALS_EXPIRED(15),
-    PERMISSION_DENIED(20),
-    INVALID_ARGUMENTS(30),
-    BAD_REQUEST_PARAMS(31),
-    ITEM_NOT_FOUND(32),
-    TOO_MANY_REQUESTS(33),
-    TOO_MANY_UPDATES(34),
-    VERSION_CONFLICT(35),
-    SUBSCRIPTION_VIOLATION(40),
-    PASSWORD_VIOLATION(45),
-    DATABASE(46);
+    private final ThingsboardErrorResponseHandler errorResponseHandler;
 
-    private int errorCode;
-
-    ThingsboardErrorCode(int errorCode) {
-        this.errorCode = errorCode;
-    }
-
-    @JsonValue
-    public int getErrorCode() {
-        return errorCode;
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+        try {
+            filterChain.doFilter(request, response);
+        } catch (AuthenticationException e) {
+            throw e;
+        } catch (Exception e) {
+            errorResponseHandler.handle(e, response);
+        }
     }
 
 }
