@@ -40,8 +40,11 @@ import {
   Converter,
   ConverterConfigV2,
   ConverterDebugInput,
+  ConverterLibraryValue,
   ConverterMsg,
+  ConverterSourceType,
   ConverterType,
+  converterTypeTitleTranslationMap,
   converterTypeTranslationMap,
   ConverterVersion,
   DefaultUpdateOnlyKeys,
@@ -66,11 +69,16 @@ import {
 } from '@home/components/converter/converter-test-dialog.component';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { ConverterInfo, IntegrationsConvertersInfo, IntegrationType } from '@shared/models/integration.models';
+import {
+  ConverterInfo,
+  IntegrationConvertersInfo,
+  IntegrationsConvertersInfo,
+  IntegrationType
+} from '@shared/models/integration.models';
 import { capitalize, deepClone, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
-import { catchError, map } from 'rxjs/operators';
-import { forkJoin, merge, Observable, of } from 'rxjs';
+import { catchError, filter, map } from 'rxjs/operators';
+import { forkJoin, merge, Observable, of, shareReplay } from 'rxjs';
 import { ContentType } from '@shared/models/constants';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -91,6 +99,24 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   hideTypes = false;
 
   @Input()
+  onlyNewConverter = false;
+  @Input()
+  onlyLibraryConverter = false;
+
+  private _converterTypeValue = ConverterSourceType.NEW;
+  @Input()
+  set converterTypeValue(value: ConverterSourceType) {
+    if (value !== this._converterTypeValue) {
+      this._converterTypeValue = value;
+      this.onConverterTypeChange(value)
+    }
+  }
+
+  get converterTypeValue(): ConverterSourceType {
+    return this._converterTypeValue;
+  }
+
+  @Input()
   set converterName(value: string) {
     this.predefinedConverterName = value;
     if (isDefinedAndNotNull(value) && this.entityForm.get('name').pristine) {
@@ -109,6 +135,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   converterTypes = Object.values(ConverterType) as ConverterType[];
 
   converterTypeTranslations = converterTypeTranslationMap;
+  converterTypeTitleTranslations = converterTypeTitleTranslationMap;
 
   tbelEnabled: boolean;
 
@@ -135,6 +162,13 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       'group': 'converter.device-group-name'
     }]
   ])
+
+  converterLibrary: ConverterLibraryValue;
+  prevNewConverterFormValue: Converter;
+  prevLibraryConverterFormValue: Converter;
+
+  ConverterSourceType = ConverterSourceType;
+  integrationInfo$: Observable<IntegrationConvertersInfo>;
 
   private predefinedConverterKeys: StringItemsOption[];
   private integrationsConvertersInfo: IntegrationsConvertersInfo;
@@ -166,6 +200,37 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       this.defaultConverterV2Configuration = value.converterV2Config;
       this.integrationsConvertersInfo = value.integrationsConvertersInfo;
     })
+
+    this.updateIntegrationsInfo();
+  }
+
+  onConverterTypeChange(type: ConverterSourceType) {
+    let currentFormValue: any;
+    if (type !== ConverterSourceType.NEW) {
+      currentFormValue = this.entityForm.getRawValue();
+    } else if (this.libraryInfo?.vendorName && this.libraryInfo?.modelName) {
+      this.prevLibraryConverterFormValue = this.entityForm.getRawValue();
+    }
+    if (this.libraryInfo) {
+      this.libraryInfo = null;
+    }
+    if (this.prevNewConverterFormValue) {
+      this.updateForm(this.prevNewConverterFormValue, false);
+      this.updatedConverterScriptLangDisableState(this.prevNewConverterFormValue);
+    }
+    this.prevNewConverterFormValue = currentFormValue;
+  }
+
+  private updateIntegrationsInfo(): void {
+    this.integrationInfo$ = this.entityForm.get('integrationType').valueChanges.pipe(
+      filter((integrationType) => !!integrationType),
+      map((integrationType: IntegrationType) => {
+        if (this.integrationsConvertersInfo) {
+          return this.integrationsConvertersInfo[integrationType];
+        }
+      }),
+      shareReplay(1)
+    );
   }
 
   ngOnInit() {
@@ -175,12 +240,17 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     ).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
+      this.converterLibrary = null;
+      this.prevLibraryConverterFormValue = null;
+      this.prevNewConverterFormValue = null;
+      this._converterTypeValue = ConverterSourceType.NEW;
       const converterType: ConverterType = this.entityForm.get('type').value;
       this.updateConverterVersion();
       this.onConverterTypeChanged(converterType);
       if (converterType === ConverterType.UPLINK) {
         this.updateDefaultConfiguration(this.entityForm.get('integrationType').value);
       }
+      this.updatedConverterScriptLangDisableState();
     });
     this.entityForm.get('configuration.scriptLang').valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
@@ -192,7 +262,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     ).subscribe((type: EntityType) => {
       this.updateConfigurationEntityName(type);
     });
-    this.checkIsNewConverter(this.entity, this.entityForm);
+    this.checkIsNewConverter(this.entity, this.entityForm, true);
   }
 
   hideDelete() {
@@ -200,6 +270,35 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       return !this.entitiesTableConfig.deleteEnabled(this.entity);
     }
     return false;
+  }
+
+  onConverterSelected(converterLib: { converter: Converter, libraryInfo: {vendorName: string; modelName: string }}) {
+    this.libraryInfo = converterLib.libraryInfo;
+    if (!this.libraryInfo) {
+      this.prevLibraryConverterFormValue = null;
+    }
+    this.updatedConverterScriptLangDisableState(converterLib.converter);
+    if (this.prevLibraryConverterFormValue) {
+      this.updateForm(this.prevLibraryConverterFormValue, false);
+    } else {
+      this.updateForm(converterLib.converter, false);
+    }
+  }
+
+  private updatedConverterScriptLangDisableState(converter?: Converter) {
+    const scriptLangControl = this.entityForm.get('configuration.scriptLang');
+    if (converter && this.libraryInfo?.vendorName && this.libraryInfo?.modelName) {
+      const { decoder, encoder, tbelDecoder, tbelEncoder } = converter.configuration || {};
+      if (converter.type === ConverterType.UPLINK && (!decoder || !tbelDecoder)) {
+        scriptLangControl.disable({ emitEvent: false });
+      } else if (!encoder || !tbelEncoder) {
+        scriptLangControl.disable({ emitEvent: false });
+      } else {
+        scriptLangControl.enable({ emitEvent: false });
+      }
+    } else {
+      scriptLangControl.enable({ emitEvent: false });
+    }
   }
 
   buildForm(entity: Converter): FormGroup {
@@ -251,13 +350,17 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.updatedConverterVersionDisableState();
   }
 
-  private checkIsNewConverter(entity: Converter, form: FormGroup) {
+  private checkIsNewConverter(entity: Converter, form: FormGroup, emitEvent = true) {
     if (entity && !entity.id) {
       if (!this.libraryInfo) {
-        form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
+        form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent});
         form.get('configuration.scriptLang').patchValue(
-          this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
-        form.get('integrationType').updateValueAndValidity({onlySelf: true});
+          this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent});
+        if (!emitEvent) {
+          this.updateConverterVersion();
+        } else {
+          form.get('integrationType').updateValueAndValidity({onlySelf: true});
+        }
       } else {
         this.updatedPredefinedConverterKeys();
         this.updatedConverterVersionDisableState();
@@ -302,6 +405,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   private onConverterTypeChanged(converterType: ConverterType) {
     if (converterType) {
+      if (this.libraryInfo) {
+        this.libraryInfo = null;
+      }
       if (converterType === ConverterType.UPLINK) {
         this.entityForm.get('configuration').patchValue({
           decoder: null,
@@ -362,7 +468,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       this.predefinedKeys = deepClone(converterInfo.keys);
     } else {
       this.predefinedConverterKeys = null;
-      this.predefinedKeys = null;
+      this.predefinedKeys = [];
     }
   }
 
@@ -393,7 +499,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
-  updateForm(entity: Converter) {
+  updateForm(entity: Converter, emitEvent = true): void {
     const scriptLang = entity.configuration && entity.configuration.scriptLang ? entity.configuration.scriptLang : ScriptLanguage.JS;
     let converterName = entity?.name ?? '';
     if (this.predefinedConverterName && isEmptyStr(converterName) && this.entityForm.get('name').pristine) {
@@ -425,8 +531,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         description: entity.additionalInfo?.description ?? ''
       }
     }, {emitEvent: false});
-
-    this.checkIsNewConverter(entity, this.entityForm);
+    this.checkIsNewConverter(entity, this.entityForm, emitEvent);
   }
 
   onConverterIdCopied() {

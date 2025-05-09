@@ -98,6 +98,13 @@ export const converterTypeTranslationMap = new Map<ConverterType, string>(
   ]
 );
 
+export const converterTypeTitleTranslationMap = new Map<ConverterType, string>(
+  [
+    [ConverterType.UPLINK, 'integration.uplink-converter'],
+    [ConverterType.DOWNLINK, 'integration.downlink-converter'],
+  ]
+);
+
 export type ConverterVersion = 1 | 2;
 
 export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId>, HasEntityDebugSettings {

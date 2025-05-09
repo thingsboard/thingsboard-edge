@@ -83,7 +83,7 @@
         </div>
       </form>
     </mat-step>
-    <mat-step #uplinkConverterStep [stepControl]="uplinkConverterForm">
+    <mat-step [stepControl]="uplinkConverterForm">
       <form [formGroup]="uplinkConverterForm">
         <ng-template #uplinkLabel matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
         <div class="tb-form-panel tb-converter-panel">
@@ -105,23 +105,20 @@
                                      [isEdgeTemplate]="isEdgeTemplate">
           </tb-converter-autocomplete>
           <tb-converter #uplinkDataConverter
-                        [class.!hidden]="uplinkConverterForm.get('converterType').value !== ConverterSourceType.NEW"
+                        [class.!hidden]="(uplinkConverterForm.get('converterType').value !== ConverterSourceType.NEW) && (uplinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY)"
                         hideTypes="true"
+                        [onlyNewConverter]="uplinkConverterForm.get('converterType').value === ConverterSourceType.NEW"
+                        [onlyLibraryConverter]="uplinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
+                        [converterTypeValue]="uplinkConverterForm.get('converterType').value"
                         [integrationName]="integrationWizardForm.get('name').value"
                         [converterName]="createConvertorName(converterType.UPLINK)"
                         isEdit="true"
                         [entity]="uplinkConverter"
           ></tb-converter>
-          <tb-converter-library
-            formControlName="libraryUplinkConverter"
-            [interacted]="uplinkConverterStep.interacted"
-            [class.!hidden]="uplinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY"
-            [integrationType]="integrationWizardForm.get('type').value"
-          />
         </div>
       </form>
     </mat-step>
-    <mat-step #downlinkConverterStep [stepControl]="downlinkConverterForm" *ngIf="showDownlinkStep">
+    <mat-step [stepControl]="downlinkConverterForm" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
         <ng-template #downlinkLabel matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
         <div class="tb-form-panel tb-converter-panel">
@@ -143,20 +140,16 @@
                                      [isEdgeTemplate]="isEdgeTemplate">
           </tb-converter-autocomplete>
           <tb-converter #downlinkDataConverter
-                        [class.!hidden]="downlinkConverterForm.get('converterType').value !== ConverterSourceType.NEW"
+                        [class.!hidden]="(downlinkConverterForm.get('converterType').value !== ConverterSourceType.NEW) && (downlinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY)"
+                        hideTypes="true"
+                        [onlyNewConverter]="downlinkConverterForm.get('converterType').value === ConverterSourceType.NEW"
+                        [onlyLibraryConverter]="downlinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
+                        [converterTypeValue]="downlinkConverterForm.get('converterType').value"
                         [integrationName]="integrationWizardForm.get('name').value"
                         [converterName]="createConvertorName(converterType.DOWNLINK)"
-                        hideTypes="true"
                         isEdit="true"
                         [entity]="downlinkConverter"
           ></tb-converter>
-          <tb-converter-library
-            formControlName="libraryDownlinkConverter"
-            [interacted]="downlinkConverterStep.interacted"
-            [class.!hidden]="downlinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY"
-            [integrationType]="integrationWizardForm.get('type').value"
-            [converterType]="converterType.DOWNLINK"
-          />
         </div>
       </form>
     </mat-step>

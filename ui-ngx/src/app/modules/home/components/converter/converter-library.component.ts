@@ -30,14 +30,15 @@
 ///
 
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EventEmitter,
   forwardRef,
   Input,
   OnChanges,
   OnDestroy,
+  Output,
   SimpleChanges,
   ViewChild,
   ViewEncapsulation
@@ -52,12 +53,11 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject } from 'rxjs';
+import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject, Subscription } from 'rxjs';
 import { catchError, distinctUntilChanged, map, startWith, switchMap, takeUntil, } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterLibraryValue, ConverterType, Model, Vendor } from '@shared/models/converter.models';
-import { ConverterComponent } from '@home/components/converter/converter.component';
 import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
 
 @Component({
@@ -79,24 +79,20 @@ import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges, AfterViewInit, OnDestroy {
+export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges, OnDestroy {
 
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
-  @Input() set interacted(interacted: boolean) {
-    if (interacted) {
-      this.libraryFormGroup.markAllAsTouched();
-    }
-  }
+
+  @Output() converter = new EventEmitter<{ converter: Converter, libraryInfo: { vendorName: string; modelName: string }}>();
 
   @ViewChild('modelInput') modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
-  @ViewChild('dataConverter', { static: true }) dataConverterComponent: ConverterComponent;
 
   libraryFormGroup: UntypedFormGroup;
   vendors$: Observable<Array<Vendor>>;
   models$: Observable<Model[]>;
-  converter$: Observable<Converter>;
+  converter$: Subscription;
   filteredModels$: Observable<Array<Model>>;
   filteredVendors$: Observable<Array<Vendor>>;
   vendorInputSubject = new Subject<void>();
@@ -117,10 +113,10 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
     this.libraryFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.onChange(this.libraryFormGroup.get('converter')?.getRawValue()));
+      .subscribe(() => this.onChange(this.libraryFormGroup.getRawValue()));
 
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
-      switchMap(() => of(this.integrationType)),
+      switchMap(() => of(this.integrationType, this.converterType)),
       distinctUntilChanged(),
       switchMap(() =>
         this.converterLibraryService.getVendors(this.integrationType, this.converterType)
@@ -198,7 +194,16 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           }
           return defaultConverter;
         })
-    );
+    ).subscribe(value => this.converter.emit(
+        {
+          converter: value,
+          libraryInfo: this.libraryFormGroup.get('vendor').value?.name && this.libraryFormGroup.get('model').value?.name? {
+            vendorName: this.libraryFormGroup.get('vendor').value?.name,
+            modelName: this.libraryFormGroup.get('model').value?.name
+          } : null
+        }
+      )
+  );
   }
 
   get vendorValueChanges(): Observable<Vendor | string> {
@@ -228,10 +233,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     }
   }
 
-  ngAfterViewInit(): void {
-    this.libraryFormGroup.setControl('converter', this.dataConverterComponent.entityForm, {emitEvent: false});
-  }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -242,8 +243,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       this.libraryFormGroup.disable({emitEvent: false});
     } else {
       this.libraryFormGroup.enable({emitEvent: false});
-      this.updateScriptLangEnable();
-      this.dataConverterComponent.updatedValidators();
       this.libraryFormGroup.updateValueAndValidity();
     }
   }
@@ -257,7 +256,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   writeValue(converterLibraryValue: ConverterLibraryValue): void {
     if (isDefinedAndNotNull(converterLibraryValue)) {
-      this.libraryFormGroup.patchValue(converterLibraryValue, {emitEvent: false});
+      this.libraryFormGroup.patchValue(converterLibraryValue, {emitEvent: true});
     }
   }
 
@@ -295,19 +294,5 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       this.vendorInput.nativeElement.blur();
       this.vendorInput.nativeElement.focus();
     }, 0);
-  }
-
-  private updateScriptLangEnable(): void {
-    const converterControl = this.libraryFormGroup.get('converter');
-    if (!converterControl) {return;}
-
-    const { decoder, encoder, tbelDecoder, tbelEncoder, type } = converterControl.value.configuration || {};
-    const scriptLangControl = converterControl.get('configuration')?.get('scriptLang');
-
-    if (type === ConverterType.UPLINK && (!decoder || !tbelDecoder)) {
-      scriptLangControl?.disable({ emitEvent: false });
-    } else if (!encoder || !tbelEncoder) {
-      scriptLangControl?.disable({ emitEvent: false });
-    }
   }
 }
