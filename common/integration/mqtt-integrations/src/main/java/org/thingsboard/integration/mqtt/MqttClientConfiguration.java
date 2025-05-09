@@ -31,6 +31,7 @@
 package org.thingsboard.integration.mqtt;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.netty.handler.codec.mqtt.MqttVersion;
 import lombok.Data;
 import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
 
@@ -48,8 +49,9 @@ public class MqttClientConfiguration {
     private String clientId;
     private Integer maxBytesInMessage;
     private boolean retainedMessage;
-
     private boolean cleanSession;
     private boolean ssl;
+    private MqttVersion protocolVersion;
     private MqttClientCredentials credentials;
+
 }
