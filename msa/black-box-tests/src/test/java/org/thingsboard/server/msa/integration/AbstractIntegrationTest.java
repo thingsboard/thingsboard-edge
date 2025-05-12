@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.DisableUIListeners;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -73,6 +74,7 @@ import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevi
 
 @DisableUIListeners
 public abstract class AbstractIntegrationTest extends AbstractContainerTest {
+
     public static final String LOGIN = "tenant@thingsboard.org";
     public static final String PASSWORD = "tenant";
     protected Device device;
@@ -248,8 +250,8 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                 .until(() -> {
                     PageData<EventInfo> events = testRestClient.getEvents(ruleChain.getId(), EventType.LC_EVENT, ruleChain.getTenantId(), new TimePageLink(1024));
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
-                                    "UPDATED".equals(eventInfo.getBody().get("event").asText()) &&
-                                            "true".equals(eventInfo.getBody().get("success").asText())).toList();
+                            "UPDATED".equals(eventInfo.getBody().get("event").asText()) &&
+                                    "true".equals(eventInfo.getBody().get("success").asText())).toList();
 
                     return eventInfos.size() == 4;
                 });
@@ -277,7 +279,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     protected Secret createSecret(String password) {
         Secret secret = new Secret();
         secret.setName("integration_secret");
-        secret.setEncodedValue(password);
+        secret.setValue(password.getBytes(StandardCharsets.UTF_8));
         return testRestClient.saveSecret(secret);
     }
 

@@ -942,6 +942,13 @@ public class ModelConstants {
     public static final String SECRET_VALUE_COLUMN = "value";
     public static final String SECRET_DESCRIPTION_COLUMN = "description";
 
+    /**
+     * Encryption key constants.
+     */
+    public static final String ENCRYPTION_KEY_TABLE_NAME = "encryption_key";
+    public static final String ENCRYPTION_KEY_PASSWORD_COLUMN= "password";
+    public static final String ENCRYPTION_KEY_SALT_COLUMN = "salt";
+
     protected static final String[] NONE_AGGREGATION_COLUMNS = new String[]{LONG_VALUE_COLUMN, DOUBLE_VALUE_COLUMN, BOOLEAN_VALUE_COLUMN, STRING_VALUE_COLUMN, JSON_VALUE_COLUMN, KEY_COLUMN, TS_COLUMN};
 
     protected static final String[] COUNT_AGGREGATION_COLUMNS = new String[]{count(LONG_VALUE_COLUMN), count(DOUBLE_VALUE_COLUMN), count(BOOLEAN_VALUE_COLUMN), count(STRING_VALUE_COLUMN), count(JSON_VALUE_COLUMN), max(TS_COLUMN)};

@@ -28,50 +28,52 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.ie.importing.impl;
+package org.thingsboard.server.common.data.encryptionkey;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.SecretId;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.id.EncryptionKeyId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.secret.Secret;
-import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.dao.secret.SecretService;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
+import org.thingsboard.server.common.data.validation.Length;
+import org.thingsboard.server.common.data.validation.NoXss;
 
-@Service
-@TbCoreComponent
-@RequiredArgsConstructor
-public class SecretImportService extends BaseEntityImportService<SecretId, Secret, EntityExportData<Secret>> {
+@Schema
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class EncryptionKey extends BaseData<EncryptionKeyId> implements HasTenantId {
 
-    private final SecretService secretService;
+    @Schema(description = "JSON object with Tenant Id. Tenant Id of the secret cannot be changed.", accessMode = Schema.AccessMode.READ_ONLY)
+    private TenantId tenantId;
 
-    @Override
-    protected void setOwner(TenantId tenantId, Secret secret, IdProvider idProvider) {
-        secret.setTenantId(tenantId);
+    @NoXss
+    @NotBlank
+    @Length(fieldName = "password")
+    @Schema(description = "Encryption key password", requiredMode = Schema.RequiredMode.REQUIRED, example = "Password")
+    private String password;
+
+    @NoXss
+    @NotBlank
+    @Length(fieldName = "salt")
+    @Schema(description = "Encryption key salt", requiredMode = Schema.RequiredMode.REQUIRED, example = "Salt")
+    private String salt;
+
+    public EncryptionKey() {
+        super();
     }
 
-    @Override
-    protected Secret prepare(EntitiesImportCtx ctx, Secret secret, Secret oldEntity, EntityExportData<Secret> exportData, IdProvider idProvider) {
-        return secret;
+    public EncryptionKey(EncryptionKeyId id) {
+        super(id);
     }
 
-    @Override
-    protected Secret deepCopy(Secret secret) {
-        return new Secret(secret);
-    }
-
-    @Override
-    protected Secret saveOrUpdate(EntitiesImportCtx ctx, Secret entity, EntityExportData<Secret> exportData, IdProvider idProvider) {
-        var savedSecret = secretService.saveSecretWithoutEncryption(ctx.getTenantId(), entity);
-        return secretService.findSecretById(ctx.getTenantId(), savedSecret.getId());
-    }
-
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.SECRET;
+    public EncryptionKey(EncryptionKey encryptionKey) {
+        super(encryptionKey);
+        this.tenantId = encryptionKey.getTenantId();
+        this.password = encryptionKey.getPassword();
+        this.salt = encryptionKey.getSalt();
     }
 
 }

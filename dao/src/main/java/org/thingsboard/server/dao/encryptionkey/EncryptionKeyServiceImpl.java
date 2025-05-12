@@ -28,69 +28,63 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.secret;
+package org.thingsboard.server.dao.encryptionkey;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.SecretId;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.encryptionkey.EncryptionKey;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.io.Serial;
-import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Optional;
+import java.util.HexFormat;
 
-@Schema
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class Secret extends SecretInfo {
+@Slf4j
+@Service("EncryptionKeyDaoService")
+public class EncryptionKeyServiceImpl implements EncryptionKeyService {
 
-    @Serial
-    private static final long serialVersionUID = 3671364019778017637L;
+    private final SecureRandom secureRandom = new SecureRandom();
 
-    @JsonIgnore
-    private byte[] value;
+    @Autowired
+    private EncryptionKeyDao encryptionKeyDao;
 
-    @Schema(description = "Secret text value for TEXT secret type.", requiredMode = Schema.RequiredMode.REQUIRED, example = "Value")
-    @JsonSetter("value")
-    public void setValue(String value) {
-        this.value = Optional.ofNullable(value).map(v -> Base64.getEncoder().encode(v.getBytes(StandardCharsets.UTF_8))).orElse(null);
-    }
+    @Override
+    public void createEncryptionKey(TenantId tenantId) {
+        if (findByTenantId(tenantId) != null) {
+            return;
+        }
+        String password = generateSecurePassword();
+        String salt = generateSalt();
 
-    @JsonGetter("value")
-    public String getValueAsBase64() {
-        return Optional.ofNullable(value).map(Base64.getEncoder()::encodeToString).orElse(null);
-    }
+        EncryptionKey key = new EncryptionKey();
+        key.setTenantId(tenantId);
+        key.setPassword(password);
+        key.setSalt(salt);
 
-    public Secret() {
-        super();
-    }
-
-    public Secret(SecretId id) {
-        super(id);
-    }
-
-    public Secret(Secret secret) {
-        super(secret);
-        this.value = secret.getValue();
-    }
-
-    public Secret(SecretInfo secretInfo) {
-        super(secretInfo);
-        this.value = null;
-    }
-
-    public Secret(SecretInfo secretInfo, byte[] rawValue) {
-        super(secretInfo);
-        this.value = rawValue;
+        encryptionKeyDao.save(tenantId, key);
     }
 
     @Override
-    public String toString() {
-        return super.toString();
+    public void deleteByTenantId(TenantId tenantId) {
+        encryptionKeyDao.deleteByTenantId(tenantId);
+    }
+
+    @Override
+    public EncryptionKey findByTenantId(TenantId tenantId) {
+        return encryptionKeyDao.findByTenantId(tenantId);
+    }
+
+    private String generateSecurePassword() {
+        byte[] bytes = new byte[16];
+        secureRandom.nextBytes(bytes);
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    private String generateSalt() {
+        byte[] randomSalt = new byte[8];
+        secureRandom.nextBytes(randomSalt);
+        return HexFormat.of().formatHex(randomSalt);
     }
 
 }

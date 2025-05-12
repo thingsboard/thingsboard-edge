@@ -28,69 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.secret;
+package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.SecretId;
+import org.thingsboard.server.common.data.encryptionkey.EncryptionKey;
+import org.thingsboard.server.common.data.id.EncryptionKeyId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
+import org.thingsboard.server.dao.model.BaseSqlEntity;
 
-import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Optional;
+import java.util.UUID;
 
-@Schema
+import static org.thingsboard.server.dao.model.ModelConstants.ENCRYPTION_KEY_PASSWORD_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.ENCRYPTION_KEY_SALT_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.ENCRYPTION_KEY_TABLE_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_COLUMN;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Secret extends SecretInfo {
+@Entity
+@Table(name = ENCRYPTION_KEY_TABLE_NAME)
+public class EncryptionKeyEntity extends BaseSqlEntity<EncryptionKey> implements BaseEntity<EncryptionKey> {
 
-    @Serial
-    private static final long serialVersionUID = 3671364019778017637L;
+    @Column(name = TENANT_ID_COLUMN)
+    private UUID tenantId;
 
-    @JsonIgnore
-    private byte[] value;
+    @Column(name = ENCRYPTION_KEY_PASSWORD_COLUMN)
+    private String password;
 
-    @Schema(description = "Secret text value for TEXT secret type.", requiredMode = Schema.RequiredMode.REQUIRED, example = "Value")
-    @JsonSetter("value")
-    public void setValue(String value) {
-        this.value = Optional.ofNullable(value).map(v -> Base64.getEncoder().encode(v.getBytes(StandardCharsets.UTF_8))).orElse(null);
-    }
-
-    @JsonGetter("value")
-    public String getValueAsBase64() {
-        return Optional.ofNullable(value).map(Base64.getEncoder()::encodeToString).orElse(null);
-    }
-
-    public Secret() {
-        super();
-    }
-
-    public Secret(SecretId id) {
-        super(id);
-    }
-
-    public Secret(Secret secret) {
-        super(secret);
-        this.value = secret.getValue();
-    }
-
-    public Secret(SecretInfo secretInfo) {
-        super(secretInfo);
-        this.value = null;
-    }
-
-    public Secret(SecretInfo secretInfo, byte[] rawValue) {
-        super(secretInfo);
-        this.value = rawValue;
-    }
+    @Column(name = ENCRYPTION_KEY_SALT_COLUMN)
+    private String salt;
 
     @Override
-    public String toString() {
-        return super.toString();
+    public EncryptionKey toData() {
+        EncryptionKey encryptionKey = new EncryptionKey(new EncryptionKeyId(id));
+        encryptionKey.setCreatedTime(createdTime);
+        encryptionKey.setTenantId(TenantId.fromUUID(tenantId));
+        encryptionKey.setPassword(password);
+        encryptionKey.setSalt(salt);
+        return encryptionKey;
     }
 
 }

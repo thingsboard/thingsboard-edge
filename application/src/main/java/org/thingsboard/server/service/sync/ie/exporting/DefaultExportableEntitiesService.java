@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasOwnerId;
@@ -44,7 +43,6 @@ import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableCustomerEntityDao;
 import org.thingsboard.server.dao.ExportableEntityDao;
@@ -92,9 +90,6 @@ public class DefaultExportableEntitiesService implements ExportableEntitiesServi
     @Override
     public <E extends HasId<I>, I extends EntityId> E findEntityByTenantIdAndId(TenantId tenantId, I id) {
         E entity = findEntityById(id);
-        if (entity instanceof Secret secret) {
-            log.error("value of secret on export {}", JacksonUtil.toString(secret.getValue()));
-        }
 
         if (entity == null || !belongsToTenant(entity, tenantId)) {
             return null;

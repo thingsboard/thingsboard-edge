@@ -30,13 +30,11 @@
  */
 package org.thingsboard.server.dao.secret;
 
-import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.ExportableEntityDao;
 
-public interface SecretDao extends Dao<Secret>, ExportableEntityDao<SecretId, Secret> {
+public interface SecretDao extends Dao<Secret> {
 
     Secret findByName(TenantId tenantId, String key);
 

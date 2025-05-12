@@ -30,26 +30,20 @@
  */
 package org.thingsboard.server.service.secret;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ConcurrentReferenceHashMap;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.SecretType;
+import org.thingsboard.server.common.data.encryptionkey.EncryptionKey;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.encryptionkey.EncryptionKeyService;
 import org.thingsboard.server.dao.secret.SecretUtilService;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.HexFormat;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
@@ -58,7 +52,7 @@ public class DefaultSecretUtilService implements SecretUtilService {
 
     private final Map<TenantId, BytesEncryptor> encryptorMap = new ConcurrentReferenceHashMap<>();
 
-    private final AttributesService attributesService;
+    private final EncryptionKeyService encryptionKeyService;
 
     @Override
     public byte[] encrypt(TenantId tenantId, SecretType type, byte[] value) {
@@ -91,36 +85,9 @@ public class DefaultSecretUtilService implements SecretUtilService {
 
     private BytesEncryptor getEncryptor(TenantId tenantId) {
         return encryptorMap.computeIfAbsent(tenantId, id -> {
-            AttributeKvEntry attribute;
-            try {
-                // TO CHANGE for separate table, IT WAS FOR TESTING
-                attribute = attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, "encryption_key").get().orElse(null);
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-            if (attribute == null) {
-                throw new RuntimeException("No encryption key found for tenant: " + tenantId);
-            }
-            JsonNode json = JacksonUtil.toJsonNode(attribute.getJsonValue().orElse(null));
-            if (json == null) {
-                throw new RuntimeException("Value of attribute key 'encryption_key' is not present for tenant: " + tenantId);
-            }
-            String password = json.get("password").asText();
-            String salt = ensureHexFormat(json.get("salt").asText());
-            log.error("[{}] Using password '{}' and salt '{}'", tenantId, password, salt);
-            return Encryptors.stronger(password, salt);
+            EncryptionKey key = encryptionKeyService.findByTenantId(tenantId);
+            return Encryptors.stronger(key.getPassword(), key.getSalt());
         });
-    }
-
-    private String ensureHexFormat(String salt) {
-        if (isHex(salt)) {
-            return salt;
-        }
-        return HexFormat.of().formatHex(salt.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private boolean isHex(String value) {
-        return value.matches("[0-9A-Fa-f]+");
     }
 
 }

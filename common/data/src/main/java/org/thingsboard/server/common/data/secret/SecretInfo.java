@@ -36,7 +36,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.TenantEntity;
@@ -50,7 +49,7 @@ import java.io.Serial;
 @Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class SecretInfo extends BaseData<SecretId> implements TenantEntity, HasName, ExportableEntity<SecretId> {
+public class SecretInfo extends BaseData<SecretId> implements TenantEntity, HasName {
 
     @Serial
     private static final long serialVersionUID = 4356095580465337566L;

@@ -168,5 +168,3 @@ CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(te
 CREATE INDEX IF NOT EXISTS idx_custom_menu ON custom_menu(tenant_id, customer_id);
 
 CREATE INDEX IF NOT EXISTS mobile_app_bundle_tenant_id ON mobile_app_bundle(tenant_id);
-
-CREATE INDEX IF NOT EXISTS idx_secret_external_id ON secret(tenant_id, external_id);

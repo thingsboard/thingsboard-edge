@@ -28,54 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.secret;
+package org.thingsboard.server.dao.sql.encryptionkey;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.secret.Secret;
-import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.model.sql.SecretEntity;
-import org.thingsboard.server.dao.secret.SecretDao;
-import org.thingsboard.server.dao.sql.JpaAbstractDao;
-import org.thingsboard.server.dao.util.SqlDao;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.dao.model.sql.EncryptionKeyEntity;
 
 import java.util.UUID;
 
-@Slf4j
-@SqlDao
-@Component
-public class JpaSecretDao extends JpaAbstractDao<SecretEntity, Secret> implements SecretDao {
+public interface EncryptionKeyRepository extends JpaRepository<EncryptionKeyEntity, UUID> {
 
-    @Autowired
-    private SecretRepository secretRepository;
+    EncryptionKeyEntity findByTenantId(UUID tenantId);
 
-    @Override
-    public Secret findByName(TenantId tenantId, String name) {
-        return DaoUtil.getData(secretRepository.findByTenantIdAndName(tenantId.getId(), name));
-    }
-
-    @Override
-    public void deleteByTenantId(TenantId tenantId) {
-        secretRepository.deleteByTenantId(tenantId.getId());
-    }
-
-    @Override
-    protected Class<SecretEntity> getEntityClass() {
-        return SecretEntity.class;
-    }
-
-    @Override
-    protected JpaRepository<SecretEntity, UUID> getRepository() {
-        return secretRepository;
-    }
-
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.SECRET;
-    }
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM EncryptionKeyEntity r WHERE r.tenantId = :tenantId")
+    void deleteByTenantId(@Param("tenantId") UUID tenantId);
 
 }
