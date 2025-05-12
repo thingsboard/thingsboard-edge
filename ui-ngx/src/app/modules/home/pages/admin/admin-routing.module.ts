@@ -68,6 +68,7 @@ import { MenuId } from '@core/services/menu.models';
 import { CustomMenuRoutes } from '@home/pages/custom-menu/custom-menu-routing.module';
 import { catchError } from 'rxjs/operators';
 import { JsLibraryTableConfigResolver } from '@home/pages/admin/resource/js-library-table-config.resolver';
+import { TrendzSettingsComponent } from '@home/pages/admin/trendz-settings.component';
 
 export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
@@ -379,6 +380,18 @@ const routes: Routes = [
           title: 'admin.auto-commit-settings',
           breadcrumb: {
             menuId: MenuId.auto_commit_settings
+          }
+        }
+      },
+      {
+        path: 'trendz',
+        component: TrendzSettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          title: 'admin.trendz-settings',
+          breadcrumb: {
+            menuId: MenuId.trendz_settings
           }
         }
       },

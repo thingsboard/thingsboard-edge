@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-@Component(value="sysAdminPermissions")
+@Component(value = "sysAdminPermissions")
 public class SysAdminPermissions extends AbstractPermissions {
 
     public SysAdminPermissions() {
