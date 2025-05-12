@@ -31,6 +31,8 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,6 +50,7 @@ import org.thingsboard.server.common.data.job.JobStatus;
 import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.job.JobManager;
@@ -55,10 +58,15 @@ import org.thingsboard.server.service.job.JobManager;
 import java.util.List;
 import java.util.UUID;
 
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 
 @RestController
 @TbCoreComponent
@@ -70,15 +78,140 @@ public class JobController extends BaseController {
     private final JobService jobService;
     private final JobManager jobManager;
 
+    @ApiOperation(value = "Get job by id (getJobById)",
+            notes = "Fetches job info by id." + NEW_LINE +
+                    "Example of a RUNNING CF_REPROCESSING job response:\n" +
+                    MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  \"id\": {\n" +
+                    "    \"entityType\": \"JOB\",\n" +
+                    "    \"id\": \"475e94e0-2f2d-11f0-8240-91e99922a704\"\n" +
+                    "  },\n" +
+                    "  \"createdTime\": 1747053196590,\n" +
+                    "  \"tenantId\": {\n" +
+                    "    \"entityType\": \"TENANT\",\n" +
+                    "    \"id\": \"46859a00-2f2d-11f0-8240-91e99922a704\"\n" +
+                    "  },\n" +
+                    "  \"type\": \"CF_REPROCESSING\",\n" +
+                    "  \"key\": \"474e4130-2f2d-11f0-8240-91e99922a704\",\n" +
+                    "  \"description\": \"Reprocessing of calculated field 'Air densityfBsoH' for device profile 47074d20-2f2d-11f0-8240-91e99922a704\",\n" +
+                    "  \"status\": \"RUNNING\",\n" +
+                    "  \"configuration\": {\n" +
+                    "    \"type\": \"CF_REPROCESSING\",\n" +
+                    "    \"calculatedFieldId\": {\n" +
+                    "      \"entityType\": \"CALCULATED_FIELD\",\n" +
+                    "      \"id\": \"474e4130-2f2d-11f0-8240-91e99922a704\"\n" +
+                    "    },\n" +
+                    "    \"startTs\": 1747051995760,\n" +
+                    "    \"endTs\": 1747052895760,\n" +
+                    "    \"toReprocess\": null\n" +
+                    "  },\n" +
+                    "  \"result\": {\n" +
+                    "    \"jobType\": \"CF_REPROCESSING\",\n" +
+                    "    \"successfulCount\": 1,\n" +
+                    "    \"failedCount\": 0,\n" +
+                    "    \"discardedCount\": 0,\n" +
+                    "    \"totalCount\": 2,\n" +
+                    "    \"results\": [],\n" +
+                    "    \"generalError\": null,\n" +
+                    "    \"cancellationTs\": 0\n" +
+                    "  }\n" +
+                    "}\n" +
+                    MARKDOWN_CODE_BLOCK_END + NEW_LINE +
+                    "Example of a CF_REPROCESSING job with failures:\n" +
+                    MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  ...,\n" +
+                    "  \"status\": \"FAILED\",\n" +
+                    "  ...,\n" +
+                    "  \"result\": {\n" +
+                    "    \"jobType\": \"CF_REPROCESSING\",\n" +
+                    "    \"successfulCount\": 0,\n" +
+                    "    \"failedCount\": 2,\n" +
+                    "    \"discardedCount\": 0,\n" +
+                    "    \"totalCount\": 2,\n" +
+                    "    \"results\": [\n" +
+                    "      {\n" +
+                    "        \"jobType\": \"CF_REPROCESSING\",\n" +
+                    "        \"success\": false,\n" +
+                    "        \"discarded\": false,\n" +
+                    "        \"failure\": {\n" +
+                    "          \"error\": \"Failed to fetch temperature: Failed to fetch timeseries data\",\n" +
+                    "          \"entityId\": {\n" +
+                    "            \"entityType\": \"DEVICE\",\n" +
+                    "            \"id\": \"4aac5c20-2f34-11f0-ac3f-cd8acc9927fd\"\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      },\n" +
+                    "      {\n" +
+                    "        \"jobType\": \"CF_REPROCESSING\",\n" +
+                    "        \"success\": false,\n" +
+                    "        \"discarded\": false,\n" +
+                    "        \"failure\": {\n" +
+                    "          \"error\": \"Failed to fetch temperature: Failed to fetch timeseries data\",\n" +
+                    "          \"entityId\": {\n" +
+                    "            \"entityType\": \"DEVICE\",\n" +
+                    "            \"id\": \"4ad25ab1-2f34-11f0-ac3f-cd8acc9927fd\"\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      }\n" +
+                    "    ],\n" +
+                    "    \"generalError\": null,\n" +
+                    "    \"cancellationTs\": 0\n" +
+                    "  }\n" +
+                    "}\n" +
+                    MARKDOWN_CODE_BLOCK_END + NEW_LINE +
+                    "Example of a FAILED job result with general error:\n" +
+                    MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  ...,\n" +
+                    "  \"status\": \"FAILED\",\n" +
+                    "  ...,\n" +
+                    "  \"result\": {\n" +
+                    "    \"jobType\": \"CF_REPROCESSING\",\n" +
+                    "    \"successfulCount\": 1,\n" +
+                    "    \"failedCount\": 0,\n" +
+                    "    \"discardedCount\": 0,\n" +
+                    "    \"totalCount\": null,\n" +
+                    "    \"results\": [],\n" +
+                    "    \"generalError\": \"Timeout to find devices by profile\",\n" +
+                    "    \"cancellationTs\": 0\n" +
+                    "  }\n" +
+                    "}\n" +
+                    MARKDOWN_CODE_BLOCK_END + NEW_LINE +
+                    "Example of a CANCELLED job result:\n" +
+                    MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  ...,\n" +
+                    "  \"status\": \"CANCELLED\",\n" +
+                    "  ...,\n" +
+                    "  \"result\": {\n" +
+                    "    \"jobType\": \"CF_REPROCESSING\",\n" +
+                    "    \"successfulCount\": 15,\n" +
+                    "    \"failedCount\": 0,\n" +
+                    "    \"discardedCount\": 85,\n" +
+                    "    \"totalCount\": 100,\n" +
+                    "    \"results\": [],\n" +
+                    "    \"generalError\": null,\n" +
+                    "    \"cancellationTs\": 1747065908414\n" +
+                    "  }\n" +
+                    "}\n" +
+                    MARKDOWN_CODE_BLOCK_END +
+                    TENANT_AUTHORITY_PARAGRAPH
+    )
     @GetMapping("/job/{id}")
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     public Job getJobById(@PathVariable UUID id) throws ThingsboardException {
         // todo check permissions
         return jobService.findJobById(getTenantId(), new JobId(id));
     }
 
+    @ApiOperation(value = "Get jobs (getJobs)",
+            notes = "Returns the page of jobs." + NEW_LINE +
+                    PAGE_DATA_PARAMETERS +
+                    TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/jobs")
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     public PageData<Job> getJobs(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                  @RequestParam int pageSize,
                                  @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
@@ -89,7 +222,9 @@ public class JobController extends BaseController {
                                  @RequestParam(required = false) String sortProperty,
                                  @Parameter(description = SORT_ORDER_DESCRIPTION)
                                  @RequestParam(required = false) String sortOrder,
+                                 @Parameter(description = "Comma-separated list of job types to filter. If empty - all job types are included.", array = @ArraySchema(schema = @Schema(type = "string")))
                                  @RequestParam(required = false) List<JobType> types,
+                                 @Parameter(description = "Comma-separated list of job statuses to filter. If empty - all job types are included.", array = @ArraySchema(schema = @Schema(type = "string")))
                                  @RequestParam(required = false) List<JobStatus> statuses) throws ThingsboardException {
         // todo check permissions
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -100,15 +235,26 @@ public class JobController extends BaseController {
         return jobService.findJobsByFilter(getTenantId(), filter, pageLink);
     }
 
+    @ApiOperation(value = "Cancel job (cancelJob)",
+            notes = "Cancels the job. The status of the job must be QUEUED, PENDING or RUNNING." + NEW_LINE +
+                    "For a running job, all the tasks not yet processed will be discarded." + NEW_LINE +
+                    "See the example of a cancelled job result in getJobById method description." +
+                    TENANT_AUTHORITY_PARAGRAPH)
     @PostMapping("/job/{id}/cancel")
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     public void cancelJob(@PathVariable UUID id) throws ThingsboardException {
         // todo check permissions
         jobManager.cancelJob(getTenantId(), new JobId(id));
     }
 
+    @ApiOperation(value = "Reprocess job (reprocessJob)",
+            notes = "Reprocesses the job. Failures are located at job.result.results list. " +
+                    "Platform iterates over this list and submits new tasks for them. " +
+                    "Doesn't create new job entity but updates the existing one. " +
+                    "Successfully reprocessed job will look the same as completed one." +
+                    TENANT_AUTHORITY_PARAGRAPH)
     @PostMapping("/job/{id}/reprocess")
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     public void reprocessJob(@PathVariable UUID id) throws ThingsboardException {
         // todo check permissions
         jobManager.reprocessJob(getTenantId(), new JobId(id));
