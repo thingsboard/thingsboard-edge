@@ -34,21 +34,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.monitoring.client.TbClient;
 import org.thingsboard.monitoring.config.integration.IntegrationInfo;
 import org.thingsboard.monitoring.config.integration.IntegrationMonitoringConfig;
 import org.thingsboard.monitoring.config.integration.IntegrationMonitoringTarget;
 import org.thingsboard.monitoring.config.integration.IntegrationType;
-import org.thingsboard.monitoring.config.transport.DeviceConfig;
 import org.thingsboard.monitoring.service.BaseHealthChecker;
-import org.thingsboard.monitoring.util.ResourceUtils;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageLink;
-
-import java.util.UUID;
 
 @Slf4j
 public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringConfig> extends BaseHealthChecker<C, IntegrationMonitoringTarget> {
@@ -58,16 +48,8 @@ public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringCo
     }
 
     @Override
-    protected final void initialize(TbClient tbClient) {
-        Device device = getOrCreateDevice(tbClient);
-        DeviceConfig deviceConfig = new DeviceConfig();
-        deviceConfig.setId(device.getId().toString());
-        deviceConfig.setName(device.getName());
-        target.setDevice(deviceConfig);
-
-        Converter converter = getOrCreateConverter(tbClient);
-        Integration integration = getOrCreateIntegration(converter.getId(), tbClient);
-        target.setIntegration(integration);
+    protected final void initialize() {
+        entityService.checkEntities(config, target);
     }
 
     @Override
@@ -90,47 +72,6 @@ public abstract class IntegrationHealthChecker<C extends IntegrationMonitoringCo
     }
 
     protected abstract IntegrationType getIntegrationType();
-
-
-    private Device getOrCreateDevice(TbClient tbClient) {
-        String deviceName = String.format("%s %s integration - %s", target.getNamePrefix(), config.getIntegrationType().getName(), target.getBaseUrl()).trim();
-        return tbClient.getTenantDevice(deviceName)
-                .orElseGet(() -> {
-                    Device defaultDevice = ResourceUtils.getResource("integration/device.json", Device.class);
-                    defaultDevice.setName(deviceName);
-                    log.info("Creating new device '{}'", deviceName);
-                    return tbClient.saveDevice(defaultDevice);
-                });
-    }
-
-    private Integration getOrCreateIntegration(ConverterId converterId, TbClient tbClient) {
-        String integrationName = String.format("%s %s integration", target.getNamePrefix(), config.getIntegrationType().getName()).trim();
-        return tbClient.getIntegrations(new PageLink(1, 0, integrationName)).getData()
-                .stream().findFirst()
-                .orElseGet(() -> {
-                    Integration defaultIntegration = ResourceUtils.getResource("integration/" + config.getIntegrationType().name().toLowerCase() + "/integration.json", Integration.class);
-                    defaultIntegration.setName(integrationName);
-                    defaultIntegration.setDefaultConverterId(converterId);
-                    defaultIntegration.setRoutingKey(UUID.randomUUID().toString());
-                    defaultIntegration.setConfiguration(JacksonUtil.toJsonNode(
-                            String.format(defaultIntegration.getConfiguration().toString(),
-                                    target.getBaseUrl() /* %1$s */, defaultIntegration.getRoutingKey() /* %2$s */)));
-                    log.info("Creating new integration '{}'", integrationName);
-                    return tbClient.saveIntegration(defaultIntegration);
-                });
-    }
-
-    private Converter getOrCreateConverter(TbClient tbClient) {
-        String converterName = "Default converter";
-        return tbClient.getConverters(new PageLink(1, 0, converterName)).getData()
-                .stream().findFirst()
-                .orElseGet(() -> {
-                    Converter defaultConverter = ResourceUtils.getResource("integration/converter.json", Converter.class);
-                    defaultConverter.setName(converterName);
-                    log.info("Creating new converter '{}'", converterName);
-                    return tbClient.saveConverter(defaultConverter);
-                });
-    }
 
     @Override
     protected boolean isCfMonitoringEnabled() {
