@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "ruleChain": {
     "name": "Root Rule Chain",
     "type": "CORE",
@@ -241,8 +241,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 317,
-          "layoutY": 441
+          "layoutX": 357,
+          "layoutY": 457
         }
       },
       {
@@ -399,180 +399,6 @@
           "layoutX": 1203,
           "layoutY": 327
         }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.report.TbGenerateReportNode",
-        "name": "Generate report",
-        "debugSettings": {
-          "failuresEnabled": true,
-          "allEnabled": false,
-          "allEnabledUntil": 1735648551598
-        },
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "useSystemReportsServer": true,
-          "reportsServerEndpointUrl": null,
-          "useReportConfigFromMessage": false,
-          "reportConfig": {
-            "baseUrl": "https://tbqa.cloud",
-            "useDashboardTimewindow": true,
-            "timewindow": {
-              "selectedTab": 1,
-              "history": {
-                "historyType": 0,
-                "interval": 1000,
-                "timewindowMs": 86400000
-              }
-            },
-            "namePattern": "report-%d{yyyy-MM-dd_HH:mm:ss}",
-            "type": "pdf",
-            "timezone": "Europe/Kyiv",
-            "useCurrentUserCredentials": true,
-            "userId": "${MONITORING:userId}",
-            "dashboardId": "${MONITORING:monitoringDashboardId}",
-            "state": ""
-          }
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 294,
-          "layoutY": 769
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.notification.TbNotificationNode",
-        "name": "Send alert",
-        "debugSettings": {
-          "failuresEnabled": true,
-          "allEnabled": false,
-          "allEnabledUntil": 1733331880270
-        },
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "templateId": {
-            "entityType": "NOTIFICATION_TEMPLATE",
-            "id": "${MONITORING:webReportAlertNotificationTemplateId}"
-          },
-          "targets": [
-            "${MONITORING:alertsNotificationTargetId}"
-          ]
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 961,
-          "layoutY": 738
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
-        "name": "Create web report alarm",
-        "debugSettings": {
-          "failuresEnabled": true,
-          "allEnabled": false,
-          "allEnabledUntil": 1733331880270
-        },
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "scriptLang": "TBEL",
-          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    delete metadata.prevAlarmDetails;\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
-          "alarmDetailsBuildTbel": "var details = {};\nif (metadata.prevAlarmDetails != null) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    metadata.remove('prevAlarmDetails');\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
-          "useMessageAlarmData": false,
-          "overwriteAlarmDetails": false,
-          "alarmType": "webReportFailure",
-          "severity": "CRITICAL",
-          "propagate": false,
-          "relationTypes": [],
-          "propagateToOwner": false,
-          "propagateToOwnerHierarchy": false,
-          "propagateToTenant": false,
-          "dynamicSeverity": false
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 613,
-          "layoutY": 734
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
-        "name": "Clear web report alarm",
-        "debugSettings": {
-          "failuresEnabled": true,
-          "allEnabled": false,
-          "allEnabledUntil": 1733331880270
-        },
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "scriptLang": "TBEL",
-          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    delete metadata.prevAlarmDetails;\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
-          "alarmDetailsBuildTbel": "var details = {};\nif (metadata.prevAlarmDetails != null) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    metadata.remove('prevAlarmDetails');\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
-          "alarmType": "webReportFailure"
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 443,
-          "layoutY": 621
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.notification.TbNotificationNode",
-        "name": "Send ok",
-        "debugSettings": {
-          "failuresEnabled": true,
-          "allEnabled": false,
-          "allEnabledUntil": 1733331880270
-        },
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 0,
-        "configuration": {
-          "templateId": {
-            "entityType": "NOTIFICATION_TEMPLATE",
-            "id": "${MONITORING:webReportOkNotificationTemplateId}"
-          },
-          "targets": [
-            "${MONITORING:alertsNotificationTargetId}"
-          ]
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 780,
-          "layoutY": 631
-        }
-      },
-      {
-        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "Every hour",
-        "debugSettings": {
-          "failuresEnabled": false,
-          "allEnabled": false,
-          "allEnabledUntil": 0
-        },
-        "singletonMode": false,
-        "queueName": null,
-        "configurationVersion": 2,
-        "configuration": {
-          "msgCount": 0,
-          "periodInSeconds": 1800,
-          "scriptLang": "TBEL",
-          "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "tbelScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "originatorId": "${MONITORING:monitoringAssetId}",
-          "originatorType": "ASSET"
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 9,
-          "layoutY": 737
-        }
       }
     ],
     "connections": [
@@ -628,7 +454,7 @@
       },
       {
         "fromIndex": 9,
-        "toIndex": 11,
+        "toIndex": 10,
         "type": "Success"
       },
       {
@@ -669,36 +495,6 @@
       {
         "fromIndex": 17,
         "toIndex": 13,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 18,
-        "toIndex": 20,
-        "type": "Failure"
-      },
-      {
-        "fromIndex": 18,
-        "toIndex": 21,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 20,
-        "toIndex": 19,
-        "type": "Created"
-      },
-      {
-        "fromIndex": 20,
-        "toIndex": 19,
-        "type": "Updated"
-      },
-      {
-        "fromIndex": 21,
-        "toIndex": 22,
-        "type": "Cleared"
-      },
-      {
-        "fromIndex": 23,
-        "toIndex": 18,
         "type": "Success"
       }
     ],
