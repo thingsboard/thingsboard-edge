@@ -222,9 +222,9 @@ public class JobController extends BaseController {
                                  @RequestParam(required = false) String sortProperty,
                                  @Parameter(description = SORT_ORDER_DESCRIPTION)
                                  @RequestParam(required = false) String sortOrder,
-                                 @Parameter(description = "Comma-separated list of job types to filter. If empty - all job types are included.", array = @ArraySchema(schema = @Schema(type = "string")))
+                                 @Parameter(description = "Comma-separated list of job types to include. If empty - all job types are included.", array = @ArraySchema(schema = @Schema(type = "string")))
                                  @RequestParam(required = false) List<JobType> types,
-                                 @Parameter(description = "Comma-separated list of job statuses to filter. If empty - all job types are included.", array = @ArraySchema(schema = @Schema(type = "string")))
+                                 @Parameter(description = "Comma-separated list of job statuses to include. If empty - all job statuses are included.", array = @ArraySchema(schema = @Schema(type = "string")))
                                  @RequestParam(required = false) List<JobStatus> statuses) throws ThingsboardException {
         // todo check permissions
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
