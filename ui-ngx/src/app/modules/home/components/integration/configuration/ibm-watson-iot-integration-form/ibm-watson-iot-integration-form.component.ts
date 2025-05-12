@@ -79,6 +79,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
       clientConfiguration: this.fb.group({
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
+        protocolVersion: [DEFAULT_MQTT_VERSION],
         credentials: this.fb.group({
           type: [IntegrationCredentialType.Basic],
           username: ['', [Validators.required, this.ibmWatsonIotApiKeyPatternValidator]],
@@ -89,7 +90,6 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
         filter: 'iot-2/type/+/id/+/evt/+/fmt/+',
         qos: 0
       }], Validators.required],
-      protocolVersion: [DEFAULT_MQTT_VERSION],
       downlinkTopicPattern: ['iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}', [Validators.required]],
     });
 
