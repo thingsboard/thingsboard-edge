@@ -28,24 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.downlink;
+package org.thingsboard.server.common.data.device.profile.lwm2m;
 
-import org.eclipse.leshan.core.request.CreateRequest;
-import org.eclipse.leshan.core.response.CreateResponse;
-import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
-import org.thingsboard.server.transport.lwm2m.server.log.LwM2MTelemetryLogService;
-import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
+import lombok.Getter;
 
-public class TbLwM2MCreateResponseCallback extends TbLwM2MUplinkTargetedCallback<CreateRequest, CreateResponse> {
+public enum TelemetryObserveStrategy {
 
-    public TbLwM2MCreateResponseCallback(LwM2mUplinkMsgHandler handler, LwM2MTelemetryLogService logService, LwM2mClient client, String targetId) {
-        super(handler, logService, client, targetId);
+    SINGLE("One resource equals one single observe request", 0),
+    COMPOSITE_ALL("All resources in one composite observe request", 1),
+    COMPOSITE_BY_OBJECT("Grouped composite observe requests by object", 2);
+
+    @Getter
+    private final String description;
+
+    @Getter
+    private final int id;
+
+    TelemetryObserveStrategy(String description, int id) {
+        this.description = description;
+        this.id = id;
+    }
+
+    public static TelemetryObserveStrategy fromDescription(String description) {
+        for (TelemetryObserveStrategy strategy : values()) {
+            if (strategy.description.equalsIgnoreCase(description)) {
+                return strategy;
+            }
+        }
+        return null;
+    }
+
+    public static TelemetryObserveStrategy fromId(int id) {
+        for (TelemetryObserveStrategy strategy : values()) {
+            if (strategy.id == id) {
+                return strategy;
+            }
+        }
+        throw new IllegalArgumentException("Unknown TelemetryObserveStrategy id: " + id);
     }
 
     @Override
-    public void onSuccess(CreateRequest request, CreateResponse response) {
-        super.onSuccess(request, response);
-        handler.onCreatebjectInstancesResponseOk(client, versionedId, request);
+    public String toString() {
+        return name() + " (" + id + "): " + description;
     }
-
 }

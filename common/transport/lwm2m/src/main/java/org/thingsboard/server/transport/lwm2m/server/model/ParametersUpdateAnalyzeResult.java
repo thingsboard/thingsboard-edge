@@ -28,24 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.downlink;
+package org.thingsboard.server.transport.lwm2m.server.model;
 
-import org.eclipse.leshan.core.request.CreateRequest;
-import org.eclipse.leshan.core.response.CreateResponse;
-import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
-import org.thingsboard.server.transport.lwm2m.server.log.LwM2MTelemetryLogService;
-import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.thingsboard.server.common.data.device.profile.lwm2m.ObjectAttributes;
 
-public class TbLwM2MCreateResponseCallback extends TbLwM2MUplinkTargetedCallback<CreateRequest, CreateResponse> {
+import java.util.Map;
+import java.util.Set;
 
-    public TbLwM2MCreateResponseCallback(LwM2mUplinkMsgHandler handler, LwM2MTelemetryLogService logService, LwM2mClient client, String targetId) {
-        super(handler, logService, client, targetId);
-    }
-
-    @Override
-    public void onSuccess(CreateRequest request, CreateResponse response) {
-        super.onSuccess(request, response);
-        handler.onCreatebjectInstancesResponseOk(client, versionedId, request);
-    }
-
+@Data
+@AllArgsConstructor
+public class ParametersUpdateAnalyzeResult {
+    ParametersAnalyzeResult analyzerParameters;
+    Set<String> newObjectsToRead;
+    Set<String> newObjectsToCancelRead;
+    Map<String, ObjectAttributes> attributeLwm2mNew;
 }
+
