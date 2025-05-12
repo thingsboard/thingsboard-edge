@@ -45,7 +45,7 @@ import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { AwsIotIntegration, IntegrationCredentialType, MqttQos } from '@shared/models/integration.models';
-import { DEFAULT_MQTT_VERSION } from '@shared/components/mqtt-version-select.component';
+import { DEFAULT_MQTT_VERSION } from '@shared/models/mqtt.models';
 
 @Component({
   selector: 'tb-aws-iot-integration-form',

@@ -52,7 +52,7 @@ import {
   ttnVersionMap
 } from '@home/components/integration/integration.models';
 import { IntegrationCredentialType, TtnIntegration, } from '@shared/models/integration.models';
-import { DEFAULT_MQTT_VERSION } from '@shared/components/mqtt-version-select.component';
+import { DEFAULT_MQTT_VERSION } from '@shared/models/mqtt.models';
 
 @Component({
   selector: 'tb-ttn-integration-form',
