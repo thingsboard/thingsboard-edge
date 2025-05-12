@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.thingsboard.monitoring.client.TbClient;
 import org.thingsboard.monitoring.client.WsClient;
 import org.thingsboard.monitoring.config.MonitoringConfig;
 import org.thingsboard.monitoring.config.MonitoringTarget;
@@ -62,6 +61,8 @@ public abstract class BaseHealthChecker<C extends MonitoringConfig, T extends Mo
     private Object info;
 
     @Autowired
+    protected MonitoringEntityService entityService;
+    @Autowired
     private MonitoringReporter reporter;
     @Autowired
     private TbStopWatch stopWatch;
@@ -79,7 +80,7 @@ public abstract class BaseHealthChecker<C extends MonitoringConfig, T extends Mo
         info = getInfo();
     }
 
-    protected abstract void initialize(TbClient tbClient);
+    protected abstract void initialize();
 
     public final void check(WsClient wsClient) {
         log.debug("[{}] Checking", info);
