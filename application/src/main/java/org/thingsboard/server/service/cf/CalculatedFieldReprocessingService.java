@@ -37,6 +37,6 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 
 public interface CalculatedFieldReprocessingService {
 
-    void reprocess(CfReprocessingTask task, TbCallback callback) throws CalculatedFieldException;
+    void reprocess(CfReprocessingTask task, TbCallback callback) throws Exception;
 
 }

@@ -43,7 +43,6 @@ import com.google.gson.JsonParser;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -84,7 +83,6 @@ import org.thingsboard.server.service.cf.ctx.state.TsRollingArgumentEntry;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -139,7 +137,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
     }
 
     @Override
-    public void reprocess(CfReprocessingTask task, TbCallback callback) throws CalculatedFieldException {
+    public void reprocess(CfReprocessingTask task, TbCallback callback) throws Exception {
         TenantId tenantId = task.getTenantId();
         EntityId entityId = task.getEntityId();
         log.debug("[{}] Received reprocess request for entityId [{}]", tenantId, entityId);
@@ -294,14 +292,15 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         }
     }
 
-    @SneakyThrows
-    private CalculatedFieldState getOrInitState(TenantId tenantId, EntityId entityId, CalculatedFieldCtx ctx, long startTs) {
+    private CalculatedFieldState getOrInitState(TenantId tenantId, EntityId entityId, CalculatedFieldCtx ctx, long startTs) throws InterruptedException {
         ListenableFuture<CalculatedFieldState> stateFuture = fetchStateFromDb(ctx, entityId, startTs);
-        // Ugly but necessary. We do not expect to often fetch data from DB. Only once per <Entity, CalculatedField> pair lifetime.
-        // This call happens while processing the CF pack from the queue consumer. So the timeout should be relatively low.
-        // Alternatively, we can fetch the state outside the actor system and push separate command to create this actor,
-        // but this will significantly complicate the code.
-        CalculatedFieldState state = stateFuture.get(1, TimeUnit.MINUTES);
+        CalculatedFieldState state;
+        try {
+            state = stateFuture.get(); // will be interrupted on task processing timeout
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            throw new RuntimeException(cause.getMessage(), cause);
+        }
         state.checkStateSize(new CalculatedFieldEntityCtxId(tenantId, ctx.getCfId(), entityId), ctx.getMaxStateSize());
         return state;
     }
@@ -322,8 +321,11 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
                                 try {
                                     // Resolve the future to get the value
                                     return entry.getValue().get();
-                                } catch (ExecutionException | InterruptedException e) {
-                                    throw new RuntimeException("Error getting future result for key: " + entry.getKey(), e);
+                                } catch (ExecutionException e) {
+                                    Throwable cause = e.getCause();
+                                    throw new RuntimeException("Failed to fetch " + entry.getKey() + ": " + cause.getMessage(), cause);
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException("Failed to fetch" + entry.getKey(), e);
                                 }
                             }
                     )));
@@ -380,10 +382,11 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         EntityId sourceEntityId = argument.getRefEntityId() != null ? argument.getRefEntityId() : entityId;
         try {
             ReadTsKvQuery query = new BaseReadTsKvQuery(argument.getRefEntityKey().getKey(), startTs, endTs, 0, limit, Aggregation.NONE, "ASC");
-            return timeseriesService.findAll(tenantId, sourceEntityId, List.of(query)).get(1, TimeUnit.MINUTES);
-        } catch (Exception e) {
-            log.debug("Failed to fetch telemetry for [{}:{}]", sourceEntityId, argument.getRefEntityKey().getKey(), e);
-            return Collections.emptyList();
+            return timeseriesService.findAll(tenantId, sourceEntityId, List.of(query)).get(); // will be interrupted on task processing timeout
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Failed to fetch telemetry for " + sourceEntityId + " for key " + argument.getRefEntityKey().getKey(), e.getCause());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

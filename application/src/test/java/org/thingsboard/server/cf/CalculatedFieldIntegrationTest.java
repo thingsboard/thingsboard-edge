@@ -33,9 +33,11 @@ package org.thingsboard.server.cf;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.Futures;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -64,18 +66,24 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.job.JobStatus;
 import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.data.job.task.CfReprocessingTaskResult;
 import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.controller.AbstractWebTest;
 import org.thingsboard.server.controller.CalculatedFieldControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator;
 import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.thingsboard.server.common.data.job.JobStatus.PENDING;
 import static org.thingsboard.server.common.data.job.JobStatus.QUEUED;
 import static org.thingsboard.server.common.data.job.JobStatus.RUNNING;
@@ -93,17 +101,20 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
     private final String exampleScript =
             "var avgTemperature = temperature.mean(); // Get average temperature\n" +
-                    "  var temperatureK = (avgTemperature - 32) * (5 / 9) + 273.15; // Convert Fahrenheit to Kelvin\n" +
-                    "\n" +
-                    "  // Estimate air pressure based on altitude\n" +
-                    "  var pressure = 101325 * Math.pow((1 - 2.25577e-5 * altitude), 5.25588);\n" +
-                    "\n" +
-                    "  // Air density formula\n" +
-                    "  var airDensity = pressure / (287.05 * temperatureK);\n" +
-                    "\n" +
-                    "  return {\n" +
-                    "    \"airDensity\": toFixed(airDensity, 2)\n" +
-                    "  };";
+            "  var temperatureK = (avgTemperature - 32) * (5 / 9) + 273.15; // Convert Fahrenheit to Kelvin\n" +
+            "\n" +
+            "  // Estimate air pressure based on altitude\n" +
+            "  var pressure = 101325 * Math.pow((1 - 2.25577e-5 * altitude), 5.25588);\n" +
+            "\n" +
+            "  // Air density formula\n" +
+            "  var airDensity = pressure / (287.05 * temperatureK);\n" +
+            "\n" +
+            "  return {\n" +
+            "    \"airDensity\": toFixed(airDensity, 2)\n" +
+            "  };";
+
+    @SpyBean
+    private TimeseriesService timeseriesService;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -583,9 +594,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
                 });
 
         await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-            Job cfReprocessingJob = findJobs().stream()
-                    .filter(job -> job.getType() == JobType.CF_REPROCESSING)
-                    .findFirst().orElseThrow();
+            Job cfReprocessingJob = findJobs(JobType.CF_REPROCESSING).stream().findFirst().orElseThrow();
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(1);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(1);
@@ -685,9 +694,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
                 });
 
         await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-            Job cfReprocessingJob = findJobs().stream()
-                    .filter(job -> job.getType() == JobType.CF_REPROCESSING)
-                    .findFirst().orElseThrow();
+            Job cfReprocessingJob = findJobs(JobType.CF_REPROCESSING).stream().findFirst().orElseThrow();
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
@@ -785,9 +792,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
                 });
 
         await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-            Job cfReprocessingJob = findJobs().stream()
-                    .filter(job -> job.getType() == JobType.CF_REPROCESSING)
-                    .findFirst().orElseThrow();
+            Job cfReprocessingJob = findJobs(JobType.CF_REPROCESSING).stream().findFirst().orElseThrow();
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
@@ -798,6 +803,105 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(notification.getSubject()).isEqualTo("Calculated field reprocessing task completed");
             assertThat(notification.getText()).isEqualTo("Reprocessing of calculated field '" + savedCalculatedField.getName() + "' for device profile " + deviceProfile.getId() + " completed: 2/2 successful");
         });
+    }
+
+    @Test
+    public void testReprocessCalculatedFieldWhenEntityIsProfileAndTsRollingArgUsed_failed() throws Exception {
+        long currentTime = System.currentTimeMillis();
+        // reprocessing time window(TW)
+        long startTs = currentTime - TimeUnit.SECONDS.toMillis(1200);
+        long endTs = currentTime - TimeUnit.SECONDS.toMillis(300);
+
+        AssetProfile assetProfile = doPost("/api/assetProfile", createAssetProfile("Test Asset Profile"), AssetProfile.class);
+        Asset testAsset = createAsset("Test asset", assetProfile.getId());
+
+        doPost("/api/plugins/telemetry/ASSET/" + testAsset.getUuidId() + "/attributes/" + DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode("{\"altitude\":1531}"));
+
+        DeviceProfile deviceProfile = doPost("/api/deviceProfile", createDeviceProfile("Test Device Profile"), DeviceProfile.class);
+
+        Device testDevice1 = createDevice("Test device 1", "1234567890111", deviceProfile.getId());
+        long d1Ts_1 = currentTime - TimeUnit.SECONDS.toMillis(1000);
+        long d1Ts_2 = currentTime - TimeUnit.SECONDS.toMillis(550);
+        long d1Ts_3 = currentTime - TimeUnit.SECONDS.toMillis(500);
+
+        pushTelemetry(testDevice1.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"temperatureInF\":66.12}}", d1Ts_1)));
+        pushTelemetry(testDevice1.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"temperatureInF\":45.31}}", d1Ts_2)));
+        pushTelemetry(testDevice1.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"temperatureInF\":70.36}}", d1Ts_3)));
+
+
+        Device testDevice2 = createDevice("Test device 2", "1234567890222", deviceProfile.getId());
+        long d2Ts_1 = currentTime - TimeUnit.SECONDS.toMillis(900);
+        long d2Ts_2 = currentTime - TimeUnit.SECONDS.toMillis(550);
+        long d2Ts_3 = currentTime - TimeUnit.SECONDS.toMillis(400);
+
+        pushTelemetry(testDevice2.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"temperatureInF\":55.16}}", d2Ts_1)));
+        pushTelemetry(testDevice2.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"temperatureInF\":56.57}}", d2Ts_2)));
+        pushTelemetry(testDevice2.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"temperatureInF\":59.40}}", d2Ts_3)));
+
+        CalculatedField savedCalculatedField = createScriptCalculatedField(deviceProfile.getId(), testAsset.getId());
+
+        doReturn(Futures.immediateFailedFuture(new RuntimeException("Failed to fetch timeseries data")))
+                .when(timeseriesService).findAll(any(), any(), any());
+
+        doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "?startTs={startTs}&endTs={endTs}", startTs, endTs);
+
+        await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+            Job cfReprocessingJob = findJobs(JobType.CF_REPROCESSING).stream().findFirst().orElseThrow();
+            System.err.println(JacksonUtil.toString(cfReprocessingJob));
+            assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.FAILED);
+            assertThat(cfReprocessingJob.getResult().getFailedCount()).isEqualTo(2);
+            assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
+            List<CfReprocessingTaskResult.CfReprocessingTaskFailure> failures = cfReprocessingJob.getResult().getResults().stream()
+                    .map(result -> (CfReprocessingTaskResult) result)
+                    .map(CfReprocessingTaskResult::getFailure)
+                    .toList();
+            assertThat(failures).hasSize(2).allSatisfy(failure -> {
+                assertThat(failure.getError()).contains("Failed to fetch timeseries data");
+            });
+        });
+
+        // fixing the method and reprocessing the job
+        doCallRealMethod().when(timeseriesService).findAll(any(), any(), any());
+        Job job = findJobs(JobType.CF_REPROCESSING).stream().findFirst().orElseThrow();
+        reprocessJob(job.getId());
+
+        await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+            Job cfReprocessingJob = findJobs(JobType.CF_REPROCESSING).stream().findFirst().orElseThrow();
+            assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
+            assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
+            assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
+        });
+        await().alias("reprocess -> perform calculation for device 1").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    ObjectNode airDensity = getTimeSeries(testDevice1.getId(), startTs, endTs, "airDensity");
+                    assertThat(airDensity).isNotNull();
+
+                    assertThat(airDensity.get("airDensity").get(0).get("ts").asText()).isEqualTo(Long.toString(d1Ts_3));
+                    assertThat(airDensity.get("airDensity").get(0).get("value").asText()).isEqualTo("1.02");
+
+                    assertThat(airDensity.get("airDensity").get(1).get("ts").asText()).isEqualTo(Long.toString(d1Ts_2));
+                    assertThat(airDensity.get("airDensity").get(1).get("value").asText()).isEqualTo("1.05");
+
+                    assertThat(airDensity.get("airDensity").get(2).get("ts").asText()).isEqualTo(Long.toString(d1Ts_1));
+                    assertThat(airDensity.get("airDensity").get(2).get("value").asText()).isEqualTo("1.0");
+                });
+
+        await().alias("reprocess -> perform calculation for device 2").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    ObjectNode airDensity = getTimeSeries(testDevice2.getId(), startTs, endTs, "airDensity");
+                    assertThat(airDensity).isNotNull();
+
+                    assertThat(airDensity.get("airDensity").get(0).get("ts").asText()).isEqualTo(Long.toString(d2Ts_3));
+                    assertThat(airDensity.get("airDensity").get(0).get("value").asText()).isEqualTo("1.02");
+
+                    assertThat(airDensity.get("airDensity").get(1).get("ts").asText()).isEqualTo(Long.toString(d2Ts_2));
+                    assertThat(airDensity.get("airDensity").get(1).get("value").asText()).isEqualTo("1.02");
+
+                    assertThat(airDensity.get("airDensity").get(2).get("ts").asText()).isEqualTo(Long.toString(d2Ts_1));
+                    assertThat(airDensity.get("airDensity").get(2).get("value").asText()).isEqualTo("1.03");
+                });
     }
 
     @Test
