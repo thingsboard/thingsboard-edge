@@ -1,140 +1,161 @@
 {
+  "version": 1,
   "ruleChain": {
-    "additionalInfo": null,
     "name": "Root Rule Chain",
     "type": "CORE",
     "firstRuleNodeId": null,
     "root": false,
     "debugMode": false,
     "configuration": null,
-    "externalId": null
+    "additionalInfo": {
+      "description": ""
+    }
   },
   "metadata": {
     "firstNodeIndex": 12,
     "nodes": [
       {
-        "additionalInfo": {
-          "description": null,
-          "layoutX": 1202,
-          "layoutY": 221
-        },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1742298157855
+        },
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 1,
         "configuration": {
-          "defaultTTL": 0,
-          "useServerTs": false,
+          "defaultTTL": 1209600,
+          "useServerTs": null,
           "processingSettings": {
             "type": "ON_EVERY_MESSAGE"
           }
         },
-        "externalId": null
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 1202,
+          "layoutY": 221
+        }
       },
       {
-        "additionalInfo": {
-          "layoutX": 1000,
-          "layoutY": 167
-        },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Attributes",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1742298157855
+        },
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 3,
         "configuration": {
+          "scope": "CLIENT_SCOPE",
+          "notifyDevice": false,
           "processingSettings": {
             "type": "ON_EVERY_MESSAGE"
           },
-          "scope": "CLIENT_SCOPE",
-          "notifyDevice": false,
           "sendAttributesUpdatedNotification": false,
           "updateAttributesOnlyOnValueChange": false
         },
-        "externalId": null
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 1000,
+          "layoutY": 167
+        }
       },
       {
-        "additionalInfo": {
-          "layoutX": 566,
-          "layoutY": 302
-        },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1742304208838
+        },
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "version": 0
         },
-        "externalId": null
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 566,
+          "layoutY": 302
+        }
       },
       {
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log RPC from Device",
+        "debugSettings": null,
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 0,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
         "additionalInfo": {
           "layoutX": 1000,
           "layoutY": 381
-        },
+        }
+      },
+      {
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
-        "name": "Log RPC from Device",
+        "name": "Log Other",
+        "debugSettings": null,
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
           "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
         },
-        "externalId": null
-      },
-      {
         "additionalInfo": {
           "layoutX": 1000,
           "layoutY": 494
-        },
-        "type": "org.thingsboard.rule.engine.action.TbLogNode",
-        "name": "Log Other",
-        "singletonMode": false,
-        "configurationVersion": 0,
-        "configuration": {
-          "scriptLang": "TBEL",
-          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
-          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-        },
-        "externalId": null
+        }
       },
       {
-        "additionalInfo": {
-          "layoutX": 1000,
-          "layoutY": 583
-        },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
+        "debugSettings": null,
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "timeoutInSeconds": 60
         },
-        "externalId": null
+        "additionalInfo": {
+          "layoutX": 1000,
+          "layoutY": 583
+        }
       },
       {
-        "additionalInfo": {
-          "layoutX": 255,
-          "layoutY": 301
-        },
         "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
         "name": "Is Entity Group",
+        "debugSettings": null,
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "originatorTypes": [
             "ENTITY_GROUP"
           ]
         },
-        "externalId": null
+        "additionalInfo": {
+          "layoutX": 268,
+          "layoutY": 300
+        }
       },
       {
-        "additionalInfo": {
-          "layoutX": 319,
-          "layoutY": 109
-        },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode",
         "name": "Post attributes or RPC request",
+        "debugSettings": null,
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "messageTypes": [
@@ -142,117 +163,135 @@
             "RPC_CALL_FROM_SERVER_TO_DEVICE"
           ]
         },
-        "externalId": null
+        "additionalInfo": {
+          "layoutX": 319,
+          "layoutY": 109
+        }
       },
       {
-        "additionalInfo": {
-          "layoutX": 627,
-          "layoutY": 108
-        },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode",
         "name": "Duplicate To Group Entities",
+        "debugSettings": null,
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 1,
         "configuration": {
           "entityGroupId": null,
           "entityGroupIsMessageOriginator": true
         },
-        "externalId": null
+        "additionalInfo": {
+          "layoutX": 627,
+          "layoutY": 108
+        }
       },
       {
-        "additionalInfo": {
-          "description": "Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \"Success\" relation type.",
-          "layoutX": 45,
-          "layoutY": 359
-        },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1742304208838
+        },
         "singletonMode": false,
-        "configurationVersion": 0,
+        "queueName": null,
+        "configurationVersion": 1,
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
         },
-        "externalId": null
+        "additionalInfo": {
+          "description": "Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \"Success\" relation type.",
+          "layoutX": 45,
+          "layoutY": 359
+        }
       },
       {
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 160,
-          "layoutY": 631
-        },
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "Test JS script",
+        "debugSettings": null,
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "scriptLang": "JS",
           "jsScript": "var test = {\n    a: 'a',\n    b: 'b'\n};\nreturn test.a === 'a' && test.b === 'b';",
           "tbelScript": "return msg.temperature > 20;"
         },
-        "externalId": null
-      },
-      {
         "additionalInfo": {
           "description": "",
-          "layoutX": 427,
-          "layoutY": 541
-        },
+          "layoutX": 154,
+          "layoutY": 548
+        }
+      },
+      {
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "Test TBEL script",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 0
+        },
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return msg.temperature > 20;",
           "tbelScript": "var a = \"a\";\nvar b = \"b\";\nreturn a.equals(\"a\") && b.equals(\"b\");"
         },
-        "externalId": null
-      },
-      {
         "additionalInfo": {
           "description": "",
-          "layoutX": 40,
-          "layoutY": 252
-        },
+          "layoutX": 317,
+          "layoutY": 441
+        }
+      },
+      {
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Add arrival timestamp",
+        "debugSettings": null,
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
           "tbelScript": "metadata.arrivalTs = Date.now();\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
         },
-        "externalId": null
-      },
-      {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1467,
-          "layoutY": 267
-        },
+          "layoutX": 40,
+          "layoutY": 252
+        }
+      },
+      {
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Calculate additional latencies",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1733331880270
+        },
         "singletonMode": false,
+        "queueName": null,
         "configurationVersion": 0,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
           "tbelScript": "var arrivalLatency = metadata.arrivalTs - metadata.ts;\nvar processingTime = Date.now() - metadata.arrivalTs;\nmsg = {\n    arrivalLatency: arrivalLatency,\n    processingTime: processingTime\n};\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
         },
-        "externalId": null
-      },
-      {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1438,
-          "layoutY": 403
-        },
+          "layoutX": 1467,
+          "layoutY": 267
+        }
+      },
+      {
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To latencies asset",
+        "debugSettings": null,
         "singletonMode": false,
-        "configurationVersion": 0,
+        "queueName": null,
+        "configurationVersion": 1,
         "configuration": {
           "originatorSource": "ENTITY",
           "entityType": "ASSET",
@@ -267,66 +306,273 @@
               }
             ],
             "fetchLastLevelOnly": false
-          }
+          },
+          "preserveOriginatorIfCustomer": true
         },
-        "externalId": null
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1438,
+          "layoutY": 403
+        }
       },
       {
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1733331880270
+        },
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 1,
+        "configuration": {
+          "defaultTTL": 1209600,
+          "useServerTs": null,
+          "processingSettings": {
+            "type": "ON_EVERY_MESSAGE"
+          }
+        },
         "additionalInfo": {
           "description": null,
           "layoutX": 1458,
           "layoutY": 505
-        },
-        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
-        "name": "Save Timeseries",
-        "singletonMode": false,
-        "configurationVersion": 1,
-        "configuration": {
-          "defaultTTL": 0,
-          "useServerTs": false,
-          "processingSettings": {
-            "type": "ON_EVERY_MESSAGE"
-          }
-        },
-        "externalId": null
+        }
       },
       {
+        "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
+        "name": "Has testData",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1744655225418
+        },
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 0,
+        "configuration": {
+          "messageNames": [
+            "testData",
+            "testDataCf"
+          ],
+          "metadataNames": [],
+          "checkAllKeys": false
+        },
         "additionalInfo": {
           "description": "",
           "layoutX": 928,
           "layoutY": 266
-        },
-        "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
-        "name": "Has testData",
-        "singletonMode": false,
-        "configurationVersion": 0,
-        "configuration": {
-          "messageNames": [
-            "testData"
-          ],
-          "metadataNames": [],
-          "checkAllKeys": true
-        },
-        "externalId": null
+        }
       },
       {
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries with TTL",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1742304208838
+        },
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 1,
+        "configuration": {
+          "processingSettings": {
+            "timeseries": {
+              "type": "ON_EVERY_MESSAGE"
+            },
+            "latest": {
+              "type": "ON_EVERY_MESSAGE"
+            },
+            "webSockets": {
+              "type": "ON_EVERY_MESSAGE"
+            },
+            "calculatedFields": {
+              "type": "ON_EVERY_MESSAGE"
+            },
+            "type": "ADVANCED"
+          },
+          "defaultTTL": 60,
+          "useServerTs": null
+        },
         "additionalInfo": {
           "description": null,
           "layoutX": 1203,
           "layoutY": 327
+        }
+      },
+      {
+        "type": "org.thingsboard.rule.engine.report.TbGenerateReportNode",
+        "name": "Generate report",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1735648551598
         },
-        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
-        "name": "Save Timeseries with TTL",
         "singletonMode": false,
-        "configurationVersion": 1,
+        "queueName": null,
+        "configurationVersion": 0,
         "configuration": {
-          "defaultTTL": 180,
-          "useServerTs": false,
-          "processingSettings": {
-            "type": "ON_EVERY_MESSAGE"
+          "useSystemReportsServer": true,
+          "reportsServerEndpointUrl": null,
+          "useReportConfigFromMessage": false,
+          "reportConfig": {
+            "baseUrl": "https://tbqa.cloud",
+            "useDashboardTimewindow": true,
+            "timewindow": {
+              "selectedTab": 1,
+              "history": {
+                "historyType": 0,
+                "interval": 1000,
+                "timewindowMs": 86400000
+              }
+            },
+            "namePattern": "report-%d{yyyy-MM-dd_HH:mm:ss}",
+            "type": "pdf",
+            "timezone": "Europe/Kyiv",
+            "useCurrentUserCredentials": true,
+            "userId": "${MONITORING:userId}",
+            "dashboardId": "${MONITORING:monitoringDashboardId}",
+            "state": ""
           }
         },
-        "externalId": null
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 294,
+          "layoutY": 769
+        }
+      },
+      {
+        "type": "org.thingsboard.rule.engine.notification.TbNotificationNode",
+        "name": "Send alert",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1733331880270
+        },
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 0,
+        "configuration": {
+          "templateId": {
+            "entityType": "NOTIFICATION_TEMPLATE",
+            "id": "${MONITORING:webReportAlertNotificationTemplateId}"
+          },
+          "targets": [
+            "${MONITORING:alertsNotificationTargetId}"
+          ]
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 961,
+          "layoutY": 738
+        }
+      },
+      {
+        "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
+        "name": "Create web report alarm",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1733331880270
+        },
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 0,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    delete metadata.prevAlarmDetails;\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
+          "alarmDetailsBuildTbel": "var details = {};\nif (metadata.prevAlarmDetails != null) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    metadata.remove('prevAlarmDetails');\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
+          "useMessageAlarmData": false,
+          "overwriteAlarmDetails": false,
+          "alarmType": "webReportFailure",
+          "severity": "CRITICAL",
+          "propagate": false,
+          "relationTypes": [],
+          "propagateToOwner": false,
+          "propagateToOwnerHierarchy": false,
+          "propagateToTenant": false,
+          "dynamicSeverity": false
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 613,
+          "layoutY": 734
+        }
+      },
+      {
+        "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
+        "name": "Clear web report alarm",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1733331880270
+        },
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 0,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    delete metadata.prevAlarmDetails;\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
+          "alarmDetailsBuildTbel": "var details = {};\nif (metadata.prevAlarmDetails != null) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    metadata.remove('prevAlarmDetails');\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
+          "alarmType": "webReportFailure"
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 443,
+          "layoutY": 621
+        }
+      },
+      {
+        "type": "org.thingsboard.rule.engine.notification.TbNotificationNode",
+        "name": "Send ok",
+        "debugSettings": {
+          "failuresEnabled": true,
+          "allEnabled": false,
+          "allEnabledUntil": 1733331880270
+        },
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 0,
+        "configuration": {
+          "templateId": {
+            "entityType": "NOTIFICATION_TEMPLATE",
+            "id": "${MONITORING:webReportOkNotificationTemplateId}"
+          },
+          "targets": [
+            "${MONITORING:alertsNotificationTargetId}"
+          ]
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 780,
+          "layoutY": 631
+        }
+      },
+      {
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "Every hour",
+        "debugSettings": {
+          "failuresEnabled": false,
+          "allEnabled": false,
+          "allEnabledUntil": 0
+        },
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 2,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 1800,
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "${MONITORING:monitoringAssetId}",
+          "originatorType": "ASSET"
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 9,
+          "layoutY": 737
+        }
       }
     ],
     "connections": [
@@ -382,7 +628,7 @@
       },
       {
         "fromIndex": 9,
-        "toIndex": 10,
+        "toIndex": 11,
         "type": "Success"
       },
       {
@@ -423,6 +669,36 @@
       {
         "fromIndex": 17,
         "toIndex": 13,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 18,
+        "toIndex": 20,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 18,
+        "toIndex": 21,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 20,
+        "toIndex": 19,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 20,
+        "toIndex": 19,
+        "type": "Updated"
+      },
+      {
+        "fromIndex": 21,
+        "toIndex": 22,
+        "type": "Cleared"
+      },
+      {
+        "fromIndex": 23,
+        "toIndex": 18,
         "type": "Success"
       }
     ],
