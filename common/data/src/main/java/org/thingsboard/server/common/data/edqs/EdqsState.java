@@ -28,31 +28,59 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.query;
+package org.thingsboard.server.common.data.edqs;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.edqs.query.EdqsRequest;
-import org.thingsboard.server.common.data.edqs.query.EdqsResponse;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.edqs.EdqsApiService;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.BooleanUtils;
 
-@Service
-@Slf4j
-@ConditionalOnMissingBean(value = EdqsApiService.class, ignored = DummyEdqsApiService.class)
-public class DummyEdqsApiService implements EdqsApiService {
+@Getter
+@NoArgsConstructor
+public class EdqsState {
 
-    @Override
-    public ListenableFuture<EdqsResponse> processRequest(TenantId tenantId, CustomerId customerId, EdqsRequest request) {
-        throw new UnsupportedOperationException();
+    private Boolean edqsReady;
+    private EdqsSyncStatus syncStatus;
+
+    private Boolean apiEnabled; // null until auto-enabled or set manually
+
+    public boolean setEdqsReady(boolean ready) {
+        boolean changed = BooleanUtils.toBooleanDefaultIfNull(this.edqsReady, false) != ready;
+        this.edqsReady = ready;
+        return changed;
+    }
+
+    public void setSyncStatus(EdqsSyncStatus syncStatus) {
+        this.syncStatus = syncStatus;
+    }
+
+    public boolean setApiEnabled(boolean apiEnabled) {
+        boolean changed = BooleanUtils.toBooleanDefaultIfNull(this.apiEnabled, false) != apiEnabled;
+        this.apiEnabled = apiEnabled;
+        return changed;
+    }
+
+    public boolean isApiReady() {
+        return edqsReady && syncStatus == EdqsSyncStatus.FINISHED;
+    }
+
+    public boolean isApiEnabled() {
+        return apiEnabled != null && apiEnabled;
     }
 
     @Override
-    public boolean isSupported() {
-        return false;
+    public String toString() {
+        return '[' +
+               "EDQS ready: " + edqsReady +
+               ", sync status: " + syncStatus +
+               ", API enabled: " + apiEnabled +
+               ']';
+    }
+
+    public enum EdqsSyncStatus {
+        REQUESTED,
+        STARTED,
+        FINISHED,
+        FAILED
     }
 
 }
