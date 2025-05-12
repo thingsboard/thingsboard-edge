@@ -30,6 +30,7 @@
  */
 package org.thingsboard.monitoring.config.integration;
 
+import com.google.common.base.Strings;
 import lombok.Data;
 import org.thingsboard.monitoring.config.MonitoringTarget;
 import org.thingsboard.monitoring.config.transport.DeviceConfig;
@@ -49,6 +50,10 @@ public class IntegrationMonitoringTarget implements MonitoringTarget {
     @Override
     public UUID getDeviceId() {
         return device.getId();
+    }
+
+    public String getNamePrefix() {
+        return Strings.nullToEmpty(namePrefix);
     }
 
 }
