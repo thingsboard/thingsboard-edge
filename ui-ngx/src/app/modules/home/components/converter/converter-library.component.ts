@@ -239,7 +239,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       this.libraryFormGroup.disable({emitEvent: false});
     } else {
       this.libraryFormGroup.enable({emitEvent: false});
-      this.libraryFormGroup.updateValueAndValidity();
     }
   }
 
