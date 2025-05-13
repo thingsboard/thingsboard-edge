@@ -127,7 +127,7 @@ export class IntegrationService {
   }
 
   public getEdgeIntegrations(edgeId: string, pageLink: PageLink, config?: RequestConfig): Observable<PageData<IntegrationInfo>> {
-    return this.http.get<PageData<IntegrationInfo>>(`/api/edge/${edgeId}/integrations${pageLink.toQuery()}`,
+    return this.http.get<PageData<IntegrationInfo>>(`/api/edge/${edgeId}/integrationInfos${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
 }
