@@ -28,38 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.task;
+package org.thingsboard.server.queue.settings;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.job.JobType;
-import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
-import org.thingsboard.server.queue.TbQueueConsumer;
-import org.thingsboard.server.queue.TbQueueProducer;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.memory.InMemoryStorage;
-import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
-import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
-import org.thingsboard.server.queue.settings.TasksQueueConfig;
 
+@Data
 @Component
-@ConditionalOnExpression("'${queue.type:null}'=='in-memory'")
-@RequiredArgsConstructor
-public class InMemoryTaskProcessorQueueFactory implements TaskProcessorQueueFactory {
+public class TasksQueueConfig {
 
-    private final InMemoryStorage storage;
-    private final TasksQueueConfig tasksQueueConfig;
+    @Value("${queue.tasks.poll_interval}")
+    private int pollInterval;
 
-    @Override
-    public TbQueueConsumer<TbProtoQueueMsg<TaskProto>> createTaskConsumer(JobType jobType) {
-        return new InMemoryTbQueueConsumer<>(storage, jobType.getTasksTopic());
-    }
-
-    @Override
-    public TbQueueProducer<TbProtoQueueMsg<JobStatsMsg>> createJobStatsProducer() {
-        return new InMemoryTbQueueProducer<>(storage, tasksQueueConfig.getStatsTopic());
-    }
+    @Value("${queue.tasks.stats.topic}")
+    private String statsTopic;
 
 }

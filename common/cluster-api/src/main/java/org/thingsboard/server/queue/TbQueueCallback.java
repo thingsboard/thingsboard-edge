@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.queue;
 
-
 public interface TbQueueCallback {
 
     TbQueueCallback EMPTY = new TbQueueCallback() {
@@ -49,4 +48,5 @@ public interface TbQueueCallback {
     void onSuccess(TbQueueMsgMetadata metadata);
 
     void onFailure(Throwable t);
+
 }
