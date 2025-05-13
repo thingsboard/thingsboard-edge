@@ -83,6 +83,7 @@ import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaProducerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
+import org.thingsboard.server.queue.settings.TasksQueueConfig;
 import org.thingsboard.server.queue.settings.TbQueueCalculatedFieldSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
@@ -116,6 +117,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
     private final TbQueueCalculatedFieldSettings calculatedFieldSettings;
     private final EdqsConfig edqsConfig;
+    private final TasksQueueConfig tasksQueueConfig;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -156,6 +158,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
                                    TbQueueIntegrationExecutorSettings integrationExecutorSettings,
                                    TbQueueCalculatedFieldSettings calculatedFieldSettings,
                                    EdqsConfig edqsConfig,
+                                   TasksQueueConfig tasksQueueConfig,
                                    TbKafkaTopicConfigs kafkaTopicConfigs) {
         this.topicService = topicService;
         this.kafkaSettings = kafkaSettings;
@@ -172,6 +175,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         this.integrationExecutorSettings = integrationExecutorSettings;
         this.calculatedFieldSettings = calculatedFieldSettings;
         this.edqsConfig = edqsConfig;
+        this.tasksQueueConfig = tasksQueueConfig;
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
@@ -665,7 +669,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
     public TbQueueConsumer<TbProtoQueueMsg<JobStatsMsg>> createJobStatsConsumer() {
         return TbKafkaConsumerTemplate.<TbProtoQueueMsg<JobStatsMsg>>builder()
                 .settings(kafkaSettings)
-                .topic(topicService.buildTopicName("jobs.stats"))
+                .topic(topicService.buildTopicName(tasksQueueConfig.getStatsTopic()))
                 .clientId("job-stats-consumer-" + serviceInfoProvider.getServiceId())
                 .groupId(topicService.buildTopicName("job-stats-consumer-group"))
                 .decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), JobStatsMsg.parseFrom(msg.getData()), msg.getHeaders()))
