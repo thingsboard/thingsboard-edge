@@ -67,7 +67,7 @@ import static org.mockito.Mockito.verify;
 
 @DaoSqlTest
 @TestPropertySource(properties = {
-        "queue.tasks.stats.processing_interval_ms=0"
+        "queue.tasks.stats.processing_interval=0"
 })
 public class JobManagerTest extends AbstractControllerTest {
 
@@ -218,7 +218,7 @@ public class JobManagerTest extends AbstractControllerTest {
                 .description("test job")
                 .configuration(DummyJobConfiguration.builder()
                         .successfulTasksCount(tasksCount)
-                        .taskProcessingTimeMs(100)
+                        .taskProcessingTimeMs(500)
                         .build())
                 .build()).getId();
 
