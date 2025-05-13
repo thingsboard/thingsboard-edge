@@ -83,7 +83,7 @@
         </div>
       </form>
     </mat-step>
-    <mat-step [stepControl]="uplinkConverterForm">
+    <mat-step #uplinkConverterStep [stepControl]="uplinkConverterForm">
       <form [formGroup]="uplinkConverterForm">
         <ng-template #uplinkLabel matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
         <div class="tb-form-panel tb-converter-panel">
@@ -106,9 +106,8 @@
           </tb-converter-autocomplete>
           <tb-converter #uplinkDataConverter
                         [class.!hidden]="(uplinkConverterForm.get('converterType').value !== ConverterSourceType.NEW) && (uplinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY)"
-                        hideTypes="true"
-                        [onlyNewConverter]="uplinkConverterForm.get('converterType').value === ConverterSourceType.NEW"
-                        [onlyLibraryConverter]="uplinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
+                        integrationWizardMode="true"
+                        [interacted]="uplinkConverterStep.interacted"
                         [converterTypeValue]="uplinkConverterForm.get('converterType').value"
                         [integrationName]="integrationWizardForm.get('name').value"
                         [converterName]="createConvertorName(converterType.UPLINK)"
@@ -118,7 +117,7 @@
         </div>
       </form>
     </mat-step>
-    <mat-step [stepControl]="downlinkConverterForm" *ngIf="showDownlinkStep">
+    <mat-step #downlinkConverterStep [stepControl]="downlinkConverterForm" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
         <ng-template #downlinkLabel matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
         <div class="tb-form-panel tb-converter-panel">
@@ -141,9 +140,8 @@
           </tb-converter-autocomplete>
           <tb-converter #downlinkDataConverter
                         [class.!hidden]="(downlinkConverterForm.get('converterType').value !== ConverterSourceType.NEW) && (downlinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY)"
-                        hideTypes="true"
-                        [onlyNewConverter]="downlinkConverterForm.get('converterType').value === ConverterSourceType.NEW"
-                        [onlyLibraryConverter]="downlinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
+                        integrationWizardMode="true"
+                        [interacted]="downlinkConverterStep.interacted"
                         [converterTypeValue]="downlinkConverterForm.get('converterType').value"
                         [integrationName]="integrationWizardForm.get('name').value"
                         [converterName]="createConvertorName(converterType.DOWNLINK)"

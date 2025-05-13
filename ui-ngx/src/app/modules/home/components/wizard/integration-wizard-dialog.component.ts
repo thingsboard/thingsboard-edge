@@ -222,15 +222,14 @@ export class IntegrationWizardDialogComponent extends
           this.downlinkConverterForm.get('downlinkConverterId').enable({emitEvent: false});
           this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
           break;
-        case ConverterSourceType.LIBRARY:
-        case ConverterSourceType.NEW:
+        case ConverterSourceType.SKIP:
           this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
-          this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
-          this.downlinkDataConverterComponent.updatedValidators();
+          this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
           break;
         default:
           this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
-          this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
+          this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
+          this.downlinkDataConverterComponent.updatedValidators();
           break;
       }
     });

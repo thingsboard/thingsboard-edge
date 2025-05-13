@@ -57,7 +57,7 @@ import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject
 import { catchError, distinctUntilChanged, map, startWith, switchMap, takeUntil, } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationType } from '@shared/models/integration.models';
-import { Converter, ConverterLibraryValue, ConverterType, Model, Vendor } from '@shared/models/converter.models';
+import { Converter, ConverterLibraryInfo, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
 
 @Component({
@@ -83,8 +83,13 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
+  @Input() set interacted(interacted: boolean) {
+    if (interacted) {
+      this.libraryFormGroup.markAllAsTouched();
+    }
+  }
 
-  @Output() converter = new EventEmitter<{ converter: Converter, libraryInfo: { vendorName: string; modelName: string }}>();
+  @Output() converter = new EventEmitter<Converter>();
 
   @ViewChild('modelInput') modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
@@ -99,8 +104,8 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   modelInputSubject = new Subject<void>();
 
   private destroy$ = new Subject<void>();
-
-  private onChange: (converter: Converter) => void = (_) => {};
+  modelValue: ConverterLibraryInfo;
+  private propagateChange: (value: any) => void = () => {};
 
   constructor(
     private fb: FormBuilder,
@@ -113,7 +118,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
     this.libraryFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.onChange(this.libraryFormGroup.getRawValue()));
+      .subscribe(() => this.updateView(this.libraryFormGroup.getRawValue()));
 
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
       switchMap(() => of(this.integrationType, this.converterType)),
@@ -194,16 +199,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           }
           return defaultConverter;
         })
-    ).subscribe(value => this.converter.emit(
-        {
-          converter: value,
-          libraryInfo: this.libraryFormGroup.get('vendor').value?.name && this.libraryFormGroup.get('model').value?.name? {
-            vendorName: this.libraryFormGroup.get('vendor').value?.name,
-            modelName: this.libraryFormGroup.get('model').value?.name
-          } : null
-        }
-      )
-  );
+    ).subscribe(value => this.converter.emit(value));
   }
 
   get vendorValueChanges(): Observable<Vendor | string> {
@@ -247,16 +243,29 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     }
   }
 
-  registerOnChange(fn: (converter: Converter) => void): void {
-    this.onChange = fn;
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn;
   }
 
   registerOnTouched(_: any): void {
   }
 
-  writeValue(converterLibraryValue: ConverterLibraryValue): void {
+  private updateView(value: ConverterLibraryInfo) {
+    if (this.modelValue !== value && (value.model && value.vendor)) {
+      this.modelValue = value;
+      this.propagateChange(this.modelValue);
+    } else {
+      this.propagateChange(null);
+    }
+  }
+
+  writeValue(converterLibraryValue: ConverterLibraryInfo): void {
     if (isDefinedAndNotNull(converterLibraryValue)) {
+      this.modelValue = converterLibraryValue;
       this.libraryFormGroup.patchValue(converterLibraryValue, {emitEvent: true});
+    } else {
+      this.modelValue = null;
+      this.libraryFormGroup.patchValue( {vendor: '', model: ''}, {emitEvent: false})
     }
   }
 

@@ -200,10 +200,9 @@ export enum ConverterSourceType {
   SKIP = 'skip',
 }
 
-export interface ConverterLibraryValue {
+export interface ConverterLibraryInfo {
   vendor: string;
   model: string;
-  converter: Converter;
 }
 
 export interface Vendor {
