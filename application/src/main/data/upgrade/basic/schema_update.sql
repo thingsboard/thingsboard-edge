@@ -32,9 +32,16 @@
 -- UPDATE INTEGRATION PROTOCOL VERSION FOR MQTT CLIENT TYPES START
 
 UPDATE integration
+SET configuration = jsonb_set(configuration::jsonb,'{clientConfiguration,protocolVersion}','"MQTT_3_1"', true)::varchar
+WHERE
+    NOT (configuration::jsonb)->'clientConfiguration' ? 'protocolVersion'
+    AND type IN ('MQTT', 'AWS_IOT', 'IBM_WATSON_IOT', 'TTI', 'TTN');
+
+-- Set "MQTT_3_1_1" only for AZURE_IOT_HUB
+UPDATE integration
 SET configuration = jsonb_set(configuration::jsonb,'{clientConfiguration,protocolVersion}','"MQTT_3_1_1"', true)::varchar
 WHERE
     NOT (configuration::jsonb)->'clientConfiguration' ? 'protocolVersion'
-    AND type IN ('MQTT', 'AWS_IOT', 'AZURE_IOT_HUB', 'IBM_WATSON_IOT', 'TTI', 'TTN');
+    AND type = 'AZURE_IOT_HUB';
 
 -- UPDATE INTEGRATION PROTOCOL VERSION FOR MQTT CLIENT TYPES END
