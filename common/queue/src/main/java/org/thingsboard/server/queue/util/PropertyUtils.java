@@ -32,7 +32,9 @@ package org.thingsboard.server.queue.util;
 
 import org.thingsboard.server.common.data.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -47,6 +49,21 @@ public class PropertyUtils {
                     String key = property.substring(0, delimiterPosition);
                     String value = property.substring(delimiterPosition + 1);
                     configs.put(key, value);
+                }
+            }
+        }
+        return configs;
+    }
+
+    public static Map<String, List<String>> getGroupedProps(String properties) {
+        Map<String, List<String>> configs = new HashMap<>();
+        if (StringUtils.isNotEmpty(properties)) {
+            for (String property : properties.split(";")) {
+                if (StringUtils.isNotEmpty(property)) {
+                    int delimiterPosition = property.indexOf(":");
+                    String topic = property.substring(0, delimiterPosition).trim();
+                    String value = property.substring(delimiterPosition + 1).trim();
+                    configs.computeIfAbsent(topic, k -> new ArrayList<>()).add(value);
                 }
             }
         }

@@ -33,6 +33,8 @@ package org.thingsboard.server.service.sync.ie.importing.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.api.client.util.Objects;
 import com.google.common.util.concurrent.FutureCallback;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -139,9 +141,9 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
 
         E prepared = prepare(ctx, entity, existingEntity, exportData, idProvider);
 
-        boolean saveOrUpdate = existingEntity == null || compare(ctx, exportData, prepared, existingEntity);
+        CompareResult compareResult = compare(ctx, exportData, prepared, existingEntity);
 
-        if (saveOrUpdate) {
+        if (compareResult.isUpdateNeeded()) {
             boolean changeOwner = false;
             if (existingEntity != null && prepared instanceof HasOwnerId) {
                 EntityId newOwnerId = ((HasOwnerId) prepared).getOwnerId();
@@ -151,7 +153,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
                     ownersCacheService.changeEntityOwner(ctx.getTenantId(), existingEntity.getId(), newOwnerId, oldOwnerId);
                 }
             }
-            E savedEntity = saveOrUpdate(ctx, prepared, exportData, idProvider);
+            E savedEntity = saveOrUpdate(ctx, prepared, exportData, idProvider, compareResult);
             if (changeOwner) {
                 importResult.addSendEventsCallback(() ->
                         logEntityActionService.logEntityAction(ctx.getTenantId(), savedEntity.getId(), entity, ActionType.CHANGE_OWNER, ctx.getUser(), ((HasOwnerId) savedEntity).getOwnerId()));
@@ -172,6 +174,17 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         return importResult;
     }
 
+    @Data
+    @AllArgsConstructor
+    static class CompareResult {
+        private boolean updateNeeded;
+        private boolean externalIdChangedOnly;
+
+        public CompareResult(boolean updateNeeded) {
+            this.updateNeeded = updateNeeded;
+        }
+    }
+
     protected boolean updateRelatedEntitiesIfUnmodified(EntitiesImportCtx ctx, E prepared, D exportData, IdProvider idProvider) {
         return importCalculatedFields(ctx, prepared, exportData, idProvider);
     }
@@ -183,18 +196,30 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
 
     protected abstract E prepare(EntitiesImportCtx ctx, E entity, E oldEntity, D exportData, IdProvider idProvider);
 
-    protected boolean compare(EntitiesImportCtx ctx, D exportData, E prepared, E existing) {
+    protected CompareResult compare(EntitiesImportCtx ctx, D exportData, E prepared, E existing) {
+        if (existing == null) {
+            log.debug("[{}] Found new entity.", prepared.getId());
+            return new CompareResult(true);
+        }
         var newCopy = deepCopy(prepared);
         var existingCopy = deepCopy(existing);
         cleanupForComparison(newCopy);
         cleanupForComparison(existingCopy);
-        var result = !newCopy.equals(existingCopy);
-        if (result) {
+        var updateNeeded = isUpdateNeeded(ctx, exportData, newCopy, existingCopy);
+        boolean externalIdChangedOnly = false;
+        if (updateNeeded) {
             log.debug("[{}] Found update.", prepared.getId());
             log.debug("[{}] From: {}", prepared.getId(), newCopy);
             log.debug("[{}] To: {}", prepared.getId(), existingCopy);
+            cleanupExternalId(newCopy);
+            cleanupExternalId(existingCopy);
+            externalIdChangedOnly = newCopy.equals(existingCopy);
         }
-        return result;
+        return new CompareResult(updateNeeded, externalIdChangedOnly);
+    }
+
+    protected boolean isUpdateNeeded(EntitiesImportCtx ctx, D exportData, E prepared, E existing) {
+        return !prepared.equals(existing);
     }
 
     protected abstract E deepCopy(E e);
@@ -207,7 +232,11 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         }
     }
 
-    protected abstract E saveOrUpdate(EntitiesImportCtx ctx, E entity, D exportData, IdProvider idProvider);
+    protected void cleanupExternalId(E e) {
+        e.setExternalId(null);
+    }
+
+    protected abstract E saveOrUpdate(EntitiesImportCtx ctx, E entity, D exportData, IdProvider idProvider, CompareResult compareResult);
 
     protected void processAfterSaved(EntitiesImportCtx ctx, EntityImportResult<E> importResult, D exportData, IdProvider idProvider) throws ThingsboardException {
         E savedEntity = importResult.getSavedEntity();
