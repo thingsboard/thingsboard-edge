@@ -42,9 +42,11 @@ import { ActionAuthUpdateUserDetails } from '@core/auth/auth.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
 import { ActivatedRoute } from '@angular/router';
-import { isDefinedAndNotNull } from '@core/utils';
+import { isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthService } from '@core/auth/auth.service';
+import { UnitSystem, UnitSystems } from '@shared/models/unit.models';
+import { UnitService } from '@core/services/unit.service';
 
 @Component({
   selector: 'tb-profile',
@@ -57,7 +59,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
   profile: UntypedFormGroup;
   user: User;
   languageList: [locelCode: string, localeLanguage: string];
-
+  UnitSystems = UnitSystems;
   authState = getCurrentAuthState(this.store);
 
   constructor(protected store: Store<AppState>,
@@ -65,7 +67,8 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
               private userService: UserService,
               private authService: AuthService,
               private translate: TranslateService,
-              public fb: UntypedFormBuilder) {
+              private unitService: UnitService,
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -82,6 +85,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
       lastName: [''],
       phone: [''],
       language: [''],
+      unitSystem: [''],
       homeDashboardId: [null],
       homeDashboardHideToolbar: [true]
     });
@@ -95,6 +99,11 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
     this.user.additionalInfo.lang = this.profile.get('language').value;
     this.user.additionalInfo.homeDashboardId = this.profile.get('homeDashboardId').value;
     this.user.additionalInfo.homeDashboardHideToolbar = this.profile.get('homeDashboardHideToolbar').value;
+    if (isNotEmptyStr(this.profile.get('unitSystem').value)) {
+      this.user.additionalInfo.unitSystem = this.profile.get('unitSystem').value;
+    } else {
+      delete this.user.additionalInfo.unitSystem;
+    }
     this.userService.saveUser(this.user).subscribe(
       (user) => {
         this.userLoaded(user);
@@ -112,6 +121,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
             customMenuId: user.customMenuId
           } }));
         this.store.dispatch(new ActionSettingsChangeLanguage({ userLang: user.additionalInfo.lang, reload: false, ignoredLoad: false }));
+        this.unitService.setUnitSystem(this.user.additionalInfo.unitSystem);
         this.authService.refreshJwtToken(false);
       }
     );
@@ -123,6 +133,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
     let lang;
     let homeDashboardId;
     let homeDashboardHideToolbar = true;
+    let unitSystem: UnitSystem = null;
     if (user.additionalInfo) {
       if (user.additionalInfo.lang) {
         lang = user.additionalInfo.lang;
@@ -131,11 +142,15 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
       if (isDefinedAndNotNull(user.additionalInfo.homeDashboardHideToolbar)) {
         homeDashboardHideToolbar = user.additionalInfo.homeDashboardHideToolbar;
       }
+      if (isNotEmptyStr(user.additionalInfo.unitSystem)) {
+        unitSystem = user.additionalInfo.unitSystem;
+      }
     }
     if (!lang) {
       lang = this.translate.currentLang;
     }
     this.profile.get('language').setValue(lang);
+    this.profile.get('unitSystem').setValue(unitSystem);
     this.profile.get('homeDashboardId').setValue(homeDashboardId);
     this.profile.get('homeDashboardHideToolbar').setValue(homeDashboardHideToolbar);
   }

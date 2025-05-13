@@ -51,6 +51,7 @@ import {
   valueChartCardLayoutTranslations,
   ValueChartCardWidgetSettings
 } from '@home/components/widget/lib/cards/value-chart-card-widget.models';
+import { getSourceTbUnitSymbol } from '@shared/models/unit.models';
 
 @Component({
   selector: 'tb-value-chart-card-basic-config',
@@ -266,7 +267,7 @@ export class ValueChartCardBasicConfigComponent extends BasicWidgetConfigCompone
   }
 
   private _valuePreviewFn(): string {
-    const units: string = this.widgetConfig.config.units;
+    const units: string = getSourceTbUnitSymbol(this.widgetConfig.config.units);
     const decimals: number = this.widgetConfig.config.decimals;
     return formatValue(22, decimals, units, true);
   }

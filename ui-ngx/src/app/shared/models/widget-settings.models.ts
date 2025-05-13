@@ -29,7 +29,15 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { isDefinedAndNotNull, isNumber, isNumeric, isUndefinedOrNull, mergeDeep, parseFunction } from '@core/utils';
+import {
+  isDefinedAndNotNull,
+  isNotEmptyStr,
+  isNumber,
+  isNumeric,
+  isUndefinedOrNull,
+  mergeDeep,
+  parseFunction
+} from '@core/utils';
 import {
   DataEntry,
   DataKey,
@@ -60,6 +68,8 @@ import {
   WidgetSubscriptionCallbacks,
   WidgetSubscriptionOptions
 } from '@core/api/widget-api.models';
+import { UnitService } from '@core/services/unit.service';
+import { TbUnit, TbUnitConverter } from '@shared/models/unit.models';
 
 export type ComponentStyle = {[klass: string]: any};
 
@@ -865,6 +875,106 @@ export class AutoDateFormatProcessor extends DateFormatProcessor {
     }
     return this.formatted;
   }
+}
+
+export interface ValueFormatSettings {
+  decimals?: number;
+  units?: TbUnit;
+  showZeroDecimals?: boolean;
+  ignoreUnitSymbol?: boolean;
+}
+
+export abstract class ValueFormatProcessor {
+
+  protected isDefinedDecimals: boolean;
+  protected hideZeroDecimals: boolean;
+  protected unitSymbol: string;
+
+  static fromSettings($injector: Injector, settings: ValueFormatSettings): ValueFormatProcessor {
+    if (settings.units !== null && typeof settings.units === 'object') {
+      return new UnitConverterValueFormatProcessor($injector, settings)
+    }
+    return new SimpleValueFormatProcessor($injector, settings);
+  }
+
+  protected constructor(protected $injector: Injector,
+                        protected settings: ValueFormatSettings) {
+  }
+
+  abstract format(value: any): string;
+
+  protected formatValue(value: number): string {
+    let formatted: number | string = value;
+    if (this.isDefinedDecimals) {
+      formatted = formatted.toFixed(this.settings.decimals);
+    }
+    if (this.hideZeroDecimals) {
+      formatted = Number(formatted);
+    }
+    formatted = formatted.toString();
+    if (this.unitSymbol) {
+      formatted += ` ${this.unitSymbol}`;
+    }
+    return formatted;
+  }
+}
+
+export class SimpleValueFormatProcessor extends ValueFormatProcessor {
+
+  private readonly isDefinedUnit: boolean;
+
+  constructor(protected $injector: Injector,
+              protected settings: ValueFormatSettings) {
+    super($injector, settings);
+    this.unitSymbol = !settings.ignoreUnitSymbol && isNotEmptyStr(settings.units) ? (settings.units as string) : null;
+    this.isDefinedDecimals = isDefinedAndNotNull(settings.decimals);
+    this.hideZeroDecimals = !settings.showZeroDecimals;
+  }
+
+  format(value: any): string {
+    if (isDefinedAndNotNull(value) && isNumeric(value) && (this.isDefinedDecimals || this.isDefinedUnit || Number(value).toString() === value)) {
+      return this.formatValue(Number(value));
+    }
+    return value ?? '';
+  }
+}
+
+export class UnitConverterValueFormatProcessor extends ValueFormatProcessor {
+
+  private readonly unitConverter: TbUnitConverter;
+
+  constructor(protected $injector: Injector,
+              protected settings: ValueFormatSettings) {
+    super($injector, settings);
+    const unitService = this.$injector.get(UnitService);
+    const unit = settings.units;
+    this.unitSymbol = settings.ignoreUnitSymbol ? null : unitService.getTargetUnitSymbol(unit);
+    this.unitConverter = unitService.geUnitConverter(unit);
+
+    this.isDefinedDecimals = isDefinedAndNotNull(settings.decimals);
+    this.hideZeroDecimals = !settings.showZeroDecimals;
+  }
+
+  format(value: any): string {
+    if (isDefinedAndNotNull(value) && isNumeric(value)) {
+      const formatted = this.unitConverter(Number(value));
+      return this.formatValue(formatted);
+    }
+    return value ?? '';
+  }
+}
+
+export const createValueFormatterFromSettings = (ctx: WidgetContext): ValueFormatProcessor => {
+  let decimals = ctx.decimals;
+  let units = ctx.units;
+  const dataKey = getDataKey(ctx.datasources);
+  if (isDefinedAndNotNull(dataKey?.decimals)) {
+    decimals = dataKey.decimals;
+  }
+  if (dataKey?.units) {
+    units = dataKey.units;
+  }
+  return ValueFormatProcessor.fromSettings(ctx.$injector, {units: units, decimals: decimals});
 }
 
 const intervalToFormatTimeUnit = (interval: Interval): FormatTimeUnit => {
