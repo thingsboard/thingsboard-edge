@@ -314,7 +314,7 @@ CREATE TABLE IF NOT EXISTS asset_profile (
     CONSTRAINT fk_default_rule_chain_asset_profile FOREIGN KEY (default_rule_chain_id) REFERENCES rule_chain(id),
     CONSTRAINT fk_default_dashboard_asset_profile FOREIGN KEY (default_dashboard_id) REFERENCES dashboard(id),
     CONSTRAINT fk_default_edge_rule_chain_asset_profile FOREIGN KEY (default_edge_rule_chain_id) REFERENCES rule_chain(id)
-    );
+);
 
 CREATE TABLE IF NOT EXISTS asset (
     id uuid NOT NULL CONSTRAINT asset_pkey PRIMARY KEY,
@@ -673,7 +673,7 @@ CREATE TABLE IF NOT EXISTS secret (
     type varchar(255),
     description varchar(1024),
     value bytea,
-    CONSTRAINT secret_unq_key UNIQUE (tenant_id, name),
+    CONSTRAINT secret_unq_key UNIQUE (tenant_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS encryption_key (

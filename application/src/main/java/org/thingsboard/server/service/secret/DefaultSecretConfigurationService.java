@@ -68,11 +68,18 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
                 if (secret == null) {
                     return value;
                 }
-                return secretUtilService.decryptToString(tenantId, secret.getType(), secret.getValue());
+                return secretUtilService.decryptToString(tenantId, secret.getType(), secret.getRawValue());
             }
             return value;
         });
         return result;
+    }
+
+    @Override
+    public <T> T replaceSecretPlaceholders(TenantId tenantId, T config) {
+        JsonNode jsonNode = JacksonUtil.valueToTree(config);
+        JsonNode replaced = replaceSecretPlaceholders(tenantId, jsonNode);
+        return JacksonUtil.treeToValue(replaced, (Class<T>) config.getClass());
     }
 
     @Override

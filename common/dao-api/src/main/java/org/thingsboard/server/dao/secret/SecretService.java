@@ -44,8 +44,6 @@ public interface SecretService extends EntityDaoService {
 
     Secret saveSecret(TenantId tenantId, Secret secret);
 
-    Secret saveSecretWithoutEncryption(TenantId tenantId, Secret secret);
-
     void deleteSecret(TenantId tenantId, SecretInfo secretInfo);
 
     Secret findSecretById(TenantId tenantId, SecretId secretId);

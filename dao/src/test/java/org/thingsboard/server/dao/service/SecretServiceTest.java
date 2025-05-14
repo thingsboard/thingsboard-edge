@@ -118,7 +118,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(retrievedInfo).isEqualTo(new SecretInfo(savedSecret));
 
         // update encrypted value
-        savedSecret.setValue("NewPassword".getBytes(StandardCharsets.UTF_8));
+        savedSecret.setValue("NewPassword");
         savedSecret = secretService.saveSecret(tenantId, savedSecret);
         retrievedSecret = secretService.findSecretById(tenantId, savedSecret.getId());
         assertThat(retrievedSecret).isEqualTo(savedSecret);
@@ -254,7 +254,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         secret.setTenantId(tenantId);
         secret.setName(name);
         secret.setType(SecretType.TEXT);
-        secret.setValue(value.getBytes(StandardCharsets.UTF_8));
+        secret.setValue(value);
         return secret;
     }
 

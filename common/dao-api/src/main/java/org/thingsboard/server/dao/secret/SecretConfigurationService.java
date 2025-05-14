@@ -37,6 +37,8 @@ public interface SecretConfigurationService {
 
     JsonNode replaceSecretPlaceholders(TenantId tenantId, JsonNode config);
 
+    <T> T replaceSecretPlaceholders(TenantId tenantId, T config);
+
     boolean matchSecretPlaceholder(JsonNode config, String name);
 
 }

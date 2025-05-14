@@ -30,42 +30,19 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.secret.SecretInfo;
-import org.thingsboard.server.dao.model.ModelConstants;
 
-import java.util.UUID;
-
-import static org.thingsboard.server.dao.model.ModelConstants.SECRET_DESCRIPTION_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.SECRET_NAME_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.SECRET_TABLE_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_COLUMN;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = SECRET_TABLE_NAME)
 public class SecretInfoEntity extends AbstractSecretInfoEntity<SecretInfo> {
-
-    @Column(name = TENANT_ID_COLUMN)
-    private UUID tenantId;
-
-    @Column(name = SECRET_NAME_COLUMN)
-    private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = ModelConstants.SECRET_TYPE_COLUMN)
-    private SecretType type;
-
-    @Column(name = SECRET_DESCRIPTION_COLUMN)
-    private String description;
 
     public SecretInfoEntity() {
         super();

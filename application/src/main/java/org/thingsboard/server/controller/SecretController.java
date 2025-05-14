@@ -101,7 +101,7 @@ public class SecretController extends BaseController {
         return new SecretInfo(tbSecretService.save(secret, getCurrentUser()));
     }
 
-    @ApiOperation(value = "Delete secret by ID (deleteEdge)",
+    @ApiOperation(value = "Delete secret by ID (deleteSecret)",
             notes = "Deletes the secret. Referencing non-existing Secret Id will cause an error." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @DeleteMapping(value = "/secret/{id}")
@@ -156,7 +156,7 @@ public class SecretController extends BaseController {
 //        var secret = checkSecretIdTest(secretId, Operation.READ);
         var secret = secretService.findSecretById(getTenantId(), secretId);
         log.error("value from get {}", JacksonUtil.toString(secret.getValue()));
-        return secretUtilService.decryptToString(getTenantId(), secret.getType(), secret.getValue());
+        return secretUtilService.decryptToString(getTenantId(), secret.getType(), secret.getRawValue());
     }
 
 }

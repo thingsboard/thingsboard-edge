@@ -68,9 +68,6 @@ public abstract class AbstractSecretInfoEntity<T extends SecretInfo> extends Bas
     @Column(name = SECRET_DESCRIPTION_COLUMN)
     private String description;
 
-    @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
-    private UUID externalId;
-
     public AbstractSecretInfoEntity() {
         super();
     }
@@ -86,9 +83,6 @@ public abstract class AbstractSecretInfoEntity<T extends SecretInfo> extends Bas
         this.name = secretInfo.getName();
         this.type = secretInfo.getType();
         this.description = secretInfo.getDescription();
-        if (secretInfo.getExternalId() != null) {
-            this.externalId = secretInfo.getExternalId().getId();
-        }
     }
 
     protected SecretInfo toSecretInfo() {
@@ -100,9 +94,6 @@ public abstract class AbstractSecretInfoEntity<T extends SecretInfo> extends Bas
         secretInfo.setName(name);
         secretInfo.setType(type);
         secretInfo.setDescription(description);
-        if (externalId != null) {
-            secretInfo.setExternalId(new SecretId(externalId));
-        }
         return secretInfo;
     }
 

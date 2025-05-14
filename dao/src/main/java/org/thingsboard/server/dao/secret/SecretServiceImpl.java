@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.secret;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.ComponentDescriptorService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -97,29 +96,12 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
             Secret old = secretValidator.validate(secret, Secret::getTenantId);
 
             if (secret.getValue() != null) {
-                log.error("before enc {}", JacksonUtil.toString(secret.getValue()));
-                byte[] encrypted = secretUtilService.encrypt(tenantId, secret.getType(), secret.getValue());
-                log.error("after enc {}", JacksonUtil.toString(encrypted));
-                secret.setValue(encrypted);
+                byte[] encrypted = secretUtilService.encrypt(tenantId, secret.getType(), secret.getRawValue());
+                secret.setRawValue(encrypted);
             } else if (old != null) {
                 secret.setValue(old.getValue());
             }
 
-            Secret savedSecret = secretDao.save(tenantId, secret);
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedSecret.getId()).entity(savedSecret).created(secret.getId() == null).build());
-            return savedSecret;
-        } catch (Exception e) {
-            checkConstraintViolation(e, "secret_unq_key", "Secret with such name already exists!");
-            throw e;
-        }
-    }
-
-    @Override
-    public Secret saveSecretWithoutEncryption(TenantId tenantId, Secret secret) {
-        log.trace("Executing saveSecretWithoutEncryption [{}]", secret);
-        try {
-            log.error("saving value {}", JacksonUtil.toString(secret.getValue()));
-            secretValidator.validate(secret, Secret::getTenantId);
             Secret savedSecret = secretDao.save(tenantId, secret);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedSecret.getId()).entity(savedSecret).created(secret.getId() == null).build());
             return savedSecret;

@@ -38,7 +38,6 @@ import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.encryptionkey.EncryptionKey;
 import org.thingsboard.server.common.data.id.EncryptionKeyId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 
 import java.util.UUID;
@@ -52,7 +51,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_COLUMN;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = ENCRYPTION_KEY_TABLE_NAME)
-public class EncryptionKeyEntity extends BaseSqlEntity<EncryptionKey> implements BaseEntity<EncryptionKey> {
+public class EncryptionKeyEntity extends BaseSqlEntity<EncryptionKey> {
 
     @Column(name = TENANT_ID_COLUMN)
     private UUID tenantId;
@@ -62,6 +61,19 @@ public class EncryptionKeyEntity extends BaseSqlEntity<EncryptionKey> implements
 
     @Column(name = ENCRYPTION_KEY_SALT_COLUMN)
     private String salt;
+
+    public EncryptionKeyEntity() {
+        super();
+    }
+
+    public EncryptionKeyEntity(EncryptionKey encryptionKey) {
+        super(encryptionKey);
+        if (encryptionKey.getTenantId() != null) {
+            this.tenantId = encryptionKey.getTenantId().getId();
+        }
+        this.password = encryptionKey.getPassword();
+        this.salt = encryptionKey.getSalt();
+    }
 
     @Override
     public EncryptionKey toData() {

@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.encryptionkey.EncryptionKeyService;
 import org.thingsboard.server.dao.secret.SecretUtilService;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
@@ -71,7 +72,10 @@ public class DefaultSecretUtilService implements SecretUtilService {
     @Override
     public String decryptToString(TenantId tenantId, SecretType type, byte[] encryptedValue) {
         byte[] decrypted = doDecrypt(tenantId, encryptedValue);
-        return Base64.getEncoder().encodeToString(decrypted);
+        if (SecretType.BINARY_FILE.equals(type)) {
+            return Base64.getEncoder().encodeToString(decrypted);
+        }
+        return new String(decrypted, StandardCharsets.UTF_8);
     }
 
     private byte[] doDecrypt(TenantId tenantId, byte[] encryptedValue) {

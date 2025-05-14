@@ -36,12 +36,12 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.id.SecretId;
 
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Optional;
 
 @Schema
 @Data
@@ -52,17 +52,25 @@ public class Secret extends SecretInfo {
     private static final long serialVersionUID = 3671364019778017637L;
 
     @JsonIgnore
-    private byte[] value;
+    private byte[] rawValue;
 
-    @Schema(description = "Secret text value for TEXT secret type.", requiredMode = Schema.RequiredMode.REQUIRED, example = "Value")
+    @Schema(description = "Secret value.", requiredMode = Schema.RequiredMode.REQUIRED, example = "Value")
     @JsonSetter("value")
     public void setValue(String value) {
-        this.value = Optional.ofNullable(value).map(v -> Base64.getEncoder().encode(v.getBytes(StandardCharsets.UTF_8))).orElse(null);
+        if (SecretType.BINARY_FILE.equals(getType())) {
+            this.rawValue = Base64.getDecoder().decode(value);
+        } else {
+            this.rawValue = value.getBytes(StandardCharsets.UTF_8);
+        }
     }
 
     @JsonGetter("value")
-    public String getValueAsBase64() {
-        return Optional.ofNullable(value).map(Base64.getEncoder()::encodeToString).orElse(null);
+    public String getValue() {
+        if (SecretType.BINARY_FILE.equals(getType())) {
+            return Base64.getEncoder().encodeToString(rawValue);
+        } else {
+            return new String(rawValue, StandardCharsets.UTF_8);
+        }
     }
 
     public Secret() {
@@ -75,17 +83,17 @@ public class Secret extends SecretInfo {
 
     public Secret(Secret secret) {
         super(secret);
-        this.value = secret.getValue();
+        this.rawValue = secret.getRawValue();
     }
 
     public Secret(SecretInfo secretInfo) {
         super(secretInfo);
-        this.value = null;
+        this.rawValue = null;
     }
 
     public Secret(SecretInfo secretInfo, byte[] rawValue) {
         super(secretInfo);
-        this.value = rawValue;
+        this.rawValue = rawValue;
     }
 
     @Override

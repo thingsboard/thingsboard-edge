@@ -71,9 +71,6 @@ public class SecretInfo extends BaseData<SecretId> implements TenantEntity, HasN
     @Schema(description = "Secret description.", example = "Secret description")
     private String description;
 
-    @Schema(description = "Secret externalId.")
-    private SecretId externalId;
-
     public SecretInfo() {
         super();
     }
@@ -88,7 +85,6 @@ public class SecretInfo extends BaseData<SecretId> implements TenantEntity, HasN
         this.name = secretInfo.getName();
         this.type = secretInfo.getType();
         this.description = secretInfo.getDescription();
-        this.externalId = secretInfo.getExternalId();
     }
 
     @Override
