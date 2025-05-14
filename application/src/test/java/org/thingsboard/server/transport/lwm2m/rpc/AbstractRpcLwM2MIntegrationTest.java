@@ -44,7 +44,7 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.lwm2m.AbstractLwM2MIntegrationTest;
 import org.thingsboard.server.transport.lwm2m.server.LwM2mTransportServerHelper;
-import org.thingsboard.server.transport.lwm2m.server.client.ResultUpdateResource;
+import org.thingsboard.server.transport.lwm2m.server.client.ResourceUpdateResult;
 
 import java.util.List;
 import java.util.Set;
@@ -274,7 +274,7 @@ public abstract class AbstractRpcLwM2MIntegrationTest extends AbstractLwM2MInteg
                 .filter(invocation ->
                         invocation.getMethod().getName().equals("updateAttrTelemetry") &&
                                 invocation.getArguments().length > 1 &&
-                                ((ResultUpdateResource)invocation.getArguments()[0]).getPaths().toString().contains(idVerRez)
+                                ((ResourceUpdateResult)invocation.getArguments()[0]).getPaths().toString().contains(idVerRez)
                 )
                 .count();
     }
