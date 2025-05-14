@@ -102,6 +102,7 @@ export type PropertyConditionFunction = (property: FormProperty, model: any) => 
 export interface FormPropertyBase {
   id: string;
   name: string;
+  hint?: string;
   group?: string;
   type: FormPropertyType;
   default: any;
@@ -252,6 +253,7 @@ export interface FormPropertyContainerBase {
 }
 
 export interface FormPropertyRow extends FormPropertyContainerBase {
+  hint?: string;
   properties?: FormProperty[];
   switch?: FormProperty;
   rowClass?: string;
@@ -377,6 +379,7 @@ const toPropertyContainers = (properties: FormProperty[],
       if (!propertyRow) {
         propertyRow = {
           label: property.name,
+          hint: property.hint,
           type: FormPropertyContainerType.row,
           properties: [],
           rowClass: property.rowClass,

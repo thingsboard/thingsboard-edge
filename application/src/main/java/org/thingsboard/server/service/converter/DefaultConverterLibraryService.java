@@ -47,6 +47,7 @@ import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -100,7 +101,8 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
                 })
                 .map(vendorDir -> {
                     String logoFile = findFile(vendorDir.path(), 2, "logo");
-                    return new Vendor(vendorDir.name(), gitSyncService.getGithubRawContentUrl(REPO_KEY, logoFile));
+                    String logo = "data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(gitSyncService.getFileContent(REPO_KEY, logoFile));
+                    return new Vendor(vendorDir.name(), logo);
                 })
                 .toList();
     }
@@ -115,7 +117,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
                     String name = modelPath.getFileName().toString();
                     JsonNode modelInfo = JacksonUtil.toJsonNode(getFileContent(modelPath + "/info.json"));
                     String photoFile = findFile(modelPath.toString(), 3, "photo");
-                    String photo = gitSyncService.getGithubRawContentUrl(REPO_KEY, photoFile);
+                    String photo = "data:image/png;base64," + Base64.getEncoder().encodeToString(gitSyncService.getFileContent(REPO_KEY, photoFile));
                     return new Model(name, modelInfo, photo);
                 })
                 .toList();

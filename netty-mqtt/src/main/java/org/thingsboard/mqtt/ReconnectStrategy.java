@@ -28,66 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import './../scss/constants';
+package org.thingsboard.mqtt;
 
-.rule-node-config {
-  tb-json-object-edit.tb-rule-node-configuration-json {
-    display: block;
-    height: 300px;
-  }
-
-  .tb-rulenode-directive-error {
-    font-size: 13px;
-    font-weight: 400;
-    color: rgb(221, 44, 0);
-  }
-
-  .tb-error {
-    letter-spacing: 0.25px;
-    color: var(--mdc-theme-error, #f44336);
-  }
-
-  .tb-required::after {
-    content: "*";
-    font-size: 16px;
-    color: #000000de;
-  }
-
-  .help-icon {
-    color: #000000;
-    opacity: .38;
-    padding: unset;
-
-    &:hover {
-      color: var(--tb-primary-500);
-      opacity: unset;
-    }
-  }
-
-  .same-width-component-row {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 16px;
-    @media #{$mat-xs} {
-      flex-direction: column;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    > * {
-      flex: 1;
-    }
-
-    .flex-2 {
-      flex: 2;
-    }
-
-    .third-width {
-      max-width: 32%;
-      @media #{$mat-xs} {
-        max-width: 100%;
-      }
-    }
-  }
+@FunctionalInterface
+public interface ReconnectStrategy {
+    long getNextReconnectDelay();
 }
