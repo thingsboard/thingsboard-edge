@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.job;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -58,6 +59,7 @@ public class Job extends BaseData<JobId> implements HasTenantId {
     private String description;
     private JobStatus status;
     @NotNull
+    @Valid
     private JobConfiguration configuration;
     private JobResult result;
 
