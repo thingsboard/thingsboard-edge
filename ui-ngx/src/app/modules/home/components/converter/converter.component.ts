@@ -237,11 +237,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     ).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      this.updatedConverterLibraryDisableState(this.converterTypeValue);
-      this.entityForm.get('converterLibrary').patchValue(null, {emitEvent: false});
-      this.prevLibraryConverterFormValue = null;
-      this.prevNewConverterFormValue = null;
-      this._converterTypeValue = ConverterSourceType.NEW;
+      this.resetToNewTab();
       const converterType: ConverterType = this.entityForm.get('type').value;
       this.updateConverterVersion();
       this.onConverterTypeChanged(converterType);
@@ -261,6 +257,14 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       this.updateConfigurationEntityName(type);
     });
     this.checkIsNewConverter(this.entity, this.entityForm, true);
+  }
+
+  private resetToNewTab() {
+    this.updatedConverterLibraryDisableState(this.converterTypeValue);
+    this.entityForm.get('converterLibrary').patchValue(null, {emitEvent: false});
+    this.prevLibraryConverterFormValue = null;
+    this.prevNewConverterFormValue = null;
+    this._converterTypeValue = ConverterSourceType.NEW;
   }
 
   hideDelete() {
@@ -533,6 +537,10 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }
     }, {emitEvent: false});
     this.checkIsNewConverter(entity, this.entityForm, emitEvent);
+  }
+
+  get isConverterLibraryAndNotNull() {
+    return this.converterTypeValue === ConverterSourceType.LIBRARY && !this.entityForm.get('converterLibrary').value;
   }
 
   onConverterIdCopied() {

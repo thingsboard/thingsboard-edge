@@ -103,7 +103,7 @@
               (converter)="onConverterSelected($event)"
             />
           }
-          <div class="flex gap-4" [class.hidden]="converterTypeValue === ConverterSourceType.LIBRARY && !entityForm.get('converterLibrary').value">
+          <div class="flex gap-4" [class.hidden]="isConverterLibraryAndNotNull">
             <mat-form-field class="flex-1">
               <mat-label translate>converter.name</mat-label>
               <input matInput formControlName="name" required>
@@ -121,7 +121,7 @@
             />
           </div>
         </div>
-        <div class="tb-form-panel stroked no-gap" formGroupName="configuration" [class.!hidden]="converterTypeValue === ConverterSourceType.LIBRARY && !entityForm.get('converterLibrary').value">
+        <div class="tb-form-panel stroked no-gap" formGroupName="configuration" [class.!hidden]="isConverterLibraryAndNotNull">
           <div class="tb-form-panel-title mb-4">{{ mainConfigurationTitle | translate }}</div>
           @if (entityForm.get('type').value === converterType.UPLINK && entityForm.get('converterVersion').value === 2) {
             <div class="flex gap-3">
@@ -179,7 +179,7 @@
           </button>
         </div>
         @if (entityForm.get('type').value === converterType.UPLINK) {
-          <div class="tb-form-panel stroked no-gap" [class.!hidden]="converterTypeValue === ConverterSourceType.LIBRARY && !entityForm.get('converterLibrary').value">
+          <div class="tb-form-panel stroked no-gap" [class.!hidden]="isConverterLibraryAndNotNull">
             <mat-expansion-panel class="tb-settings" formGroupName="configuration" expanded>
               <mat-expansion-panel-header>
                 {{ 'converter.advanced-decoding-parameters' | translate }}
@@ -237,7 +237,7 @@
             </mat-expansion-panel>
           </div>
         }
-        <div formGroupName="additionalInfo" class="flex flex-col" [class.!hidden]="converterTypeValue === ConverterSourceType.LIBRARY && !entityForm.get('converterLibrary').value">
+        <div formGroupName="additionalInfo" class="flex flex-col" [class.!hidden]="isConverterLibraryAndNotNull">
           <mat-form-field class="mat-block">
             <mat-label translate>converter.description</mat-label>
             <textarea matInput formControlName="description" rows="1"></textarea>

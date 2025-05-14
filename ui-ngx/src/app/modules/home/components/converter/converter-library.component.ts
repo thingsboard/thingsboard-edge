@@ -59,6 +59,7 @@ import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterLibraryInfo, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-converter-library',
@@ -104,7 +105,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   modelInputSubject = new Subject<void>();
 
   private destroy$ = new Subject<void>();
-  modelValue: ConverterLibraryInfo;
+  private modelValue: ConverterLibraryInfo;
   private propagateChange: (value: any) => void = () => {};
 
   constructor(
@@ -121,8 +122,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       .subscribe(() => this.updateView(this.libraryFormGroup.getRawValue()));
 
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
-      switchMap(() => of(this.integrationType, this.converterType)),
-      distinctUntilChanged(),
       switchMap(() =>
         this.converterLibraryService.getVendors(this.integrationType, this.converterType)
       ),
@@ -198,7 +197,8 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
             };
           }
           return defaultConverter;
-        })
+        }),
+        takeUntil(this.destroy$)
     ).subscribe(value => this.converter.emit(value));
   }
 
