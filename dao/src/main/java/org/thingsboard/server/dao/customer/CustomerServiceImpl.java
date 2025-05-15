@@ -214,13 +214,12 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     @Override
     public Customer findOrCreatePublicCustomer(TenantId tenantId) {
         log.trace("Executing findOrCreatePublicCustomer, tenantId [{}]", tenantId);
-        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        Optional<Customer> publicCustomerOpt = customerDao.findPublicCustomerByTenantId(tenantId.getId());
-        if (publicCustomerOpt.isPresent()) {
-            return publicCustomerOpt.get();
+        var publicCustomer = findPublicCustomer(tenantId);
+        if (publicCustomer != null) {
+            return publicCustomer;
         }
         /* edge-only: public customer should be created on the cloud
-        var publicCustomer = new Customer();
+        publicCustomer = new Customer();
         publicCustomer.setTenantId(tenantId);
         publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
         try {
@@ -232,7 +231,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
             return saveCustomer(publicCustomer, false);
         } catch (DataValidationException e) {
             if (CUSTOMER_UNIQUE_TITLE_EX_MSG.equals(e.getMessage())) {
-                publicCustomerOpt = customerDao.findPublicCustomerByTenantId(tenantId.getId());
+                Optional<Customer> publicCustomerOpt = customerDao.findPublicCustomerByTenantId(tenantId.getId());
                 if (publicCustomerOpt.isPresent()) {
                     return publicCustomerOpt.get();
                 }
@@ -241,6 +240,14 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         }
          */
         throw new RuntimeException("Unable to create public customer on edge - please create it on cloud and click 'Sync Edge' button.");
+    }
+
+    @Override
+    public Customer findPublicCustomer(TenantId tenantId) {
+        log.trace("Executing findPublicCustomer, tenantId [{}]", tenantId);
+        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        Optional<Customer> publicCustomerOpt = customerDao.findPublicCustomerByTenantId(tenantId.getId());
+        return publicCustomerOpt.orElse(null);
     }
 
     @Override

@@ -28,6 +28,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNode;
 import org.thingsboard.rule.engine.aws.lambda.TbAwsLambdaNode;
 import org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode;
+import org.thingsboard.rule.engine.telemetry.TbCalculatedFieldsNode;
 import org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode;
 import org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode;
 import org.thingsboard.server.common.adaptor.JsonConverter;
@@ -129,6 +130,11 @@ import java.util.UUID;
 @Slf4j
 public class EdgeMsgConstructorUtils {
     public static final Map<EdgeVersion, Map<String, String>> IGNORED_PARAMS_BY_EDGE_VERSION = Map.of(
+            EdgeVersion.V_3_9_0,
+            Map.of(
+                    TbMsgTimeseriesNode.class.getName(), "processingSettings",
+                    TbMsgAttributesNode.class.getName(), "processingSettings"
+            ),
             EdgeVersion.V_3_8_0,
             Map.of(
                     TbMsgTimeseriesNode.class.getName(), "processingSettings",
@@ -144,8 +150,17 @@ public class EdgeMsgConstructorUtils {
     );
 
     public static final Map<EdgeVersion, Set<String>> EXCLUDED_NODES_BY_EDGE_VERSION = Map.of(
+            EdgeVersion.V_3_9_0,
+            Set.of(
+                    TbCalculatedFieldsNode.class.getName()
+            ),
+            EdgeVersion.V_3_8_0,
+            Set.of(
+                    TbCalculatedFieldsNode.class.getName()
+            ),
             EdgeVersion.V_3_7_0,
             Set.of(
+                    TbCalculatedFieldsNode.class.getName(),
                     TbSendRestApiCallReplyNode.class.getName(),
                     TbAwsLambdaNode.class.getName()
             )
@@ -507,7 +522,7 @@ public class EdgeMsgConstructorUtils {
                     JsonObject data = entityData.getAsJsonObject();
                     builder.setPostTelemetryMsg(JsonConverter.convertToTelemetryProto(data.getAsJsonObject("data"), ts));
                 } catch (Exception e) {
-                    log.warn("[{}][{}] Can't convert to telemetry proto, entityData [{}]", tenantId, entityId, entityData, e);
+                    log.trace("[{}][{}] Can't convert to telemetry proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case ATTRIBUTES_UPDATED:
@@ -522,7 +537,7 @@ public class EdgeMsgConstructorUtils {
                     builder.setPostAttributeScope(getScopeOfDefault(data));
                     builder.setAttributeTs(ts);
                 } catch (Exception e) {
-                    log.warn("[{}][{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
+                    log.trace("[{}][{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case POST_ATTRIBUTES:
@@ -533,7 +548,7 @@ public class EdgeMsgConstructorUtils {
                     builder.setPostAttributeScope(getScopeOfDefault(data));
                     builder.setAttributeTs(ts);
                 } catch (Exception e) {
-                    log.warn("[{}][{}] Can't convert to PostAttributesMsg, entityData [{}]", tenantId, entityId, entityData, e);
+                    log.trace("[{}][{}] Can't convert to PostAttributesMsg, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
             case ATTRIBUTES_DELETED:
@@ -546,7 +561,7 @@ public class EdgeMsgConstructorUtils {
                     attributeDeleteMsg.build();
                     builder.setAttributeDeleteMsg(attributeDeleteMsg);
                 } catch (Exception e) {
-                    log.warn("[{}][{}] Can't convert to AttributeDeleteMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
+                    log.trace("[{}][{}] Can't convert to AttributeDeleteMsg proto, entityData [{}]", tenantId, entityId, entityData, e);
                 }
                 break;
         }

@@ -43,6 +43,8 @@ public interface CustomerService extends EntityDaoService {
 
     Customer findOrCreatePublicCustomer(TenantId tenantId);
 
+    Customer findPublicCustomer(TenantId tenantId);
+
     PageData<Customer> findCustomersByTenantId(TenantId tenantId, PageLink pageLink);
 
     void deleteCustomersByTenantId(TenantId tenantId);

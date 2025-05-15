@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.edqs.util;
+package org.thingsboard.common.util;
 
-import com.google.common.hash.Hashing;
+import lombok.Getter;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 import java.util.concurrent.ConcurrentMap;
 
-public class TbBytePool {
+public class TbStringPool {
 
-    private static final ConcurrentMap<String, byte[]> pool = new ConcurrentReferenceHashMap<>();
+    @Getter
+    private static final ConcurrentMap<String, String> pool = new ConcurrentReferenceHashMap<>();
 
-    public static byte[] intern(byte[] data) {
+    public static String intern(String data) {
         if (data == null) {
             return null;
         }
-        var checksum = Hashing.sha512().hashBytes(data).toString();
-        return pool.computeIfAbsent(checksum, c -> data);
-    }
-
-    public static int size(){
-        return pool.size();
+        return pool.computeIfAbsent(data, str -> str);
     }
 
 }
