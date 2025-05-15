@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.dao.secret;
 
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.TbSecretDeleteResult;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -39,21 +42,24 @@ import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SecretService extends EntityDaoService {
 
     Secret saveSecret(TenantId tenantId, Secret secret);
 
-    void deleteSecret(TenantId tenantId, SecretInfo secretInfo);
-
-    Secret findSecretById(TenantId tenantId, SecretId secretId);
+    TbSecretDeleteResult deleteSecret(TenantId tenantId, SecretInfo secretInfo);
 
     SecretInfo findSecretInfoById(TenantId tenantId, SecretId secretId);
 
+    Secret findSecretById(TenantId tenantId, SecretId secretId);
+
     Secret findSecretByName(TenantId tenantId, String name);
+
+    List<String> findSecretNamesByTenantId(TenantId tenantId);
 
     PageData<SecretInfo> findSecretInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
-    List<String> findSecretNamesByTenantId(TenantId tenantId);
+    Map<EntityType, List<? extends HasId<?>>> findEntitiesBySecretPlaceholder(TenantId tenantId, String placeholder);
 
 }

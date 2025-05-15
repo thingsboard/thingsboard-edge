@@ -28,18 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.secret;
+package org.thingsboard.server.dao.sql;
 
-import org.thingsboard.server.common.data.TbSecretDeleteResult;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.secret.Secret;
-import org.thingsboard.server.common.data.secret.SecretInfo;
+import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-public interface TbSecretService {
+import java.util.List;
 
-    SecretInfo save(Secret secret, User user) throws ThingsboardException;
+public interface HasSecretsEntityDao<T extends HasId<?>> {
 
-    TbSecretDeleteResult delete(SecretInfo secretInfo, User user);
+    List<T> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder);
 
 }

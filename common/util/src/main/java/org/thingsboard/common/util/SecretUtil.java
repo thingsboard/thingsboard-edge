@@ -28,18 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.secret;
+package org.thingsboard.common.util;
 
-import org.thingsboard.server.common.data.TbSecretDeleteResult;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.secret.Secret;
-import org.thingsboard.server.common.data.secret.SecretInfo;
+import org.thingsboard.server.common.data.SecretType;
 
-public interface TbSecretService {
+public final class SecretUtil {
 
-    SecretInfo save(Secret secret, User user) throws ThingsboardException;
-
-    TbSecretDeleteResult delete(SecretInfo secretInfo, User user);
+    public static String toSecretPlaceholder(String name, SecretType type) {
+        return String.format("${secret:%s;type:%s}", name, type);
+    }
 
 }

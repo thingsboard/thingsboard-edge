@@ -91,6 +91,11 @@ public interface RuleChainRepository extends JpaRepository<RuleChainEntity, UUID
             "r.name, r.version, r.additionalInfo) FROM RuleChainEntity r WHERE r.id > :id ORDER BY r.id")
     List<RuleChainFields> findNextBatch(@Param("id") UUID id, Limit limit);
 
+    @Query("SELECT DISTINCT rc FROM RuleChainEntity rc INNER JOIN RuleNodeEntity r ON rc.id = r.ruleChainId " +
+            " WHERE rc.tenantId = :tenantId AND ilike(r.configuration, CONCAT('%', :placeholder, '%'))")
+    List<RuleChainEntity> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
+                                                             @Param("placeholder") String placeholder);
 
     List<RuleChainEntity> findRuleChainsByTenantIdAndIdIn(UUID tenantId, List<UUID> ruleChainIds);
+
 }

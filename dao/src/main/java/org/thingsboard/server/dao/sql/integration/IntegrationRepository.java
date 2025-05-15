@@ -76,6 +76,11 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
                                                     @Param("searchText") String searchText,
                                                     Pageable pageable);
 
+    @Query("SELECT DISTINCT integration FROM IntegrationEntity integration " +
+            " WHERE integration.tenantId = :tenantId AND ilike(integration.configuration, CONCAT('%', :placeholder, '%'))")
+    List<IntegrationEntity> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
+                                                               @Param("placeholder") String placeholder);
+
     Long countByTenantId(UUID tenantId);
 
     Long countByTenantIdAndEdgeTemplateFalse(UUID tenantId);
@@ -90,4 +95,5 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
     @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.IntegrationFields(i.id, i.createdTime," +
             "i.tenantId, i.name, i.version, i.type, i.additionalInfo) FROM IntegrationEntity i WHERE i.id > :id ORDER BY i.id")
     List<IntegrationFields> findNextBatch(@Param("id") UUID id, Limit limit);
+
 }

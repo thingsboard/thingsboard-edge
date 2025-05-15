@@ -30,32 +30,34 @@
  */
 package org.thingsboard.server.dao.secret;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.rule.engine.api.ComponentDescriptorService;
+import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.TbSecretDeleteResult;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
-import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.integration.IntegrationDao;
+import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.dao.sql.HasSecretsEntityDao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -64,6 +66,8 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 public class SecretServiceImpl extends AbstractEntityService implements SecretService {
 
     private static final String INCORRECT_SECRET_ID = "Incorrect secretId ";
+
+    private final Map<EntityType, HasSecretsEntityDao<?>> hasSecretsEntityDaoMap = new HashMap<>();
 
     @Autowired
     private SecretDao secretDao;
@@ -75,19 +79,19 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     private DataValidator<Secret> secretValidator;
 
     @Autowired
-    private RuleChainService ruleChainService;
+    private RuleChainDao ruleChainDao;
 
     @Autowired
-    private IntegrationService integrationService;
-
-    @Autowired
-    private ComponentDescriptorService componentDescriptorService;
+    private IntegrationDao integrationDao;
 
     @Autowired(required = false)
     private SecretUtilService secretUtilService;
 
-    @Autowired(required = false)
-    private SecretConfigurationService secretConfigurationService;
+    @PostConstruct
+    public void init() {
+        hasSecretsEntityDaoMap.put(EntityType.RULE_CHAIN, ruleChainDao);
+        hasSecretsEntityDaoMap.put(EntityType.INTEGRATION, integrationDao);
+    }
 
     @Override
     public Secret saveSecret(TenantId tenantId, Secret secret) {
@@ -95,15 +99,17 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
         try {
             Secret old = secretValidator.validate(secret, Secret::getTenantId);
 
+            boolean isValueUpdated = false;
             if (secret.getValue() != null) {
                 byte[] encrypted = secretUtilService.encrypt(tenantId, secret.getType(), secret.getRawValue());
                 secret.setRawValue(encrypted);
+                isValueUpdated = true;
             } else if (old != null) {
                 secret.setValue(old.getValue());
             }
 
             Secret savedSecret = secretDao.save(tenantId, secret);
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedSecret.getId()).entity(savedSecret).created(secret.getId() == null).build());
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedSecret.getId()).entity(savedSecret).created(secret.getId() == null).broadcastEvent(isValueUpdated).build());
             return savedSecret;
         } catch (Exception e) {
             checkConstraintViolation(e, "secret_unq_key", "Secret with such name already exists!");
@@ -112,24 +118,50 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     }
 
     @Override
-    public void deleteSecret(TenantId tenantId, SecretInfo secretInfo) {
+    public TbSecretDeleteResult deleteSecret(TenantId tenantId, SecretInfo secretInfo) {
         SecretId secretId = secretInfo.getId();
         log.trace("Executing deleteSecret [{}]", secretId);
         validateId(secretId, id -> INCORRECT_SECRET_ID + id);
-        deleteEntity(tenantId, secretId, false);
+        return deleteSecret(tenantId, secretId, false);
     }
 
     @Override
     public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
-        SecretInfo secretInfo = secretInfoDao.findById(tenantId, id.getId());
+        deleteSecret(tenantId, id, force);
+    }
+
+    private TbSecretDeleteResult deleteSecret(TenantId tenantId, EntityId entityId, boolean force) {
+        UUID secretId = entityId.getId();
+        validateId(secretId, id -> INCORRECT_SECRET_ID + id);
+        TbSecretDeleteResult.TbSecretDeleteResultBuilder result = TbSecretDeleteResult.builder();
+        boolean success = true;
+
+        SecretInfo secretInfo = secretInfoDao.findById(tenantId, secretId);
         if (secretInfo == null) {
-            return;
+            if (!force) {
+                success = false;
+            }
+            return result.success(success).build();
         }
         if (!force) {
-            validateSecretUsage(tenantId, secretInfo.getName());
+            Map<String, List<? extends HasId<?>>> affectedEntities = new HashMap<>();
+            hasSecretsEntityDaoMap.forEach((entityType, hasSecretsEntityDao) -> {
+                String placeholder = SecretUtil.toSecretPlaceholder(secretInfo.getName(), secretInfo.getType());
+                var entities = hasSecretsEntityDao.findByTenantIdAndSecretPlaceholder(tenantId, placeholder);
+                if (!entities.isEmpty()) {
+                    affectedEntities.put(entityType.name(), entities);
+                }
+            });
+            if (!affectedEntities.isEmpty()) {
+                success = false;
+                result.references(affectedEntities);
+            }
         }
-        secretDao.removeById(tenantId, id.getId());
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(secretInfo.getId()).build());
+        if (success) {
+            secretDao.removeById(tenantId, secretId);
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(secretInfo.getId()).build());
+        }
+        return result.success(success).build();
     }
 
     @Override
@@ -168,34 +200,16 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
         return secretInfoDao.findAllNamesByTenantId(tenantId);
     }
 
-    private void validateSecretUsage(TenantId tenantId, String name) {
-        validateRuleNodesUsage(tenantId, name);
-        validateIntegrationsUsage(tenantId, name);
-    }
-
-    private void validateRuleNodesUsage(TenantId tenantId, String name) {
-        List<String> ruleNodeClazzes = componentDescriptorService.findClazzesByHasSecret();
-        for (String clazz : ruleNodeClazzes) {
-            List<RuleNode> ruleNodes = ruleChainService.findRuleNodesByTenantIdAndType(tenantId, clazz);
-            for (RuleNode ruleNode : ruleNodes) {
-                boolean hasSecret = secretConfigurationService.matchSecretPlaceholder(ruleNode.getConfiguration(), name);
-                if (hasSecret) {
-                    RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, ruleNode.getRuleChainId());
-                    throw new DataValidationException("Secret '" + name + "' cannot be deleted. It is used in the rule node '"
-                            + ruleNode.getName() + "' in the rule chain '" + ruleChain.getName() + "'");
-                }
+    @Override
+    public Map<EntityType, List<? extends HasId<?>>> findEntitiesBySecretPlaceholder(TenantId tenantId, String placeholder) {
+        Map<EntityType, List<? extends HasId<?>>> affectedEntities = new HashMap<>();
+        hasSecretsEntityDaoMap.forEach((entityType, hasSecretsEntityDao) -> {
+            var entities = hasSecretsEntityDao.findByTenantIdAndSecretPlaceholder(tenantId, placeholder);
+            if (!entities.isEmpty()) {
+                affectedEntities.put(entityType, entities);
             }
-        }
-    }
-
-    private void validateIntegrationsUsage(TenantId tenantId, String name) {
-        List<Integration> integrations = integrationService.findAllIntegrations(tenantId);
-        for (Integration integration : integrations) {
-            boolean hasSecret = secretConfigurationService.matchSecretPlaceholder(integration.getConfiguration(), name);
-            if (hasSecret) {
-                throw new DataValidationException("Secret '" + name + "' cannot be deleted. It is used in the integration '" + integration.getName() + "'");
-            }
-        }
+        });
+        return affectedEntities;
     }
 
     @Override

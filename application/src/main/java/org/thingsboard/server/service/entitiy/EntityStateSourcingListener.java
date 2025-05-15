@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Customer;
@@ -64,6 +65,7 @@ import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -75,6 +77,8 @@ import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.secret.SecretService;
+import org.thingsboard.server.dao.secret.SecretUtilService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.TbQueueCallback;
 
@@ -88,6 +92,8 @@ public class EntityStateSourcingListener {
     private final TenantService tenantService;
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
+    private final SecretService secretService;
+    private final SecretUtilService secretUtilService;
 
     @PostConstruct
     public void init() {
@@ -174,6 +180,30 @@ public class EntityStateSourcingListener {
             }
             case CALCULATED_FIELD -> {
                 onCalculatedFieldUpdate(event.getEntity(), event.getOldEntity());
+            }
+            case SECRET -> {
+                if (isCreated) {
+                    break;
+                }
+                Secret secret = (Secret) event.getEntity();
+                String placeholder = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
+                var result = secretService.findEntitiesBySecretPlaceholder(tenantId, placeholder);
+
+                result.forEach((type, entities) -> {
+                    switch (type) {
+                        case RULE_CHAIN -> {
+                            entities.stream().filter(RuleChain.class::isInstance).map(RuleChain.class::cast)
+                                    .filter(rc -> RuleChainType.CORE.equals(rc.getType()))
+                                    .forEach(rc -> tbClusterService.broadcastEntityStateChangeEvent(rc.getTenantId(), rc.getId(), lifecycleEvent));
+                        }
+                        case INTEGRATION -> {
+                            entities.stream().filter(Integration.class::isInstance).map(Integration.class::cast)
+                                    .filter(integration -> !integration.isEdgeTemplate())
+                                    .forEach(integration -> tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), lifecycleEvent));
+                        }
+                        default -> log.debug("Secret placeholder used in unsupported entity type: {}", type);
+                    }
+                });
             }
             default -> {}
         }
@@ -284,6 +314,7 @@ public class EntityStateSourcingListener {
     private void onTenantDeleted(Tenant tenant) {
         tbClusterService.onTenantDelete(tenant, null);
         tbClusterService.broadcastEntityStateChangeEvent(tenant.getId(), tenant.getId(), ComponentLifecycleEvent.DELETED);
+        secretUtilService.evict(tenant.getId());
     }
 
     private void onTenantProfileUpdate(TenantProfile tenantProfile, ComponentLifecycleEvent lifecycleEvent) {

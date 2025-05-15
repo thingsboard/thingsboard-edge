@@ -86,7 +86,7 @@ public abstract class AbstractSecretInfoEntity<T extends SecretInfo> extends Bas
     }
 
     protected SecretInfo toSecretInfo() {
-        SecretInfo secretInfo = new SecretInfo(new SecretId(id));
+        SecretInfo secretInfo = new SecretInfo(new SecretId(getUuid()));
         secretInfo.setCreatedTime(createdTime);
         if (tenantId != null) {
             secretInfo.setTenantId(TenantId.fromUUID(tenantId));

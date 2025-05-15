@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.secret;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.TbSecretDeleteResult;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -64,13 +65,16 @@ public class DefaultTbSecretService extends AbstractTbEntityService implements T
     }
 
     @Override
-    public void delete(SecretInfo secretInfo, User user) {
+    public TbSecretDeleteResult delete(SecretInfo secretInfo, User user) {
         ActionType actionType = ActionType.DELETED;
         TenantId tenantId = secretInfo.getTenantId();
         SecretId secretId = secretInfo.getId();
         try {
-            secretService.deleteSecret(tenantId, secretInfo);
-            logEntityActionService.logEntityAction(tenantId, secretId, secretInfo, actionType, user, secretId.toString());
+            TbSecretDeleteResult result = secretService.deleteSecret(tenantId, secretInfo);
+            if (result.isSuccess()) {
+                logEntityActionService.logEntityAction(tenantId, secretId, secretInfo, actionType, user, secretId.toString());
+            }
+            return result;
         } catch (Exception e) {
             logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.SECRET), actionType, user, e, secretId.toString());
             throw e;

@@ -51,7 +51,6 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.exception.DataValidationException;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -99,11 +98,6 @@ public class BaseComponentDescriptorService implements ComponentDescriptorServic
     }
 
     @Override
-    public List<String> findClazzesByHasSecret() {
-        return componentDescriptorDao.findClazzesByHasSecret();
-    }
-
-    @Override
     public void deleteByClazz(TenantId tenantId, String clazz) {
         Validator.validateString(clazz, "Incorrect clazz for delete request.");
         componentDescriptorDao.deleteByClazz(tenantId, clazz);
@@ -123,4 +117,5 @@ public class BaseComponentDescriptorService implements ComponentDescriptorServic
             throw new IncorrectParameterException(e.getMessage(), e);
         }
     }
+
 }

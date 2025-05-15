@@ -39,6 +39,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.rule.engine.api.ComponentDescriptorService;
 import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -205,10 +206,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         // create rule node with secret usage that uses 'hasSecrets' annotation:
-        var configuration = createRuleNode("org.thingsboard.rule.engine.mqtt.TbMqttNode", secretName);
-
-        Mockito.when(secretConfigurationService.matchSecretPlaceholder(any(), any())).thenReturn(hasSecretPlaceholders(configuration, secretName));
-        Mockito.when(componentDescriptorService.findClazzesByHasSecret()).thenReturn(List.of("org.thingsboard.rule.engine.mqtt.TbMqttNode"));
+        var configuration = createRuleNode("org.thingsboard.rule.engine.mqtt.TbMqttNode", secretName, savedSecret.getType());
 
         // delete secret
         Assertions.assertThrows(DataValidationException.class, () -> secretService.deleteSecret(tenantId, savedSecret));
@@ -224,7 +222,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         // create rule node with secret usage that DO NOT use 'hasSecrets' annotation:
-        createRuleNode("org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode", secretName);
+        createRuleNode("org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode", secretName, savedSecret.getType());
 
         // delete secret
         secretService.deleteSecret(tenantId, savedSecret);
@@ -240,10 +238,8 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         // create converter and integration with secret usage in configuration:
-        ObjectNode configuration = JacksonUtil.newObjectNode().putObject("metadata").put("password", "${secret:" + secretName + "}");
+        ObjectNode configuration = JacksonUtil.newObjectNode().putObject("metadata").put("password", SecretUtil.toSecretPlaceholder(secretName, secret.getType()));
         createIntegration(configuration, createAndGetConvertedId());
-
-        Mockito.when(secretConfigurationService.matchSecretPlaceholder(any(), any())).thenReturn(hasSecretPlaceholders(configuration, secretName));
 
         // delete secret
         Assertions.assertThrows(DataValidationException.class, () -> secretService.deleteSecret(tenantId, savedSecret));
@@ -278,19 +274,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         return converterService.saveConverter(converter).getId();
     }
 
-    private boolean hasSecretPlaceholders(JsonNode config, String name) {
-        String secretPlaceholder = "${secret:" + name + "}";
-        boolean[] result = {false};
-        JacksonUtil.replaceAll(config, "", (path, value) -> {
-            if (value.equals(secretPlaceholder)) {
-                result[0] = true;
-            }
-            return value;
-        });
-        return result[0];
-    }
-
-    private JsonNode createRuleNode(String ruleNodeType, String secretName) {
+    private JsonNode createRuleNode(String ruleNodeType, String secretName, SecretType secretType) {
         // create rule node with secret usage:
         RuleChain ruleChain = new RuleChain();
         ruleChain.setTenantId(tenantId);
@@ -304,7 +288,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         ruleNode.setType(ruleNodeType);
         var configuration = JacksonUtil.newObjectNode();
         configuration.put("ruleChainId", ruleChain.getUuidId().toString());
-        configuration.put("password", "${secret:" + secretName + "}");
+        configuration.put("password", SecretUtil.toSecretPlaceholder(secretName, secretType));
         ruleNode.setRuleChainId(ruleChain.getId());
         ruleNode.setConfiguration(configuration);
 

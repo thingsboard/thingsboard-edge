@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.plugin.ComponentScope;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.dao.model.sql.ComponentDescriptorEntity;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -63,9 +62,6 @@ public interface ComponentDescriptorRepository extends JpaRepository<ComponentDe
                                                        @Param("scope") ComponentScope scope,
                                                        @Param("textSearch") String textSearch,
                                                        Pageable pageable);
-
-    @Query("SELECT cd.clazz FROM ComponentDescriptorEntity cd WHERE cd.hasSecrets = true ")
-    List<String> findClazzesByHasSecrets();
 
     @Transactional
     @Modifying

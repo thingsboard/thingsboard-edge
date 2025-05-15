@@ -35,7 +35,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.TbSecretDeleteResult;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.config.annotations.ApiOperation;
-import org.thingsboard.server.dao.secret.SecretUtilService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.secret.TbSecretService;
 
@@ -82,9 +81,6 @@ public class SecretController extends BaseController {
 
     private final TbSecretService tbSecretService;
 
-    @Lazy
-    private final SecretUtilService secretUtilService;
-
     @ApiOperation(value = "Save or Update Secret (saveSecret)",
             notes = "Create or update the Secret. When creating secret, platform generates Secret Id as " + UUID_WIKI_LINK +
                     "The newly created Secret Id will be present in the response. " +
@@ -105,10 +101,11 @@ public class SecretController extends BaseController {
             notes = "Deletes the secret. Referencing non-existing Secret Id will cause an error." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @DeleteMapping(value = "/secret/{id}")
-    public void deleteSecret(@PathVariable UUID id) throws ThingsboardException {
+    public ResponseEntity<TbSecretDeleteResult> deleteSecret(@PathVariable UUID id) throws ThingsboardException {
         SecretId secretId = new SecretId(id);
         SecretInfo secretInfo = checkSecretId(secretId, Operation.DELETE);
-        tbSecretService.delete(secretInfo, getCurrentUser());
+        TbSecretDeleteResult result = tbSecretService.delete(secretInfo, getCurrentUser());
+        return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.badRequest()).body(result);
     }
 
     @ApiOperation(value = "Get Tenant Secret infos (getSecretInfos)",
@@ -145,18 +142,6 @@ public class SecretController extends BaseController {
     public SecretInfo getSecretInfoById(@PathVariable UUID id) throws ThingsboardException {
         SecretId secretId = new SecretId(id);
         return checkSecretId(secretId, Operation.READ);
-    }
-
-    // TODO: delete - this should not be visible and accessible for user
-    @ApiOperation(value = "Get Secret value by Id", notes = TENANT_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @GetMapping(value = "/secret/{id}")
-    public String getSecretValueById(@PathVariable UUID id) throws ThingsboardException {
-        SecretId secretId = new SecretId(id);
-//        var secret = checkSecretIdTest(secretId, Operation.READ);
-        var secret = secretService.findSecretById(getTenantId(), secretId);
-        log.error("value from get {}", JacksonUtil.toString(secret.getValue()));
-        return secretUtilService.decryptToString(getTenantId(), secret.getType(), secret.getRawValue());
     }
 
 }

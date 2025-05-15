@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.plugin.ComponentScope;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.dao.Dao;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -56,8 +55,6 @@ public interface ComponentDescriptorDao extends Dao<ComponentDescriptor> {
     PageData<ComponentDescriptor> findByTypeAndPageLink(TenantId tenantId, ComponentType type, PageLink pageLink);
 
     PageData<ComponentDescriptor> findByScopeAndTypeAndPageLink(TenantId tenantId, ComponentScope scope, ComponentType type, PageLink pageLink);
-
-    List<String> findClazzesByHasSecret();
 
     void deleteById(TenantId tenantId, ComponentDescriptorId componentId);
 

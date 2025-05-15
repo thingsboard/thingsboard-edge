@@ -28,18 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.secret;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.TbSecretDeleteResult;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.secret.Secret;
-import org.thingsboard.server.common.data.secret.SecretInfo;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.HasId;
 
-public interface TbSecretService {
+import java.util.List;
+import java.util.Map;
 
-    SecretInfo save(Secret secret, User user) throws ThingsboardException;
+@Data
+@Builder
+public class TbSecretDeleteResult {
 
-    TbSecretDeleteResult delete(SecretInfo secretInfo, User user);
+    private boolean success;
+    private Map<String, List<? extends HasId<?>>> references;
 
 }

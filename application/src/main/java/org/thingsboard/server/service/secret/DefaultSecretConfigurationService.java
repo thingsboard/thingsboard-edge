@@ -50,7 +50,8 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class DefaultSecretConfigurationService implements SecretConfigurationService {
 
-    private static final Pattern SECRET_PATTERN = Pattern.compile("\\$\\{secret:([a-zA-Z0-9_\\-]+)}");
+    // To match a placeholder like: ${secret:name;type:type}
+    private static final Pattern SECRET_PATTERN = Pattern.compile("\\$\\{secret:([^;{}]+);type:([^;{}]+)}");
 
     @Lazy
     private final SecretService secretService;
@@ -83,12 +84,13 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
     }
 
     @Override
-    public boolean matchSecretPlaceholder(JsonNode config, String name) {
-        String secretPlaceholder = "${secret:" + name + "}";
+    public boolean containsSecretPlaceholder(JsonNode config) {
         boolean[] result = {false};
         JacksonUtil.replaceAll(config, "", (path, value) -> {
-            if (value.equals(secretPlaceholder)) {
+            Matcher matcher = SECRET_PATTERN.matcher(value);
+            if (matcher.find()) {
                 result[0] = true;
+                return value;
             }
             return value;
         });

@@ -124,4 +124,5 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
         data.setHasSecrets(hasSecrets);
         return data;
     }
+
 }

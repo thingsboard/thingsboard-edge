@@ -41,4 +41,6 @@ public interface SecretUtilService {
 
     String decryptToString(TenantId tenantId, SecretType secretType, byte[] encryptedValue);
 
+    void evict(TenantId tenantId);
+
 }

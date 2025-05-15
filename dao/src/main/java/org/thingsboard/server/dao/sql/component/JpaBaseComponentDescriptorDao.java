@@ -47,7 +47,6 @@ import org.thingsboard.server.dao.component.ComponentDescriptorDao;
 import org.thingsboard.server.dao.model.sql.ComponentDescriptorEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -119,11 +118,6 @@ public class JpaBaseComponentDescriptorDao extends JpaAbstractDao<ComponentDescr
     }
 
     @Override
-    public List<String> findClazzesByHasSecret() {
-        return componentDescriptorRepository.findClazzesByHasSecrets();
-    }
-
-    @Override
     @Transactional
     public void deleteById(TenantId tenantId, ComponentDescriptorId componentId) {
         removeById(tenantId, componentId.getId());
@@ -134,4 +128,5 @@ public class JpaBaseComponentDescriptorDao extends JpaAbstractDao<ComponentDescr
     public void deleteByClazz(TenantId tenantId, String clazz) {
         componentDescriptorRepository.deleteByClazz(clazz);
     }
+
 }

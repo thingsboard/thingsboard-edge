@@ -172,4 +172,9 @@ public class JpaRuleChainDao extends JpaAbstractDao<RuleChainEntity, RuleChain> 
         return EntityType.RULE_CHAIN;
     }
 
+    @Override
+    public List<RuleChain> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder) {
+        return DaoUtil.convertDataList(ruleChainRepository.findByTenantIdAndSecretPlaceholder(tenantId.getId(), placeholder));
+    }
+
 }

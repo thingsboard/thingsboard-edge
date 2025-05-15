@@ -78,6 +78,11 @@ public class DefaultSecretUtilService implements SecretUtilService {
         return new String(decrypted, StandardCharsets.UTF_8);
     }
 
+    @Override
+    public void evict(TenantId tenantId) {
+        encryptorMap.remove(tenantId);
+    }
+
     private byte[] doDecrypt(TenantId tenantId, byte[] encryptedValue) {
         try {
             return getEncryptor(tenantId).decrypt(encryptedValue);

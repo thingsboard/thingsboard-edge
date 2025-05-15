@@ -57,6 +57,10 @@ public class Secret extends SecretInfo {
     @Schema(description = "Secret value.", requiredMode = Schema.RequiredMode.REQUIRED, example = "Value")
     @JsonSetter("value")
     public void setValue(String value) {
+        if (value == null) {
+            this.rawValue = null;
+            return;
+        }
         if (SecretType.BINARY_FILE.equals(getType())) {
             this.rawValue = Base64.getDecoder().decode(value);
         } else {
@@ -66,6 +70,9 @@ public class Secret extends SecretInfo {
 
     @JsonGetter("value")
     public String getValue() {
+        if (this.rawValue == null) {
+            return null;
+        }
         if (SecretType.BINARY_FILE.equals(getType())) {
             return Base64.getEncoder().encodeToString(rawValue);
         } else {

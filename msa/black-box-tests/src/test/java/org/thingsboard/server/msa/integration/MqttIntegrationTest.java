@@ -49,6 +49,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.server.common.data.EventInfo;
@@ -228,7 +229,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
     public void telemetryUploadWithBasicCredentialsUsingSecrets() throws Exception {
         String password = "pass";
         Secret secret = createSecret(password);
-        String formattedSecret = "${secret:" + secret.getName() + "}";
+        String formattedSecret = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
 
         createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, formattedSecret, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
 

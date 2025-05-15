@@ -39,8 +39,6 @@ import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentScope;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 
-import java.util.List;
-
 public interface ComponentDescriptorService {
 
     ComponentDescriptor saveComponent(TenantId tenantId, ComponentDescriptor component);
@@ -52,8 +50,6 @@ public interface ComponentDescriptorService {
     PageData<ComponentDescriptor> findByTypeAndPageLink(TenantId tenantId, ComponentType type, PageLink pageLink);
 
     PageData<ComponentDescriptor> findByScopeAndTypeAndPageLink(TenantId tenantId, ComponentScope scope, ComponentType type, PageLink pageLink);
-
-    List<String> findClazzesByHasSecret();
 
     boolean validate(TenantId tenantId, ComponentDescriptor component, JsonNode configuration);
 

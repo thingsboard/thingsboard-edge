@@ -48,6 +48,10 @@ public class SecretId extends UUIDBased implements EntityId {
         super(id);
     }
 
+    public static SecretId fromString(String secretId) {
+        return new SecretId(UUID.fromString(secretId));
+    }
+
     @Override
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "SECRET", allowableValues = "SECRET")
     public EntityType getEntityType() {

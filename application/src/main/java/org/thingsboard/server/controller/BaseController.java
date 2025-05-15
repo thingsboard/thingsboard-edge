@@ -172,7 +172,6 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
-import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
@@ -1273,11 +1272,6 @@ public abstract class BaseController {
 
     SecretInfo checkSecretId(SecretId secretId, Operation operation) throws ThingsboardException {
         return checkEntityId(secretId, secretService::findSecretInfoById, operation);
-    }
-
-    // TODO: DELETE, THIS ONE IS TEMPORARY
-    Secret checkSecretIdTest(SecretId secretId, Operation operation) throws ThingsboardException {
-        return checkEntityId(secretId, secretService::findSecretById, operation);
     }
 
     protected <I extends EntityId> I emptyId(EntityType entityType) {

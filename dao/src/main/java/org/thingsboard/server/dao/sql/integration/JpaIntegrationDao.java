@@ -154,6 +154,11 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
     }
 
     @Override
+    public List<Integration> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder) {
+        return DaoUtil.convertDataList(integrationRepository.findByTenantIdAndSecretPlaceholder(tenantId.getId(), placeholder));
+    }
+
+    @Override
     public PageData<Integration> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
         return findByTenantId(tenantId.getId(), pageLink);
     }

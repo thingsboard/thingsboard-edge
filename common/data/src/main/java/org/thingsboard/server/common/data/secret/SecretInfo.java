@@ -71,6 +71,15 @@ public class SecretInfo extends BaseData<SecretId> implements TenantEntity, HasN
     @Schema(description = "Secret description.", example = "Secret description")
     private String description;
 
+    @Schema(description = "JSON object with the Secret Id. " +
+            "Specify this field to update the Secret. " +
+            "Referencing non-existing Secret Id will cause error. " +
+            "Omit this field to create new Secret.")
+    @Override
+    public SecretId getId() {
+        return super.getId();
+    }
+
     public SecretInfo() {
         super();
     }
