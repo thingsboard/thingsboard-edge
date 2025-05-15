@@ -436,23 +436,8 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             callback.onSuccess();
         }
         // process all cfs related to owner entity
-        Set<EntityId> entities = getOwnerEntities(entityId);
-        if (!entities.isEmpty()) {
-            MultipleTbCallback ownerEntitiesCallback = new MultipleTbCallback(entities.size(), callback);
-            entities.forEach(entity -> {
-                if (isMyPartition(entity, ownerEntitiesCallback)) {
-                    var ownerEntityFields = getCalculatedFieldsByEntityId(entity);
-                    var ownerEntityProfileFields = getCalculatedFieldsByEntityId(getProfileId(tenantId, entity));
-                    if (!ownerEntityFields.isEmpty() || !ownerEntityProfileFields.isEmpty()) {
-                        log.debug("Pushing telemetry msg to specific actor [{}]", entity);
-                        getOrCreateActor(entity).tell(new EntityCalculatedFieldTelemetryMsg(msg, ownerEntityFields, ownerEntityProfileFields, ownerEntitiesCallback));
-                    } else {
-                        ownerEntitiesCallback.onSuccess();
-                    }
-                }
-            });
-        } else {
-            callback.onSuccess();
+        if (entityId.getEntityType().isOneOf(EntityType.TENANT, EntityType.CUSTOMER)) {
+            processOwnerTelemetryMsg(msg, callback);
         }
     }
 
@@ -512,7 +497,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             if (isMyPartition(entityId, callback)) {
                 if (cf.hasDynamicSourceArg()) {
                     CalculatedFieldArgumentResetMsg argResetMsg = new CalculatedFieldArgumentResetMsg(tenantId, cf, callback);
-                    log.debug("Pushing CF init msg to specific actor [{}]", entityId);
+                    log.debug("Pushing CF argument reset msg to specific actor [{}]", entityId);
                     getOrCreateActor(entityId).tell(argResetMsg);
                 } else {
                     callback.onSuccess();
@@ -554,6 +539,27 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             result = Collections.emptyList();
         }
         return result;
+    }
+
+    private void processOwnerTelemetryMsg(CalculatedFieldTelemetryMsg msg, MultipleTbCallback callback) {
+        Set<EntityId> entities = getOwnerEntities(msg.getEntityId());
+        if (!entities.isEmpty()) {
+            MultipleTbCallback ownerEntitiesCallback = new MultipleTbCallback(entities.size(), callback);
+            entities.forEach(entity -> {
+                if (isMyPartition(entity, ownerEntitiesCallback)) {
+                    var ownerEntityFields = getCalculatedFieldsByEntityId(entity);
+                    var ownerEntityProfileFields = getCalculatedFieldsByEntityId(getProfileId(tenantId, entity));
+                    if (!ownerEntityFields.isEmpty() || !ownerEntityProfileFields.isEmpty()) {
+                        log.debug("Pushing telemetry msg to specific actor [{}]", entity);
+                        getOrCreateActor(entity).tell(new EntityCalculatedFieldTelemetryMsg(msg, ownerEntityFields, ownerEntityProfileFields, ownerEntitiesCallback));
+                    } else {
+                        ownerEntitiesCallback.onSuccess();
+                    }
+                }
+            });
+        } else {
+            callback.onSuccess();
+        }
     }
 
     private Set<EntityId> getOwnerEntities(EntityId entityId) {
@@ -667,8 +673,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             log.trace("Processing device record: {}", idInfo);
             try {
                 entityProfileCache.add(idInfo.getProfileId(), idInfo.getEntityId());
-                EntityId owner = ownersCacheService.getOwner(idInfo.getTenantId(), idInfo.getEntityId());
-                ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(idInfo.getEntityId());
+                ownerEntities.computeIfAbsent(idInfo.getOwnerId(), ownerId -> new HashSet<>()).add(idInfo.getEntityId());
             } catch (Exception e) {
                 log.error("Failed to process device record: {}", idInfo, e);
             }
@@ -678,8 +683,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             log.trace("Processing asset record: {}", idInfo);
             try {
                 entityProfileCache.add(idInfo.getProfileId(), idInfo.getEntityId());
-                EntityId owner = ownersCacheService.getOwner(idInfo.getTenantId(), idInfo.getEntityId());
-                ownerEntities.computeIfAbsent(owner, ownerId -> new HashSet<>()).add(idInfo.getEntityId());
+                ownerEntities.computeIfAbsent(idInfo.getOwnerId(), ownerId -> new HashSet<>()).add(idInfo.getEntityId());
             } catch (Exception e) {
                 log.error("Failed to process asset record: {}", idInfo, e);
             }
