@@ -35,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.thingsboard.server.common.data.job.task.TaskResult;
 
@@ -49,7 +50,9 @@ import java.util.List;
 @Data
 public abstract class JobConfiguration implements Serializable {
 
-    private List<TaskResult> toReprocess;
+    @NotBlank
+    private String tasksKey; // internal
+    private List<TaskResult> toReprocess; // internal
 
     @JsonIgnore
     public abstract JobType getType();
