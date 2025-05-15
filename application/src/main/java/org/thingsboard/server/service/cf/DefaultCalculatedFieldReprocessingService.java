@@ -57,6 +57,7 @@ import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
+import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
 import org.thingsboard.server.common.data.cf.configuration.OutputType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -85,6 +86,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -157,13 +159,14 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
 
         performInitialProcessing(tenantId, entityId, state, ctx, startTs);
 
-        Map<String, List<TsKvEntry>> telemetryBuffers = new HashMap<>();
+        Map<String, LinkedList<TsKvEntry>> telemetryBuffers = new HashMap<>();
         Map<String, Long> cursors = new HashMap<>();
         ctx.getArguments().forEach((argName, arg) -> {
-            List<TsKvEntry> batch = fetchTelemetryBatch(tenantId, entityId, arg, startTs, endTs, telemetryFetchPackSize);
+            if (ArgumentType.ATTRIBUTE.equals(arg.getRefEntityKey().getType())) return;
+            LinkedList<TsKvEntry> batch = fetchTelemetryBatch(tenantId, entityId, arg, startTs, endTs, telemetryFetchPackSize);
             if (!batch.isEmpty()) {
                 telemetryBuffers.put(argName, batch);
-                cursors.put(argName, batch.get(batch.size() - 1).getTs());
+                cursors.put(argName, batch.getLast().getTs());
             }
         });
 
@@ -180,23 +183,23 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
 
             Map<String, ArgumentEntry> updatedArgs = new HashMap<>();
 
-            for (Map.Entry<String, List<TsKvEntry>> entry : telemetryBuffers.entrySet()) {
+            for (Map.Entry<String, LinkedList<TsKvEntry>> entry : telemetryBuffers.entrySet()) {
                 String argName = entry.getKey();
-                List<TsKvEntry> buffer = entry.getValue();
+                LinkedList<TsKvEntry> buffer = entry.getValue();
 
-                if (!buffer.isEmpty() && buffer.get(0).getTs() == minTs) {
-                    TsKvEntry tsEntry = buffer.remove(0);
+                if (!buffer.isEmpty() && buffer.peekFirst().getTs() == minTs) {
+                    TsKvEntry tsEntry = buffer.removeFirst();
                     updatedArgs.put(argName, ArgumentEntry.createSingleValueArgument(tsEntry));
 
                     if (buffer.isEmpty()) {
                         Argument arg = ctx.getArguments().get(argName);
                         Long cursorTs = cursors.getOrDefault(argName, startTs);
-                        List<TsKvEntry> nextBatch = fetchTelemetryBatch(tenantId, entityId, arg, cursorTs, endTs, telemetryFetchPackSize).stream()
+                        LinkedList<TsKvEntry> nextBatch = fetchTelemetryBatch(tenantId, entityId, arg, cursorTs, endTs, telemetryFetchPackSize).stream()
                                 .filter(tsKvEntry -> tsKvEntry.getTs() > cursorTs)
-                                .toList();
+                                .collect(Collectors.toCollection(LinkedList::new));
                         if (!nextBatch.isEmpty()) {
                             telemetryBuffers.put(argName, nextBatch);
-                            cursors.put(argName, nextBatch.get(nextBatch.size() - 1).getTs());
+                            cursors.put(argName, nextBatch.getLast().getTs());
                         }
                     }
                 }
@@ -378,11 +381,11 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         return Futures.transform(tsRollingFuture, tsRolling -> tsRolling == null ? new TsRollingArgumentEntry(limit, argTimeWindow) : ArgumentEntry.createTsRollingArgument(tsRolling, limit, argTimeWindow), calculatedFieldCallbackExecutor);
     }
 
-    private List<TsKvEntry> fetchTelemetryBatch(TenantId tenantId, EntityId entityId, Argument argument, long startTs, long endTs, int limit) {
+    private LinkedList<TsKvEntry> fetchTelemetryBatch(TenantId tenantId, EntityId entityId, Argument argument, long startTs, long endTs, int limit) {
         EntityId sourceEntityId = argument.getRefEntityId() != null ? argument.getRefEntityId() : entityId;
         try {
             ReadTsKvQuery query = new BaseReadTsKvQuery(argument.getRefEntityKey().getKey(), startTs, endTs, 0, limit, Aggregation.NONE, "ASC");
-            return timeseriesService.findAll(tenantId, sourceEntityId, List.of(query)).get(); // will be interrupted on task processing timeout
+            return new LinkedList<>(timeseriesService.findAll(tenantId, sourceEntityId, List.of(query)).get()); // will be interrupted on task processing timeout
         } catch (ExecutionException e) {
             throw new RuntimeException("Failed to fetch telemetry for " + sourceEntityId + " for key " + argument.getRefEntityKey().getKey(), e.getCause());
         } catch (InterruptedException e) {
