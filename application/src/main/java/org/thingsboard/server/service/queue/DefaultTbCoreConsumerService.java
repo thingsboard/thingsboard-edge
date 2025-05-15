@@ -304,7 +304,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                 .map(tpi -> tpi.withTopic(usageStatsConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
         integrationApiConsumer.subscribe(event.getCorePartitions().stream()
-                .map(tpi -> tpi.newByTopic(integrationApiConsumer.getConsumer().getTopic()))
+                .map(tpi -> tpi.withTopic(integrationApiConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
     }
 

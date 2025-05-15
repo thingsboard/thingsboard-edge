@@ -386,7 +386,8 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
                 var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getType().name(), configuration.getTenantId(), configuration.getId())
-                        .newByTopic(integrationExecutorSettings.getIntegrationDownlinkTopic(configuration.getType()));
+//         FIXME uncomment               .withTopic(topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(configuration.getType())));
+                        .withTopic(integrationExecutorSettings.getIntegrationDownlinkTopic(configuration.getType()));
                 IntegrationValidationRequestProto requestProto = IntegrationValidationRequestProto.newBuilder()
                         .setIdMSB(task.getUuid().getMostSignificantBits())
                         .setIdLSB(task.getUuid().getLeastSignificantBits())

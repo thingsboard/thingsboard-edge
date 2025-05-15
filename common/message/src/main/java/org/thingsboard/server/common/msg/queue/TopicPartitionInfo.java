@@ -102,7 +102,7 @@ public class TopicPartitionInfo {
         if (o == null || getClass() != o.getClass()) return false;
         TopicPartitionInfo that = (TopicPartitionInfo) o;
         return Objects.equals(partition, that.partition) &&
-                fullTopicName.equals(that.fullTopicName);
+               fullTopicName.equals(that.fullTopicName);
     }
 
     @Override
