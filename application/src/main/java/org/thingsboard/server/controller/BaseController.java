@@ -498,7 +498,7 @@ public abstract class BaseController {
     public void handleControllerException(Exception e, HttpServletResponse response) {
         ThingsboardException thingsboardException = handleException(e);
         if (thingsboardException.getErrorCode() == ThingsboardErrorCode.GENERAL && thingsboardException.getCause() instanceof Exception
-                && StringUtils.equals(thingsboardException.getCause().getMessage(), thingsboardException.getMessage())) {
+            && StringUtils.equals(thingsboardException.getCause().getMessage(), thingsboardException.getMessage())) {
             e = (Exception) thingsboardException.getCause();
         } else {
             e = thingsboardException;
@@ -543,7 +543,7 @@ public abstract class BaseController {
         if (exception instanceof ThingsboardException) {
             return (ThingsboardException) exception;
         } else if (exception instanceof IllegalArgumentException || exception instanceof IncorrectParameterException
-                || exception instanceof DataValidationException || cause instanceof IncorrectParameterException) {
+                   || exception instanceof DataValidationException || cause instanceof IncorrectParameterException) {
             return new ThingsboardException(exception.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         } else if (exception instanceof MessagingException) {
             return new ThingsboardException("Unable to send mail", ThingsboardErrorCode.GENERAL);
@@ -672,9 +672,9 @@ public abstract class BaseController {
             throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET
-                && groupType != EntityType.DEVICE && groupType != EntityType.USER
-                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE
-                && groupType != EntityType.DASHBOARD) {
+            && groupType != EntityType.DEVICE && groupType != EntityType.USER
+            && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE
+            && groupType != EntityType.DASHBOARD) {
             throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
@@ -898,109 +898,46 @@ public abstract class BaseController {
         checkEntity(entityId, entity, resource, null);
     }
 
-    protected void checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
+    protected HasId<? extends EntityId> checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
         try {
             if (entityId == null) {
                 throw new ThingsboardException("Parameter entityId can't be empty!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
             validateId(entityId.getId(), id -> "Incorrect entityId " + id);
-            switch (entityId.getEntityType()) {
-                case ALARM:
-                    checkAlarmId(new AlarmId(entityId.getId()), operation);
-                    return;
-                case DEVICE:
-                    checkDeviceId(new DeviceId(entityId.getId()), operation);
-                    return;
-                case DEVICE_PROFILE:
-                    checkDeviceProfileId(new DeviceProfileId(entityId.getId()), operation);
-                    return;
-                case CUSTOMER:
-                    checkCustomerId(new CustomerId(entityId.getId()), operation);
-                    return;
-                case TENANT:
-                    checkTenantId(TenantId.fromUUID(entityId.getId()), operation);
-                    return;
-                case TENANT_PROFILE:
-                    checkTenantProfileId(new TenantProfileId(entityId.getId()), operation);
-                    return;
-                case RULE_CHAIN:
-                    checkRuleChain(new RuleChainId(entityId.getId()), operation);
-                    return;
-                case RULE_NODE:
-                    checkRuleNode(new RuleNodeId(entityId.getId()), operation);
-                    return;
-                case ASSET:
-                    checkAssetId(new AssetId(entityId.getId()), operation);
-                    return;
-                case ASSET_PROFILE:
-                    checkAssetProfileId(new AssetProfileId(entityId.getId()), operation);
-                    return;
-                case INTEGRATION:
-                    checkIntegrationId(new IntegrationId(entityId.getId()), operation);
-                    return;
-                case CONVERTER:
-                    checkConverterId(new ConverterId(entityId.getId()), operation);
-                    return;
-                case DASHBOARD:
-                    checkDashboardId(new DashboardId(entityId.getId()), operation);
-                    return;
-                case USER:
-                    checkUserId(new UserId(entityId.getId()), operation);
-                    return;
-                case ENTITY_GROUP:
-                    checkEntityGroupId(new EntityGroupId(entityId.getId()), operation);
-                    return;
-                case SCHEDULER_EVENT:
-                    checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()), operation);
-                    return;
-                case BLOB_ENTITY:
-                    checkBlobEntityInfoId(new BlobEntityId(entityId.getId()), operation);
-                    return;
-                case ENTITY_VIEW:
-                    checkEntityViewId(new EntityViewId(entityId.getId()), operation);
-                    return;
-                case EDGE:
-                    checkEdgeId(new EdgeId(entityId.getId()), operation);
-                    return;
-                case ROLE:
-                    checkRoleId(new RoleId(entityId.getId()), operation);
-                    return;
-                case WIDGETS_BUNDLE:
-                    checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);
-                    return;
-                case WIDGET_TYPE:
-                    checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);
-                    return;
-                case GROUP_PERMISSION:
-                    checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
-                    return;
-                case TB_RESOURCE:
-                    checkResourceInfoId(new TbResourceId(entityId.getId()), operation);
-                    return;
-                case OTA_PACKAGE:
-                    checkOtaPackageId(new OtaPackageId(entityId.getId()), operation);
-                    return;
-                case QUEUE:
-                    checkQueueId(new QueueId(entityId.getId()), operation);
-                    return;
-                case OAUTH2_CLIENT:
-                    checkOauth2ClientId(new OAuth2ClientId(entityId.getId()), operation);
-                    return;
-                case DOMAIN:
-                    checkDomainId(new DomainId(entityId.getId()), operation);
-                    return;
-                case MOBILE_APP:
-                    checkMobileAppId(new MobileAppId(entityId.getId()), operation);
-                    return;
-                case MOBILE_APP_BUNDLE:
-                    checkMobileAppBundleId(new MobileAppBundleId(entityId.getId()), operation);
-                    return;
-                case CALCULATED_FIELD:
-                    checkCalculatedFieldId(new CalculatedFieldId(entityId.getId()), operation);
-                    return;
-                default:
-                    checkEntityId(entityId, entitiesService::findEntityByTenantIdAndId, operation);
-            }
+            return switch (entityId.getEntityType()) {
+                case ALARM -> checkAlarmId(new AlarmId(entityId.getId()), operation);
+                case DEVICE -> checkDeviceId(new DeviceId(entityId.getId()), operation);
+                case DEVICE_PROFILE -> checkDeviceProfileId(new DeviceProfileId(entityId.getId()), operation);
+                case CUSTOMER -> checkCustomerId(new CustomerId(entityId.getId()), operation);
+                case TENANT -> checkTenantId(TenantId.fromUUID(entityId.getId()), operation);
+                case TENANT_PROFILE -> checkTenantProfileId(new TenantProfileId(entityId.getId()), operation);
+                case RULE_CHAIN -> checkRuleChain(new RuleChainId(entityId.getId()), operation);
+                case RULE_NODE -> checkRuleNode(new RuleNodeId(entityId.getId()), operation);
+                case ASSET -> checkAssetId(new AssetId(entityId.getId()), operation);
+                case ASSET_PROFILE -> checkAssetProfileId(new AssetProfileId(entityId.getId()), operation);
+                case INTEGRATION -> checkIntegrationId(new IntegrationId(entityId.getId()), operation);
+                case CONVERTER -> checkConverterId(new ConverterId(entityId.getId()), operation);
+                case DASHBOARD -> checkDashboardId(new DashboardId(entityId.getId()), operation);
+                case USER -> checkUserId(new UserId(entityId.getId()), operation);
+                case ENTITY_GROUP -> checkEntityGroupId(new EntityGroupId(entityId.getId()), operation);
+                case SCHEDULER_EVENT -> checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()), operation);
+                case BLOB_ENTITY -> checkBlobEntityInfoId(new BlobEntityId(entityId.getId()), operation);
+                case ENTITY_VIEW -> checkEntityViewId(new EntityViewId(entityId.getId()), operation);
+                case EDGE -> checkEdgeId(new EdgeId(entityId.getId()), operation);
+                case ROLE -> checkRoleId(new RoleId(entityId.getId()), operation);
+                case WIDGETS_BUNDLE -> checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);
+                case WIDGET_TYPE -> checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);
+                case GROUP_PERMISSION -> checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
+                case TB_RESOURCE -> checkResourceInfoId(new TbResourceId(entityId.getId()), operation);
+                case OTA_PACKAGE -> checkOtaPackageId(new OtaPackageId(entityId.getId()), operation);
+                case QUEUE -> checkQueueId(new QueueId(entityId.getId()), operation);
+                case OAUTH2_CLIENT -> checkOauth2ClientId(new OAuth2ClientId(entityId.getId()), operation);
+                case DOMAIN -> checkDomainId(new DomainId(entityId.getId()), operation);
+                case MOBILE_APP -> checkMobileAppId(new MobileAppId(entityId.getId()), operation);
+                case MOBILE_APP_BUNDLE -> checkMobileAppBundleId(new MobileAppBundleId(entityId.getId()), operation);
+                case CALCULATED_FIELD -> checkCalculatedFieldId(new CalculatedFieldId(entityId.getId()), operation);
+                default -> (HasId<? extends EntityId>) checkEntityId(entityId, entitiesService::findEntityByTenantIdAndId, operation);
+            };
         } catch (Exception e) {
             throw handleException(e, false);
         }
