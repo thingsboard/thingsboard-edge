@@ -28,24 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.downlink;
+package org.thingsboard.server.transport.lwm2m.server.model;
 
-import org.eclipse.leshan.core.request.CreateRequest;
-import org.eclipse.leshan.core.response.CreateResponse;
-import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
-import org.thingsboard.server.transport.lwm2m.server.log.LwM2MTelemetryLogService;
-import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
+import lombok.Data;
+import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryObserveStrategy;
 
-public class TbLwM2MCreateResponseCallback extends TbLwM2MUplinkTargetedCallback<CreateRequest, CreateResponse> {
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-    public TbLwM2MCreateResponseCallback(LwM2mUplinkMsgHandler handler, LwM2MTelemetryLogService logService, LwM2mClient client, String targetId) {
-        super(handler, logService, client, targetId);
+import static org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryObserveStrategy.SINGLE;
+
+@Data
+public class ParametersObserveAnalyzeResult {
+    Set<String> observeSingleToCancel = ConcurrentHashMap.newKeySet();
+    Set<String> observeSingleToNew = ConcurrentHashMap.newKeySet();
+    Map<Integer, String[]> observeByObjectToNew = new ConcurrentHashMap<>();;
+    Map<Integer, String[]> observeByObjectToCancel = new ConcurrentHashMap<>();;
+    TelemetryObserveStrategy observeStrategyOld = SINGLE;
+    TelemetryObserveStrategy observeStrategyNew = SINGLE;
+
+    public ParametersObserveAnalyzeResult(Set<String> observeSingleToCancel, Set<String> observeSingleToNew, TelemetryObserveStrategy observeStrategyOld, TelemetryObserveStrategy observeStrategyNew){
+        this.observeSingleToCancel = observeSingleToCancel;
+        this.observeSingleToNew = observeSingleToNew;
+        this.observeStrategyOld = observeStrategyOld;
+        this.observeStrategyNew = observeStrategyNew;
     }
 
-    @Override
-    public void onSuccess(CreateRequest request, CreateResponse response) {
-        super.onSuccess(request, response);
-        handler.onCreatebjectInstancesResponseOk(client, versionedId, request);
-    }
-
+    public ParametersObserveAnalyzeResult(){}
 }
