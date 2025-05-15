@@ -51,7 +51,7 @@ public class DummyTaskProcessor extends TaskProcessor<DummyTask, DummyTaskResult
             String error = task.getErrors().get(task.getAttempt() - 1);
             throw new RuntimeException(error);
         }
-        return DummyTaskResult.success();
+        return DummyTaskResult.success(task);
     }
 
     @Override

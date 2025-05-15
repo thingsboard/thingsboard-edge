@@ -56,6 +56,7 @@ public abstract class Task<R extends TaskResult> {
 
     private TenantId tenantId;
     private JobId jobId;
+    private String key;
     private int retries;
 
     public Task() {

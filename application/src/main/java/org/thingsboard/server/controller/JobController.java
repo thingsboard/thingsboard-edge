@@ -36,6 +36,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -258,6 +259,13 @@ public class JobController extends BaseController {
     public void reprocessJob(@PathVariable UUID id) throws ThingsboardException {
         // todo check permissions
         jobManager.reprocessJob(getTenantId(), new JobId(id));
+    }
+
+    @DeleteMapping("/job/{id}")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    public void deleteJob(@PathVariable UUID id) throws ThingsboardException {
+        // todo check permissions
+        jobService.deleteJob(getTenantId(), new JobId(id));
     }
 
 }
