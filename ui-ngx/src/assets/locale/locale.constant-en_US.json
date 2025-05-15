@@ -1098,6 +1098,7 @@
         "argument-asset": "Asset",
         "argument-customer": "Customer",
         "argument-tenant": "Current tenant",
+        "argument-owner": "Current owner",
         "argument-type": "Argument type",
         "see-debug-events": "See debug events",
         "attribute": "Attribute",

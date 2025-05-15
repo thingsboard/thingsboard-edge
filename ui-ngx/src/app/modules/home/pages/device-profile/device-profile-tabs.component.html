@@ -61,6 +61,7 @@
     [active]="calculatedFieldsTab.isActive"
     [entityId]="entity.id"
     [entityName]="entity.name"
+    [ownerId]="entity.ownerId"
     [readonly]="!(resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE_CALCULATED_FIELD)"
     [hideClearEventAction]="!(resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE)"
   />
