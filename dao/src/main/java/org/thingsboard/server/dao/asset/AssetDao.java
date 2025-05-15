@@ -31,10 +31,12 @@
 package org.thingsboard.server.dao.asset;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.ProfileEntityIdInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -91,6 +93,10 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao<Asset>, Exportable
      * @return the list of asset objects
      */
     PageData<AssetId> findAssetIdsByTenantIdAndAssetProfileId(UUID tenantId, UUID assetProfileId, PageLink pageLink);
+
+    EntityInfo findAssetEntityInfoById(TenantId tenantId, AssetId assetId);
+
+    PageData<EntityInfo> findAssetEntityInfosByTenantIdAndAssetProfileId(TenantId tenantId, AssetProfileId assetProfileId, PageLink pageLink);
 
     /**
      * Find assets by tenantId and assets Ids.

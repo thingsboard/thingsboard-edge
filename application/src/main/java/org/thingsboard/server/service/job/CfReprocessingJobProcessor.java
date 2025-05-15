@@ -32,11 +32,14 @@ package org.thingsboard.server.service.job;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.cf.CalculatedField;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.job.CfReprocessingJobConfiguration;
 import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.job.JobType;
@@ -65,26 +68,33 @@ public class CfReprocessingJobProcessor implements JobProcessor {
     public int process(Job job, Consumer<Task<?>> taskConsumer) throws Exception {
         CfReprocessingJobConfiguration configuration = job.getConfiguration();
 
-        CalculatedField calculatedField = calculatedFieldService.findById(job.getTenantId(), configuration.getCalculatedFieldId());
+        TenantId tenantId = job.getTenantId();
+        CalculatedField calculatedField = calculatedFieldService.findById(tenantId, configuration.getCalculatedFieldId());
         EntityId cfEntityId = calculatedField.getEntityId();
 
         int tasksCount = 0;
-        if (cfEntityId.getEntityType().isOneOf(EntityType.DEVICE, EntityType.ASSET)) {
-            taskConsumer.accept(createTask(job, configuration, calculatedField, cfEntityId));
-            tasksCount++;
-        } else {
-            PageDataIterable<? extends EntityId> entities;
-            if (cfEntityId.getEntityType() == EntityType.DEVICE_PROFILE) {
-                entities = new PageDataIterable<>(pageLink -> deviceService.findDeviceIdsByTenantIdAndDeviceProfileId(job.getTenantId(), (DeviceProfileId) cfEntityId, pageLink), 512);
-            } else if (cfEntityId.getEntityType() == EntityType.ASSET_PROFILE) {
-                entities = new PageDataIterable<>(pageLink -> assetService.findAssetIdsByTenantIdAndAssetProfileId(job.getTenantId(), (AssetProfileId) cfEntityId, pageLink), 512);
-            } else {
+        Iterable<EntityInfo> entities;
+        switch (cfEntityId.getEntityType()) {
+            case DEVICE -> {
+                entities = List.of(deviceService.findDeviceEntityInfoById(tenantId, (DeviceId) cfEntityId));
+            }
+            case ASSET -> {
+                entities = List.of(assetService.findAssetEntityInfoById(tenantId, (AssetId) cfEntityId));
+            }
+            case DEVICE_PROFILE -> {
+                entities = new PageDataIterable<>(pageLink -> deviceService.findDeviceEntityInfosByTenantIdAndDeviceProfileId(tenantId, (DeviceProfileId) cfEntityId, pageLink), 512);
+            }
+            case ASSET_PROFILE -> {
+                entities = new PageDataIterable<>(pageLink -> assetService.findAssetEntityInfosByTenantIdAndAssetProfileId(tenantId, (AssetProfileId) cfEntityId, pageLink), 512);
+            }
+            default -> {
                 throw new IllegalArgumentException("Unsupported CF entity type " + cfEntityId.getEntityType());
             }
-            for (EntityId entityId : entities) {
-                taskConsumer.accept(createTask(job, configuration, calculatedField, entityId));
-                tasksCount++;
-            }
+        }
+
+        for (EntityInfo entityInfo : entities) {
+            taskConsumer.accept(createTask(job, configuration, calculatedField, entityInfo));
+            tasksCount++;
         }
         return tasksCount;
     }
@@ -96,18 +106,19 @@ public class CfReprocessingJobProcessor implements JobProcessor {
 
         for (TaskResult taskFailure : taskFailures) {
             CfReprocessingTaskFailure failure = ((CfReprocessingTaskResult) taskFailure).getFailure();
-            EntityId entityId = failure.getEntityId();
-            taskConsumer.accept(createTask(job, job.getConfiguration(), calculatedField, entityId));
+            EntityInfo entityInfo = failure.getEntityInfo();
+            taskConsumer.accept(createTask(job, job.getConfiguration(), calculatedField, entityInfo));
         }
     }
 
-    private CfReprocessingTask createTask(Job job, CfReprocessingJobConfiguration configuration, CalculatedField calculatedField, EntityId entityId) {
+    private CfReprocessingTask createTask(Job job, CfReprocessingJobConfiguration configuration, CalculatedField calculatedField, EntityInfo entityInfo) {
         return CfReprocessingTask.builder()
                 .tenantId(job.getTenantId())
                 .jobId(job.getId())
+                .key(configuration.getTasksKey())
                 .retries(2) // 3 attempts in total
                 .calculatedField(calculatedField)
-                .entityId(entityId)
+                .entityInfo(entityInfo)
                 .startTs(configuration.getStartTs())
                 .endTs(configuration.getEndTs())
                 .build();

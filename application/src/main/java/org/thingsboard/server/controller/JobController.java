@@ -95,7 +95,7 @@ public class JobController extends BaseController {
                     "  },\n" +
                     "  \"type\": \"CF_REPROCESSING\",\n" +
                     "  \"key\": \"474e4130-2f2d-11f0-8240-91e99922a704\",\n" +
-                    "  \"description\": \"Reprocessing of calculated field 'Air densityfBsoH' for device profile 47074d20-2f2d-11f0-8240-91e99922a704\",\n" +
+                    "  \"description\": \"Reprocessing of calculated field 'Air densityiLscd' for device profile <a href=\\\"/profiles/deviceProfiles/9fcec7f0-31a1-11f0-933e-27998d6db02e\\\">Test Device Profile</a>\",\n" +
                     "  \"status\": \"RUNNING\",\n" +
                     "  \"configuration\": {\n" +
                     "    \"type\": \"CF_REPROCESSING\",\n" +
@@ -105,6 +105,7 @@ public class JobController extends BaseController {
                     "    },\n" +
                     "    \"startTs\": 1747051995760,\n" +
                     "    \"endTs\": 1747052895760,\n" +
+                    "    \"tasksKey\": \"c3cdbd42-799e-4d3a-9aad-9310f767aa36\",\n" +
                     "    \"toReprocess\": null\n" +
                     "  },\n" +
                     "  \"result\": {\n" +
@@ -115,6 +116,8 @@ public class JobController extends BaseController {
                     "    \"totalCount\": 2,\n" +
                     "    \"results\": [],\n" +
                     "    \"generalError\": null,\n" +
+                    "    \"startTs\": 1747323069445,\n" +
+                    "    \"finishTs\": 1747323070585,\n" +
                     "    \"cancellationTs\": 0\n" +
                     "  }\n" +
                     "}\n" +
@@ -134,30 +137,40 @@ public class JobController extends BaseController {
                     "    \"results\": [\n" +
                     "      {\n" +
                     "        \"jobType\": \"CF_REPROCESSING\",\n" +
+                    "        \"key\": \"c3cdbd42-799e-4d3a-9aad-9310f767aa36\",\n" +
                     "        \"success\": false,\n" +
                     "        \"discarded\": false,\n" +
                     "        \"failure\": {\n" +
                     "          \"error\": \"Failed to fetch temperature: Failed to fetch timeseries data\",\n" +
-                    "          \"entityId\": {\n" +
-                    "            \"entityType\": \"DEVICE\",\n" +
-                    "            \"id\": \"4aac5c20-2f34-11f0-ac3f-cd8acc9927fd\"\n" +
+                    "          \"entityInfo\": {\n" +
+                    "            \"id\": {\n" +
+                    "              \"entityType\": \"DEVICE\",\n" +
+                    "              \"id\": \"9fd41f20-31a1-11f0-933e-27998d6db02e\"\n" +
+                    "            },\n" +
+                    "            \"name\": \"Test device 1\"\n" +
                     "          }\n" +
                     "        }\n" +
                     "      },\n" +
                     "      {\n" +
                     "        \"jobType\": \"CF_REPROCESSING\",\n" +
+                    "        \"key\": \"c3cdbd42-799e-4d3a-9aad-9310f767aa36\",\n" +
                     "        \"success\": false,\n" +
                     "        \"discarded\": false,\n" +
                     "        \"failure\": {\n" +
                     "          \"error\": \"Failed to fetch temperature: Failed to fetch timeseries data\",\n" +
-                    "          \"entityId\": {\n" +
-                    "            \"entityType\": \"DEVICE\",\n" +
-                    "            \"id\": \"4ad25ab1-2f34-11f0-ac3f-cd8acc9927fd\"\n" +
+                    "          \"entityInfo\": {\n" +
+                    "            \"id\": {\n" +
+                    "              \"entityType\": \"DEVICE\",\n" +
+                    "              \"id\": \"9ffc4090-31a1-11f0-933e-27998d6db02e\"\n" +
+                    "            },\n" +
+                    "            \"name\": \"Test device 2\"\n" +
                     "          }\n" +
                     "        }\n" +
                     "      }\n" +
                     "    ],\n" +
                     "    \"generalError\": null,\n" +
+                    "    \"startTs\": 1747323069445,\n" +
+                    "    \"finishTs\": 1747323070585,\n" +
                     "    \"cancellationTs\": 0\n" +
                     "  }\n" +
                     "}\n" +

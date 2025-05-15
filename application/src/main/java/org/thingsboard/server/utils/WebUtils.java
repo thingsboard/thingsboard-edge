@@ -28,60 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job.task;
+package org.thingsboard.server.utils;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.thingsboard.server.common.data.EntityInfo;
-import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.common.data.id.EntityId;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@SuperBuilder
-public class CfReprocessingTaskResult extends TaskResult {
+public class WebUtils {
 
-    private CfReprocessingTaskFailure failure;
+    private WebUtils() {}
 
-    public static CfReprocessingTaskResult success(CfReprocessingTask task) {
-        return CfReprocessingTaskResult.builder()
-                .key(task.getKey())
-                .success(true)
-                .build();
-    }
-
-    public static CfReprocessingTaskResult failed(CfReprocessingTask task, Throwable error) {
-        return CfReprocessingTaskResult.builder()
-                .key(task.getKey())
-                .failure(CfReprocessingTaskFailure.builder()
-                        .error(error.getMessage())
-                        .entityInfo(task.getEntityInfo())
-                        .build())
-                .build();
-    }
-
-    public static CfReprocessingTaskResult discarded(CfReprocessingTask task) {
-        return CfReprocessingTaskResult.builder()
-                .key(task.getKey())
-                .discarded(true)
-                .build();
-    }
-
-    @Override
-    public JobType getJobType() {
-        return JobType.CF_REPROCESSING;
-    }
-
-    @Data
-    @EqualsAndHashCode(callSuper = true)
-    @NoArgsConstructor
-    @SuperBuilder
-    public static class CfReprocessingTaskFailure extends TaskFailure {
-
-        private EntityInfo entityInfo;
-
+    public static String getEntityPageUrl(EntityId entityId) {
+        return switch (entityId.getEntityType()) {
+            case DEVICE -> "/devices/" + entityId.getId();
+            case ASSET -> "/assets/" + entityId.getId();
+            case DEVICE_PROFILE -> "/profiles/deviceProfiles/" + entityId.getId();
+            case ASSET_PROFILE -> "/profiles/assetProfiles/" + entityId.getId();
+            default -> throw new IllegalArgumentException("Page for " + entityId.getEntityType() + " not defined");
+        };
     }
 
 }

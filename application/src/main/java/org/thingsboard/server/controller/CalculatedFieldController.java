@@ -54,6 +54,7 @@ import org.thingsboard.script.api.tbel.TbelCfSingleValueArg;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
@@ -79,6 +80,7 @@ import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingVali
 import org.thingsboard.server.service.entitiy.cf.TbCalculatedFieldService;
 import org.thingsboard.server.service.job.JobManager;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.utils.WebUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -301,14 +303,17 @@ public class CalculatedFieldController extends BaseController {
         CalculatedField calculatedField = tbCalculatedFieldService.findById(calculatedFieldId, getCurrentUser());
         checkNotNull(calculatedField);
         EntityId entityId = calculatedField.getEntityId();
-        checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
+        HasId<? extends EntityId> entity = checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
+
         jobManager.submitJob(Job.builder()
                 .tenantId(calculatedField.getTenantId())
                 .type(JobType.CF_REPROCESSING)
                 .key(calculatedField.getId().toString())
-                .description("Reprocessing of calculated field '" + calculatedField.getName() +
-                             "' for " + entityId.getEntityType().getNormalName().toLowerCase() +
-                             " " + entityId.getId())
+                .description("Reprocessing of calculated field '%s' for %s <a href=\"%s\">%s</a>".formatted(
+                        calculatedField.getName(),
+                        entityId.getEntityType().getNormalName().toLowerCase(),
+                        WebUtils.getEntityPageUrl(entityId),
+                        entity instanceof HasName hasName ? hasName.getName() : entityId.toString()))
                 .configuration(CfReprocessingJobConfiguration.builder()
                         .calculatedFieldId(calculatedField.getId())
                         .startTs(startTs)
@@ -341,8 +346,7 @@ public class CalculatedFieldController extends BaseController {
                     return;
                 }
                 case CUSTOMER, ASSET, DEVICE -> checkEntityId(referencedEntityId, Operation.READ);
-                default ->
-                        throw new IllegalArgumentException("Calculated fields do not support '" + entityType + "' for referenced entities.");
+                default -> throw new IllegalArgumentException("Calculated fields do not support '" + entityType + "' for referenced entities.");
             }
         }
 

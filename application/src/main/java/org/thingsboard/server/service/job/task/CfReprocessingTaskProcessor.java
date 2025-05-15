@@ -61,7 +61,7 @@ public class CfReprocessingTaskProcessor extends TaskProcessor<CfReprocessingTas
         SettableFuture<Void> future = SettableFuture.create();
         cfReprocessingService.reprocess(task, TbCallback.wrap(future));
         wait(future);
-        return CfReprocessingTaskResult.success();
+        return CfReprocessingTaskResult.success(task);
     }
 
     @Override

@@ -855,7 +855,15 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
                     .map(result -> (CfReprocessingTaskResult) result)
                     .map(CfReprocessingTaskResult::getFailure)
                     .toList();
-            assertThat(failures).hasSize(2).allSatisfy(failure -> {
+            assertThat(failures).hasSize(2);
+            assertThat(failures).anySatisfy(failure -> {
+                assertThat(failure.getEntityInfo().getId()).isEqualTo(testDevice1.getId());
+                assertThat(failure.getEntityInfo().getName()).isEqualTo(testDevice1.getName());
+                assertThat(failure.getError()).contains("Failed to fetch timeseries data");
+            });
+            assertThat(failures).anySatisfy(failure -> {
+                assertThat(failure.getEntityInfo().getId()).isEqualTo(testDevice2.getId());
+                assertThat(failure.getEntityInfo().getName()).isEqualTo(testDevice2.getName());
                 assertThat(failure.getError()).contains("Failed to fetch timeseries data");
             });
         });
