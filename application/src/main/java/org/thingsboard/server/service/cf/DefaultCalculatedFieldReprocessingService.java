@@ -187,7 +187,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
                 String argName = entry.getKey();
                 LinkedList<TsKvEntry> buffer = entry.getValue();
 
-                if (!buffer.isEmpty() && buffer.peekFirst().getTs() == minTs) {
+                if (!buffer.isEmpty() && buffer.getFirst().getTs() == minTs) {
                     TsKvEntry tsEntry = buffer.removeFirst();
                     updatedArgs.put(argName, ArgumentEntry.createSingleValueArgument(tsEntry));
 
