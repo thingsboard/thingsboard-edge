@@ -248,7 +248,7 @@ public class DefaultTbClusterService implements TbClusterService {
                 .setTenantIdLSB(downlink.getTenantId().getId().getLeastSignificantBits())
                 .setIntegrationIdMSB(downlink.getIntegrationId().getId().getMostSignificantBits())
                 .setIntegrationIdLSB(downlink.getIntegrationId().getId().getLeastSignificantBits())
-                .setData(TbMsg.toByteString(downlink.getTbMsg()));
+                .setDataProto(TbMsg.toProto(downlink.getTbMsg()));
         ToCoreNotificationMsg msg = ToCoreNotificationMsg.newBuilder().setIntegrationDownlinkMsg(builder).build();
         producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(downlink.getTbMsg().getId(), msg), callback);
         toCoreNfs.incrementAndGet();

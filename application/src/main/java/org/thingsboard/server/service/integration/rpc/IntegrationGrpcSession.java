@@ -70,6 +70,7 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.gen.MsgProtos;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -289,7 +290,13 @@ public final class IntegrationGrpcSession implements Closeable {
 
             if (msg.getTbMsgCount() > 0) {
                 for (ByteString tbMsgByteString : msg.getTbMsgList()) {
-                    TbMsg tbMsg = TbMsg.fromBytes(null, tbMsgByteString.toByteArray(), TbMsgCallback.EMPTY);
+                    TbMsg tbMsg = TbMsg.fromProto(null, null, tbMsgByteString, TbMsgCallback.EMPTY);
+                    ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
+                }
+            }
+            if (msg.getTbMsgProtoCount() > 0) {
+                for (MsgProtos.TbMsgProto tbMsgProto : msg.getTbMsgProtoList()) {
+                    TbMsg tbMsg = TbMsg.fromProto(null, tbMsgProto, null, TbMsgCallback.EMPTY);
                     ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
                 }
             }
@@ -516,7 +523,7 @@ public final class IntegrationGrpcSession implements Closeable {
                                         DeviceDownlinkDataProto.newBuilder()
                                                 .setDeviceName(device.getName())
                                                 .setDeviceType(device.getType())
-                                                .setTbMsg(TbMsg.toByteString(msg.getTbMsg()))
+                                                .setTbMsgProto(TbMsg.toProto(msg.getTbMsg()))
                                                 .build()
                                 )
                                 .build())

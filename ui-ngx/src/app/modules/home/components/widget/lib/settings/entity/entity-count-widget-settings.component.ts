@@ -55,7 +55,7 @@ export class EntityCountWidgetSettingsComponent extends WidgetSettingsComponent 
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...countDefaultSettings(false)};
+    return countDefaultSettings(false);
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

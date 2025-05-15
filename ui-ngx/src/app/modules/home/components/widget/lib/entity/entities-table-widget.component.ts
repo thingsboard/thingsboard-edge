@@ -64,7 +64,6 @@ import {
   hashCode,
   isDefined,
   isDefinedAndNotNull,
-  isNumber,
   isObject,
   isUndefined
 } from '@core/utils';
@@ -114,6 +113,8 @@ import {
   getHeaderTitle,
   getRowStyleInfo,
   getTableCellButtonActions,
+  isValidPageStepCount,
+  isValidPageStepIncrement,
   noDataMessage,
   prepareTableCellButtonActions,
   RowStyleInfo,
@@ -360,10 +361,10 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.rowStylesInfo = getRowStyleInfo(this.ctx, this.settings, 'entity, ctx');
 
     const pageSize = this.settings.defaultPageSize;
-    let pageStepIncrement = this.settings.pageStepIncrement;
-    let pageStepCount = this.settings.pageStepCount;
+    let pageStepIncrement = isValidPageStepIncrement(this.settings.pageStepIncrement) ? this.settings.pageStepIncrement : null;
+    let pageStepCount = isValidPageStepCount(this.settings.pageStepCount) ? this.settings.pageStepCount : null;
 
-    if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
+    if (Number.isInteger(pageSize) && pageSize > 0) {
       this.defaultPageSize = pageSize;
     }
 
@@ -910,12 +911,13 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         keyFilters: datasource.keyFilters,
         pageLink
       };
+      const allColumns = this.columns.filter(c => c.entityKey);
       const exportedColumns = this.columns.filter(
         c => this.includeColumnInExport(c) && c.entityKey);
 
-      query.entityFields = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
+      query.entityFields = allColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
                                                        entityFields[c.entityKey.key]).map(c => c.entityKey);
-      query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
+      query.latestValues = allColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
                                                        c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey);
 
       if (query.entityFields.every(entityField => entityField.key !== entityFields.name.keyName)) {
@@ -936,7 +938,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         }),
         switchMap(data => data.data.length ?
           forkJoin(data.data.map((e, index) =>
-            from(this.queryEntityDataToExportedData(e, index, exportedColumns)))) : of(data.data)),
+            from(this.queryEntityDataToExportedData(e, index, allColumns, exportedColumns)))) : of(data.data)),
         concatMap((data) => data),
         toArray()
       );
@@ -977,7 +979,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
   private async queryEntityDataToExportedData(queryEntityData: QueryEntityData,
                                         index: number,
-                                        columns: EntityColumn[]): Promise<{[key: string]: any}> {
+                                        allColumns: EntityColumn[],
+                                        exportedColumns: EntityColumn[]): Promise<{[key: string]: any}> {
     const entity: EntityData = {
       entityName: '',
       id: queryEntityData.entityId,
@@ -988,7 +991,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       entity.entityName = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'name', '');
       entity.entityLabel = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'label', entity.entityName);
     }
-    for (const column of columns) {
+    for (const column of allColumns) {
       if (!['entityName', 'entityLabel', 'entityType'].includes(column.label)) {
         if (latest) {
           let dataValue: any = '';
@@ -1036,7 +1039,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       }
     }
     const dataObj: { [key: string]: any } = {};
-    for (const column of columns) {
+    for (const column of exportedColumns) {
       dataObj[column.title] = await firstValueFrom(this.cellContent(entity, column, index, false, true));
     }
     return dataObj;

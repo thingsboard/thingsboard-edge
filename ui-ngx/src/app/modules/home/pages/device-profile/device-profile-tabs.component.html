@@ -62,6 +62,7 @@
     [entityId]="entity.id"
     [entityName]="entity.name"
     [readonly]="!(resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE_CALCULATED_FIELD)"
+    [hideClearEventAction]="!(resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE)"
   />
 </mat-tab>
 <mat-tab *ngIf="entity" #alarmRules="matTab"
