@@ -47,6 +47,7 @@ export interface CalculatedFieldDebugDialogData {
   tenantId: string;
   value: CalculatedField;
   getTestScriptDialogFn: CalculatedFieldTestScriptFn;
+  hideClearEventAction: boolean;
 }
 
 @Component({
