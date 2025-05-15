@@ -163,7 +163,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         Map<String, Long> cursors = new HashMap<>();
         ctx.getArguments().forEach((argName, arg) -> {
             if (ArgumentType.ATTRIBUTE.equals(arg.getRefEntityKey().getType())) return;
-            LinkedList<TsKvEntry> batch = fetchTelemetryBatch(tenantId, entityId, arg, startTs, endTs, telemetryFetchPackSize);
+            LinkedList<TsKvEntry> batch = new LinkedList<>(fetchTelemetryBatch(tenantId, entityId, arg, startTs, endTs, telemetryFetchPackSize));
             if (!batch.isEmpty()) {
                 telemetryBuffers.put(argName, batch);
                 cursors.put(argName, batch.getLast().getTs());
@@ -381,11 +381,11 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         return Futures.transform(tsRollingFuture, tsRolling -> tsRolling == null ? new TsRollingArgumentEntry(limit, argTimeWindow) : ArgumentEntry.createTsRollingArgument(tsRolling, limit, argTimeWindow), calculatedFieldCallbackExecutor);
     }
 
-    private LinkedList<TsKvEntry> fetchTelemetryBatch(TenantId tenantId, EntityId entityId, Argument argument, long startTs, long endTs, int limit) {
+    private List<TsKvEntry> fetchTelemetryBatch(TenantId tenantId, EntityId entityId, Argument argument, long startTs, long endTs, int limit) {
         EntityId sourceEntityId = argument.getRefEntityId() != null ? argument.getRefEntityId() : entityId;
         try {
             ReadTsKvQuery query = new BaseReadTsKvQuery(argument.getRefEntityKey().getKey(), startTs, endTs, 0, limit, Aggregation.NONE, "ASC");
-            return new LinkedList<>(timeseriesService.findAll(tenantId, sourceEntityId, List.of(query)).get()); // will be interrupted on task processing timeout
+            return timeseriesService.findAll(tenantId, sourceEntityId, List.of(query)).get(); // will be interrupted on task processing timeout
         } catch (ExecutionException e) {
             throw new RuntimeException("Failed to fetch telemetry for " + sourceEntityId + " for key " + argument.getRefEntityKey().getKey(), e.getCause());
         } catch (InterruptedException e) {
