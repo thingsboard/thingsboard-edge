@@ -36,7 +36,7 @@
 
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.0.1EDGE-RC</version>
+        <version>4.0.1EDGEPE-RC</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
