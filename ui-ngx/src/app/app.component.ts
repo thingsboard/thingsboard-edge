@@ -41,7 +41,7 @@ import { AppState } from '@core/core.state';
 import { LocalStorageService } from '@core/local-storage/local-storage.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material/icon';
-import { getCurrentAuthState, selectUserReady } from '@core/auth/auth.selectors';
+import { selectUserReady } from '@core/auth/auth.selectors';
 import { filter, skip, tap } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
 import { ReportService } from '@core/http/report.service';
@@ -50,7 +50,6 @@ import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
 import { SETTINGS_KEY } from '@core/settings/settings.effects';
 import { initCustomJQueryEvents } from '@shared/models/jquery-event.models';
 import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
-import { UnitService } from '@core/services/unit.service';
 
 @Component({
   selector: 'tb-root',
@@ -65,7 +64,6 @@ export class AppComponent {
               private matIconRegistry: MatIconRegistry,
               private domSanitizer: DomSanitizer,
               private authService: AuthService,
-              private unitService: UnitService,
               private reportService: ReportService) {
 
     if (!env.production) {
@@ -131,8 +129,6 @@ export class AppComponent {
         } else {
           this.notifyUserLang(this.translate.currentLang, true);
         }
-        const userDetails = getCurrentAuthState(this.store).userDetails;
-        this.unitService.setUnitSystem(userDetails?.additionalInfo?.unitSystem);
       }),
       skip(1),
     ).subscribe((data) => {
