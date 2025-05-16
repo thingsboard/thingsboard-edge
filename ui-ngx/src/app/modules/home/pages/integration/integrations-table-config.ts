@@ -49,39 +49,33 @@ import {
   IntegrationParams,
   integrationTypeInfoMap
 } from '@shared/models/integration.models';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { TranslateService } from '@ngx-translate/core';
-import { DatePipe } from '@angular/common';
-import { UtilsService } from '@core/services/utils.service';
-import { Router, UrlTree } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { IntegrationService } from '@core/http/integration.service';
-import { EdgeService } from '@core/http/edge.service';
-import { DialogService } from '@core/services/dialog.service';
-import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { IntegrationComponent } from '@home/pages/integration/integration.component';
-import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
-import { Operation, Resource } from '@shared/models/security.models';
-import { forkJoin, Observable, of } from 'rxjs';
-import { isUndefined } from '@core/utils';
-import { catchError, first, map, switchMap } from 'rxjs/operators';
-import { EntityAction } from '@home/models/entity/entity-component.models';
-import { PageData } from '@shared/models/page/page-data';
-import { Edge } from '@shared/models/edge.models';
-import {
-  AddEntitiesToEdgeDialogComponent,
-  AddEntitiesToEdgeDialogData
-} from '@home/dialogs/add-entities-to-edge-dialog.component';
-import { PageLink } from '@shared/models/page/page-link';
-import {
-  IntegrationWizardData,
-  IntegrationWizardDialogComponent
-} from '@home/components/wizard/integration-wizard-dialog.component';
-import { DebugEventType, EventType } from '@shared/models/event.models';
-import { EntityDebugSettings } from '@shared/models/entity.models';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DestroyRef } from '@angular/core';
-import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
+import {UserPermissionsService} from '@core/http/user-permissions.service';
+import {TranslateService} from '@ngx-translate/core';
+import {DatePipe} from '@angular/common';
+import {UtilsService} from '@core/services/utils.service';
+import {Router, UrlTree} from '@angular/router';
+import {MatDialog} from '@angular/material/dialog';
+import {IntegrationService} from '@core/http/integration.service';
+import {EdgeService} from '@core/http/edge.service';
+import {DialogService} from '@core/services/dialog.service';
+import {EntityType, entityTypeTranslations} from '@shared/models/entity-type.models';
+import {IntegrationComponent} from '@home/pages/integration/integration.component';
+import {IntegrationTabsComponent} from '@home/pages/integration/integration-tabs.component';
+import {Operation, Resource} from '@shared/models/security.models';
+import {forkJoin, Observable, of} from 'rxjs';
+import {isUndefined} from '@core/utils';
+import {catchError, first, map, switchMap} from 'rxjs/operators';
+import {EntityAction} from '@home/models/entity/entity-component.models';
+import {PageData} from '@shared/models/page/page-data';
+import {Edge} from '@shared/models/edge.models';
+import {AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData} from '@home/dialogs/add-entities-to-edge-dialog.component';
+import {PageLink} from '@shared/models/page/page-link';
+import {IntegrationWizardData, IntegrationWizardDialogComponent} from '@home/components/wizard/integration-wizard-dialog.component';
+import {DebugEventType, EventType} from '@shared/models/event.models';
+import {EntityDebugSettings} from '@shared/models/entity.models';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {DestroyRef} from '@angular/core';
+import {EntityDebugSettingsService} from '@home/components/entity/debug/entity-debug-settings.service';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
 
@@ -114,7 +108,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     this.componentsData = params;
 
     this.deleteEntityTitle = integration =>
-      this.translate.instant('integration.delete-integration-title', { integrationName: integration.name });
+      this.translate.instant('integration.delete-integration-title', {integrationName: integration.name});
     this.deleteEntityContent = () => this.translate.instant('integration.delete-integration-text');
     this.deleteEntitiesTitle = count => this.translate.instant('integration.delete-integrations-title', {count});
     this.deleteEntitiesContent = () => this.translate.instant('integration.delete-integrations-text');
@@ -165,7 +159,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       new EntityTableColumn<IntegrationInfo>('type', 'converter.type', '51%', (integration) => this.translate.instant(integrationTypeInfoMap.get(integration.type).name)),
     );
 
-    if (this.componentsData.integrationScope !== "edges") {
+    if (this.componentsData.integrationScope !== "edges" && this.componentsData.integrationScope !== "edge") {
       columns.push(
         new ChartEntityTableColumn<IntegrationInfo>('dailyRate', 'integration.daily-activity', '9%',
           (integration) => integration.stats,
@@ -180,14 +174,14 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
             fillColor: false,
             lineColor: 'rgba(0, 0, 0, 0.54)',
             lineWidth: '2'
-          }))
+          })),
+        new EntityTableColumn<IntegrationInfo>('status', 'integration.status.status', '80px',
+          integration => this.integrationStatus(integration),
+          integration => this.integrationStatusStyle(integration), false)
       );
     }
 
     columns.push(
-      new EntityTableColumn<IntegrationInfo>('status', 'integration.status.status', '80px',
-        integration => this.integrationStatus(integration),
-        integration => this.integrationStatusStyle(integration), false),
       new EntityTableColumn<IntegrationInfo>('remote', 'integration.remote', '60px',
         integration => checkBoxCell(integration.remote), () => ({}), false)
     );
@@ -241,7 +235,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       nameFunction: (entity) => this.entityDebugSettingsService.getDebugConfigLabel(entity?.debugSettings),
       icon: 'mdi:bug',
       isEnabled: () => true,
-      iconFunction: ({ debugSettings }) => this.entityDebugSettingsService.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
+      iconFunction: ({debugSettings}) => this.entityDebugSettingsService.isDebugActive(debugSettings?.allEnabledUntil) || debugSettings?.failuresEnabled ? 'mdi:bug' : 'mdi:bug-outline',
       onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
     }];
     if (params.integrationScope === 'edge') {
@@ -301,7 +295,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'integrations', integration.id.id]);
         window.open(window.location.origin + url, '_blank');
       } else {
-        url = this.router.createUrlTree([integration.id.id], { relativeTo: this.getActivatedRoute() });
+        url = this.router.createUrlTree([integration.id.id], {relativeTo: this.getActivatedRoute()});
         this.router.navigateByUrl(url);
       }
     } else if (this.componentsData.integrationScope === 'edges') {
@@ -333,7 +327,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       action: () => this.openDebugEventDetails($event, entity)
     };
 
-    const { viewContainerRef, renderer } = this.getTable();
+    const {viewContainerRef, renderer} = this.getTable();
     this.entityDebugSettingsService.viewContainerRef = viewContainerRef;
     this.entityDebugSettingsService.renderer = renderer;
 
@@ -371,7 +365,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
 
   private onDebugConfigChanged(id: string, debugSettings: EntityDebugSettings): void {
     this.integrationService.getIntegration(id).pipe(
-      switchMap(integration => this.integrationService.saveIntegration({ ...integration, debugSettings })),
+      switchMap(integration => this.integrationService.saveIntegration({...integration, debugSettings})),
       catchError(() => of(null)),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => this.updateData());
