@@ -219,7 +219,9 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
     protected abstract ListenableFuture<Void> doProcess(IntegrationContext context, T msg);
 
-    protected MqttClient initClient(String ownerId, MqttClientConfiguration configuration, MqttHandler defaultHandler) throws Exception {
+    protected MqttClient initClient(
+            String ownerId, MqttClientConfiguration configuration, MqttHandler defaultHandler, MqttClientConfig.RetransmissionConfig retransmissionConfig
+    ) throws Exception {
         Optional<SslContext> sslContextOpt = initSslContext(configuration);
 
         MqttClientConfig config = sslContextOpt.isPresent() ? new MqttClientConfig(sslContextOpt.get()) : new MqttClientConfig();
@@ -232,6 +234,8 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
             config.setMaxBytesInMessage(configuration.getMaxBytesInMessage());
         }
         config.setCleanSession(configuration.isCleanSession());
+
+        config.setRetransmissionConfig(retransmissionConfig);
 
         configuration.getCredentials().configure(config);
 

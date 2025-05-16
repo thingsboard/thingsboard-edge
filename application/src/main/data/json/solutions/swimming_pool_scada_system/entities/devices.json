@@ -6,15 +6,15 @@
       "gateway": true
     },
     "sharedAttributes": {
-      "active_connectors": ["Gateway connector"],
-      "Gateway connector": {
-        "mode":"advanced",
-        "name":"Gateway connector",
+      "active_connectors": ["Pool connector"],
+      "Pool connector": {
+        "mode": "basic",
+        "name":"Pool connector",
         "type":"modbus",
         "enableRemoteLogging":false,
         "logLevel":"INFO",
         "sendDataOnlyOnChange":false,
-        "configuration": "gatewayConnector.json",
+        "configuration": "poolConnector.json",
         "configurationJson": {
           "master": {
             "slaves": [
@@ -851,8 +851,7 @@
             ]
           },
           "slave": {}
-        },
-        "configVersion": "3.5.2"
+        }
       }
     },
     "relations": [],

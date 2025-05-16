@@ -102,6 +102,8 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
     private String mqttsPemCertFile;
     @Value("${device.connectivity.coaps.pem_cert_file:}")
     private String coapsPemCertFile;
+    @Value("${device.connectivity.gateway.image_version:3.7-stable}")
+    private String gatewayImageVersion;
 
     // Edge
     @Value("${transport.mqtt.enabled}")
@@ -198,7 +200,8 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
         String mqttType = isEnabled(MQTTS) ? MQTTS : MQTT;
         DeviceConnectivityInfo properties = getConnectivity(mqttType);
         DeviceCredentials creds = deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), device.getId());
-        return DeviceConnectivityUtil.getGatewayDockerComposeFile(baseUrl, properties, creds, mqttType, params);
+        String host = getHost(baseUrl, properties, mqttType);
+        return DeviceConnectivityUtil.getGatewayDockerComposeFile(host, gatewayImageVersion, creds, params);
     }
 
     private DeviceConnectivityInfo getConnectivity(String protocol) {

@@ -47,6 +47,7 @@ export interface CalculatedFieldDebugDialogData {
   tenantId: string;
   value: CalculatedField;
   getTestScriptDialogFn: CalculatedFieldTestScriptFn;
+  hideClearEventAction: boolean;
 }
 
 @Component({
@@ -70,8 +71,8 @@ export class CalculatedFieldDebugDialogComponent extends DialogComponent<Calcula
   }
 
   ngAfterViewInit(): void {
+    this.eventsTable.entitiesTable.cellActionDescriptors[0].isEnabled = (event => this.data.value.type === CalculatedFieldType.SCRIPT && !!(event as Event).body.arguments);
     this.eventsTable.entitiesTable.updateData();
-    this.eventsTable.entitiesTable.cellActionDescriptors[0].isEnabled = (event => this.data.value.type === CalculatedFieldType.SCRIPT && !!(event as Event).body.arguments)
   }
 
   cancel(): void {

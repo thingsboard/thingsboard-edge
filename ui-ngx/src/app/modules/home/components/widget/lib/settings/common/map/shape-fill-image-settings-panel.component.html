@@ -1,0 +1,105 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-shape-fill-image-settings-panel" [formGroup]="shapeFillImageSettingsFormGroup">
+  <div class="tb-shape-fill-image-settings-title" translate>widgets.maps.data-layer.shape.fill-image</div>
+  <div class="flex flex-row">
+    <tb-toggle-select formControlName="type" class="flex-1">
+      <tb-toggle-option [value]="ShapeFillImageType.image">
+        {{ 'widgets.maps.data-layer.shape.fill-image-type-image' | translate }}
+      </tb-toggle-option>
+      <tb-toggle-option [value]="ShapeFillImageType.function">
+        {{ 'widgets.maps.data-layer.shape.fill-image-type-function' | translate }}
+      </tb-toggle-option>
+    </tb-toggle-select>
+  </div>
+  <div class="tb-shape-fill-image-settings-panel-body" [class.!hidden]="shapeFillImageSettingsFormGroup.get('type').value !== ShapeFillImageType.image">
+    <div class="tb-form-panel no-padding no-border">
+      <tb-gallery-image-input required formControlName="image"></tb-gallery-image-input>
+      <div class="tb-form-row">
+        <mat-slide-toggle class="mat-slide" formControlName="preserveAspectRatio">
+          {{ 'widgets.maps.data-layer.shape.preserve-aspect-ratio' | translate }}
+        </mat-slide-toggle>
+      </div>
+      <div class="tb-form-row space-between">
+        <div translate>widgets.maps.data-layer.shape.opacity</div>
+        <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+          <input matInput formControlName="opacity" type="number" min="0" max="1" placeholder="{{ 'widget-config.set' | translate }}">
+        </mat-form-field>
+      </div>
+      <div class="tb-form-row space-between">
+        <div translate>widgets.maps.data-layer.shape.angle</div>
+        <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+          <input matInput formControlName="angle" type="number" min="0" max="360" placeholder="{{ 'widget-config.set' | translate }}">
+          <div matSuffix>deg</div>
+        </mat-form-field>
+      </div>
+      <div class="tb-form-row space-between">
+        <div translate>widgets.maps.data-layer.shape.scale</div>
+        <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+          <input matInput formControlName="scale" type="number" min="0" placeholder="{{ 'widget-config.set' | translate }}">
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+  <div class="tb-shape-fill-image-settings-panel-body" [class.!hidden]="shapeFillImageSettingsFormGroup.get('type').value !== ShapeFillImageType.function">
+    <div class="tb-form-panel no-padding no-border">
+      <tb-js-func formControlName="imageFunction"
+                  withModules
+                  [functionArgs]="['data', 'images', 'dsData']"
+                  [globalVariables]="functionScopeVariables"
+                  functionTitle="{{ 'widgets.maps.data-layer.shape.fill-image-function' | translate }}"
+                  helpId="widget/lib/map/shape_fill_image_fn"
+                  [helpPopupStyle]="{width: '900px'}">
+      </tb-js-func>
+      <tb-multiple-gallery-image-input label="{{ 'widgets.maps.data-layer.shape.fill-images' | translate }}"
+                                       formControlName="images">
+      </tb-multiple-gallery-image-input>
+    </div>
+  </div>
+  <div class="tb-shape-fill-image-settings-panel-buttons">
+    <span class="flex-1"></span>
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="applyShapeFillImageSettings()"
+            [disabled]="shapeFillImageSettingsFormGroup.invalid || !shapeFillImageSettingsFormGroup.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>

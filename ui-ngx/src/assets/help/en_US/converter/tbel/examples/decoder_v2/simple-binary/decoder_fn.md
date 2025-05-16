@@ -2,56 +2,27 @@
 
 ```javascript
 {:code-style="max-height: 500px;"}
-var name = "SN-" + parseBytesToInt(payload, 0, 4);
-
 function decodePayload(input) {
-  var output = {
-    attributes: {},
-    telemetry: []
-  };
-
-  var timestamp = metadata.ts;
-
-  var decoded = {};
-  decoded.battery = parseBytesToInt(payload, 4, 1);
-  decoded.temperature = parseBytesToInt(payload, 5, 2) / 100.0;
-  decoded.saturation = parseBytesToInt(payload, 7, 1);
-
-  output.telemetry = [{
-    ts: timestamp,
-    values: decoded
-  }];
+  var result = { attributes: {}, telemetry: {}};
   
-  return output;
+  result.attributes.sn = parseBytesToInt(input, 0, 4);
+  
+  var timestamp = metadata.ts; 
+  
+  var values = {};
+  values.battery = parseBytesToInt(input, 4, 1);
+  values.temperature = parseBytesToInt(input, 5, 2) / 100.0;
+  values.saturation = parseBytesToInt(input, 7, 1);
+  
+  result.telemetry = {
+    ts: timestamp,
+    values: values
+  };
+  
+  return result;
 }
 
-var telemetry = [];
-var attributes = {};
-
-var customDecoding = decodePayload(payload);
-
-if (customDecoding.?telemetry.size() > 0) {
-  if (customDecoding.telemetry instanceof java.util.ArrayList) {
-    foreach(telemetryObj: customDecoding.telemetry) {
-      if (telemetryObj.ts != null && telemetryObj.values != null) {
-        telemetry.add(telemetryObj);
-      }
-    }
-  } else {
-    telemetry.putAll(customDecoding.telemetry);
-  }
-}
-
-if (customDecoding.?attributes.size() > 0) {
-  attributes.putAll(customDecoding.attributes);
-}
-
-var result = {
-  name: name,
-  attributes: attributes,
-  telemetry: telemetry
-};
-
+var result = decodePayload(payload);
 return result;
 {:copy-code}
 ```

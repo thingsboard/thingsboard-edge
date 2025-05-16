@@ -108,9 +108,7 @@ public class DeviceConnectivityUtil {
         return command.toString();
     }
 
-    public static Resource getGatewayDockerComposeFile(String baseUrl, DeviceConnectivityInfo properties, DeviceCredentials deviceCredentials, String mqttType, DockerComposeParams params) throws URISyntaxException {
-        String host = getHost(baseUrl, properties, mqttType);
-
+    public static Resource getGatewayDockerComposeFile(String host, String gatewayImageVersion, DeviceCredentials deviceCredentials, DockerComposeParams params) throws URISyntaxException {
         StringBuilder dockerComposeBuilder = new StringBuilder();
         if (params.includeVersion()) {
             dockerComposeBuilder.append("version: '3.4'\n");
@@ -118,7 +116,7 @@ public class DeviceConnectivityUtil {
         dockerComposeBuilder.append("services:\n");
         dockerComposeBuilder.append("  # ThingsBoard IoT Gateway Service Configuration\n");
         dockerComposeBuilder.append("  tb-gateway:\n");
-        dockerComposeBuilder.append("    image: thingsboard/tb-gateway\n");
+        dockerComposeBuilder.append("    image: thingsboard/tb-gateway:").append(gatewayImageVersion).append("\n");
         dockerComposeBuilder.append("    container_name: ").append(params.containerName()).append("\n");
         dockerComposeBuilder.append("    restart: always\n");
         if (params.includePortBindings()) {

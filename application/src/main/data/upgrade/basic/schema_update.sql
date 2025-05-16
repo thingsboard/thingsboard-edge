@@ -40,8 +40,8 @@ ALTER TABLE converter ADD COLUMN IF NOT EXISTS converter_version INT DEFAULT 1;
 -- UPDATE DEFAULT TENANT USERS ROLE START
 
 UPDATE role SET permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY", "READ_CALCULATED_FIELD"]}'
-            WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' and customer_id = '13814000-1dd2-11b2-8080-808080808080' and name = 'Tenant User'
-              and permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY"]}';
+WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' and customer_id = '13814000-1dd2-11b2-8080-808080808080' and name = 'Tenant User'
+  and permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY"]}';
 
 -- UPDATE DEFAULT TENANT USERS ROLE END
 
@@ -57,7 +57,7 @@ SET configuration = (
                     'latest',           jsonb_build_object('type', 'SKIP'),
                     'webSockets',       jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
                     'calculatedFields', jsonb_build_object('type', 'ON_EVERY_MESSAGE')
-                                   )
+                                  )
            )
     )::text,
     configuration_version = 1
@@ -71,7 +71,7 @@ SET configuration = (
         || jsonb_build_object(
             'processingSettings', jsonb_build_object(
                     'type', 'ON_EVERY_MESSAGE'
-                                   )
+                                  )
            )
     )::text,
     configuration_version = 1
@@ -103,14 +103,14 @@ ALTER TABLE api_usage_state ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;
 UPDATE tenant_profile
 SET profile_data = profile_data
     || jsonb_build_object(
-        'configuration', profile_data->'configuration' || jsonb_build_object(
-        'maxCalculatedFieldsPerEntity', COALESCE(profile_data->'configuration'->>'maxCalculatedFieldsPerEntity', '5')::bigint,
-        'maxArgumentsPerCF', COALESCE(profile_data->'configuration'->>'maxArgumentsPerCF', '10')::bigint,
-        'maxDataPointsPerRollingArg', COALESCE(profile_data->'configuration'->>'maxDataPointsPerRollingArg', '1000')::bigint,
-        'maxStateSizeInKBytes', COALESCE(profile_data->'configuration'->>'maxStateSizeInKBytes', '32')::bigint,
-        'maxSingleValueArgumentSizeInKBytes', COALESCE(profile_data->'configuration'->>'maxSingleValueArgumentSizeInKBytes', '2')::bigint
-        )
-    )
+                           'configuration', profile_data->'configuration' || jsonb_build_object(
+                    'maxCalculatedFieldsPerEntity', COALESCE(profile_data->'configuration'->>'maxCalculatedFieldsPerEntity', '5')::bigint,
+                    'maxArgumentsPerCF', COALESCE(profile_data->'configuration'->>'maxArgumentsPerCF', '10')::bigint,
+                    'maxDataPointsPerRollingArg', COALESCE(profile_data->'configuration'->>'maxDataPointsPerRollingArg', '1000')::bigint,
+                    'maxStateSizeInKBytes', COALESCE(profile_data->'configuration'->>'maxStateSizeInKBytes', '32')::bigint,
+                    'maxSingleValueArgumentSizeInKBytes', COALESCE(profile_data->'configuration'->>'maxSingleValueArgumentSizeInKBytes', '2')::bigint
+                                                                             )
+       )
 WHERE profile_data->'configuration'->>'maxCalculatedFieldsPerEntity' IS NULL;
 
 -- UPDATE TENANT PROFILE CALCULATED FIELD LIMITS END

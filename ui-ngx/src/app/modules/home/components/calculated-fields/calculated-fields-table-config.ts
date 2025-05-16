@@ -42,10 +42,9 @@ import { PageLink } from '@shared/models/page/page-link';
 import { Observable, of } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { EntityId } from '@shared/models/id/entity-id';
-import { MINUTE } from '@shared/models/time/time.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { DestroyRef, Renderer2 } from '@angular/core';
 import { EntityDebugSettings } from '@shared/models/entity.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -62,7 +61,8 @@ import {
   getCalculatedFieldArgumentsHighlights,
 } from '@shared/models/calculated-field.models';
 import {
-  CalculatedFieldDebugDialogComponent, CalculatedFieldDebugDialogData,
+  CalculatedFieldDebugDialogComponent,
+  CalculatedFieldDebugDialogData,
   CalculatedFieldDialogComponent,
   CalculatedFieldDialogData,
   CalculatedFieldScriptTestDialogComponent,
@@ -75,9 +75,6 @@ import { DatePipe } from '@angular/common';
 
 export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedField> {
 
-  readonly calculatedFieldsDebugPerTenantLimitsConfiguration =
-    getCurrentAuthState(this.store)['calculatedFieldsDebugPerTenantLimitsConfiguration'];
-  readonly maxDebugModeDuration = getCurrentAuthState(this.store).maxDebugModeDurationMinutes * MINUTE;
   readonly tenantId = getCurrentAuthUser(this.store).tenantId;
   additionalDebugActionConfig = {
     title: this.translate.instant('calculated-fields.see-debug-events'),
@@ -96,6 +93,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
               private importExportService: ImportExportService,
               private entityDebugSettingsService: EntityDebugSettingsService,
               private readonly: boolean = false,
+              private hideClearEventAction: boolean = false,
   ) {
     super();
     this.tableTitle = this.translate.instant('entity.type-calculated-fields');
@@ -213,9 +211,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
     this.entityDebugSettingsService.openDebugStrategyPanel({
       debugSettings,
       debugConfig: {
-        debugLimitsConfiguration: this.calculatedFieldsDebugPerTenantLimitsConfiguration,
-        maxDebugModeDuration: this.maxDebugModeDuration,
-        entityLabel: this.translate.instant('debug-settings.calculated-field'),
+        entityType: EntityType.CALCULATED_FIELD,
         additionalActionConfig,
       },
       onSettingsAppliedFn: settings => this.onDebugConfigChanged(id.id, settings)
@@ -239,7 +235,6 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         value,
         buttonTitle,
         entityId: this.entityId,
-        debugLimitsConfiguration: this.calculatedFieldsDebugPerTenantLimitsConfiguration,
         tenantId: this.tenantId,
         entityName: this.entityName,
         additionalDebugActionConfig: this.additionalDebugActionConfig,
@@ -261,6 +256,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
         tenantId: this.tenantId,
         value: calculatedField,
         getTestScriptDialogFn: this.getTestScriptDialog.bind(this),
+        hideClearEventAction: this.hideClearEventAction
       }
     })
       .afterClosed()

@@ -263,7 +263,11 @@ export class WidgetComponentService {
     if (widgetInfo) {
       return widgetInfo;
     } else {
-      return {} as WidgetInfo;
+      return {
+        typeParameters: {
+          hideDataTab: true
+        }
+      } as WidgetInfo;
     }
   }
 

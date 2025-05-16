@@ -1,0 +1,46 @@
+{
+  "type": "SIMPLE",
+  "name": "Average voltage",
+  "entityId": {
+    "id": "e9ce9340-1503-11f0-8308-dfc38c65ed1c",
+    "entityType": "DEVICE"
+  },
+  "debugSettings": {
+    "failuresEnabled": true,
+    "allEnabled": false,
+    "allEnabledUntil": 1744018573822
+  },
+  "configurationVersion": 0,
+  "configuration": {
+    "type": "SIMPLE",
+    "arguments": {
+      "voltageL1": {
+        "refEntityKey": {
+          "key": "voltageL1",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "voltageL2": {
+        "refEntityKey": {
+          "key": "voltageL2",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      },
+      "voltageL3": {
+        "refEntityKey": {
+          "key": "voltageL3",
+          "type": "TS_LATEST"
+        },
+        "defaultValue": ""
+      }
+    },
+    "expression": "(voltageL1 + voltageL2 + voltageL3) / 3",
+    "output": {
+      "name": "avgVoltage",
+      "type": "TIME_SERIES",
+      "decimalsByDefault": 1
+    }
+  }
+}

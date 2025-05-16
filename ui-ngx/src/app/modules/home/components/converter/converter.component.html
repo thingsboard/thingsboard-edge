@@ -69,7 +69,7 @@
         } @else {
           <div class="tb-form-panel stroked no-gap no-padding-bottom">
             <div class="mb-4 flex items-center justify-between">
-              <div class="tb-form-panel-title" translate>converter.converter-short-name</div>
+              <div class="tb-form-panel-title" translate>converter.converter-type</div>
               <tb-toggle-select formControlName="type" appearance="fill">
                 @for (type of converterTypes; track type) {
                   <tb-toggle-option [value]="type">{{converterTypeTranslations.get(type) | translate}}</tb-toggle-option>
@@ -124,6 +124,7 @@
               </tb-toggle-option>
             </tb-toggle-select>
             <button toolbarSuffixButton
+                    type="button"
                     mat-icon-button
                     matTooltip="{{ testFunctionButtonLabel | translate }}"
                     matTooltipPosition="above"
@@ -225,8 +226,7 @@
     <tb-entity-debug-settings-button
       class="mb-5 flex items-center"
       formControlName="debugSettings"
-      [entityLabel]="'debug-settings.converter' | translate"
-      [debugLimitsConfiguration]="converterDebugPerTenantLimitsConfiguration"
+      [entityType]="EntityType.CONVERTER"
     />
   </div>
 </ng-template>

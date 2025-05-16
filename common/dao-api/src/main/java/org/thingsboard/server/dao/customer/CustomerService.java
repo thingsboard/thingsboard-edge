@@ -70,6 +70,8 @@ public interface CustomerService extends EntityDaoService {
 
     Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId);
 
+    Customer findPublicCustomer(TenantId tenantId, EntityId ownerId);
+
     EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId);
 
     Role findOrCreatePublicUserEntityGroupRole(TenantId tenantId, EntityId ownerId);

@@ -682,6 +682,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
                 Domain domain = domainService.findDomainById(tenantId, whiteLabeling.getDomainId());
                 publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(type, domain.getName())));
             }
+            EdgeEventType edgeEventType = type.equals(LOGIN) ? EdgeEventType.LOGIN_WHITE_LABELING : EdgeEventType.WHITE_LABELING;
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(getEntityIdForEvent(tenantId, customerId))
+                    .edgeEventType(edgeEventType).actionType(ActionType.DELETED).body(JacksonUtil.toString(whiteLabeling)).build());
         }
     }
 

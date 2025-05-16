@@ -70,6 +70,19 @@
     "tenantAttributeKeys": []
   },
   {
+    "id": "scada_energy_management",
+    "title": "SCADA Energy management",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 0,
+    "previewImageUrl": "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-1.png",
+    "videoPreviewImageUrl": "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-1.png",
+    "previewMp4Url": "https://video.thingsboard.io/usecases/scada-energy-management.mp4",
+    "previewWebmUrl": "https://video.thingsboard.io/usecases/scada-energy-management.webm",
+    "imageUrls": ["https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-1.png", "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-2.png", "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-3.png", "https://img.thingsboard.io/solutions/scada_energy_management/scada-energy-management-4.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
+  },
+  {
     "id": "air_quality_index",
     "title": "Air quality monitoring",
     "level": "PROTOTYPE",

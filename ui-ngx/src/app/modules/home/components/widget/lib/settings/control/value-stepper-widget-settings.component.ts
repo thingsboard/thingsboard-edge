@@ -87,7 +87,7 @@ export class ValueStepperWidgetSettingsComponent extends WidgetSettingsComponent
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...valueStepperDefaultSettings};
+    return valueStepperDefaultSettings;
   }
 
   protected onSettingsSet(settings: WidgetSettings) {

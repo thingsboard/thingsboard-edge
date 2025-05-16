@@ -46,9 +46,9 @@
       [debugEventTypes]="[debugEventTypes.DEBUG_CALCULATED_FIELD]"
       [disabledEventTypes]="[EventType.LC_EVENT, EventType.ERROR, EventType.STATS]"
       [defaultEventType]="DebugEventType.DEBUG_CALCULATED_FIELD"
+      [hideClearEventAction]="data.hideClearEventAction"
       [active]="true"
       [entityId]="data.value.id"
-      [functionTestButtonLabel]="'common.test-function' | translate"
       (debugEventSelected)="onDebugEventSelected($event)"
     />
   </div>

@@ -127,7 +127,7 @@ public class EntityExportData<E extends ExportableEntity<? extends EntityId>> {
 
     @JsonIgnore
     public boolean hasCalculatedFields() {
-        return calculatedFields != null;
+        return calculatedFields != null && !calculatedFields.isEmpty();
     }
 
     @JsonIgnore

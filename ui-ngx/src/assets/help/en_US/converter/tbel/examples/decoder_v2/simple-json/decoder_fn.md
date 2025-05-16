@@ -2,61 +2,28 @@
 
 ```javascript
 {:code-style="max-height: 500px;"}
-
-var data = decodeToJson(payload);
-
-var name = data.serialNumber;
-
 function decodePayload(input) {
-  var output = {
-    attributes: {},
-    telemetry: []
-  };
-
+  var result = { attributes: {}, telemetry: {}};
+  var data = decodeToJson(input);
   var timestamp = metadata.ts;
 
-  var decoded = {};
-  decoded.battery = data.battery;
-  decoded.temperature = data.temperature;
-  decoded.saturation = data.saturation;
-
-  output.telemetry = [{
-    ts: timestamp,
-    values: decoded
-  }];
+  result.attributes.sn = data.sn;
   
-  return output;
+  var values = {};
+  values.battery = data.battery;
+  values.temperature = data.temperature;
+  values.saturation = data.saturation;
+
+  result.telemetry = {
+    ts: timestamp,
+    values: values
+  };
+
+  return result;
 }
 
-var telemetry = [];
-var attributes = {};
-
-var customDecoding = decodePayload(payload);
-
-if (customDecoding.?telemetry.size() > 0) {
-  if (customDecoding.telemetry instanceof java.util.ArrayList) {
-    foreach(telemetryObj: customDecoding.telemetry) {
-      if (telemetryObj.ts != null && telemetryObj.values != null) {
-        telemetry.add(telemetryObj);
-      }
-    }
-  } else {
-    telemetry.putAll(customDecoding.telemetry);
-  }
-}
-
-if (customDecoding.?attributes.size() > 0) {
-  attributes.putAll(customDecoding.attributes);
-}
-
-var result = {
-  name: name,
-  attributes: attributes,
-  telemetry: telemetry
-};
-
+var result = decodePayload(payload);
 return result;
-
 {:copy-code}
 ```
 

@@ -177,6 +177,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.thingsboard.server.common.data.permission.Resource.ALL;
+import static org.thingsboard.server.common.data.permission.Resource.CUSTOMER;
+import static org.thingsboard.server.common.data.permission.Resource.USER;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ATTRIBUTE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
 
@@ -1570,6 +1572,29 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testFindCustomerBySingleEntityFilter() {
+        SingleEntityFilter singleEntityFilter = new SingleEntityFilter();
+        singleEntityFilter.setSingleEntity(customerId);
+        List<EntityKey> entityFields = List.of(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "name")
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+        EntityDataQuery query = new EntityDataQuery(singleEntityFilter, pageLink, entityFields, null, null);
+
+        //find by tenant
+        PageData<EntityData> result = findByQueryAndCheck(query, 1);
+        String customerName = result.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
+        assertThat(customerName).isEqualTo(TEST_CUSTOMER_NAME);
+
+        // find by customer user with generic permission
+        MergedUserPermissions mergedGenericPermission = new MergedUserPermissions(Map.of(CUSTOMER, Set.of(Operation.READ)), Collections.emptyMap());
+        PageData<EntityData> customerResults = findByQueryAndCheck(customerId, mergedGenericPermission, query, 1);
+
+        String cutomerDeviceName = customerResults.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue();
+        assertThat(cutomerDeviceName).isEqualTo(TEST_CUSTOMER_NAME);
+    }
+
+    @Test
     public void testFindEntitiesByEntityGroupListFilter() {
         List<EntityGroup> groups = new ArrayList<>();
 
@@ -1787,8 +1812,44 @@ public class EntityServiceTest extends AbstractControllerTest {
         assertThat(getResultDeviceIds(result)).hasSameElementsAs(subCustomerDevices2);
     }
 
+    @Test
+    public void testFindCustomersByEntityTypeFilter() {
+        Customer subCustomer1 = new Customer();
+        subCustomer1.setTenantId(tenantId);
+        subCustomer1.setOwnerId(customerId);
+        subCustomer1.setTitle("EntitiesByGroupNameFilter Customer 1");
+        subCustomer1 = customerService.saveCustomer(subCustomer1);
+        CustomerId subCustomerId1 = subCustomer1.getId();
+
+        Customer subCustomer2 = new Customer();
+        subCustomer2.setTenantId(tenantId);
+        subCustomer2.setOwnerId(customerId);
+        subCustomer2.setTitle("EntitiesByGroupNameFilter Customer 2");
+        subCustomer2 = customerService.saveCustomer(subCustomer2);
+        CustomerId subCustomerId2 = subCustomer2.getId();
+
+        EntityTypeFilter entityTypeFilter = new EntityTypeFilter();
+        entityTypeFilter.setEntityType(EntityType.CUSTOMER);
+
+        List<EntityKey> entityFields = List.of(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "name")
+        );
+        List<KeyFilter> keyFilters = createStringKeyFilters("name", EntityKeyType.ENTITY_FIELD, StringOperation.STARTS_WITH, "EntitiesByGroupNameFilter");
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+        EntityDataQuery query = new EntityDataQuery(entityTypeFilter, pageLink, entityFields, null, keyFilters);
+
+        // generic permission only
+        MergedUserPermissions genericPermissionOnly = new MergedUserPermissions(Map.of(ALL, Set.of(Operation.ALL)), Collections.emptyMap());
+        PageData<EntityData> result = findByQueryAndCheck(customerId, genericPermissionOnly, query, 2);
+        assertThat(getResultCustomerIds(result)).containsExactlyInAnyOrder(subCustomerId1, subCustomerId2);
+    }
+
     private List<DeviceId> getResultDeviceIds(PageData<EntityData> result) {
         return result.getData().stream().map(entityData -> (DeviceId) entityData.getEntityId()).collect(Collectors.toList());
+    }
+
+    private List<CustomerId> getResultCustomerIds(PageData<EntityData> result) {
+        return result.getData().stream().map(entityData -> (CustomerId) entityData.getEntityId()).collect(Collectors.toList());
     }
 
     @Test
@@ -3481,6 +3542,38 @@ public class EntityServiceTest extends AbstractControllerTest {
                 EntityType.DEVICE, Operation.READ, null, new PageLink(100), false, false);
         assertThat(devices4.getData().stream().map(Device::getId).collect(Collectors.toList()))
                 .containsExactlyInAnyOrderElementsOf(allDevices.stream().map(Device::getId).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void testFindDevicesAfterDeletion() {
+        Customer subCustomer = new Customer();
+        subCustomer.setTenantId(tenantId);
+        subCustomer.setOwnerId(customerId);
+        subCustomer.setTitle("Sub-customer");
+        subCustomer = customerService.saveCustomer(subCustomer);
+        CustomerId subCustomerId = subCustomer.getId();
+
+        List<Device> subCustomerDevices = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Device device = createDevice(subCustomerId);
+            Device savedDevice = deviceService.saveDevice(device);
+            subCustomerDevices.add(savedDevice);
+        }
+
+        // get devices
+        DeviceTypeFilter filter = new DeviceTypeFilter();
+        filter.setDeviceTypes(List.of("default"));
+        List<EntityKey> entityFields = Arrays.asList(new EntityKey(ENTITY_FIELD, "name"), new EntityKey(ENTITY_FIELD, "type"));
+        EntityDataPageLink pageLink = new EntityDataPageLink(100, 0, null, null);
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+
+        findByQueryAndCheck(subCustomerId, mergedUserPermissionsPE, query, subCustomerDevices.size());
+
+        // delete device
+        deviceService.deleteDevice(tenantId, subCustomerDevices.get(0).getId());
+        subCustomerDevices.remove(0);
+        findByQueryAndCheck(subCustomerId, mergedUserPermissionsPE, query, subCustomerDevices.size());
     }
 
     @Test
