@@ -127,7 +127,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     @Autowired
     private EntityCountService entityCountService;
 
-    @Autowired
+    @Autowired(required = false)
     private SecretConfigurationService secretConfigurationService;
 
     @Autowired
