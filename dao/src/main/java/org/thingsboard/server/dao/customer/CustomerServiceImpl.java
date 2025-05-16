@@ -378,7 +378,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         } else {
             title = PUBLIC_CUSTOMER_SUFFIX;
         }
-        var publicCustomer = new Customer();
+        publicCustomer = new Customer();
         publicCustomer.setTenantId(tenantId);
         publicCustomer.setTitle(title);
         if (createSubCustomer) {
