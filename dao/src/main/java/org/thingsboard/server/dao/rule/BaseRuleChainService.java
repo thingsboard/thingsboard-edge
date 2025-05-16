@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.EntityVersionMismatchException;
+import org.thingsboard.server.common.data.exception.MissingSecretsException;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -76,6 +77,7 @@ import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -92,6 +94,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -114,6 +117,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String TB_RULE_CHAIN_INPUT_NODE = "org.thingsboard.rule.engine.flow.TbRuleChainInputNode";
+
     @Autowired
     private RuleChainDao ruleChainDao;
 
@@ -122,6 +126,9 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
 
     @Autowired
     private EntityCountService entityCountService;
+
+    @Autowired
+    private SecretConfigurationService secretConfigurationService;
 
     @Autowired
     private DataValidator<RuleChain> ruleChainValidator;
@@ -202,6 +209,11 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             return RuleChainUpdateResult.failed();
         } else if (ruleChainMetaData.getVersion() != null && !ruleChainMetaData.getVersion().equals(ruleChain.getVersion())) {
             throw new EntityVersionMismatchException(EntityType.RULE_CHAIN, null);
+        } else {
+            var missingSecrets = secretConfigurationService.findMissingSecretPlaceholders(tenantId, JacksonUtil.valueToTree(ruleChainMetaData));
+            if (!missingSecrets.isEmpty()) {
+                throw new MissingSecretsException(missingSecrets);
+            }
         }
         RuleChainDataValidator.validateMetaDataFieldsAndConnections(ruleChainMetaData);
 
@@ -221,11 +233,17 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 }
             }
         }
-
+        RuleChainId ruleChainId = ruleChain.getId();
         List<RuleNodeUpdateResult> updatedRuleNodes = new ArrayList<>();
         List<RuleNode> existingRuleNodes = getRuleChainNodes(tenantId, ruleChainMetaData.getRuleChainId());
         for (RuleNode existingNode : existingRuleNodes) {
             relationService.deleteEntityRelations(tenantId, existingNode.getId());
+            if (existingNode.getType().equals(TB_RULE_CHAIN_INPUT_NODE)) {
+                EntityRelation relation = getRuleChainInputRelation(ruleChainId, existingNode);
+                if (relation != null) {
+                    relationService.deleteRelation(tenantId, relation);
+                }
+            }
             Integer index = ruleNodeIndexMap.get(existingNode.getId());
             RuleNode newRuleNode = null;
             if (index != null) {
@@ -237,7 +255,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             }
             updatedRuleNodes.add(new RuleNodeUpdateResult(existingNode, newRuleNode));
         }
-        RuleChainId ruleChainId = ruleChain.getId();
+
         if (nodes != null) {
             long now = System.currentTimeMillis();
             for (RuleNode node : toAddOrUpdate) {
@@ -250,6 +268,12 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 RuleNode savedNode = ruleNodeDao.save(tenantId, node);
                 relations.add(new EntityRelation(ruleChainMetaData.getRuleChainId(), savedNode.getId(),
                         EntityRelation.CONTAINS_TYPE, RelationTypeGroup.RULE_CHAIN));
+                if (node.getType().equals(TB_RULE_CHAIN_INPUT_NODE)) {
+                    EntityRelation relation = getRuleChainInputRelation(ruleChainId, node);
+                    if (relation != null) {
+                        relations.add(relation);
+                    }
+                }
                 int index = nodes.indexOf(node);
                 nodes.set(index, savedNode);
                 ruleNodeIndexMap.put(savedNode.getId(), index);
@@ -264,7 +288,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 firstRuleNodeId = nodes.get(ruleChainMetaData.getFirstNodeIndex()).getId();
             }
             if ((ruleChain.getFirstRuleNodeId() != null && !ruleChain.getFirstRuleNodeId().equals(firstRuleNodeId))
-                    || (ruleChain.getFirstRuleNodeId() == null && firstRuleNodeId != null)) {
+                || (ruleChain.getFirstRuleNodeId() == null && firstRuleNodeId != null)) {
                 ruleChain.setFirstRuleNodeId(firstRuleNodeId);
             }
             if (ruleChainMetaData.getConnections() != null) {
@@ -282,7 +306,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     RuleNode targetNode = new RuleNode();
                     targetNode.setName(targetRuleChain != null ? targetRuleChain.getName() : "Rule Chain Input");
                     targetNode.setRuleChainId(ruleChainId);
-                    targetNode.setType("org.thingsboard.rule.engine.flow.TbRuleChainInputNode");
+                    targetNode.setType(TB_RULE_CHAIN_INPUT_NODE);
                     var configuration = JacksonUtil.newObjectNode();
                     configuration.put("ruleChainId", targetRuleChainId.getId().toString());
                     targetNode.setConfiguration(configuration);
@@ -317,6 +341,22 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(ruleChain)
                 .entityId(ruleChain.getId()).broadcastEvent(publishSaveEvent).build());
         return RuleChainUpdateResult.successful(updatedRuleNodes);
+    }
+
+    private EntityRelation getRuleChainInputRelation(RuleChainId ruleChainId, RuleNode inputNode) {
+        RuleChainId targetRuleChainId = Optional.ofNullable(inputNode.getConfiguration().get("ruleChainId"))
+                .filter(JsonNode::isTextual).map(JsonNode::asText).map(id -> new RuleChainId(UUID.fromString(id)))
+                .orElse(null);
+        if (targetRuleChainId != null) {
+            EntityRelation relation = new EntityRelation();
+            relation.setFrom(ruleChainId);
+            relation.setTo(targetRuleChainId);
+            relation.setType(EntityRelation.USES_TYPE);
+            relation.setTypeGroup(RelationTypeGroup.COMMON);
+            return relation;
+        } else {
+            return null;
+        }
     }
 
     @Override

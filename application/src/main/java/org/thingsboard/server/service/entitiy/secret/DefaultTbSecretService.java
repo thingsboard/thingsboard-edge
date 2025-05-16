@@ -65,12 +65,12 @@ public class DefaultTbSecretService extends AbstractTbEntityService implements T
     }
 
     @Override
-    public TbSecretDeleteResult delete(SecretInfo secretInfo, User user) {
+    public TbSecretDeleteResult delete(SecretInfo secretInfo, boolean force, User user) {
         ActionType actionType = ActionType.DELETED;
         TenantId tenantId = secretInfo.getTenantId();
         SecretId secretId = secretInfo.getId();
         try {
-            TbSecretDeleteResult result = secretService.deleteSecret(tenantId, secretInfo);
+            TbSecretDeleteResult result = secretService.deleteSecret(tenantId, secretInfo, force);
             if (result.isSuccess()) {
                 logEntityActionService.logEntityAction(tenantId, secretId, secretInfo, actionType, user, secretId.toString());
             }

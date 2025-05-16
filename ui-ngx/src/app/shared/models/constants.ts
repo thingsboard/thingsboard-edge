@@ -224,6 +224,7 @@ export const HelpLinks = {
     scada: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada`,
     scadaSymbolDev: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada/scada-symbols-dev-guide/`,
     scadaSymbolDevAnimation: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada/scada-symbols-dev-guide/#scadasymbolanimation`,
+    scadaSymbolDevConnectorAnimation: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada/scada-symbols-dev-guide/#connectorscadasymbolanimation`,
     domains: `${helpBaseUrl}/docs${docPlatformPrefix}/domains`,
     mobileApplication: `${helpBaseUrl}/docs${docPlatformPrefix}/mobile-center/applications/`,
     mobileBundle: `${helpBaseUrl}/docs${docPlatformPrefix}/mobile-center/mobile-center/`,
@@ -271,6 +272,7 @@ export const HelpLinks = {
     roles: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rbac/`,
     selfRegistration: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/self-registration`,
     scheduler: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scheduler`,
+    trendzSettings: `${helpBaseUrl}/docs/trendz/`,
   }
 };
 /* eslint-enable max-len */

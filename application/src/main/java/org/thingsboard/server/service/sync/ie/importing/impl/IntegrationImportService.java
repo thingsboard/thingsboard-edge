@@ -33,7 +33,9 @@ package org.thingsboard.server.service.sync.ie.importing.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.MissingSecretsException;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -44,6 +46,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -89,9 +92,13 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
 
     //    @SneakyThrows({InterruptedException.class, ExecutionException.class, TimeoutException.class})
     @Override
-    protected Integration saveOrUpdate(EntitiesImportCtx ctx, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider) {
+    protected Integration saveOrUpdate(EntitiesImportCtx ctx, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider, CompareResult compareResult) {
         // Too aggressive operation
         // integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
+        Map<String, SecretType> missing = secretConfigurationService.findMissingSecretPlaceholders(ctx.getTenantId(), integration.getConfiguration());
+        if (!missing.isEmpty()) {
+            throw new MissingSecretsException(missing);
+        }
         return integrationService.saveIntegration(integration);
     }
 

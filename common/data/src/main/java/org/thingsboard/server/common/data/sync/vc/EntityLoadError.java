@@ -34,10 +34,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.ClassUtils;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -64,11 +67,20 @@ public class EntityLoadError implements Serializable {
     }
 
     public static EntityLoadError runtimeError(Throwable e) {
+        return runtimeError(e, null);
+    }
+
+    public static EntityLoadError runtimeError(Throwable e, EntityId externalId) {
         String message = e.getMessage();
         if (StringUtils.isEmpty(message)) {
             message = "unexpected error (" + ClassUtils.getShortClassName(e.getClass()) + ")";
         }
-        return EntityLoadError.builder().type("RUNTIME").message(message).build();
+        return EntityLoadError.builder().type("RUNTIME").message(message).source(externalId).build();
+    }
+
+    public static EntityLoadError missingSecretsError(EntityId sourceId, Map<String, SecretType> secrets) {
+        var msg = "The following Secrets are missing: " + secrets.keySet().stream().map(secretType -> "'" + secretType + "'").collect(Collectors.joining(", "));
+        return EntityLoadError.builder().type("MISSING_SECRETS").source(sourceId).message(msg).build();
     }
 
 }

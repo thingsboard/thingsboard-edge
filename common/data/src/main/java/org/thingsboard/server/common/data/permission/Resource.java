@@ -88,7 +88,6 @@ public enum Resource {
             EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE),
     MOBILE_APP_SETTINGS,
     CUSTOM_MENU,
-    CALCULATED_FIELD(EntityType.CALCULATED_FIELD),
     SECRET(EntityType.SECRET);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
@@ -191,7 +190,8 @@ public enum Resource {
                 Resource.QUEUE,
                 Resource.QUEUE_STATS,
                 Resource.NOTIFICATION,
-                Resource.MOBILE_APP_SETTINGS
+                Resource.MOBILE_APP_SETTINGS,
+                Resource.SECRET
         ));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, Set.of(

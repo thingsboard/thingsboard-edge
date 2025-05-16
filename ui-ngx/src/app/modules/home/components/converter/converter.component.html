@@ -64,9 +64,7 @@
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <section class="tb-form-panel no-padding no-border">
-        @if (hideTypes) {
-          <ng-container *ngTemplateOutlet="converterNameAndDebug"></ng-container>
-        } @else {
+        @if (!integrationWizardMode) {
           <div class="tb-form-panel stroked no-gap no-padding-bottom">
             <div class="mb-4 flex items-center justify-between">
               <div class="tb-form-panel-title" translate>converter.converter-type</div>
@@ -81,10 +79,49 @@
               placeholder="{{ 'converter.all' | translate }}"
               floatLabel="always">
             </tb-integration-type-select>
-            <ng-container *ngTemplateOutlet="converterNameAndDebug"></ng-container>
           </div>
         }
-        <div class="tb-form-panel stroked no-gap" formGroupName="configuration">
+        <div [class]="!integrationWizardMode ? 'tb-form-panel stroked no-gap no-padding-bottom' : 'flex flex-col'">
+          <div class="mb-4 flex items-center justify-between" [class.!hidden]="integrationWizardMode">
+            <div class="tb-form-panel-title xs:!hidden">
+              {{ converterTypeTitleTranslations.get(entityForm.get('type').value) | translate }}
+            </div>
+            <tb-toggle-select *ngIf="(integrationInfo$ | async)?.[entityForm.get('type').value.toLowerCase()]?.library && !integrationWizardMode && entityForm.get('integrationType').value"
+                              appearance="fill"
+                              [(ngModel)]="converterTypeValue"
+                              [ngModelOptions]="{standalone: true}">
+              <tb-toggle-option [value]="ConverterSourceType.NEW">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
+              <tb-toggle-option [value]="ConverterSourceType.LIBRARY">{{ 'integration.library' | translate }}</tb-toggle-option>
+            </tb-toggle-select>
+          </div>
+          @if (isAdd) {
+            <tb-converter-library [class.!hidden]="converterTypeValue !== ConverterSourceType.LIBRARY"
+              formControlName="converterLibrary"
+              [interacted]="interacted"
+              [converterType]="entityForm.get('type').value"
+              [integrationType]="entityForm.get('integrationType').value"
+              (converter)="onConverterSelected($event)"
+            />
+          }
+          <div class="flex gap-4" [class.hidden]="isConverterLibraryAndNotNull">
+            <mat-form-field class="flex-1">
+              <mat-label translate>converter.name</mat-label>
+              <input matInput formControlName="name" required>
+              <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
+                {{ 'converter.name-required' | translate }}
+              </mat-error>
+              <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+                {{ 'converter.name-max-length' | translate }}
+              </mat-error>
+            </mat-form-field>
+            <tb-entity-debug-settings-button
+              class="mb-5 flex items-center"
+              formControlName="debugSettings"
+              [entityType]="EntityType.CONVERTER"
+            />
+          </div>
+        </div>
+        <div class="tb-form-panel stroked no-gap" formGroupName="configuration" [class.!hidden]="isConverterLibraryAndNotNull">
           <div class="tb-form-panel-title mb-4">{{ mainConfigurationTitle | translate }}</div>
           @if (entityForm.get('type').value === converterType.UPLINK && entityForm.get('converterVersion').value === 2) {
             <div class="flex gap-3">
@@ -142,7 +179,7 @@
           </button>
         </div>
         @if (entityForm.get('type').value === converterType.UPLINK) {
-          <div class="tb-form-panel stroked no-gap">
+          <div class="tb-form-panel stroked no-gap" [class.!hidden]="isConverterLibraryAndNotNull">
             <mat-expansion-panel class="tb-settings" formGroupName="configuration" expanded>
               <mat-expansion-panel-header>
                 {{ 'converter.advanced-decoding-parameters' | translate }}
@@ -200,7 +237,7 @@
             </mat-expansion-panel>
           </div>
         }
-        <div formGroupName="additionalInfo" class="flex flex-col">
+        <div formGroupName="additionalInfo" class="flex flex-col" [class.!hidden]="isConverterLibraryAndNotNull">
           <mat-form-field class="mat-block">
             <mat-label translate>converter.description</mat-label>
             <textarea matInput formControlName="description" rows="1"></textarea>
@@ -210,23 +247,3 @@
     </fieldset>
   </form>
 </div>
-
-<ng-template #converterNameAndDebug>
-  <div class="flex gap-4" [formGroup]="entityForm">
-    <mat-form-field class="flex-1">
-      <mat-label translate>converter.name</mat-label>
-      <input matInput formControlName="name" required>
-      <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
-        {{ 'converter.name-required' | translate }}
-      </mat-error>
-      <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
-        {{ 'converter.name-max-length' | translate }}
-      </mat-error>
-    </mat-form-field>
-    <tb-entity-debug-settings-button
-      class="mb-5 flex items-center"
-      formControlName="debugSettings"
-      [entityType]="EntityType.CONVERTER"
-    />
-  </div>
-</ng-template>

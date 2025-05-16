@@ -36,12 +36,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.secret.SecretUtilService;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,6 +98,34 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
             return value;
         });
         return result[0];
+    }
+
+    @Override
+    public Map<String, SecretType> findMissingSecretPlaceholders(TenantId tenantId, JsonNode config) {
+        Map<String, SecretType> missingSecrets = new HashMap<>();
+
+        JacksonUtil.replaceAll(config, "", (path, value) -> {
+            Matcher matcher = SECRET_PATTERN.matcher(value);
+            while (matcher.find()) {
+                String name = matcher.group(1);
+                String typeStr = matcher.group(2);
+                SecretType type;
+
+                try {
+                    type = SecretType.valueOf(typeStr.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid secret type '{}' in placeholder: ${secret:{};type:{}}", typeStr, name, typeStr);
+                    continue;
+                }
+
+                if (secretService.findSecretByName(tenantId, name) == null) {
+                    missingSecrets.putIfAbsent(name, type);
+                }
+            }
+            return value;
+        });
+
+        return missingSecrets;
     }
 
 }

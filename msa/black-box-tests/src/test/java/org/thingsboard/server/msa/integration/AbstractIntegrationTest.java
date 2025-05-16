@@ -82,6 +82,35 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     protected Integration integration;
     protected Converter uplinkConverter;
 
+    protected final String JSON_CONVERTER_CONFIG = """
+            {
+                "isDevice": true,
+                "name": "DEVICE_NAME",
+                "profile": "default",
+                "customer": null,
+                "group": null,
+                "attributes": [
+                    "eui",
+                    "fPort",
+                    "rssi"
+                ],
+                "telemetry": [
+                    "data",
+                    "snr"
+                ],
+                "scriptLang": "TBEL",
+                "decoder": "",
+                "tbelDecoder": "var payloadStr = decodeToString(payload);\\nvar result = {\\n    attributes: {},\\n    telemetry: {\\n        ts: metadata.ts,\\n        values: {\\n            temperature: payload[0],\\n            humidity: payload[1]\\n        }\\n    }\\n};\\n\\nreturn result;",
+                "encoder": null,
+                "tbelEncoder": null,
+                "updateOnlyKeys": [
+                    "fPort",
+                    "eui",
+                    "rssi"
+                ]
+            }
+            """;
+
     abstract protected String getDevicePrototypeSufix();
 
     @BeforeClass
@@ -122,10 +151,15 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
 
     protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig, JsonNode downlinkConfig,
                                             String routingKey, String secretKey, boolean isRemote) {
+        return createIntegration(type, config, uplinkConfig, downlinkConfig, routingKey, secretKey, isRemote, 1);
+    }
+
+    protected Integration createIntegration(IntegrationType type, JsonNode config, JsonNode uplinkConfig, JsonNode downlinkConfig,
+                                            String routingKey, String secretKey, boolean isRemote, int converterVersion) {
         Integration integration = new Integration();
         integration.setConfiguration(config);
 
-        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(uplinkConfig));
+        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(uplinkConfig, type, converterVersion));
         integration.setDefaultConverterId(uplinkConverter.getId());
 
         if (downlinkConfig != null) {

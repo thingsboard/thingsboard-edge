@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -87,30 +88,48 @@ public class SecretController extends BaseController {
                     "Specify existing Secret Id to update the secret. Secret name is not updatable, only value could be changed. " +
                     "Referencing non-existing Secret Id will cause 'Not Found' error." + NEW_LINE +
                     "Secret name is unique in the scope of tenant.")
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @PostMapping(value = "/secret")
     public SecretInfo saveSecret(
             @Parameter(description = "A JSON value representing the Secret.", required = true)
             @RequestBody @Valid Secret secret) throws Exception {
         secret.setTenantId(getTenantId());
         checkEntity(secret.getId(), secret, Resource.SECRET);
-        return new SecretInfo(tbSecretService.save(secret, getCurrentUser()));
+        return tbSecretService.save(secret, getCurrentUser());
+    }
+
+    @ApiOperation(value = "Update Secret Description",
+            notes = "Updates the description of the existing Secret by secretId. " +
+                    "Only the description can be updated. " +
+                    "Referencing a non-existing Secret Id will cause a 'Not Found' error.")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PutMapping("/secret/{id}/description")
+    public SecretInfo updateSecretDescription(
+            @Parameter(description = "Unique identifier of the Secret to update", required = true)
+            @PathVariable UUID id,
+            @Parameter(description = "New description for the Secret", example = "Description", required = true)
+            @RequestBody String description) throws Exception {
+        SecretId secretId = new SecretId(id);
+        Secret secret = new Secret(checkSecretId(secretId, Operation.WRITE));
+        secret.setDescription(description);
+        return tbSecretService.save(secret, getCurrentUser());
     }
 
     @ApiOperation(value = "Delete secret by ID (deleteSecret)",
             notes = "Deletes the secret. Referencing non-existing Secret Id will cause an error." + TENANT_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @DeleteMapping(value = "/secret/{id}")
-    public ResponseEntity<TbSecretDeleteResult> deleteSecret(@PathVariable UUID id) throws ThingsboardException {
+    public ResponseEntity<TbSecretDeleteResult> deleteSecret(@PathVariable UUID id,
+                                                             @RequestParam(name = "force", required = false) boolean force) throws ThingsboardException {
         SecretId secretId = new SecretId(id);
         SecretInfo secretInfo = checkSecretId(secretId, Operation.DELETE);
-        TbSecretDeleteResult result = tbSecretService.delete(secretInfo, getCurrentUser());
+        TbSecretDeleteResult result = tbSecretService.delete(secretInfo, force, getCurrentUser());
         return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.badRequest()).body(result);
     }
 
     @ApiOperation(value = "Get Tenant Secret infos (getSecretInfos)",
             notes = "Returns a page of secret infos owned by tenant. " + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/secret/infos", params = {"pageSize", "page"})
     public PageData<SecretInfo> getSecretInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                                @RequestParam int pageSize,
@@ -129,7 +148,7 @@ public class SecretController extends BaseController {
 
     @ApiOperation(value = "Get Tenant Secret names (getSecretNames)",
             notes = "Returns a page of secret names owned by tenant. " + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/secret/names")
     public List<String> getSecretNames() throws ThingsboardException {
         TenantId tenantId = getTenantId();
@@ -137,7 +156,7 @@ public class SecretController extends BaseController {
     }
 
     @ApiOperation(value = "Get Secret info by Id (getSecretInfoById)", notes = TENANT_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/secret/info/{id}")
     public SecretInfo getSecretInfoById(@PathVariable UUID id) throws ThingsboardException {
         SecretId secretId = new SecretId(id);

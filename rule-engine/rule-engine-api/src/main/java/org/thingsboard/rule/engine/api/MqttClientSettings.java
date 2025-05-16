@@ -28,20 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.rule.engine.api;
 
-import lombok.Data;
+public interface MqttClientSettings {
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+    int getRetransmissionMaxAttempts();
 
-@Data
-public class ParametersAnalyzeResult {
-    Set<String> pathPostParametersAdd;
-    Set<String> pathPostParametersDel;
+    long getRetransmissionInitialDelayMillis();
 
-    public ParametersAnalyzeResult() {
-        this.pathPostParametersAdd = ConcurrentHashMap.newKeySet();
-        this.pathPostParametersDel = ConcurrentHashMap.newKeySet();
-    }
+    double getRetransmissionJitterFactor();
+
 }

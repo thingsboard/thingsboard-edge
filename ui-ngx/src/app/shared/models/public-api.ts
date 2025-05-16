@@ -77,3 +77,4 @@ export * from './entity-group.models';
 export * from './usage.models';
 export * from './query/query.models';
 export * from './regex.constants';
+export * from './trendz-settings.models'
