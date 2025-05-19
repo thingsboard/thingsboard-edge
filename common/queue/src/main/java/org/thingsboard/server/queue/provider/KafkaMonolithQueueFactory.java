@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -52,7 +51,6 @@ import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldStateProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
@@ -774,16 +772,6 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
                 .maxPendingRequests(edqsConfig.getMaxPendingRequests())
                 .maxRequestTimeout(edqsConfig.getMaxRequestTimeout())
                 .pollInterval(edqsConfig.getPollInterval())
-                .build();
-    }
-
-    @Override
-    public TbQueueProducer<TbProtoQueueMsg<TaskProto>> createTaskProducer(JobType jobType) {
-        return TbKafkaProducerTemplate.<TbProtoQueueMsg<TaskProto>>builder()
-                .clientId(jobType.name().toLowerCase() + "-task-producer-" + serviceInfoProvider.getServiceId())
-                .defaultTopic(topicService.buildTopicName(jobType.getTasksTopic()))
-                .settings(kafkaSettings)
-                .admin(tasksAdmin)
                 .build();
     }
 
