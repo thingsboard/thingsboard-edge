@@ -30,7 +30,7 @@
 ///
 
 import { DataKey, Datasource, LegendPosition } from '@shared/models/widget.models';
-import { BackgroundSettings, BackgroundType, Font } from '@shared/models/widget-settings.models';
+import { BackgroundSettings, BackgroundType, Font, ValueFormatProcessor } from '@shared/models/widget-settings.models';
 import { Renderer2 } from '@angular/core';
 import { CallbackDataParams } from 'echarts/types/dist/shared';
 import { formatValue, isDefinedAndNotNull, mergeDeep } from '@core/utils';
@@ -72,6 +72,7 @@ export interface LatestChartTooltipSettings {
   showTooltip: boolean;
   tooltipValueType: LatestChartTooltipValueType;
   tooltipValueDecimals: number;
+  tooltipValueFormater: ValueFormatProcessor;
   tooltipValueFont: Font;
   tooltipValueColor: string;
   tooltipBackgroundColor: string;
@@ -92,7 +93,8 @@ export const latestChartTooltipDefaultSettings: LatestChartTooltipSettings = {
   },
   tooltipValueColor: 'rgba(0, 0, 0, 0.76)',
   tooltipBackgroundColor: 'rgba(255, 255, 255, 0.76)',
-  tooltipBackgroundBlur: 4
+  tooltipBackgroundBlur: 4,
+  tooltipValueFormater: null
 };
 
 export interface LatestChartSettings extends LatestChartTooltipSettings {
@@ -159,7 +161,6 @@ export const latestChartWidgetDefaultSettings: LatestChartWidgetSettings = {
 export const latestChartTooltipFormatter = (renderer: Renderer2,
                                             settings: LatestChartTooltipSettings,
                                             params: CallbackDataParams,
-                                            units: string,
                                             total: number,
                                             dataItems: LatestChartDataItem[]): null | HTMLElement => {
   if (params.value && Array.isArray(params.value)) {
@@ -175,7 +176,7 @@ export const latestChartTooltipFormatter = (renderer: Renderer2,
         const value = params.value[i];
         renderer.appendChild(tooltipElement,
           constructTooltipSeriesElement(renderer, settings, dataItem.dataKey.label, value as number, null,
-            units, total, dataItem.dataKey.color));
+            total, dataItem.dataKey.color));
       }
       return tooltipElement;
     } else {
@@ -183,7 +184,7 @@ export const latestChartTooltipFormatter = (renderer: Renderer2,
     }
   } else if (params.name) {
     return constructTooltipSeriesElement(renderer, settings, params.name,
-      params.value as number, params.percent, units, total);
+      params.value as number, params.percent, total);
   } else {
     return null;
   }
@@ -194,7 +195,6 @@ const constructTooltipSeriesElement = (renderer: Renderer2,
                                        label: string,
                                        value: number,
                                        percent: number | undefined,
-                                       units: string,
                                        total: number,
                                        circleColor?: string): HTMLElement => {
   let formattedValue: string;
@@ -202,7 +202,7 @@ const constructTooltipSeriesElement = (renderer: Renderer2,
     const percents = isDefinedAndNotNull(percent) ? percent : value / total * 100;
     formattedValue = formatValue(percents, settings.tooltipValueDecimals, '%', false);
   } else {
-    formattedValue = formatValue(value, settings.tooltipValueDecimals, units, false);
+    formattedValue = settings.tooltipValueFormater?.format(value);
   }
   const textElement: HTMLElement = renderer.createElement('div');
   renderer.setStyle(textElement, 'display', 'flex');

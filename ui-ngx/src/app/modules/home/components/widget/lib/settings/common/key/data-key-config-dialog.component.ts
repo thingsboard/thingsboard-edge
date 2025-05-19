@@ -71,6 +71,7 @@ export interface DataKeyConfigDialogData {
   hideDataKeyColor?: boolean;
   hideDataKeyUnits?: boolean;
   hideDataKeyDecimals?: boolean;
+  supportsUnitConversion?: boolean
 }
 
 @Component({
