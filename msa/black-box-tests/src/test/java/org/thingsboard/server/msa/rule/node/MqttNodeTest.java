@@ -154,6 +154,7 @@ public class MqttNodeTest extends AbstractContainerTest {
 
     @Data
     private class MqttMessageListener implements IMqttMessageListener {
+
         private final BlockingQueue<MqttEvent> events;
 
         private MqttMessageListener() {
@@ -169,12 +170,15 @@ public class MqttNodeTest extends AbstractContainerTest {
         public BlockingQueue<MqttEvent> getEvents() {
             return events;
         }
+
     }
 
     @Data
     private class MqttEvent {
+
         private final String topic;
         private final String message;
+
     }
 
     private RuleChainId getDefaultRuleChainId() {
@@ -216,8 +220,8 @@ public class MqttNodeTest extends AbstractContainerTest {
                 .until(() -> {
                     PageData<EventInfo> events = testRestClient.getEvents(node.getId(), EventType.LC_EVENT, ruleChain.getTenantId(), new TimePageLink(1024));
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
-                                    "STARTED".equals(eventInfo.getBody().get("event").asText()) &&
-                                            "true".equals(eventInfo.getBody().get("success").asText())).toList();
+                            "STARTED".equals(eventInfo.getBody().get("event").asText()) &&
+                                    "true".equals(eventInfo.getBody().get("success").asText())).toList();
 
                     return eventInfos.size() == eventsCount;
                 });
@@ -233,10 +237,10 @@ public class MqttNodeTest extends AbstractContainerTest {
         }
     }
 
-    private Secret createSecret(String password) {
+    private Secret createSecret(String value) {
         Secret secret = new Secret();
         secret.setName("mqtt_node_secret");
-        secret.setEncodedValue(password);
+        secret.setValue(value);
         return testRestClient.saveSecret(secret);
     }
 

@@ -42,6 +42,8 @@ public interface SecretInfoDao extends Dao<SecretInfo> {
 
     PageData<SecretInfo> findByTenantId(TenantId tenantId, PageLink pageLink);
 
+    SecretInfo findByName(TenantId tenantId, String name);
+
     List<String> findAllNamesByTenantId(TenantId tenantId);
 
 }

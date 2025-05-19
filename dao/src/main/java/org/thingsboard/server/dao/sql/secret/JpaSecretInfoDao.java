@@ -62,6 +62,11 @@ public class JpaSecretInfoDao extends JpaAbstractDao<SecretInfoEntity, SecretInf
     }
 
     @Override
+    public SecretInfo findByName(TenantId tenantId, String name) {
+        return DaoUtil.getData(secretInfoRepository.findByTenantIdAndName(tenantId.getId(), name));
+    }
+
+    @Override
     public List<String> findAllNamesByTenantId(TenantId tenantId) {
         return secretInfoRepository.findAllNamesByTenantId(tenantId.getId());
     }

@@ -195,6 +195,12 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     }
 
     @Override
+    public SecretInfo findSecretInfoByName(TenantId tenantId, String name) {
+        log.trace("Executing findSecretInfoByName [{}] [{}]", tenantId, name);
+        return secretInfoDao.findByName(tenantId, name);
+    }
+
+    @Override
     public List<String> findSecretNamesByTenantId(TenantId tenantId) {
         log.trace("Executing findSecretNamesByTenantId [{}]", tenantId);
         return secretInfoDao.findAllNamesByTenantId(tenantId);

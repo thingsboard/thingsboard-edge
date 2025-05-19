@@ -186,8 +186,7 @@ public class EntityStateSourcingListener {
                     break;
                 }
                 Secret secret = (Secret) event.getEntity();
-                String placeholder = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
-                var result = secretService.findEntitiesBySecretPlaceholder(tenantId, placeholder);
+                var result = secretService.findEntitiesBySecretPlaceholder(tenantId, SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType()));
 
                 result.forEach((type, entities) -> {
                     switch (type) {

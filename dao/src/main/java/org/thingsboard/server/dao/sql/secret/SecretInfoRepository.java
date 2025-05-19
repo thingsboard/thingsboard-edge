@@ -50,6 +50,8 @@ public interface SecretInfoRepository extends JpaRepository<SecretInfoEntity, UU
                                           @Param("searchText") String searchText,
                                           Pageable pageable);
 
+    SecretInfoEntity findByTenantIdAndName(UUID id, String name);
+
     @Query("SELECT d.name FROM SecretInfoEntity d WHERE d.tenantId = :tenantId")
     List<String> findAllNamesByTenantId(@Param("tenantId") UUID tenantId);
 

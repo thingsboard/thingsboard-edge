@@ -163,4 +163,13 @@ public class SecretController extends BaseController {
         return checkSecretId(secretId, Operation.READ);
     }
 
+    @ApiOperation(value = "Get Secret info by name (getSecretInfoById)", notes = TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @GetMapping(value = "/secret/{name}")
+    public SecretInfo getSecretInfoByName(@PathVariable String name) throws ThingsboardException {
+        checkParameter("name", name);
+        TenantId tenantId = getTenantId();
+        return checkNotNull(secretService.findSecretInfoByName(tenantId, name));
+    }
+
 }

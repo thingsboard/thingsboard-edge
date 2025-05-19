@@ -63,9 +63,13 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
 
     @Override
     public Integration getIntegration(TenantId tenantId, IntegrationId integrationId) {
-        var integration = integrationService.findIntegrationById(tenantId, integrationId);
-        integration.setConfiguration(secretConfigurationService.replaceSecretPlaceholders(tenantId, integration.getConfiguration()));
-        return integration;
+        Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
+        if (integration != null) {
+            Integration copy = new Integration(integration);
+            copy.setConfiguration(secretConfigurationService.replaceSecretPlaceholders(tenantId, integration.getConfiguration()));
+            return copy;
+        }
+        return null;
     }
 
     @Override

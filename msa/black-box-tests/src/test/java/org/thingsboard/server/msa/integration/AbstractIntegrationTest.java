@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -60,13 +61,11 @@ import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.DisableUIListeners;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
@@ -218,9 +217,8 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                     }
 
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
-                                    eventType.equals(eventInfo.getBody().get("event").asText()) &&
-                                            "true".equals(eventInfo.getBody().get("success").asText()))
-                            .collect(Collectors.toList());
+                            eventType.equals(eventInfo.getBody().get("event").asText()) &&
+                                    "true".equals(eventInfo.getBody().get("success").asText())).toList();
 
                     return eventInfos.size() == finalCount;
                 });
@@ -239,8 +237,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                     }
 
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
-                                    eventType.equalsIgnoreCase(eventInfo.getBody().get("type").asText()))
-                            .collect(Collectors.toList());
+                            eventType.equalsIgnoreCase(eventInfo.getBody().get("type").asText())).toList();
 
                     return eventInfos.size() == finalCount;
                 });
@@ -310,10 +307,11 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                 });
     }
 
-    protected Secret createSecret(String password) {
+    protected Secret createSecret(SecretId secretId, String name, String value) {
         Secret secret = new Secret();
-        secret.setName("integration_secret");
-        secret.setValue(password.getBytes(StandardCharsets.UTF_8));
+        secret.setName(name);
+        secret.setValue(value);
+        secret.setId(secretId);
         return testRestClient.saveSecret(secret);
     }
 

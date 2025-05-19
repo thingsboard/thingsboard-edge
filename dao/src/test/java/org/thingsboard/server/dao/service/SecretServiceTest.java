@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.thingsboard.common.util.JacksonUtil;
@@ -58,6 +57,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.secret.SecretConfigurationService;
@@ -72,6 +72,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @DaoSqlTest
 public class SecretServiceTest extends AbstractServiceTest {
@@ -90,6 +91,9 @@ public class SecretServiceTest extends AbstractServiceTest {
 
     @Autowired
     TenantProfileService tenantProfileService;
+
+    @Autowired
+    EventService eventService;
 
     @MockBean
     SecretUtilService secretUtilService;
@@ -130,7 +134,7 @@ public class SecretServiceTest extends AbstractServiceTest {
     @Test
     public void testUpdateSecretInfoDescription_thenValueShouldFetchedFromOldSecret() {
         String password = "Password";
-        Mockito.when(secretUtilService.encrypt(any(), any(), any())).thenReturn(password.getBytes(StandardCharsets.UTF_8));
+        when(secretUtilService.encrypt(any(), any(), any())).thenReturn(password.getBytes(StandardCharsets.UTF_8));
 
         Secret secret = constructSecret(tenantId, "Test Secret", password);
         Secret savedSecret = secretService.saveSecret(tenantId, secret);
@@ -215,7 +219,7 @@ public class SecretServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testDeleteSecret_whenUsedInRuleNodeWithoutHasSecrets_thenReceiveDataValidationException() {
+    public void testDeleteSecret_whenUsedInRuleNodeWithoutHasSecrets_thenReceiveFailureDeleteResult() {
         String secretName = "MqttNodeSecret";
         Secret secret = constructSecret(tenantId, secretName, "Password");
         Secret savedSecret = secretService.saveSecret(tenantId, secret);
@@ -231,7 +235,7 @@ public class SecretServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testDeleteSecret_whenUsedInIntegration_thenReceiveDataValidationException() {
+    public void testDeleteSecret_whenUsedInIntegration_thenReceiveFailureDeleteResult() {
         String secretName = "IntegrationSecret";
         Secret secret = constructSecret(tenantId, secretName, "Password");
         Secret savedSecret = secretService.saveSecret(tenantId, secret);
@@ -265,7 +269,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         return secret;
     }
 
-    private void createIntegration(String name, JsonNode configuration, ConverterId converterId) {
+    private Integration createIntegration(String name, JsonNode configuration, ConverterId converterId) {
         Integration integration = new Integration();
         integration.setTenantId(tenantId);
         integration.setDefaultConverterId(converterId);
@@ -273,7 +277,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.MQTT);
         integration.setConfiguration(configuration);
-        integrationService.saveIntegration(integration);
+        return integrationService.saveIntegration(integration);
     }
 
     private ConverterId createAndGetConvertedId() {

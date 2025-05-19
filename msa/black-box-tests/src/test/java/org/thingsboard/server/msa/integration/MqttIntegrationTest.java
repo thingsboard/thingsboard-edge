@@ -88,6 +88,7 @@ import static org.thingsboard.server.msa.prototypes.MQTTIntegrationPrototypes.de
 
 @Slf4j
 public class MqttIntegrationTest extends AbstractIntegrationTest {
+
     public static final String SERVICE_NAME = "broker";
     public static final int SERVICE_PORT = 1883;
     private static final String ROUTING_KEY = "routing-key-1234567";
@@ -158,7 +159,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .secret(SECRET_KEY)
                 .isRemote(false)
                 .enabled(true)
-                .debugSettings(DebugSettings.until(System.currentTimeMillis()+TimeUnit.MINUTES.toMillis(15)))
+                .debugSettings(DebugSettings.until(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)))
                 .allowCreateDevicesOrAssets(true)
                 .build();
 
@@ -228,7 +229,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void telemetryUploadWithBasicCredentialsUsingSecrets() throws Exception {
         String password = "pass";
-        Secret secret = createSecret(password);
+        Secret secret = createSecret(null, "integrationSecret", password);
         String formattedSecret = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
 
         createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, formattedSecret, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
@@ -254,6 +255,42 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertFalse(latestTimeseries.isEmpty());
         Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+    }
+
+    @Test
+    public void telemetryUploadWithBasicCredentialsUsingSecrets_thenUpdateSecret_receiveLifecycleEventOnIntegration() throws Exception {
+        String password = "pass";
+        Secret secret = createSecret(null, "integrationSecret", password);
+        String formattedSecret = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
+
+        createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, formattedSecret, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
+
+        MqttConnectOptions connOpts = new MqttConnectOptions();
+        connOpts.setKeepAliveInterval(30);
+        connOpts.setCleanSession(true);
+        connOpts.setUserName("userName");
+        connOpts.setPassword(password.toCharArray());
+
+        sendMessageToBroker(connOpts);
+
+        boolean hasTelemetry = false;
+        for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
+            Thread.sleep(CONNECT_TIMEOUT_MS);
+            if (testRestClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
+            hasTelemetry = true;
+            break;
+        }
+        Assert.assertTrue(hasTelemetry);
+
+        List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
+        Assert.assertFalse(latestTimeseries.isEmpty());
+        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
+        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+
+        // update secret value
+        password = "updated";
+        createSecret(secret.getId(), "integrationSecret", password);
+        waitForIntegrationEvent(integration, "UPDATED", 1);
     }
 
     @Test
@@ -315,7 +352,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .await()
                 .alias("Get integration events")
                 .atMost(10, TimeUnit.SECONDS)
-                .until(() -> messageListener.getEvents().size() > 0);
+                .until(() -> !messageListener.getEvents().isEmpty());
 
         BlockingQueue<MqttEvent> events = messageListener.getEvents();
         JsonNode actual = JacksonUtil.toJsonNode(Objects.requireNonNull(events.poll()).message);
@@ -420,4 +457,5 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
     protected String getDevicePrototypeSufix() {
         return "mqtt_";
     }
+
 }
