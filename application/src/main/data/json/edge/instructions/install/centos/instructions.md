@@ -40,7 +40,9 @@ OpenJDK 64-Bit Server VM (build ...)
 ```
 
 #### Step 2. Configure ThingsBoard Database
-ThingsBoard Edge supports SQL and hybrid database approaches. See the architecture page for details.
+ThingsBoard Edge supports SQL and hybrid database approaches.
+In this guide we will use SQL only.
+For hybrid details please follow official installation instructions from the ThingsBoard documentation site.
 
 
 ##### Configure PostgreSQL
@@ -112,7 +114,8 @@ sudo systemctl restart postgresql-16.service && psql -U postgres -d postgres -h 
 
 #### Step 3. Choose queue service
 
-ThingsBoard Edge is able to use different messaging systems/brokers for storing the messages and communication between ThingsBoard services. How to choose the right queue implementation?
+ThingsBoard Edge supports only Kafka or in-memory queue (since v4.0) for message storage and communication between ThingsBoard services.
+How to choose the right queue implementation?
 
 In Memory queue implementation is built-in and default. It is useful for development(PoC) environments and is not suitable for production deployments or any sort of cluster deployments.
 
