@@ -28,13 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.queue.task;
 
-public class DummyJobResult extends JobResult {
+import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-    @Override
-    public JobType getJobType() {
-        return JobType.DUMMY;
-    }
+public interface TaskProducerQueueFactory {
+
+    TbQueueProducer<TbProtoQueueMsg<TaskProto>> createTaskProducer(JobType jobType);
 
 }

@@ -28,20 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.job;
+package org.thingsboard.server.queue.task;
 
-import org.thingsboard.server.common.data.id.JobId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.job.Job;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.job.JobType;
+import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.memory.InMemoryStorage;
+import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
 
-public interface JobManager {
+@Component
+@ConditionalOnExpression("'${queue.type:null}' == 'in-memory'")
+@RequiredArgsConstructor
+public class InMemoryTaskProducerQueueFactory implements TaskProducerQueueFactory {
 
-    Job submitJob(Job job);
+    private final InMemoryStorage storage;
 
-    void cancelJob(TenantId tenantId, JobId jobId);
-
-    void reprocessJob(TenantId tenantId, JobId jobId);
-
-    void onJobUpdate(Job job);
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TaskProto>> createTaskProducer(JobType jobType) {
+        return new InMemoryTbQueueProducer<>(storage, jobType.getTasksTopic());
+    }
 
 }

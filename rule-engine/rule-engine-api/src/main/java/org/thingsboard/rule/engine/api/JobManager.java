@@ -28,13 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.rule.engine.api;
 
-public class DummyJobResult extends JobResult {
+import org.thingsboard.server.common.data.id.JobId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.job.Job;
 
-    @Override
-    public JobType getJobType() {
-        return JobType.DUMMY;
-    }
+public interface JobManager {
+
+    Job submitJob(Job job); // TODO: rate limits
+
+    void cancelJob(TenantId tenantId, JobId jobId);
+
+    void reprocessJob(TenantId tenantId, JobId jobId);
+
+    void onJobUpdate(Job job);
 
 }

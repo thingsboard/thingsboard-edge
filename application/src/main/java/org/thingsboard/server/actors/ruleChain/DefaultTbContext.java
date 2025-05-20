@@ -40,6 +40,7 @@ import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.MqttClientSettings;
 import org.thingsboard.rule.engine.api.NotificationCenter;
@@ -937,6 +938,11 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public JobService getJobService() {
         return mainCtx.getJobService();
+    }
+
+    @Override
+    public JobManager getJobManager() {
+        return mainCtx.getJobManager();
     }
 
     @Override

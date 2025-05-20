@@ -32,7 +32,6 @@ package org.thingsboard.server.queue.provider;
 
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
@@ -40,7 +39,6 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.TaskProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
@@ -231,8 +229,6 @@ public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactor
     TbQueueProducer<TbProtoQueueMsg<ToCalculatedFieldMsg>> createToCalculatedFieldMsgProducer();
 
     TbQueueProducer<TbProtoQueueMsg<ToCalculatedFieldNotificationMsg>> createToCalculatedFieldNotificationMsgProducer();
-
-    TbQueueProducer<TbProtoQueueMsg<TaskProto>> createTaskProducer(JobType jobType);
 
     TbQueueConsumer<TbProtoQueueMsg<JobStatsMsg>> createJobStatsConsumer();
 

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.job;
 
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.JobId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.job.Job;
@@ -52,8 +53,12 @@ public interface JobDao extends Dao<Job> {
 
     boolean existsByTenantIdAndTypeAndStatusOneOf(TenantId tenantId, JobType type, JobStatus... statuses);
 
+    boolean existsByTenantIdAndEntityIdAndStatusOneOf(TenantId tenantId, EntityId entityId, JobStatus... statuses);
+
     Job findOldestByTenantIdAndTypeAndStatusForUpdate(TenantId tenantId, JobType type, JobStatus status);
 
-    void deleteByTenantId(TenantId tenantId);
+    void removeByTenantId(TenantId tenantId);
+
+    int removeByEntityId(TenantId tenantId, EntityId entityId);
 
 }
