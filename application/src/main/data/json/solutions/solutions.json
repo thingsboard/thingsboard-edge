@@ -15,11 +15,11 @@
     "title": "Smart office",
     "level": "MAKER",
     "installTimeoutMs": 2000,
-    "previewImageUrl": "https://img.thingsboard.io/solutions/smart_office/smart-office-preview.png",
-    "videoPreviewImageUrl": "https://img.thingsboard.io/usecases/smart-office/video/smart-office.png",
-    "previewMp4Url": "https://video.thingsboard.io/usecases/smart-office.mp4",
-    "previewWebmUrl": "https://video.thingsboard.io/usecases/smart-office.webm",
-    "imageUrls": ["https://img.thingsboard.io/solutions/smart_office/smart-office-1.png", "https://img.thingsboard.io/solutions/smart_office/smart-office-2.png", "https://img.thingsboard.io/solutions/smart_office/smart-office-3.png", "https://img.thingsboard.io/solutions/smart_office/smart-office-4.png", "https://img.thingsboard.io/solutions/smart_office/smart-office-5.png"]
+    "previewImageUrl": "https://img.thingsboard.io/solutions/smart_office/smart-office-preview-new.png",
+    "videoPreviewImageUrl": "https://img.thingsboard.io/usecases/smart-office/video/smart-office-new.png",
+    "previewMp4Url": "https://video.thingsboard.io/usecases/smart-office-new.mp4",
+    "previewWebmUrl": "https://video.thingsboard.io/usecases/smart-office-new.webm",
+    "imageUrls": ["https://img.thingsboard.io/solutions/smart_office/smart-office-1-new.png", "https://img.thingsboard.io/solutions/smart_office/smart-office-2.png", "https://img.thingsboard.io/solutions/smart_office/smart-office-3-new.png", "https://img.thingsboard.io/solutions/smart_office/smart-office-4.png", "https://img.thingsboard.io/solutions/smart_office/smart-office-5.png"]
   },
   {
     "id": "fleet_tracking",
