@@ -48,13 +48,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.script.api.tbel.TbelCfArg;
 import org.thingsboard.script.api.tbel.TbelCfCtx;
 import org.thingsboard.script.api.tbel.TbelCfSingleValueArg;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
-import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
@@ -78,9 +78,7 @@ import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldScriptEngine;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldTbelScriptEngine;
 import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
 import org.thingsboard.server.service.entitiy.cf.TbCalculatedFieldService;
-import org.thingsboard.server.service.job.JobManager;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.utils.WebUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -303,17 +301,13 @@ public class CalculatedFieldController extends BaseController {
         CalculatedField calculatedField = tbCalculatedFieldService.findById(calculatedFieldId, getCurrentUser());
         checkNotNull(calculatedField);
         EntityId entityId = calculatedField.getEntityId();
-        HasId<? extends EntityId> entity = checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
+        checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
 
         jobManager.submitJob(Job.builder()
                 .tenantId(calculatedField.getTenantId())
                 .type(JobType.CF_REPROCESSING)
                 .key(calculatedField.getId().toString())
-                .description("Reprocessing of calculated field '%s' for %s <a href=\"%s\">%s</a>".formatted(
-                        calculatedField.getName(),
-                        entityId.getEntityType().getNormalName().toLowerCase(),
-                        WebUtils.getEntityPageUrl(entityId),
-                        entity instanceof HasName hasName ? hasName.getName() : entityId.toString()))
+                .entityId(entityId)
                 .configuration(CfReprocessingJobConfiguration.builder()
                         .calculatedFieldId(calculatedField.getId())
                         .startTs(startTs)

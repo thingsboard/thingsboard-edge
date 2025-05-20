@@ -95,7 +95,10 @@ public class JobController extends BaseController {
                     "  },\n" +
                     "  \"type\": \"CF_REPROCESSING\",\n" +
                     "  \"key\": \"474e4130-2f2d-11f0-8240-91e99922a704\",\n" +
-                    "  \"description\": \"Reprocessing of calculated field 'Air densityiLscd' for device profile <a href=\\\"/profiles/deviceProfiles/9fcec7f0-31a1-11f0-933e-27998d6db02e\\\">Test Device Profile</a>\",\n" +
+                    "  \"entityId\": {\n" +
+                    "    \"entityType\": \"DEVICE_PROFILE\",\n" +
+                    "    \"id\": \"9fd41f20-31a1-11f0-933e-27998d6db02e\"\n" +
+                    "   },\n" +
                     "  \"status\": \"RUNNING\",\n" +
                     "  \"configuration\": {\n" +
                     "    \"type\": \"CF_REPROCESSING\",\n" +
@@ -236,12 +239,15 @@ public class JobController extends BaseController {
                                  @RequestParam(required = false) String sortProperty,
                                  @Parameter(description = SORT_ORDER_DESCRIPTION)
                                  @RequestParam(required = false) String sortOrder,
-                                 @Parameter(description = "Comma-separated list of job types to include. If empty - all job types are included.", array = @ArraySchema(schema = @Schema(type = "string")))
+                                 @Parameter(description = "Comma-separated list of job types to include. If empty - all job types are included.", array = @ArraySchema(schema = @Schema(type = "string")), required = false)
                                  @RequestParam(required = false) List<JobType> types,
                                  @Parameter(description = "Comma-separated list of job statuses to include. If empty - all job statuses are included.", array = @ArraySchema(schema = @Schema(type = "string")))
                                  @RequestParam(required = false) List<JobStatus> statuses,
+                                 @Parameter(description = "Comma-separated list of entity ids. If empty - jobs for all entities are included.", array = @ArraySchema(schema = @Schema(type = "string")))
                                  @RequestParam(required = false) List<UUID> entities,
+                                 @Parameter(description = "To only include jobs created after this timestamp.")
                                  @RequestParam(required = false) Long startTime,
+                                 @Parameter(description = "To only include jobs created before this timestamp.")
                                  @RequestParam(required = false) Long endTime) throws ThingsboardException {
         // todo check permissions
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);

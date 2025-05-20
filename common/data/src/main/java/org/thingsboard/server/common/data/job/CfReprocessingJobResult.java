@@ -33,18 +33,6 @@ package org.thingsboard.server.common.data.job;
 public class CfReprocessingJobResult extends JobResult {
 
     @Override
-    public String getDescription() {
-        if (getGeneralError() != null) {
-            return getGeneralError();
-        }
-        String description = getSuccessfulCount() + "/" + getTotalCount() + " successful";
-        if (getFailedCount() > 0) {
-            description += ", " + getFailedCount() + " failed ";
-        }
-        return description;
-    }
-
-    @Override
     public JobType getJobType() {
         return JobType.CF_REPROCESSING;
     }
