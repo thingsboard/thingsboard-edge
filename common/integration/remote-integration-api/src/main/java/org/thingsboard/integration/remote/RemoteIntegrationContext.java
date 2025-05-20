@@ -45,6 +45,7 @@ import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.util.IntegrationMqttClientSettingsComponent;
 import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.event.Event;
@@ -72,29 +73,41 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     private static final String REMOTE_INTEGRATION_CACHE = "remoteIntegration";
 
-    protected final EventStorage eventStorage;
-    protected final Integration configuration;
-    protected final String clientId;
-    protected final int port;
-    protected final ConverterContext uplinkConverterContext;
-    protected final ConverterContext downlinkConverterContext;
-    protected final ScheduledExecutorService scheduledExecutorService;
-    protected final ExecutorService generalExecutorService;
-    protected final ExecutorService callBackExecutorService;
+    private final EventStorage eventStorage;
+    private final Integration configuration;
+    private final String clientId;
+    private final int port;
+    private final ConverterContext uplinkConverterContext;
+    private final ConverterContext downlinkConverterContext;
+
+    private final IntegrationMqttClientSettingsComponent integrationMqttClientSettingsComponent;
+
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final ExecutorService generalExecutorService;
+    private final ExecutorService callBackExecutorService;
 
     @Getter
     @Value("${integrations.init.connection_timeout_sec:10}")
     private int integrationConnectTimeoutSec;
 
-    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService,
-                                    ExecutorService generalExecutorService, ExecutorService callBackExecutorService,
-                                    Integration configuration, String clientId, int port) {
+    public RemoteIntegrationContext(
+            EventStorage eventStorage,
+            ScheduledExecutorService scheduledExecutorService,
+            ExecutorService generalExecutorService,
+            ExecutorService callBackExecutorService,
+            Integration configuration,
+            String clientId,
+            int port,
+            IntegrationMqttClientSettingsComponent integrationMqttClientSettingsComponent
+    ) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
         this.port = port;
-        this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, clientId, port);
-        this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, clientId, port);
+        this.integrationMqttClientSettingsComponent = integrationMqttClientSettingsComponent;
+
+        uplinkConverterContext = new RemoteConverterContext(eventStorage, true, clientId, port);
+        downlinkConverterContext = new RemoteConverterContext(eventStorage, false, clientId, port);
         this.scheduledExecutorService = scheduledExecutorService;
         this.generalExecutorService = generalExecutorService;
         this.callBackExecutorService = callBackExecutorService;
@@ -178,9 +191,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void removeDownlinkMsg(String deviceName) {
-
-    }
+    public void removeDownlinkMsg(String deviceName) {}
 
     @Override
     public ScheduledExecutorService getScheduledExecutorService() {
@@ -232,6 +243,21 @@ public class RemoteIntegrationContext implements IntegrationContext {
         eventStorage.write(UplinkMsg.newBuilder()
                 .addEventsData(builder.build())
                 .build(), callback);
+    }
+
+    @Override
+    public int getMqttClientRetransmissionMaxAttempts() {
+        return integrationMqttClientSettingsComponent.getRetransmissionMaxAttempts();
+    }
+
+    @Override
+    public long getMqttClientRetransmissionInitialDelayMillis() {
+        return integrationMqttClientSettingsComponent.getRetransmissionInitialDelayMillis();
+    }
+
+    @Override
+    public double getMqttClientRetransmissionJitterFactor() {
+        return integrationMqttClientSettingsComponent.getRetransmissionJitterFactor();
     }
 
 }

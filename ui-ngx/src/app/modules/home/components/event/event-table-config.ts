@@ -74,7 +74,6 @@ import { AppState } from '@core/core.state';
 export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
 
   eventTypeValue: EventType | DebugEventType;
-  hideClearEventAction = false;
 
   private filterParams: FilterEventBody = {};
   private filterColumns: FilterEntityColumn[] = [];
@@ -111,7 +110,8 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               private store: Store<AppState>,
               private isReadOnly: boolean,
               public testButtonLabel?: string,
-              private debugEventSelected?: EventEmitter<EventBody>) {
+              private debugEventSelected?: EventEmitter<EventBody>,
+              public hideClearEventAction = false) {
     super();
     this.loadDataOnInit = false;
     this.tableTitle = '';
