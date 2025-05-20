@@ -31,10 +31,23 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.SecretUtil;
+import org.thingsboard.server.common.data.SecretType;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.secret.Secret;
@@ -47,10 +60,17 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestPropertySource(properties = {
+        "js.evaluator=local",
+        "service.integrations.supported=ALL",
+        "integrations.converters.library.enabled=true"
+})
 @Slf4j
 @DaoSqlTest
 public class SecretControllerTest extends AbstractControllerTest {
@@ -106,13 +126,84 @@ public class SecretControllerTest extends AbstractControllerTest {
         SecretInfo retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, savedSecret.getId().getId());
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
-        secret = constructSecret(savedSecret);
+        // update secret value
+        secret = new Secret(savedSecret);
         secret.setValue("UpdatedPassword");
 
         SecretInfo updatedSecret = doPost("/api/secret", secret, SecretInfo.class);
         retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, updatedSecret.getId().getId());
         assertThat(retrievedSecret).isEqualTo(updatedSecret);
 
+        doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
+        doGet("/api/secret/info/{id}", savedSecret.getId().getId()).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testDeleteSecretUsedInIntegration_thenReceiveDeleteResultError() throws Exception {
+        String secretName = "MqttSecret";
+        String placeholder = SecretUtil.toSecretPlaceholder(secretName, SecretType.TEXT);
+
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        assertThat(pageData.getData()).isEmpty();
+
+        Secret secret = constructSecret(secretName, "Password");
+        SecretInfo savedSecret = doPost("/api/secret", secret, SecretInfo.class);
+
+        assertNotNull(savedSecret);
+        assertNotNull(savedSecret.getId());
+
+        SecretInfo retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, savedSecret.getId().getId());
+        assertThat(retrievedSecret).isEqualTo(savedSecret);
+
+        ConverterId converterId = createConverter();
+        IntegrationId integrationId = createIntegration(converterId, placeholder);
+
+        String responseBody = doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+        JsonNode node = JacksonUtil.toJsonNode(responseBody);
+        assertFalse(node.get("success").asBoolean());
+
+        JsonNode references = node.get("references");
+        assertNotNull(references.get("INTEGRATION"));
+        assertTrue(references.get("INTEGRATION").size() > 0);
+
+        doDelete("/api/integration/" + integrationId.getId().toString()).andExpect(status().isOk());
+        doDelete("/api/converter/" + converterId.getId().toString()).andExpect(status().isOk());
+        doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
+        doGet("/api/secret/info/{id}", savedSecret.getId().getId()).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testUpdateSecretUsedInIntegration_thenReceiveLifecycleEvent() throws Exception {
+        String secretName = "MqttSecret";
+        String placeholder = SecretUtil.toSecretPlaceholder(secretName, SecretType.TEXT);
+
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        assertThat(pageData.getData()).isEmpty();
+
+        Secret secret = constructSecret(secretName, "Password");
+        SecretInfo savedSecret = doPost("/api/secret", secret, SecretInfo.class);
+
+        assertNotNull(savedSecret);
+        assertNotNull(savedSecret.getId());
+
+        SecretInfo retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, savedSecret.getId().getId());
+        assertThat(retrievedSecret).isEqualTo(savedSecret);
+
+        ConverterId converterId = createConverter();
+        IntegrationId integrationId = createIntegration(converterId, placeholder);
+
+        secret = new Secret(savedSecret);
+        secret.setValue("UpdatedPassword");
+
+        // broadcast update event for integration with secret on secret update
+        testBroadcastEntityStateChangeEventTime(integrationId, tenantId, 1);
+
+        SecretInfo updatedSecret = doPost("/api/secret", secret, SecretInfo.class);
+        retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, updatedSecret.getId().getId());
+        assertThat(retrievedSecret).isEqualTo(updatedSecret);
+
+        doDelete("/api/integration/" + integrationId.getId().toString()).andExpect(status().isOk());
+        doDelete("/api/converter/" + converterId.getId().toString()).andExpect(status().isOk());
         doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
         doGet("/api/secret/info/{id}", savedSecret.getId().getId()).andExpect(status().isNotFound());
     }
@@ -128,7 +219,7 @@ public class SecretControllerTest extends AbstractControllerTest {
         assertNotNull(savedSecret);
         assertNotNull(savedSecret.getId());
 
-        secret = constructSecret(savedSecret);
+        secret = new Secret(savedSecret);
         secret.setName("Updated Name");
 
         doPost("/api/secret", secret)
@@ -175,16 +266,34 @@ public class SecretControllerTest extends AbstractControllerTest {
         Secret secret = new Secret();
         secret.setName(name);
         secret.setValue(value);
+        secret.setType(SecretType.TEXT);
         return secret;
     }
 
-    private Secret constructSecret(SecretInfo secretInfo) {
-        Secret secret = new Secret();
-        secret.setId(secretInfo.getId());
-        secret.setName(secretInfo.getName());
-        secret.setTenantId(secretInfo.getTenantId());
-        secret.setCreatedTime(secretInfo.getCreatedTime());
-        return secret;
+    private ConverterId createConverter() {
+        JsonNode converterConfiguration = JacksonUtil.newObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setType(ConverterType.UPLINK);
+        converter.setConfiguration(converterConfiguration);
+        converter = doPost("/api/converter", converter, Converter.class);
+        return converter.getId();
+    }
+
+    private IntegrationId createIntegration(ConverterId converterId, String value) {
+        Integration integration = new Integration();
+        integration.setName("My integration");
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
+        integration.setDefaultConverterId(converterId);
+        integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(JacksonUtil.newObjectNode().putObject("metadata").put("key1", value));
+        Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
+
+        Assert.assertNotNull(savedIntegration);
+        Assert.assertNotNull(savedIntegration.getId());
+        assertTrue(savedIntegration.getCreatedTime() > 0);
+        return savedIntegration.getId();
     }
 
 }
