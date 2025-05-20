@@ -171,8 +171,7 @@ export class IntegrationWizardDialogComponent extends
       converterType: [ConverterSourceType.NEW],
       newUplinkConverter: [{
           type: ConverterType.UPLINK
-        }],
-      libraryUplinkConverter: []
+        }]
     });
 
     this.downlinkConverterForm = this.fb.group({
@@ -183,8 +182,7 @@ export class IntegrationWizardDialogComponent extends
           type: ConverterType.DOWNLINK
         },
         disable: true
-      }],
-      libraryDownlinkConverter: [],
+      }]
     });
 
     this.integrationConfigurationForm = this.fb.group({
@@ -207,17 +205,10 @@ export class IntegrationWizardDialogComponent extends
         case ConverterSourceType.EXISTING:
           this.uplinkConverterForm.get('uplinkConverterId').enable({emitEvent: false});
           this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
-          this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
-          break;
-        case ConverterSourceType.LIBRARY:
-          this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
-          this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
-          this.uplinkConverterForm.get('libraryUplinkConverter').enable({emitEvent: false});
           break;
         default:
           this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
           this.uplinkConverterForm.get('newUplinkConverter').enable({emitEvent: false});
-          this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
           this.uplinkDataConverterComponent.updatedValidators();
           break;
       }
@@ -230,23 +221,15 @@ export class IntegrationWizardDialogComponent extends
         case ConverterSourceType.EXISTING:
           this.downlinkConverterForm.get('downlinkConverterId').enable({emitEvent: false});
           this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
-          this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
           break;
-        case ConverterSourceType.LIBRARY:
+        case ConverterSourceType.SKIP:
           this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
           this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
-          this.downlinkConverterForm.get('libraryDownlinkConverter').enable({emitEvent: false});
-          break;
-        case ConverterSourceType.NEW:
-          this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
-          this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
-          this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
-          this.downlinkDataConverterComponent.updatedValidators();
           break;
         default:
           this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
-          this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
-          this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+          this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
+          this.downlinkDataConverterComponent.updatedValidators();
           break;
       }
     });
@@ -259,8 +242,6 @@ export class IntegrationWizardDialogComponent extends
       this.uplinkConverterForm.setControl('newUplinkConverter', this.uplinkDataConverterComponent.entityForm, {emitEvent: false});
       this.downlinkConverterForm.setControl('newDownlinkConverter', this.downlinkDataConverterComponent.entityForm, {emitEvent: false});
       this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
-      this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
-      this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
     }, 0);
   }
 
@@ -296,10 +277,7 @@ export class IntegrationWizardDialogComponent extends
     if (converterType === ConverterSourceType.EXISTING) {
       return of(this.uplinkConverterForm.get('uplinkConverterId').value);
     } else {
-      const converterConfig: Converter = deepTrim(converterType === ConverterSourceType.NEW
-        ? this.uplinkConverterForm.get('newUplinkConverter').value
-        : this.uplinkConverterForm.get('libraryUplinkConverter').value
-      );
+      const converterConfig: Converter = deepTrim(this.uplinkConverterForm.get('newUplinkConverter').getRawValue());
       converterConfig.edgeTemplate = this.data.edgeTemplate;
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
@@ -320,10 +298,7 @@ export class IntegrationWizardDialogComponent extends
     } else if (converterType === ConverterSourceType.EXISTING) {
       return of(this.downlinkConverterForm.get('downlinkConverterId').value);
     } else {
-      const converterConfig: Converter = deepTrim(converterType === ConverterSourceType.NEW
-        ? this.downlinkConverterForm.get('newDownlinkConverter').value
-        : this.downlinkConverterForm.get('libraryDownlinkConverter').value
-      );
+      const converterConfig: Converter = deepTrim(this.downlinkConverterForm.get('newDownlinkConverter').getRawValue());
       converterConfig.edgeTemplate = this.data.edgeTemplate;
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
