@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.job;
 
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.JobId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.job.Job;
@@ -56,5 +57,7 @@ public interface JobService extends EntityDaoService {
     Job findLatestJobByKey(TenantId tenantId, String key);
 
     void deleteJob(TenantId tenantId, JobId jobId);
+
+    int deleteJobsByEntityId(TenantId tenantId, EntityId entityId);
 
 }

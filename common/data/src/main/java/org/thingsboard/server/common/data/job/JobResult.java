@@ -82,9 +82,6 @@ public abstract class JobResult implements Serializable {
     }
 
     @JsonIgnore
-    public abstract String getDescription();
-
-    @JsonIgnore
     public abstract JobType getJobType();
 
 }

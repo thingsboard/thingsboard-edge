@@ -28,13 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.job;
+package org.thingsboard.server.service.housekeeper.processor;
 
-public class DummyJobResult extends JobResult {
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+import org.thingsboard.server.dao.job.JobService;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class JobsDeletionTaskProcessor extends HousekeeperTaskProcessor<HousekeeperTask> {
+
+    private final JobService jobService;
 
     @Override
-    public JobType getJobType() {
-        return JobType.DUMMY;
+    public void process(HousekeeperTask task) throws Exception {
+        int deletedCount = jobService.deleteJobsByEntityId(task.getTenantId(), task.getEntityId());
+        log.debug("[{}][{}][{}] Deleted {} jobs", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), deletedCount);
+    }
+
+    @Override
+    public HousekeeperTaskType getTaskType() {
+        return HousekeeperTaskType.DELETE_JOBS;
     }
 
 }
