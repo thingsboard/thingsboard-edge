@@ -308,7 +308,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testUpdateSecret_thenReceiveIntegrationLifecycleEvent() throws Exception {
+    public void testUpdateSecretUsedInIntegration_thenReceiveIntegrationLifecycleEvent() throws Exception {
         createIntegration(true);
 
         cleanUpEvents(integration.getId(), new LifeCycleEventFilter());
@@ -390,6 +390,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         secret.setTenantId(tenantId);
         secret.setName(name);
         secret.setValue(value);
+        secret.setType(SecretType.TEXT);
         return secret;
     }
 
