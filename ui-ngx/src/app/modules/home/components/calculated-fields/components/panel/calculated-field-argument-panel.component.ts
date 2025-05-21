@@ -259,7 +259,7 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit, AfterViewI
       .pipe(distinctUntilChanged(), takeUntilDestroyed())
       .subscribe(type => {
         this.argumentFormGroup.get('refEntityId').get('id').setValue('');
-        const isEntityWithId = type !== ArgumentEntityType.Tenant && type !== ArgumentEntityType.Current;
+        const isEntityWithId = ![ArgumentEntityType.Tenant, ArgumentEntityType.Current, ArgumentEntityType.Owner].includes(type);
         this.argumentFormGroup.get('refEntityId')
           .get('id')[isEntityWithId ? 'enable' : 'disable']();
         if (!isEntityWithId) {
