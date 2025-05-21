@@ -294,7 +294,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
                 .setCustomerIdLSB(owner.getId().getLeastSignificantBits())
                 .build();
 
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, owner).newByTopic(msgProducer.getDefaultTopic());
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, owner).withTopic(msgProducer.getDefaultTopic());
         toPropagateStats.computeIfAbsent(tpi, key -> new ArrayList<>()).add(newStatsMsg);
     }
 

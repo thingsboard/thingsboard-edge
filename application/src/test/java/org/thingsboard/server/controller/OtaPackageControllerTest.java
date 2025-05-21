@@ -241,7 +241,7 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
         Assert.assertEquals(CHECKSUM_ALGORITHM, savedFirmware.getChecksumAlgorithm().name());
         Assert.assertEquals(CHECKSUM, savedFirmware.getChecksum());
 
-        testNotifyEntityEntityGroupNullAllOneTime(savedFirmware, savedFirmware.getId(), savedFirmware.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(new OtaPackageInfo(savedFirmware), savedFirmware.getId(), savedFirmware.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.UPDATED);
     }

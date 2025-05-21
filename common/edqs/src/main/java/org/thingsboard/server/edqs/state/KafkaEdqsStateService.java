@@ -51,6 +51,7 @@ import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
 import org.thingsboard.server.queue.common.state.KafkaQueueStateService;
 import org.thingsboard.server.queue.common.state.QueueStateService;
 import org.thingsboard.server.queue.discovery.QueueKey;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.edqs.EdqsConfig;
 import org.thingsboard.server.queue.edqs.KafkaEdqsComponent;
 import org.thingsboard.server.queue.edqs.KafkaEdqsQueueFactory;
@@ -74,6 +75,7 @@ public class KafkaEdqsStateService implements EdqsStateService {
     private final EdqsConfig config;
     private final EdqsPartitionService partitionService;
     private final KafkaEdqsQueueFactory queueFactory;
+    private final TopicService topicService;
     @Autowired
     @Lazy
     private EdqsProcessor edqsProcessor;
@@ -93,7 +95,7 @@ public class KafkaEdqsStateService implements EdqsStateService {
         TbKafkaAdmin queueAdmin = queueFactory.getEdqsQueueAdmin();
         stateConsumer = PartitionedQueueConsumerManager.<TbProtoQueueMsg<ToEdqsMsg>>create()
                 .queueKey(new QueueKey(ServiceType.EDQS, config.getStateTopic()))
-                .topic(config.getStateTopic())
+                .topic(topicService.buildTopicName(config.getStateTopic()))
                 .pollInterval(config.getPollInterval())
                 .msgPackProcessor((msgs, consumer, config) -> {
                     for (TbProtoQueueMsg<ToEdqsMsg> queueMsg : msgs) {
@@ -191,7 +193,7 @@ public class KafkaEdqsStateService implements EdqsStateService {
         if (queueStateService.getPartitions().isEmpty()) {
             Set<TopicPartitionInfo> allPartitions = IntStream.range(0, config.getPartitions())
                     .mapToObj(partition -> TopicPartitionInfo.builder()
-                            .topic(config.getEventsTopic())
+                            .topic(topicService.buildTopicName(config.getEventsTopic()))
                             .partition(partition)
                             .build())
                     .collect(Collectors.toSet());

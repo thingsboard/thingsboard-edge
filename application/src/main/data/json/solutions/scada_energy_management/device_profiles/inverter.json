@@ -420,7 +420,7 @@
             "condition": [
               {
                 "key": {
-                  "type": "ATTRIBUTE",
+                  "type": "TIME_SERIES",
                   "key": "outputAvgVoltage"
                 },
                 "valueType": "NUMERIC",
@@ -437,7 +437,7 @@
               },
               {
                 "key": {
-                  "type": "ATTRIBUTE",
+                  "type": "TIME_SERIES",
                   "key": "outputAvgVoltage"
                 },
                 "valueType": "NUMERIC",
