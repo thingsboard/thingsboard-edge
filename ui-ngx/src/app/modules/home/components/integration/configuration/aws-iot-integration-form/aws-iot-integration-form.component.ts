@@ -45,6 +45,7 @@ import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { AwsIotIntegration, IntegrationCredentialType, MqttQos } from '@shared/models/integration.models';
+import { DEFAULT_MQTT_VERSION } from '@shared/models/mqtt.models';
 
 @Component({
   selector: 'tb-aws-iot-integration-form',
@@ -77,6 +78,7 @@ export class AwsIotIntegrationFormComponent extends IntegrationForm implements C
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
         clientId: [''],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
+        protocolVersion: [DEFAULT_MQTT_VERSION],
         credentials: [{
           type: IntegrationCredentialType.CertPEM
         }],

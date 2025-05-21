@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Promise;
@@ -224,7 +225,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     ) throws Exception {
         Optional<SslContext> sslContextOpt = initSslContext(configuration);
 
-        MqttClientConfig config = sslContextOpt.isPresent() ? new MqttClientConfig(sslContextOpt.get()) : new MqttClientConfig();
+        MqttClientConfig config = sslContextOpt.map(MqttClientConfig::new).orElseGet(MqttClientConfig::new);
         config.setOwnerId(ownerId);
         if (!StringUtils.isEmpty(configuration.getClientId())) {
             config.setClientId(configuration.getClientId());
@@ -234,8 +235,8 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
             config.setMaxBytesInMessage(configuration.getMaxBytesInMessage());
         }
         config.setCleanSession(configuration.isCleanSession());
-
         config.setRetransmissionConfig(retransmissionConfig);
+        config.setProtocolVersion(configuration.getProtocolVersion() != null ? configuration.getProtocolVersion() : MqttVersion.MQTT_3_1_1);
 
         configuration.getCredentials().configure(config);
 
@@ -275,7 +276,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
     protected Optional<SslContext> initSslContext(MqttClientConfiguration configuration) throws SSLException {
         Optional<SslContext> result = configuration.getCredentials().initSslContext();
-        if (configuration.isSsl() && !result.isPresent()) {
+        if (configuration.isSsl() && result.isEmpty()) {
             result = Optional.of(SslContextBuilder.forClient().build());
         }
         return result;
