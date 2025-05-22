@@ -1,1 +1,4 @@
-
+[submodule "docker-edge"]
+	path = docker-edge
+	url = git@github.com:thingsboard/thingsboard-edge-pe-docker-compose.git
+	branch = master
