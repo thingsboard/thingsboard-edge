@@ -61,11 +61,7 @@ public class Secret extends SecretInfo {
             this.rawValue = null;
             return;
         }
-        if (SecretType.BINARY_FILE.equals(getType())) {
-            this.rawValue = Base64.getDecoder().decode(value);
-        } else {
-            this.rawValue = value.getBytes(StandardCharsets.UTF_8);
-        }
+        this.rawValue = value.getBytes(StandardCharsets.UTF_8);
     }
 
     @JsonGetter("value")
@@ -73,11 +69,7 @@ public class Secret extends SecretInfo {
         if (this.rawValue == null) {
             return null;
         }
-        if (SecretType.BINARY_FILE.equals(getType())) {
-            return Base64.getEncoder().encodeToString(rawValue);
-        } else {
-            return new String(rawValue, StandardCharsets.UTF_8);
-        }
+        return new String(rawValue, StandardCharsets.UTF_8);
     }
 
     public Secret() {

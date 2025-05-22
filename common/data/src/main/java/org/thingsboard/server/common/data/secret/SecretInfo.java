@@ -31,7 +31,9 @@
 package org.thingsboard.server.common.data.secret;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
@@ -63,7 +65,8 @@ public class SecretInfo extends BaseData<SecretId> implements TenantEntity, HasN
     @Schema(description = "Secret name", requiredMode = Schema.RequiredMode.REQUIRED, example = "Secret")
     private String name;
 
-    @Schema(description = "Secret type.")
+    @NotNull
+    @Schema(description = "Secret type.", requiredMode = RequiredMode.REQUIRED, example = "TEXT")
     private SecretType type;
 
     @NoXss

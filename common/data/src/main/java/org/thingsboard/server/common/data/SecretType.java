@@ -32,6 +32,6 @@ package org.thingsboard.server.common.data;
 
 public enum SecretType {
 
-    TEXT, TEXT_FILE, BINARY_FILE
+    TEXT, TEXT_FILE
 
 }

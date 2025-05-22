@@ -43,7 +43,6 @@ import org.thingsboard.server.dao.encryptionkey.EncryptionKeyService;
 import org.thingsboard.server.dao.secret.SecretUtilService;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -83,16 +82,6 @@ public class DefaultSecretUtilTest {
         // Decrypt
         String decrypted = secretUtilService.decryptToString(tenantId, SecretType.TEXT, encrypted);
         assertThat(decrypted).isEqualTo(original);
-    }
-
-    @Test
-    void testDecryptToBase64IfBinaryFile() {
-        byte[] fileBytes = "binary-content".getBytes(StandardCharsets.UTF_8);
-
-        byte[] encrypted = secretUtilService.encrypt(tenantId, SecretType.BINARY_FILE, fileBytes);
-        String decryptedBase64 = secretUtilService.decryptToString(tenantId, SecretType.BINARY_FILE, encrypted);
-
-        assertThat(decryptedBase64).isEqualTo(Base64.getEncoder().encodeToString(fileBytes));
     }
 
     @Test
