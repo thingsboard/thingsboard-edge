@@ -127,7 +127,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         // delete secret
-        secretService.deleteSecret(tenantId, savedSecret, false);
+        secretService.deleteSecret(tenantId, savedSecret);
         assertThat(secretService.findSecretById(tenantId, savedSecret.getId())).isNull();
     }
 
@@ -152,7 +152,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(savedSecret.getValue()).isEqualTo(updatedSecret.getValue());
 
         // delete secret
-        secretService.deleteSecret(tenantId, savedSecret, false);
+        secretService.deleteSecret(tenantId, savedSecret);
         assertThat(secretService.findSecretById(tenantId, savedSecret.getId())).isNull();
     }
 
@@ -179,7 +179,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         Secret retrieved = secretService.findSecretByName(tenantId, name);
         assertThat(savedSecret).isEqualTo(retrieved);
 
-        secretService.deleteSecret(tenantId, savedSecret, false);
+        secretService.deleteSecret(tenantId, savedSecret);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         List<SecretInfo> secretInfos = secrets.stream().map(SecretInfo::new).toList();
         assertThat(retrieved.getData()).containsOnlyOnceElementsOf(secretInfos);
 
-        secrets.forEach(secret -> secretService.deleteSecret(tenantId, secret, false));
+        secrets.forEach(secret -> secretService.deleteSecret(tenantId, secret));
         retrieved = secretService.findSecretInfosByTenantId(tenantId, new PageLink(10, 0));
         assertThat(retrieved.getData().size()).isEqualTo(0);
     }
@@ -211,7 +211,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         createRuleNode("org.thingsboard.rule.engine.mqtt.TbMqttNode", secretName, savedSecret.getType());
 
         // delete secret
-        TbSecretDeleteResult result = secretService.deleteSecret(tenantId, savedSecret, false);
+        TbSecretDeleteResult result = secretService.deleteSecret(tenantId, savedSecret);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getReferences()).containsKey(EntityType.RULE_CHAIN.name());
         assertThat(result.getReferences().get(EntityType.RULE_CHAIN.name())).isNotEmpty();
@@ -231,7 +231,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         createRuleNode("org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode", secretName, savedSecret.getType());
 
         // delete secret
-        secretService.deleteSecret(tenantId, savedSecret, false);
+        secretService.deleteSecret(tenantId, savedSecret);
     }
 
     @Test
@@ -249,7 +249,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         createIntegration(integrationName, configuration, createAndGetConvertedId());
 
         // delete secret
-        TbSecretDeleteResult result = secretService.deleteSecret(tenantId, savedSecret, false);
+        TbSecretDeleteResult result = secretService.deleteSecret(tenantId, savedSecret);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getReferences()).containsKey(EntityType.INTEGRATION.name());
         assertThat(result.getReferences().get(EntityType.INTEGRATION.name())).isNotEmpty();

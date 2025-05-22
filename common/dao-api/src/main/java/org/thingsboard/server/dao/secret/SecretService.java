@@ -48,7 +48,7 @@ public interface SecretService extends EntityDaoService {
 
     Secret saveSecret(TenantId tenantId, Secret secret);
 
-    TbSecretDeleteResult deleteSecret(TenantId tenantId, SecretInfo secretInfo, boolean force);
+    TbSecretDeleteResult deleteSecret(TenantId tenantId, SecretInfo secretInfo);
 
     SecretInfo findSecretInfoById(TenantId tenantId, SecretId secretId);
 

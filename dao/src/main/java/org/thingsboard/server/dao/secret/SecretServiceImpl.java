@@ -118,11 +118,11 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     }
 
     @Override
-    public TbSecretDeleteResult deleteSecret(TenantId tenantId, SecretInfo secretInfo, boolean force) {
+    public TbSecretDeleteResult deleteSecret(TenantId tenantId, SecretInfo secretInfo) {
         SecretId secretId = secretInfo.getId();
         log.trace("Executing deleteSecret [{}]", secretId);
         validateId(secretId, id -> INCORRECT_SECRET_ID + id);
-        return deleteSecret(tenantId, secretId, force);
+        return deleteSecret(tenantId, secretId, false);
     }
 
     @Override

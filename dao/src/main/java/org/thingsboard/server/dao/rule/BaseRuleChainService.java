@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.EntityVersionMismatchException;
-import org.thingsboard.server.common.data.exception.MissingSecretsException;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -209,11 +208,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             return RuleChainUpdateResult.failed();
         } else if (ruleChainMetaData.getVersion() != null && !ruleChainMetaData.getVersion().equals(ruleChain.getVersion())) {
             throw new EntityVersionMismatchException(EntityType.RULE_CHAIN, null);
-        } else {
-            var missingSecrets = secretConfigurationService.findMissingSecretPlaceholders(tenantId, JacksonUtil.valueToTree(ruleChainMetaData));
-            if (!missingSecrets.isEmpty()) {
-                throw new MissingSecretsException(missingSecrets);
-            }
         }
         RuleChainDataValidator.validateMetaDataFieldsAndConnections(ruleChainMetaData);
 
@@ -288,7 +282,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 firstRuleNodeId = nodes.get(ruleChainMetaData.getFirstNodeIndex()).getId();
             }
             if ((ruleChain.getFirstRuleNodeId() != null && !ruleChain.getFirstRuleNodeId().equals(firstRuleNodeId))
-                || (ruleChain.getFirstRuleNodeId() == null && firstRuleNodeId != null)) {
+                    || (ruleChain.getFirstRuleNodeId() == null && firstRuleNodeId != null)) {
                 ruleChain.setFirstRuleNodeId(firstRuleNodeId);
             }
             if (ruleChainMetaData.getConnections() != null) {

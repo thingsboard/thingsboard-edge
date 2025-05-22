@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.exception.MissingSecretsException;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -806,8 +805,6 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 if (dve.getMessage().equals("Integration with such routing key already exists!")) {
                     return Optional.of(VersionLoadResult.error(EntityLoadError.routingKeyError(externalId)));
                 }
-            } else if (e instanceof MissingSecretsException ms) {
-                return Optional.of(VersionLoadResult.error(EntityLoadError.missingSecretsError(externalId, ms.getMissingSecrets())));
             }
             return analyze(e.getCause(), externalId);
         }

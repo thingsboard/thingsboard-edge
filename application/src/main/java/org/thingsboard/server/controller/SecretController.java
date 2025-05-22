@@ -119,11 +119,10 @@ public class SecretController extends BaseController {
             notes = "Deletes the secret. Referencing non-existing Secret Id will cause an error." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @DeleteMapping(value = "/secret/{id}")
-    public ResponseEntity<TbSecretDeleteResult> deleteSecret(@PathVariable UUID id,
-                                                             @RequestParam(name = "force", required = false) boolean force) throws ThingsboardException {
+    public ResponseEntity<TbSecretDeleteResult> deleteSecret(@PathVariable UUID id) throws ThingsboardException {
         SecretId secretId = new SecretId(id);
         SecretInfo secretInfo = checkSecretId(secretId, Operation.DELETE);
-        TbSecretDeleteResult result = tbSecretService.delete(secretInfo, force, getCurrentUser());
+        TbSecretDeleteResult result = tbSecretService.delete(secretInfo, getCurrentUser());
         return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.badRequest()).body(result);
     }
 

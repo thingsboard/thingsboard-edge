@@ -31,10 +31,7 @@
 package org.thingsboard.server.dao.secret;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.id.TenantId;
-
-import java.util.Map;
 
 public interface SecretConfigurationService {
 
@@ -43,7 +40,5 @@ public interface SecretConfigurationService {
     <T> T replaceSecretPlaceholders(TenantId tenantId, T config);
 
     boolean containsSecretPlaceholder(JsonNode config);
-
-    Map<String, SecretType> findMissingSecretPlaceholders(TenantId tenantId, JsonNode config);
 
 }

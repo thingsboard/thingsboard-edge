@@ -40,6 +40,6 @@ public interface TbSecretService {
 
     SecretInfo save(Secret secret, User user) throws ThingsboardException;
 
-    TbSecretDeleteResult delete(SecretInfo secretInfo, boolean force, User user);
+    TbSecretDeleteResult delete(SecretInfo secretInfo, User user);
 
 }
