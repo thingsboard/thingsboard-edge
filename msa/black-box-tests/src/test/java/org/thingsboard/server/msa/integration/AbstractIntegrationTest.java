@@ -40,6 +40,7 @@ import org.testng.annotations.BeforeMethod;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.event.EventType;
@@ -311,6 +312,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         Secret secret = new Secret();
         secret.setName(name);
         secret.setValue(value);
+        secret.setType(SecretType.TEXT);
         secret.setId(secretId);
         return testRestClient.saveSecret(secret);
     }

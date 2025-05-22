@@ -47,6 +47,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -241,6 +242,7 @@ public class MqttNodeTest extends AbstractContainerTest {
         Secret secret = new Secret();
         secret.setName("mqtt_node_secret");
         secret.setValue(value);
+        secret.setType(SecretType.TEXT);
         return testRestClient.saveSecret(secret);
     }
 
