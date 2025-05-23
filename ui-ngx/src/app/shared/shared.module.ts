@@ -261,6 +261,8 @@ import { JsFuncModulesComponent } from '@shared/components/js-func-modules.compo
 import { JsFuncModuleRowComponent } from '@shared/components/js-func-module-row.component';
 import { EntityKeyAutocompleteComponent } from '@shared/components/entity/entity-key-autocomplete.component';
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
+import { SecretKeyInputComponent } from '@shared/components/secret-storage/secret-key-input.component';
+import { SecretFileInputComponent } from '@shared/components/secret-storage/secret-file-input.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -494,7 +496,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HexInputComponent,
     ScadaSymbolInputComponent,
     CustomMenuAutocompleteComponent,
-    EntityKeyAutocompleteComponent
+    EntityKeyAutocompleteComponent,
+    SecretKeyInputComponent,
+    SecretFileInputComponent
   ],
   imports: [
     CommonModule,
@@ -778,7 +782,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     WidgetButtonComponent,
     ScadaSymbolInputComponent,
     CustomMenuAutocompleteComponent,
-    EntityKeyAutocompleteComponent
+    EntityKeyAutocompleteComponent,
+    SecretKeyInputComponent,
+    SecretFileInputComponent
   ]
 })
 export class SharedModule { }

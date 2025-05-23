@@ -29,34 +29,22 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import { Component, HostBinding } from '@angular/core';
+import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { SecretStorage } from '@shared/models/secret-storage.models';
 
 @Component({
-  selector: 'tb-external-node-pub-sub-config',
-  templateUrl: './pubsub-config.component.html',
+  selector: 'tb-secret-storage-table-header',
+  templateUrl: './secret-storage-table-header.component.html',
   styleUrls: []
 })
-export class PubSubConfigComponent extends RuleNodeConfigurationComponent {
+export class SecretStorageTableHeaderComponent extends EntityTableHeaderComponent<SecretStorage> {
 
-  pubSubConfigForm: UntypedFormGroup;
+  @HostBinding('style.width') width = '100%';
 
-  constructor(private fb: UntypedFormBuilder) {
-    super();
-  }
-
-  protected configForm(): UntypedFormGroup {
-    return this.pubSubConfigForm;
-  }
-
-  protected onConfigurationSet(configuration: RuleNodeConfiguration) {
-    this.pubSubConfigForm = this.fb.group({
-      projectId: [configuration ? configuration.projectId : null, [Validators.required]],
-      topicName: [configuration ? configuration.topicName : null, [Validators.required]],
-      serviceAccountKey: [configuration ? configuration.serviceAccountKey : null, [Validators.required]],
-      serviceAccountKeyFileName: [configuration ? configuration.serviceAccountKeyFileName : null, []],
-      messageAttributes: [configuration ? configuration.messageAttributes : null, []]
-    });
+  constructor(protected store: Store<AppState>) {
+    super(store);
   }
 }

@@ -29,34 +29,41 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { PageLink } from '@shared/models/page/page-link';
+import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
+import { Observable } from 'rxjs';
+import { PageData } from '@shared/models/page/page-data';
+import { SecretStorage, SecretStorageInfo } from '@shared/models/secret-storage.models';
 
-@Component({
-  selector: 'tb-external-node-pub-sub-config',
-  templateUrl: './pubsub-config.component.html',
-  styleUrls: []
+@Injectable({
+  providedIn: 'root'
 })
-export class PubSubConfigComponent extends RuleNodeConfigurationComponent {
+export class SecretStorageService {
 
-  pubSubConfigForm: UntypedFormGroup;
+  constructor(
+    private http: HttpClient
+  ) { }
 
-  constructor(private fb: UntypedFormBuilder) {
-    super();
+  public getSecrets(pageLink: PageLink, config?: RequestConfig): Observable<PageData<SecretStorage>> {
+    return this.http.get<PageData<SecretStorage>>(`/api/secret/infos${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config));
   }
 
-  protected configForm(): UntypedFormGroup {
-    return this.pubSubConfigForm;
+  public saveSecret(secret: SecretStorageInfo, config?: RequestConfig): Observable<SecretStorage> {
+    return this.http.post<SecretStorageInfo>('/api/secret', secret, defaultHttpOptionsFromConfig(config));
   }
 
-  protected onConfigurationSet(configuration: RuleNodeConfiguration) {
-    this.pubSubConfigForm = this.fb.group({
-      projectId: [configuration ? configuration.projectId : null, [Validators.required]],
-      topicName: [configuration ? configuration.topicName : null, [Validators.required]],
-      serviceAccountKey: [configuration ? configuration.serviceAccountKey : null, [Validators.required]],
-      serviceAccountKeyFileName: [configuration ? configuration.serviceAccountKeyFileName : null, []],
-      messageAttributes: [configuration ? configuration.messageAttributes : null, []]
-    });
+  public deleteSecret(secretId: string, config?: RequestConfig) {
+    return this.http.delete(`/api/secret/${secretId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public updateSecretDescription(secretId: string, description: string, config?: RequestConfig): Observable<void> {
+    return this.http.put<void>(`/api/secret/${secretId}/description`, description,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getSecretByName(name: string, config?: RequestConfig): Observable<SecretStorage> {
+    return this.http.get<SecretStorage>(`/api/secret/${name}`, defaultHttpOptionsFromConfig(config));
   }
 }

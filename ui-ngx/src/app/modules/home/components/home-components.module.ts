@@ -256,6 +256,10 @@ import {
 import {
   CalculatedFieldTestArgumentsComponent
 } from '@home/components/calculated-fields/components/test-arguments/calculated-field-test-arguments.component';
+import { SecretStorageDialogComponent } from '@home/components/secret-storage/secret-storage-dialog.component';
+import { SecretKeyInputComponent } from '@shared/components/secret-storage/secret-key-input.component';
+import { SecretStorageComponent } from '@home/components/secret-storage/secret-storage.component';
+import { SecretAutocompleteComponent } from '@home/components/secret-storage/secret-autocomplete.component';
 
 @NgModule({
   declarations:
@@ -439,6 +443,9 @@ import {
       CalculatedFieldDebugDialogComponent,
       CalculatedFieldScriptTestDialogComponent,
       CalculatedFieldTestArgumentsComponent,
+      SecretStorageDialogComponent,
+      SecretStorageComponent,
+      SecretAutocompleteComponent
     ],
   imports: [
     CommonModule,
@@ -613,6 +620,7 @@ import {
     CalculatedFieldDebugDialogComponent,
     CalculatedFieldScriptTestDialogComponent,
     CalculatedFieldTestArgumentsComponent,
+    SecretKeyInputComponent
   ],
   providers: [
     WidgetComponentService,

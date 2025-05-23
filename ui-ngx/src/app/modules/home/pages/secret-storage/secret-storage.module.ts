@@ -29,34 +29,32 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
+import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { SecretStorageRoutingModule } from '@home/pages/secret-storage/secret-storage-routing.module';
+import { SecretStorageTableHeaderComponent } from '@home/pages/secret-storage/secret-storage-table-header.component';
+import { SecretStorageTableComponent } from '@home/pages/secret-storage/secret-storage-table.component';
+import {
+  EditSecretDescriptionPanelComponent
+} from '@home/pages/secret-storage/edit-secret-description-panel.component';
 
-@Component({
-  selector: 'tb-external-node-pub-sub-config',
-  templateUrl: './pubsub-config.component.html',
-  styleUrls: []
+@NgModule({
+  declarations: [
+    SecretStorageTableComponent,
+    SecretStorageTableHeaderComponent,
+    EditSecretDescriptionPanelComponent
+  ],
+  exports: [
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    HomeComponentsModule,
+    HomeDialogsModule,
+    SecretStorageRoutingModule
+  ]
 })
-export class PubSubConfigComponent extends RuleNodeConfigurationComponent {
-
-  pubSubConfigForm: UntypedFormGroup;
-
-  constructor(private fb: UntypedFormBuilder) {
-    super();
-  }
-
-  protected configForm(): UntypedFormGroup {
-    return this.pubSubConfigForm;
-  }
-
-  protected onConfigurationSet(configuration: RuleNodeConfiguration) {
-    this.pubSubConfigForm = this.fb.group({
-      projectId: [configuration ? configuration.projectId : null, [Validators.required]],
-      topicName: [configuration ? configuration.topicName : null, [Validators.required]],
-      serviceAccountKey: [configuration ? configuration.serviceAccountKey : null, [Validators.required]],
-      serviceAccountKeyFileName: [configuration ? configuration.serviceAccountKeyFileName : null, []],
-      messageAttributes: [configuration ? configuration.messageAttributes : null, []]
-    });
-  }
-}
+export class SecretStorageModule { }

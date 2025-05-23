@@ -1148,6 +1148,56 @@
             "arguments-entity-not-found": "Argument target entity not found."
         }
     },
+    "secret-storage": {
+        "secret-storage": "Secret storage",
+        "no-found": "No secrets found",
+        "add": "Add secret",
+        "search": "Search secret",
+        "list": "{ count, plural, =1 {One secret} other {List of # secrets} }",
+        "selected-fields": "{ count, plural, =1 {1 secret} other {# secrets} } selected",
+        "type": "Type",
+        "name": "Name",
+        "name-required": "Name is required.",
+        "description": "Description",
+        "edit-description": "Edit description",
+        "types": {
+            "text": "Text",
+            "file": "File"
+        },
+        "value": "Value",
+        "value-required": "Value is required.",
+        "delete": "Delete secret",
+        "delete-secrets": "Delete secrets",
+        "delete-secret-title": "Are you sure you want to delete the secret '{{secretName}}'?",
+        "delete-secret-text": "Be careful, after the confirmation the secret and all related data will become unrecoverable.",
+        "delete-secrets-title": "Are you sure you want to delete { count, plural, =1 {1 secret} other {# secrets} }?",
+        "delete-secrets-action-title": "Delete { count, plural, =1 {1 secret} other {# secrets} }",
+        "delete-secrets-text": "Be careful, after the confirmation all selected secrets will be removed and all related data will become unrecoverable.",
+        "delete-secrets-in-use-text": "To delete this secret, first remove its usage from the entities above.",
+        "secrets-is-in-use-text": "This secret is currently used by other entities in the platform and cannot be deleted until it is no longer in use:",
+        "secrets-are-in-use-text": "Not all secrets have been deleted because they are used by other entities.</br>You can view referenced entities by clicking the <b>References</b> button in the corresponding secret row.</br>To delete this secrets, first remove its usage from the entities above.",
+        "selected-secrets": "{ count, plural, =1 {1 secret} other {# secrets} } selected",
+        "use-secret-storage": "Use Secret storage",
+        "dialog-title": {
+            "text": "Use Secret storage",
+            "file": "Save secret"
+        },
+        "use-storage": "Use storage",
+        "create": {
+            "text": "Create new",
+            "file": "Upload new"
+        },
+        "autocomplete-title": {
+            "text": "Secret Access Key",
+            "text-required": "Secret Access Key is required.",
+            "file": "CA certificate file",
+            "file-required": "CA certificate file is required."
+        },
+        "used-secret-title": "Secret is in use by other entities",
+        "no-secrets-matching": "No secrets matching '{{entity}}' were found.",
+        "no-secrets-found": "No secrets found.",
+        "use-secret": "Use secret"
+    },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",
         "html-message": "You have unsaved changes.<br/>Are you sure you want to leave this page?",
@@ -3017,7 +3067,8 @@
         "list-of-mobile-apps": "{ count, plural, =1 {One Mobile application} other {List of # Mobile applications} }",
         "type-mobile-app-bundle": "Mobile bundle",
         "type-mobile-app-bundles": "Mobile bundles",
-        "list-of-mobile-app-bundles": "{ count, plural, =1 {One mobile bundle} other {List of # mobile bundles} }"
+        "list-of-mobile-app-bundles": "{ count, plural, =1 {One mobile bundle} other {List of # mobile bundles} }",
+        "type-secret-storage": "Secret storage"
     },
     "entity-group": {
         "entity-group": "Entity group",
@@ -6762,7 +6813,8 @@
                 "MOBILE_APP_BUNDLE": "Mobile bundle",
                 "MOBILE_APP": "Mobile app",
                 "DOMAIN": "Domain",
-                "OAUTH2_CLIENT": "OAuth 2.0 client"
+                "OAUTH2_CLIENT": "OAuth 2.0 client",
+                "SECRET": "Secret"
             }
         },
         "operation": {

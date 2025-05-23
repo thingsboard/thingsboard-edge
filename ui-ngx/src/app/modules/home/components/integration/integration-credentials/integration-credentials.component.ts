@@ -82,13 +82,10 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
     this.ignoreCaCertValue = coerceBooleanProperty(value);
     if (this.integrationCredentialForm) {
       if (this.ignoreCaCertValue) {
-        this.integrationCredentialForm.get('caCertFileName').clearValidators();
         this.integrationCredentialForm.get('caCert').clearValidators();
       } else {
-        this.integrationCredentialForm.get('caCertFileName').setValidators(Validators.required);
         this.integrationCredentialForm.get('caCert').setValidators(Validators.required);
       }
-      this.integrationCredentialForm.get('caCertFileName').updateValueAndValidity({emitEvent: false});
       this.integrationCredentialForm.get('caCert').updateValueAndValidity({emitEvent: false});
     }
   }
@@ -127,11 +124,11 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
       type: ['', Validators.required],
       username: [{value: '', disabled: true}, Validators.required],
       password: [{value: '', disabled: true}, this.passwordOptional ? null : Validators.required],
-      caCertFileName: [{value: '', disabled: true}, this.ignoreCaCert ? null : Validators.required],
+      caCertFileName: [{value: '', disabled: true}],
       caCert: [{value: '', disabled: true},  this.ignoreCaCert ? null : Validators.required],
-      certFileName: [{value: '', disabled: true}, Validators.required],
+      certFileName: [{value: '', disabled: true}],
       cert: [{value: '', disabled: true}, Validators.required],
-      privateKeyFileName: [{value: '', disabled: true}, Validators.required],
+      privateKeyFileName: [{value: '', disabled: true}],
       privateKey: [{value: '', disabled: true}, Validators.required],
       privateKeyPassword: [{value: '', disabled: true}],
       token: [{value: '', disabled: true}, Validators.required],

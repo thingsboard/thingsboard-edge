@@ -273,6 +273,7 @@ export const HelpLinks = {
     selfRegistration: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/self-registration`,
     scheduler: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scheduler`,
     trendzSettings: `${helpBaseUrl}/docs/trendz/`,
+    secretStorage: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/secret-storage`,
   }
 };
 /* eslint-enable max-len */

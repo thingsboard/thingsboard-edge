@@ -29,34 +29,49 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { UntypedFormBuilder } from '@angular/forms';
+import { TbPopoverComponent } from '@shared/components/popover.component';
+import { SecretStorageService } from '@core/http/secret-storage.service';
 
 @Component({
-  selector: 'tb-external-node-pub-sub-config',
-  templateUrl: './pubsub-config.component.html',
-  styleUrls: []
+  selector: 'tb-edit-secret-description-panel',
+  templateUrl: './edit-secret-description-panel.component.html',
+  styleUrls: ['./edit-secret-description-panel.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class PubSubConfigComponent extends RuleNodeConfigurationComponent {
+export class EditSecretDescriptionPanelComponent implements OnInit {
 
-  pubSubConfigForm: UntypedFormGroup;
+  @Input()
+  secretId: string;
 
-  constructor(private fb: UntypedFormBuilder) {
-    super();
+  @Input()
+  description: string;
+
+  @Input()
+  popover: TbPopoverComponent<EditSecretDescriptionPanelComponent>;
+
+  @Output()
+  descriptionApplied = new EventEmitter<string>();
+
+  descriptionFormControl = this.fb.control(null);
+
+  constructor(private fb: UntypedFormBuilder,
+              private secretStorageService: SecretStorageService) {}
+
+  ngOnInit(): void {
+    this.descriptionFormControl.setValue(this.description, {emitEvent: false});
   }
 
-  protected configForm(): UntypedFormGroup {
-    return this.pubSubConfigForm;
+  cancel() {
+    this.popover?.hide();
   }
 
-  protected onConfigurationSet(configuration: RuleNodeConfiguration) {
-    this.pubSubConfigForm = this.fb.group({
-      projectId: [configuration ? configuration.projectId : null, [Validators.required]],
-      topicName: [configuration ? configuration.topicName : null, [Validators.required]],
-      serviceAccountKey: [configuration ? configuration.serviceAccountKey : null, [Validators.required]],
-      serviceAccountKeyFileName: [configuration ? configuration.serviceAccountKeyFileName : null, []],
-      messageAttributes: [configuration ? configuration.messageAttributes : null, []]
+  applyDescription() {
+    const description = this.descriptionFormControl.value;
+    this.secretStorageService.updateSecretDescription(this.secretId, description).subscribe(() => {
+      this.descriptionApplied.emit(description);
     });
   }
+
 }

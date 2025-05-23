@@ -29,34 +29,58 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+
+import { ChangeDetectorRef, Component, Inject, Input, Optional } from '@angular/core';
+import { EntityComponent } from '@home/components/entity/entity.component';
+import { AppState } from '@core/core.state';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { TranslateService } from '@ngx-translate/core';
+import { Store } from '@ngrx/store';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { RuleNodeConfiguration, RuleNodeConfigurationComponent } from '@shared/models/rule-node.models';
+import { EntityType } from '@shared/models/entity-type.models';
+import { SecretStorage, SecretStorageInfo, SecretStorageType } from '@shared/models/secret-storage.models';
 
 @Component({
-  selector: 'tb-external-node-pub-sub-config',
-  templateUrl: './pubsub-config.component.html',
+  selector: 'tb-secret-storage',
+  templateUrl: './secret-storage.component.html',
   styleUrls: []
 })
-export class PubSubConfigComponent extends RuleNodeConfigurationComponent {
+export class SecretStorageComponent extends EntityComponent<SecretStorage> {
 
-  pubSubConfigForm: UntypedFormGroup;
+  @Input()
+  hideType = false;
 
-  constructor(private fb: UntypedFormBuilder) {
-    super();
+  @Input()
+  fileName : string;
+
+  entityType = EntityType;
+  SecretStorageType = SecretStorageType;
+
+  constructor(protected store: Store<AppState>,
+              protected translate: TranslateService,
+              @Optional() @Inject('entity') protected entityValue: SecretStorage,
+              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<SecretStorage>,
+              protected cd: ChangeDetectorRef,
+              public fb: UntypedFormBuilder) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
-  protected configForm(): UntypedFormGroup {
-    return this.pubSubConfigForm;
-  }
-
-  protected onConfigurationSet(configuration: RuleNodeConfiguration) {
-    this.pubSubConfigForm = this.fb.group({
-      projectId: [configuration ? configuration.projectId : null, [Validators.required]],
-      topicName: [configuration ? configuration.topicName : null, [Validators.required]],
-      serviceAccountKey: [configuration ? configuration.serviceAccountKey : null, [Validators.required]],
-      serviceAccountKeyFileName: [configuration ? configuration.serviceAccountKeyFileName : null, []],
-      messageAttributes: [configuration ? configuration.messageAttributes : null, []]
+  buildForm(): UntypedFormGroup {
+    return this.fb.group({
+      type: [SecretStorageType.TEXT, []],
+      name: ['', [Validators.required]],
+      description: ['', []],
+      value: ['', [Validators.required]]
     });
   }
+
+  updateForm(entity: SecretStorageInfo) {
+    this.entityForm.patchValue({
+      type: entity.type,
+      name: entity.name,
+      description: entity.description,
+      value: entity.value
+    });
+  }
+
 }

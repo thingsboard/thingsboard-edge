@@ -79,13 +79,12 @@
         </mat-error>
       </mat-form-field>
       <fieldset [disabled]="disabled">
-        <tb-file-input [existingFileName]="opcIntegrationConfigForm.get('keystore.location').value"
-                       formControlName="fileContent"
-                       dropLabel="{{ 'integration.drop-file-or' | translate }}"
-                       label="{{ 'integration.opc-ua-keystore-location' | translate }}"
-                       (fileNameChanged)="opcIntegrationConfigForm.get('keystore.location').setValue($event)"
-                       inputId="location">
-        </tb-file-input>
+        <tb-secret-file-input formControlName="fileContent"
+                              label="{{ 'integration.opc-ua-keystore-location' | translate }}"
+                              inputId="location"
+                              [existingFileName]="opcIntegrationConfigForm.get('keystore.location').value"
+                              (fileNameChanged)="opcIntegrationConfigForm.get('keystore.location').setValue($event)">
+        </tb-secret-file-input>
       </fieldset>
       <div class="flex flex-row xs:flex-col gt-xs:gap-2">
         <mat-form-field class="mat-block flex-1">
@@ -95,23 +94,17 @@
             integration.opc-ua-keystore-alias-required
           </mat-error>
         </mat-form-field>
-        <mat-form-field class="mat-block flex-1">
-          <mat-label translate>integration.opc-ua-keystore-password</mat-label>
-          <input matInput required formControlName="password"  autocomplete="new-password" type="password">
-          <tb-toggle-password matSuffix></tb-toggle-password>
-          <mat-error translate *ngIf="opcIntegrationConfigForm.get('keystore.password').hasError('required')">
-            integration.opc-ua-keystore-password-required
-          </mat-error>
-        </mat-form-field>
+        <tb-secret-key-input formControlName="password" class="mat-block flex-1"
+                             required
+                             label="{{ 'integration.opc-ua-keystore-password' | translate }}"
+                             requiredText="{{ 'integration.opc-ua-keystore-password-required' | translate }}">
+        </tb-secret-key-input>
       </div>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.opc-ua-keystore-key-password</mat-label>
-        <input matInput required formControlName="keyPassword" autocomplete="new-password" type="password">
-        <tb-toggle-password matSuffix></tb-toggle-password>
-        <mat-error translate *ngIf="opcIntegrationConfigForm.get('keystore.keyPassword').hasError('required')">
-          integration.opc-ua-keystore-key-password-required
-        </mat-error>
-      </mat-form-field>
+      <tb-secret-key-input formControlName="keyPassword" class="mat-block flex-1"
+                           required
+                           label="{{ 'integration.opc-ua-keystore-key-password' | translate }}"
+                           requiredText="{{ 'integration.opc-ua-keystore-key-password-required' | translate }}">
+      </tb-secret-key-input>
     </section>
   </fieldset>
 
@@ -136,15 +129,11 @@
           integration.username-required
         </mat-error>
       </mat-form-field>
-
-      <mat-form-field class="mat-block flex-1">
-        <mat-label translate>integration.password</mat-label>
-        <input matInput required formControlName="password" autocomplete="new-password" type="password">
-        <tb-toggle-password matSuffix></tb-toggle-password>
-        <mat-error translate *ngIf="opcIntegrationConfigForm.get('identity.password').hasError('required')">
-          integration.password-required
-        </mat-error>
-      </mat-form-field>
+      <tb-secret-key-input formControlName="password" class="mat-block flex-1"
+                           required
+                           label="{{ 'integration.password' | translate }}"
+                           requiredText="{{ 'integration.password-required' | translate }}">
+      </tb-secret-key-input>
     </div>
   </fieldset>
 
