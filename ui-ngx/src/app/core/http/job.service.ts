@@ -29,34 +29,38 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './alarm-id';
-export * from './asset-id';
-export * from './audit-log-id';
-export * from './customer-id';
-export * from './dashboard-id';
-export * from './device-credentials-id';
-export * from './device-id';
-export * from './device-profile-id';
-export * from './entity-id';
-export * from './entity-view-id';
-export * from './event-id';
-export * from './has-uuid';
-export * from './job-id';
-export * from './mobile-app-bundle-id';
-export * from './mobile-app-id';
-export * from './notification-id';
-export * from './notification-request-id';
-export * from './notification-rule-id';
-export * from './notification-target-id';
-export * from './notification-template-id';
-export * from './ota-package-id';
-export * from './rpc-id';
-export * from './rule-chain-id';
-export * from './rule-node-id';
-export * from './tenant-id';
-export * from './tenant-profile-id';
-export * from './user-id';
-export * from './widget-type-id';
-export * from './widgets-bundle-id';
-export * from './edge-id';
-export * from './asset-id';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Job, JobQuery } from '@shared/models/job.models';
+import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
+import { PageData } from '@shared/models/page/page-data';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class JobService {
+
+  constructor(private http: HttpClient) {
+  }
+
+  getJobById(id: string, config?: RequestConfig): Observable<Job> {
+    return this.http.get<Job>(`/api/job/${id}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  getJobs(query: JobQuery, config?: RequestConfig): Observable<PageData<Job>> {
+    return this.http.get<PageData<Job>>(`/api/jobs${query.toQuery()}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  cancelJob(id: string, config?: RequestConfig): Observable<void> {
+    return this.http.post<void>(`/api/job/${id}/cancel`, null, defaultHttpOptionsFromConfig(config));
+  }
+
+  reprocessJob(id: string, config?: RequestConfig): Observable<void> {
+    return this.http.post<void>(`/api/job/${id}/reprocess`, null, defaultHttpOptionsFromConfig(config));
+  }
+
+  deleteJob(id: string, config?: RequestConfig): Observable<void> {
+    return this.http.delete<void>(`/api/job/${id}`, defaultHttpOptionsFromConfig(config));
+  }
+}

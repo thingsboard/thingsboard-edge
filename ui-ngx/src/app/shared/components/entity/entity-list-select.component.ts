@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { AfterViewInit, booleanAttribute, Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -40,6 +40,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Operation } from '@shared/models/security.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 interface EntityListSelectModel {
   entityType: EntityType | AliasEntityType;
@@ -84,9 +85,18 @@ export class EntityListSelectComponent implements ControlValueAccessor, OnInit, 
   @Input()
   disabled: boolean;
 
+  @Input({transform: booleanAttribute})
+  inlineField: boolean;
+
+  @Input({transform: booleanAttribute})
+  filterAllowedEntityTypes = true;
+
+  @Input()
+  predefinedEntityType: EntityType | AliasEntityType ;
+
   displayEntityTypeSelect: boolean;
 
-  private readonly defaultEntityType: EntityType | AliasEntityType = null;
+  private defaultEntityType: EntityType | AliasEntityType = null;
 
   private propagateChange = (v: any) => { };
 
@@ -134,6 +144,9 @@ export class EntityListSelectComponent implements ControlValueAccessor, OnInit, 
         this.updateView(this.modelValue.entityType, values);
       }
     );
+    if (isDefinedAndNotNull(this.predefinedEntityType)) {
+      this.defaultEntityType = this.predefinedEntityType;
+    }
   }
 
   ngAfterViewInit(): void {

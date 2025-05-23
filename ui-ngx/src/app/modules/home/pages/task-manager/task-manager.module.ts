@@ -29,34 +29,34 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './alarm-id';
-export * from './asset-id';
-export * from './audit-log-id';
-export * from './customer-id';
-export * from './dashboard-id';
-export * from './device-credentials-id';
-export * from './device-id';
-export * from './device-profile-id';
-export * from './entity-id';
-export * from './entity-view-id';
-export * from './event-id';
-export * from './has-uuid';
-export * from './job-id';
-export * from './mobile-app-bundle-id';
-export * from './mobile-app-id';
-export * from './notification-id';
-export * from './notification-request-id';
-export * from './notification-rule-id';
-export * from './notification-target-id';
-export * from './notification-template-id';
-export * from './ota-package-id';
-export * from './rpc-id';
-export * from './rule-chain-id';
-export * from './rule-node-id';
-export * from './tenant-id';
-export * from './tenant-profile-id';
-export * from './user-id';
-export * from './widget-type-id';
-export * from './widgets-bundle-id';
-export * from './edge-id';
-export * from './asset-id';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { HomeComponentsModule } from '@home/components/home-components.module';
+import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
+import { TaskManagerRoutingModule } from '@home/pages/task-manager/task-manager-routing.module';
+import { TaskManagerHeaderComponent } from '@home/pages/task-manager/task-manager-header.component';
+import { WidgetConfigComponentsModule } from '@home/components/widget/config/widget-config-components.module';
+import { TaskFilterConfigComponent } from '@home/pages/task-manager/task-filter-config.component';
+import { TaskInfoPanelComponent } from '@home/pages/task-manager/task-info-panel.component';
+import { TaskParametersPanelComponent } from '@home/pages/task-manager/task-parameters-panel.component';
+import { CancelTaskDialogComponent } from '@home/pages/task-manager/cancel-task-dialog.component';
+
+@NgModule({
+  declarations: [
+    TaskManagerHeaderComponent,
+    TaskFilterConfigComponent,
+    TaskInfoPanelComponent,
+    TaskParametersPanelComponent,
+    CancelTaskDialogComponent
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    HomeComponentsModule,
+    HomeDialogsModule,
+    TaskManagerRoutingModule,
+    WidgetConfigComponentsModule
+  ]
+})
+export class TaskManagerModule { }

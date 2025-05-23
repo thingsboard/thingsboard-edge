@@ -30,16 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="entityTypeFormGroup"
-                [subscriptSizing]="inlineField ? 'dynamic' : 'fixed'"
-                [appearance]="inlineField ? 'outline' : appearance">
-  <mat-label *ngIf="showLabel && !inlineField">{{ label }}</mat-label>
-  <mat-select [required]="required" formControlName="entityType">
-    <mat-option *ngFor="let type of entityTypes" [value]="type">
-      {{ displayEntityTypeFn(type) }}
-    </mat-option>
-  </mat-select>
-  <mat-error *ngIf="!inlineField && entityTypeFormGroup.get('entityType').hasError('required')">
-    {{ 'entity.type-required' | translate }}
-  </mat-error>
-</mat-form-field>
+<h2 mat-dialog-title tbTruncateWithTooltip>{{data.title}}</h2>
+<div mat-dialog-content [innerHTML]="data.message | safe: 'html'"></div>
+<div mat-dialog-actions class="flex items-center justify-end">
+  <button mat-button color="primary" [mat-dialog-close]="false">{{ 'action.no' | translate }}</button>
+  <button mat-raised-button color="accent" [mat-dialog-close]="true" cdkFocusInitial>{{ 'task.cancel-anyway' | translate }}</button>
+</div>

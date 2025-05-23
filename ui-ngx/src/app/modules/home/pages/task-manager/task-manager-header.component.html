@@ -30,16 +30,6 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="entityTypeFormGroup"
-                [subscriptSizing]="inlineField ? 'dynamic' : 'fixed'"
-                [appearance]="inlineField ? 'outline' : appearance">
-  <mat-label *ngIf="showLabel && !inlineField">{{ label }}</mat-label>
-  <mat-select [required]="required" formControlName="entityType">
-    <mat-option *ngFor="let type of entityTypes" [value]="type">
-      {{ displayEntityTypeFn(type) }}
-    </mat-option>
-  </mat-select>
-  <mat-error *ngIf="!inlineField && entityTypeFormGroup.get('entityType').hasError('required')">
-    {{ 'entity.type-required' | translate }}
-  </mat-error>
-</mat-form-field>
+<tb-task-filter-config [ngModel]="taskManagerTableConfig.filter"
+                       (ngModelChange)="taskManagerChanged($event)">
+></tb-task-filter-config>

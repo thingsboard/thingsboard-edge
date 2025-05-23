@@ -90,6 +90,10 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
   @Input()
   appearance: MatFormFieldAppearance = 'fill';
 
+  @Input()
+  @coerceBoolean()
+  inlineField: boolean;
+
   entityTypes: Array<EntityType | AliasEntityType | string>;
 
   private propagateChange = (v: any) => { };

@@ -146,6 +146,10 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
   @coerceBoolean()
   syncIdsWithDB = false;
 
+  @Input()
+  @coerceBoolean()
+  inlineField: boolean;
+
   @ViewChild('entityInput') entityInput: ElementRef<HTMLInputElement>;
   @ViewChild('entityAutocomplete') matAutocomplete: MatAutocomplete;
   @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
