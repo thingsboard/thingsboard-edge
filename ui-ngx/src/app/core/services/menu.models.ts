@@ -189,7 +189,8 @@ export enum MenuId {
   converter_templates = 'converter_templates',
   scheduler = 'scheduler',
   roles = 'roles',
-  self_registration = 'self_registration'
+  self_registration = 'self_registration',
+  trendz_settings = 'trendz_settings'
 }
 
 declare type MenuFilter = (_authState: AuthState, userPermissionsService: UserPermissionsService) => boolean;
@@ -1172,6 +1173,17 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       path: '/security-settings/selfRegistration',
       icon: 'group_add'
     }
+  ],
+  [
+    MenuId.trendz_settings,
+    {
+      id: MenuId.trendz_settings,
+      name: 'admin.trendz',
+      fullName: 'admin.trendz-settings',
+      type: 'link',
+      path: '/settings/trendz',
+      icon: 'trendz-settings'
+    }
   ]
 ]);
 
@@ -1459,6 +1471,11 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   [
     MenuId.audit_log, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)
+  ],
+  [
+    MenuId.trendz_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.ADMIN_SETTINGS)
   ]
 ]);
 
@@ -1689,7 +1706,8 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.mail_server},
           {id: MenuId.notification_settings},
           {id: MenuId.repository_settings},
-          {id: MenuId.auto_commit_settings}
+          {id: MenuId.auto_commit_settings},
+          {id: MenuId.trendz_settings}
         ]
       },
       {
@@ -1933,7 +1951,7 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
       {
         name: 'admin.system-settings',
         places: [MenuId.home_settings, MenuId.mail_server, MenuId.notification_settings, MenuId.self_registration,
-          MenuId.two_fa, MenuId.resources_library, MenuId.repository_settings, MenuId.auto_commit_settings]
+          MenuId.two_fa, MenuId.resources_library, MenuId.repository_settings, MenuId.auto_commit_settings, MenuId.trendz_settings]
       }
     ]
   ],

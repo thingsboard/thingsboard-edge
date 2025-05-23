@@ -61,7 +61,7 @@ public class AssetImportService extends BaseGroupEntityImportService<AssetId, As
     }
 
     @Override
-    protected Asset saveOrUpdate(EntitiesImportCtx ctx, Asset asset, GroupEntityExportData<Asset> exportData, IdProvider idProvider) {
+    protected Asset saveOrUpdate(EntitiesImportCtx ctx, Asset asset, GroupEntityExportData<Asset> exportData, IdProvider idProvider, CompareResult compareResult) {
         Asset savedAsset = assetService.saveAsset(asset);
         if (ctx.isFinalImportAttempt() || ctx.getCurrentImportResult().isUpdatedAllExternalIds()) {
             importCalculatedFields(ctx, savedAsset, exportData, idProvider);

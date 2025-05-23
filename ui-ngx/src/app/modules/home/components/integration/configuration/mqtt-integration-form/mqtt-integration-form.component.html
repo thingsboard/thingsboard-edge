@@ -70,6 +70,7 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
+      <tb-mqtt-version-select formControlName="protocolVersion"></tb-mqtt-version-select>
       <div class="row flex flex-col gap-2">
         <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
                           formControlName="cleanSession" style="padding: 16px;">

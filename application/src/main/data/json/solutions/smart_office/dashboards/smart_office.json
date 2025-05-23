@@ -8161,7 +8161,7 @@
               }
             },
             "layout": "outlined",
-            "mainColorOn": "var(--tb-primary-500)",
+            "mainColorOn": "#00695C",
             "backgroundColorOn": "#FFFFFF",
             "mainColorOff": "#A2A2A2",
             "backgroundColorOff": "#FFFFFF",
@@ -8533,7 +8533,7 @@
               }
             },
             "layout": "outlined",
-            "mainColorOn": "var(--tb-primary-500)",
+            "mainColorOn": "#00695C",
             "backgroundColorOn": "#FFFFFF",
             "mainColorOff": "#A2A2A2",
             "backgroundColorOff": "#FFFFFF",

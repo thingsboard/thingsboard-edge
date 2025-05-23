@@ -61,6 +61,7 @@ import {
   signalStrengthLayoutTranslations,
   SignalStrengthWidgetSettings
 } from '@home/components/widget/lib/indicator/signal-strength-widget.models';
+import { getSourceTbUnitSymbol } from '@shared/models/unit.models';
 
 @Component({
   selector: 'tb-signal-strength-basic-config',
@@ -324,7 +325,7 @@ export class SignalStrengthBasicConfigComponent extends BasicWidgetConfigCompone
   }
 
   private _tooltipValuePreviewFn(): string {
-    const units: string = this.widgetConfig.config.units;
+    const units: string = getSourceTbUnitSymbol(this.widgetConfig.config.units);
     const decimals: number = this.widgetConfig.config.decimals;
     return formatValue(-76, decimals, units, true);
   }
