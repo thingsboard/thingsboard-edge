@@ -104,6 +104,7 @@ public class JpaBaseEdgeEventDao extends JpaPartitionedAbstractDao<EdgeEventEnti
     private long edgeEventsTtl;
 
     private static final String TABLE_NAME = ModelConstants.EDGE_EVENT_TABLE_NAME;
+    private static final List<SortOrder> SORT_ORDERS = Collections.singletonList(new SortOrder("seqId"));
 
     private TbSqlBlockingQueueWrapper<EdgeEventEntity, Void> queue;
 
@@ -190,8 +191,6 @@ public class JpaBaseEdgeEventDao extends JpaPartitionedAbstractDao<EdgeEventEnti
 
     @Override
     public PageData<EdgeEvent> findEdgeEvents(UUID tenantId, EdgeId edgeId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        List<SortOrder> sortOrders = Collections.singletonList(new SortOrder("seqId"));
-
         return DaoUtil.toPageData(
                 edgeEventRepository
                         .findEdgeEventsByTenantIdAndEdgeId(
@@ -202,7 +201,7 @@ public class JpaBaseEdgeEventDao extends JpaPartitionedAbstractDao<EdgeEventEnti
                                 pageLink.getEndTime(),
                                 seqIdStart,
                                 seqIdEnd,
-                                DaoUtil.toPageable(pageLink, sortOrders)));
+                                DaoUtil.toPageable(pageLink, SORT_ORDERS)));
     }
 
     @Override
