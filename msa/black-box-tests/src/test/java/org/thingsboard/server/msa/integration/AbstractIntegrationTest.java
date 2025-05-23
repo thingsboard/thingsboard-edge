@@ -317,4 +317,8 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         return testRestClient.saveSecret(secret);
     }
 
+    protected void deleteSecret(SecretId secretId) {
+        testRestClient.deleteSecret(secretId);
+    }
+
 }

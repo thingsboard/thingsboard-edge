@@ -255,12 +255,15 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertFalse(latestTimeseries.isEmpty());
         Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+
+        // delete secret
+        deleteSecret(secret.getId());
     }
 
     @Test
     public void telemetryUploadWithBasicCredentialsUsingSecrets_thenUpdateSecret_receiveLifecycleEventOnIntegration() throws Exception {
         String password = "pass";
-        Secret secret = createSecret(null, "integrationSecret", password);
+        Secret secret = createSecret(null, "integrationRotatedSecret", password);
         String formattedSecret = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
 
         createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, formattedSecret, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
@@ -289,8 +292,11 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
         // update secret value
         password = "updated";
-        createSecret(secret.getId(), "integrationSecret", password);
+        createSecret(secret.getId(), "integrationRotatedSecret", password);
         waitForIntegrationEvent(integration, "UPDATED", 1);
+
+        // delete secret
+        deleteSecret(secret.getId());
     }
 
     @Test
