@@ -264,7 +264,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       this.libraryFormGroup.patchValue(converterLibraryValue, {emitEvent: true});
     } else {
       this.modelValue = null;
-      this.libraryFormGroup.patchValue( {vendor: '', model: ''}, {emitEvent: true})
+      this.libraryFormGroup.patchValue( {vendor: '', model: ''}, {emitEvent: false})
     }
   }
 
