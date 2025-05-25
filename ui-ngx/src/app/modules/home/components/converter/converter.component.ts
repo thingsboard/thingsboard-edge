@@ -215,7 +215,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       this.updatedConverterScriptLangDisableState(this.prevNewConverterFormValue);
     }
     this.prevNewConverterFormValue = currentFormValue;
-    this.entityForm.get('converterLibrary').updateValueAndValidity();
   }
 
   private updateIntegrationsInfo(): void {
@@ -305,6 +304,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     } else {
       converterLibraryControl.disable({emitEvent: false})
     }
+    converterLibraryControl.updateValueAndValidity();
   }
 
   buildForm(entity: Converter): FormGroup {
@@ -358,6 +358,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup, emitEvent = true) {
+    this.updatedConverterScriptLangDisableState(entity);
     if (entity && !entity.id) {
       if (!this.entityForm.get('converterLibrary').value) {
         form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent});
@@ -536,7 +537,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }
     }, {emitEvent: false});
     this.checkIsNewConverter(entity, this.entityForm, emitEvent);
-    this.updatedConverterScriptLangDisableState(entity);
   }
 
   get isConverterLibraryAndNotNull() {
