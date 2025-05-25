@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -1159,6 +1160,13 @@ public class TestRestClient {
                 .statusCode(HTTP_OK)
                 .extract()
                 .as(Secret.class);
+    }
+
+    public ValidatableResponse deleteSecret(SecretId secretId) {
+        return given().spec(requestSpec)
+                .delete("/api/secret/{secretId}", secretId.getId())
+                .then()
+                .statusCode(HTTP_OK);
     }
 
 }
