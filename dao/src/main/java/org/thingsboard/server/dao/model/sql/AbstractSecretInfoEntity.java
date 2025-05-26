@@ -73,13 +73,8 @@ public abstract class AbstractSecretInfoEntity<T extends SecretInfo> extends Bas
     }
 
     public AbstractSecretInfoEntity(SecretInfo secretInfo) {
-        this.createdTime = secretInfo.getCreatedTime();
-        if (secretInfo.getId() != null) {
-            this.setUuid(secretInfo.getId().getId());
-        }
-        if (secretInfo.getTenantId() != null) {
-            this.tenantId = secretInfo.getTenantId().getId();
-        }
+        super(secretInfo);
+        this.tenantId = secretInfo.getTenantId().getId();
         this.name = secretInfo.getName();
         this.type = secretInfo.getType();
         this.description = secretInfo.getDescription();
@@ -88,9 +83,7 @@ public abstract class AbstractSecretInfoEntity<T extends SecretInfo> extends Bas
     protected SecretInfo toSecretInfo() {
         SecretInfo secretInfo = new SecretInfo(new SecretId(getUuid()));
         secretInfo.setCreatedTime(createdTime);
-        if (tenantId != null) {
-            secretInfo.setTenantId(TenantId.fromUUID(tenantId));
-        }
+        secretInfo.setTenantId(TenantId.fromUUID(tenantId));
         secretInfo.setName(name);
         secretInfo.setType(type);
         secretInfo.setDescription(description);

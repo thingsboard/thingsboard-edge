@@ -68,9 +68,7 @@ public class EncryptionKeyEntity extends BaseSqlEntity<EncryptionKey> {
 
     public EncryptionKeyEntity(EncryptionKey encryptionKey) {
         super(encryptionKey);
-        if (encryptionKey.getTenantId() != null) {
-            this.tenantId = encryptionKey.getTenantId().getId();
-        }
+        this.tenantId = encryptionKey.getTenantId().getId();
         this.password = encryptionKey.getPassword();
         this.salt = encryptionKey.getSalt();
     }

@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -79,11 +78,6 @@ public class JpaSecretInfoDao extends JpaAbstractDao<SecretInfoEntity, SecretInf
     @Override
     protected JpaRepository<SecretInfoEntity, UUID> getRepository() {
         return secretInfoRepository;
-    }
-
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.SECRET;
     }
 
 }

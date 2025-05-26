@@ -49,7 +49,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.server.common.data.EventInfo;
@@ -230,7 +229,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
     public void telemetryUploadWithBasicCredentialsUsingSecrets() throws Exception {
         String password = "pass";
         Secret secret = createSecret(null, "integrationSecret", password);
-        String formattedSecret = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
+        String formattedSecret = toSecretPlaceholder(secret.getName(), secret.getType());
 
         createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, formattedSecret, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
 
@@ -264,7 +263,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
     public void telemetryUploadWithBasicCredentialsUsingSecrets_thenUpdateSecret_receiveLifecycleEventOnIntegration() throws Exception {
         String password = "pass";
         Secret secret = createSecret(null, "integrationRotatedSecret", password);
-        String formattedSecret = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
+        String formattedSecret = toSecretPlaceholder(secret.getName(), secret.getType());
 
         createIntegration(MQTT, configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, formattedSecret, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
 
@@ -451,12 +450,14 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         public BlockingQueue<MqttEvent> getEvents() {
             return events;
         }
+
     }
 
     @Data
     private class MqttEvent {
         private final String topic;
         private final String message;
+
     }
 
     @Override

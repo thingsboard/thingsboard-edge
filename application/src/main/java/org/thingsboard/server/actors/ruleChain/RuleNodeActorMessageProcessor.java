@@ -42,7 +42,6 @@ import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -53,6 +52,10 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.component.RuleNodeClassInfo;
+
+import java.util.Optional;
 
 /**
  * @author Andrew Shvayka
@@ -64,6 +67,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
     private final String ruleChainName;
     private final TbApiUsageReportClient apiUsageClient;
     private final DefaultTbContext defaultCtx;
+    private final ComponentDiscoveryService componentService;
     private RuleNode ruleNode;
     private TbNode tbNode;
     private RuleNodeInfo info;
@@ -76,6 +80,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         this.ruleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);
         this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, selfActor, ruleNode));
         this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, getName(ruleNode));
+        this.componentService = systemContext.getComponentService();
     }
 
     @Override
@@ -198,8 +203,8 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
             Class<?> componentClazz = Class.forName(ruleNode.getType());
             tbNode = (TbNode) (componentClazz.getDeclaredConstructor().newInstance());
             JsonNode ruleNodeConfig = ruleNode.getConfiguration();
-            ComponentDescriptor componentDescriptor = defaultCtx.getComponentDescriptorService().findByClazz(tenantId, ruleNode.getType());
-            if (componentDescriptor.isHasSecrets()) {
+            Optional<RuleNodeClassInfo> ruleNodeClassInfoOpt = componentService.getRuleNodeInfo(ruleNode.getType());
+            if (ruleNodeClassInfoOpt.isPresent() && ruleNodeClassInfoOpt.get().getAnnotation().hasSecrets()) {
                 ruleNodeConfig = defaultCtx.getSecretConfigurationService().replaceSecretPlaceholders(tenantId, ruleNodeConfig);
             }
             tbNode.init(defaultCtx, new TbNodeConfiguration(ruleNodeConfig));

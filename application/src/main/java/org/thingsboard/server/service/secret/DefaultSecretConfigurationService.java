@@ -38,9 +38,9 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.secret.Secret;
+import org.thingsboard.server.dao.encryptionkey.EncryptionService;
 import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.dao.secret.SecretService;
-import org.thingsboard.server.dao.secret.SecretUtilService;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +56,7 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
     @Lazy
     private final SecretService secretService;
     @Lazy
-    private final SecretUtilService secretUtilService;
+    private final EncryptionService encryptionService;
 
     @Override
     public JsonNode replaceSecretPlaceholders(TenantId tenantId, JsonNode config) {
@@ -69,7 +69,7 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
                 if (secret == null) {
                     return "";
                 }
-                return secretUtilService.decryptToString(tenantId, secret.getType(), secret.getRawValue());
+                return encryptionService.decryptToString(tenantId, secret.getType(), secret.getRawValue());
             }
             return value;
         });

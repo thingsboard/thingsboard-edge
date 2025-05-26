@@ -28,31 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.dao.encryptionkey;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.ComponentDescriptorId;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
-import org.thingsboard.server.common.data.plugin.ComponentScope;
-import org.thingsboard.server.common.data.plugin.ComponentType;
 
-public interface ComponentDescriptorService {
+public interface EncryptionService {
 
-    ComponentDescriptor saveComponent(TenantId tenantId, ComponentDescriptor component);
+    void createEncryptionKey(TenantId tenantId);
 
-    ComponentDescriptor findById(TenantId tenantId, ComponentDescriptorId componentId);
+    byte[] encrypt(TenantId tenantId, SecretType secretType, byte[] value);
 
-    ComponentDescriptor findByClazz(TenantId tenantId, String clazz);
+    String decryptToString(TenantId tenantId, SecretType secretType, byte[] encryptedValue);
 
-    PageData<ComponentDescriptor> findByTypeAndPageLink(TenantId tenantId, ComponentType type, PageLink pageLink);
-
-    PageData<ComponentDescriptor> findByScopeAndTypeAndPageLink(TenantId tenantId, ComponentScope scope, ComponentType type, PageLink pageLink);
-
-    boolean validate(TenantId tenantId, ComponentDescriptor component, JsonNode configuration);
-
-    void deleteByClazz(TenantId tenantId, String clazz);
+    void deleteByTenantId(TenantId tenantId);
 
 }

@@ -163,6 +163,11 @@ public class JpaRuleChainDao extends JpaAbstractDao<RuleChainEntity, RuleChain> 
     }
 
     @Override
+    public List<RuleChain> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder) {
+        return DaoUtil.convertDataList(ruleChainRepository.findByTenantIdAndSecretPlaceholder(tenantId.getId(), placeholder));
+    }
+
+    @Override
     public List<RuleChainFields> findNextBatch(UUID id, int batchSize) {
         return ruleChainRepository.findNextBatch(id, Limit.of(batchSize));
     }
@@ -170,11 +175,6 @@ public class JpaRuleChainDao extends JpaAbstractDao<RuleChainEntity, RuleChain> 
     @Override
     public EntityType getEntityType() {
         return EntityType.RULE_CHAIN;
-    }
-
-    @Override
-    public List<RuleChain> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder) {
-        return DaoUtil.convertDataList(ruleChainRepository.findByTenantIdAndSecretPlaceholder(tenantId.getId(), placeholder));
     }
 
 }

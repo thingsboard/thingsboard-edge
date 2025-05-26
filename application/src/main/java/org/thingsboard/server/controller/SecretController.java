@@ -49,7 +49,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.TbSecretDeleteResult;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.SecretId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -115,6 +114,22 @@ public class SecretController extends BaseController {
         return tbSecretService.save(secret, getCurrentUser());
     }
 
+    @ApiOperation(value = "Update Secret value",
+            notes = "Updates the value of the existing Secret by secretId. " +
+                    "Referencing a non-existing Secret Id will cause a 'Not Found' error.")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PutMapping("/secret/{id}/value")
+    public SecretInfo updateSecretValue(
+            @Parameter(description = "Unique identifier of the Secret to update", required = true)
+            @PathVariable UUID id,
+            @Parameter(description = "New value for the Secret", example = "Description", required = true)
+            @RequestBody String value) throws Exception {
+        SecretId secretId = new SecretId(id);
+        Secret secret = new Secret(checkSecretId(secretId, Operation.WRITE));
+        secret.setValue(value);
+        return tbSecretService.save(secret, getCurrentUser());
+    }
+
     @ApiOperation(value = "Delete secret by ID (deleteSecret)",
             notes = "Deletes the secret. Referencing non-existing Secret Id will cause an error." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
@@ -129,20 +144,20 @@ public class SecretController extends BaseController {
     @ApiOperation(value = "Get Tenant Secret infos (getSecretInfos)",
             notes = "Returns a page of secret infos owned by tenant. " + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    @GetMapping(value = "/secret/infos", params = {"pageSize", "page"})
+    @GetMapping(value = "/secrets", params = {"pageSize", "page"})
     public PageData<SecretInfo> getSecretInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                                @RequestParam int pageSize,
                                                @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
                                                @RequestParam int page,
                                                @Parameter(description = SECRET_TEXT_SEARCH_DESCRIPTION)
                                                @RequestParam(required = false) String textSearch,
-                                               @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"name", "key"}))
+                                               @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"name"}))
                                                @RequestParam(required = false) String sortProperty,
                                                @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                                @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.SECRET, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        TenantId tenantId = getTenantId();
-        return checkNotNull(secretService.findSecretInfosByTenantId(tenantId, pageLink));
+        return checkNotNull(secretService.findSecretInfosByTenantId(getTenantId(), pageLink));
     }
 
     @ApiOperation(value = "Get Tenant Secret names (getSecretNames)",
@@ -150,25 +165,25 @@ public class SecretController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/secret/names")
     public List<String> getSecretNames() throws ThingsboardException {
-        TenantId tenantId = getTenantId();
-        return checkNotNull(secretService.findSecretNamesByTenantId(tenantId));
+        accessControlService.checkPermission(getCurrentUser(), Resource.SECRET, Operation.READ);
+        return checkNotNull(secretService.findSecretNamesByTenantId(getTenantId()));
     }
 
     @ApiOperation(value = "Get Secret info by Id (getSecretInfoById)", notes = TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    @GetMapping(value = "/secret/info/{id}")
+    @GetMapping(value = "/secret/{id}/info")
     public SecretInfo getSecretInfoById(@PathVariable UUID id) throws ThingsboardException {
         SecretId secretId = new SecretId(id);
         return checkSecretId(secretId, Operation.READ);
     }
 
-    @ApiOperation(value = "Get Secret info by name (getSecretInfoById)", notes = TENANT_AUTHORITY_PARAGRAPH)
+    @ApiOperation(value = "Get Secret info by name (getSecretInfoByName)", notes = TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/secret/{name}")
     public SecretInfo getSecretInfoByName(@PathVariable String name) throws ThingsboardException {
         checkParameter("name", name);
-        TenantId tenantId = getTenantId();
-        return checkNotNull(secretService.findSecretInfoByName(tenantId, name));
+        accessControlService.checkPermission(getCurrentUser(), Resource.SECRET, Operation.READ);
+        return checkNotNull(secretService.findSecretInfoByName(getTenantId(), name));
     }
 
 }

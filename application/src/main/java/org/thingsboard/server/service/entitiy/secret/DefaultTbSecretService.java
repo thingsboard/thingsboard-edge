@@ -42,9 +42,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.dao.secret.SecretService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
 @Service
+@TbCoreComponent
 @AllArgsConstructor
 public class DefaultTbSecretService extends AbstractTbEntityService implements TbSecretService {
 

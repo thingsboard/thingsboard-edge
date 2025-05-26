@@ -50,7 +50,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.dao.encryptionkey.EncryptionKeyService;
+import org.thingsboard.server.dao.encryptionkey.EncryptionService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
@@ -113,7 +113,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Autowired
     private CustomTranslationService customTranslationService;
     @Autowired
-    private EncryptionKeyService encryptionKeyService;
+    private EncryptionService encryptionService;
     @Autowired
     protected TbTransactionalCache<TenantId, Boolean> existsTenantCache;
 
@@ -194,7 +194,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
             assetProfileService.createDefaultAssetProfile(tenantId);
             apiUsageStateService.createDefaultApiUsageState(tenantId, null);
             notificationSettingsService.createDefaultNotificationConfigs(tenantId);
-            encryptionKeyService.createEncryptionKey(tenantId);
+            encryptionService.createEncryptionKey(tenantId);
         }
 
         return savedTenant;
@@ -214,7 +214,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         qrCodeSettingService.deleteByTenantId(tenantId);
         customMenuService.deleteByTenantId(tenantId);
-        encryptionKeyService.deleteByTenantId(tenantId);
+        encryptionService.deleteByTenantId(tenantId);
 
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));

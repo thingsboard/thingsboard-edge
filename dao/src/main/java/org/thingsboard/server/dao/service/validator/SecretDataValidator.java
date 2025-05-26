@@ -60,7 +60,7 @@ public class SecretDataValidator extends DataValidator<Secret> {
     @Override
     protected void validateCreate(TenantId tenantId, Secret secret) {
         if (secret.getValue() == null) {
-            throw new DataValidationException("Secret must contains value");
+            throw new DataValidationException("Secret must contain value");
         }
     }
 
@@ -72,6 +72,9 @@ public class SecretDataValidator extends DataValidator<Secret> {
         }
         if (!old.getName().equals(secret.getName())) {
             throw new DataValidationException("Can't update secret name!");
+        }
+        if (!old.getType().equals(secret.getType())) {
+            throw new DataValidationException("Can't update secret type!");
         }
         return old;
     }
