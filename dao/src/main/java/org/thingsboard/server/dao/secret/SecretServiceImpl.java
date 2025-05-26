@@ -34,7 +34,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbSecretDeleteResult;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -45,6 +44,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.secret.SecretInfo;
+import org.thingsboard.server.dao.encryptionkey.EncryptionService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
@@ -84,8 +84,8 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     @Autowired
     private IntegrationDao integrationDao;
 
-    @Autowired(required = false)
-    private SecretUtilService secretUtilService;
+    @Autowired
+    private EncryptionService encryptionService;
 
     @PostConstruct
     public void init() {
@@ -101,7 +101,7 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
 
             boolean isValueUpdated = false;
             if (secret.getValue() != null) {
-                byte[] encrypted = secretUtilService.encrypt(tenantId, secret.getType(), secret.getRawValue());
+                byte[] encrypted = encryptionService.encrypt(tenantId, secret.getType(), secret.getRawValue());
                 secret.setRawValue(encrypted);
                 isValueUpdated = true;
             } else if (old != null) {
@@ -144,17 +144,10 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
             return result.success(success).build();
         }
         if (!force) {
-            Map<String, List<? extends HasId<?>>> affectedEntities = new HashMap<>();
-            hasSecretsEntityDaoMap.forEach((entityType, hasSecretsEntityDao) -> {
-                String placeholder = SecretUtil.toSecretPlaceholder(secretInfo.getName(), secretInfo.getType());
-                var entities = hasSecretsEntityDao.findByTenantIdAndSecretPlaceholder(tenantId, placeholder);
-                if (!entities.isEmpty()) {
-                    affectedEntities.put(entityType.name(), entities);
-                }
-            });
-            if (!affectedEntities.isEmpty()) {
+            var entities = findEntitiesBySecret(tenantId, secretInfo);
+            if (!entities.isEmpty()) {
                 success = false;
-                result.references(affectedEntities);
+                result.references(entities);
             }
         }
         if (success) {
@@ -207,8 +200,9 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     }
 
     @Override
-    public Map<EntityType, List<? extends HasId<?>>> findEntitiesBySecretPlaceholder(TenantId tenantId, String placeholder) {
+    public Map<EntityType, List<? extends HasId<?>>> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo) {
         Map<EntityType, List<? extends HasId<?>>> affectedEntities = new HashMap<>();
+        String placeholder = String.format("${secret:%s;type:%s}", secretInfo.getName(), secretInfo.getType());
         hasSecretsEntityDaoMap.forEach((entityType, hasSecretsEntityDao) -> {
             var entities = hasSecretsEntityDao.findByTenantIdAndSecretPlaceholder(tenantId, placeholder);
             if (!entities.isEmpty()) {

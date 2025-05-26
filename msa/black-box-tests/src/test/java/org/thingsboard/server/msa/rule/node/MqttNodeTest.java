@@ -44,7 +44,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.SecretType;
@@ -101,7 +100,7 @@ public class MqttNodeTest extends AbstractContainerTest {
     public void telemetryUpload() throws Exception {
         String password = "pass";
         Secret secret = createSecret(password);
-        String formattedSecret = SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType());
+        String formattedSecret = toSecretPlaceholder(secret.getName(), secret.getType());
 
         RuleChainId defaultRuleChainId = getDefaultRuleChainId();
 
@@ -244,6 +243,10 @@ public class MqttNodeTest extends AbstractContainerTest {
         secret.setValue(value);
         secret.setType(SecretType.TEXT);
         return testRestClient.saveSecret(secret);
+    }
+
+    private String toSecretPlaceholder(String name, SecretType type) {
+        return String.format("${secret:%s;type:%s}", name, type);
     }
 
 }

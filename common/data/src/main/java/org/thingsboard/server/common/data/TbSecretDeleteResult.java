@@ -42,6 +42,6 @@ import java.util.Map;
 public class TbSecretDeleteResult {
 
     private boolean success;
-    private Map<String, List<? extends HasId<?>>> references;
+    private Map<EntityType, List<? extends HasId<?>>> references;
 
 }

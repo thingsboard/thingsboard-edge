@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Customer;
@@ -78,7 +77,6 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.secret.SecretService;
-import org.thingsboard.server.dao.secret.SecretUtilService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.TbQueueCallback;
 
@@ -93,7 +91,6 @@ public class EntityStateSourcingListener {
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
     private final SecretService secretService;
-    private final SecretUtilService secretUtilService;
 
     @PostConstruct
     public void init() {
@@ -186,7 +183,7 @@ public class EntityStateSourcingListener {
                     break;
                 }
                 Secret secret = (Secret) event.getEntity();
-                var result = secretService.findEntitiesBySecretPlaceholder(tenantId, SecretUtil.toSecretPlaceholder(secret.getName(), secret.getType()));
+                var result = secretService.findEntitiesBySecret(tenantId, secret);
 
                 result.forEach((type, entities) -> {
                     switch (type) {
@@ -313,7 +310,6 @@ public class EntityStateSourcingListener {
     private void onTenantDeleted(Tenant tenant) {
         tbClusterService.onTenantDelete(tenant, null);
         tbClusterService.broadcastEntityStateChangeEvent(tenant.getId(), tenant.getId(), ComponentLifecycleEvent.DELETED);
-        secretUtilService.evict(tenant.getId());
     }
 
     private void onTenantProfileUpdate(TenantProfile tenantProfile, ComponentLifecycleEvent lifecycleEvent) {

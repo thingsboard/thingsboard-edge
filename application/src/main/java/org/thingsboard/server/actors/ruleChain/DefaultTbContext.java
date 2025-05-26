@@ -39,7 +39,6 @@ import org.bouncycastle.util.Arrays;
 import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
-import org.thingsboard.rule.engine.api.ComponentDescriptorService;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.MqttClientSettings;
@@ -934,11 +933,6 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService() {
         return mainCtx.getCalculatedFieldQueueService();
-    }
-
-    @Override
-    public ComponentDescriptorService getComponentDescriptorService() {
-        return mainCtx.getComponentDescriptorService();
     }
 
     @Override

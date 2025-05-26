@@ -681,8 +681,7 @@ CREATE TABLE IF NOT EXISTS encryption_key (
     created_time bigint NOT NULL,
     tenant_id uuid,
     password varchar(255),
-    salt varchar(255),
-    CONSTRAINT fk_tenant_encryption_key FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
+    salt varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (

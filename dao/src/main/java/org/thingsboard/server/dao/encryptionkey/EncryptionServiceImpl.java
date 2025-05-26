@@ -28,31 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.secret;
+package org.thingsboard.server.dao.encryptionkey;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ConcurrentReferenceHashMap;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.encryptionkey.EncryptionKey;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.encryptionkey.EncryptionKeyService;
-import org.thingsboard.server.dao.secret.SecretUtilService;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.Map;
 
 @Slf4j
-@Service
+@Service("EncryptionDaoService")
 @RequiredArgsConstructor
-public class DefaultSecretUtilService implements SecretUtilService {
+public class EncryptionServiceImpl implements EncryptionService {
 
     private final Map<TenantId, BytesEncryptor> encryptorMap = new ConcurrentReferenceHashMap<>();
 
-    private final EncryptionKeyService encryptionKeyService;
+    private final SecureRandom secureRandom = new SecureRandom();
+
+    private final EncryptionKeyDao encryptionKeyDao;
 
     @Override
     public byte[] encrypt(TenantId tenantId, SecretType type, byte[] value) {
@@ -64,19 +72,9 @@ public class DefaultSecretUtilService implements SecretUtilService {
     }
 
     @Override
-    public byte[] decrypt(TenantId tenantId, byte[] encryptedValue) {
-        return doDecrypt(tenantId, encryptedValue);
-    }
-
-    @Override
     public String decryptToString(TenantId tenantId, SecretType type, byte[] encryptedValue) {
         byte[] decrypted = doDecrypt(tenantId, encryptedValue);
         return new String(decrypted, StandardCharsets.UTF_8);
-    }
-
-    @Override
-    public void evict(TenantId tenantId) {
-        encryptorMap.remove(tenantId);
     }
 
     private byte[] doDecrypt(TenantId tenantId, byte[] encryptedValue) {
@@ -90,9 +88,52 @@ public class DefaultSecretUtilService implements SecretUtilService {
 
     private BytesEncryptor getEncryptor(TenantId tenantId) {
         return encryptorMap.computeIfAbsent(tenantId, id -> {
-            EncryptionKey key = encryptionKeyService.findByTenantId(tenantId);
+            EncryptionKey key = encryptionKeyDao.findByTenantId(tenantId);
             return Encryptors.stronger(key.getPassword(), key.getSalt());
         });
+    }
+
+    @Override
+    public void createEncryptionKey(TenantId tenantId) {
+        if (encryptionKeyDao.findByTenantId(tenantId) != null) {
+            return;
+        }
+        String password = generateSecurePassword();
+        String salt = generateSalt();
+
+        EncryptionKey key = new EncryptionKey();
+        key.setTenantId(tenantId);
+        key.setPassword(password);
+        key.setSalt(salt);
+
+        encryptionKeyDao.save(tenantId, key);
+    }
+
+    private String generateSecurePassword() {
+        byte[] bytes = new byte[16];
+        secureRandom.nextBytes(bytes);
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    private String generateSalt() {
+        byte[] randomSalt = new byte[8];
+        secureRandom.nextBytes(randomSalt);
+        return HexFormat.of().formatHex(randomSalt);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        encryptionKeyDao.deleteByTenantId(tenantId);
+    }
+
+    @EventListener(ComponentLifecycleMsg.class)
+    public void handleComponentLifecycleEvent(ComponentLifecycleMsg event) {
+        if (ComponentLifecycleEvent.DELETED.equals(event.getEvent())) {
+            EntityId entityId = event.getEntityId();
+            if (EntityType.TENANT.equals(entityId.getEntityType())) {
+                encryptorMap.remove(TenantId.fromUUID(entityId.getId()));
+            }
+        }
     }
 
 }

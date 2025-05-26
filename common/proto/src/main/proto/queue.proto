@@ -82,7 +82,7 @@ enum EntityTypeProto {
   MOBILE_APP_BUNDLE     = 38;
   CALCULATED_FIELD      = 39;
   CALCULATED_FIELD_LINK = 40;
-  SECRET                = 41;
+  SECRET                = 107;
 }
 
 enum ApiUsageRecordKeyProto {

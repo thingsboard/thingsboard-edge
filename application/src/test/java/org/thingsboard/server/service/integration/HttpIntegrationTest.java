@@ -49,7 +49,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.SecretUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.SecretType;
@@ -137,7 +136,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
     @Override
     protected JsonNode createIntegrationClientConfiguration() {
         ObjectNode clientConfiguration = JacksonUtil.newObjectNode();
-        clientConfiguration.put("baseUrl", SecretUtil.toSecretPlaceholder(LOCALHOST, SecretType.TEXT));
+        clientConfiguration.put("baseUrl", toSecretPlaceholder(LOCALHOST, SecretType.TEXT));
         clientConfiguration.set("metadata", JacksonUtil.newObjectNode());
         return clientConfiguration;
     }
@@ -392,6 +391,10 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         secret.setValue(value);
         secret.setType(SecretType.TEXT);
         return secret;
+    }
+
+    private String toSecretPlaceholder(String name, SecretType type) {
+        return String.format("${secret:%s;type:%s}", name, type);
     }
 
 }

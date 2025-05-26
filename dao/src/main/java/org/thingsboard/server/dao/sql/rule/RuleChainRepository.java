@@ -92,7 +92,8 @@ public interface RuleChainRepository extends JpaRepository<RuleChainEntity, UUID
     List<RuleChainFields> findNextBatch(@Param("id") UUID id, Limit limit);
 
     @Query("SELECT DISTINCT rc FROM RuleChainEntity rc INNER JOIN RuleNodeEntity r ON rc.id = r.ruleChainId " +
-            " WHERE rc.tenantId = :tenantId AND ilike(r.configuration, CONCAT('%', :placeholder, '%'))")
+            "INNER JOIN ComponentDescriptorEntity cd ON r.type = cd.clazz WHERE rc.tenantId = :tenantId " +
+            "AND cd.hasSecrets = true AND ilike(r.configuration, CONCAT('%', :placeholder, '%'))")
     List<RuleChainEntity> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
                                                              @Param("placeholder") String placeholder);
 

@@ -39,17 +39,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.SecretUtil;
+import org.thingsboard.rule.engine.metadata.TbGetAttributesNode;
+import org.thingsboard.rule.engine.mqtt.TbMqttNode;
+import org.thingsboard.rule.engine.mqtt.TbMqttNodeConfiguration;
 import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -84,7 +90,7 @@ public class SecretControllerTest extends AbstractControllerTest {
 
     @After
     public void tearDown() throws Exception {
-        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(100, 0));
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(100, 0));
         for (SecretInfo secretInfo : pageData.getData()) {
             doDelete("/api/secret/" + secretInfo.getId().getId()).andExpect(status().isOk());
         }
@@ -92,7 +98,7 @@ public class SecretControllerTest extends AbstractControllerTest {
 
     @Test
     public void testSaveSecret() throws Exception {
-        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
         assertThat(pageData.getData()).isEmpty();
 
         Secret secret = constructSecret("Test Create Secret", "CreatePassword");
@@ -101,20 +107,20 @@ public class SecretControllerTest extends AbstractControllerTest {
         assertNotNull(savedSecret);
         assertNotNull(savedSecret.getId());
 
-        PageData<SecretInfo> pageData2 = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        PageData<SecretInfo> pageData2 = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
         assertThat(pageData2.getData()).hasSize(1);
         assertThat(pageData2.getData().get(0)).isEqualTo(new SecretInfo(savedSecret));
 
-        SecretInfo retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, savedSecret.getId().getId());
+        SecretInfo retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, savedSecret.getId().getId());
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
-        doGet("/api/secret/info/{id}", savedSecret.getId().getId()).andExpect(status().isNotFound());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
     }
 
     @Test
     public void testUpdateSecret() throws Exception {
-        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
         assertThat(pageData.getData()).isEmpty();
 
         Secret secret = constructSecret("Test Update Secret", "UpdatePassword");
@@ -123,7 +129,7 @@ public class SecretControllerTest extends AbstractControllerTest {
         assertNotNull(savedSecret);
         assertNotNull(savedSecret.getId());
 
-        SecretInfo retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, savedSecret.getId().getId());
+        SecretInfo retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, savedSecret.getId().getId());
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         // update secret value
@@ -131,19 +137,69 @@ public class SecretControllerTest extends AbstractControllerTest {
         secret.setValue("UpdatedPassword");
 
         SecretInfo updatedSecret = doPost("/api/secret", secret, SecretInfo.class);
-        retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, updatedSecret.getId().getId());
+        retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, updatedSecret.getId().getId());
         assertThat(retrievedSecret).isEqualTo(updatedSecret);
 
         doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
-        doGet("/api/secret/info/{id}", savedSecret.getId().getId()).andExpect(status().isNotFound());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testDeleteSecret_whenUsedInRuleNodeWithHasSecrets_thenReceiveDeleteResultError() throws Exception {
+        String secretName = "MqttNodeSecret";
+        Secret secret = constructSecret(secretName, "Password");
+        SecretInfo savedSecret = doPost("/api/secret", secret, SecretInfo.class);
+
+        assertNotNull(savedSecret);
+        assertNotNull(savedSecret.getId());
+
+        SecretInfo retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, savedSecret.getId().getId());
+        assertThat(retrievedSecret).isEqualTo(savedSecret);
+
+        // create rule node with secret usage that uses 'hasSecrets' annotation:
+        var ruleChain = createRuleChain("Rule Chain test mqtt", TbMqttNode.class.getName(), secretName);
+
+        // delete secret
+        String responseBody = doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
+        JsonNode node = JacksonUtil.toJsonNode(responseBody);
+        assertFalse(node.get("success").asBoolean());
+
+        JsonNode references = node.get("references");
+        assertNotNull(references.get("RULE_CHAIN"));
+        assertFalse(references.get("RULE_CHAIN").isEmpty());
+
+        doDelete("/api/ruleChain/" + ruleChain.getId().toString()).andExpect(status().isOk());
+        doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testDeleteSecret_whenUsedInRuleNodeWithoutHasSecrets_thenReceiveDeleteResultError() throws Exception {
+        String secretName = "GetAttrNode";
+        Secret secret = constructSecret(secretName, "Password");
+        SecretInfo savedSecret = doPost("/api/secret", secret, SecretInfo.class);
+
+        assertNotNull(savedSecret);
+        assertNotNull(savedSecret.getId());
+
+        SecretInfo retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, savedSecret.getId().getId());
+        assertThat(retrievedSecret).isEqualTo(savedSecret);
+
+        // create rule node with secret usage that uses 'hasSecrets' annotation:
+        var ruleChain = createRuleChain("Rule Chain test attr", TbGetAttributesNode.class.getName(), secretName);
+
+        // delete secret
+        doDelete("/api/ruleChain/" + ruleChain.getId().toString()).andExpect(status().isOk());
+        doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
     }
 
     @Test
     public void testDeleteSecretUsedInIntegration_thenReceiveDeleteResultError() throws Exception {
         String secretName = "MqttSecret";
-        String placeholder = SecretUtil.toSecretPlaceholder(secretName, SecretType.TEXT);
+        String placeholder = toSecretPlaceholder(secretName, SecretType.TEXT);
 
-        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
         assertThat(pageData.getData()).isEmpty();
 
         Secret secret = constructSecret(secretName, "Password");
@@ -152,7 +208,7 @@ public class SecretControllerTest extends AbstractControllerTest {
         assertNotNull(savedSecret);
         assertNotNull(savedSecret.getId());
 
-        SecretInfo retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, savedSecret.getId().getId());
+        SecretInfo retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, savedSecret.getId().getId());
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         ConverterId converterId = createConverter();
@@ -164,20 +220,20 @@ public class SecretControllerTest extends AbstractControllerTest {
 
         JsonNode references = node.get("references");
         assertNotNull(references.get("INTEGRATION"));
-        assertTrue(references.get("INTEGRATION").size() > 0);
+        assertFalse(references.get("INTEGRATION").isEmpty());
 
         doDelete("/api/integration/" + integrationId.getId().toString()).andExpect(status().isOk());
         doDelete("/api/converter/" + converterId.getId().toString()).andExpect(status().isOk());
         doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
-        doGet("/api/secret/info/{id}", savedSecret.getId().getId()).andExpect(status().isNotFound());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
     }
 
     @Test
     public void testUpdateSecretUsedInIntegration_thenReceiveLifecycleEvent() throws Exception {
         String secretName = "MqttSecret";
-        String placeholder = SecretUtil.toSecretPlaceholder(secretName, SecretType.TEXT);
+        String placeholder = toSecretPlaceholder(secretName, SecretType.TEXT);
 
-        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
         assertThat(pageData.getData()).isEmpty();
 
         Secret secret = constructSecret(secretName, "Password");
@@ -186,7 +242,7 @@ public class SecretControllerTest extends AbstractControllerTest {
         assertNotNull(savedSecret);
         assertNotNull(savedSecret.getId());
 
-        SecretInfo retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, savedSecret.getId().getId());
+        SecretInfo retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, savedSecret.getId().getId());
         assertThat(retrievedSecret).isEqualTo(savedSecret);
 
         ConverterId converterId = createConverter();
@@ -199,18 +255,18 @@ public class SecretControllerTest extends AbstractControllerTest {
         testBroadcastEntityStateChangeEventTime(integrationId, tenantId, 1);
 
         SecretInfo updatedSecret = doPost("/api/secret", secret, SecretInfo.class);
-        retrievedSecret = doGet("/api/secret/info/{id}", SecretInfo.class, updatedSecret.getId().getId());
+        retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, updatedSecret.getId().getId());
         assertThat(retrievedSecret).isEqualTo(updatedSecret);
 
         doDelete("/api/integration/" + integrationId.getId().toString()).andExpect(status().isOk());
         doDelete("/api/converter/" + converterId.getId().toString()).andExpect(status().isOk());
         doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
-        doGet("/api/secret/info/{id}", savedSecret.getId().getId()).andExpect(status().isNotFound());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
     }
 
     @Test
     public void testUpdateSecretNameProhibited() throws Exception {
-        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
         assertThat(pageData.getData()).isEmpty();
 
         Secret secret = constructSecret("Test Secret", "Prohibited");
@@ -227,12 +283,12 @@ public class SecretControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.message", is("Can't update secret name!")));
 
         doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
-        doGet("/api/secret/info/{id}", savedSecret.getId().getId()).andExpect(status().isNotFound());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
     }
 
     @Test
     public void testFindSecretInfos() throws Exception {
-        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
+        PageData<SecretInfo> pageData = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(10, 0));
         assertThat(pageData.getData()).isEmpty();
 
         int expectedSize = 10;
@@ -241,7 +297,7 @@ public class SecretControllerTest extends AbstractControllerTest {
             doPost("/api/secret", constructSecret(namePrefix + i, "CreatePassword"), SecretInfo.class);
         }
 
-        PageData<SecretInfo> pageData2 = doGetTypedWithPageLink("/api/secret/infos?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(expectedSize, 0));
+        PageData<SecretInfo> pageData2 = doGetTypedWithPageLink("/api/secrets?", PAGE_DATA_SECRET_TYPE_REF, new PageLink(expectedSize, 0));
         assertThat(pageData2.getData()).hasSize(expectedSize);
 
         List<UUID> toDelete = new ArrayList<>();
@@ -255,7 +311,7 @@ public class SecretControllerTest extends AbstractControllerTest {
         toDelete.forEach(secret -> {
             try {
                 doDelete("/api/secret/" + secret).andExpect(status().isOk());
-                doGet("/api/secret/info/{id}", secret).andExpect(status().isNotFound());
+                doGet("/api/secret/{id}/info", secret).andExpect(status().isNotFound());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -294,6 +350,32 @@ public class SecretControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(savedIntegration.getId());
         assertTrue(savedIntegration.getCreatedTime() > 0);
         return savedIntegration.getId();
+    }
+
+    private RuleChainId createRuleChain(String name, String clazz, String secretName) {
+        RuleChain ruleChain = new RuleChain();
+        ruleChain.setName(name);
+        var result = doPost("/api/ruleChain", ruleChain, RuleChain.class);
+
+        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
+        ruleChainMetaData.setRuleChainId(result.getId());
+        RuleNode ruleNode = new RuleNode();
+        ruleNode.setName("Test");
+        ruleNode.setType(clazz);
+        TbMqttNodeConfiguration config = new TbMqttNodeConfiguration();
+        config.setHost(toSecretPlaceholder(secretName, SecretType.TEXT));
+        ruleNode.setConfiguration(JacksonUtil.valueToTree(config));
+        List<RuleNode> ruleNodes = new ArrayList<>();
+        ruleNodes.add(ruleNode);
+        ruleChainMetaData.setFirstNodeIndex(0);
+        ruleChainMetaData.setNodes(ruleNodes);
+
+        doPost("/api/ruleChain/metadata", ruleChainMetaData, RuleChainMetaData.class);
+        return result.getId();
+    }
+
+    private String toSecretPlaceholder(String name, SecretType type) {
+        return String.format("${secret:%s;type:%s}", name, type);
     }
 
 }

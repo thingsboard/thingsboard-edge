@@ -47,7 +47,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.api.ComponentDescriptorService;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.MqttClientSettings;
@@ -93,6 +92,7 @@ import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
+import org.thingsboard.server.dao.component.ComponentDescriptorService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -649,12 +649,10 @@ public class ActorSystemContext {
     @Getter
     private CalculatedFieldQueueService calculatedFieldQueueService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private SecretConfigurationService secretConfigurationService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private SecretService secretService;

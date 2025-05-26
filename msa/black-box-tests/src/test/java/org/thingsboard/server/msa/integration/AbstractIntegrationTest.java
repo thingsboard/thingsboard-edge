@@ -321,4 +321,8 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         testRestClient.deleteSecret(secretId);
     }
 
+    protected String toSecretPlaceholder(String name, SecretType type) {
+        return String.format("${secret:%s;type:%s}", name, type);
+    }
+
 }
