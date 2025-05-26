@@ -47,7 +47,7 @@ export class SecretStorageService {
   ) { }
 
   public getSecrets(pageLink: PageLink, config?: RequestConfig): Observable<PageData<SecretStorage>> {
-    return this.http.get<PageData<SecretStorage>>(`/api/secret/infos${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config));
+    return this.http.get<PageData<SecretStorage>>(`/api/secrets${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config));
   }
 
   public saveSecret(secret: SecretStorageInfo, config?: RequestConfig): Observable<SecretStorage> {
