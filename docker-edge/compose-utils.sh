@@ -32,6 +32,22 @@ function additionalComposeArgs() {
     echo $ADDITIONAL_COMPOSE_ARGS
 }
 
+function additionalComposeQueueArgs() {
+    source .env
+    case "$TB_QUEUE_TYPE" in
+        kafka)
+            echo "-f docker-compose.kafka.yml"
+            ;;
+        in-memory)
+            echo ""
+            ;;
+        *)
+            echo "Only 'kafka' and 'in-memory' are supported in this setup. Current value: '${TB_QUEUE_TYPE}'" >&2
+            exit 1
+            ;;
+    esac
+}
+
 function additionalComposeMonitoringArgs() {
     source .env
 

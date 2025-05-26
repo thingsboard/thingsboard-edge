@@ -21,6 +21,8 @@ source compose-utils.sh
 
 COMPOSE_VERSION=$(composeVersion) || exit $?
 
+ADDITIONAL_COMPOSE_QUEUE_ARGS=$(additionalComposeQueueArgs) || exit $?
+
 ADDITIONAL_COMPOSE_ARGS=$(additionalComposeArgs) || exit $?
 
 ADDITIONAL_CACHE_ARGS=$(additionalComposeCacheArgs) || exit $?
