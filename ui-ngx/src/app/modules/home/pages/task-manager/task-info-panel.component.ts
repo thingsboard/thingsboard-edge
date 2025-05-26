@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { Job, JobStatus } from '@app/shared/models/job.models';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ResourceReferences } from '@shared/models/resource.models';
@@ -46,6 +46,12 @@ export class TaskInfoPanelComponent implements OnInit {
 
   @Input()
   job: Job;
+
+  @Output()
+  reprocessTask = new EventEmitter<void>();
+
+  @Output()
+  cancelTask = new EventEmitter<void>();
 
   reference: ResourceReferences = [];
 
@@ -64,5 +70,13 @@ export class TaskInfoPanelComponent implements OnInit {
 
   cancel() {
     this.popover.hide();
+  }
+
+  reprocess() {
+    this.reprocessTask.emit();
+  }
+
+  cancelJob() {
+    this.cancelTask.emit();
   }
 }

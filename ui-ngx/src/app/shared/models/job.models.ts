@@ -35,6 +35,7 @@ import { TimePageLink } from '@shared/models/page/page-link';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityInfoData } from '@shared/models/entity.models';
+import { CalculatedFieldId } from '@shared/models/id/calculated-field-id';
 
 export enum JobType {
   CF_REPROCESSING = 'CF_REPROCESSING'
@@ -66,33 +67,55 @@ export const jobStatusTranslations = new Map<JobStatus, string>(
   ]
 );
 
-export interface TaskResult {
+export interface BasicTaskResult {
   key: string;
   success: boolean;
   discarded: boolean;
-  failure: TaskFailure;
+  jobType: JobType;
 }
 
-export interface TaskFailure {
-  error?: string;
+export interface BasicTaskFailure {
+  error: string;
+}
+
+export interface CfReprocessingTaskFailure extends BasicTaskFailure{
   entityInfo?: EntityInfoData;
 }
 
-export interface JobConfiguration {
-  tasksKey: string;
-  toReprocess: TaskResult[];
+export interface CfReprocessingTaskResult extends BasicTaskResult {
+  failure: CfReprocessingTaskFailure;
 }
 
-export interface JobResult {
+export type TaskResult = CfReprocessingTaskResult;
+
+export interface BasicJobConfiguration {
+  tasksKey: string;
+  toReprocess: TaskResult[];
+  type: JobType;
+}
+
+export interface CfReprocessingJobConfiguration extends BasicJobConfiguration {
+  calculatedFieldId: CalculatedFieldId;
+  startTs: number;
+  endTs: number;
+}
+
+export type JobConfiguration = CfReprocessingJobConfiguration;
+
+export interface BasicJobResult {
   successfulCount: number;
   failedCount: number;
   discardedCount: number;
   totalCount?: number;
+  jobType?: JobType;
   results: TaskResult[];
   generalError?: string;
   startTs?: number;
   finishTs?: number;
+  cancellationTs?: number;
 }
+
+export type JobResult = BasicJobResult;
 
 export interface Job extends Omit<BaseData<JobId>, 'label' | 'ownerId' | 'customerId' | 'name'> {
   type: JobType;

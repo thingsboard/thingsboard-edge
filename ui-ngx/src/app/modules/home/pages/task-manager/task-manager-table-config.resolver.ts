@@ -262,7 +262,7 @@ export class TaskManagerTableConfigResolver {
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
-      this.popoverService.displayPopover({
+      const taskInfoPanelPopover = this.popoverService.displayPopover({
         trigger,
         renderer: this.config.getTable().renderer,
         componentType: TaskInfoPanelComponent,
@@ -272,10 +272,18 @@ export class TaskManagerTableConfigResolver {
           job
         },
         showCloseButton: true,
-        overlayStyle: {maxHeight: '80vh', height: '100%', padding: '10px'},
-        style: {width: '100%'},
-        isModal: true
+        overlayStyle: {maxHeight: '80vh', height: '100%', padding: '10px'}
       });
+      taskInfoPanelPopover.tbComponentRef.instance.cancelTask.subscribe(() => {
+        taskInfoPanelPopover.hide();
+        this.cancelTaskDialog(null, job);
+      });
+      taskInfoPanelPopover.tbComponentRef.instance.reprocessTask.subscribe(() => {
+        taskInfoPanelPopover.hide();
+        this.jobService.reprocessJob(job.id.id, {ignoreErrors: true}).subscribe(() => {
+          this.config.getTable().updateData();
+        });
+      })
     }
   }
 
@@ -303,28 +311,7 @@ export class TaskManagerTableConfigResolver {
   private cancelOrDeleteTask($event: Event, job: Job) {
     $event?.stopPropagation();
     if (this.cancelTask.includes(job.status)) {
-      let title = '';
-      let message = '';
-      switch (job.type) {
-        case JobType.CF_REPROCESSING:
-          title = this.translate.instant('task.cancel-task-calculated-field-reprocessing-title');
-          message = this.translate.instant('task.cancel-task-calculated-field-reprocessing-text');
-          break;
-      }
-      this.dialogService.dialog.open<CancelTaskDialogComponent, CancelTaskDialogData, boolean>(CancelTaskDialogComponent, {
-        disableClose: true,
-        data: {
-          title,
-          message
-        },
-        panelClass: ['tb-fullscreen-dialog']
-      }).afterClosed().subscribe((result) => {
-        if (result) {
-          this.jobService.cancelJob(job.id.id).subscribe(() => {
-            this.config.getTable().updateData();
-          });
-        }
-      });
+      this.cancelTaskDialog($event, job);
     } else {
       this.dialogService.confirm(
         this.translate.instant('task.delete-task-title'),
@@ -341,5 +328,31 @@ export class TaskManagerTableConfigResolver {
         }
       });
     }
+  }
+
+  private cancelTaskDialog($event: Event, job: Job) {
+    $event?.stopPropagation();
+    let title = '';
+    let message = '';
+    switch (job.type) {
+      case JobType.CF_REPROCESSING:
+        title = this.translate.instant('task.cancel-task-calculated-field-reprocessing-title');
+        message = this.translate.instant('task.cancel-task-calculated-field-reprocessing-text');
+        break;
+    }
+    this.dialogService.dialog.open<CancelTaskDialogComponent, CancelTaskDialogData, boolean>(CancelTaskDialogComponent, {
+      disableClose: true,
+      data: {
+        title,
+        message
+      },
+      panelClass: ['tb-fullscreen-dialog']
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.jobService.cancelJob(job.id.id).subscribe(() => {
+          this.config.getTable().updateData();
+        });
+      }
+    });
   }
 }

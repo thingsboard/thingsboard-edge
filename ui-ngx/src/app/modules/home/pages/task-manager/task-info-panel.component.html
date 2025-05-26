@@ -51,6 +51,13 @@
         <span class="font-normal">{{ job.result.totalCount || 0 }}</span>
       </div>
       <mat-divider></mat-divider>
+      @if (job.status === JobStatus.CANCELLED) {
+        <div class="metrics my-3 flex justify-between gap-4">
+          <span>{{ 'task.discarded' | translate }}:</span>
+          <span class="font-normal">{{ job.result.discardedCount }}</span>
+        </div>
+        <mat-divider></mat-divider>
+      }
       <div class="metrics my-3 flex justify-between gap-4">
         <span class="success">{{ 'task.successful' | translate }}:</span>
         <span class="font-normal">{{ job.result.successfulCount }}</span>
@@ -72,5 +79,18 @@
             (click)="cancel()">
       {{ 'action.close' | translate }}
     </button>
+    <button mat-raised-button
+            *ngIf="job.status === JobStatus.FAILED"
+            color="primary"
+            type="button"
+            (click)="reprocess()">
+      {{ 'task.reprocess' | translate : {count: job.result.failedCount ?? 0} }}
+    </button>
+    <button mat-raised-button
+            *ngIf="job.status === JobStatus.RUNNING"
+            color="accent"
+            type="button"
+            (click)="cancelJob()">
+      {{ 'task.cancel-task' | translate }}</button>
   </div>
 </div>
