@@ -63,6 +63,11 @@ export class SecretStorageService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public updateSecretValue(secretId: string, value: string, config?: RequestConfig): Observable<void> {
+    return this.http.put<void>(`/api/secret/${secretId}/value`, value,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getSecretByName(name: string, config?: RequestConfig): Observable<SecretStorage> {
     return this.http.get<SecretStorage>(`/api/secret/${name}`, defaultHttpOptionsFromConfig(config));
   }

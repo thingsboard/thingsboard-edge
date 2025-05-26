@@ -1160,6 +1160,7 @@
         "name-required": "Name is required.",
         "description": "Description",
         "edit-description": "Edit description",
+        "set-description": "Set description",
         "types": {
             "text": "Text",
             "file": "File"
@@ -1196,7 +1197,8 @@
         "used-secret-title": "Secret is in use by other entities",
         "no-secrets-matching": "No secrets matching '{{entity}}' were found.",
         "no-secrets-found": "No secrets found.",
-        "use-secret": "Use secret"
+        "use-secret": "Use secret",
+        "change-value": "Change value"
     },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",

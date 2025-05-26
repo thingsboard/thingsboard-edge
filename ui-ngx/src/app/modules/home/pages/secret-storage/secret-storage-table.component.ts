@@ -42,7 +42,7 @@ import {
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { catchError, map } from 'rxjs/operators';
 import { parseHttpErrorMessage } from '@core/utils';
@@ -51,12 +51,12 @@ import {
   SecretResourceInfo,
   SecretStorage,
   SecretStorageInfo,
+  SecretStorageType,
   secretStorageTypeTranslationMap,
   toSecretDeleteResult
 } from '@shared/models/secret-storage.models';
 import { SecretStorageService } from '@core/http/secret-storage.service';
 import { SecretStorageTableHeaderComponent } from '@home/pages/secret-storage/secret-storage-table-header.component';
-import { SecretStorageComponent } from '@home/components/secret-storage/secret-storage.component';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import {
   EditSecretDescriptionPanelComponent
@@ -68,6 +68,14 @@ import {
 import { DialogService } from '@core/services/dialog.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { SecretsDatasource } from '@shared/components/secret-storage/secrets-datasource';
+import {
+  EditSecretValueDialogComponent,
+  EditSecretValueDialogData
+} from '@home/pages/secret-storage/edit-secret-value-dialog.component';
+import {
+  SecretStorageData,
+  SecretStorageDialogComponent
+} from '@shared/components/secret-storage/secret-storage-dialog.component';
 
 @Component({
   selector: 'tb-secret-storage-table',
@@ -105,11 +113,11 @@ export class SecretStorageTableComponent implements OnInit {
     this.secretStorageTableConfig.entitiesDeleteEnabled = false;
     this.secretStorageTableConfig.saveEntity = secret => this.secretStorageService.saveSecret(secret as SecretStorageInfo);
     const readonly = !this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.WRITE);
-    const allowDelete = !readonly && this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.DELETE);
-    this.secretStorageTableConfig.addEnabled = !readonly && this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.CREATE);
-    this.secretStorageTableConfig.entityComponent = SecretStorageComponent;
+    const allowDelete = this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.DELETE);
+    this.secretStorageTableConfig.addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.CREATE);
+    this.secretStorageTableConfig.addEntity = () => this.addSecret();
 
-    this.secretStorageTableConfig.cellActionDescriptors = this.configureCellActions(allowDelete);
+    this.secretStorageTableConfig.cellActionDescriptors = this.configureCellActions(allowDelete, readonly);
 
     this.secretStorageTableConfig.groupActionDescriptors = [{
       name: this.translate.instant('action.delete'),
@@ -119,13 +127,13 @@ export class SecretStorageTableComponent implements OnInit {
     }];
 
     this.secretStorageTableConfig.columns.push(
+      new EntityTableColumn<SecretStorage>('name', 'secret-storage.name', '40%', this.secretStorageTableConfig.entityTitle),
       new EntityTableColumn<SecretStorage>('type', 'secret-storage.type', '150px', (secret) => {
         return this.translate.instant(secretStorageTypeTranslationMap.get(secret.type));
       }),
-      new EntityTableColumn<SecretStorage>('name', 'secret-storage.name', '40%', this.secretStorageTableConfig.entityTitle),
       new EntityTableColumn<SecretStorage>('description', 'secret-storage.description', '60%',
-        (secret) => this.customTranslate.transform(secret?.description || ''),
-        () => ({}), false, () => ({}), () => undefined, false,
+        (secret) => secret?.description ? this.customTranslate.transform(secret?.description) : this.translate.instant('secret-storage.set-description'),
+        (secret) => (!secret?.description ? {color: 'rgba(0, 0, 0, 0.38)'} : {}), false, () => ({}), () => undefined, false,
         {
           name: this.translate.instant('secret-storage.edit-description'),
           icon: 'edit',
@@ -143,8 +151,16 @@ export class SecretStorageTableComponent implements OnInit {
     return false;
   }
 
-  private configureCellActions(allowDelete:boolean): Array<CellActionDescriptor<SecretStorage>> {
+  private configureCellActions(allowDelete: boolean, readonly: boolean): Array<CellActionDescriptor<SecretStorage>> {
     const actions: Array<CellActionDescriptor<SecretStorage>> = [];
+    actions.push(
+      {
+        name: this.translate.instant('secret-storage.change-value'),
+        icon: 'lock_reset',
+        isEnabled: () => !readonly,
+        onAction: ($event, entity) => this.changeValue($event, entity)
+      },
+    );
     actions.push(
       {
         name: this.translate.instant('action.delete'),
@@ -156,31 +172,68 @@ export class SecretStorageTableComponent implements OnInit {
     return actions;
   }
 
+  changeValue($event: Event, entity: SecretStorage) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialog.open<EditSecretValueDialogComponent, EditSecretValueDialogData, string>(EditSecretValueDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        type: entity.type
+      }
+    }).afterClosed()
+      .subscribe((value) => {
+        if (value) {
+          this.secretStorageService.updateSecretValue(entity.id.id, value).subscribe();
+        }
+      });
+  }
+
+  addSecret(): Observable<SecretStorage> {
+    return this.dialog.open<SecretStorageDialogComponent, SecretStorageData, SecretStorage>(SecretStorageDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        type: SecretStorageType.TEXT,
+        value: null,
+        fileName: null,
+        hideType: false,
+        onlyCreateNew: true
+      }
+    }).afterClosed().pipe(map(res => {
+      if (res) {
+        this.secretStorageTableConfig.updateData();
+      } else {
+        return null;
+      }
+    }));
+  }
+
   private updateSecretDescription($event: Event, secret: SecretStorage) {
     if ($event) {
       $event.stopPropagation();
-      const trigger = ($event.target || $event.srcElement || $event.currentTarget) as Element;
-      if (this.popoverService.hasPopover(trigger)) {
-        this.popoverService.hidePopover(trigger);
-      } else {
-        const editSecretDescriptionPanelPopover = this.popoverService.displayPopover({
-          trigger,
-          renderer: this.renderer,
-          componentType: EditSecretDescriptionPanelComponent,
-          hostView: this.viewContainerRef,
-          preferredPlacement: ['right', 'bottom', 'top'],
-          context: {
-            secretId: secret.id.id,
-            description: secret.description
-          },
-          isModal: true
-        });
-        editSecretDescriptionPanelPopover.tbComponentRef.instance.popover = editSecretDescriptionPanelPopover;
-        editSecretDescriptionPanelPopover.tbComponentRef.instance.descriptionApplied.subscribe(() => {
-          editSecretDescriptionPanelPopover.hide();
-          this.secretStorageTableConfig.updateData();
-        });
-      }
+    }
+    const trigger = ($event.target || $event.srcElement || $event.currentTarget) as Element;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const editSecretDescriptionPanelPopover = this.popoverService.displayPopover({
+        trigger,
+        renderer: this.renderer,
+        componentType: EditSecretDescriptionPanelComponent,
+        hostView: this.viewContainerRef,
+        preferredPlacement: ['right', 'bottom', 'top'],
+        context: {
+          secretId: secret.id.id,
+          description: secret.description
+        },
+        isModal: true
+      });
+      editSecretDescriptionPanelPopover.tbComponentRef.instance.descriptionApplied.subscribe(() => {
+        editSecretDescriptionPanelPopover.hide();
+        this.secretStorageTableConfig.updateData();
+      });
     }
   }
 

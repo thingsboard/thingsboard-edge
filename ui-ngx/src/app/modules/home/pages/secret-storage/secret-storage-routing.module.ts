@@ -29,7 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
 import { Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { MenuId } from '@core/services/menu.models';
@@ -48,6 +47,3 @@ export const secretsRoutes: Routes = [
     }
   }
 ];
-
-@NgModule({})
-export class SecretStorageRoutingModule { }

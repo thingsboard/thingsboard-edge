@@ -29,10 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  DestroyRef,
+  forwardRef,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -40,14 +47,12 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { coerceBoolean } from '@shared/decorators/coercion';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SecretStorageData,
   SecretStorageDialogComponent
-} from '@home/components/secret-storage/secret-storage-dialog.component';
+} from '@shared/components/secret-storage/secret-storage-dialog.component';
 import { parseSecret, SecretStorageType } from '@shared/models/secret-storage.models';
 import { SecretStorageService } from '@core/http/secret-storage.service';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -65,7 +70,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
     }
   ]
 })
-export class SecretKeyInputComponent extends PageComponent implements OnInit, ControlValueAccessor {
+export class SecretKeyInputComponent extends PageComponent implements OnInit, ControlValueAccessor, OnChanges {
 
   @Input()
   label: string;
@@ -73,24 +78,13 @@ export class SecretKeyInputComponent extends PageComponent implements OnInit, Co
   @Input()
   requiredText: string;
 
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
-  @Input()
-  set required(value: boolean) {
-    const newVal = coerceBooleanProperty(value);
-    if (this.requiredValue !== newVal) {
-      this.requiredValue = newVal;
-      this.updateValidators();
-    }
-  }
+  @Input({transform: booleanAttribute})
+  required: boolean = false;
 
   @Input()
   disabled: boolean;
 
-  @Input()
-  @coerceBoolean()
+  @Input({transform: booleanAttribute})
   readonly = false;
 
   secretStorageKey: string;
@@ -101,17 +95,16 @@ export class SecretKeyInputComponent extends PageComponent implements OnInit, Co
 
   public secretKeyFormGroup: UntypedFormGroup;
 
-  constructor(protected store: Store<AppState>,
-              private secretStorageService: SecretStorageService,
+  constructor(private secretStorageService: SecretStorageService,
               private userPermissionsService: UserPermissionsService,
               private dialog: MatDialog,
               private fb: UntypedFormBuilder,
               private destroyRef: DestroyRef) {
-    super(store);
+    super();
   }
 
   ngOnInit(): void {
-    this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.WRITE);
+    this.readonly = this.readonly || !this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.WRITE);
     this.secretKeyFormGroup = this.fb.group({
       secretKey: [null, this.required ? [Validators.required] : []]
     });
@@ -123,7 +116,16 @@ export class SecretKeyInputComponent extends PageComponent implements OnInit, Co
     });
   }
 
-  updateValidators() {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.required) {
+      const requiredChanges = changes.required;
+      if (!requiredChanges.firstChange && requiredChanges.currentValue !== requiredChanges.previousValue) {
+        this.updateValidators();
+      }
+    }
+  }
+
+  private updateValidators() {
     if (this.secretKeyFormGroup) {
       this.secretKeyFormGroup.get('secretKey').setValidators(this.required ? [Validators.required] : []);
       this.secretKeyFormGroup.get('secretKey').updateValueAndValidity();
@@ -149,23 +151,23 @@ export class SecretKeyInputComponent extends PageComponent implements OnInit, Co
   writeValue(value: string): void {
     const parsedSecret = parseSecret(value);
     if (parsedSecret) {
-      this.secretStorageService.getSecretByName(parsedSecret, {ignoreErrors: true}).subscribe(
-        () => {
+      this.secretStorageService.getSecretByName(parsedSecret, {ignoreErrors: true}).subscribe({
+        next: () => {
           this.secretStorageKey = parsedSecret;
           this.modelValue = value;
           this.secretKeyFormGroup.patchValue(
-            { secretKey: this.modelValue }, {emitEvent: false}
+            {secretKey: this.modelValue}, {emitEvent: false}
           );
         },
-        () => {
+        error: () => {
           this.secretStorageKey = null;
           this.modelValue = null;
           this.secretKeyFormGroup.patchValue(
-            { secretKey: this.modelValue }, {emitEvent: false}
+            {secretKey: this.modelValue}, {emitEvent: false}
           );
           this.secretKeyFormGroup.get('secretKey').markAsTouched();
         }
-      )
+      })
     } else {
       this.secretStorageKey = null;
       this.modelValue = value;
@@ -189,6 +191,7 @@ export class SecretKeyInputComponent extends PageComponent implements OnInit, Co
       $event.stopPropagation();
     }
     this.secretKeyFormGroup.get('secretKey').patchValue(null, {emitEvent: true});
+    this.secretKeyFormGroup.get('secretKey').markAsTouched();
   }
 
   openSecretKeyDialog($event: Event) {
@@ -200,7 +203,8 @@ export class SecretKeyInputComponent extends PageComponent implements OnInit, Co
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         type: SecretStorageType.TEXT,
-        value: this.secretKeyFormGroup.get('secretKey').value
+        value: this.secretKeyFormGroup.get('secretKey').value,
+        hideType: true
       }
     }).afterClosed()
       .subscribe((res) => {

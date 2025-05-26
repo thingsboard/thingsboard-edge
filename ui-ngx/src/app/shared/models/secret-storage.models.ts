@@ -73,18 +73,6 @@ export const secretStorageCreateTitleTranslationMap = new Map<SecretStorageType,
   ]
 );
 
-export function getSecretHelpLink(type?: SecretStorageType) {
-  let link = 'secretStorage';
-  if (type) {
-    if (type === SecretStorageType.TEXT_FILE) {
-      link = 'secretStorageText';
-    } else {
-      link = 'secretStorageFile';
-    }
-  }
-  return link;
-}
-
 export interface SecretWithReferences extends SecretStorage {
   references: any;
 }

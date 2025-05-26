@@ -34,18 +34,19 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { SecretStorageRoutingModule } from '@home/pages/secret-storage/secret-storage-routing.module';
 import { SecretStorageTableHeaderComponent } from '@home/pages/secret-storage/secret-storage-table-header.component';
 import { SecretStorageTableComponent } from '@home/pages/secret-storage/secret-storage-table.component';
 import {
   EditSecretDescriptionPanelComponent
 } from '@home/pages/secret-storage/edit-secret-description-panel.component';
+import { EditSecretValueDialogComponent } from '@home/pages/secret-storage/edit-secret-value-dialog.component';
 
 @NgModule({
   declarations: [
     SecretStorageTableComponent,
     SecretStorageTableHeaderComponent,
-    EditSecretDescriptionPanelComponent
+    EditSecretDescriptionPanelComponent,
+    EditSecretValueDialogComponent
   ],
   exports: [
   ],
@@ -53,8 +54,7 @@ import {
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    HomeDialogsModule,
-    SecretStorageRoutingModule
+    HomeDialogsModule
   ]
 })
 export class SecretStorageModule { }

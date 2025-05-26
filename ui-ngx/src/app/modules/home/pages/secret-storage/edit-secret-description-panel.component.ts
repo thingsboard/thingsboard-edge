@@ -30,7 +30,7 @@
 ///
 
 import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
-import { UntypedFormBuilder } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { SecretStorageService } from '@core/http/secret-storage.service';
 
@@ -48,15 +48,13 @@ export class EditSecretDescriptionPanelComponent implements OnInit {
   @Input()
   description: string;
 
-  @Input()
-  popover: TbPopoverComponent<EditSecretDescriptionPanelComponent>;
-
   @Output()
   descriptionApplied = new EventEmitter<string>();
 
-  descriptionFormControl = this.fb.control(null);
+  descriptionFormControl = this.fb.control<string>(null);
 
-  constructor(private fb: UntypedFormBuilder,
+  constructor(private fb: FormBuilder,
+              private popover: TbPopoverComponent<EditSecretDescriptionPanelComponent>,
               private secretStorageService: SecretStorageService) {}
 
   ngOnInit(): void {
@@ -64,7 +62,7 @@ export class EditSecretDescriptionPanelComponent implements OnInit {
   }
 
   cancel() {
-    this.popover?.hide();
+    this.popover.hide();
   }
 
   applyDescription() {

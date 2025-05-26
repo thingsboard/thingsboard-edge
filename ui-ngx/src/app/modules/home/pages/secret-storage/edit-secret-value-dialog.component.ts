@@ -29,58 +29,52 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-
-import { ChangeDetectorRef, Component, Inject, Input, Optional } from '@angular/core';
-import { EntityComponent } from '@home/components/entity/entity.component';
-import { AppState } from '@core/core.state';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
-import { TranslateService } from '@ngx-translate/core';
+import { Component, Inject, OnInit } from '@angular/core';
+import { DialogComponent } from '@shared/components/dialog.component';
+import { CMAssigneeType } from '@shared/models/custom-menu.models';
 import { Store } from '@ngrx/store';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { EntityType } from '@shared/models/entity-type.models';
-import { SecretStorage, SecretStorageInfo, SecretStorageType } from '@shared/models/secret-storage.models';
+import { AppState } from '@core/core.state';
+import { Router } from '@angular/router';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { TranslateService } from '@ngx-translate/core';
+import { SecretStorageType } from '@shared/models/secret-storage.models';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
+
+export interface EditSecretValueDialogData {
+  type: SecretStorageType;
+}
 
 @Component({
-  selector: 'tb-secret-storage',
-  templateUrl: './secret-storage.component.html',
+  selector: 'tb-edit-secret-value-dialog',
+  templateUrl: './edit-secret-value-dialog.component.html',
   styleUrls: []
 })
-export class SecretStorageComponent extends EntityComponent<SecretStorage> {
+export class EditSecretValueDialogComponent extends
+  DialogComponent<EditSecretValueDialogComponent, boolean> implements OnInit {
 
-  @Input()
-  hideType = false;
-
-  @Input()
-  fileName : string;
-
-  entityType = EntityType;
   SecretStorageType = SecretStorageType;
+  type: SecretStorageType = SecretStorageType.TEXT;
+
+  valueFormControl = this.fb.control(null, [Validators.required]);
 
   constructor(protected store: Store<AppState>,
-              protected translate: TranslateService,
-              @Optional() @Inject('entity') protected entityValue: SecretStorage,
-              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<SecretStorage>,
-              protected cd: ChangeDetectorRef,
-              public fb: UntypedFormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected router: Router,
+              private fb: UntypedFormBuilder,
+              @Inject(MAT_DIALOG_DATA) public data: EditSecretValueDialogData,
+              public dialogRef: MatDialogRef<EditSecretValueDialogComponent, boolean>,
+              public translate: TranslateService) {
+    super(store, router, dialogRef);
   }
 
-  buildForm(): UntypedFormGroup {
-    return this.fb.group({
-      type: [SecretStorageType.TEXT, []],
-      name: ['', [Validators.required]],
-      description: ['', []],
-      value: ['', [Validators.required]]
-    });
+  ngOnInit(): void {
+    this.type = this.data.type;
   }
 
-  updateForm(entity: SecretStorageInfo) {
-    this.entityForm.patchValue({
-      type: entity.type,
-      name: entity.name,
-      description: entity.description,
-      value: entity.value
-    });
+  cancel() {
+    this.dialogRef.close(false);
   }
 
+  submit() {
+    this.dialogRef.close(this.valueFormControl.value);
+  }
 }

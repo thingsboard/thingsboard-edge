@@ -29,16 +29,25 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { Observable, of } from 'rxjs';
+import { Observable, of, shareReplay } from 'rxjs';
 import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { PageLink } from '@shared/models/page/page-link';
 import { isDefinedAndNotNull } from '@core/utils';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { coerceBoolean } from '@shared/decorators/coercion';
 import { SecretStorage, SecretStorageType } from '@shared/models/secret-storage.models';
 import { SecretStorageService } from '@core/http/secret-storage.service';
+import { emptyPageData } from '@shared/models/page/page-data';
 
 @Component({
   selector: 'tb-secret-autocomplete',
@@ -48,7 +57,8 @@ import { SecretStorageService } from '@core/http/secret-storage.service';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SecretAutocompleteComponent),
     multi: true
-  }]
+  }],
+  encapsulation: ViewEncapsulation.None
 })
 export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit {
 
@@ -56,29 +66,24 @@ export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit
 
   private modelValue: string | null;
 
-  @Input()
+  @Input({required: true})
   secretType: SecretStorageType;
 
-  @Input()
-  labelText = 'secret-storage.autocomplete-title.text';
-
-  @Input()
-  requiredText = 'secret-storage.autocomplete-title.text-required';
-
-  @Input()
-  @coerceBoolean()
+  @Input({transform: booleanAttribute})
   required: boolean;
 
   @Input()
   disabled: boolean;
 
   @ViewChild('converterInput', {static: true}) converterInput: ElementRef<HTMLInputElement>;
-  @ViewChild('converterInput', {read: MatAutocompleteTrigger}) converterAutocomplete: MatAutocompleteTrigger;
+  @ViewChild('converterInput', {static: true, read: MatAutocompleteTrigger}) converterAutocomplete: MatAutocompleteTrigger;
+
+  labelText: string;
+  requiredText: string;
 
   filteredEntities: Observable<Array<SecretStorage>>;
 
   selectedSecret: string;
-  SecretStorageType = SecretStorageType;
 
   searchText = '';
 
@@ -88,6 +93,8 @@ export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit
 
   constructor(private secretStorageService: SecretStorageService,
               private fb: FormBuilder) {
+    this.labelText = this.secretType === SecretStorageType.TEXT ? 'secret-storage.autocomplete-title.text' : 'secret-storage.autocomplete-title.file';
+    this.requiredText = this.secretType === SecretStorageType.TEXT ? 'secret-storage.autocomplete-title.text-required' : 'secret-storage.autocomplete-title.file-required'
     this.selectSecretFormGroup = this.fb.group({
       secret: [null, [Validators.required]]
     });
@@ -106,19 +113,22 @@ export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit
         debounceTime(150),
         tap(value => {
           let modelValue;
-          if (typeof value === 'string' || !value) {
-            modelValue = null;
-          } else {
-            modelValue = value.name;
-          }
-          this.updateView(modelValue);
           if (value === null) {
             this.clear();
+          } else {
+            if (typeof value === 'string' || !value) {
+              modelValue = null;
+            } else {
+              modelValue = value.name;
+              this.selectedSecret = value.name;
+              this.converterInput.nativeElement.value = '';
+            }
+            this.updateView(modelValue);
           }
         }),
         map(value => value ? (typeof value === 'string' ? value.trim() : value.name) : ''),
         switchMap(name => this.fetchEntities(name)),
-        share()
+        shareReplay(1)
       );
   }
 
@@ -134,12 +144,12 @@ export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit
   writeValue(value: string | null): void {
     this.searchText = '';
     if (isDefinedAndNotNull(value)) {
-      this.secretStorageService.getSecrets(new PageLink(1, 0, value), {ignoreLoading: true}).subscribe(
+      this.secretStorageService.getSecretByName(value, {ignoreLoading: true}).subscribe(
         (secret) => {
-          if (secret.data) {
-            this.modelValue = secret.data[0].name;
-            this.selectedSecret = secret.data[0].name;
-            this.selectSecretFormGroup.get('secret').patchValue(secret.data[0], {emitEvent: false});
+          if (secret) {
+            this.modelValue = secret.name;
+            this.selectedSecret = secret.name;
+            this.selectSecretFormGroup.get('secret').patchValue(secret, {emitEvent: false});
           }
         }
       );
@@ -168,28 +178,19 @@ export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit
     return secret ? secret.name : undefined;
   }
 
-  select() {
-    this.selectedSecret = this.selectSecretFormGroup.get('secret').value?.name;
-    this.converterInput.nativeElement.value = '';
-  }
-
   private fetchEntities(searchText?: string): Observable<Array<SecretStorage>> {
     this.searchText = searchText;
     let limit = 50;
     const pageLink = new PageLink(limit, 0, this.searchText);
     return this.secretStorageService.getSecrets(pageLink, {ignoreLoading: true}).pipe(
-      catchError(() => of(null)),
+      catchError(() => of(emptyPageData<SecretStorage>())),
       map((data) => {
-          if (data) {
-            let entities: Array<SecretStorage>;
-            entities = data.data;
-            if (this.secretType) {
-              entities = entities.filter((secret) => secret.type === this.secretType);
-            }
-            return entities;
-          } else {
-            return [];
-          }
+        let entities: Array<SecretStorage>;
+        entities = data.data;
+        if (this.secretType) {
+          entities = entities.filter((secret) => secret.type === this.secretType);
+        }
+        return entities;
         }
       ));
   }

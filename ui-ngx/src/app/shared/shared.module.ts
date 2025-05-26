@@ -263,6 +263,8 @@ import { EntityKeyAutocompleteComponent } from '@shared/components/entity/entity
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
 import { SecretKeyInputComponent } from '@shared/components/secret-storage/secret-key-input.component';
 import { SecretFileInputComponent } from '@shared/components/secret-storage/secret-file-input.component';
+import { SecretStorageDialogComponent } from '@shared/components/secret-storage/secret-storage-dialog.component';
+import { SecretAutocompleteComponent } from '@shared/components/secret-storage/secret-autocomplete.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -498,7 +500,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     CustomMenuAutocompleteComponent,
     EntityKeyAutocompleteComponent,
     SecretKeyInputComponent,
-    SecretFileInputComponent
+    SecretFileInputComponent,
+    SecretStorageDialogComponent,
+    SecretAutocompleteComponent
   ],
   imports: [
     CommonModule,
@@ -784,7 +788,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     CustomMenuAutocompleteComponent,
     EntityKeyAutocompleteComponent,
     SecretKeyInputComponent,
-    SecretFileInputComponent
+    SecretFileInputComponent,
+    SecretStorageDialogComponent,
+    SecretAutocompleteComponent
   ]
 })
 export class SharedModule { }

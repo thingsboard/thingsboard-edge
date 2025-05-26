@@ -29,10 +29,19 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, DestroyRef, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  DestroyRef,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -40,18 +49,16 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SecretStorageData,
   SecretStorageDialogComponent
-} from '@home/components/secret-storage/secret-storage-dialog.component';
+} from '@shared/components/secret-storage/secret-storage-dialog.component';
 import { parseSecret, SecretStorageType } from '@shared/models/secret-storage.models';
 import { UtilsService } from '@core/services/utils.service';
 import { SecretStorageService } from '@core/http/secret-storage.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { coerceBoolean } from '@shared/decorators/coercion';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
@@ -66,7 +73,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
     }
   ]
 })
-export class SecretFileInputComponent extends PageComponent implements OnInit, ControlValueAccessor {
+export class SecretFileInputComponent extends PageComponent implements OnInit, ControlValueAccessor, OnChanges {
 
   @Input()
   label: string;
@@ -80,24 +87,13 @@ export class SecretFileInputComponent extends PageComponent implements OnInit, C
   @Input()
   inputId = this.utils.guid();
 
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
-  @Input()
-  set required(value: boolean) {
-    const newVal = coerceBooleanProperty(value);
-    if (this.requiredValue !== newVal) {
-      this.requiredValue = newVal;
-      this.updateValidators();
-    }
-  }
+  @Input({transform: booleanAttribute})
+  required: boolean = false;
 
   @Input()
   disabled: boolean;
 
-  @Input()
-  @coerceBoolean()
+  @Input({transform: booleanAttribute})
   readonly = false;
 
   @Output()
@@ -112,18 +108,17 @@ export class SecretFileInputComponent extends PageComponent implements OnInit, C
   public secretFileFormGroup: UntypedFormGroup;
 
 
-  constructor(protected store: Store<AppState>,
-              private dialog: MatDialog,
+  constructor(private dialog: MatDialog,
               private secretStorageService: SecretStorageService,
               private userPermissionsService: UserPermissionsService,
               private utils: UtilsService,
               private fb: UntypedFormBuilder,
               private destroyRef: DestroyRef) {
-    super(store);
+    super();
   }
 
   ngOnInit(): void {
-    this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.WRITE);
+    this.readonly = this.readonly || !this.userPermissionsService.hasGenericPermission(Resource.SECRET, Operation.WRITE);
     this.secretFileFormGroup = this.fb.group({
       secretFile: [null, this.required ? [Validators.required] : []]
     });
@@ -135,7 +130,16 @@ export class SecretFileInputComponent extends PageComponent implements OnInit, C
     });
   }
 
-  updateValidators() {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.required) {
+      const requiredChanges = changes.required;
+      if (!requiredChanges.firstChange && requiredChanges.currentValue !== requiredChanges.previousValue) {
+        this.updateValidators();
+      }
+    }
+  }
+
+  private updateValidators() {
     if (this.secretFileFormGroup) {
       this.secretFileFormGroup.get('secretFile').setValidators(this.required ? [Validators.required] : []);
       this.secretFileFormGroup.get('secretFile').updateValueAndValidity();
@@ -161,24 +165,24 @@ export class SecretFileInputComponent extends PageComponent implements OnInit, C
   writeValue(value: string): void {
     const parsedSecret = parseSecret(value);
     if (parsedSecret) {
-      this.secretStorageService.getSecretByName(parsedSecret, {ignoreErrors: true}).subscribe(
-        () => {
+      this.secretStorageService.getSecretByName(parsedSecret, {ignoreErrors: true}).subscribe({
+        next: () => {
           this.secretStorageFile = parsedSecret;
           this.modelValue = value;
           this.existingFileName = null;
           this.secretFileFormGroup.patchValue(
-            { secretFile: this.modelValue }, {emitEvent: false}
+            {secretFile: this.modelValue}, {emitEvent: false}
           );
         },
-        () => {
+        error: () => {
           this.secretStorageFile = null;
           this.modelValue = null;
           this.existingFileName = null;
           this.secretFileFormGroup.patchValue(
-            { secretFile: this.modelValue }, {emitEvent: true}
+            {secretFile: this.modelValue}, {emitEvent: true}
           );
         }
-      )
+      })
     } else {
       this.secretStorageFile = null;
       this.modelValue = value;
@@ -188,7 +192,7 @@ export class SecretFileInputComponent extends PageComponent implements OnInit, C
     }
   }
 
-  fileChanged($event) {
+  fileNameChange($event: any) {
     this.existingFileName = $event;
     this.fileNameChanged.emit(this.existingFileName);
   }
@@ -221,7 +225,8 @@ export class SecretFileInputComponent extends PageComponent implements OnInit, C
       data: {
         type: SecretStorageType.TEXT_FILE,
         value: this.secretFileFormGroup.get('secretFile').value,
-        fileName: this.existingFileName
+        fileName: this.existingFileName,
+        hideType: true
       }
     }).afterClosed()
       .subscribe((res) => {
