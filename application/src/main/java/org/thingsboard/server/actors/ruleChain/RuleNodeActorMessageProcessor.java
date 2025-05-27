@@ -53,9 +53,6 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
-import org.thingsboard.server.service.component.RuleNodeClassInfo;
-
-import java.util.Optional;
 
 /**
  * @author Andrew Shvayka
@@ -80,12 +77,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         this.componentService = systemContext.getComponentService();
         this.ruleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);
         this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, getName(ruleNode));
-
-        var config = ruleNode.getConfiguration();
-        Optional<RuleNodeClassInfo> ruleNodeClassInfoOpt = componentService.getRuleNodeInfo(ruleNode.getType());
-        if (ruleNodeClassInfoOpt.map(info -> info.getAnnotation().hasSecrets()).orElse(false)) {
-            config = systemContext.getSecretConfigurationService().replaceSecretPlaceholders(tenantId, ruleNode.getConfiguration());
-        }
+        var config = replaceSecretPlaceholders(ruleNode.getType(), ruleNode.getConfiguration());
         this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, selfActor, ruleNode, config));
     }
 
@@ -207,12 +199,8 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         if (ruleNode != null) {
             Class<?> componentClazz = Class.forName(ruleNode.getType());
             tbNode = (TbNode) (componentClazz.getDeclaredConstructor().newInstance());
-            JsonNode ruleNodeConfig = ruleNode.getConfiguration();
-            Optional<RuleNodeClassInfo> ruleNodeClassInfoOpt = componentService.getRuleNodeInfo(ruleNode.getType());
-            if (ruleNodeClassInfoOpt.isPresent() && ruleNodeClassInfoOpt.get().getAnnotation().hasSecrets()) {
-                ruleNodeConfig = defaultCtx.getSecretConfigurationService().replaceSecretPlaceholders(tenantId, ruleNodeConfig);
-            }
-            tbNode.init(defaultCtx, new TbNodeConfiguration(ruleNodeConfig));
+            var config = replaceSecretPlaceholders(ruleNode.getType(), ruleNode.getConfiguration());
+            tbNode.init(defaultCtx, new TbNodeConfiguration(config));
         }
         return tbNode;
     }
@@ -253,6 +241,13 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         if (DebugModeUtil.isDebugAllAvailable(ruleNode)) {
             systemContext.persistDebugInput(tenantId, entityId, msg, fromNodeConnectionType);
         }
+    }
+
+    private JsonNode replaceSecretPlaceholders(String type, JsonNode config) {
+        if (componentService.getRuleNodeInfo(type).map(info -> info.getAnnotation().hasSecrets()).orElse(false)) {
+            return systemContext.getSecretConfigurationService().replaceSecretPlaceholders(tenantId, ruleNode.getConfiguration());
+        }
+        return config;
     }
 
 }
