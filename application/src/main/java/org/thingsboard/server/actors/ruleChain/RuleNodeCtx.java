@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.actors.ruleChain;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import org.thingsboard.server.actors.TbActorCtx;
 import org.thingsboard.server.actors.TbActorRef;
@@ -45,9 +46,10 @@ public final class RuleNodeCtx {
     private final TbActorRef chainActor;
     private final TbActorRef selfActor;
     private RuleNode self;
+    private JsonNode configuration;
 
     RuleNodeCtx(TenantId tenantId, TbActorCtx selfActor, RuleNode self) {
-        this(tenantId, selfActor.getParentRef(), selfActor, self);
+        this(tenantId, selfActor.getParentRef(), selfActor, self, self.getConfiguration());
     }
 
     RuleNodeCtx(TenantId tenantId, TbActorRef chainActor, TbActorRef selfActor, RuleNode self) {
@@ -55,6 +57,15 @@ public final class RuleNodeCtx {
         this.chainActor = chainActor;
         this.selfActor = selfActor;
         this.self = self;
+        this.configuration = self.getConfiguration();
+    }
+
+    RuleNodeCtx(TenantId tenantId, TbActorRef chainActor, TbActorRef selfActor, RuleNode self, JsonNode configuration) {
+        this.tenantId = tenantId;
+        this.chainActor = chainActor;
+        this.selfActor = selfActor;
+        this.self = self;
+        this.configuration = configuration;
     }
 
 }

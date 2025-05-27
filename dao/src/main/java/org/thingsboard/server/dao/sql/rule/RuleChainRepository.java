@@ -36,6 +36,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.edqs.fields.RuleChainFields;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.ExportableEntityRepository;
@@ -91,11 +92,11 @@ public interface RuleChainRepository extends JpaRepository<RuleChainEntity, UUID
             "r.name, r.version, r.additionalInfo) FROM RuleChainEntity r WHERE r.id > :id ORDER BY r.id")
     List<RuleChainFields> findNextBatch(@Param("id") UUID id, Limit limit);
 
-    @Query("SELECT DISTINCT rc FROM RuleChainEntity rc INNER JOIN RuleNodeEntity r ON rc.id = r.ruleChainId " +
+    @Query("SELECT DISTINCT new org.thingsboard.server.common.data.EntityInfo(rc.id, 'RULE_CHAIN', rc.name) FROM RuleChainEntity rc INNER JOIN RuleNodeEntity r ON rc.id = r.ruleChainId " +
             "INNER JOIN ComponentDescriptorEntity cd ON r.type = cd.clazz WHERE rc.tenantId = :tenantId " +
             "AND cd.hasSecrets = true AND ilike(r.configuration, CONCAT('%', :placeholder, '%'))")
-    List<RuleChainEntity> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
-                                                             @Param("placeholder") String placeholder);
+    List<EntityInfo> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
+                                                        @Param("placeholder") String placeholder);
 
     List<RuleChainEntity> findRuleChainsByTenantIdAndIdIn(UUID tenantId, List<UUID> ruleChainIds);
 

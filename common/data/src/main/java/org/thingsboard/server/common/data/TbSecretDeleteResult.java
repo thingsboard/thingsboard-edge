@@ -32,16 +32,14 @@ package org.thingsboard.server.common.data;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.id.HasId;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
 public class TbSecretDeleteResult {
 
     private boolean success;
-    private Map<EntityType, List<? extends HasId<?>>> references;
+    private List<EntityInfo> references;
 
 }

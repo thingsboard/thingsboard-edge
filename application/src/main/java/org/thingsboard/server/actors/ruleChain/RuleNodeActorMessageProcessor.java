@@ -101,10 +101,9 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
             this.info = new RuleNodeInfo(entityId, ruleChainName, getName(newRuleNode));
             boolean restartRequired = state != ComponentLifecycleState.ACTIVE ||
                     !(ruleNode.getType().equals(newRuleNode.getType()) &&
-                            ruleNode.getConfiguration().equals(newRuleNode.getConfiguration())) ||
-                    defaultCtx.getSecretConfigurationService().containsSecretPlaceholder(newRuleNode.getConfiguration());
+                            ruleNode.getConfiguration().equals(newRuleNode.getConfiguration()));
             this.ruleNode = newRuleNode;
-            this.defaultCtx.updateSelf(newRuleNode);
+            restartRequired = restartRequired || this.defaultCtx.updateSelf(newRuleNode);
             if (restartRequired) {
                 if (tbNode != null) {
                     tbNode.destroy();

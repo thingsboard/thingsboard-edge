@@ -183,23 +183,8 @@ public class EntityStateSourcingListener {
                     break;
                 }
                 Secret secret = (Secret) event.getEntity();
-                var result = secretService.findEntitiesBySecret(tenantId, secret);
-
-                result.forEach((type, entities) -> {
-                    switch (type) {
-                        case RULE_CHAIN -> {
-                            entities.stream().filter(RuleChain.class::isInstance).map(RuleChain.class::cast)
-                                    .filter(rc -> RuleChainType.CORE.equals(rc.getType()))
-                                    .forEach(rc -> tbClusterService.broadcastEntityStateChangeEvent(rc.getTenantId(), rc.getId(), lifecycleEvent));
-                        }
-                        case INTEGRATION -> {
-                            entities.stream().filter(Integration.class::isInstance).map(Integration.class::cast)
-                                    .filter(integration -> !integration.isEdgeTemplate())
-                                    .forEach(integration -> tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), lifecycleEvent));
-                        }
-                        default -> log.debug("Secret placeholder used in unsupported entity type: {}", type);
-                    }
-                });
+                var entityInfos = secretService.findEntitiesBySecret(tenantId, secret);
+                entityInfos.forEach(entityInfo -> tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityInfo.getId(), lifecycleEvent));
             }
             default -> {}
         }

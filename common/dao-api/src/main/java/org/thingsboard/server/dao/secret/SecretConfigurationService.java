@@ -39,6 +39,4 @@ public interface SecretConfigurationService {
 
     <T> T replaceSecretPlaceholders(TenantId tenantId, T config);
 
-    boolean containsSecretPlaceholder(JsonNode config);
-
 }

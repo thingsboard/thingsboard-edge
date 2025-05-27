@@ -83,18 +83,4 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
         return JacksonUtil.treeToValue(replaced, (Class<T>) config.getClass());
     }
 
-    @Override
-    public boolean containsSecretPlaceholder(JsonNode config) {
-        boolean[] result = {false};
-        JacksonUtil.replaceAll(config, "", (path, value) -> {
-            Matcher matcher = SECRET_PATTERN.matcher(value);
-            if (matcher.find()) {
-                result[0] = true;
-                return value;
-            }
-            return value;
-        });
-        return result[0];
-    }
-
 }

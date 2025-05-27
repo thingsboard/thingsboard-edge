@@ -34,6 +34,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbSecretDeleteResult;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -53,6 +54,7 @@ import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.sql.HasSecretsEntityDao;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,14 +202,12 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     }
 
     @Override
-    public Map<EntityType, List<? extends HasId<?>>> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo) {
-        Map<EntityType, List<? extends HasId<?>>> affectedEntities = new HashMap<>();
+    public List<EntityInfo> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo) {
+        List<EntityInfo> affectedEntities = new ArrayList<>();
         String placeholder = String.format("${secret:%s;type:%s}", secretInfo.getName(), secretInfo.getType());
         hasSecretsEntityDaoMap.forEach((entityType, hasSecretsEntityDao) -> {
             var entities = hasSecretsEntityDao.findByTenantIdAndSecretPlaceholder(tenantId, placeholder);
-            if (!entities.isEmpty()) {
-                affectedEntities.put(entityType, entities);
-            }
+            affectedEntities.addAll(entities);
         });
         return affectedEntities;
     }
