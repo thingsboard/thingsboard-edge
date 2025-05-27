@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.job;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -92,9 +94,9 @@ public class DefaultJobManager implements JobManager {
     }
 
     @Override
-    public Job submitJob(Job job) {
+    public ListenableFuture<Job> submitJob(Job job) {
         log.debug("Submitting job: {}", job);
-        return jobService.saveJob(job.getTenantId(), job);
+        return Futures.submit(() -> jobService.saveJob(job.getTenantId(), job), executor);
     }
 
     @Override

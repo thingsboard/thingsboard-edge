@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
@@ -64,12 +65,14 @@ import org.thingsboard.server.common.data.query.EntityFilterType;
 import org.thingsboard.server.common.data.query.EntityGroupListFilter;
 import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 import org.thingsboard.server.common.data.query.EntityKey;
+import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.data.query.EntityNameFilter;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
+import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.common.msg.edqs.EdqsApiService;
 import org.thingsboard.server.common.stats.EdqsStatsService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -79,14 +82,17 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.sql.alarm.AlarmRepository;
 import org.thingsboard.server.dao.sql.query.EntityMapping;
 import org.thingsboard.server.dao.user.UserService;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -394,6 +400,30 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         return fetchAndConvert(tenantId, entityId, Function.identity());
     }
 
+    @Override
+    public Map<EntityId, EntityInfo> fetchEntityInfos(TenantId tenantId, CustomerId customerId, Set<EntityId> entityIds, MergedUserPermissions userPermissions) {
+        Map<EntityId, EntityInfo> infos = new HashMap<>();
+        entityIds.stream()
+                .collect(Collectors.groupingBy(EntityId::getEntityType))
+                .forEach((entityType, ids) -> {
+                    EntityListFilter filter = new EntityListFilter();
+                    filter.setEntityType(entityType);
+                    filter.setEntityList(ids.stream().map(Object::toString).toList());
+                    EntityDataQuery query = new EntityDataQuery(filter, new EntityDataPageLink(ids.size(), 0, null, null),
+                            List.of(new EntityKey(EntityKeyType.ENTITY_FIELD, ModelConstants.NAME_PROPERTY)), Collections.emptyList(), Collections.emptyList());
+
+                    entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, query).getData().forEach(entityData -> {
+                        EntityId entityId = entityData.getEntityId();
+                        Optional.ofNullable(entityData.getLatest().get(EntityKeyType.ENTITY_FIELD))
+                                .map(fields -> fields.get(ModelConstants.NAME_PROPERTY))
+                                .map(TsValue::getValue).ifPresent(name -> {
+                                    infos.put(entityId, new EntityInfo(entityId, name));
+                                });
+                    });
+                });
+        return infos;
+    }
+
     private <T> Optional<T> fetchAndConvert(TenantId tenantId, EntityId entityId, Function<HasId<?>, T> converter) {
         EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(entityId.getEntityType());
         Optional<HasId<?>> entityOpt = entityDaoService.findEntity(tenantId, entityId);
@@ -498,7 +528,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         }
 
         if ((query.getEntityFields() == null || query.getEntityFields().isEmpty()) &&
-                (query.getLatestValues() == null || query.getLatestValues().isEmpty())) {
+            (query.getLatestValues() == null || query.getLatestValues().isEmpty())) {
             return false;
         }
 
