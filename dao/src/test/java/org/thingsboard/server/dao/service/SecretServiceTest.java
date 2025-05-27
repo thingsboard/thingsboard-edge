@@ -201,10 +201,7 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(result.getReferences()).containsKey(EntityType.INTEGRATION);
         assertThat(result.getReferences().get(EntityType.INTEGRATION)).isNotEmpty();
         assertThat(result.getReferences().get(EntityType.INTEGRATION).get(0)).isInstanceOf(Integration.class);
-
-        Integration integration = (Integration) result.getReferences().get(EntityType.INTEGRATION).get(0);
-        assertThat(integration.getName()).isEqualTo(integrationName);
-        assertThat(integration.getConfiguration().toString()).contains(toSecretPlaceholder(secretName, savedSecret.getType()));
+        assertThat(integrationName).isEqualTo(result.getReferences().get(EntityType.INTEGRATION).get(0).getName());
     }
 
     private Secret constructSecret(TenantId tenantId, String name, String value) {

@@ -80,6 +80,7 @@ import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.TbQueueCallback;
 
+import java.util.List;
 import java.util.Set;
 
 @Slf4j
@@ -184,7 +185,8 @@ public class EntityStateSourcingListener {
                 }
                 Secret secret = (Secret) event.getEntity();
                 var entityInfos = secretService.findEntitiesBySecret(tenantId, secret);
-                entityInfos.forEach(entityInfo -> tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityInfo.getId(), lifecycleEvent));
+                entityInfos.values().stream().flatMap(List::stream).forEach(entityInfo ->
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityInfo.getId(), lifecycleEvent));
             }
             default -> {}
         }

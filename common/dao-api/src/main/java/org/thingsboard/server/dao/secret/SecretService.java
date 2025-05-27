@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.secret;
 
 import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbSecretDeleteResult;
 import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -41,6 +42,7 @@ import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SecretService extends EntityDaoService {
 
@@ -60,6 +62,6 @@ public interface SecretService extends EntityDaoService {
 
     PageData<SecretInfo> findSecretInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
-    List<EntityInfo> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo);
+    Map<EntityType, List<EntityInfo>> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo);
 
 }

@@ -34,12 +34,13 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
 public class TbSecretDeleteResult {
 
     private boolean success;
-    private List<EntityInfo> references;
+    private Map<EntityType, List<EntityInfo>> references;
 
 }

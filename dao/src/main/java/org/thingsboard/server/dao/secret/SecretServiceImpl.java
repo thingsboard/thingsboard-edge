@@ -54,7 +54,6 @@ import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.sql.HasSecretsEntityDao;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -202,12 +201,14 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     }
 
     @Override
-    public List<EntityInfo> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo) {
-        List<EntityInfo> affectedEntities = new ArrayList<>();
+    public Map<EntityType, List<EntityInfo>> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo) {
+        Map<EntityType, List<EntityInfo>> affectedEntities = new HashMap<>();
         String placeholder = String.format("${secret:%s;type:%s}", secretInfo.getName(), secretInfo.getType());
         hasSecretsEntityDaoMap.forEach((entityType, hasSecretsEntityDao) -> {
             var entities = hasSecretsEntityDao.findByTenantIdAndSecretPlaceholder(tenantId, placeholder);
-            affectedEntities.addAll(entities);
+            if (!entities.isEmpty()) {
+                affectedEntities.put(entityType, entities);
+            }
         });
         return affectedEntities;
     }
