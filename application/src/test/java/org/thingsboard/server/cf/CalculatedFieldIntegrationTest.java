@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.job.Job;
@@ -568,7 +569,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         CalculatedField savedCalculatedField = createCalculatedField(testDevice.getId(), testAsset.getId());
 
-        doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "?startTs={startTs}&endTs={endTs}", startTs, endTs);
+        reprocessCalculatedField(savedCalculatedField, startTs, endTs);
 
         await().alias("reprocess -> perform calculation for time window").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
@@ -597,6 +598,8 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(1);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(1);
+            assertThat(cfReprocessingJob.getEntityId()).isEqualTo(testDevice.getId());
+            assertThat(cfReprocessingJob.getEntityName()).isEqualTo(testDevice.getName());
         });
     }
 
@@ -646,7 +649,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         CalculatedField savedCalculatedField = createCalculatedField(deviceProfile.getId(), testAsset.getId());
 
-        doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "?startTs={startTs}&endTs={endTs}", startTs, endTs);
+        reprocessCalculatedField(savedCalculatedField, startTs, endTs);
 
         await().alias("reprocess -> perform calculation for device 1").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
@@ -691,6 +694,8 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
+            assertThat(cfReprocessingJob.getEntityId()).isEqualTo(deviceProfile.getId());
+            assertThat(cfReprocessingJob.getEntityName()).isEqualTo(deviceProfile.getName());
         });
     }
 
@@ -744,7 +749,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         CalculatedField savedCalculatedField = createScriptCalculatedField(deviceProfile.getId(), testAsset.getId());
 
-        doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "?startTs={startTs}&endTs={endTs}", startTs, endTs);
+        reprocessCalculatedField(savedCalculatedField, startTs, endTs);
 
         await().alias("reprocess -> perform calculation for device 1").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
@@ -783,6 +788,8 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
+            assertThat(cfReprocessingJob.getEntityId()).isEqualTo(deviceProfile.getId());
+            assertThat(cfReprocessingJob.getEntityName()).isEqualTo(deviceProfile.getName());
         });
     }
 
@@ -824,10 +831,10 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
         doReturn(Futures.immediateFailedFuture(new RuntimeException("Failed to fetch timeseries data")))
                 .when(timeseriesService).findAll(any(), any(), any());
 
-        doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "?startTs={startTs}&endTs={endTs}", startTs, endTs);
+        reprocessCalculatedField(savedCalculatedField, startTs, endTs);
 
         await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-            Job cfReprocessingJob = findJobs(List.of(JobType.CF_REPROCESSING), List.of(deviceProfile.getUuidId())).stream().findFirst().orElseThrow();
+            Job cfReprocessingJob = getLastReprocessingJob(savedCalculatedField.getId());
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.FAILED);
             assertThat(cfReprocessingJob.getResult().getFailedCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
@@ -850,7 +857,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         // fixing the method and reprocessing the job
         doCallRealMethod().when(timeseriesService).findAll(any(), any(), any());
-        Job job = findJobs(List.of(JobType.CF_REPROCESSING), List.of(deviceProfile.getUuidId())).stream().findFirst().orElseThrow();
+        Job job = getLastReprocessingJob(savedCalculatedField.getId());
         reprocessJob(job.getId());
 
         await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
@@ -858,6 +865,8 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
             assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
             assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(2);
             assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(2);
+            assertThat(cfReprocessingJob.getEntityId()).isEqualTo(deviceProfile.getId());
+            assertThat(cfReprocessingJob.getEntityName()).isEqualTo(deviceProfile.getName());
         });
         await().alias("reprocess -> perform calculation for device 1").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
@@ -919,7 +928,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         CalculatedField savedCalculatedField = doPost("/api/calculatedField", calculatedField, CalculatedField.class);
 
-        var response = doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "/validate", CFReprocessingValidationResponse.class);
+        var response = doGet("/api/calculatedField/" + savedCalculatedField.getUuidId() + "/reprocess/validate", CFReprocessingValidationResponse.class);
 
         assertThat(response.isValid()).isFalse();
         assertThat(response.message()).contains(CalculatedFieldReprocessingValidator.NO_TELEMETRY_ARGS);
@@ -937,9 +946,9 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
         long endTs = currentTime - TimeUnit.SECONDS.toMillis(45);
 
         CalculatedField savedCalculatedField = createCalculatedField(testDevice.getId(), testAsset.getId());
-        doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "?startTs={startTs}&endTs={endTs}", startTs, endTs);
+        reprocessCalculatedField(savedCalculatedField, startTs, endTs);
 
-        var response = doGet("/api/calculatedField/reprocess/" + savedCalculatedField.getUuidId() + "/validate", CFReprocessingValidationResponse.class);
+        var response = doGet("/api/calculatedField/" + savedCalculatedField.getUuidId() + "/reprocess/validate", CFReprocessingValidationResponse.class);
 
         assertThat(response.isValid()).isFalse();
         assertThat(response.lastJobStatus().isOneOf(QUEUED, PENDING, RUNNING)).isTrue();
@@ -1040,6 +1049,14 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
         deviceData.setConfiguration(new DefaultDeviceConfiguration());
         device.setDeviceData(deviceData);
         return doPost("/api/device?accessToken=" + accessToken, device, Device.class);
+    }
+
+    private Job reprocessCalculatedField(CalculatedField savedCalculatedField, long startTs, long endTs) throws Exception {
+        return doGet("/api/calculatedField/" + savedCalculatedField.getUuidId() + "/reprocess?startTs={startTs}&endTs={endTs}", Job.class, startTs, endTs);
+    }
+
+    private Job getLastReprocessingJob(CalculatedFieldId calculatedFieldId) throws Exception {
+        return doGet("/api/calculatedField/" + calculatedFieldId.getId() + "/reprocess/job", Job.class);
     }
 
 }
