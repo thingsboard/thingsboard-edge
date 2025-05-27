@@ -28,20 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edqs;
+package org.thingsboard.server.edqs.util;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.edqs.EdqsObject;
+import org.thingsboard.server.common.data.edqs.EdqsObjectKey;
 
-public interface EdqsObject {
+public interface EdqsMapper {
 
-    @JsonIgnore
-    String stringKey();
+    <T extends EdqsObject> byte[] serialize(T value);
 
-    @JsonIgnore
-    Long version();
+    EdqsObject deserialize(ObjectType type, byte[] bytes, boolean onlyKey);
 
-    @JsonIgnore
-    ObjectType type();
+    <T extends EdqsObject> EdqsObjectKey getKey(T object);
 
 }

@@ -33,6 +33,7 @@ package org.thingsboard.server.common.data.edqs;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 
 @Getter
@@ -41,23 +42,14 @@ import org.apache.commons.lang3.BooleanUtils;
 public class EdqsState {
 
     private Boolean edqsReady;
+    @Setter
     private EdqsSyncStatus syncStatus;
-
-    private Boolean apiEnabled; // null until auto-enabled or set manually
+    @Setter
+    private EdqsApiMode apiMode;
 
     public boolean setEdqsReady(boolean ready) {
         boolean changed = BooleanUtils.toBooleanDefaultIfNull(this.edqsReady, false) != ready;
         this.edqsReady = ready;
-        return changed;
-    }
-
-    public void setSyncStatus(EdqsSyncStatus syncStatus) {
-        this.syncStatus = syncStatus;
-    }
-
-    public boolean setApiEnabled(boolean apiEnabled) {
-        boolean changed = BooleanUtils.toBooleanDefaultIfNull(this.apiEnabled, false) != apiEnabled;
-        this.apiEnabled = apiEnabled;
         return changed;
     }
 
@@ -66,7 +58,7 @@ public class EdqsState {
     }
 
     public boolean isApiEnabled() {
-        return apiEnabled != null && apiEnabled;
+        return apiMode != null && (apiMode == EdqsApiMode.ENABLED || apiMode == EdqsApiMode.AUTO_ENABLED);
     }
 
     @Override
@@ -74,7 +66,7 @@ public class EdqsState {
         return '[' +
                "EDQS ready: " + edqsReady +
                ", sync status: " + syncStatus +
-               ", API enabled: " + apiEnabled +
+               ", API mode: " + apiMode +
                ']';
     }
 
@@ -83,6 +75,13 @@ public class EdqsState {
         STARTED,
         FINISHED,
         FAILED
+    }
+
+    public enum EdqsApiMode {
+        ENABLED,
+        AUTO_ENABLED,
+        DISABLED,
+        AUTO_DISABLED
     }
 
 }

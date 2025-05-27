@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.EdqsEventType;
 import org.thingsboard.server.common.data.edqs.EdqsObject;
 import org.thingsboard.server.common.data.edqs.EdqsState;
+import org.thingsboard.server.common.data.edqs.EdqsState.EdqsApiMode;
 import org.thingsboard.server.common.data.edqs.EdqsState.EdqsSyncStatus;
 import org.thingsboard.server.common.data.edqs.EdqsSyncRequest;
 import org.thingsboard.server.common.data.edqs.Entity;
@@ -71,7 +72,8 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.edqs.processor.EdqsProducer;
 import org.thingsboard.server.edqs.state.EdqsPartitionService;
-import org.thingsboard.server.edqs.util.EdqsConverter;
+import org.thingsboard.server.edqs.util.DefaultEdqsMapper;
+import org.thingsboard.server.edqs.util.EdqsMapper;
 import org.thingsboard.server.gen.transport.TransportProtos.EdqsEventMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
@@ -98,7 +100,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultEdqsService implements EdqsService {
 
     private final EdqsClientQueueFactory queueFactory;
-    private final EdqsConverter edqsConverter;
+    private final EdqsMapper edqsMapper;
     private final EdqsSyncService edqsSyncService;
     private final EdqsApiService edqsApiService;
     private final DistributedLockService distributedLockService;
@@ -198,7 +200,12 @@ public class DefaultEdqsService implements EdqsService {
             log.info("Processing system msg {}", msg);
             try {
                 if (msg.getApiEnabled() != null) {
-                    state.setApiEnabled(msg.getApiEnabled());
+                    if (msg.getApiEnabled()) {
+                        state.setApiMode(EdqsApiMode.ENABLED);
+                    } else {
+                        state.setApiMode(EdqsApiMode.DISABLED);
+                    }
+                    log.info("New state: {}", state);
                 }
                 if (msg.getEdqsReady() != null) {
                     onEdqsReady(msg.getEdqsReady());
@@ -268,8 +275,8 @@ public class DefaultEdqsService implements EdqsService {
 
         if (state.isApiReady()) {
             if (autoEnableApi) {
-                if (state.getApiEnabled() == null) {
-                    state.setApiEnabled(true);
+                if (state.getApiMode() == null || state.getApiMode() == EdqsApiMode.AUTO_DISABLED) {
+                    state.setApiMode(EdqsApiMode.AUTO_ENABLED);
                     log.info("New state: {}. Auto-enabled EDQS API", state);
                 } else {
                     log.info("New state: {}. API mode left as is", state);
@@ -279,7 +286,7 @@ public class DefaultEdqsService implements EdqsService {
             }
         } else {
             if (state.isApiEnabled()) {
-                state.setApiEnabled(false);
+                state.setApiMode(EdqsApiMode.AUTO_DISABLED);
                 log.info("New state: {}. Disabled EDQS API", state);
             } else {
                 log.info("New state: {}. API left disabled", state);
@@ -300,7 +307,7 @@ public class DefaultEdqsService implements EdqsService {
             log.trace("[{}][{}] Ignoring update event, type {} not supported", tenantId, entityId, entityType);
             return;
         }
-        onUpdate(tenantId, objectType, edqsConverter.toEntity(entityType, entity));
+        onUpdate(tenantId, objectType, DefaultEdqsMapper.toEntity(entityType, entity));
     }
 
     @Override
@@ -331,12 +338,11 @@ public class DefaultEdqsService implements EdqsService {
     protected void processEvent(TenantId tenantId, ObjectType objectType, EdqsEventType eventType, EdqsObject object) {
         executor.submit(() -> {
             try {
-                String key = object.key();
+                String key = object.stringKey();
                 Long version = object.version();
                 EdqsEventMsg.Builder eventMsg = EdqsEventMsg.newBuilder()
-                        .setKey(key)
                         .setObjectType(objectType.name())
-                        .setData(ByteString.copyFrom(edqsConverter.serialize(objectType, object)))
+                        .setData(ByteString.copyFrom(edqsMapper.serialize(object)))
                         .setEventType(eventType.name());
                 if (version != null) {
                     eventMsg.setVersion(version);
