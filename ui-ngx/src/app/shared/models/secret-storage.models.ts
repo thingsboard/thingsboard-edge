@@ -94,16 +94,12 @@ export const toSecretDeleteResult = (resource: SecretStorage, e?: any): SecretDe
     const result: SecretDeleteResult = {resource, success: false, error: e};
     if (e?.status === 400 && e?.error?.success === false && e?.error?.references) {
       const entityReferences: {[entityType: string]: Array<BaseData<HasId>>} = e?.error?.references;
-      const whiteLabelingList: Array<WhiteLabeling> = e?.error?.whiteLabelingList;
       const references: ResourceReferences = [];
       if (entityReferences) {
         for (const entityTypeStr of Object.keys(entityReferences)) {
           const entities = entityReferences[entityTypeStr];
           references.push.apply(references, entities);
         }
-      }
-      if (whiteLabelingList) {
-        references.push.apply(references, whiteLabelingList);
       }
       result.resourceIsReferencedError = true;
       result.references = references;
