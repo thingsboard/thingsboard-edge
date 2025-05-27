@@ -303,7 +303,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
 
     @Override
     public String getObjectIdByKeyNameFromProfile(LwM2mClient client, String keyName) {
-        Lwm2mDeviceProfileTransportConfiguration profile = getProfile(client.getProfileId());
+        Lwm2mDeviceProfileTransportConfiguration profile = getProfile(client.getRegistration());
         for (Map.Entry<String, String> entry : profile.getObserveAttr().getKeyName().entrySet()) {
             String k = entry.getKey();
             String v = entry.getValue();
@@ -361,7 +361,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
     private PowerMode getPowerMode(LwM2mClient lwM2MClient) {
         PowerMode powerMode = lwM2MClient.getPowerMode();
         if (powerMode == null) {
-            Lwm2mDeviceProfileTransportConfiguration deviceProfile = getProfile(lwM2MClient.getProfileId());
+            Lwm2mDeviceProfileTransportConfiguration deviceProfile = getProfile(lwM2MClient.getRegistration());
             powerMode = deviceProfile.getClientLwM2mSettings().getPowerMode();
         }
         return powerMode;
@@ -370,11 +370,6 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
     @Override
     public Collection<LwM2mClient> getLwM2mClients() {
         return lwM2mClientsByEndpoint.values();
-    }
-
-    @Override
-    public Lwm2mDeviceProfileTransportConfiguration getProfile(UUID profileId) {
-        return doGetAndCache(profileId);
     }
 
     @Override
@@ -427,7 +422,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
         PowerMode powerMode = client.getPowerMode();
         OtherConfiguration profileSettings = null;
         if (powerMode == null && client.getProfileId() != null) {
-            var clientProfile = getProfile(client.getProfileId());
+            var clientProfile = getProfile(client.getRegistration());
             profileSettings = clientProfile.getClientLwM2mSettings();
             powerMode = profileSettings.getPowerMode();
         }
@@ -473,7 +468,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
         PowerMode powerMode = client.getPowerMode();
         OtherConfiguration profileSettings = null;
         if (powerMode == null && client.getProfileId() != null) {
-            var clientProfile = getProfile(client.getProfileId());
+            var clientProfile = getProfile(client.getRegistration());
             profileSettings = clientProfile.getClientLwM2mSettings();
             powerMode = profileSettings.getPowerMode();
         }
@@ -529,7 +524,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
         if (PowerMode.E_DRX.equals(client.getPowerMode()) && client.getEdrxCycle() != null) {
             timeout = client.getEdrxCycle();
         } else {
-            var clientProfile = getProfile(client.getProfileId());
+            var clientProfile = getProfile(client.getRegistration());
             OtherConfiguration clientLwM2mSettings = clientProfile.getClientLwM2mSettings();
             if (PowerMode.E_DRX.equals(clientLwM2mSettings.getPowerMode())) {
                 timeout = clientLwM2mSettings.getEdrxCycle();

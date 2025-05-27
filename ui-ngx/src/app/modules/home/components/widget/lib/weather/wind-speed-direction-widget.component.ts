@@ -55,7 +55,8 @@ import {
   Font,
   getDataKey,
   getSingleTsValueByDataKey,
-  overlayStyle
+  overlayStyle,
+  ValueFormatProcessor
 } from '@shared/models/widget-settings.models';
 import { formatValue, isDefinedAndNotNull, isNumeric } from '@core/utils';
 import { Path, Svg, SVG, Text } from '@svgdotjs/svg.js';
@@ -63,6 +64,7 @@ import { DataKey } from '@shared/models/widget.models';
 import { Observable } from 'rxjs';
 import { ImagePipe } from '@shared/pipe/image.pipe';
 import { DomSanitizer } from '@angular/platform-browser';
+import { UnitService } from '@core/services/unit.service';
 
 const shapeSize = 180;
 const cx = shapeSize / 2;
@@ -111,13 +113,13 @@ export class WindSpeedDirectionWidgetComponent implements OnInit, OnDestroy, Aft
 
   hasCardClickAction = false;
 
-  private decimals = 0;
-  private units = '';
-
   private drawSvgShapePending = false;
   private svgShape: Svg;
   private arrow: Path;
   private centerValueTextNode: Text;
+
+  private units = ''
+  private valueFormat: ValueFormatProcessor;
 
   private windDirectionDataKey: DataKey;
   private centerValueDataKey: DataKey;
@@ -126,6 +128,7 @@ export class WindSpeedDirectionWidgetComponent implements OnInit, OnDestroy, Aft
   private centerValueText = 'N/A';
 
   constructor(private imagePipe: ImagePipe,
+              private unitService: UnitService,
               private sanitizer: DomSanitizer,
               private renderer: Renderer2,
               private cd: ChangeDetectorRef) {
@@ -139,14 +142,16 @@ export class WindSpeedDirectionWidgetComponent implements OnInit, OnDestroy, Aft
     this.centerValueDataKey = getDataKey(this.ctx.datasources, 1);
 
     if (this.centerValueDataKey) {
-      this.decimals = this.ctx.decimals;
-      this.units = this.ctx.units;
+      let decimals = this.ctx.decimals;
+      let units = this.ctx.units;
       if (isDefinedAndNotNull(this.centerValueDataKey.decimals)) {
-        this.decimals = this.centerValueDataKey.decimals;
+        decimals = this.centerValueDataKey.decimals;
       }
       if (this.centerValueDataKey.units) {
-        this.units = this.centerValueDataKey.units;
+        units = this.centerValueDataKey.units;
       }
+      this.units = this.unitService.getTargetUnitSymbol(units);
+      this.valueFormat = ValueFormatProcessor.fromSettings(this.ctx.$injector, {units, decimals, ignoreUnitSymbol: true})
     }
 
     this.layout = this.settings.layout;
@@ -201,7 +206,7 @@ export class WindSpeedDirectionWidgetComponent implements OnInit, OnDestroy, Aft
       const centerValueTsValue = getSingleTsValueByDataKey(this.ctx.data, this.centerValueDataKey);
       if (centerValueTsValue && isDefinedAndNotNull(centerValueTsValue[1]) && isNumeric(centerValueTsValue[1])) {
         value = centerValueTsValue[1];
-        this.centerValueText = formatValue(value, this.decimals, '', false);
+        this.centerValueText = this.valueFormat.format(value);
       }
     }
     this.centerValueColor.update(value);

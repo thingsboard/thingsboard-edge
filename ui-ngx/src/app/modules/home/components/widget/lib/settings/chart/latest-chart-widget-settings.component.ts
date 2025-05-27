@@ -65,6 +65,7 @@ import { formatValue, isDefinedAndNotNull } from '@core/utils';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
+import { getSourceTbUnitSymbol } from '@shared/models/unit.models';
 
 @Directive()
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
@@ -217,7 +218,7 @@ export abstract class LatestChartWidgetSettingsComponent<S extends LatestChartWi
   public abstract latestChartConfigTemplate(): TemplateRef<any>;
 
   private _valuePreviewFn(): string {
-    const units: string = this.widgetConfig.config.units;
+    const units = getSourceTbUnitSymbol(this.widgetConfig.config.units);
     const decimals: number = this.widgetConfig.config.decimals;
     return formatValue(110, decimals, units, false);
   }
@@ -228,7 +229,7 @@ export abstract class LatestChartWidgetSettingsComponent<S extends LatestChartWi
     if (tooltipValueType === LatestChartTooltipValueType.percentage) {
       return formatValue(35, decimals, '%', false);
     } else {
-      const units: string = this.widgetConfig.config.units;
+      const units = getSourceTbUnitSymbol(this.widgetConfig.config.units);
       return formatValue(110, decimals, units, false);
     }
   }

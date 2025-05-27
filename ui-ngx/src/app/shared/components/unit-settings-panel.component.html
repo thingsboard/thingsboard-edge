@@ -1,0 +1,115 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-convert-settings-panel">
+  <div class="tb-convert-settings-title" translate>unit.unit-settings.unit-settings</div>
+  <div class="tb-convert-settings-panel-content" [formGroup]="unitSettingForm">
+    <div class="tb-form-row">
+      <div class="min-w-44"
+           [class.tb-disabled-label]="unitSettingForm.get('from').disabled"
+           tb-hint-tooltip-icon="{{ 'unit.unit-settings.source-unit-hint' | translate }}"
+           translate>unit.unit-settings.source-unit</div>
+      <tb-unit-input class="flex-1" [required]="required" formControlName="from"
+                     [measure]="measure" [tagFilter]="tagFilter"></tb-unit-input>
+    </div>
+    <div class="tb-form-panel stroked">
+      <mat-slide-toggle class="mat-slide" formControlName="convertUnit">
+        <div tb-hint-tooltip-icon="{{ 'unit.unit-settings.enable-unit-conversion-hint' | translate }}">
+          {{ 'unit.unit-settings.enable-unit-conversion' | translate }}
+        </div>
+      </mat-slide-toggle>
+      <div class="tb-form-row">
+        <div class="min-w-44"
+             [class.tb-disabled-label]="unitSettingForm.get('METRIC').disabled"
+             tb-hint-tooltip-icon="{{ 'unit.unit-settings.target-metric-unit-hint' | translate }}"
+             translate>unit.unit-settings.target-metric-unit</div>
+        <tb-unit-input class="flex-1"
+                       onlySystemUnits="true"
+                       formControlName="METRIC"
+                       [tagFilter]="tagFilter"
+                       [unitSystem]="UnitSystem.METRIC"
+                       [measure]="targetMeasure">
+        </tb-unit-input>
+      </div>
+      <div class="tb-form-row">
+        <div class="min-w-44"
+             [class.tb-disabled-label]="unitSettingForm.get('IMPERIAL').disabled"
+             tb-hint-tooltip-icon="{{ 'unit.unit-settings.target-imperial-unit-hint' | translate }}"
+             translate>unit.unit-settings.target-imperial-unit</div>
+        <tb-unit-input class="flex-1"
+                       onlySystemUnits="true"
+                       formControlName="IMPERIAL"
+                       [tagFilter]="tagFilter"
+                       [unitSystem]="UnitSystem.IMPERIAL"
+                       [measure]="targetMeasure">
+        </tb-unit-input>
+      </div>
+      <div class="tb-form-row">
+        <div class="min-w-44"
+             [class.tb-disabled-label]="unitSettingForm.get('HYBRID').disabled"
+             tb-hint-tooltip-icon="{{ 'unit.unit-settings.target-hybrid-unit-hint' | translate }}"
+             translate>unit.unit-settings.target-hybrid-unit</div>
+        <tb-unit-input class="flex-1"
+                       onlySystemUnits="true"
+                       [tagFilter]="tagFilter"
+                       formControlName="HYBRID"
+                       [measure]="targetMeasure">
+        </tb-unit-input>
+      </div>
+    </div>
+  </div>
+  <div class="tb-convert-settings-panel-buttons">
+    <button mat-button
+            color="primary"
+            type="button"
+            *ngIf="!disabled"
+            (click)="clearUnit()"
+            [disabled]="!(!!unitSettingForm.value.from || unitSettingForm.value.convertUnit)">
+      {{ 'action.clear' | translate }}
+    </button>
+    <span class="flex-1"></span>
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ (disabled ? 'action.close': 'action.cancel') | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            *ngIf="!disabled"
+            (click)="applyUnitSettings()"
+            [disabled]="unitSettingForm.invalid || unitSettingForm.pristine">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>
