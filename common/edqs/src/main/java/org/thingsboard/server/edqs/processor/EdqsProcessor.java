@@ -71,6 +71,7 @@ import org.thingsboard.server.queue.common.PartitionedQueueResponseTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.common.consumer.PartitionedQueueConsumerManager;
 import org.thingsboard.server.queue.discovery.QueueKey;
+import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.edqs.EdqsComponent;
 import org.thingsboard.server.queue.edqs.EdqsConfig;
@@ -101,6 +102,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
     private final EdqsConfig config;
     private final EdqsExecutors edqsExecutors;
     private final EdqsPartitionService partitionService;
+    private final TopicService topicService;
     private final ConfigurableApplicationContext applicationContext;
     private final EdqsStateService stateService;
 
@@ -128,7 +130,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
 
         eventConsumer = PartitionedQueueConsumerManager.<TbProtoQueueMsg<ToEdqsMsg>>create()
                 .queueKey(new QueueKey(ServiceType.EDQS, config.getEventsTopic()))
-                .topic(config.getEventsTopic())
+                .topic(topicService.buildTopicName(config.getEventsTopic()))
                 .pollInterval(config.getPollInterval())
                 .msgPackProcessor((msgs, consumer, config) -> {
                     for (TbProtoQueueMsg<ToEdqsMsg> queueMsg : msgs) {
@@ -163,7 +165,7 @@ public class EdqsProcessor implements TbQueueHandler<TbProtoQueueMsg<ToEdqsMsg>,
         }
         try {
             Set<TopicPartitionInfo> newPartitions = event.getNewPartitions().get(new QueueKey(ServiceType.EDQS));
-            stateService.process(withTopic(newPartitions, config.getStateTopic()));
+            stateService.process(withTopic(newPartitions, topicService.buildTopicName(config.getStateTopic())));
             // partitions for event and request consumers are updated by stateService
 
             Set<TopicPartitionInfo> oldPartitions = event.getOldPartitions().get(new QueueKey(ServiceType.EDQS));
