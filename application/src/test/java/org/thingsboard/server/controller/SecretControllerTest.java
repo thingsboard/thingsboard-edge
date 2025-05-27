@@ -174,7 +174,7 @@ public class SecretControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testDeleteSecret_whenUsedInRuleNodeWithoutHasSecrets_thenReceiveDeleteResultError() throws Exception {
+    public void testDeleteSecret_whenUsedInRuleNodeWithoutHasSecrets_thenReceiveDeleteResultSuccess() throws Exception {
         String secretName = "GetAttrNode";
         Secret secret = constructSecret(secretName, "Password");
         SecretInfo savedSecret = doPost("/api/secret", secret, SecretInfo.class);

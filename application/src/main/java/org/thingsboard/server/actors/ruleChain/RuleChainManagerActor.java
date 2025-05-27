@@ -42,10 +42,12 @@ import org.thingsboard.server.actors.shared.RuleChainErrorActor;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -104,6 +106,10 @@ public abstract class RuleChainManagerActor extends ContextAwareActor {
         return getOrCreateActor(ruleChainId, eId -> ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, eId));
     }
 
+    private TbActorRef getOrCreateActor(RuleNodeId ruleNodeId) {
+        return getOrCreateActor(ruleNodeId, rn -> ruleChainService.findRuleNodeById(TenantId.SYS_TENANT_ID, rn));
+    }
+
     protected TbActorRef getOrCreateActor(RuleChainId ruleChainId, Function<RuleChainId, RuleChain> provider) {
         return ctx.getOrCreateChildActor(new TbEntityActorId(ruleChainId),
                 () -> DefaultActorService.RULE_DISPATCHER_NAME,
@@ -119,10 +125,29 @@ public abstract class RuleChainManagerActor extends ContextAwareActor {
                 () -> true);
     }
 
+    protected TbActorRef getOrCreateActor(RuleNodeId ruleNodeId, Function<RuleNodeId, RuleNode> provider) {
+        return ctx.getOrCreateChildActor(new TbEntityActorId(ruleNodeId),
+                () -> DefaultActorService.RULE_DISPATCHER_NAME,
+                () -> {
+                    RuleNode ruleNode = provider.apply(ruleNodeId);
+                    if (ruleNode == null) {
+                        // TODO: change to RuleNodeErrorActor or just return null after discuss
+                        return new RuleChainErrorActor.ActorCreator(systemContext, tenantId, null,
+                                new RuleEngineException("Rule Node with id: " + ruleNodeId + " not found!"));
+                    } else {
+                        RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, ruleNode.getRuleChainId());
+                        return new RuleNodeActor.ActorCreator(systemContext, tenantId, ruleChain.getId(), ruleChain.getName(), ruleNodeId);
+                    }
+                },
+                () -> true);
+    }
+
     protected TbActorRef getEntityActorRef(EntityId entityId) {
         TbActorRef target = null;
         if (entityId.getEntityType() == EntityType.RULE_CHAIN) {
             target = getOrCreateActor((RuleChainId) entityId);
+        } else if (entityId.getEntityType() == EntityType.RULE_NODE) {
+            target = getOrCreateActor((RuleNodeId) entityId);
         }
         return target;
     }

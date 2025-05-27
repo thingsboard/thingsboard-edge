@@ -43,6 +43,7 @@ import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface SecretService extends EntityDaoService {
 
@@ -62,6 +63,6 @@ public interface SecretService extends EntityDaoService {
 
     PageData<SecretInfo> findSecretInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
-    Map<EntityType, List<? extends HasId<?>>> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo);
+    Map<EntityType, List<? extends HasId<?>>> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo, Set<EntityType> ignoreTypes);
 
 }

@@ -118,6 +118,11 @@ public class JpaRuleNodeDao extends JpaAbstractDao<RuleNodeEntity, RuleNode> imp
     }
 
     @Override
+    public List<RuleNode> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder) {
+        return DaoUtil.convertDataList(ruleNodeRepository.findByTenantIdAndSecretPlaceholder(tenantId.getId(), placeholder));
+    }
+
+    @Override
     public void deleteByIdIn(List<RuleNodeId> ruleNodeIds) {
         ruleNodeRepository.deleteAllById(ruleNodeIds.stream().map(RuleNodeId::getId).collect(Collectors.toList()));
     }

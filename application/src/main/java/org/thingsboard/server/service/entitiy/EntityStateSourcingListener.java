@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -183,14 +184,13 @@ public class EntityStateSourcingListener {
                     break;
                 }
                 Secret secret = (Secret) event.getEntity();
-                var result = secretService.findEntitiesBySecret(tenantId, secret);
+                var result = secretService.findEntitiesBySecret(tenantId, secret, Set.of(EntityType.RULE_CHAIN));
 
                 result.forEach((type, entities) -> {
                     switch (type) {
-                        case RULE_CHAIN -> {
-                            entities.stream().filter(RuleChain.class::isInstance).map(RuleChain.class::cast)
-                                    .filter(rc -> RuleChainType.CORE.equals(rc.getType()))
-                                    .forEach(rc -> tbClusterService.broadcastEntityStateChangeEvent(rc.getTenantId(), rc.getId(), lifecycleEvent));
+                        case RULE_NODE -> {
+                            entities.stream().filter(RuleNode.class::isInstance).map(RuleNode.class::cast)
+                                    .forEach(rn -> tbClusterService.broadcastEntityStateChangeEvent(tenantId, rn.getId(), lifecycleEvent));
                         }
                         case INTEGRATION -> {
                             entities.stream().filter(Integration.class::isInstance).map(Integration.class::cast)
