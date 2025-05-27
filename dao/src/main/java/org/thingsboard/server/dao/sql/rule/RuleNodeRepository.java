@@ -73,12 +73,6 @@ public interface RuleNodeRepository extends JpaRepository<RuleNodeEntity, UUID> 
 
     List<RuleNodeEntity> findRuleNodesByRuleChainIdAndExternalIdIn(UUID ruleChainId, List<UUID> externalIds);
 
-    @Query("SELECT r FROM RuleChainEntity rc INNER JOIN RuleNodeEntity r ON rc.id = r.ruleChainId " +
-            "INNER JOIN ComponentDescriptorEntity cd ON r.type = cd.clazz WHERE rc.tenantId = :tenantId " +
-            "AND cd.hasSecrets = true AND ilike(r.configuration, CONCAT('%', :placeholder, '%'))")
-    List<RuleNodeEntity> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
-                                                            @Param("placeholder") String placeholder);
-
     @Transactional
     @Modifying
     @Query("DELETE FROM RuleNodeEntity e where e.id in :ids")

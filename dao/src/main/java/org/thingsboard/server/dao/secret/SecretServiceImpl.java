@@ -34,6 +34,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbSecretDeleteResult;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -50,15 +51,14 @@ import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.rule.RuleChainDao;
-import org.thingsboard.server.dao.rule.RuleNodeDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.sql.HasSecretsEntityDao;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -81,9 +81,6 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     private DataValidator<Secret> secretValidator;
 
     @Autowired
-    private RuleNodeDao ruleNodeDao;
-
-    @Autowired
     private RuleChainDao ruleChainDao;
 
     @Autowired
@@ -94,7 +91,6 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
 
     @PostConstruct
     public void init() {
-        hasSecretsEntityDaoMap.put(EntityType.RULE_NODE, ruleNodeDao);
         hasSecretsEntityDaoMap.put(EntityType.RULE_CHAIN, ruleChainDao);
         hasSecretsEntityDaoMap.put(EntityType.INTEGRATION, integrationDao);
     }
@@ -150,7 +146,7 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
             return result.success(success).build();
         }
         if (!force) {
-            var entities = findEntitiesBySecret(tenantId, secretInfo, Set.of(EntityType.RULE_NODE));
+            var entities = findEntitiesBySecret(tenantId, secretInfo);
             if (!entities.isEmpty()) {
                 success = false;
                 result.references(entities);
@@ -206,16 +202,12 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
     }
 
     @Override
-    public Map<EntityType, List<? extends HasId<?>>> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo, Set<EntityType> ignoreTypes) {
-        Map<EntityType, List<? extends HasId<?>>> affectedEntities = new HashMap<>();
+    public List<EntityInfo> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo) {
+        List<EntityInfo> affectedEntities = new ArrayList<>();
         String placeholder = String.format("${secret:%s;type:%s}", secretInfo.getName(), secretInfo.getType());
         hasSecretsEntityDaoMap.forEach((entityType, hasSecretsEntityDao) -> {
-            if (ignoreTypes == null || !ignoreTypes.contains(entityType)) {
-                var entities = hasSecretsEntityDao.findByTenantIdAndSecretPlaceholder(tenantId, placeholder);
-                if (!entities.isEmpty()) {
-                    affectedEntities.put(entityType, entities);
-                }
-            }
+            var entities = hasSecretsEntityDao.findByTenantIdAndSecretPlaceholder(tenantId, placeholder);
+            affectedEntities.addAll(entities);
         });
         return affectedEntities;
     }

@@ -37,14 +37,13 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.sql.HasSecretsEntityDao;
 
 import java.util.List;
 
 /**
  * Created by igor on 3/12/18.
  */
-public interface RuleNodeDao extends Dao<RuleNode>, HasSecretsEntityDao<RuleNode> {
+public interface RuleNodeDao extends Dao<RuleNode> {
 
     List<RuleNode> findRuleNodesByTenantIdAndType(TenantId tenantId, String type, String configurationSearch);
 

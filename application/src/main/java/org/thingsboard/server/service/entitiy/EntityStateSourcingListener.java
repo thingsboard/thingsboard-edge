@@ -64,7 +64,6 @@ import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
-import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -184,22 +183,8 @@ public class EntityStateSourcingListener {
                     break;
                 }
                 Secret secret = (Secret) event.getEntity();
-                var result = secretService.findEntitiesBySecret(tenantId, secret, Set.of(EntityType.RULE_CHAIN));
-
-                result.forEach((type, entities) -> {
-                    switch (type) {
-                        case RULE_NODE -> {
-                            entities.stream().filter(RuleNode.class::isInstance).map(RuleNode.class::cast)
-                                    .forEach(rn -> tbClusterService.broadcastEntityStateChangeEvent(tenantId, rn.getId(), lifecycleEvent));
-                        }
-                        case INTEGRATION -> {
-                            entities.stream().filter(Integration.class::isInstance).map(Integration.class::cast)
-                                    .filter(integration -> !integration.isEdgeTemplate())
-                                    .forEach(integration -> tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), lifecycleEvent));
-                        }
-                        default -> log.debug("Secret placeholder used in unsupported entity type: {}", type);
-                    }
-                });
+                var entityInfos = secretService.findEntitiesBySecret(tenantId, secret);
+                entityInfos.forEach(entityInfo -> tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityInfo.getId(), lifecycleEvent));
             }
             default -> {}
         }

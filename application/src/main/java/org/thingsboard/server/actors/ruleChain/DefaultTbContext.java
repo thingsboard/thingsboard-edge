@@ -395,8 +395,14 @@ public class DefaultTbContext implements TbContext, TbPeContext {
                 msg, failureMessage));
     }
 
-    public void updateSelf(RuleNode self) {
+    public boolean updateSelf(RuleNode self) {
         nodeCtx.setSelf(self);
+        var replaced = mainCtx.getSecretConfigurationService().replaceSecretPlaceholders(getTenantId(), self.getConfiguration());
+        if (!nodeCtx.getConfiguration().equals(replaced)) {
+            nodeCtx.setConfiguration(replaced);
+            return true;
+        }
+        return false;
     }
 
     @Override

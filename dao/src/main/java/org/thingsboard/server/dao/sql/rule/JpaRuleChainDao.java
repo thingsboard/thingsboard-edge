@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edqs.fields.RuleChainFields;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -163,8 +164,8 @@ public class JpaRuleChainDao extends JpaAbstractDao<RuleChainEntity, RuleChain> 
     }
 
     @Override
-    public List<RuleChain> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder) {
-        return DaoUtil.convertDataList(ruleChainRepository.findByTenantIdAndSecretPlaceholder(tenantId.getId(), placeholder));
+    public List<EntityInfo> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder) {
+        return ruleChainRepository.findByTenantIdAndSecretPlaceholder(tenantId.getId(), placeholder);
     }
 
     @Override
