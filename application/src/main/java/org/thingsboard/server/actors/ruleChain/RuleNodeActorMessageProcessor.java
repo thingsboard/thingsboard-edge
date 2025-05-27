@@ -77,10 +77,16 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         super(systemContext, tenantId, ruleNodeId);
         this.apiUsageClient = systemContext.getApiUsageClient();
         this.ruleChainName = ruleChainName;
-        this.ruleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);
-        this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, selfActor, ruleNode));
-        this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, getName(ruleNode));
         this.componentService = systemContext.getComponentService();
+        this.ruleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);
+        this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, getName(ruleNode));
+
+        var config = ruleNode.getConfiguration();
+        Optional<RuleNodeClassInfo> ruleNodeClassInfoOpt = componentService.getRuleNodeInfo(ruleNode.getType());
+        if (ruleNodeClassInfoOpt.map(info -> info.getAnnotation().hasSecrets()).orElse(false)) {
+            config = systemContext.getSecretConfigurationService().replaceSecretPlaceholders(tenantId, ruleNode.getConfiguration());
+        }
+        this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, selfActor, ruleNode, config));
     }
 
     @Override

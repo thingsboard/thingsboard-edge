@@ -48,10 +48,6 @@ public final class RuleNodeCtx {
     private RuleNode self;
     private JsonNode configuration;
 
-    RuleNodeCtx(TenantId tenantId, TbActorCtx selfActor, RuleNode self) {
-        this(tenantId, selfActor.getParentRef(), selfActor, self, self.getConfiguration());
-    }
-
     RuleNodeCtx(TenantId tenantId, TbActorRef chainActor, TbActorRef selfActor, RuleNode self) {
         this.tenantId = tenantId;
         this.chainActor = chainActor;
@@ -60,9 +56,9 @@ public final class RuleNodeCtx {
         this.configuration = self.getConfiguration();
     }
 
-    RuleNodeCtx(TenantId tenantId, TbActorRef chainActor, TbActorRef selfActor, RuleNode self, JsonNode configuration) {
+    public RuleNodeCtx(TenantId tenantId, TbActorCtx selfActor, RuleNode self, JsonNode configuration) {
         this.tenantId = tenantId;
-        this.chainActor = chainActor;
+        this.chainActor = selfActor.getParentRef();
         this.selfActor = selfActor;
         this.self = self;
         this.configuration = configuration;
