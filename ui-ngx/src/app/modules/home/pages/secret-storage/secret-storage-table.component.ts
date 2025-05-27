@@ -143,7 +143,7 @@ export class SecretStorageTableComponent implements OnInit {
     );
   }
 
-  onSecretAction(action: EntityAction<SecretStorage>): boolean {
+  private onSecretAction(action: EntityAction<SecretStorage>): boolean {
     switch (action.action) {
       case 'deleteSecret':
         this.deleteSecret(action.event, action.entity);
@@ -172,7 +172,7 @@ export class SecretStorageTableComponent implements OnInit {
     return actions;
   }
 
-  changeValue($event: Event, entity: SecretStorage) {
+  private changeValue($event: Event, entity: SecretStorage) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -190,7 +190,7 @@ export class SecretStorageTableComponent implements OnInit {
       });
   }
 
-  addSecret(): Observable<SecretStorage> {
+  private addSecret(): Observable<SecretStorage> {
     return this.dialog.open<SecretStorageDialogComponent, SecretStorageData, SecretStorage>(SecretStorageDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
@@ -237,7 +237,7 @@ export class SecretStorageTableComponent implements OnInit {
     }
   }
 
-  deleteSecret($event: Event, secret: SecretStorage) {
+  private deleteSecret($event: Event, secret: SecretStorage) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -285,7 +285,7 @@ export class SecretStorageTableComponent implements OnInit {
     });
   }
 
-  deleteSecrets($event: Event, entities: SecretStorage[]) {
+  private deleteSecrets($event: Event, entities: SecretStorage[]) {
     if (entities && entities.length === 1) {
       this.deleteSecret($event, entities[0]);
     } else {

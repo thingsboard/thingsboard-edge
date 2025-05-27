@@ -133,7 +133,7 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
     this.dialogRef.close(null);
   }
 
-  private prepareOutputSecret(secret: string, type: SecretStorageType) {
+  private prepareOutputSecret(secret: string, type: SecretStorageType): string {
     return '${secret:'+secret+';type:'+type+'}';
   }
 

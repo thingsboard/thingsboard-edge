@@ -438,7 +438,7 @@ import {
       CalculatedFieldArgumentPanelComponent,
       CalculatedFieldDebugDialogComponent,
       CalculatedFieldScriptTestDialogComponent,
-      CalculatedFieldTestArgumentsComponent
+      CalculatedFieldTestArgumentsComponent,
     ],
   imports: [
     CommonModule,
@@ -612,7 +612,7 @@ import {
     CalculatedFieldArgumentPanelComponent,
     CalculatedFieldDebugDialogComponent,
     CalculatedFieldScriptTestDialogComponent,
-    CalculatedFieldTestArgumentsComponent
+    CalculatedFieldTestArgumentsComponent,
   ],
   providers: [
     WidgetComponentService,
