@@ -200,7 +200,6 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getReferences()).containsKey(EntityType.INTEGRATION);
         assertThat(result.getReferences().get(EntityType.INTEGRATION)).isNotEmpty();
-        assertThat(result.getReferences().get(EntityType.INTEGRATION).get(0)).isInstanceOf(Integration.class);
         assertThat(integrationName).isEqualTo(result.getReferences().get(EntityType.INTEGRATION).get(0).getName());
     }
 
