@@ -38,7 +38,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbActorStopReason;
 import org.thingsboard.server.common.msg.ToCalculatedFieldSystemMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldCacheInitMsg;
-import org.thingsboard.server.common.msg.cf.CalculatedFieldChangeOwnerMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldEntityLifecycleMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldInitMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldInitProfileEntityMsg;
@@ -106,9 +105,6 @@ public class CalculatedFieldManagerActor extends AbstractCalculatedFieldActor {
                 break;
             case CF_LINKED_TELEMETRY_MSG:
                 processor.onLinkedTelemetryMsg((CalculatedFieldLinkedTelemetryMsg) msg);
-                break;
-            case CF_CHANGE_OWNER_MSG:
-                processor.onChangeOwnerMsg((CalculatedFieldChangeOwnerMsg) msg);
                 break;
             default:
                 return false;

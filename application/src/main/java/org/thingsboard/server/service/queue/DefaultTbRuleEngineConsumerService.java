@@ -207,9 +207,6 @@ public class DefaultTbRuleEngineConsumerService extends AbstractPartitionBasedCo
         } else if (nfMsg.getQueueDeleteMsgsCount() > 0) {
             deleteQueues(nfMsg.getQueueDeleteMsgsList());
             callback.onSuccess();
-        } else if (nfMsg.hasChangeOwnerMsg()) {
-            handleChangeOwnerMsg(nfMsg.getChangeOwnerMsg());
-            callback.onSuccess();
         } else {
             log.trace("Received notification with missing handler");
             callback.onSuccess();

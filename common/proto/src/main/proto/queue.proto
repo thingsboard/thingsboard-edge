@@ -871,14 +871,6 @@ message DeviceInactivityTimeoutUpdateProto {
   int64 inactivityTimeout = 5;
 }
 
-message EntityChangeOwnerMsg {
-  int64 tenantIdMSB = 1;
-  int64 tenantIdLSB = 2;
-  string entityType = 3;
-  int64 entityIdMSB = 4;
-  int64 entityIdLSB = 5;
-}
-
 message CalculatedFieldTelemetryMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1338,6 +1330,7 @@ enum ComponentLifecycleEvent {
     DELETED       = 6;
     FAILED        = 7;
     DEACTIVATED   = 8;
+    OWNER_CHANGED = 50;
 }
 
 message ComponentLifecycleMsgProto {
@@ -1801,7 +1794,6 @@ message ToCoreNotificationMsg {
   ToEdqsCoreServiceMsg toEdqsCoreServiceMsg = 17;
   TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
   CustomMenuCacheInvalidateMsg customMenuCacheInvalidateMsg = 101;
-  EntityChangeOwnerMsg changeOwnerMsg = 102;
 }
 
 /* Messages to Edge queue that are handled by ThingsBoard Core Service */
@@ -1828,7 +1820,6 @@ message ToCalculatedFieldMsg {
 
 message ToCalculatedFieldNotificationMsg {
   CalculatedFieldLinkedTelemetryMsgProto linkedTelemetryMsg = 1;
-  EntityChangeOwnerMsg changeOwnerMsg = 2;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */
@@ -1846,7 +1837,6 @@ message ToRuleEngineNotificationMsg {
   repeated QueueUpdateMsg queueUpdateMsgs = 3;
   repeated QueueDeleteMsg queueDeleteMsgs = 4;
   ComponentLifecycleMsgProto componentLifecycle = 5;
-  EntityChangeOwnerMsg changeOwnerMsg = 100;
 }
 
 /* Messages that are handled by ThingsBoard Transport Service */

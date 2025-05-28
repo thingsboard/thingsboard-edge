@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -54,7 +53,6 @@ import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.gen.transport.TransportProtos.EntityChangeOwnerMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
@@ -231,20 +229,16 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
                 calculatedFieldCache.evict((CalculatedFieldId) componentLifecycleMsg.getEntityId());
             }
         }
+        if (componentLifecycleMsg.getEvent() == ComponentLifecycleEvent.OWNER_CHANGED) {
+            if (componentLifecycleMsg.getEntityId().getEntityType().isOneOf(EntityType.ASSET, EntityType.DEVICE)) {
+                EntityId owner = ownersCacheService.getOwner(tenantId, componentLifecycleMsg.getEntityId());
+                calculatedFieldCache.updateOwnerEntities(tenantId, owner, componentLifecycleMsg.getEntityId());
+            }
+        }
 
         eventPublisher.publishEvent(componentLifecycleMsg);
         log.trace("[{}] Forwarding component lifecycle message to App Actor {}", id, componentLifecycleMsg);
         actorContext.tellWithHighPriority(componentLifecycleMsg);
-    }
-
-    protected final void handleChangeOwnerMsg(EntityChangeOwnerMsg proto) {
-        TenantId tenantId = TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
-        EntityId entityId = EntityIdFactory.getByTypeAndUuid(proto.getEntityType(), new UUID(proto.getEntityIdMSB(), proto.getEntityIdLSB()));
-        log.debug("[{}] Received change owner event: {}", tenantId, entityId);
-        if (entityId.getEntityType().isOneOf(EntityType.ASSET, EntityType.DEVICE)) {
-            EntityId owner = ownersCacheService.getOwner(tenantId, entityId);
-            calculatedFieldCache.updateOwnerEntities(tenantId, owner, entityId);
-        }
     }
 
     protected abstract void handleNotification(UUID id, TbProtoQueueMsg<N> msg, TbCallback callback) throws Exception;

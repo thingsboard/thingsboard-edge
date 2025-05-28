@@ -161,7 +161,6 @@ public enum MsgType {
     CF_ENTITY_LIFECYCLE_MSG, // Sent on CF/Device/Asset create/update/delete;
     CF_TELEMETRY_MSG, // Sent from queue to actor system;
     CF_LINKED_TELEMETRY_MSG, // Sent from queue to actor system;
-    CF_CHANGE_OWNER_MSG, // Sent on Device/Asset owner change;
 
     /* CF Manager Actor -> CF Entity actor */
     CF_ENTITY_TELEMETRY_MSG,

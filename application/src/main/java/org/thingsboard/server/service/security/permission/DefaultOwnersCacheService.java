@@ -396,7 +396,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
-    public Set<EntityId> getOwnerEntities(TenantId tenantId, EntityId ownerId) {
+    public Set<EntityId> getOwnedEntities(TenantId tenantId, EntityId ownerId) {
         Set<EntityId> ownerEntities = new HashSet<>();
         if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
             PageDataIterable<DeviceInfo> deviceIdInfos = new PageDataIterable<>(pageLink -> deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).customerId((CustomerId) ownerId).build(), pageLink), 1000);

@@ -469,9 +469,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.hasToEdqsCoreServiceMsg()) {
             edqsService.processSystemMsg(JacksonUtil.fromBytes(toCoreNotification.getToEdqsCoreServiceMsg().getValue().toByteArray(), ToCoreEdqsMsg.class));
             callback.onSuccess();
-        } else if (toCoreNotification.hasChangeOwnerMsg()) {
-            handleChangeOwnerMsg(toCoreNotification.getChangeOwnerMsg());
-            callback.onSuccess();
         }
         if (statsEnabled) {
             stats.log(toCoreNotification);

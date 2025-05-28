@@ -49,7 +49,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldCacheInitMsg;
-import org.thingsboard.server.common.msg.cf.CalculatedFieldChangeOwnerMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldEntityLifecycleMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldInitMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldInitProfileEntityMsg;
@@ -221,6 +220,9 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
                         break;
                     case DELETED:
                         onEntityDeleted(msg.getData(), msg.getCallback());
+                        break;
+                    case OWNER_CHANGED:
+                        onEntityOwnerChanged(msg.getData(), msg.getCallback());
                         break;
                     default:
                         msg.getCallback().onSuccess();
@@ -481,7 +483,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         }
     }
 
-    public void onChangeOwnerMsg(CalculatedFieldChangeOwnerMsg msg) {
+    private void onEntityOwnerChanged(ComponentLifecycleMsg msg, TbCallback msgCallback) {
         EntityId entityId = msg.getEntityId();
         log.debug("Received changed owner msg from entity [{}]", entityId);
         updateEntityOwner(entityId);
@@ -489,10 +491,10 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         cfs.addAll(getCalculatedFieldsByEntityId(entityId));
         cfs.addAll(getCalculatedFieldsByEntityId(getProfileId(tenantId, entityId)));
         if (cfs.isEmpty()) {
-            msg.getCallback().onSuccess();
+            msgCallback.onSuccess();
             return;
         }
-        MultipleTbCallback callback = new MultipleTbCallback(cfs.size(), msg.getCallback());
+        MultipleTbCallback callback = new MultipleTbCallback(cfs.size(), msgCallback);
         cfs.forEach(cf -> {
             if (isMyPartition(entityId, callback)) {
                 if (cf.hasDynamicSourceArg()) {

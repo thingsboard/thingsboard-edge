@@ -54,7 +54,6 @@ import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -211,25 +210,16 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
 
     @Override
     public Set<EntityId> getDynamicEntities(TenantId tenantId, EntityId entityId) {
-        if (entityId == null) {
-            return Collections.emptySet();
+        if (entityId != null && entityId.getEntityType().isOneOf(EntityType.CUSTOMER, EntityType.TENANT)) {
+            return getOwnedEntities(tenantId, entityId);
         }
-        Set<EntityId> dynamicEntities = new HashSet<>();
-        if (entityId.getEntityType().isOneOf(EntityType.CUSTOMER, EntityType.TENANT)) {
-            dynamicEntities.addAll(getOwnerEntities(tenantId, entityId));
-        }
-        return dynamicEntities;
-    }
-
-    @Override
-    public Set<EntityId> getOwnerEntities(TenantId tenantId, EntityId entityId) {
-        return ownerEntities.computeIfAbsent(entityId, owner -> ownersCacheService.getOwnerEntities(tenantId, entityId));
+        return Collections.emptySet();
     }
 
     @Override
     public void updateOwnerEntities(TenantId tenantId, EntityId owner, EntityId entityId) {
         evictEntity(entityId);
-        getOwnerEntities(tenantId, owner).add(entityId);
+        getOwnedEntities(tenantId, owner).add(entityId);
     }
 
     @Override
@@ -241,4 +231,13 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
     public void evictOwner(EntityId owner) {
         ownerEntities.remove(owner);
     }
+
+    private Set<EntityId> getOwnedEntities(TenantId tenantId, EntityId ownerId) {
+        return ownerEntities.computeIfAbsent(ownerId, owner -> {
+            Set<EntityId> entities = ConcurrentHashMap.newKeySet();
+            entities.addAll(ownersCacheService.getOwnedEntities(tenantId, ownerId));
+            return entities;
+        });
+    }
+
 }
