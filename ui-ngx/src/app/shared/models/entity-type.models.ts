@@ -771,12 +771,6 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       }
     ],
     [
-      EntityType.JOB,
-      {
-        helpLinkId: 'job'
-      }
-    ],
-    [
       EntityType.QUEUE,
       {
         helpLinkId: 'queue'
