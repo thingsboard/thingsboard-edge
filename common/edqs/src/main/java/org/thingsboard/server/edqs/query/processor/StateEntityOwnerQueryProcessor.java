@@ -31,6 +31,7 @@
 package org.thingsboard.server.edqs.query.processor;
 
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.QueryContext;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
@@ -90,7 +91,7 @@ public class StateEntityOwnerQueryProcessor extends AbstractSingleEntityTypeQuer
     protected void processAll(Consumer<EntityData<?>> processor) {
         EntityData ed = repository.getEntityMap(entityId.getEntityType()).get(entityId.getId());
         if (ed != null) {
-            if (ed.getCustomerId() != null) {
+            if (ed.getCustomerId() != null && !CustomerId.NULL_UUID.equals(ed.getCustomerId())) {
                 processor.accept(repository.getEntityMap(EntityType.CUSTOMER).get(ed.getCustomerId()));
             } else {
                 processor.accept(repository.getEntityMap(EntityType.TENANT).get(repository.getTenantId().getId()));
