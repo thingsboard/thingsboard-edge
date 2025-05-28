@@ -46,6 +46,8 @@ public interface TbServiceInfoProvider {
 
     ServiceInfo getServiceInfo();
 
+    boolean isMonolith();
+
     boolean isService(ServiceType serviceType);
 
     ServiceInfo generateNewServiceInfoWithCurrentSystemInfo();

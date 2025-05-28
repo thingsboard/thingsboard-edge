@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -67,6 +68,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -77,6 +79,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -156,6 +159,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private DbUpgradeExecutorService executorService;
 
+    @Autowired
+    private TenantProfileService tenantProfileService;
+
     @Override
     public void updateData(boolean fromCe) throws Exception {
         log.info("Updating data ...");
@@ -164,6 +170,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } else {
             //TODO: should be cleaned after each release
             updateInputNodes();
+            deduplicateRateLimitsPerSecondsConfigurations();
         }
         log.info("Data updated.");
     }
@@ -181,6 +188,44 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
+    private void deduplicateRateLimitsPerSecondsConfigurations() {
+        log.info("Starting update of tenant profiles...");
+
+        int totalProfiles = 0;
+        int updatedTenantProfiles = 0;
+        int skippedProfiles = 0;
+        int failedProfiles = 0;
+
+        var tenantProfiles = new PageDataIterable<>(
+                pageLink -> tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, pageLink), 1024);
+
+        for (TenantProfile tenantProfile : tenantProfiles) {
+            totalProfiles++;
+            String profileName = tenantProfile.getName();
+            UUID profileId = tenantProfile.getId().getId();
+            try {
+                Optional<DefaultTenantProfileConfiguration> profileConfiguration = tenantProfile.getProfileConfiguration();
+                if (profileConfiguration.isEmpty()) {
+                    log.debug("[{}][{}] Skipping tenant profile with non-default configuration.", profileId, profileName);
+                    skippedProfiles++;
+                    continue;
+                }
+
+                DefaultTenantProfileConfiguration defaultTenantProfileConfiguration = profileConfiguration.get();
+                defaultTenantProfileConfiguration.deduplicateRateLimitsConfigs();
+                tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+                updatedTenantProfiles++;
+                log.debug("[{}][{}] Successfully updated tenant profile.", profileId, profileName);
+            } catch (Exception e) {
+                log.error("[{}][{}] Failed to updated tenant profile: ", profileId, profileName, e);
+                failedProfiles++;
+            }
+        }
+
+        log.info("Tenant profiles update completed. Total: {}, Updated: {}, Skipped: {}, Failed: {}",
+                totalProfiles, updatedTenantProfiles, skippedProfiles, failedProfiles);
+    }
+    
     private void updateInputNodes() {
         log.info("Creating relations for input nodes...");
         int n = 0;
