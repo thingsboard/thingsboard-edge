@@ -68,7 +68,7 @@
         </div>
         <ng-template #searchNotEmpty>
           <span>
-          {{ translate.get(noEntitiesText, {entity: searchText}) | async }}
+          {{ noEntitiesText | translate: {entity: searchText} }}
           </span>
         </ng-template>
       </div>

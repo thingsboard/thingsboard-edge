@@ -29,17 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  forwardRef,
-  Input,
-  OnChanges,
-  OnInit,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
   NG_VALIDATORS,
@@ -81,7 +71,7 @@ import { isArray } from 'lodash';
     }
   ]
 })
-export class EntityListComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
+export class EntityListComponent implements ControlValueAccessor, OnInit, OnChanges {
 
   entityListFormGroup: UntypedFormGroup;
 
@@ -161,9 +151,9 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
 
   private dirty = false;
 
-  private propagateChange = (v: any) => { };
+  private propagateChange = (_v: any) => { };
 
-  constructor(public translate: TranslateService,
+  constructor(private translate: TranslateService,
               private entityService: EntityService,
               private fb: UntypedFormBuilder) {
     this.entityListFormGroup = this.fb.group({
@@ -181,7 +171,7 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   ngOnInit() {
@@ -211,9 +201,6 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
         }
       }
     }
-  }
-
-  ngAfterViewInit(): void {
   }
 
   setDisabledState(isDisabled: boolean): void {
