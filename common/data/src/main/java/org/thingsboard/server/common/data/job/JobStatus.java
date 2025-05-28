@@ -28,18 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs;
+package org.thingsboard.server.common.data.job;
 
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.queue.discovery.TenantRoutingInfo;
-import org.thingsboard.server.queue.discovery.TenantRoutingInfoService;
+public enum JobStatus {
 
-@Service
-public class DummyTenantRoutingInfoService implements TenantRoutingInfoService {
-    @Override
-    public TenantRoutingInfo getRoutingInfo(TenantId tenantId) {
-        return null;
+    QUEUED,
+    PENDING,
+    RUNNING,
+    COMPLETED,
+    FAILED,
+    CANCELLED;
+
+    public boolean isOneOf(JobStatus... statuses) {
+        if (statuses == null) {
+            return false;
+        }
+        for (JobStatus status : statuses) {
+            if (this == status) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
