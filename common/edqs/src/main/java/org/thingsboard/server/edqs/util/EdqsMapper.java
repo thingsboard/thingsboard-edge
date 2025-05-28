@@ -28,31 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.query;
+package org.thingsboard.server.edqs.util;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.edqs.query.EdqsRequest;
-import org.thingsboard.server.common.data.edqs.query.EdqsResponse;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.edqs.EdqsApiService;
+import org.thingsboard.server.common.data.ObjectType;
+import org.thingsboard.server.common.data.edqs.EdqsObject;
+import org.thingsboard.server.common.data.edqs.EdqsObjectKey;
 
-@Service
-@Slf4j
-@ConditionalOnMissingBean(value = EdqsApiService.class, ignored = DummyEdqsApiService.class)
-public class DummyEdqsApiService implements EdqsApiService {
+public interface EdqsMapper {
 
-    @Override
-    public ListenableFuture<EdqsResponse> processRequest(TenantId tenantId, CustomerId customerId, EdqsRequest request) {
-        throw new UnsupportedOperationException();
-    }
+    <T extends EdqsObject> byte[] serialize(T value);
 
-    @Override
-    public boolean isSupported() {
-        return false;
-    }
+    EdqsObject deserialize(ObjectType type, byte[] bytes, boolean onlyKey);
+
+    <T extends EdqsObject> EdqsObjectKey getKey(T object);
 
 }
