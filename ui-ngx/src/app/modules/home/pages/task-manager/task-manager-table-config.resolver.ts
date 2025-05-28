@@ -34,6 +34,7 @@ import {
   CellActionDescriptor,
   DateEntityTableColumn,
   defaultEntityTablePermissions,
+  EntityLinkTableColumn,
   EntityTableColumn,
   EntityTableConfig,
   ProgressBarEntityTableColumn
@@ -50,10 +51,12 @@ import {
   jobStatusTranslations,
   JobType,
   jobTypeTranslations,
-  TaskManagerConfig
+  processTask,
+  TaskManagerConfig,
+  workingTask
 } from '@shared/models/job.models';
 import { JobService } from '@core/http/job.service';
-import { TimePageLink } from '@shared/models/page/page-link';
+import { PageQueryParam, TimePageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
@@ -63,21 +66,26 @@ import { TbPopoverService } from '@shared/components/popover.service';
 import { TaskInfoPanelComponent } from '@home/pages/task-manager/task-info-panel.component';
 import { TaskParametersPanelComponent } from '@home/pages/task-manager/task-parameters-panel.component';
 import { DialogService } from '@core/services/dialog.service';
-import { CancelTaskDialogComponent, CancelTaskDialogData } from '@home/pages/task-manager/cancel-task-dialog.component';
+import { CancelTaskDialogComponent, CancelTaskDialogData } from '@home/components/task/cancel-task-dialog.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { deepClone, getEntityDetailsPageURL } from '@core/utils';
+
+interface TaskManagerPageQueryParams extends PageQueryParam {
+  entityId?: string;
+}
 
 @Injectable()
 export class TaskManagerTableConfigResolver {
 
   private readonly config: TaskManagerConfig = new EntityTableConfig<Job, TimePageLink>();
 
-  private cancelTask = [JobStatus.QUEUED, JobStatus.PENDING, JobStatus.RUNNING];
-
   constructor(private jobService: JobService,
               private popoverService: TbPopoverService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
-              private dialogService: DialogService) {
+              private dialogService: DialogService,
+              private router: Router) {
 
     this.config.entityType = EntityType.JOB;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.JOB);
@@ -96,16 +104,14 @@ export class TaskManagerTableConfigResolver {
 
     this.config.entitiesFetchFunction = pageLink => this.fetchJobs(pageLink);
 
-    this.config.filter = {};
-
     this.config.columns.push(
       new DateEntityTableColumn<Job>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Job>('type', 'task.type', '25%', (job) => {
         return this.translate.instant(jobTypeTranslations.get(job.type));
       }),
-      new EntityTableColumn<Job>('entity', 'task.entity', '25%', () => {
-        return '';
-      }, () => ({}), false),
+      new EntityLinkTableColumn<Job>('entityName', 'task.entity', '25%', (job) => {
+        return job.entityName;
+      }, (job: Job) => (job ? getEntityDetailsPageURL(job.entityId.id, job.entityId.entityType as EntityType) : ''), false),
       new EntityTableColumn<Job>('status', 'task.status', '20%',
         (job) => this.taskStatus(job.status),
         (job) => this.taskStatusStyle(job.status),
@@ -118,16 +124,20 @@ export class TaskManagerTableConfigResolver {
     );
 
     this.config.cellActionDescriptors = this.configureCellActions();
+    this.config.onLoadAction = (activatedRoute) => this.onLoadAction(this.config, activatedRoute);
   }
 
   resolve(): EntityTableConfig<Job> {
+    this.config.componentsData = {
+      filter: {}
+    }
     this.config.tableTitle = this.translate.instant('task.task-manager');
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 
   private fetchJobs(pageLink: TimePageLink): Observable<PageData<Job>> {
-    const query = new JobQuery(pageLink, this.config.filter);
+    const query = new JobQuery(pageLink, this.config.componentsData.filter);
     return this.jobService.getJobs(query);
   }
 
@@ -147,10 +157,10 @@ export class TaskManagerTableConfigResolver {
       },
       {
         name: this.translate.instant('task.delete-task'),
-        nameFunction: (entity) => this.cancelTask.includes(entity.status)
+        nameFunction: (entity) => workingTask.includes(entity.status)
           ? this.translate.instant('task.cancel-task')
           : this.translate.instant('task.delete-task'),
-        iconFunction: (entity) => this.cancelTask.includes(entity.status) ? 'close' : 'delete',
+        iconFunction: (entity) => workingTask.includes(entity.status) ? 'close' : 'delete',
         isEnabled: () => true,
         onAction: ($event, entity) => this.cancelOrDeleteTask($event, entity)
       }
@@ -243,17 +253,8 @@ export class TaskManagerTableConfigResolver {
   }
 
   private progressBar(result: JobResult): number {
-    let progress = 0;
-    if (result.discardedCount) {
-      progress += result.discardedCount;
-    }
-    if (result.failedCount) {
-      progress += result.failedCount;
-    }
-    if (result.successfulCount) {
-      progress += result.successfulCount;
-    }
-    return progress > 0 ? Math.round(progress / result.totalCount * 100) : 0;
+    const progress = processTask(result)
+    return progress > 0 ? Math.round(progress / result.totalCount * 100) : (result.totalCount > 0 ? 0 : 100);
   }
 
   private openTaskInfo($event: Event, job: Job) {
@@ -310,7 +311,7 @@ export class TaskManagerTableConfigResolver {
 
   private cancelOrDeleteTask($event: Event, job: Job) {
     $event?.stopPropagation();
-    if (this.cancelTask.includes(job.status)) {
+    if (workingTask.includes(job.status)) {
       this.cancelTaskDialog($event, job);
     } else {
       this.dialogService.confirm(
@@ -354,5 +355,26 @@ export class TaskManagerTableConfigResolver {
         });
       }
     });
+  }
+
+  onLoadAction(config: TaskManagerConfig, route: ActivatedRoute): void {
+    const routerQueryParams: TaskManagerPageQueryParams = route.snapshot.queryParams;
+    if (routerQueryParams) {
+      const queryParams = deepClone(routerQueryParams);
+      let replaceUrl = false;
+      if (routerQueryParams?.entityId) {
+        config.componentsData.filter.entities = [JSON.parse(decodeURIComponent(routerQueryParams.entityId))];
+        delete queryParams.entityId;
+        replaceUrl = true;
+      }
+      if (replaceUrl) {
+        this.router.navigate([], {
+          relativeTo: route,
+          queryParams,
+          queryParamsHandling: '',
+          replaceUrl: true
+        }).then(() => {});
+      }
+    }
   }
 }

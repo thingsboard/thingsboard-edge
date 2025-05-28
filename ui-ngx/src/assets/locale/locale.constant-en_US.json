@@ -1130,6 +1130,19 @@
         "delete-multiple-title": "Are you sure you want to delete { count, plural, =1 {1 calculated field} other {# calculated fields} }?",
         "delete-multiple-text": "Be careful, after the confirmation all selected calculated fields will be removed and all related data will become unrecoverable.",
         "test-with-this-message": "Test with this message",
+        "calculated-field-reprocessing": "Calculated field reprocessing",
+        "cancel-reprocessing": "Cancel reprocessing",
+        "details": "Details",
+        "finish": "Finish",
+        "reprocess-calculated-field": "Reprocess calculated field",
+        "reprocessing-cancelled": "Reprocessing cancelled",
+        "reprocessing-completed": "Reprocessing completed",
+        "reprocessing-entities-data": "Reprocessing entities data...",
+        "reprocessing-failed": "Reprocessing finished with errors",
+        "reprocessing-in-progress": "Reprocessing in progress...",
+        "submitting-tasks": "Submitting tasks...",
+        "task-failed-reprocess": "The task failed to reprocess",
+        "tasks-failed-reprocess": "{{ error }} of {{ total }} entities failed to reprocess",
         "hint": {
             "arguments-simple-with-rolling": "Simple type calculated field should not contain keys with time series rolling type.",
             "arguments-empty": "Arguments should not be empty.",
@@ -1145,7 +1158,8 @@
             "max-args": "Maximum number of arguments reached.",
             "decimals-range": "Decimals by default should be a number between 0 and 15.",
             "expression": "Default expression demonstrates how to transform a temperature from Fahrenheit to Celsius.",
-            "arguments-entity-not-found": "Argument target entity not found."
+            "arguments-entity-not-found": "Argument target entity not found.",
+            "reprocessing": "If no specific timestamp is predefined, the results from reprocessing are saved using the timestamp of the corresponding historical telemetry that triggered the calculation."
         }
     },
     "confirm-on-exit": {

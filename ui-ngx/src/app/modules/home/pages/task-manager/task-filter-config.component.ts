@@ -194,6 +194,9 @@ export class TaskFilterConfigComponent implements ControlValueAccessor, OnDestro
       filterTextParts.push(this.taskFilterConfig.types.map(s =>
         this.translate.instant(jobTypeTranslations.get(s))).join(', '));
     }
+    if (this.taskFilterConfig.entities?.length) {
+      filterTextParts.push(this.translate.instant('entity.entities'));
+    }
     this.buttonDisplayValue = filterTextParts.length
       ? this.translate.instant('task.tasks-filter-params', { filterParams: filterTextParts.join(', ') })
       : this.translate.instant('task.tasks-filter');

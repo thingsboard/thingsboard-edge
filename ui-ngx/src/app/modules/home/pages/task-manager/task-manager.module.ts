@@ -40,15 +40,13 @@ import { WidgetConfigComponentsModule } from '@home/components/widget/config/wid
 import { TaskFilterConfigComponent } from '@home/pages/task-manager/task-filter-config.component';
 import { TaskInfoPanelComponent } from '@home/pages/task-manager/task-info-panel.component';
 import { TaskParametersPanelComponent } from '@home/pages/task-manager/task-parameters-panel.component';
-import { CancelTaskDialogComponent } from '@home/pages/task-manager/cancel-task-dialog.component';
 
 @NgModule({
   declarations: [
     TaskManagerHeaderComponent,
     TaskFilterConfigComponent,
     TaskInfoPanelComponent,
-    TaskParametersPanelComponent,
-    CancelTaskDialogComponent
+    TaskParametersPanelComponent
   ],
   imports: [
     CommonModule,

@@ -67,6 +67,8 @@ export const jobStatusTranslations = new Map<JobStatus, string>(
   ]
 );
 
+export const workingTask = [JobStatus.QUEUED, JobStatus.PENDING, JobStatus.RUNNING];
+
 export interface BasicTaskResult {
   key: string;
   success: boolean;
@@ -123,6 +125,8 @@ export interface Job extends Omit<BaseData<JobId>, 'label' | 'ownerId' | 'custom
   status: JobStatus;
   configuration: JobConfiguration;
   result: JobResult;
+  entityName: string;
+  entityId: EntityId;
 }
 
 export interface JobFilter {
@@ -135,7 +139,9 @@ export interface JobFilter {
 }
 
 export interface TaskManagerConfig extends EntityTableConfig<Job, TimePageLink> {
-  filter?: JobFilter
+  componentData?: {
+    filter?: JobFilter;
+  }
 }
 
 export class JobQuery {
@@ -166,5 +172,18 @@ export class JobQuery {
     }
     return query;
   }
+}
 
+export const processTask = (result: JobResult): number => {
+  let progress = 0;
+  if (result.discardedCount) {
+    progress += result.discardedCount;
+  }
+  if (result.failedCount) {
+    progress += result.failedCount;
+  }
+  if (result.successfulCount) {
+    progress += result.successfulCount;
+  }
+  return progress;
 }

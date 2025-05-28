@@ -52,7 +52,7 @@ export class TaskManagerHeaderComponent extends EntityTableHeaderComponent<Job, 
   }
 
   taskManagerChanged(jobFilter: JobFilter) {
-    this.taskManagerTableConfig.filter = jobFilter;
+    this.taskManagerTableConfig.componentsData.filter = jobFilter;
     this.taskManagerTableConfig.getTable().resetSortAndFilter(true, true);
   }
 }
