@@ -35,6 +35,7 @@ import { ConverterId } from '@shared/models/id/converter-id';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { HasEntityDebugSettings } from '@shared/models/entity.models';
+import { MqttVersion } from '@shared/models/mqtt.models';
 
 export enum IntegrationType {
   MQTT = 'MQTT',
@@ -821,6 +822,7 @@ export interface MqttIntegration extends Topics{
     connectTimeoutSec: number
     clientId: string;
     maxBytesInMessage: number;
+    protocolVersion: MqttVersion;
     credentials: Credentials | BasicCredentials | CertPemCredentials;
   };
 }

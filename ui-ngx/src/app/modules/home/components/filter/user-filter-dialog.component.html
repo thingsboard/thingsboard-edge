@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="userFilterFormGroup" (ngSubmit)="save()" style="width: 400px;">
+<form [formGroup]="userFilterFormGroup" (ngSubmit)="save()" style="width: 400px;" class="user-filter-dialog">
   <mat-toolbar color="primary">
     <h2>{{ filter.filter }}</h2>
     <span class="flex-1"></span>
@@ -57,6 +57,10 @@
             <mat-form-field class="mat-block">
               <mat-label>{{ userInputControl.get('label').value }}</mat-label>
               <input required type="number" matInput [formControl]="userInputControl.get('value')">
+              <div matSuffix class="mr-2"
+                   [class.!hidden]="!userInputControl.get('unitSymbol').value">
+                {{ userInputControl.get('unitSymbol').value }}
+              </div>
             </mat-form-field>
           </ng-template>
           <ng-template [ngSwitchCase]="valueTypeEnum.DATE_TIME">

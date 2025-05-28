@@ -46,7 +46,8 @@ import {
   ComponentStyle,
   iconStyle,
   overlayStyle,
-  textStyle
+  textStyle,
+  ValueFormatProcessor
 } from '@shared/models/widget-settings.models';
 import { Observable } from 'rxjs';
 import { ImagePipe } from '@shared/pipe/image.pipe';
@@ -58,9 +59,10 @@ import {
   sliderWidgetDefaultSettings,
   SliderWidgetSettings
 } from '@home/components/widget/lib/rpc/slider-widget.models';
-import { formatValue, isDefinedAndNotNull, isNumeric, plainColorFromVariable } from '@core/utils';
+import { isDefinedAndNotNull, isNumeric, plainColorFromVariable } from '@core/utils';
 import { WidgetComponent } from '@home/components/widget/widget.component';
 import tinycolor from 'tinycolor2';
+import { UnitService } from '@core/services/unit.service';
 
 @Component({
   selector: 'tb-slider-widget',
@@ -129,6 +131,8 @@ export class SliderWidgetComponent extends
 
   showTicks = true;
   ticksStyle: ComponentStyle = {};
+  tickMinText: number;
+  tickMaxText: number;
 
   sliderStep: number = undefined;
 
@@ -141,6 +145,7 @@ export class SliderWidgetComponent extends
   private panelResize$: ResizeObserver;
 
   private valueSetter: ValueSetter<number>;
+  private valueFormat: ValueFormatProcessor;
 
   private sliderCssClass: string;
 
@@ -150,7 +155,8 @@ export class SliderWidgetComponent extends
               private utils: UtilsService,
               private widgetComponent: WidgetComponent,
               protected cd: ChangeDetectorRef,
-              private elementRef: ElementRef) {
+              private elementRef: ElementRef,
+              private unitService: UnitService) {
     super(cd);
   }
 
@@ -170,6 +176,11 @@ export class SliderWidgetComponent extends
     this.valueStyle = textStyle(this.settings.valueFont);
     this.valueStyle.color = this.settings.valueColor;
 
+    this.valueFormat = ValueFormatProcessor.fromSettings(this.ctx.$injector, {
+      units: this.settings.valueUnits,
+      decimals: this.settings.valueDecimals
+    });
+
     this.showLeftRightIcon = this.layout === SliderLayout.extended;
     if (this.showLeftRightIcon) {
       this.leftIcon = this.settings.leftIcon;
@@ -188,6 +199,8 @@ export class SliderWidgetComponent extends
     if (this.showTicks) {
       this.ticksStyle = textStyle(this.settings.ticksFont);
       this.ticksStyle.color = this.settings.ticksColor;
+      this.tickMinText = this.unitService.convertUnitValue(this.settings.tickMin, this.settings.valueUnits);
+      this.tickMaxText = this.unitService.convertUnitValue(this.settings.tickMax, this.settings.valueUnits);
     }
 
     if (this.settings.showTickMarks) {
@@ -272,7 +285,7 @@ export class SliderWidgetComponent extends
   }
 
   private _sliderValueText(value: number): string {
-    return formatValue(value, this.settings.valueDecimals, this.settings.valueUnits, false);
+    return this.valueFormat.format(value);
   }
 
   private onValue(value: number): void {
@@ -284,7 +297,7 @@ export class SliderWidgetComponent extends
 
   private updateValueText() {
     if (isDefinedAndNotNull(this.value) && isNumeric(this.value)) {
-      this.valueText = formatValue(this.value, this.settings.valueDecimals, this.settings.valueUnits, false);
+      this.valueText = this.valueFormat.format(this.value);
     } else {
       this.valueText = 'N/A';
     }

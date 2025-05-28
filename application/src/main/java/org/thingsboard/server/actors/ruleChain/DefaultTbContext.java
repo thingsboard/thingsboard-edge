@@ -40,6 +40,7 @@ import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.MqttClientSettings;
 import org.thingsboard.rule.engine.api.NotificationCenter;
@@ -123,6 +124,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
@@ -933,6 +935,16 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleEngineCalculatedFieldQueueService getCalculatedFieldQueueService() {
         return mainCtx.getCalculatedFieldQueueService();
+    }
+
+    @Override
+    public JobService getJobService() {
+        return mainCtx.getJobService();
+    }
+
+    @Override
+    public JobManager getJobManager() {
+        return mainCtx.getJobManager();
     }
 
     @Override

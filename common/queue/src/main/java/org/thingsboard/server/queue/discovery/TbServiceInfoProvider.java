@@ -54,4 +54,6 @@ public interface TbServiceInfoProvider {
 
     Set<UUID> getAssignedTenantProfiles();
 
+    boolean setReady(boolean ready);
+
 }

@@ -1,0 +1,133 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-cf-reprocessing-panel">
+  <div class="tb-cf-reprocessing-title" translate>calculated-fields.calculated-field-reprocessing</div>
+  <div class="tb-cf-reprocessing-content">
+    @switch (state()) {
+      @case (ReprocessingState.LOADING) {
+        <div class="flex flex-1 flex-col items-center justify-center gap-4">
+          <mat-spinner color="accent" diameter="65" strokeWidth="4"></mat-spinner>
+          <span class="mat-subtitle-1 mb-0">{{ 'common.loading' | translate }}</span>
+        </div>
+      }
+      @case (ReprocessingState.CONFIG) {
+        <div class="tb-form-hint tb-form-panel-hint tb-primary-fill">
+          {{ 'calculated-fields.hint.reprocessing' | translate }}
+        </div>
+        <tb-timewindow [(ngModel)]="timeWindow"
+                       [panelMode]="false"
+                       [timezone]="true"
+                       [historyOnly]="true">
+        </tb-timewindow>
+      }
+      @case (ReprocessingState.SUBMIT) {
+        <div class="flex flex-1 flex-col justify-center gap-2">
+          <span class="tb-task-status">{{ 'calculated-fields.submitting-tasks' | translate }}</span>
+          <mat-progress-bar mode="determinate" [value]="submitProgress()"></mat-progress-bar>
+        </div>
+      }
+      @case (ReprocessingState.PROCESS) {
+        <div class="flex flex-1 flex-col justify-center gap-2">
+          <div class="flex justify-between">
+            <span class="tb-task-status">{{ reprocessingLabel | translate }}</span>
+            <span class="tb-task-status info">{{ processInfo() }}</span>
+          </div>
+          <mat-progress-bar mode="determinate" [value]="processProgress()"></mat-progress-bar>
+        </div>
+      }
+      @case (ReprocessingState.RESULTS) {
+        <div class="flex flex-1 flex-col items-center justify-center gap-2 rounded"
+             [class.tb-primary-fill]="job().status === JobStatus.COMPLETED"
+             [class.task-result-problem]="job().status !== JobStatus.COMPLETED">
+          <tb-icon [color]="resultIconColor" [class.warn]="!resultIconColor">{{ resultIcon }}</tb-icon>
+          <div class="flex flex-col items-center">
+            <span class="tb-task-status">{{ resultLabel | translate }}</span>
+            @if (job().status === JobStatus.FAILED) {
+              @if (totalTasks > 1) {
+                <span class="tb-task-status info">
+                  {{ 'calculated-fields.tasks-failed-reprocess' | translate: { error: failedTasks, total: totalTasks } }}
+                </span>
+              } @else {
+                <span class="tb-task-status info" translate>calculated-fields.task-failed-reprocess</span>
+              }
+            }
+          </div>
+        </div>
+      }
+      @case (ReprocessingState.VALIDATION_ERROR) {
+        <div class="task-result-problem flex flex-1 flex-col items-center justify-center gap-2 rounded">
+          <tb-icon class="warn">warning</tb-icon>
+          <span class="tb-validation-message text-center">{{ validationMgs }}</span>
+        </div>
+      }
+    }
+  </div>
+  <div class="flex h-10 items-end gap-4">
+    <button mat-button
+            color="primary"
+            type="button"
+            *ngIf="state() !== ReprocessingState.LOADING && state() !== ReprocessingState.CONFIG && state() !== ReprocessingState.VALIDATION_ERROR"
+            (click)="openDetails()">
+      {{ 'calculated-fields.details' | translate }}
+    </button>
+    <span class="flex-1"></span>
+    <button mat-button
+            color="primary"
+            type="button"
+            *ngIf="state() === ReprocessingState.LOADING || state() === ReprocessingState.CONFIG || state() === ReprocessingState.VALIDATION_ERROR"
+            (click)="cancel()">
+      {{ 'action.close' | translate }}
+    </button>
+    <button mat-raised-button
+            *ngIf="state() === ReprocessingState.CONFIG || (state() === ReprocessingState.RESULTS && job()?.status === JobStatus.FAILED)"
+            color="primary"
+            type="button"
+            (click)="reprocessing()">
+      {{ 'task.reprocess' | translate : {count: failedTasks ?? 0} }}
+    </button>
+    <button mat-raised-button
+            *ngIf="(state() === ReprocessingState.SUBMIT || state() === ReprocessingState.PROCESS) && job()"
+            color="accent"
+            type="button"
+            (click)="cancelReprocessing($event)">
+      {{ 'calculated-fields.cancel-reprocessing' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            *ngIf="state() === ReprocessingState.RESULTS && job()?.status !== JobStatus.FAILED"
+            (click)="cancel()">
+      {{ 'calculated-fields.finish' | translate }}
+    </button>
+  </div>
+</div>

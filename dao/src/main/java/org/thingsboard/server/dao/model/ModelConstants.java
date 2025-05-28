@@ -946,8 +946,20 @@ public class ModelConstants {
      * Encryption key constants.
      */
     public static final String ENCRYPTION_KEY_TABLE_NAME = "encryption_key";
-    public static final String ENCRYPTION_KEY_PASSWORD_COLUMN= "password";
+    public static final String ENCRYPTION_KEY_PASSWORD_COLUMN = "password";
     public static final String ENCRYPTION_KEY_SALT_COLUMN = "salt";
+
+    /**
+     * Job constants.
+     */
+    public static final String JOB_TABLE_NAME = "job";
+    public static final String JOB_TYPE_PROPERTY = "type";
+    public static final String JOB_KEY_PROPERTY = "key";
+    public static final String JOB_ENTITY_ID_PROPERTY = "entity_id";
+    public static final String JOB_ENTITY_TYPE_PROPERTY = "entity_type";
+    public static final String JOB_STATUS_PROPERTY = "status";
+    public static final String JOB_CONFIGURATION_PROPERTY = "configuration";
+    public static final String JOB_RESULT_PROPERTY = "result";
 
     protected static final String[] NONE_AGGREGATION_COLUMNS = new String[]{LONG_VALUE_COLUMN, DOUBLE_VALUE_COLUMN, BOOLEAN_VALUE_COLUMN, STRING_VALUE_COLUMN, JSON_VALUE_COLUMN, KEY_COLUMN, TS_COLUMN};
 

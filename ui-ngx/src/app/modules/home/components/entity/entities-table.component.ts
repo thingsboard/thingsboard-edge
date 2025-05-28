@@ -36,7 +36,8 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input, NgZone,
+  Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -70,13 +71,14 @@ import {
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  HeaderActionDescriptor
+  HeaderActionDescriptor,
+  ProgressBarEntityTableColumn
 } from '@home/models/entity/entities-table-config.models';
 import { EntityTypeTranslation } from '@shared/models/entity-type.models';
 import { DialogService } from '@core/services/dialog.service';
 import { AddEntityDialogComponent } from './add-entity-dialog.component';
 import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
-import { calculateIntervalStartEndTime, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
+import { getTimePageLinkInterval, Timewindow } from '@shared/models/time/time.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { isDefined, isDefinedAndNotNull, isEqual, isNotEmptyStr, isNumber, isUndefined } from '@core/utils';
@@ -299,7 +301,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
     if (this.entitiesTableConfig.useTimePageLink) {
       this.timewindow = this.entitiesTableConfig.defaultTimewindowInterval;
-      const interval = this.getTimePageLinkInterval();
+      const interval = getTimePageLinkInterval(this.timewindow);
       this.pageLink = new TimePageLink(10, 0, null, sortOrder,
         interval.startTime, interval.endTime);
     } else {
@@ -464,7 +466,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     }
     if (this.entitiesTableConfig.useTimePageLink) {
       const timePageLink = this.pageLink as TimePageLink;
-      const interval = this.getTimePageLinkInterval();
+      const interval = getTimePageLinkInterval(this.timewindow);
       timePageLink.startTime = interval.startTime;
       timePageLink.endTime = interval.endTime;
     }
@@ -472,31 +474,6 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (reloadEntity && this.isDetailsOpen && this.entityDetailsPanel) {
       this.entityDetailsPanel.reloadEntity();
     }
-  }
-
-  private getTimePageLinkInterval(): {startTime?: number; endTime?: number} {
-    const interval: {startTime?: number; endTime?: number} = {};
-    switch (this.timewindow.history.historyType) {
-      case HistoryWindowType.LAST_INTERVAL:
-        const currentTime = Date.now();
-        interval.startTime = currentTime - this.timewindow.history.timewindowMs;
-        interval.endTime = currentTime;
-        break;
-      case HistoryWindowType.FIXED:
-        interval.startTime = this.timewindow.history.fixedTimewindow.startTimeMs;
-        interval.endTime = this.timewindow.history.fixedTimewindow.endTimeMs;
-        break;
-      case HistoryWindowType.INTERVAL:
-        const startEndTime = calculateIntervalStartEndTime(this.timewindow.history.quickInterval);
-        interval.startTime = startEndTime[0];
-        interval.endTime = startEndTime[1];
-        break;
-      case HistoryWindowType.FOR_ALL_TIME:
-        interval.startTime = null;
-        interval.endTime = null;
-        break;
-    }
-    return interval;
   }
 
   private dataLoaded(col?: number, row?: number) {
@@ -657,7 +634,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   columnsUpdated(resetData: boolean = false) {
     this.entityColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityTableColumn || column instanceof EntityLinkTableColumn ||
-        column instanceof ChartEntityTableColumn || column instanceof EntityChipsEntityTableColumn)
+        column instanceof ChartEntityTableColumn || column instanceof ProgressBarEntityTableColumn || column instanceof EntityChipsEntityTableColumn)
       .map(column => column as EntityTableColumn<BaseData<HasId>>);
     this.actionColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityActionTableColumn)
@@ -725,6 +702,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
       return res;
     } else if (column instanceof ChartEntityTableColumn) {
       return column.cellContentFunction(entity, column.key);
+    } else if (column instanceof ProgressBarEntityTableColumn) {
+      return column.cellContentFunction(entity, column.key);
     }
     return '';
   }
@@ -756,7 +735,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         widthStyle.minWidth = column.width;
         widthStyle.maxWidth = column.width;
       }
-      if (column instanceof EntityTableColumn) {
+      if (column instanceof EntityTableColumn || column instanceof ProgressBarEntityTableColumn) {
         res = {...column.cellStyleFunction(entity, column.key), ...widthStyle};
       } else {
         res = widthStyle;
@@ -770,6 +749,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     let res;
     if (column instanceof ChartEntityTableColumn) {
       res = column.chartStyleFunction(entity, column.key);
+    }
+    if (column instanceof ProgressBarEntityTableColumn) {
+      res = column.progressBarStyleFunction(entity, column.key);
     }
     return res;
   }

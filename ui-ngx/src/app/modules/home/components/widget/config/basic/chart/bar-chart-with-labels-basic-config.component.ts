@@ -60,6 +60,7 @@ import {
   BarChartWithLabelsWidgetSettings
 } from '@home/components/widget/lib/chart/bar-chart-with-labels-widget.models';
 import { TimeSeriesChartType } from '@home/components/widget/lib/chart/time-series-chart.models';
+import { getSourceTbUnitSymbol } from '@shared/models/unit.models';
 
 @Component({
   selector: 'tb-bar-chart-with-labels-basic-config',
@@ -384,7 +385,7 @@ export class BarChartWithLabelsBasicConfigComponent extends BasicWidgetConfigCom
   }
 
   private _tooltipValuePreviewFn(): string {
-    const units: string = this.barChartWidgetConfigForm.get('units').value;
+    const units: string = getSourceTbUnitSymbol(this.barChartWidgetConfigForm.get('units').value);
     const decimals: number = this.barChartWidgetConfigForm.get('decimals').value;
     return formatValue(22, decimals, units, false);
   }

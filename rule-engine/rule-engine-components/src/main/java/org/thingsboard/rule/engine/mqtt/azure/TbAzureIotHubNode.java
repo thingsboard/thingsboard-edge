@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.mqtt.azure;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.AzureIotHubUtil;
@@ -47,12 +49,14 @@ import org.thingsboard.rule.engine.mqtt.TbMqttNode;
 import org.thingsboard.rule.engine.mqtt.TbMqttNodeConfiguration;
 import org.thingsboard.server.common.data.plugin.ComponentClusteringMode;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 
 @Slf4j
 @RuleNode(
         type = ComponentType.EXTERNAL,
         name = "azure iot hub",
         configClazz = TbAzureIotHubNodeConfiguration.class,
+        version = 1,
         clusteringMode = ComponentClusteringMode.SINGLETON,
         nodeDescription = "Publish messages to the Azure IoT Hub",
         nodeDetails = "Will publish message payload to the Azure IoT Hub with QoS <b>AT_LEAST_ONCE</b>.",
@@ -60,6 +64,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
         hasSecrets = true
 )
 public class TbAzureIotHubNode extends TbMqttNode {
+
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         super.init(ctx);
@@ -81,7 +86,6 @@ public class TbAzureIotHubNode extends TbMqttNode {
     }
 
     protected void prepareMqttClientConfig(MqttClientConfig config) {
-        config.setProtocolVersion(MqttVersion.MQTT_3_1_1);
         config.setUsername(AzureIotHubUtil.buildUsername(mqttNodeConfiguration.getHost(), config.getClientId()));
         ClientCredentials credentials = mqttNodeConfiguration.getCredentials();
         if (CredentialsType.SAS == credentials.getType()) {
@@ -92,4 +96,22 @@ public class TbAzureIotHubNode extends TbMqttNode {
     MqttClient initAzureClient(TbContext ctx) throws Exception {
         return initClient(ctx);
     }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        boolean hasChanges = false;
+        switch (fromVersion) {
+            case 0:
+                String protocolVersion = "protocolVersion";
+                if (!oldConfiguration.has(protocolVersion)) {
+                    hasChanges = true;
+                    ((ObjectNode) oldConfiguration).put(protocolVersion, MqttVersion.MQTT_3_1_1.name());
+                }
+                break;
+            default:
+                break;
+        }
+        return new TbPair<>(hasChanges, oldConfiguration);
+    }
+
 }

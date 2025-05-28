@@ -60,6 +60,7 @@ export enum EntityType {
   TB_RESOURCE = 'TB_RESOURCE',
   EDGE = 'EDGE',
   OTA_PACKAGE = 'OTA_PACKAGE',
+  JOB = 'JOB',
   RPC = 'RPC',
   QUEUE = 'QUEUE',
   QUEUE_STATS = 'QUEUE_STATS',
@@ -499,6 +500,17 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         noEntities: 'ota-update.no-packages-text',
         search: 'ota-update.search',
         selectedEntities: 'ota-update.selected-package'
+      }
+    ],
+    [
+      EntityType.JOB,
+      {
+        type: 'entity.type-task',
+        typePlural: 'entity.type-tasks',
+        list: 'entity.list-of-tasks',
+        noEntities: 'task.no-tasks-prompt',
+        search: 'task.search',
+        selectedEntities: 'task.selected-tasks'
       }
     ],
     [

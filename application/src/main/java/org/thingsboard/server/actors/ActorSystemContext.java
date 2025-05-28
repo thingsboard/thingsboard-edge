@@ -48,6 +48,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.MqttClientSettings;
 import org.thingsboard.rule.engine.api.NotificationCenter;
@@ -109,6 +110,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
@@ -649,11 +651,19 @@ public class ActorSystemContext {
     @Getter
     private CalculatedFieldQueueService calculatedFieldQueueService;
 
-    @Autowired(required = false)
+    @Autowired
+    @Getter
+    private JobService jobService;
+
+    @Autowired
+    @Getter
+    private JobManager jobManager;
+
+    @Autowired
     @Getter
     private SecretConfigurationService secretConfigurationService;
 
-    @Autowired(required = false)
+    @Autowired
     @Getter
     private SecretService secretService;
 

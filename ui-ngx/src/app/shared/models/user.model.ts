@@ -35,6 +35,7 @@ import { CustomerId } from './id/customer-id';
 import { Authority } from './authority.enum';
 import { TenantId } from './id/tenant-id';
 import { CustomMenuId } from '@shared/models/id/custom-menu-id';
+import { UnitSystem } from '@shared/models/unit.models';
 
 export interface User extends BaseData<UserId> {
   tenantId: TenantId;
@@ -56,6 +57,7 @@ export interface UserAdditionalInfo {
   defaultDashboardFullscreen: boolean;
   homeDashboardId: string;
   homeDashboardHideToolbar: boolean;
+  unitSystem: UnitSystem;
   lang: string;
   [key: string]: any;
 }
