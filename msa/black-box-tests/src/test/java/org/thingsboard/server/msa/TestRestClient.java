@@ -59,8 +59,9 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.cf.CalculatedField;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edqs.EdqsState;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
@@ -267,6 +268,13 @@ public class TestRestClient {
     public ValidatableResponse postTelemetryAttribute(EntityId entityId, String scope, JsonNode attribute) {
         return given().spec(requestSpec).body(attribute)
                 .post("/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", entityId.getEntityType(), entityId.getId(), scope)
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public ValidatableResponse postTelemetry(EntityId entityId, JsonNode telemetry) {
+        return given().spec(requestSpec).body(telemetry)
+                .post("/api/plugins/telemetry/{entityType}/{entityId}/timeseries/SERVER_SCOPE", entityId.getEntityType(), entityId.getId())
                 .then()
                 .statusCode(HTTP_OK);
     }
@@ -871,13 +879,13 @@ public class TestRestClient {
                 .as(Long.class);
     }
 
-    public Boolean isEdqsApiEnabled() {
+    public EdqsState getEdqsState() {
         return given().spec(requestSpec)
-                .get("/api/edqs/enabled")
+                .get("/api/edqs/state")
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
-                .as(Boolean.class);
+                .as(EdqsState.class);
     }
 
     public void deleteTenant(TenantId tenantId) {
@@ -1166,4 +1174,12 @@ public class TestRestClient {
                 .as(new TypeRef<List<EntityGroupInfo>>() {
                 });
     }
+
+    public void changeOwner(EntityId ownerId, EntityId entityId) {
+        given().spec(requestSpec)
+                .post("/api/owner/{ownerEntityType}/{ownerId}/{entityType}/{entityId}", ownerId.getEntityType().name(), ownerId.getId(), entityId.getEntityType().name(), entityId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
 }

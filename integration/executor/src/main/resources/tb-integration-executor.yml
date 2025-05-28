@@ -437,7 +437,7 @@ cache:
     maxSize: "${CACHE_SPECS_RATE_LIMITS_MAX_SIZE:100000}" # 0 means the cache is disabled
 
 
-# Redis configuration parameters
+# Redis/Valkey configuration parameters
 redis:
   # standalone or cluster or sentinel
   connection:
