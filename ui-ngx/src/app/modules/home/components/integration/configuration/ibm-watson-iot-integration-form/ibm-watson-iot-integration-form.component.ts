@@ -44,6 +44,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { IbmWatsonIotIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
+import { DEFAULT_MQTT_VERSION } from '@shared/models/mqtt.models';
 
 @Component({
   selector: 'tb-ibm-watson-iot-integration-form',
@@ -78,6 +79,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
       clientConfiguration: this.fb.group({
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
+        protocolVersion: [DEFAULT_MQTT_VERSION],
         credentials: this.fb.group({
           type: [IntegrationCredentialType.Basic],
           username: ['', [Validators.required, this.ibmWatsonIotApiKeyPatternValidator]],

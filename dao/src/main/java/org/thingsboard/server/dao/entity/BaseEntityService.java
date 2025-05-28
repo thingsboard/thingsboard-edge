@@ -74,6 +74,7 @@ import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
 import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.common.msg.edqs.EdqsApiService;
+import org.thingsboard.server.common.msg.edqs.EdqsService;
 import org.thingsboard.server.common.stats.EdqsStatsService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -151,6 +152,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     @Autowired
     @Lazy
     EntityServiceRegistry entityServiceRegistry;
+
+    @Autowired
+    private EdqsService edqsService;
 
     @Autowired
     @Lazy
@@ -303,7 +307,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
         long startNs = System.nanoTime();
         Long result;
-        if (edqsApiService.isEnabled() && validForEdqs(query) && !tenantId.isSysTenantId()) {
+        if (edqsService.isApiEnabled() && validForEdqs(query) && !tenantId.isSysTenantId()) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityCountQuery(query)
                     .userPermissions(userPermissions)
@@ -326,7 +330,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
         long startNs = System.nanoTime();
         PageData<EntityData> result;
-        if (edqsApiService.isEnabled() && validForEdqs(query)) {
+        if (edqsService.isApiEnabled() && validForEdqs(query)) {
             EdqsRequest request = EdqsRequest.builder()
                     .entityDataQuery(query)
                     .userPermissions(userPermissions)

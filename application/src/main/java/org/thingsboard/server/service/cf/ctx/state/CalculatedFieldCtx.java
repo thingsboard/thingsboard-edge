@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
 import org.thingsboard.server.common.data.cf.configuration.CalculatedFieldConfiguration;
 import org.thingsboard.server.common.data.cf.configuration.Output;
 import org.thingsboard.server.common.data.cf.configuration.ReferencedEntityKey;
+import org.thingsboard.server.common.data.cf.configuration.SimpleCalculatedFieldConfiguration;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -73,9 +74,11 @@ public class CalculatedFieldCtx {
     private final Map<String, Argument> arguments;
     private final Map<ReferencedEntityKey, String> mainEntityArguments;
     private final Map<EntityId, Map<ReferencedEntityKey, String>> linkedEntityArguments;
+    private final Map<ReferencedEntityKey, String> dynamicEntityArguments;
     private final List<String> argNames;
     private Output output;
     private String expression;
+    private boolean preserveMsgTs;
     private TbelInvokeService tbelInvokeService;
     private CalculatedFieldScriptEngine calculatedFieldScriptEngine;
     private ThreadLocal<Expression> customExpression;
@@ -97,10 +100,13 @@ public class CalculatedFieldCtx {
         this.arguments = configuration.getArguments();
         this.mainEntityArguments = new HashMap<>();
         this.linkedEntityArguments = new HashMap<>();
+        this.dynamicEntityArguments = new HashMap<>();
         for (Map.Entry<String, Argument> entry : arguments.entrySet()) {
             var refId = entry.getValue().getRefEntityId();
             var refKey = entry.getValue().getRefEntityKey();
-            if (refId == null || refId.equals(calculatedField.getEntityId())) {
+            if (refId == null && entry.getValue().getRefDynamicSource() != null) {
+                dynamicEntityArguments.put(refKey, entry.getKey());
+            } else if (refId == null || refId.equals(calculatedField.getEntityId())) {
                 mainEntityArguments.put(refKey, entry.getKey());
             } else {
                 linkedEntityArguments.computeIfAbsent(refId, key -> new HashMap<>()).put(refKey, entry.getKey());
@@ -109,6 +115,7 @@ public class CalculatedFieldCtx {
         this.argNames = new ArrayList<>(arguments.keySet());
         this.output = configuration.getOutput();
         this.expression = configuration.getExpression();
+        this.preserveMsgTs = CalculatedFieldType.SIMPLE.equals(calculatedField.getType()) && ((SimpleCalculatedFieldConfiguration) configuration).isPreserveMsgTs();
         this.tbelInvokeService = tbelInvokeService;
 
         this.maxDataPointsPerRollingArg = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMaxDataPointsPerRollingArg);
@@ -192,6 +199,14 @@ public class CalculatedFieldCtx {
         return map != null && matchesTimeSeries(map, values);
     }
 
+    public boolean dynamicSourceMatches(List<TsKvEntry> values) {
+        return matchesTimeSeries(dynamicEntityArguments, values);
+    }
+
+    public boolean dynamicSourceMatches(List<AttributeKvEntry> values, AttributeScope scope) {
+        return matchesAttributes(dynamicEntityArguments, values, scope);
+    }
+
     private boolean matchesAttributes(Map<ReferencedEntityKey, String> argMap, List<AttributeKvEntry> values, AttributeScope scope) {
         for (AttributeKvEntry attrKv : values) {
             ReferencedEntityKey attrKey = new ReferencedEntityKey(attrKv.getKey(), ArgumentType.ATTRIBUTE, scope);
@@ -222,6 +237,14 @@ public class CalculatedFieldCtx {
 
     public boolean matchesKeys(List<String> keys) {
         return matchesTimeSeriesKeys(mainEntityArguments, keys);
+    }
+
+    public boolean matchesDynamicSourceKeys(List<String> keys, AttributeScope scope) {
+        return matchesAttributesKeys(dynamicEntityArguments, keys, scope);
+    }
+
+    public boolean matchesDynamicSourceKeys(List<String> keys) {
+        return matchesTimeSeriesKeys(dynamicEntityArguments, keys);
     }
 
     private boolean matchesAttributesKeys(Map<ReferencedEntityKey, String> argMap, List<String> keys, AttributeScope scope) {
@@ -295,6 +318,10 @@ public class CalculatedFieldCtx {
 
     public String getSizeExceedsLimitMessage() {
         return "Failed to init CF state. State size exceeds limit of " + (maxStateSize / 1024) + "Kb!";
+    }
+
+    public boolean hasDynamicSourceArg() {
+        return !dynamicEntityArguments.isEmpty();
     }
 
 }

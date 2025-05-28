@@ -87,6 +87,7 @@ export enum ArgumentEntityType {
   Asset = 'ASSET',
   Customer = 'CUSTOMER',
   Tenant = 'TENANT',
+  Owner = 'CURRENT_OWNER'
 }
 
 export const ArgumentEntityTypeTranslations = new Map<ArgumentEntityType, string>(
@@ -96,6 +97,7 @@ export const ArgumentEntityTypeTranslations = new Map<ArgumentEntityType, string
     [ArgumentEntityType.Asset, 'calculated-fields.argument-asset'],
     [ArgumentEntityType.Customer, 'calculated-fields.argument-customer'],
     [ArgumentEntityType.Tenant, 'calculated-fields.argument-tenant'],
+    [ArgumentEntityType.Owner, 'calculated-fields.argument-owner'],
   ]
 )
 
@@ -138,10 +140,15 @@ export const ArgumentTypeTranslations = new Map<ArgumentType, string>(
   ]
 )
 
+export enum CFArgumentDynamicSourceType {
+  CURRENT_OWNER = 'CURRENT_OWNER'
+}
+
 export interface CalculatedFieldArgument {
   refEntityKey: RefEntityKey;
   defaultValue?: string;
   refEntityId?: RefEntityId;
+  refDynamicSource?: CFArgumentDynamicSourceType;
   limit?: number;
   timeWindow?: number;
 }
@@ -540,6 +547,11 @@ export const getCalculatedFieldArgumentsEditorCompleter = (argumentsObj: Record<
           type: '{ [key: string]: object }',
           description: 'Calculated field context arguments.',
           children: {}
+        },
+        msgTs: {
+          meta: 'constant',
+          type: 'number',
+          description: 'Timestamp (ms) of the telemetry message that triggered the calculated field execution.'
         }
       }
     }
@@ -590,6 +602,11 @@ const calculatedFieldArgumentsContextValueHighlightRules: AceHighlightRules = {
       token: 'tb.calculated-field-args',
       regex: /args/,
       next: 'calculatedFieldCtxArgs'
+    },
+    {
+      token: 'tb.calculated-field-msgTs',
+      regex: /msgTs/,
+      next: 'no_regex'
     },
     endGroupHighlightRule
   ]

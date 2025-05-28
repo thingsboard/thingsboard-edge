@@ -126,6 +126,7 @@ import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
@@ -214,9 +215,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbCustomTranslationService translationService,
                                         TbCustomMenuService customMenuService,
                                         CalculatedFieldCache calculatedFieldCache,
-                                        EdqsService edqsService) {
+                                        EdqsService edqsService,
+                                        OwnersCacheService ownersCacheService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService,
-                eventPublisher, jwtSettingsService);
+                eventPublisher, jwtSettingsService, ownersCacheService);
         this.stateService = stateService;
         this.schedulerService = schedulerService;
         this.localSubscriptionService = localSubscriptionService;
@@ -301,10 +303,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         mainConsumer.update(event.getCorePartitions());
         usageStatsConsumer.subscribe(event.getCorePartitions()
                 .stream()
-                .map(tpi -> tpi.newByTopic(usageStatsConsumer.getConsumer().getTopic()))
+                .map(tpi -> tpi.withTopic(usageStatsConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
         integrationApiConsumer.subscribe(event.getCorePartitions().stream()
-                .map(tpi -> tpi.newByTopic(integrationApiConsumer.getConsumer().getTopic()))
+                .map(tpi -> tpi.withTopic(integrationApiConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
     }
 

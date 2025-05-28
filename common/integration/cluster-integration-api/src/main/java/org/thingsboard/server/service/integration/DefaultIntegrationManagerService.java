@@ -277,39 +277,39 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
         commandExecutorService.submit(() -> {
 
-        log.debug("Starting validation request: {}", validationRequestMsg);
-        if (isExpired(validationRequestMsg, callback)) {
-            return;
-        }
-
-        UUID requestId = new UUID(validationRequestMsg.getIdMSB(), validationRequestMsg.getIdLSB());
-        TenantId tenantId = TenantId.fromUUID(new UUID(validationRequestMsg.getTenantIdMSB(), validationRequestMsg.getTenantIdLSB()));
-        var response = IntegrationValidationResponseProto.newBuilder();
-        response.setIdMSB(requestId.getMostSignificantBits());
-        response.setIdLSB(requestId.getLeastSignificantBits());
-        try {
-            ValidationTaskType validationTaskType = ValidationTaskType.valueOf(validationRequestMsg.getType());
-            Integration configuration = ProtoUtils.fromProto(validationRequestMsg.getConfiguration());
-            doValidateLocally(validationTaskType, configuration);
-            log.trace("[{}][{}] Processed the validation request for integration: {}", tenantId, requestId, configuration);
-        } catch (Exception e) {
-            log.trace("[{}][{}][{}] Integration validation failed", tenantId, validationRequestMsg.getType(), requestId, e);
-            response.setError(ByteString.copyFrom(JavaSerDesUtil.encode(e)));
-        }
-        TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
-        TransportProtos.ToCoreNotificationMsg msg = TransportProtos.ToCoreNotificationMsg.newBuilder().setIntegrationValidationResponseMsg(response).build();
-        producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), new TbQueueCallback() {
-            @Override
-            public void onSuccess(TbQueueMsgMetadata metadata) {
-                log.trace("[{}][{}] Published the validation response ", tenantId, requestId);
+            log.debug("Starting validation request: {}", validationRequestMsg);
+            if (isExpired(validationRequestMsg, callback)) {
+                return;
             }
 
-            @Override
-            public void onFailure(Throwable t) {
-                log.debug("[{}][{}] Failed to publish the validation response ", tenantId, requestId, t);
+            UUID requestId = new UUID(validationRequestMsg.getIdMSB(), validationRequestMsg.getIdLSB());
+            TenantId tenantId = TenantId.fromUUID(new UUID(validationRequestMsg.getTenantIdMSB(), validationRequestMsg.getTenantIdLSB()));
+            var response = IntegrationValidationResponseProto.newBuilder();
+            response.setIdMSB(requestId.getMostSignificantBits());
+            response.setIdLSB(requestId.getLeastSignificantBits());
+            try {
+                ValidationTaskType validationTaskType = ValidationTaskType.valueOf(validationRequestMsg.getType());
+                Integration configuration = ProtoUtils.fromProto(validationRequestMsg.getConfiguration());
+                doValidateLocally(validationTaskType, configuration);
+                log.trace("[{}][{}] Processed the validation request for integration: {}", tenantId, requestId, configuration);
+            } catch (Exception e) {
+                log.trace("[{}][{}][{}] Integration validation failed", tenantId, validationRequestMsg.getType(), requestId, e);
+                response.setError(ByteString.copyFrom(JavaSerDesUtil.encode(e)));
             }
-        });
-        callback.onSuccess();
+            TopicPartitionInfo tpi = topicService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
+            TransportProtos.ToCoreNotificationMsg msg = TransportProtos.ToCoreNotificationMsg.newBuilder().setIntegrationValidationResponseMsg(response).build();
+            producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    log.trace("[{}][{}] Published the validation response ", tenantId, requestId);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.debug("[{}][{}] Failed to publish the validation response ", tenantId, requestId, t);
+                }
+            });
+            callback.onSuccess();
 
         });
     }
@@ -386,7 +386,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
                 var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getType().name(), configuration.getTenantId(), configuration.getId())
-                        .newByTopic(integrationExecutorSettings.getIntegrationDownlinkTopic(configuration.getType()));
+                        .withTopic(topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(configuration.getType())));
                 IntegrationValidationRequestProto requestProto = IntegrationValidationRequestProto.newBuilder()
                         .setIdMSB(task.getUuid().getMostSignificantBits())
                         .setIdLSB(task.getUuid().getLeastSignificantBits())
@@ -685,8 +685,8 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private boolean isMine(AbstractIntegration integration) {
         var type = integration.getType();
         if (supportedIntegrationTypes.contains(type)) {
-            return !type.isSingleton()
-                    || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, type.name(), integration.getTenantId(), integration.getId()).isMyPartition();
+            return !type.isSingleton() || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, type.name(),
+                    integration.getTenantId(), integration.getId()).isMyPartition();
         } else {
             return false;
         }

@@ -162,9 +162,10 @@ import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-ob
 import { HistorySelectorComponent } from '@shared/components/time/history-selector/history-selector.component';
 import { EntityGatewaySelectComponent } from '@shared/components/entity/entity-gateway-select.component';
 import {
-  HasGenericPermissionPipe,
   HasEntityGroupPermissionPipe,
-  HasGroupEntityPermissionPipe, HasGroupEntityOrGenericPermissionPipe
+  HasGenericPermissionPipe,
+  HasGroupEntityOrGenericPermissionPipe,
+  HasGroupEntityPermissionPipe
 } from '@shared/pipe/permission.pipes';
 import { OriginatorSelectComponent } from '@shared/components/originator-select.component';
 import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
@@ -218,6 +219,7 @@ import { ToggleHeaderComponent, ToggleOption } from '@shared/components/toggle-h
 import { RuleChainSelectComponent } from '@shared/components/rule-chain/rule-chain-select.component';
 import { ToggleSelectComponent } from '@shared/components/toggle-select.component';
 import { UnitInputComponent } from '@shared/components/unit-input.component';
+import { UnitSettingsPanelComponent } from '@shared/components/unit-settings-panel.component';
 import { MaterialIconsComponent } from '@shared/components/material-icons.component';
 import { ColorPickerPanelComponent } from '@shared/components/color-picker/color-picker-panel.component';
 import { TbIconComponent } from '@shared/components/icon.component';
@@ -254,13 +256,18 @@ import { SvgXmlComponent } from '@shared/components/svg-xml.component';
 import { CustomMenuAutocompleteComponent } from '@shared/components/custom-menu-autocomplete.component';
 import { DatapointsLimitComponent } from '@shared/components/time/datapoints-limit.component';
 import { AggregationTypeSelectComponent } from '@shared/components/time/aggregation/aggregation-type-select.component';
-import { AggregationOptionsConfigPanelComponent } from '@shared/components/time/aggregation/aggregation-options-config-panel.component';
+import {
+  AggregationOptionsConfigPanelComponent
+} from '@shared/components/time/aggregation/aggregation-options-config-panel.component';
 import { IntervalOptionsConfigPanelComponent } from '@shared/components/time/interval-options-config-panel.component';
-import { GroupingIntervalOptionsComponent } from '@shared/components/time/aggregation/grouping-interval-options.component';
+import {
+  GroupingIntervalOptionsComponent
+} from '@shared/components/time/aggregation/grouping-interval-options.component';
 import { JsFuncModulesComponent } from '@shared/components/js-func-modules.component';
 import { JsFuncModuleRowComponent } from '@shared/components/js-func-module-row.component';
 import { EntityKeyAutocompleteComponent } from '@shared/components/entity/entity-key-autocomplete.component';
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
+import { MqttVersionSelectComponent } from '@shared/components/mqtt-version-select.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -469,6 +476,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ToggleOption,
     ToggleSelectComponent,
     UnitInputComponent,
+    UnitSettingsPanelComponent,
     StringPatternAutocompleteComponent,
     StringAutocompleteComponent,
     MaterialIconsComponent,
@@ -494,7 +502,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HexInputComponent,
     ScadaSymbolInputComponent,
     CustomMenuAutocompleteComponent,
-    EntityKeyAutocompleteComponent
+    EntityKeyAutocompleteComponent,
+    MqttVersionSelectComponent,
   ],
   imports: [
     CommonModule,
@@ -778,7 +787,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     WidgetButtonComponent,
     ScadaSymbolInputComponent,
     CustomMenuAutocompleteComponent,
-    EntityKeyAutocompleteComponent
+    EntityKeyAutocompleteComponent,
+    MqttVersionSelectComponent,
   ]
 })
 export class SharedModule { }
