@@ -100,12 +100,12 @@ public class CalculatedFieldReprocessingValidator {
         CalculatedFieldCtx ctx = new CalculatedFieldCtx(calculatedField, tbelInvokeService, apiLimitService);
         try {
             ctx.init();
-            return Optional.of(CFReprocessingValidationResponse.valid());
         } catch (Exception e) {
             return Optional.of(CFReprocessingValidationResponse.invalid(e.getMessage()));
         } finally {
             ctx.stop();
         }
+        return Optional.empty();
     }
 
     private Optional<CFReprocessingValidationResponse> checkOutput(Output output) {
@@ -120,8 +120,10 @@ public class CalculatedFieldReprocessingValidator {
 
     public record CFReprocessingValidationResponse(boolean isValid, String message, JobStatus lastJobStatus) {
 
+        private static final CFReprocessingValidationResponse VALID = new CFReprocessingValidationResponse(true, null, null);
+
         public static CFReprocessingValidationResponse valid() {
-            return new CFReprocessingValidationResponse(true, null, null);
+            return VALID;
         }
 
         public static CFReprocessingValidationResponse invalid(String message) {

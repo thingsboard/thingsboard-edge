@@ -187,7 +187,7 @@ public class TestRestClient {
 
     public void reprocessCalculatedField(CalculatedField calculatedField, long startTs, long endTs) {
         given().spec(requestSpec)
-                .get("/api/calculatedField/reprocess/" + calculatedField.getUuidId() + "?startTs={startTs}&endTs={endTs}", startTs, endTs)
+                .get("/api/calculatedField/" + calculatedField.getUuidId() + "/reprocess?startTs={startTs}&endTs={endTs}", startTs, endTs)
                 .then()
                 .statusCode(HTTP_OK);
     }
