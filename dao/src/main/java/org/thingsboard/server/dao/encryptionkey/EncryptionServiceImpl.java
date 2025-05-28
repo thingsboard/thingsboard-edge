@@ -122,7 +122,7 @@ public class EncryptionServiceImpl implements EncryptionService {
     }
 
     @Override
-    public void deleteByTenantId(TenantId tenantId) {
+    public void deleteEncryptionKeyByTenantId(TenantId tenantId) {
         encryptionKeyDao.deleteByTenantId(tenantId);
     }
 

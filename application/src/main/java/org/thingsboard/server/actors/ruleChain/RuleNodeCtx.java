@@ -46,22 +46,19 @@ public final class RuleNodeCtx {
     private final TbActorRef chainActor;
     private final TbActorRef selfActor;
     private RuleNode self;
-    private JsonNode configuration;
 
     RuleNodeCtx(TenantId tenantId, TbActorRef chainActor, TbActorRef selfActor, RuleNode self) {
         this.tenantId = tenantId;
         this.chainActor = chainActor;
         this.selfActor = selfActor;
         this.self = self;
-        this.configuration = self.getConfiguration();
     }
 
-    public RuleNodeCtx(TenantId tenantId, TbActorCtx selfActor, RuleNode self, JsonNode configuration) {
+    public RuleNodeCtx(TenantId tenantId, TbActorCtx selfActor, RuleNode self) {
         this.tenantId = tenantId;
         this.chainActor = selfActor.getParentRef();
         this.selfActor = selfActor;
         this.self = self;
-        this.configuration = configuration;
     }
 
 }

@@ -33,7 +33,6 @@ package org.thingsboard.server.service.secret;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -53,13 +52,11 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
     // To match a placeholder like: ${secret:name;type:type}
     private static final Pattern SECRET_PATTERN = Pattern.compile("\\$\\{secret:([^;{}]+);type:([^;{}]+)}");
 
-    @Lazy
     private final SecretService secretService;
-    @Lazy
     private final EncryptionService encryptionService;
 
     @Override
-    public JsonNode replaceSecretPlaceholders(TenantId tenantId, JsonNode config) {
+    public JsonNode replaceSecretUsages(TenantId tenantId, JsonNode config) {
         JsonNode result = config.deepCopy();
         JacksonUtil.replaceAll(result, "", (path, value) -> {
             Matcher matcher = SECRET_PATTERN.matcher(value);
@@ -77,9 +74,9 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
     }
 
     @Override
-    public <T> T replaceSecretPlaceholders(TenantId tenantId, T config) {
+    public <T> T replaceSecretUsages(TenantId tenantId, T config) {
         JsonNode jsonNode = JacksonUtil.valueToTree(config);
-        JsonNode replaced = replaceSecretPlaceholders(tenantId, jsonNode);
+        JsonNode replaced = replaceSecretUsages(tenantId, jsonNode);
         return JacksonUtil.treeToValue(replaced, (Class<T>) config.getClass());
     }
 

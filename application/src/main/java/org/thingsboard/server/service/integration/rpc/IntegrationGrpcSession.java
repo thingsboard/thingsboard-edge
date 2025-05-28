@@ -428,7 +428,7 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     private IntegrationConfigurationProto constructIntegrationConfigProto(Integration configuration, ConverterConfigurationProto defaultConverterProto, ConverterConfigurationProto downLinkConverterProto) throws JsonProcessingException {
-        var config = ctx.getSecretConfigurationService().replaceSecretPlaceholders(configuration.getTenantId(), configuration.getConfiguration());
+        var config = ctx.getSecretConfigurationService().replaceSecretUsages(configuration.getTenantId(), configuration.getConfiguration());
         var builder = IntegrationConfigurationProto.newBuilder()
                 .setIntegrationIdMSB(configuration.getId().getId().getMostSignificantBits())
                 .setIntegrationIdLSB(configuration.getId().getId().getLeastSignificantBits())

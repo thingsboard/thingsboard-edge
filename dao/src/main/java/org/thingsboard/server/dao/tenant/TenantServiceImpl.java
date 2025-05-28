@@ -214,7 +214,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         qrCodeSettingService.deleteByTenantId(tenantId);
         customMenuService.deleteByTenantId(tenantId);
-        encryptionService.deleteByTenantId(tenantId);
+        encryptionService.deleteEncryptionKeyByTenantId(tenantId);
 
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));

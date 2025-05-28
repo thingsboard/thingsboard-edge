@@ -92,9 +92,9 @@ public interface RuleChainRepository extends JpaRepository<RuleChainEntity, UUID
             "r.name, r.version, r.additionalInfo) FROM RuleChainEntity r WHERE r.id > :id ORDER BY r.id")
     List<RuleChainFields> findNextBatch(@Param("id") UUID id, Limit limit);
 
-    @Query("SELECT DISTINCT new org.thingsboard.server.common.data.EntityInfo(rc.id, 'RULE_CHAIN', rc.name) FROM RuleChainEntity rc INNER JOIN RuleNodeEntity r ON rc.id = r.ruleChainId " +
-            "INNER JOIN ComponentDescriptorEntity cd ON r.type = cd.clazz WHERE rc.tenantId = :tenantId " +
-            "AND cd.hasSecrets = true AND ilike(r.configuration, CONCAT('%', :placeholder, '%'))")
+    @Query("SELECT new org.thingsboard.server.common.data.EntityInfo(rc.id, 'RULE_CHAIN', rc.name) FROM RuleChainEntity rc " +
+            "WHERE rc.tenantId = :tenantId AND EXISTS (SELECT 1 FROM RuleNodeEntity r JOIN ComponentDescriptorEntity cd ON r.type = cd.clazz " +
+            "WHERE r.ruleChainId = rc.id AND cd.hasSecrets = true AND ilike(r.configuration, CONCAT('%', :placeholder, '%')))")
     List<EntityInfo> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
                                                         @Param("placeholder") String placeholder);
 

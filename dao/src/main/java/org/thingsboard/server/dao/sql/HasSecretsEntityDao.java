@@ -31,12 +31,11 @@
 package org.thingsboard.server.dao.sql;
 
 import org.thingsboard.server.common.data.EntityInfo;
-import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.List;
 
-public interface HasSecretsEntityDao<T extends HasId<?>> {
+public interface HasSecretsEntityDao {
 
     List<EntityInfo> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder);
 

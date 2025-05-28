@@ -77,7 +77,7 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
                                                     @Param("searchText") String searchText,
                                                     Pageable pageable);
 
-    @Query("SELECT DISTINCT new org.thingsboard.server.common.data.EntityInfo(integration.id, 'INTEGRATION', integration.name) " +
+    @Query("SELECT new org.thingsboard.server.common.data.EntityInfo(integration.id, 'INTEGRATION', integration.name) " +
             "FROM IntegrationEntity integration WHERE integration.tenantId = :tenantId AND ilike(integration.configuration, CONCAT('%', :placeholder, '%'))")
     List<EntityInfo> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
                                                         @Param("placeholder") String placeholder);

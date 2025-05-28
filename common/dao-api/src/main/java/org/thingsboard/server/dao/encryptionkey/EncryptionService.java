@@ -41,6 +41,6 @@ public interface EncryptionService {
 
     String decryptToString(TenantId tenantId, SecretType secretType, byte[] encryptedValue);
 
-    void deleteByTenantId(TenantId tenantId);
+    void deleteEncryptionKeyByTenantId(TenantId tenantId);
 
 }

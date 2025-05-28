@@ -64,23 +64,22 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
     @Override
     public Integration getIntegration(TenantId tenantId, IntegrationId integrationId) {
         Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
-        if (integration != null) {
-            Integration copy = new Integration(integration);
-            copy.setConfiguration(secretConfigurationService.replaceSecretPlaceholders(tenantId, integration.getConfiguration()));
-            return copy;
-        }
-        return null;
+        return replaceSecretUsages(tenantId, integration);
     }
 
     @Override
     public Integration getIntegration(TenantId tenantId, String routingKey) {
         var integrationOpt = integrationService.findIntegrationByRoutingKey(tenantId, routingKey);
-        if (integrationOpt.isEmpty()) {
+        return replaceSecretUsages(tenantId, integrationOpt.orElse(null));
+    }
+
+    private Integration replaceSecretUsages(TenantId tenantId, Integration integration) {
+        if (integration == null) {
             return null;
         }
-        var integration = integrationOpt.get();
-        integration.setConfiguration(secretConfigurationService.replaceSecretPlaceholders(tenantId, integration.getConfiguration()));
-        return integration;
+        Integration copy = new Integration(integration);
+        copy.setConfiguration(secretConfigurationService.replaceSecretUsages(tenantId, integration.getConfiguration()));
+        return copy;
     }
 
     @Override

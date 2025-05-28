@@ -35,8 +35,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 public interface SecretConfigurationService {
 
-    JsonNode replaceSecretPlaceholders(TenantId tenantId, JsonNode config);
+    JsonNode replaceSecretUsages(TenantId tenantId, JsonNode config);
 
-    <T> T replaceSecretPlaceholders(TenantId tenantId, T config);
+    <T> T replaceSecretUsages(TenantId tenantId, T config);
 
 }

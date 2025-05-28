@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface IntegrationDao extends Dao<Integration>, TenantEntityDao<Integration>, ExportableEntityDao<IntegrationId, Integration>, HasSecretsEntityDao<Integration> {
+public interface IntegrationDao extends Dao<Integration>, TenantEntityDao<Integration>, ExportableEntityDao<IntegrationId, Integration>, HasSecretsEntityDao {
 
     /**
      * Find all (core and edge template) integrations by tenantId and page link.

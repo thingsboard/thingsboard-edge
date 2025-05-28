@@ -68,7 +68,7 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
 
     private static final String INCORRECT_SECRET_ID = "Incorrect secretId ";
 
-    private final Map<EntityType, HasSecretsEntityDao<?>> hasSecretsEntityDaoMap = new HashMap<>();
+    private final Map<EntityType, HasSecretsEntityDao> hasSecretsEntityDaoMap = new HashMap<>();
 
     @Autowired
     private SecretDao secretDao;
