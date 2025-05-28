@@ -271,7 +271,6 @@ export const HelpLinks = {
     roles: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rbac/`,
     selfRegistration: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/self-registration`,
     scheduler: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scheduler`,
-    job: `${helpBaseUrl}/docs${docPlatformPrefix}/`, // TODO: Add help link
     trendzSettings: `${helpBaseUrl}/docs/trendz/`,
   }
 };

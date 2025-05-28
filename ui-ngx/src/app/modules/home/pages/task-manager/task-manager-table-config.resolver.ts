@@ -41,7 +41,7 @@ import {
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
-import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import {
   Job,
@@ -89,7 +89,6 @@ export class TaskManagerTableConfigResolver {
 
     this.config.entityType = EntityType.JOB;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.JOB);
-    this.config.entityResources = entityTypeResources.get(EntityType.JOB);
     this.config.headerComponent = TaskManagerHeaderComponent;
 
     this.config.addEnabled = false;
