@@ -28,31 +28,60 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.query;
+package org.thingsboard.server.common.data.edqs;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.edqs.query.EdqsRequest;
-import org.thingsboard.server.common.data.edqs.query.EdqsResponse;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.edqs.EdqsApiService;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
 
-@Service
-@Slf4j
-@ConditionalOnMissingBean(value = EdqsApiService.class, ignored = DummyEdqsApiService.class)
-public class DummyEdqsApiService implements EdqsApiService {
+@Getter
+@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class EdqsState {
 
-    @Override
-    public ListenableFuture<EdqsResponse> processRequest(TenantId tenantId, CustomerId customerId, EdqsRequest request) {
-        throw new UnsupportedOperationException();
+    private Boolean edqsReady;
+    @Setter
+    private EdqsSyncStatus syncStatus;
+    @Setter
+    private EdqsApiMode apiMode;
+
+    public boolean setEdqsReady(boolean ready) {
+        boolean changed = BooleanUtils.toBooleanDefaultIfNull(this.edqsReady, false) != ready;
+        this.edqsReady = ready;
+        return changed;
+    }
+
+    public boolean isApiReady() {
+        return edqsReady && syncStatus == EdqsSyncStatus.FINISHED;
+    }
+
+    public boolean isApiEnabled() {
+        return apiMode != null && (apiMode == EdqsApiMode.ENABLED || apiMode == EdqsApiMode.AUTO_ENABLED);
     }
 
     @Override
-    public boolean isSupported() {
-        return false;
+    public String toString() {
+        return '[' +
+               "EDQS ready: " + edqsReady +
+               ", sync status: " + syncStatus +
+               ", API mode: " + apiMode +
+               ']';
+    }
+
+    public enum EdqsSyncStatus {
+        REQUESTED,
+        STARTED,
+        FINISHED,
+        FAILED
+    }
+
+    public enum EdqsApiMode {
+        ENABLED,
+        AUTO_ENABLED,
+        DISABLED,
+        AUTO_DISABLED
     }
 
 }

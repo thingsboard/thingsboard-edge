@@ -36,7 +36,7 @@ import org.thingsboard.server.common.data.ObjectType;
 public interface EdqsObject {
 
     @JsonIgnore
-    String key();
+    String stringKey();
 
     @JsonIgnore
     Long version();
