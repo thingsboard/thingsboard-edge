@@ -1330,6 +1330,7 @@ enum ComponentLifecycleEvent {
     DELETED       = 6;
     FAILED        = 7;
     DEACTIVATED   = 8;
+    OWNER_CHANGED = 50;
 }
 
 message ComponentLifecycleMsgProto {

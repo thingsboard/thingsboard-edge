@@ -65,6 +65,7 @@ export interface CalculatedFieldDialogData {
   entityId: EntityId;
   tenantId: string;
   entityName?: string;
+  ownerId: EntityId;
   additionalDebugActionConfig: AdditionalDebugActionConfig<(calculatedField: CalculatedField) => void>;
   getTestScriptDialogFn: CalculatedFieldTestScriptFn;
   isDirty?: boolean;

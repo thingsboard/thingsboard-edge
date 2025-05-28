@@ -263,8 +263,8 @@ public class EntityStateSourcingListener {
     public void handleEvent(ActionEntityEvent<?> event) {
         log.trace("[{}] ActionEntityEvent called: {}", event.getTenantId(), event);
         if (ActionType.CREDENTIALS_UPDATED.equals(event.getActionType()) &&
-                EntityType.DEVICE.equals(event.getEntityId().getEntityType())
-                && event.getEntity() instanceof DeviceCredentials) {
+            EntityType.DEVICE.equals(event.getEntityId().getEntityType())
+            && event.getEntity() instanceof DeviceCredentials) {
             tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(event.getTenantId(),
                     (DeviceId) event.getEntityId(), (DeviceCredentials) event.getEntity()), null);
         } else if (ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType()) && event.getEntity() instanceof Device device) {
@@ -273,6 +273,8 @@ public class EntityStateSourcingListener {
                 tbClusterService.onDeviceAssignedToTenant(tenant.getId(), device);
             }
             pushAssignedFromNotification(tenant, event.getTenantId(), device);
+        } else if (ActionType.CHANGE_OWNER.equals(event.getActionType())) {
+            tbClusterService.broadcastEntityStateChangeEvent(event.getTenantId(), event.getEntityId(), ComponentLifecycleEvent.OWNER_CHANGED);
         }
     }
 

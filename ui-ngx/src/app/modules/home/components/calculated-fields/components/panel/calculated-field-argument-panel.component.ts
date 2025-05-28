@@ -41,6 +41,7 @@ import {
   ArgumentTypeTranslations,
   CalculatedFieldArgumentValue,
   CalculatedFieldType,
+  CFArgumentDynamicSourceType,
   getCalculatedFieldCurrentEntityFilter
 } from '@shared/models/calculated-field.models';
 import { debounceTime, delay, distinctUntilChanged, filter } from 'rxjs/operators';
@@ -71,6 +72,7 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit, AfterViewI
   @Input() entityId: EntityId;
   @Input() tenantId: string;
   @Input() entityName: string;
+  @Input() ownerId: EntityId;
   @Input() calculatedFieldType: CalculatedFieldType;
   @Input() usedArgumentNames: string[];
 
@@ -146,8 +148,17 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit, AfterViewI
 
   ngOnInit(): void {
     this.argumentFormGroup.patchValue(this.argument, {emitEvent: false});
+    if (this.argument.refDynamicSource) {
+      this.refEntityIdFormGroup.get('entityType').setValue(this.argument.refDynamicSource, {emitEvent: false});
+    }
     this.currentEntityFilter = getCalculatedFieldCurrentEntityFilter(this.entityName, this.entityId);
-    this.updateEntityFilter(this.argument.refEntityId?.entityType, true);
+    let argumentType: ArgumentEntityType;
+    if (this.argument.refDynamicSource) {
+      argumentType = ArgumentEntityType.Owner;
+    } else {
+      argumentType = this.argument.refEntityId?.entityType;
+    }
+    this.updateEntityFilter(argumentType, true);
     this.toggleByEntityKeyType(this.argument.refEntityKey?.type);
     this.setInitialEntityKeyType();
 
@@ -162,13 +173,21 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit, AfterViewI
   }
 
   saveArgument(): void {
-    const { refEntityId, ...restConfig } = this.argumentFormGroup.value;
-    const value = (refEntityId.entityType === ArgumentEntityType.Current ? restConfig : { refEntityId, ...restConfig }) as CalculatedFieldArgumentValue;
-    if (refEntityId.entityType === ArgumentEntityType.Tenant) {
-      refEntityId.id = this.tenantId;
-    }
-    if (refEntityId.entityType !== ArgumentEntityType.Current && refEntityId.entityType !== ArgumentEntityType.Tenant) {
-      value.entityName = this.entityNameSubject.value;
+    const value = this.argumentFormGroup.value as CalculatedFieldArgumentValue;
+    const argumentType = value.refEntityId.entityType;
+    switch (argumentType) {
+      case ArgumentEntityType.Current:
+        delete value.refEntityId;
+        break;
+      case ArgumentEntityType.Owner:
+        delete value.refEntityId;
+        value.refDynamicSource = CFArgumentDynamicSourceType.CURRENT_OWNER;
+        break;
+      case ArgumentEntityType.Tenant:
+        value.refEntityId.id = this.tenantId;
+        break
+      default:
+        value.entityName = this.entityNameSubject.value;
     }
     if (value.defaultValue) {
       value.defaultValue = value.defaultValue.trim();
@@ -195,6 +214,12 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit, AfterViewI
     switch (entityType) {
       case ArgumentEntityType.Current:
         entityFilter = this.currentEntityFilter;
+        break;
+      case ArgumentEntityType.Owner:
+        entityFilter = {
+          type: AliasFilterType.singleEntity,
+          singleEntity: this.ownerId
+        };
         break;
       case ArgumentEntityType.Tenant:
         entityFilter = {
@@ -234,7 +259,7 @@ export class CalculatedFieldArgumentPanelComponent implements OnInit, AfterViewI
       .pipe(distinctUntilChanged(), takeUntilDestroyed())
       .subscribe(type => {
         this.argumentFormGroup.get('refEntityId').get('id').setValue('');
-        const isEntityWithId = type !== ArgumentEntityType.Tenant && type !== ArgumentEntityType.Current;
+        const isEntityWithId = ![ArgumentEntityType.Tenant, ArgumentEntityType.Current, ArgumentEntityType.Owner].includes(type);
         this.argumentFormGroup.get('refEntityId')
           .get('id')[isEntityWithId ? 'enable' : 'disable']();
         if (!isEntityWithId) {
