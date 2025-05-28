@@ -56,7 +56,7 @@
             <img class="tb-image-preview" [src]="image.link | image: {preview: true} | async" alt="{{ image.title }}">
           </mat-cell>
         </ng-container>
-        <ng-container matColumnDef="title">
+        <ng-container matColumnDef="title" *ngIf="displayTitle">
           <mat-header-cell *matHeaderCellDef style="width: 100%;">
             <ng-container *ngIf="dataSource.selection.isEmpty(); else selectedResources">
               {{ 'resource.title' | translate }}
@@ -67,6 +67,19 @@
           </mat-header-cell>
           <mat-cell *matCellDef="let resource">
             {{ resource.title }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="name" *ngIf="displayName">
+          <mat-header-cell *matHeaderCellDef style="width: 100%;">
+            <ng-container *ngIf="dataSource.selection.isEmpty(); else selectedResources">
+              {{ 'secret-storage.name' | translate }}
+            </ng-container>
+            <ng-template #selectedResources>
+              {{ translate.get(configuration.selectedText, {count: dataSource.selection.selected.length}) | async }}
+            </ng-template>
+          </mat-header-cell>
+          <mat-cell *matCellDef="let resource">
+            {{ resource.name }}
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="references">
@@ -88,8 +101,12 @@
 </div>
 <div mat-dialog-actions class="flex items-center justify-end">
   <button mat-button color="primary" (click)="cancel()">{{'action.cancel' | translate}}</button>
-  <button mat-raised-button color="accent" (click)="delete()" [disabled]="data.multiple && dataSource.selection.isEmpty()"
-          cdkFocusInitial>{{ (data.multiple ? 'action.delete-selected' : 'action.delete-anyway') | translate}}</button>
+  <button mat-raised-button color="accent"
+          *ngIf="allowForceDelete"
+          (click)="delete()"
+          [disabled]="data.multiple && dataSource.selection.isEmpty()">
+    {{ (data.multiple ? 'action.delete-selected' : 'action.delete-anyway') | translate}}
+  </button>
 </div>
 <ng-template #singleResourceReferences>
   <tb-image-references [references]="references"></tb-image-references>

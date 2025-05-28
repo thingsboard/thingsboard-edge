@@ -121,6 +121,7 @@ export enum Resource {
   MOBILE_APP = 'MOBILE_APP',
   OAUTH2_CLIENT = 'OAUTH2_CLIENT',
   DOMAIN = 'DOMAIN',
+  SECRET = 'SECRET'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();
@@ -163,6 +164,7 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.NOTIFICATION_TARGET, Resource.NOTIFICATION],
     [EntityType.NOTIFICATION_RULE, Resource.NOTIFICATION],
     [EntityType.NOTIFICATION_TEMPLATE, Resource.NOTIFICATION],
+    [EntityType.SECRET, Resource.SECRET]
   ]
 );
 

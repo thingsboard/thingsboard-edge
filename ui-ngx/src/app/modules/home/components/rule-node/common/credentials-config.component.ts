@@ -235,7 +235,7 @@ export class CredentialsConfigComponent extends PageComponent implements Control
       case 'cert.PEM':
         this.credentialsConfigFormGroup.setValidators([this.requiredFilesSelected(
           Validators.required,
-          [['caCert', 'caCertFileName'], ['privateKey', 'privateKeyFileName', 'cert', 'certFileName']]
+          [['caCert'], ['privateKey', 'cert']]
         )]);
         break;
     }

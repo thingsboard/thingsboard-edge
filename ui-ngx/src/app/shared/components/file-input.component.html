@@ -39,7 +39,7 @@
   <ng-container #flow="flow"
                 [flowConfig]="{allowDuplicateUploads: true}">
     <div class="tb-file-select-container">
-      <div class="tb-file-clear-container">
+      <div class="tb-file-clear-container" [class.!hidden]="hideClearButtonOnEmpty && !fileContent">
         <button mat-icon-button color="primary"
                 type="button"
                 (click)="clearFile()"

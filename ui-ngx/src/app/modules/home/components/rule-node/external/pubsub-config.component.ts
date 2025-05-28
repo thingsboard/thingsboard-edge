@@ -55,7 +55,7 @@ export class PubSubConfigComponent extends RuleNodeConfigurationComponent {
       projectId: [configuration ? configuration.projectId : null, [Validators.required]],
       topicName: [configuration ? configuration.topicName : null, [Validators.required]],
       serviceAccountKey: [configuration ? configuration.serviceAccountKey : null, [Validators.required]],
-      serviceAccountKeyFileName: [configuration ? configuration.serviceAccountKeyFileName : null, [Validators.required]],
+      serviceAccountKeyFileName: [configuration ? configuration.serviceAccountKeyFileName : null, []],
       messageAttributes: [configuration ? configuration.messageAttributes : null, []]
     });
   }
