@@ -440,6 +440,8 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         // process all cfs related to owner entity
         if (entityId.getEntityType().isOneOf(EntityType.TENANT, EntityType.CUSTOMER)) {
             processOwnerTelemetryMsg(msg, callback);
+        } else {
+            callback.onSuccess();
         }
     }
 

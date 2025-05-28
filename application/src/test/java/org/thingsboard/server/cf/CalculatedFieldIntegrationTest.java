@@ -91,7 +91,8 @@ import static org.thingsboard.server.common.data.job.JobStatus.RUNNING;
 @DaoSqlTest
 @TestPropertySource(properties = {
         "queue.tasks.partitioning_strategy=entity",
-        "queue.tasks.partitions_per_type=CF_REPROCESSING:24"
+        "queue.tasks.partitions_per_type=CF_REPROCESSING:24",
+        "queue.calculated_fields.pack_processing_timeout=10000"
 })
 public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTest {
 
