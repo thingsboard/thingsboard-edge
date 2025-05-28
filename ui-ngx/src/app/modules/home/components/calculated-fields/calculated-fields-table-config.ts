@@ -65,6 +65,7 @@ import {
   CalculatedFieldDebugDialogData,
   CalculatedFieldDialogComponent,
   CalculatedFieldDialogData,
+  CalculatedFieldReprocessingPanelComponent,
   CalculatedFieldScriptTestDialogComponent,
   CalculatedFieldTestScriptDialogData
 } from './components/public-api';
@@ -72,6 +73,7 @@ import { ImportExportService } from '@shared/import-export/import-export.service
 import { isObject } from '@core/utils';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 import { DatePipe } from '@angular/common';
+import { TbPopoverService } from '@shared/components/popover.service';
 
 export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedField> {
 
@@ -95,6 +97,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
               private entityDebugSettingsService: EntityDebugSettingsService,
               private readonly: boolean = false,
               private hideClearEventAction: boolean = false,
+              private popoverService: TbPopoverService,
   ) {
     super();
     this.tableTitle = this.translate.instant('entity.type-calculated-fields');
@@ -144,6 +147,15 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
     this.columns.push(new EntityTableColumn<CalculatedField>('name', 'common.name', '33%'));
     this.columns.push(new EntityTableColumn<CalculatedField>('type', 'common.type', '50px', entity => this.translate.instant(CalculatedFieldTypeTranslations.get(entity.type))));
     this.columns.push(expressionColumn);
+
+    if (!this.readonly) {
+      this.cellActionDescriptors.push({
+        name: this.translate.instant('calculated-fields.reprocess-calculated-field'),
+        icon: 'autorenew',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.openReprocessing($event, entity)
+      });
+    }
 
     this.cellActionDescriptors.push(
       {
@@ -334,5 +346,29 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
           }
         }),
       );
+  }
+
+
+  private openReprocessing($event: Event, calculatedField: CalculatedField): void {
+    $event?.stopPropagation();
+    const trigger = $event.target as HTMLElement;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      this.popoverService.displayPopover({
+        trigger,
+        renderer: this.getTable().renderer,
+        componentType: CalculatedFieldReprocessingPanelComponent,
+        hostView: this.getTable().viewContainerRef,
+        preferredPlacement: ['leftOnly', 'leftTopOnly', 'leftBottomOnly'],
+        context: {
+          entityId: calculatedField.id,
+          originatorId: this.entityId
+        },
+        showCloseButton: true,
+        overlayStyle: {maxHeight: '80vh', height: '100%', padding: '10px'},
+        isModal: true,
+      });
+    }
   }
 }

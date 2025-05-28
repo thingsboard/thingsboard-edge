@@ -71,7 +71,8 @@ import {
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  HeaderActionDescriptor
+  HeaderActionDescriptor,
+  ProgressBarEntityTableColumn
 } from '@home/models/entity/entities-table-config.models';
 import { EntityTypeTranslation } from '@shared/models/entity-type.models';
 import { DialogService } from '@core/services/dialog.service';
@@ -633,7 +634,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   columnsUpdated(resetData: boolean = false) {
     this.entityColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityTableColumn || column instanceof EntityLinkTableColumn ||
-        column instanceof ChartEntityTableColumn || column instanceof EntityChipsEntityTableColumn)
+        column instanceof ChartEntityTableColumn || column instanceof ProgressBarEntityTableColumn || column instanceof EntityChipsEntityTableColumn)
       .map(column => column as EntityTableColumn<BaseData<HasId>>);
     this.actionColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityActionTableColumn)
@@ -701,6 +702,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
       return res;
     } else if (column instanceof ChartEntityTableColumn) {
       return column.cellContentFunction(entity, column.key);
+    } else if (column instanceof ProgressBarEntityTableColumn) {
+      return column.cellContentFunction(entity, column.key);
     }
     return '';
   }
@@ -732,7 +735,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         widthStyle.minWidth = column.width;
         widthStyle.maxWidth = column.width;
       }
-      if (column instanceof EntityTableColumn) {
+      if (column instanceof EntityTableColumn || column instanceof ProgressBarEntityTableColumn) {
         res = {...column.cellStyleFunction(entity, column.key), ...widthStyle};
       } else {
         res = widthStyle;
@@ -746,6 +749,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     let res;
     if (column instanceof ChartEntityTableColumn) {
       res = column.chartStyleFunction(entity, column.key);
+    }
+    if (column instanceof ProgressBarEntityTableColumn) {
+      res = column.progressBarStyleFunction(entity, column.key);
     }
     return res;
   }

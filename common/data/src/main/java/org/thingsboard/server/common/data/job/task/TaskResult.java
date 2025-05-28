@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.job.JobType;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "jobType")
 @JsonSubTypes({
+        @Type(name = "CF_REPROCESSING", value = CfReprocessingTaskResult.class),
         @Type(name = "DUMMY", value = DummyTaskResult.class)
 })
 public abstract class TaskResult {

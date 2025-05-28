@@ -1134,6 +1134,19 @@
         "delete-multiple-text": "Be careful, after the confirmation all selected calculated fields will be removed and all related data will become unrecoverable.",
         "test-with-this-message": "Test with this message",
         "use-message-timestamp": "Use message timestamp",
+        "calculated-field-reprocessing": "Calculated field reprocessing",
+        "cancel-reprocessing": "Cancel reprocessing",
+        "details": "Details",
+        "finish": "Finish",
+        "reprocess-calculated-field": "Reprocess calculated field",
+        "reprocessing-cancelled": "Reprocessing cancelled",
+        "reprocessing-completed": "Reprocessing completed",
+        "reprocessing-entities-data": "Reprocessing entities data...",
+        "reprocessing-failed": "Reprocessing finished with errors",
+        "reprocessing-in-progress": "Reprocessing in progress...",
+        "submitting-tasks": "Submitting tasks...",
+        "task-failed-reprocess": "The task failed to reprocess",
+        "tasks-failed-reprocess": "{{ error }} of {{ total }} entities failed to reprocess",
         "hint": {
             "arguments-simple-with-rolling": "Simple type calculated field should not contain keys with time series rolling type.",
             "arguments-empty": "Arguments should not be empty.",
@@ -1150,7 +1163,8 @@
             "decimals-range": "Decimals by default should be a number between 0 and 15.",
             "expression": "Default expression demonstrates how to transform a temperature from Fahrenheit to Celsius.",
             "arguments-entity-not-found": "Argument target entity not found.",
-            "use-message-timestamp": "If enabled, the calculated value will be persisted using the timestamp of the telemetry that triggered the calculation, instead of the server time."
+            "use-message-timestamp": "If enabled, the calculated value will be persisted using the timestamp of the telemetry that triggered the calculation, instead of the server time.",
+            "reprocessing": "If no specific timestamp is predefined, the results from reprocessing are saved using the timestamp of the corresponding historical telemetry that triggered the calculation."
         }
     },
     "confirm-on-exit": {
@@ -2990,6 +3004,9 @@
         "type-tb-resources": "Resources",
         "list-of-tb-resources": "{ count, plural, =1 {One resource} other {List of # resources} }",
         "type-ota-package": "OTA package",
+        "type-task": "Task",
+        "type-tasks": "Tasks",
+        "list-of-tasks": "{ count, plural, =1 {One task} other {List of # tasks} }",
         "type-rpc": "RPC",
         "type-queue": "Queue",
         "type-queue-stats": "Queue statistics",
@@ -8243,6 +8260,48 @@
         "auto-commit-settings-read-only-hint": "Auto-commit feature doesn't work with enabled read-only option in Repository settings.",
         "rollback-on-error": "Rollback on error",
         "rollback-on-error-hint": "If you have a large amount of entities to restore, consider disabling this option to increase performance.\n Note, if an error occurs over the course of version loading, already persisted entities (with relations, attributes, etc.) will stay as is"
+    },
+    "task": {
+        "add-task-type": "+Task type",
+        "cancel-anyway": "Cancel anyway",
+        "cancel-task": "Cancel task",
+        "cancel-task-calculated-field-reprocessing-text": "Data processed so far will be saved, queued items will be canceled",
+        "cancel-task-calculated-field-reprocessing-title": "Are you sure you want to cancel reprocessing?",
+        "delete-task": "Delete task",
+        "delete-task-text": "This action will remove task from this list, your data stays intact",
+        "delete-task-title": "Are you sure you want to delete this task?",
+        "discarded": "Discarder",
+        "entity": "Entity",
+        "failed": "Failed",
+        "no-tasks-prompt": "No tasks found",
+        "progress": "Progress",
+        "reprocess": "{ count, plural, =0 {Reprocess} =1 {Reprocess} other {Reprocess failed entities} }",
+        "search": "Search task",
+        "selected-tasks": "{ count, plural, =1 {1 task} other {# tasks} } selected",
+        "status": "Status",
+        "successful": "Successful",
+        "task-info": "Task info",
+        "task-manager": "Task manager",
+        "task-parameters": "Task parameters",
+        "task-status": {
+            "cancelled": "Cancelled",
+            "completed": "Completed",
+            "failed": "Failed",
+            "pending": "Pending",
+            "queued": "Queued",
+            "running": "Running"
+        },
+        "task-type": {
+            "any": "Any type",
+            "calculated-field-reprocessing": "Calculated field reprocessing"
+        },
+        "tasks-filter": "Tasks filter",
+        "tasks-filter-params": "Filter: {{ filterParams }}",
+        "tasks-status-list": "Tasks status list",
+        "tasks-type-list": "Tasks type list",
+        "time-taken": "Time taken",
+        "total-entities": "Total entities",
+        "type": "Type"
     },
     "widget": {
         "widget-library": "Widgets library",

@@ -29,11 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  HasEntityDebugSettings,
-  HasTenantId,
-  HasVersion
-} from '@shared/models/entity.models';
+import { HasEntityDebugSettings, HasTenantId, HasVersion } from '@shared/models/entity.models';
 import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { CalculatedFieldId } from '@shared/models/id/calculated-field-id';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -48,6 +44,7 @@ import {
   dotOperatorHighlightRule,
   endGroupHighlightRule
 } from '@shared/models/ace/ace.models';
+import { JobStatus } from '@shared/models/job.models';
 
 export interface CalculatedField extends Omit<BaseData<CalculatedFieldId>, 'label'>, HasVersion, HasEntityDebugSettings, HasTenantId, ExportableEntity<CalculatedFieldId> {
   configuration: CalculatedFieldConfiguration;
@@ -225,6 +222,12 @@ export interface CalculatedFieldLatestTelemetryArgumentValue<ValueType = unknown
 export interface CalculatedFieldRollingTelemetryArgumentValue<ValueType = unknown> extends CalculatedFieldArgumentValueBase {
   timeWindow: { startTs: number; endTs: number; };
   values: CalculatedFieldSingleArgumentValue<ValueType>[];
+}
+
+export interface CalculatedFieldReprocessingValidation {
+  isValid: boolean;
+  message: string;
+  lastJobStatus: JobStatus;
 }
 
 export type CalculatedFieldSingleArgumentValue<ValueType = unknown> = CalculatedFieldAttributeArgumentValue<ValueType> & CalculatedFieldLatestTelemetryArgumentValue<ValueType>;
