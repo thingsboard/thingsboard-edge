@@ -32,29 +32,26 @@
 -->
 <div [formGroup]="form">
   <fieldset [disabled]="disabled">
-    <tb-file-input [existingFileName]="form.get('caCertFileName')?.value"
-                   formControlName="caCert"
-                   [required]="!ignoreCaCert"
-                   dropLabel="{{ 'integration.drop-file-or' | translate }}"
-                   [label]="'integration.ca-cert' | translate"
-                   (fileNameChanged)="form?.get('caCertFileName').patchValue($event)"
-                   inputId="ca-cert">
-    </tb-file-input>
-    <tb-file-input [existingFileName]="form.get('certFileName')?.value"
-                   formControlName="cert"
-                   required
-                   dropLabel="{{ 'integration.drop-file-or' | translate }}"
-                   [label]="'integration.cert' | translate"
-                   (fileNameChanged)="form?.get('certFileName').patchValue($event)"
-                   inputId="cert">
-    </tb-file-input>
-    <tb-file-input [existingFileName]="form.get('privateKeyFileName')?.value"
-                   formControlName="privateKey"
-                   required
-                   dropLabel="{{ 'integration.drop-file-or' | translate }}"
-                   [label]="'integration.private-key' | translate"
-                   (fileNameChanged)="form?.get('privateKeyFileName').patchValue($event)"
-                   inputId="private-key">
-    </tb-file-input>
+    <tb-secret-file-input formControlName="caCert"
+                          label="{{'integration.ca-cert' | translate}}"
+                          inputId="ca-cert"
+                          [required]="!ignoreCaCert"
+                          [existingFileName]="form.get('caCertFileName')?.value"
+                          (fileNameChanged)="form?.get('caCertFileName').patchValue($event)">
+    </tb-secret-file-input>
+    <tb-secret-file-input formControlName="cert"
+                          label="{{'integration.cert' | translate}}"
+                          inputId="cert"
+                          required
+                          [existingFileName]="form.get('certFileName')?.value"
+                          (fileNameChanged)="form?.get('certFileName').patchValue($event)">
+    </tb-secret-file-input>
+    <tb-secret-file-input formControlName="privateKey"
+                          label="{{'integration.private-key' | translate}}"
+                          inputId="private-key"
+                          required
+                          [existingFileName]="form.get('privateKeyFileName')?.value"
+                          (fileNameChanged)="form?.get('privateKeyFileName').patchValue($event)">
+    </tb-secret-file-input>
   </fieldset>
 </div>

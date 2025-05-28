@@ -69,6 +69,7 @@ import { CustomMenuRoutes } from '@home/pages/custom-menu/custom-menu-routing.mo
 import { catchError } from 'rxjs/operators';
 import { JsLibraryTableConfigResolver } from '@home/pages/admin/resource/js-library-table-config.resolver';
 import { TrendzSettingsComponent } from '@home/pages/admin/trendz-settings.component';
+import { secretsRoutes } from '@home/pages/secret-storage/secret-storage-routing.module';
 
 export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
@@ -473,6 +474,7 @@ const routes: Routes = [
       },
       ...oAuth2Routes,
       ...rolesRoutes,
+      ...secretsRoutes,
       {
         path: 'selfRegistration',
         component: SelfRegistrationComponent,

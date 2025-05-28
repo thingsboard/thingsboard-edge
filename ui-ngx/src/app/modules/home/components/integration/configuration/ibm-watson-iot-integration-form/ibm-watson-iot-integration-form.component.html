@@ -44,14 +44,11 @@
           integration.api-key-format
         </mat-error>
       </mat-form-field>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.auth-token</mat-label>
-        <input matInput type="password" required formControlName="password">
-        <tb-toggle-password matSuffix></tb-toggle-password>
-        <mat-error translate *ngIf="ibmWatsonIotIntegrationConfigForm.get('clientConfiguration.credentials.password').hasError('required')">
-          integration.auth-token-required
-        </mat-error>
-      </mat-form-field>
+      <tb-secret-key-input formControlName="password" class="mat-block flex-1"
+                           required
+                           label="{{ 'integration.auth-token' | translate }}"
+                           requiredText="{{ 'integration.auth-token-required' | translate }}">
+      </tb-secret-key-input>
     </div>
   </fieldset>
 
