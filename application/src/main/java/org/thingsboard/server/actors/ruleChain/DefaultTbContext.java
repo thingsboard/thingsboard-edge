@@ -142,7 +142,6 @@ import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
-import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -1216,11 +1215,6 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public SecretService getSecretService() {
         return mainCtx.getSecretService();
-    }
-
-    @Override
-    public SecretConfigurationService getSecretConfigurationService() {
-        return mainCtx.getSecretConfigurationService();
     }
 
     @Override

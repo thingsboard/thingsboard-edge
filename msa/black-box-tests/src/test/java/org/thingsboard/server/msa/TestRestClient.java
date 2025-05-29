@@ -1176,6 +1176,13 @@ public class TestRestClient {
                 });
     }
 
+    public void changeOwner(EntityId ownerId, EntityId entityId) {
+        given().spec(requestSpec)
+                .post("/api/owner/{ownerEntityType}/{ownerId}/{entityType}/{entityId}", ownerId.getEntityType().name(), ownerId.getId(), entityId.getEntityType().name(), entityId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
     public Secret saveSecret(Secret secret) {
         return given().spec(requestSpec)
                 .body(secret)

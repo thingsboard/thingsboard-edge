@@ -50,7 +50,6 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
-import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.dao.secret.SecretService;
 
 import java.util.Set;
@@ -77,8 +76,6 @@ public interface TbPeContext {
     SchedulerEventService getSchedulerEventService();
 
     SecretService getSecretService();
-
-    SecretConfigurationService getSecretConfigurationService();
 
     EntityId getOwner(TenantId tenantId, EntityId entityId);
 

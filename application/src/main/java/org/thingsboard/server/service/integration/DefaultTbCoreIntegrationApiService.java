@@ -250,8 +250,9 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
         return Futures.transform(future, integration -> {
             var builder = IntegrationApiResponseMsg.newBuilder();
             if (integration != null) {
-                integration.setConfiguration(secretConfigurationService.replaceSecretUsages(tenantId, integration.getConfiguration()));
-                builder.setIntegrationResponse(ProtoUtils.toProto(integration));
+                Integration copy = new Integration(integration);
+                copy.setConfiguration(secretConfigurationService.replaceSecretUsages(tenantId, integration.getConfiguration()));
+                builder.setIntegrationResponse(ProtoUtils.toProto(copy));
             }
             return builder.build();
         }, MoreExecutors.directExecutor());
