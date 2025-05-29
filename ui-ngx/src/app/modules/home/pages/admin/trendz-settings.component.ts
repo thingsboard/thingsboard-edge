@@ -35,7 +35,6 @@ import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TrendzSettingsService } from '@core/http/trendz-settings.service';
 import { TrendzSettings } from '@shared/models/trendz-settings.models';
-import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Authority } from '@shared/models/authority.enum';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -59,8 +58,9 @@ export class TrendzSettingsComponent extends PageComponent implements OnInit, Ha
 
   ngOnInit() {
     this.trendzSettingsForm = this.fb.group({
+      isTrendzEnabled: [false],
       trendzUrl: [null, [Validators.pattern(/^(https?:\/\/)[^\s/$.?#].[^\s]*$/i)]],
-      isTrendzEnabled: [false]
+      apiKey: [null, [Validators.pattern(/^\S+$/)]]
     });
 
     if(this.readonly) {
@@ -90,8 +90,9 @@ export class TrendzSettingsComponent extends PageComponent implements OnInit, Ha
 
   setTrendzSettings(trendzSettings: TrendzSettings) {
     this.trendzSettingsForm.reset({
+      isTrendzEnabled: trendzSettings?.enabled ?? false,
       trendzUrl: trendzSettings?.baseUrl,
-      isTrendzEnabled: trendzSettings?.enabled ?? false
+      apiKey: trendzSettings?.apiKey
     });
 
     this.toggleUrlRequired(this.trendzSettingsForm.get('isTrendzEnabled').value);
@@ -102,16 +103,19 @@ export class TrendzSettingsComponent extends PageComponent implements OnInit, Ha
   }
 
   save(): void {
+    const isTrendzEnabled =   this.trendzSettingsForm.get('isTrendzEnabled').value;
     const trendzUrl = this.trendzSettingsForm.get('trendzUrl').value;
-    const isTrendzEnabled = this.trendzSettingsForm.get('isTrendzEnabled').value;
+    const apiKey = this.trendzSettingsForm.get('apiKey').value.trim();
 
     const trendzSettings: TrendzSettings = {
+      enabled: isTrendzEnabled,
       baseUrl: trendzUrl,
-      enabled: isTrendzEnabled
+      apiKey: apiKey
     };
 
-    this.trendzSettingsService.saveTrendzSettings(trendzSettings).subscribe(() => {
-      this.setTrendzSettings(trendzSettings);
-    })
+    this.trendzSettingsService.saveTrendzSettings(trendzSettings)
+      .subscribe(() => {
+        this.setTrendzSettings(trendzSettings);
+      })
   }
 }

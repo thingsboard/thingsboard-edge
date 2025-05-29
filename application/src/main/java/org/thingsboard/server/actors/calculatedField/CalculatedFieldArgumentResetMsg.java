@@ -28,18 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.edqs;
+package org.thingsboard.server.actors.calculatedField;
 
-import org.springframework.stereotype.Service;
+import lombok.Data;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.queue.discovery.TenantRoutingInfo;
-import org.thingsboard.server.queue.discovery.TenantRoutingInfoService;
+import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.ToCalculatedFieldSystemMsg;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
 
-@Service
-public class DummyTenantRoutingInfoService implements TenantRoutingInfoService {
+@Data
+public class CalculatedFieldArgumentResetMsg implements ToCalculatedFieldSystemMsg {
+
+    private final TenantId tenantId;
+    private final CalculatedFieldCtx ctx;
+    private final TbCallback callback;
+
     @Override
-    public TenantRoutingInfo getRoutingInfo(TenantId tenantId) {
-        return null;
+    public MsgType getMsgType() {
+        return MsgType.CF_ARGUMENT_RESET_MSG;
     }
 
 }

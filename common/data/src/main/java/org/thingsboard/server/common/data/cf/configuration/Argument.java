@@ -41,6 +41,7 @@ public class Argument {
 
     @Nullable
     private EntityId refEntityId;
+    private CFArgumentDynamicSourceType refDynamicSource;
     private ReferencedEntityKey refEntityKey;
     private String defaultValue;
 

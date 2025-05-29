@@ -101,7 +101,9 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
     public void pushRequestToQueue(TimeseriesSaveRequest request, TimeseriesSaveResult result, FutureCallback<Void> callback) {
         var tenantId = request.getTenantId();
         var entityId = request.getEntityId();
-        checkEntityAndPushToQueue(tenantId, entityId, cf -> cf.matches(request.getEntries()), cf -> cf.linkMatches(entityId, request.getEntries()),
+        checkEntityAndPushToQueue(tenantId, entityId, cf -> cf.matches(request.getEntries()),
+                cf -> cf.linkMatches(entityId, request.getEntries()),
+                cf -> cf.dynamicSourceMatches(request.getEntries()),
                 () -> toCalculatedFieldTelemetryMsgProto(request, result), callback);
     }
 
@@ -114,7 +116,9 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
     public void pushRequestToQueue(AttributesSaveRequest request, List<Long> result, FutureCallback<Void> callback) {
         var tenantId = request.getTenantId();
         var entityId = request.getEntityId();
-        checkEntityAndPushToQueue(tenantId, entityId, cf -> cf.matches(request.getEntries(), request.getScope()), cf -> cf.linkMatches(entityId, request.getEntries(), request.getScope()),
+        checkEntityAndPushToQueue(tenantId, entityId, cf -> cf.matches(request.getEntries(), request.getScope()),
+                cf -> cf.linkMatches(entityId, request.getEntries(), request.getScope()),
+                cf -> cf.dynamicSourceMatches(request.getEntries(), request.getScope()),
                 () -> toCalculatedFieldTelemetryMsgProto(request, result), callback);
     }
 
@@ -127,7 +131,9 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
     public void pushRequestToQueue(AttributesDeleteRequest request, List<String> result, FutureCallback<Void> callback) {
         var tenantId = request.getTenantId();
         var entityId = request.getEntityId();
-        checkEntityAndPushToQueue(tenantId, entityId, cf -> cf.matchesKeys(result, request.getScope()), cf -> cf.linkMatchesAttrKeys(entityId, result, request.getScope()),
+        checkEntityAndPushToQueue(tenantId, entityId, cf -> cf.matchesKeys(result, request.getScope()),
+                cf -> cf.linkMatchesAttrKeys(entityId, result, request.getScope()),
+                cf -> cf.matchesDynamicSourceKeys(result, request.getScope()),
                 () -> toCalculatedFieldTelemetryMsgProto(request, result), callback);
     }
 
@@ -136,17 +142,21 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
         var tenantId = request.getTenantId();
         var entityId = request.getEntityId();
 
-        checkEntityAndPushToQueue(tenantId, entityId, cf -> cf.matchesKeys(result), cf -> cf.linkMatchesTsKeys(entityId, result),
+        checkEntityAndPushToQueue(tenantId, entityId, cf -> cf.matchesKeys(result),
+                cf -> cf.linkMatchesTsKeys(entityId, result),
+                cf -> cf.matchesDynamicSourceKeys(result),
                 () -> toCalculatedFieldTelemetryMsgProto(request, result), callback);
     }
 
     private void checkEntityAndPushToQueue(TenantId tenantId, EntityId entityId,
-                                           Predicate<CalculatedFieldCtx> mainEntityFilter, Predicate<CalculatedFieldCtx> linkedEntityFilter,
+                                           Predicate<CalculatedFieldCtx> mainEntityFilter,
+                                           Predicate<CalculatedFieldCtx> linkedEntityFilter,
+                                           Predicate<CalculatedFieldCtx> dynamicSourceFilter,
                                            Supplier<ToCalculatedFieldMsg> msg, FutureCallback<Void> callback) {
         if (EntityType.TENANT.equals(entityId.getEntityType())) {
             tenantId = (TenantId) entityId;
         }
-        boolean send = checkEntityForCalculatedFields(tenantId, entityId, mainEntityFilter, linkedEntityFilter);
+        boolean send = checkEntityForCalculatedFields(tenantId, entityId, mainEntityFilter, linkedEntityFilter, dynamicSourceFilter);
         if (send) {
             clusterService.pushMsgToCalculatedFields(tenantId, entityId, msg.get(), wrap(callback));
         } else {
@@ -156,7 +166,7 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
         }
     }
 
-    private boolean checkEntityForCalculatedFields(TenantId tenantId, EntityId entityId, Predicate<CalculatedFieldCtx> filter, Predicate<CalculatedFieldCtx> linkedEntityFilter) {
+    private boolean checkEntityForCalculatedFields(TenantId tenantId, EntityId entityId, Predicate<CalculatedFieldCtx> filter, Predicate<CalculatedFieldCtx> linkedEntityFilter, Predicate<CalculatedFieldCtx> dynamicSourceFilter) {
         boolean send = false;
         if (supportedReferencedEntities.contains(entityId.getEntityType())) {
             send = calculatedFieldCache.getCalculatedFieldCtxsByEntityId(entityId).stream().anyMatch(filter);
@@ -168,6 +178,19 @@ public class DefaultCalculatedFieldQueueService implements CalculatedFieldQueueS
                         .map(CalculatedFieldLink::getCalculatedFieldId)
                         .map(calculatedFieldCache::getCalculatedFieldCtx)
                         .anyMatch(linkedEntityFilter);
+            }
+            if (!send) {
+                for (EntityId dynamicEntity : calculatedFieldCache.getDynamicEntities(tenantId, entityId)) {
+                    if (calculatedFieldCache.getCalculatedFieldCtxsByEntityId(dynamicEntity).stream().anyMatch(dynamicSourceFilter)) {
+                        send = true;
+                        break;
+                    }
+                    EntityId profileId = getProfileId(tenantId, dynamicEntity);
+                    if (calculatedFieldCache.getCalculatedFieldCtxsByEntityId(profileId).stream().anyMatch(dynamicSourceFilter)) {
+                        send = true;
+                        break;
+                    }
+                }
             }
         }
         return send;

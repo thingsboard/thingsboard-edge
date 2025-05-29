@@ -69,6 +69,7 @@ export type CreateEntityOperation<T extends BaseData<HasId>> = () => Observable<
 export type EntityRowClickFunction<T extends BaseData<HasId>> = (event: Event, entity: T) => boolean;
 
 export type CellContentFunction<T extends BaseData<HasId>> = (entity: T, key: string) => string;
+export type CellProgressBarProgressFunction<T extends BaseData<HasId>> = (entity: T, key: string) => number;
 export type CellChartContentFunction<T extends BaseData<HasId>> = (entity: T, key: string) => number[];
 export type CellTooltipFunction<T extends BaseData<HasId>> = (entity: T, key: string) => string | undefined;
 export type HeaderCellStyleFunction<T extends BaseData<HasId>> = (key: string) => object;
@@ -102,7 +103,7 @@ export interface HeaderActionDescriptor {
   onAction: ($event: MouseEvent, headerButton?: MatButton) => void;
 }
 
-export type EntityTableColumnType = 'content' | 'action' | 'link' | 'chart' | 'entityChips';
+export type EntityTableColumnType = 'content' | 'action' | 'link' | 'chart' | 'progressBar' | 'entityChips';
 
 export class BaseEntityTableColumn<T extends BaseData<HasId>> {
   constructor(public type: EntityTableColumnType,
@@ -180,6 +181,17 @@ export class ChartEntityTableColumn<T extends BaseData<HasId>> extends BaseEntit
   }
 }
 
+export class ProgressBarEntityTableColumn<T extends BaseData<HasId>> extends BaseEntityTableColumn<T> {
+  constructor(public key: string,
+              public title: string,
+              public width: string = '0px',
+              public cellContentFunction: CellProgressBarProgressFunction<T> = (entity, property) => entity[property] ? entity[property] : 0,
+              public cellStyleFunction: CellStyleFunction<T> = () => ({}),
+              public progressBarStyleFunction: CellStyleFunction<T> = () => ({}),) {
+    super('progressBar', key, title, width, false);
+  }
+}
+
 export class EntityChipsEntityTableColumn<T extends BaseData<HasId>> extends BaseEntityTableColumn<T> {
   constructor(public key: string,
               public title: string,
@@ -190,7 +202,7 @@ export class EntityChipsEntityTableColumn<T extends BaseData<HasId>> extends Bas
 }
 
 export type EntityColumn<T extends BaseData<HasId>> = EntityTableColumn<T> | EntityActionTableColumn<T> | EntityLinkTableColumn<T> |
-  ChartEntityTableColumn<T> | EntityChipsEntityTableColumn<T>;
+  ChartEntityTableColumn<T> | ProgressBarEntityTableColumn<T> | EntityChipsEntityTableColumn<T>;
 
 export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = PageLink, L extends BaseData<HasId> = T> {
 

@@ -90,7 +90,7 @@ public class EdqsEntityDataQueryTest extends AbstractContainerTest {
     @BeforeClass
     public void beforeClass() throws Exception {
         testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-        await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> testRestClient.isEdqsApiEnabled());
+        await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> testRestClient.getEdqsState().isApiEnabled());
 
         tenantId = testRestClient.postTenant(EntityPrototypes.defaultTenantPrototype("Tenant")).getId();
         tenantAdminId = testRestClient.createUserAndLogin(defaultTenantAdmin(tenantId, "tenantAdmin@thingsboard.org"), "tenant");

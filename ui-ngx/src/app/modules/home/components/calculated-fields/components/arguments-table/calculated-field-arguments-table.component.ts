@@ -58,6 +58,7 @@ import {
   CalculatedFieldArgument,
   CalculatedFieldArgumentValue,
   CalculatedFieldType,
+  CFArgumentDynamicSourceType,
 } from '@shared/models/calculated-field.models';
 import { CalculatedFieldArgumentPanelComponent } from '@home/components/calculated-fields/components/public-api';
 import { MatButton } from '@angular/material/button';
@@ -99,6 +100,7 @@ export class CalculatedFieldArgumentsTableComponent implements ControlValueAcces
   @Input() entityId: EntityId;
   @Input() tenantId: string;
   @Input() entityName: string;
+  @Input() ownerId: EntityId;
   @Input() calculatedFieldType: CalculatedFieldType;
   @Input({ transform: booleanAttribute }) readonly: boolean;
 
@@ -113,6 +115,7 @@ export class CalculatedFieldArgumentsTableComponent implements ControlValueAcces
   readonly entityTypeTranslations = entityTypeTranslations;
   readonly ArgumentTypeTranslations = ArgumentTypeTranslations;
   readonly ArgumentEntityType = ArgumentEntityType;
+  readonly CFArgumentDynamicSourceType = CFArgumentDynamicSourceType;
   readonly ArgumentType = ArgumentType;
   readonly CalculatedFieldType = CalculatedFieldType;
   readonly maxArgumentsPerCF = getCurrentAuthState(this.store).maxArgumentsPerCF;
@@ -189,6 +192,7 @@ export class CalculatedFieldArgumentsTableComponent implements ControlValueAcces
         buttonTitle: isExists ? 'action.apply' : 'action.add',
         tenantId: this.tenantId,
         entityName: this.entityName,
+        ownerId: this.ownerId,
         usedArgumentNames: this.argumentsFormArray.value.map(({ argumentName }) => argumentName).filter(name => name !== argument.argumentName),
       };
       this.popoverComponent = this.popoverService.displayPopover({
