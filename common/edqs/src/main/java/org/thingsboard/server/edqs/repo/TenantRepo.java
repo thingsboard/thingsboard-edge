@@ -220,10 +220,12 @@ public class TenantRepo {
                     EntityGroupFields entityGroupFields = (EntityGroupFields) fields;
                     UUID ownerId = entityGroupFields.getOwnerId();
                     if (EntityType.CUSTOMER.equals(entityGroupFields.getOwnerType())) {
-                        ownerId = CustomerId.NULL_UUID.equals(ownerId) ? null : ownerId;
-                        entityData.setCustomerId(ownerId);
-                        if (ownerId != null) {
-                            ((CustomerData) getOrCreate(EntityType.CUSTOMER, ownerId)).addOrUpdate(entityData);
+                        boolean hasValidOwner = !CustomerId.NULL_UUID.equals(ownerId);
+                        entityData.setCustomerId(hasValidOwner ? ownerId : null);
+
+                        if (hasValidOwner) {
+                            CustomerData customerData = (CustomerData) getOrCreate(EntityType.CUSTOMER, ownerId);
+                            customerData.addOrUpdate(entityData);
                         }
                     }
                     break;
