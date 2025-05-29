@@ -614,11 +614,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const converterLibrary = this.entityForm.get('converterLibrary').value;
     return forkJoin({
       inContent: this.converterLibraryService
-        .getConverterPayload(this.entityForm.get('integrationType').value, converterLibrary?.vendor,
-          converterLibrary?.model, this.entityForm.get('type').value),
+        .getConverterPayload(this.entityForm.get('integrationType').value, converterLibrary?.vendor.name,
+          converterLibrary?.model.name, this.entityForm.get('type').value),
       inMetadata: this.converterLibraryService
-        .getConverterMetaData(this.entityForm.get('integrationType').value, converterLibrary?.vendor,
-          converterLibrary?.model, this.entityForm.get('type').value)
+        .getConverterMetaData(this.entityForm.get('integrationType').value, converterLibrary?.vendor.name,
+          converterLibrary?.model.name, this.entityForm.get('type').value)
     })
       .pipe(
         map((payload) => ({
