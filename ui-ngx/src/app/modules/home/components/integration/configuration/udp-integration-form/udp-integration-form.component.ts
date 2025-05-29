@@ -106,7 +106,7 @@ export class UdpIntegrationFormComponent extends IntegrationForm implements Cont
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.updConfigForm.reset(value.clientConfiguration, {emitEvent: false});
       if (!this.disabled) {
-        this.updConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: false});
+        this.updConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: true});
       }
     } else {
       this.propagateChangePending = true;
@@ -131,7 +131,7 @@ export class UdpIntegrationFormComponent extends IntegrationForm implements Cont
       this.updConfigForm.disable({emitEvent: false});
     } else {
       this.updConfigForm.enable({emitEvent: false});
-      this.updConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: false});
+      this.updConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: true});
     }
   }
 
