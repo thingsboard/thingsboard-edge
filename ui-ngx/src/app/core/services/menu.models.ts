@@ -191,7 +191,8 @@ export enum MenuId {
   roles = 'roles',
   self_registration = 'self_registration',
   task_manager = 'task_manager',
-  trendz_settings = 'trendz_settings'
+  trendz_settings = 'trendz_settings',
+  secrets = 'secrets'
 }
 
 declare type MenuFilter = (_authState: AuthState, userPermissionsService: UserPermissionsService) => boolean;
@@ -1166,6 +1167,16 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
+    MenuId.secrets,
+    {
+      id: MenuId.secrets,
+      name: 'secret-storage.secret-storage',
+      type: 'link',
+      path: '/security-settings/secrets',
+      icon: 'mdi:key-variant'
+    }
+  ],
+  [
     MenuId.self_registration,
     {
       id: MenuId.self_registration,
@@ -1463,6 +1474,10 @@ const menuFilters = new Map<MenuId, MenuFilter>([
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
+    MenuId.secrets, (_authState, userPermissionsService) =>
+            userPermissionsService.hasReadGenericPermission(Resource.SECRET)
+  ],
+  [
     MenuId.roles, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.ROLE)
   ],
@@ -1730,6 +1745,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         pages: [
           {id: MenuId.two_fa},
           {id: MenuId.roles},
+          {id: MenuId.secrets},
           {id: MenuId.self_registration},
           {id: MenuId.audit_log},
           {

@@ -75,7 +75,8 @@ import java.util.concurrent.TimeoutException;
         nodeDescription = "Publish messages to the MQTT broker",
         nodeDetails = "Will publish message payload to the MQTT broker with QoS <b>AT_LEAST_ONCE</b>.",
         configDirective = "tbExternalNodeMqttConfig",
-        icon = "call_split"
+        icon = "call_split",
+        hasSecrets = true
 )
 public class TbMqttNode extends TbAbstractExternalNode {
 

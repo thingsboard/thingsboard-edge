@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.encryptionkey.EncryptionService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
@@ -183,6 +184,9 @@ public class InstallScripts {
 
     @Autowired
     private ImageService imageService;
+
+    @Autowired
+    private EncryptionService encryptionService;
 
     Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
@@ -812,6 +816,13 @@ public class InstallScripts {
             log.debug("[{}] Already has {} templates", tenantId, types);
         }
         return existingTemplates > 0;
+    }
+
+    public void generateTenantEncryptionKey() {
+        PageDataIterable<TenantId> tenantIterator = new PageDataIterable<>(tenantService::findTenantsIds, 1024);
+        for (TenantId tenantId : tenantIterator) {
+            encryptionService.createEncryptionKey(tenantId);
+        }
     }
 
 }

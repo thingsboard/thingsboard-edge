@@ -67,4 +67,5 @@ public interface ComponentDescriptorRepository extends JpaRepository<ComponentDe
     @Modifying
     @Query("DELETE FROM ComponentDescriptorEntity cd where cd.clazz = :clazz")
     void deleteByClazz(@Param("clazz") String clazz);
+
 }

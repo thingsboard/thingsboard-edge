@@ -43,7 +43,6 @@ import org.springframework.context.annotation.Lazy;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.AttributesSaveRequest;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasDefaultOption;
@@ -73,6 +72,7 @@ import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
@@ -117,9 +117,11 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     protected TbClusterService clusterService;
     @Autowired
     protected TbLogEntityActionService logEntityActionService;
+    @Autowired
+    protected SecretConfigurationService secretConfigurationService;
 
     @Override
-    public EntityImportResult<E> importEntity(EntitiesImportCtx ctx, D exportData) throws ThingsboardException {
+    public EntityImportResult<E> importEntity(EntitiesImportCtx ctx, D exportData) throws Exception {
         EntityImportResult<E> importResult = new EntityImportResult<>();
         ctx.setCurrentImportResult(importResult);
         importResult.setEntityType(getEntityType());
@@ -177,12 +179,14 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     @Data
     @AllArgsConstructor
     static class CompareResult {
+
         private boolean updateNeeded;
         private boolean externalIdChangedOnly;
 
         public CompareResult(boolean updateNeeded) {
             this.updateNeeded = updateNeeded;
         }
+
     }
 
     protected boolean updateRelatedEntitiesIfUnmodified(EntitiesImportCtx ctx, E prepared, D exportData, IdProvider idProvider) {
@@ -236,7 +240,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         e.setExternalId(null);
     }
 
-    protected abstract E saveOrUpdate(EntitiesImportCtx ctx, E entity, D exportData, IdProvider idProvider, CompareResult compareResult);
+    protected abstract E saveOrUpdate(EntitiesImportCtx ctx, E entity, D exportData, IdProvider idProvider, CompareResult compareResult) throws Exception;
 
     protected void processAfterSaved(EntitiesImportCtx ctx, EntityImportResult<E> importResult, D exportData, IdProvider idProvider) throws ThingsboardException {
         E savedEntity = importResult.getSavedEntity();

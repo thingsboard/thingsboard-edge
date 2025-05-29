@@ -45,3 +45,5 @@ WHERE
     AND type = 'AZURE_IOT_HUB';
 
 -- UPDATE INTEGRATION PROTOCOL VERSION FOR MQTT CLIENT TYPES END
+
+ALTER TABLE component_descriptor ADD COLUMN IF NOT EXISTS has_secrets boolean default false;

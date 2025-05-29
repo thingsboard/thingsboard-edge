@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,15 +51,21 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.event.LifeCycleEventFilter;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.secret.Secret;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.cache.DefaultIntegrationExecutorTenantProfileCache;
 import org.thingsboard.server.service.cache.IntegrationExecutorTenantProfileCache;
 
 import java.io.InputStream;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntConsumer;
@@ -82,11 +89,16 @@ import static org.thingsboard.server.service.integration.IntegrationDebugMessage
 @ContextConfiguration(classes = {HttpIntegrationTest.Config.class})
 public class HttpIntegrationTest extends AbstractIntegrationTest {
 
+    private static final String LOCALHOST = "localhost";
+
     @SpyBean
     private DefaultIntegrationRateLimitService limitService;
 
     @Autowired
     private DefaultIntegrationExecutorTenantProfileCache tenantProfileCache;
+
+    @Autowired
+    private SecretService secretService;
 
     private static final String DEVICE_HTTP_UPLINK_CONVERTER_FILEPATH = "http/device_default_converter_configuration.json";
     private static final String ASSET_HTTP_UPLINK_CONVERTER_FILEPATH = "http/asset_default_converter_configuration.json";
@@ -94,11 +106,13 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
     private static final JsonNode TEST_DATA = JacksonUtil.fromString("{\"test\":1}", JsonNode.class);
 
     static class Config {
+
         @Primary
         @Bean
         public IntegrationExecutorTenantProfileCache tenantProfileCache(IntegrationConfigurationService integrationConfigurationService) {
             return new DefaultIntegrationExecutorTenantProfileCache(integrationConfigurationService);
         }
+
     }
 
     @Before
@@ -122,7 +136,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
     @Override
     protected JsonNode createIntegrationClientConfiguration() {
         ObjectNode clientConfiguration = JacksonUtil.newObjectNode();
-        clientConfiguration.put("baseUrl", "127.0.0.1");
+        clientConfiguration.put("baseUrl", toSecretPlaceholder(LOCALHOST, SecretType.TEXT));
         clientConfiguration.set("metadata", JacksonUtil.newObjectNode());
         return clientConfiguration;
     }
@@ -292,8 +306,47 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals("Converter debug rate limits reached!", events.get(0).getBody().get("error").asText());
     }
 
+    @Test
+    public void testUpdateSecretUsedInIntegration_thenReceiveIntegrationLifecycleEvent() throws Exception {
+        createIntegration(true);
+
+        cleanUpEvents(integration.getId(), new LifeCycleEventFilter());
+        Awaitility
+                .await()
+                .alias("Get cleaned up integration events")
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = getEvents(tenantId, integration.getId());
+                    return events.getData().isEmpty();
+                });
+
+        // should trigger new update event
+        Secret secret = secretService.findSecretByName(tenantId, LOCALHOST);
+        secret.setValue("updated");
+        secretService.saveSecret(tenantId, secret);
+
+        Awaitility
+                .await()
+                .alias("Get integration events")
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = getEvents(tenantId, integration.getId());
+                    if (events.getData().isEmpty()) {
+                        return false;
+                    }
+
+                    EventInfo event = events.getData().stream().max(Comparator.comparingLong(EventInfo::getCreatedTime)).orElse(null);
+                    return event != null
+                            && "UPDATED".equals(event.getBody().get("event").asText())
+                            && "true".equals(event.getBody().get("success").asText());
+                });
+    }
+
     private void createIntegration(boolean isDevice) throws Exception {
         loginTenantAdmin();
+
+        Secret secret = constructSecret(LOCALHOST, "127.0.0.1");
+        secretService.saveSecret(tenantId, secret);
 
         String filePath = isDevice ? DEVICE_HTTP_UPLINK_CONVERTER_FILEPATH : ASSET_HTTP_UPLINK_CONVERTER_FILEPATH;
 
@@ -329,6 +382,19 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
 
     private void repeat(int n, IntConsumer i) {
         IntStream.range(0, n).forEach(i);
+    }
+
+    private Secret constructSecret(String name, String value) {
+        Secret secret = new Secret();
+        secret.setTenantId(tenantId);
+        secret.setName(name);
+        secret.setValue(value);
+        secret.setType(SecretType.TEXT);
+        return secret;
+    }
+
+    private String toSecretPlaceholder(String name, SecretType type) {
+        return String.format("${secret:%s;type:%s}", name, type);
     }
 
 }

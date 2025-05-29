@@ -83,6 +83,7 @@ enum EntityTypeProto {
   CALCULATED_FIELD      = 39;
   CALCULATED_FIELD_LINK = 40;
   JOB                   = 41;
+  SECRET                = 107;
 }
 
 enum ApiUsageRecordKeyProto {

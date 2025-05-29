@@ -477,6 +477,7 @@ public class ModelConstants {
     public static final String COMPONENT_DESCRIPTOR_CONFIGURATION_VERSION_PROPERTY = "configuration_version";
     public static final String COMPONENT_DESCRIPTOR_ACTIONS_PROPERTY = "actions";
     public static final String COMPONENT_DESCRIPTOR_HAS_QUEUE_NAME_PROPERTY = "has_queue_name";
+    public static final String COMPONENT_DESCRIPTOR_HAS_SECRETS_PROPERTY = "has_secrets";
 
     /**
      * Event constants.
@@ -933,7 +934,23 @@ public class ModelConstants {
     public static final String CALCULATED_FIELD_LINK_CALCULATED_FIELD_ID = "calculated_field_id";
 
     /**
-     * Tasks constants.
+     * Secret constants.
+     */
+    public static final String SECRET_TABLE_NAME = "secret";
+    public static final String SECRET_NAME_COLUMN = "name";
+    public static final String SECRET_TYPE_COLUMN = "type";
+    public static final String SECRET_VALUE_COLUMN = "value";
+    public static final String SECRET_DESCRIPTION_COLUMN = "description";
+
+    /**
+     * Encryption key constants.
+     */
+    public static final String ENCRYPTION_KEY_TABLE_NAME = "encryption_key";
+    public static final String ENCRYPTION_KEY_PASSWORD_COLUMN = "password";
+    public static final String ENCRYPTION_KEY_SALT_COLUMN = "salt";
+
+    /**
+     * Job constants.
      */
     public static final String JOB_TABLE_NAME = "job";
     public static final String JOB_TYPE_PROPERTY = "type";

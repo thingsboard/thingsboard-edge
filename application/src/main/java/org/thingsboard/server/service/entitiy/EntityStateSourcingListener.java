@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Customer;
@@ -65,6 +66,7 @@ import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -76,10 +78,11 @@ import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.TbQueueCallback;
-import org.thingsboard.rule.engine.api.JobManager;
 
+import java.util.List;
 import java.util.Set;
 
 @Slf4j
@@ -91,6 +94,7 @@ public class EntityStateSourcingListener {
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
     private final JobManager jobManager;
+    private final SecretService secretService;
 
     @PostConstruct
     public void init() {
@@ -181,6 +185,15 @@ public class EntityStateSourcingListener {
             case JOB -> {
                 onJobUpdate((Job) event.getEntity());
             }
+            case SECRET -> {
+                if (isCreated) {
+                    break;
+                }
+                Secret secret = (Secret) event.getEntity();
+                var entityInfos = secretService.findEntitiesBySecret(tenantId, secret);
+                entityInfos.values().stream().flatMap(List::stream).forEach(entityInfo ->
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityInfo.getId(), lifecycleEvent));
+            }
             default -> {}
         }
     }
@@ -269,8 +282,8 @@ public class EntityStateSourcingListener {
     public void handleEvent(ActionEntityEvent<?> event) {
         log.trace("[{}] ActionEntityEvent called: {}", event.getTenantId(), event);
         if (ActionType.CREDENTIALS_UPDATED.equals(event.getActionType()) &&
-            EntityType.DEVICE.equals(event.getEntityId().getEntityType())
-            && event.getEntity() instanceof DeviceCredentials) {
+                EntityType.DEVICE.equals(event.getEntityId().getEntityType())
+                && event.getEntity() instanceof DeviceCredentials) {
             tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(event.getTenantId(),
                     (DeviceId) event.getEntityId(), (DeviceCredentials) event.getEntity()), null);
         } else if (ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType()) && event.getEntity() instanceof Device device) {

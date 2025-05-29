@@ -170,3 +170,5 @@ CREATE INDEX IF NOT EXISTS idx_custom_menu ON custom_menu(tenant_id, customer_id
 CREATE INDEX IF NOT EXISTS mobile_app_bundle_tenant_id ON mobile_app_bundle(tenant_id);
 
 CREATE INDEX IF NOT EXISTS idx_job_tenant_id ON job(tenant_id);
+
+CREATE INDEX IF NOT EXISTS idx_encryption_key_tenant_id ON encryption_key(tenant_id);

@@ -74,6 +74,7 @@ export enum EntityType {
   MOBILE_APP_BUNDLE = 'MOBILE_APP_BUNDLE',
   MOBILE_APP = 'MOBILE_APP',
   CALCULATED_FIELD = 'CALCULATED_FIELD',
+  SECRET = 'SECRET',
 }
 
 export enum AliasEntityType {
@@ -650,6 +651,17 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         search: 'action.search',
         selectedEntities: 'calculated-fields.selected-fields'
       }
+    ],
+    [
+      EntityType.SECRET,
+      {
+        type: 'entity.type-secret-storage',
+        list: 'secret-storage.list',
+        add: 'secret-storage.add',
+        noEntities: 'secret-storage.no-found',
+        search: 'secret-storage.search',
+        selectedEntities: 'secret-storage.selected-fields'
+      }
     ]
   ]
 );
@@ -799,6 +811,12 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       EntityType.MOBILE_APP_BUNDLE,
       {
         helpLinkId: 'mobileBundle'
+      }
+    ],
+    [
+      EntityType.SECRET,
+      {
+        helpLinkId: 'secretStorage'
       }
     ]
   ]

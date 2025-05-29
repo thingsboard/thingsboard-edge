@@ -1471,9 +1471,9 @@ public class VersionControlTest extends AbstractControllerTest {
 
     private List<GroupPermissionInfo> findGroupPermissions(EntityGroupId userGroupId) throws Exception {
         return doGetTyped("/api/userGroup/" + userGroupId + "/groupPermissions?", new TypeReference<>() {});
-        }
+    }
 
-        private CalculatedField findCalculatedFieldByEntityId(EntityId entityId) throws Exception {
+    private CalculatedField findCalculatedFieldByEntityId(EntityId entityId) throws Exception {
         return doGetTypedWithPageLink("/api/" + entityId.getEntityType() + "/" + entityId.getId() + "/calculatedFields?", new TypeReference<PageData<CalculatedField>>() {}, new PageLink(100, 0)).getData().get(0);
     }
 

@@ -40,12 +40,14 @@ import org.testng.annotations.BeforeMethod;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -56,6 +58,7 @@ import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.DisableUIListeners;
 
@@ -64,7 +67,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
@@ -72,6 +74,7 @@ import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevi
 
 @DisableUIListeners
 public abstract class AbstractIntegrationTest extends AbstractContainerTest {
+
     public static final String LOGIN = "tenant@thingsboard.org";
     public static final String PASSWORD = "tenant";
     protected Device device;
@@ -215,9 +218,8 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                     }
 
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
-                                    eventType.equals(eventInfo.getBody().get("event").asText()) &&
-                                            "true".equals(eventInfo.getBody().get("success").asText()))
-                            .collect(Collectors.toList());
+                            eventType.equals(eventInfo.getBody().get("event").asText()) &&
+                                    "true".equals(eventInfo.getBody().get("success").asText())).toList();
 
                     return eventInfos.size() == finalCount;
                 });
@@ -236,8 +238,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                     }
 
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
-                                    eventType.equalsIgnoreCase(eventInfo.getBody().get("type").asText()))
-                            .collect(Collectors.toList());
+                            eventType.equalsIgnoreCase(eventInfo.getBody().get("type").asText())).toList();
 
                     return eventInfos.size() == finalCount;
                 });
@@ -281,9 +282,8 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                 .until(() -> {
                     PageData<EventInfo> events = testRestClient.getEvents(ruleChain.getId(), EventType.LC_EVENT, ruleChain.getTenantId(), new TimePageLink(1024));
                     List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
-                                    "UPDATED".equals(eventInfo.getBody().get("event").asText()) &&
-                                            "true".equals(eventInfo.getBody().get("success").asText()))
-                            .collect(Collectors.toList());
+                            "UPDATED".equals(eventInfo.getBody().get("event").asText()) &&
+                                    "true".equals(eventInfo.getBody().get("success").asText())).toList();
 
                     return eventInfos.size() == 4;
                 });
@@ -307,4 +307,22 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
                             && msgType.equals(event.getBody().get("msgType").asText());
                 });
     }
+
+    protected Secret createSecret(SecretId secretId, String name, String value) {
+        Secret secret = new Secret();
+        secret.setName(name);
+        secret.setValue(value);
+        secret.setType(SecretType.TEXT);
+        secret.setId(secretId);
+        return testRestClient.saveSecret(secret);
+    }
+
+    protected void deleteSecret(SecretId secretId) {
+        testRestClient.deleteSecret(secretId);
+    }
+
+    protected String toSecretPlaceholder(String name, SecretType type) {
+        return String.format("${secret:%s;type:%s}", name, type);
+    }
+
 }
