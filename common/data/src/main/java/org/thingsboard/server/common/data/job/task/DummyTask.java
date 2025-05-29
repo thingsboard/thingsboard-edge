@@ -51,6 +51,7 @@ public class DummyTask extends Task<DummyTaskResult> {
 
     private int number;
     private long processingTimeMs;
+    private long processingTimeoutMs;
     private List<String> errors; // errors for each attempt
     private boolean failAlways;
 

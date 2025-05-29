@@ -122,6 +122,7 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.JobId;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.MobileAppId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
@@ -141,6 +142,7 @@ import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
@@ -200,6 +202,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.menu.CustomMenuService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -483,6 +486,9 @@ public abstract class BaseController {
 
     @Autowired
     protected NotificationTargetService notificationTargetService;
+
+    @Autowired
+    protected JobService jobService;
 
     @Autowired
     protected CalculatedFieldService calculatedFieldService;
@@ -1194,6 +1200,10 @@ public abstract class BaseController {
 
     NotificationTarget checkNotificationTargetId(NotificationTargetId notificationTargetId, Operation operation) throws ThingsboardException {
         return checkEntityId(notificationTargetId, notificationTargetService::findNotificationTargetById, operation);
+    }
+
+    Job checkJobId(JobId jobId, Operation operation) throws ThingsboardException {
+        return checkEntityId(jobId, jobService::findJobById, operation);
     }
 
     SecretInfo checkSecretId(SecretId secretId, Operation operation) throws ThingsboardException {
