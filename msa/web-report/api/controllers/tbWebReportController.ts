@@ -37,13 +37,14 @@ import { GenerateReportRequest, parseGenerateReportRequest, RequestState } from 
 
 const logger = _logger('ReportController');
 const generateReportTimeout = Number(config.get('browser.generateReportTimeout'));
+const localhostBaseUrlOverride = (config.get('browser.localhostBaseUrlOverride') as string ?? '').trim();
 
 let activeRequestsCount = 0;
 
 export function genDashboardReport(req: Request, res: Response, queue: TbWebReportPageQueue) {
     let request: GenerateReportRequest;
     try {
-        request = parseGenerateReportRequest(req);
+        request = parseGenerateReportRequest(req, localhostBaseUrlOverride);
     } catch (e: any) {
         res.statusMessage = 'Incorrect request';
         res.status(400).send(e.message);
