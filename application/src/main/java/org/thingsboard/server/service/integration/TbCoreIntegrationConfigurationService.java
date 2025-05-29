@@ -78,7 +78,7 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
             return null;
         }
         Integration copy = new Integration(integration);
-        copy.setConfiguration(secretConfigurationService.replaceSecretUsages(tenantId, integration.getConfiguration()));
+        secretConfigurationService.replaceSecretUsages(tenantId, copy.getConfiguration());
         return copy;
     }
 

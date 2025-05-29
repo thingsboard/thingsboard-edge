@@ -56,9 +56,8 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
     private final EncryptionService encryptionService;
 
     @Override
-    public JsonNode replaceSecretUsages(TenantId tenantId, JsonNode config) {
-        JsonNode result = config.deepCopy();
-        JacksonUtil.replaceAll(result, "", (path, value) -> {
+    public void replaceSecretUsages(TenantId tenantId, JsonNode config) {
+        JacksonUtil.replaceAll(config, "", (path, value) -> {
             Matcher matcher = SECRET_PATTERN.matcher(value);
             if (matcher.find()) {
                 String name = matcher.group(1);
@@ -70,14 +69,6 @@ public class DefaultSecretConfigurationService implements SecretConfigurationSer
             }
             return value;
         });
-        return result;
-    }
-
-    @Override
-    public <T> T replaceSecretUsages(TenantId tenantId, T config) {
-        JsonNode jsonNode = JacksonUtil.valueToTree(config);
-        JsonNode replaced = replaceSecretUsages(tenantId, jsonNode);
-        return JacksonUtil.treeToValue(replaced, (Class<T>) config.getClass());
     }
 
 }

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.actors.ruleChain;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -243,8 +242,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
 
     private void replaceSecretUsages(RuleNode ruleNode) {
         if (componentService.getRuleNodeInfo(ruleNode.getType()).map(info -> info.getAnnotation().hasSecrets()).orElse(false)) {
-            JsonNode config = systemContext.getSecretConfigurationService().replaceSecretUsages(tenantId, ruleNode.getConfiguration());
-            ruleNode.setConfiguration(config);
+            systemContext.getSecretConfigurationService().replaceSecretUsages(tenantId, ruleNode.getConfiguration());
         }
     }
 

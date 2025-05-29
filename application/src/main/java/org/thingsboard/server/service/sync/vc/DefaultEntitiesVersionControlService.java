@@ -876,8 +876,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         checkBranchName(versionControlSettings.getDefaultBranch());
         var restoredSettings = this.repositorySettingsService.restore(tenantId, versionControlSettings);
         try {
-            var replacedSettings = secretConfigurationService.replaceSecretUsages(tenantId, restoredSettings);
-            var future = gitServiceQueue.initRepository(tenantId, replacedSettings);
+            var future = gitServiceQueue.initRepository(tenantId, restoredSettings);
             return Futures.transform(future, f -> repositorySettingsService.save(tenantId, restoredSettings), MoreExecutors.directExecutor());
         } catch (Exception e) {
             log.debug("{} Failed to init repository: {}", tenantId, versionControlSettings, e);
@@ -897,8 +896,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         checkBranchName(settings.getDefaultBranch());
         settings = this.repositorySettingsService.restore(tenantId, settings);
         try {
-            var replacedSettings = secretConfigurationService.replaceSecretUsages(tenantId, settings);
-            return gitServiceQueue.testRepository(tenantId, replacedSettings);
+            return gitServiceQueue.testRepository(tenantId, settings);
         } catch (Exception e) {
             throw new ThingsboardException(String.format("Unable to access repository: %s", getCauseMessage(e)),
                     ThingsboardErrorCode.GENERAL);
