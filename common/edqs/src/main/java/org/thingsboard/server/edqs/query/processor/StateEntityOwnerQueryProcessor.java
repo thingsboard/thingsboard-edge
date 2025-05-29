@@ -31,7 +31,6 @@
 package org.thingsboard.server.edqs.query.processor;
 
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.QueryContext;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
