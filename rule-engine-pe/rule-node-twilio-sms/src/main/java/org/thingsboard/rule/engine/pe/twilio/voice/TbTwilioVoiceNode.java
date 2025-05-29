@@ -60,7 +60,7 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         nodeDescription = "Sends voice message via Twilio.",
         nodeDetails = "Will send message payload as voice message via Twilio, using Twilio text to speech service.",
         uiResources = {"static/rulenode/twilio-config.js"},
-        configDirective = "tbExternalNodeTwilioVoiceConfig",
+        configDirective = "tbActionNodeTwilioVoiceConfig",
         icon = "phone_in_talk",
         docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-voice-node"
 )
