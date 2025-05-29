@@ -100,9 +100,11 @@ public class ThingsStackConverterUnwrapper extends AbstractConverterUnwrapper {
         if (uplink.has("decoded_payload")) {
             var decoded = uplink.get("decoded_payload");
             return TbPair.of(JacksonUtil.writeValueAsBytes(decoded), ContentType.JSON);
-        } else {
+        } else if (uplink.has("frm_payload")) {
             var data = uplink.get("frm_payload").textValue();
             return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
+        } else {
+            return TbPair.of(EMPTY_BYTE_ARRAY, ContentType.BINARY);
         }
     }
 
