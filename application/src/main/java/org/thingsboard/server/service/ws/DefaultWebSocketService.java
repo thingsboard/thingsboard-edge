@@ -301,7 +301,7 @@ public class DefaultWebSocketService implements WebSocketService {
     @Override
     public void sendUpdate(String sessionId, int cmdId, TelemetrySubscriptionUpdate update) {
         // We substitute the subscriptionId with cmdId for old-style subscriptions.
-        doSendUpdate(sessionId, cmdId, update.copyWithNewSubscriptionId(cmdId));
+        doSendUpdate(sessionId, cmdId, update.withSubscriptionId(cmdId));
     }
 
     @Override
