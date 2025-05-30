@@ -86,9 +86,11 @@ public class ChirpStackConverterUnwrapper extends AbstractConverterUnwrapper {
         if (payloadJson.has("object")) {
             var decoded = payloadJson.get("object");
             return TbPair.of(JacksonUtil.writeValueAsBytes(decoded), ContentType.JSON);
-        } else {
+        } else if (payloadJson.has("data")) {
             var data = payloadJson.get("data").textValue();
             return TbPair.of(Base64.getDecoder().decode(data), ContentType.BINARY);
+        } else {
+            return TbPair.of(EMPTY_BYTE_ARRAY, ContentType.BINARY);
         }
     }
 
