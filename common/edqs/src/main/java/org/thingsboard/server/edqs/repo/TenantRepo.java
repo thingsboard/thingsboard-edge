@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.edqs.EdqsEventType;
 import org.thingsboard.server.common.data.edqs.EdqsObject;
 import org.thingsboard.server.common.data.edqs.Entity;
 import org.thingsboard.server.common.data.edqs.LatestTsKv;
-import org.thingsboard.server.common.data.edqs.fields.CustomerFields;
 import org.thingsboard.server.common.data.edqs.fields.EntityFields;
 import org.thingsboard.server.common.data.edqs.fields.EntityGroupFields;
 import org.thingsboard.server.common.data.edqs.query.QueryResult;
@@ -220,12 +219,9 @@ public class TenantRepo {
                     EntityGroupFields entityGroupFields = (EntityGroupFields) fields;
                     UUID ownerId = entityGroupFields.getOwnerId();
                     if (EntityType.CUSTOMER.equals(entityGroupFields.getOwnerType())) {
-                        boolean hasValidOwner = !CustomerId.NULL_UUID.equals(ownerId);
-                        entityData.setCustomerId(hasValidOwner ? ownerId : null);
-
-                        if (hasValidOwner) {
-                            CustomerData customerData = (CustomerData) getOrCreate(EntityType.CUSTOMER, ownerId);
-                            customerData.addOrUpdate(entityData);
+                        entityData.setCustomerId(ownerId);
+                        if (ownerId != null) {
+                            ((CustomerData) getOrCreate(EntityType.CUSTOMER, ownerId)).addOrUpdate(entityData);
                         }
                     }
                     break;
