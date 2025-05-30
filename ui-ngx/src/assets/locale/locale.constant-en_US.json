@@ -6843,7 +6843,8 @@
                 "MOBILE_APP": "Mobile app",
                 "DOMAIN": "Domain",
                 "OAUTH2_CLIENT": "OAuth 2.0 client",
-                "SECRET": "Secret"
+                "SECRET": "Secret",
+                "JOB": "Task"
             }
         },
         "operation": {
@@ -8324,7 +8325,7 @@
         "delete-task": "Delete task",
         "delete-task-text": "This action will remove task from this list, your data stays intact",
         "delete-task-title": "Are you sure you want to delete this task?",
-        "discarded": "Discarder",
+        "discarded": "Discarded",
         "entity": "Entity",
         "failed": "Failed",
         "no-tasks-prompt": "No tasks found",

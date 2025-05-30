@@ -33,7 +33,6 @@ import { Injectable } from '@angular/core';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
-  defaultEntityTablePermissions,
   EntityLinkTableColumn,
   EntityTableColumn,
   EntityTableConfig,
@@ -69,6 +68,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { CancelTaskDialogComponent, CancelTaskDialogData } from '@home/components/task/cancel-task-dialog.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { deepClone, getEntityDetailsPageURL } from '@core/utils';
+import { Operation, Resource } from '@shared/models/security.models';
 
 interface TaskManagerPageQueryParams extends PageQueryParam {
   entityId?: string;
@@ -121,8 +121,6 @@ export class TaskManagerTableConfigResolver {
         (job) => this.progressBarStyle(job.status)
       )
     );
-
-    this.config.cellActionDescriptors = this.configureCellActions();
     this.config.onLoadAction = (activatedRoute) => this.onLoadAction(this.config, activatedRoute);
   }
 
@@ -131,7 +129,7 @@ export class TaskManagerTableConfigResolver {
       filter: {}
     }
     this.config.tableTitle = this.translate.instant('task.task-manager');
-    defaultEntityTablePermissions(this.userPermissionsService, this.config);
+    this.config.cellActionDescriptors = this.configureCellActions();
     return this.config;
   }
 
@@ -141,7 +139,8 @@ export class TaskManagerTableConfigResolver {
   }
 
   private configureCellActions(): Array<CellActionDescriptor<Job>> {
-    return [
+    const actions: Array<CellActionDescriptor<Job>> = [];
+    actions.push(
       {
         name: this.translate.instant('task.task-parameters'),
         icon: 'mdi:file-document-outline',
@@ -153,17 +152,23 @@ export class TaskManagerTableConfigResolver {
         icon: 'info_outline',
         isEnabled: (entity) => entity.status !== JobStatus.QUEUED && entity.status !== JobStatus.PENDING,
         onAction: ($event, job) => this.openTaskInfo($event, job)
-      },
-      {
+      }
+    );
+    if (this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.DELETE) ||
+        this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE)) {
+      actions.push({
         name: this.translate.instant('task.delete-task'),
         nameFunction: (entity) => workingTask.includes(entity.status)
           ? this.translate.instant('task.cancel-task')
           : this.translate.instant('task.delete-task'),
         iconFunction: (entity) => workingTask.includes(entity.status) ? 'close' : 'delete',
-        isEnabled: () => true,
+        isEnabled: (entity) => workingTask.includes(entity.status)
+          ? this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE)
+          : this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.DELETE),
         onAction: ($event, entity) => this.cancelOrDeleteTask($event, entity)
-      }
-    ];
+      })
+    }
+    return actions;
   }
 
   private taskStatus(jobStatus: JobStatus): string {

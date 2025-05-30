@@ -51,6 +51,7 @@ import { ImportExportService } from '@shared/import-export/import-export.service
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 import { DatePipe } from '@angular/common';
 import { TbPopoverService } from '@shared/components/popover.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-calculated-fields-table',
@@ -82,7 +83,8 @@ export class CalculatedFieldsTableComponent {
               private importExportService: ImportExportService,
               private entityDebugSettingsService: EntityDebugSettingsService,
               private destroyRef: DestroyRef,
-              private popoverService: TbPopoverService,) {
+              private popoverService: TbPopoverService,
+              private userPermissionsService: UserPermissionsService,) {
 
     effect(() => {
       if (this.active()) {
@@ -101,7 +103,8 @@ export class CalculatedFieldsTableComponent {
           this.entityDebugSettingsService,
           this.readonly(),
           this.hideClearEventAction(),
-          this.popoverService
+          this.popoverService,
+          this.userPermissionsService,
         );
         this.cd.markForCheck();
       }

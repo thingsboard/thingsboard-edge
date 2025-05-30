@@ -109,14 +109,14 @@
       {{ 'action.close' | translate }}
     </button>
     <button mat-raised-button
-            *ngIf="state() === ReprocessingState.CONFIG || (state() === ReprocessingState.RESULTS && job()?.status === JobStatus.FAILED)"
+            *ngIf="state() === ReprocessingState.CONFIG || (state() === ReprocessingState.RESULTS && job()?.status === JobStatus.FAILED && hasWritePermission)"
             color="primary"
             type="button"
             (click)="reprocessing()">
       {{ 'task.reprocess' | translate : {count: failedTasks ?? 0} }}
     </button>
     <button mat-raised-button
-            *ngIf="(state() === ReprocessingState.SUBMIT || state() === ReprocessingState.PROCESS) && job()"
+            *ngIf="(state() === ReprocessingState.SUBMIT || state() === ReprocessingState.PROCESS) && job() && hasWritePermission"
             color="accent"
             type="button"
             (click)="cancelReprocessing($event)">
@@ -125,7 +125,7 @@
     <button mat-raised-button
             color="primary"
             type="button"
-            *ngIf="state() === ReprocessingState.RESULTS && job()?.status !== JobStatus.FAILED"
+            *ngIf="state() === ReprocessingState.RESULTS && (job()?.status !== JobStatus.FAILED || !hasWritePermission)"
             (click)="cancel()">
       {{ 'calculated-fields.finish' | translate }}
     </button>

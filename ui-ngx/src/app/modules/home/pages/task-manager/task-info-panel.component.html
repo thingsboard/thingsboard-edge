@@ -80,14 +80,14 @@
       {{ 'action.close' | translate }}
     </button>
     <button mat-raised-button
-            *ngIf="job.status === JobStatus.FAILED"
+            *ngIf="job.status === JobStatus.FAILED && hasWritePermission"
             color="primary"
             type="button"
             (click)="reprocess()">
       {{ 'task.reprocess' | translate : {count: job.result.failedCount ?? 0} }}
     </button>
     <button mat-raised-button
-            *ngIf="job.status === JobStatus.RUNNING"
+            *ngIf="job.status === JobStatus.RUNNING && hasWritePermission"
             color="accent"
             type="button"
             (click)="cancelJob()">

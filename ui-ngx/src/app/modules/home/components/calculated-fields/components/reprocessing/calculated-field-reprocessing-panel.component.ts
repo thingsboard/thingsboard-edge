@@ -52,6 +52,8 @@ import { switchMap, takeUntil, takeWhile } from 'rxjs/operators';
 import { EntityType } from '@shared/models/entity-type.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { ThemePalette } from '@angular/material/core';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 enum ReprocessingState {
   LOADING = 'loading',
@@ -98,6 +100,8 @@ export class CalculatedFieldReprocessingPanelComponent implements OnInit {
   resultIcon: string;
   resultIconColor: ThemePalette;
 
+  hasWritePermission = false;
+
   private showEntityProcessing = false;
   private destroy$ = new Subject<void>();
 
@@ -110,7 +114,9 @@ export class CalculatedFieldReprocessingPanelComponent implements OnInit {
               private destroyRef: DestroyRef,
               private translate: TranslateService,
               private jobService: JobService,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private userPermissionsService: UserPermissionsService) {
+    this.hasWritePermission = this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE);
   }
 
   ngOnInit() {

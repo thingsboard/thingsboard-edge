@@ -33,6 +33,8 @@ import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } fro
 import { Job, JobStatus } from '@app/shared/models/job.models';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ResourceReferences } from '@shared/models/resource.models';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-task-info',
@@ -41,8 +43,6 @@ import { ResourceReferences } from '@shared/models/resource.models';
   encapsulation: ViewEncapsulation.None
 })
 export class TaskInfoPanelComponent implements OnInit {
-
-  JobStatus = JobStatus;
 
   @Input()
   job: Job;
@@ -53,9 +53,14 @@ export class TaskInfoPanelComponent implements OnInit {
   @Output()
   cancelTask = new EventEmitter<void>();
 
+  JobStatus = JobStatus;
+
+  hasWritePermission = false;
   reference: ResourceReferences = [];
 
-  constructor(private popover: TbPopoverComponent<TaskInfoPanelComponent>) {
+  constructor(private popover: TbPopoverComponent<TaskInfoPanelComponent>,
+              private userPermissionsService: UserPermissionsService) {
+    this.hasWritePermission = this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE);
   }
 
   ngOnInit() {
