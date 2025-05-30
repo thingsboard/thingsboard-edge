@@ -35,6 +35,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -51,6 +52,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
@@ -77,6 +79,9 @@ public class RuleChainServiceTest extends AbstractServiceTest {
     RuleChainService ruleChainService;
     @Autowired
     RelationService relationService;
+
+    @MockBean
+    SecretConfigurationService secretConfigurationService;
 
     private IdComparator<RuleChain> idComparator = new IdComparator<>();
     private IdComparator<RuleNode> ruleNodeIdComparator = new IdComparator<>();

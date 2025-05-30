@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.encryptionkey.EncryptionService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
@@ -111,6 +112,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private TenantDataValidator tenantValidator;
     @Autowired
     private CustomTranslationService customTranslationService;
+    @Autowired
+    private EncryptionService encryptionService;
     @Autowired
     protected TbTransactionalCache<TenantId, Boolean> existsTenantCache;
 
@@ -191,6 +194,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
             assetProfileService.createDefaultAssetProfile(tenantId);
             apiUsageStateService.createDefaultApiUsageState(tenantId, null);
             notificationSettingsService.createDefaultNotificationConfigs(tenantId);
+            encryptionService.createEncryptionKey(tenantId);
         }
 
         return savedTenant;
@@ -210,13 +214,14 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         qrCodeSettingService.deleteByTenantId(tenantId);
         customMenuService.deleteByTenantId(tenantId);
+        encryptionService.deleteEncryptionKeyByTenantId(tenantId);
 
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).entity(tenant).build());
 
-        cleanUpService.removeTenantEntities(tenantId, // don't forget to implement deleteByTenantId from EntityDaoService when adding entity type to this list
-                EntityType.ENTITY_VIEW, EntityType.WIDGETS_BUNDLE, EntityType.WIDGET_TYPE,
+        cleanUpService.removeTenantEntities(tenantId, // don't forget to implement deleteEntity from EntityDaoService when adding entity type to this list
+                EntityType.JOB, EntityType.ENTITY_VIEW, EntityType.WIDGETS_BUNDLE, EntityType.WIDGET_TYPE,
                 EntityType.ASSET, EntityType.ASSET_PROFILE, EntityType.DEVICE, EntityType.DEVICE_PROFILE,
                 EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_CHAIN, EntityType.INTEGRATION,
                 EntityType.CONVERTER, EntityType.SCHEDULER_EVENT, EntityType.BLOB_ENTITY, EntityType.ENTITY_GROUP,
@@ -224,7 +229,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
                 EntityType.OTA_PACKAGE, EntityType.RPC, EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST,
                 EntityType.NOTIFICATION_RULE, EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET,
                 EntityType.QUEUE_STATS, EntityType.CUSTOMER, EntityType.DOMAIN, EntityType.MOBILE_APP_BUNDLE,
-                EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT
+                EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT, EntityType.SECRET
         );
     }
 
@@ -246,6 +251,12 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     public List<TenantId> findTenantIdsByTenantProfileId(TenantProfileId tenantProfileId) {
         log.trace("Executing findTenantsByTenantProfileId [{}]", tenantProfileId);
         return tenantDao.findTenantIdsByTenantProfileId(tenantProfileId);
+    }
+
+    @Override
+    public Tenant findTenantByName(String name) {
+        log.trace("Executing findTenantByName [{}]", name);
+        return tenantDao.findTenantByName(TenantId.SYS_TENANT_ID, name);
     }
 
     @Override

@@ -101,14 +101,11 @@
               integration.url-private
             </mat-error>
           </mat-form-field>
-          <mat-form-field class="mat-block flex-1">
-            <mat-label translate>integration.app-token</mat-label>
-            <input required matInput formControlName="token" type="password" autocomplete="new-password" >
-            <tb-toggle-password matSuffix></tb-toggle-password>
-            <mat-error translate *ngIf="loriotIntegrationConfigForm.get('token').hasError('required')">
-              integration.token-required
-            </mat-error>
-          </mat-form-field>
+          <tb-secret-key-input formControlName="token" class="mat-block flex-1"
+                               required
+                               label="{{ 'integration.app-token' | translate }}"
+                               requiredText="{{ 'integration.token-required' | translate }}">
+          </tb-secret-key-input>
         </div>
         <tb-integration-credentials formControlName="credentials"
                                     style="margin-top: 4px"

@@ -46,28 +46,10 @@ public interface TenantDao extends Dao<Tenant> {
 
     TenantInfo findTenantInfoById(TenantId tenantId, UUID id);
 
-    /**
-     * Save or update tenant object
-     *
-     * @param tenant the tenant object
-     * @return saved tenant object
-     */
     Tenant save(TenantId tenantId, Tenant tenant);
 
-    /**
-     * Find tenants by page link.
-     *
-     * @param pageLink the page link
-     * @return the list of tenant objects
-     */
     PageData<Tenant> findTenants(TenantId tenantId, PageLink pageLink);
 
-    /**
-     * Find tenants by tenant Ids.
-     *
-     * @param tenantIds the tenant Ids
-     * @return the list of tenant objects
-     */
     ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds);
 
     PageData<TenantInfo> findTenantInfos(TenantId tenantId, PageLink pageLink);
@@ -75,5 +57,7 @@ public interface TenantDao extends Dao<Tenant> {
     PageData<TenantId> findTenantsIds(PageLink pageLink);
 
     List<TenantId> findTenantIdsByTenantProfileId(TenantProfileId tenantProfileId);
+
+    Tenant findTenantByName(TenantId tenantId, String name);
 
 }

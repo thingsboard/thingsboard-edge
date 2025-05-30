@@ -56,6 +56,7 @@ export * from './event.service';
 export * from './http-utils';
 export * from './integration.service';
 export * from './image.service';
+export * from './job.service';
 export * from './notification.service';
 export * from './oauth2.service';
 export * from './ota-package.service';
@@ -78,3 +79,4 @@ export * from './white-labeling.service';
 export * from './widget.service';
 export * from './usage-info.service';
 export * from './trendz-settings.service'
+export * from './secret-storage.service'

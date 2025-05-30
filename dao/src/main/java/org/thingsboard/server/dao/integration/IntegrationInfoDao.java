@@ -39,10 +39,6 @@ import org.thingsboard.server.dao.Dao;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * The Interface IntegrationDao.
- *
- */
 public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
 
     List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);

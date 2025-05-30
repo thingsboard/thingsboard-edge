@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 
 import java.util.List;
@@ -53,6 +54,7 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
     private final ConverterService converterService;
     private final IntegrationService integrationService;
     private final TbTenantProfileCache tenantProfileCache;
+    private final SecretConfigurationService secretConfigurationService;
 
     @Override
     public List<IntegrationInfo> getActiveIntegrationList(IntegrationType type, boolean remote) {
@@ -61,12 +63,23 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
 
     @Override
     public Integration getIntegration(TenantId tenantId, IntegrationId integrationId) {
-        return integrationService.findIntegrationById(tenantId, integrationId);
+        Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
+        return replaceSecretUsages(tenantId, integration);
     }
 
     @Override
     public Integration getIntegration(TenantId tenantId, String routingKey) {
-        return integrationService.findIntegrationByRoutingKey(tenantId, routingKey).orElse(null);
+        var integrationOpt = integrationService.findIntegrationByRoutingKey(tenantId, routingKey);
+        return replaceSecretUsages(tenantId, integrationOpt.orElse(null));
+    }
+
+    private Integration replaceSecretUsages(TenantId tenantId, Integration integration) {
+        if (integration == null) {
+            return null;
+        }
+        Integration copy = new Integration(integration);
+        secretConfigurationService.replaceSecretUsages(tenantId, copy.getConfiguration());
+        return copy;
     }
 
     @Override

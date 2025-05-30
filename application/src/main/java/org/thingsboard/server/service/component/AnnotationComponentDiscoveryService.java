@@ -205,6 +205,7 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
             scannedComponent.setScope(ruleNodeAnnotation.scope());
             scannedComponent.setClusteringMode(ruleNodeAnnotation.clusteringMode());
             scannedComponent.setHasQueueName(ruleNodeAnnotation.hasQueueName());
+            scannedComponent.setHasSecrets(ruleNodeAnnotation.hasSecrets());
             NodeDefinition nodeDefinition = prepareNodeDefinition(clazz, ruleNodeAnnotation);
             ObjectNode configurationDescriptor = JacksonUtil.newObjectNode();
             JsonNode node = JacksonUtil.valueToTree(nodeDefinition);
@@ -318,4 +319,5 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
         });
         return Collections.unmodifiableList(result);
     }
+
 }

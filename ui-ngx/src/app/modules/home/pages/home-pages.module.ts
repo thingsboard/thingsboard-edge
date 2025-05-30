@@ -58,6 +58,7 @@ import { EdgeModule } from '@home/pages/edge/edge.module';
 import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
 import { SolutionTemplatesModule } from '@home/pages/solution-template/solution-templates.module';
 import { VcModule } from '@home/pages/vc/vc.module';
+import { TaskManagerModule } from '@home/pages/task-manager/task-manager.module';
 import { AssetProfileModule } from '@home/pages/asset-profile/asset-profile.module';
 import { ProfilesModule } from '@home/pages/profiles/profiles.module';
 import { AlarmModule } from '@home/pages/alarm/alarm.module';
@@ -71,6 +72,7 @@ import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module'
 import { GatewaysModule } from '@home/pages/gateways/gateways.module';
 import { MobileModule } from '@home/pages/mobile/mobile.module';
 import { CustomMenuModule } from '@home/pages/custom-menu/custom-menu.module';
+import { SecretStorageModule } from '@home/pages/secret-storage/secret-storage.module';
 
 @NgModule({
   exports: [
@@ -103,6 +105,7 @@ import { CustomMenuModule } from '@home/pages/custom-menu/custom-menu.module';
     UserModule,
     AccountModule,
     RoleModule,
+    SecretStorageModule,
     IntegrationsCenterModule,
     ConverterModule,
     IntegrationModule,
@@ -112,6 +115,7 @@ import { CustomMenuModule } from '@home/pages/custom-menu/custom-menu.module';
     OtaUpdateModule,
     SolutionTemplatesModule,
     VcModule,
+    TaskManagerModule,
     AccountModule,
     ScadaSymbolModule,
     CustomTranslationModule,

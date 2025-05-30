@@ -51,6 +51,7 @@ export * from './entity-type.models';
 export * from './entity-view.models';
 export * from './error.models';
 export * from './event.models';
+export * from './job.models';
 export * from './limited-api.models';
 export * from './login.models';
 export * from './material.models';
@@ -79,3 +80,4 @@ export * from './usage.models';
 export * from './query/query.models';
 export * from './regex.constants';
 export * from './trendz-settings.models'
+export * from './secret-storage.models'

@@ -77,3 +77,5 @@ SET profile_data = jsonb_set(
 WHERE profile_data -> 'configuration' ? 'cassandraQueryTenantRateLimitsConfiguration';
 
 -- UPDATE TENANT PROFILE CASSANDRA RATE LIMITS END
+
+ALTER TABLE component_descriptor ADD COLUMN IF NOT EXISTS has_secrets boolean default false;

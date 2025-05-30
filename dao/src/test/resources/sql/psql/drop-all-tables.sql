@@ -91,3 +91,5 @@ DROP TABLE IF EXISTS scheduler_event;
 DROP TABLE IF EXISTS integration;
 DROP TABLE IF EXISTS converter;
 DROP TABLE IF EXISTS entity_group;
+DROP TABLE IF EXISTS secret;
+DROP TABLE IF EXISTS encryption_key;

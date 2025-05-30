@@ -77,11 +77,9 @@
     <mat-label translate>rule-node-config.username</mat-label>
     <input matInput formControlName="username">
   </mat-form-field>
-  <mat-form-field class="mat-block">
-    <mat-label translate>rule-node-config.password</mat-label>
-    <input type="password" matInput formControlName="password">
-    <tb-toggle-password matSuffix></tb-toggle-password>
-  </mat-form-field>
+  <tb-secret-key-input formControlName="password" class="mat-block flex-1"
+                       label="{{ 'rule-node-config.password' | translate }}">
+  </tb-secret-key-input>
   <mat-checkbox formControlName="automaticRecoveryEnabled">
     {{ 'rule-node-config.automatic-recovery' | translate }}
   </mat-checkbox>

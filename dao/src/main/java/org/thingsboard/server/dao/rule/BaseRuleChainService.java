@@ -115,6 +115,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String TB_RULE_CHAIN_INPUT_NODE = "org.thingsboard.rule.engine.flow.TbRuleChainInputNode";
+
     @Autowired
     private RuleChainDao ruleChainDao;
 
@@ -277,7 +278,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 firstRuleNodeId = nodes.get(ruleChainMetaData.getFirstNodeIndex()).getId();
             }
             if ((ruleChain.getFirstRuleNodeId() != null && !ruleChain.getFirstRuleNodeId().equals(firstRuleNodeId))
-                || (ruleChain.getFirstRuleNodeId() == null && firstRuleNodeId != null)) {
+                    || (ruleChain.getFirstRuleNodeId() == null && firstRuleNodeId != null)) {
                 ruleChain.setFirstRuleNodeId(firstRuleNodeId);
             }
             if (ruleChainMetaData.getConnections() != null) {
