@@ -54,9 +54,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Created by Valerii Sosliuk on 4/30/2017.
- */
 @Component
 @SqlDao
 public class JpaTenantDao extends JpaAbstractDao<TenantEntity, Tenant> implements TenantDao {
@@ -112,6 +109,11 @@ public class JpaTenantDao extends JpaAbstractDao<TenantEntity, Tenant> implement
     }
 
     @Override
+    public Tenant findTenantByName(TenantId tenantId, String name) {
+        return DaoUtil.getData(tenantRepository.findTenantByTitle(name));
+    }
+
+    @Override
     public List<TenantFields> findNextBatch(UUID id, int batchSize) {
         return tenantRepository.findNextBatch(id, Limit.of(batchSize));
     }
@@ -120,4 +122,5 @@ public class JpaTenantDao extends JpaAbstractDao<TenantEntity, Tenant> implement
     public EntityType getEntityType() {
         return EntityType.TENANT;
     }
+
 }
