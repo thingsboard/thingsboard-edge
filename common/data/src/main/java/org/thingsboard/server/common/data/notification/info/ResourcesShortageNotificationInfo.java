@@ -28,41 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data.notification.info;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+import lombok.NoArgsConstructor;
 
-import java.io.Serial;
+import java.util.Map;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class TaskProcessingFailureTrigger implements NotificationRuleTrigger {
+public class ResourcesShortageNotificationInfo implements RuleOriginatedNotificationInfo {
 
-    @Serial
-    private static final long serialVersionUID = 5606203770553105345L;
-
-    private final HousekeeperTask task;
-    private final int attempt;
-    private final Throwable error;
+    private String resource;
+    private Long usage;
 
     @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.TASK_PROCESSING_FAILURE;
-    }
-
-    @Override
-    public TenantId getTenantId() {
-        return task.getTenantId();
-    }
-
-    @Override
-    public EntityId getOriginatorEntityId() {
-        return task.getEntityId();
+    public Map<String, String> getTemplateData() {
+        return Map.of(
+                "resource", resource,
+                "usage", String.valueOf(usage)
+        );
     }
 
 }

@@ -28,41 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import jakarta.validation.constraints.Max;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class TaskProcessingFailureTrigger implements NotificationRuleTrigger {
+public class ResourcesShortageNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
     @Serial
-    private static final long serialVersionUID = 5606203770553105345L;
+    private static final long serialVersionUID = 339395299693241424L;
 
-    private final HousekeeperTask task;
-    private final int attempt;
-    private final Throwable error;
-
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.TASK_PROCESSING_FAILURE;
-    }
+    @Max(1)
+    private float cpuThreshold; // in percents
+    @Max(1)
+    private float ramThreshold; // in percents
+    @Max(1)
+    private float storageThreshold; // in percents
 
     @Override
-    public TenantId getTenantId() {
-        return task.getTenantId();
-    }
-
-    @Override
-    public EntityId getOriginatorEntityId() {
-        return task.getEntityId();
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.RESOURCES_SHORTAGE;
     }
 
 }

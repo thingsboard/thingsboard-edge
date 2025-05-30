@@ -32,37 +32,55 @@ package org.thingsboard.server.common.data.notification.rule.trigger;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
 import java.io.Serial;
+import java.util.concurrent.TimeUnit;
 
 @Data
 @Builder
-public class TaskProcessingFailureTrigger implements NotificationRuleTrigger {
+public class ResourcesShortageTrigger implements NotificationRuleTrigger {
 
     @Serial
-    private static final long serialVersionUID = 5606203770553105345L;
+    private static final long serialVersionUID = 6024216015202949570L;
 
-    private final HousekeeperTask task;
-    private final int attempt;
-    private final Throwable error;
-
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.TASK_PROCESSING_FAILURE;
-    }
+    private Resource resource;
+    private Long usage;
 
     @Override
     public TenantId getTenantId() {
-        return task.getTenantId();
+        return TenantId.SYS_TENANT_ID;
     }
 
     @Override
     public EntityId getOriginatorEntityId() {
-        return task.getEntityId();
+        return TenantId.SYS_TENANT_ID;
+    }
+
+    @Override
+    public boolean deduplicate() {
+        return true;
+    }
+
+    @Override
+    public String getDeduplicationKey() {
+        return resource.name();
+    }
+
+    @Override
+    public long getDefaultDeduplicationDuration() {
+        return TimeUnit.HOURS.toMillis(1);
+    }
+
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.RESOURCES_SHORTAGE;
+    }
+
+    public enum Resource {
+        CPU, RAM, STORAGE
     }
 
 }

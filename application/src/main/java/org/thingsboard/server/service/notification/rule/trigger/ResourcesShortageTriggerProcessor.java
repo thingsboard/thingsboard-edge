@@ -28,41 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.service.notification.rule.trigger;
 
-import lombok.Builder;
-import lombok.Data;
-import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.notification.info.ResourcesShortageNotificationInfo;
+import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
+import org.thingsboard.server.common.data.notification.rule.trigger.ResourcesShortageTrigger;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.ResourcesShortageNotificationRuleTriggerConfig;
 
-import java.io.Serial;
-
-@Data
-@Builder
-public class TaskProcessingFailureTrigger implements NotificationRuleTrigger {
-
-    @Serial
-    private static final long serialVersionUID = 5606203770553105345L;
-
-    private final HousekeeperTask task;
-    private final int attempt;
-    private final Throwable error;
+@Service
+@RequiredArgsConstructor
+public class ResourcesShortageTriggerProcessor implements NotificationRuleTriggerProcessor<ResourcesShortageTrigger, ResourcesShortageNotificationRuleTriggerConfig> {
 
     @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.TASK_PROCESSING_FAILURE;
+    public boolean matchesFilter(ResourcesShortageTrigger trigger, ResourcesShortageNotificationRuleTriggerConfig triggerConfig) {
+        float usagePercent = trigger.getUsage() / 100.0f;
+        return switch (trigger.getResource()) {
+            case CPU -> usagePercent >= triggerConfig.getCpuThreshold();
+            case RAM -> usagePercent >= triggerConfig.getRamThreshold();
+            case STORAGE -> usagePercent >= triggerConfig.getStorageThreshold();
+        };
     }
 
     @Override
-    public TenantId getTenantId() {
-        return task.getTenantId();
+    public RuleOriginatedNotificationInfo constructNotificationInfo(ResourcesShortageTrigger trigger) {
+        return ResourcesShortageNotificationInfo.builder().resource(trigger.getResource().name()).usage(trigger.getUsage()).build();
     }
 
     @Override
-    public EntityId getOriginatorEntityId() {
-        return task.getEntityId();
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.RESOURCES_SHORTAGE;
     }
 
 }
