@@ -212,7 +212,7 @@ public class TenantRepo {
                 getEntitySet(entityType).add(entityData);
             }
 
-            UUID newCustomerId = CustomerId.NULL_UUID.equals(fields.getCustomerId()) ? null : fields.getCustomerId();
+            UUID newCustomerId = fields.getCustomerId();
             UUID oldCustomerId = entityData.getCustomerId();
             switch (entity.getType()) {
                 case ENTITY_GROUP:
