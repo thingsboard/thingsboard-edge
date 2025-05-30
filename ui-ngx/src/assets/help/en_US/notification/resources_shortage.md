@@ -9,8 +9,8 @@ See the available types and parameters below:
 
 Available template parameters:
 
-* `resource` - the resource name;
-* `usage` - the resource usage value;
+* `resource` - the resource name (e.g., "CPU", "RAM", "STORAGE");
+* `usage` - the current usage value of the resource;
 
 Parameter names must be wrapped using `${...}`. For example: `${resource}`.
 You may also modify the value of the parameter with one of the suffixes:
