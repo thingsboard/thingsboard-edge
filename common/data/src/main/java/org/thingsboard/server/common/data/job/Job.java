@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.JobId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -52,7 +52,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class Job extends BaseData<JobId> implements HasTenantId {
+public class Job extends BaseData<JobId> implements TenantEntity {
 
     @NotNull
     private TenantId tenantId;
@@ -96,6 +96,11 @@ public class Job extends BaseData<JobId> implements HasTenantId {
     @SuppressWarnings("unchecked")
     public <C extends JobConfiguration> C getConfiguration() {
         return (C) configuration;
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.JOB;
     }
 
 }

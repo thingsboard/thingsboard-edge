@@ -33,11 +33,11 @@ package org.thingsboard.server.service.cf;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import jakarta.annotation.PostConstruct;
@@ -71,7 +71,6 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
@@ -139,7 +138,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
     }
 
     @Override
-    public void reprocess(CfReprocessingTask task, TbCallback callback) throws Exception {
+    public void reprocess(CfReprocessingTask task) throws Exception {
         TenantId tenantId = task.getTenantId();
         EntityId entityId = task.getEntityId();
         log.debug("[{}] Received reprocess request for entityId [{}]", tenantId, entityId);
@@ -161,23 +160,26 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
 
         Map<String, LinkedList<TsKvEntry>> telemetryBuffers = new HashMap<>();
         Map<String, Long> cursors = new HashMap<>();
-        ctx.getArguments().forEach((argName, arg) -> {
-            if (ArgumentType.ATTRIBUTE.equals(arg.getRefEntityKey().getType())) return;
+        for (Entry<String, Argument> e : ctx.getArguments().entrySet()) {
+            String argName = e.getKey();
+            Argument arg = e.getValue();
+            if (ArgumentType.ATTRIBUTE.equals(arg.getRefEntityKey().getType())) {
+                continue;
+            }
             LinkedList<TsKvEntry> batch = new LinkedList<>(fetchTelemetryBatch(tenantId, entityId, arg, startTs, endTs, telemetryFetchPackSize));
             if (!batch.isEmpty()) {
                 telemetryBuffers.put(argName, batch);
                 cursors.put(argName, batch.getLast().getTs());
             }
-        });
+        }
 
-        while (true) {
+        while (!Thread.interrupted()) {
             long minTs = telemetryBuffers.values().stream()
                     .filter(buffer -> !buffer.isEmpty())
                     .mapToLong(buffer -> buffer.get(0).getTs())
                     .min().orElse(Long.MAX_VALUE);
 
             if (minTs == Long.MAX_VALUE) {
-                callback.onSuccess();
                 break;
             }
 
@@ -209,43 +211,32 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         }
     }
 
-    private void performInitialProcessing(TenantId tenantId, EntityId entityId, CalculatedFieldState state, CalculatedFieldCtx ctx, long startTs) throws CalculatedFieldException {
-        try {
-            if (state.isSizeOk()) {
-                processStateIfReady(tenantId, entityId, ctx, state, startTs);
-            } else {
-                throw new RuntimeException(ctx.getSizeExceedsLimitMessage());
-            }
-        } catch (Exception e) {
-            if (e instanceof CalculatedFieldException cfe) {
-                throw cfe;
-            }
-            throw CalculatedFieldException.builder().ctx(ctx).eventEntity(entityId).cause(e).build();
+    private void performInitialProcessing(TenantId tenantId, EntityId entityId, CalculatedFieldState state, CalculatedFieldCtx ctx, long startTs) throws Exception {
+        if (state.isSizeOk()) {
+            processStateIfReady(tenantId, entityId, ctx, state, startTs);
+        } else {
+            throw new RuntimeException(ctx.getSizeExceedsLimitMessage());
         }
     }
 
-    private void processStateIfReady(TenantId tenantId, EntityId entityId, CalculatedFieldCtx ctx, CalculatedFieldState state, long ts) throws CalculatedFieldException {
+    private void processStateIfReady(TenantId tenantId, EntityId entityId, CalculatedFieldCtx ctx, CalculatedFieldState state, long ts) throws Exception {
         CalculatedFieldEntityCtxId ctxId = new CalculatedFieldEntityCtxId(tenantId, ctx.getCfId(), entityId);
         boolean stateSizeChecked = false;
-        try {
-            if (ctx.isInitialized() && state.isReady()) {
-                CalculatedFieldResult calculationResult = state.performCalculation(ctx).get(cfCalculationResultTimeout, TimeUnit.SECONDS);
-                state.checkStateSize(ctxId, ctx.getMaxStateSize());
-                stateSizeChecked = true;
-                if (state.isSizeOk()) {
-                    if (!calculationResult.isEmpty()) {
-                        saveResult(tenantId, entityId, checkAndSetTs(calculationResult, ts), ts, TbCallback.EMPTY);
-                    }
+        if (ctx.isInitialized() && state.isReady()) {
+            CalculatedFieldResult calculationResult = state.performCalculation(ctx).get(cfCalculationResultTimeout, TimeUnit.SECONDS);
+            state.checkStateSize(ctxId, ctx.getMaxStateSize());
+            stateSizeChecked = true;
+            if (state.isSizeOk()) {
+                if (!calculationResult.isEmpty()) {
+                    saveResult(tenantId, entityId, checkAndSetTs(calculationResult, ts), ts);
                 }
             }
-            if (!stateSizeChecked) {
-                state.checkStateSize(ctxId, ctx.getMaxStateSize());
-            }
-            if (!state.isSizeOk()) {
-                throw CalculatedFieldException.builder().ctx(ctx).eventEntity(entityId).errorMessage(ctx.getSizeExceedsLimitMessage()).build();
-            }
-        } catch (Exception e) {
-            throw CalculatedFieldException.builder().ctx(ctx).eventEntity(entityId).msgId(null).msgType(null).arguments(state.getArguments()).cause(e).build();
+        }
+        if (!stateSizeChecked) {
+            state.checkStateSize(ctxId, ctx.getMaxStateSize());
+        }
+        if (!state.isSizeOk()) {
+            throw CalculatedFieldException.builder().ctx(ctx).eventEntity(entityId).errorMessage(ctx.getSizeExceedsLimitMessage()).build();
         }
     }
 
@@ -279,7 +270,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         return node;
     }
 
-    private void processArgumentValuesUpdate(TenantId tenantId, EntityId entityId, CalculatedFieldState state, CalculatedFieldCtx ctx, Map<String, ArgumentEntry> newArgValues, long ts) throws CalculatedFieldException {
+    private void processArgumentValuesUpdate(TenantId tenantId, EntityId entityId, CalculatedFieldState state, CalculatedFieldCtx ctx, Map<String, ArgumentEntry> newArgValues, long ts) throws Exception {
         if (newArgValues.isEmpty()) {
             log.info("[{}] No argument values to process for CF.", ctx.getCfId());
         }
@@ -381,89 +372,65 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         return Futures.transform(tsRollingFuture, tsRolling -> tsRolling == null ? new TsRollingArgumentEntry(limit, argTimeWindow) : ArgumentEntry.createTsRollingArgument(tsRolling, limit, argTimeWindow), calculatedFieldCallbackExecutor);
     }
 
-    private List<TsKvEntry> fetchTelemetryBatch(TenantId tenantId, EntityId entityId, Argument argument, long startTs, long endTs, int limit) {
+    private List<TsKvEntry> fetchTelemetryBatch(TenantId tenantId, EntityId entityId, Argument argument, long startTs, long endTs, int limit) throws InterruptedException {
         EntityId sourceEntityId = argument.getRefEntityId() != null ? argument.getRefEntityId() : entityId;
         try {
             ReadTsKvQuery query = new BaseReadTsKvQuery(argument.getRefEntityKey().getKey(), startTs, endTs, 0, limit, Aggregation.NONE, "ASC");
             return timeseriesService.findAll(tenantId, sourceEntityId, List.of(query)).get(); // will be interrupted on task processing timeout
         } catch (ExecutionException e) {
             throw new RuntimeException("Failed to fetch telemetry for " + sourceEntityId + " for key " + argument.getRefEntityKey().getKey(), e.getCause());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
     private CalculatedFieldCtx getCFCtx(CalculatedField calculatedField) {
-        try {
-            CalculatedFieldCtx ctx = new CalculatedFieldCtx(calculatedField, tbelInvokeService, apiLimitService);
-            ctx.init();
-            return ctx;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        CalculatedFieldCtx ctx = new CalculatedFieldCtx(calculatedField, tbelInvokeService, apiLimitService);
+        ctx.init();
+        return ctx;
     }
 
-    private void saveResult(TenantId tenantId, EntityId entityId, CalculatedFieldResult calculatedFieldResult, long ts, TbCallback callback) {
-        try {
-            OutputType type = calculatedFieldResult.getType();
-            JsonElement result = JsonParser.parseString(Objects.requireNonNull(JacksonUtil.toString(calculatedFieldResult.getResult())));
-            FutureCallback<Void> wrappedCallback = wrapCallback(callback);
-
-            switch (type) {
-                case TIME_SERIES -> {
-                    Map<Long, List<KvEntry>> tsKvMap = JsonConverter.convertToTelemetry(result, ts);
-                    List<TsKvEntry> tsKvEntryList = new ArrayList<>();
-                    for (Entry<Long, List<KvEntry>> tsKvEntry : tsKvMap.entrySet()) {
-                        for (KvEntry kvEntry : tsKvEntry.getValue()) {
-                            tsKvEntryList.add(new BasicTsKvEntry(tsKvEntry.getKey(), kvEntry));
-                        }
+    private void saveResult(TenantId tenantId, EntityId entityId, CalculatedFieldResult calculatedFieldResult, long ts) throws InterruptedException {
+        OutputType type = calculatedFieldResult.getType();
+        JsonElement result = JsonParser.parseString(Objects.requireNonNull(JacksonUtil.toString(calculatedFieldResult.getResult())));
+        SettableFuture<Void> future = SettableFuture.create();
+        switch (type) {
+            case TIME_SERIES -> {
+                Map<Long, List<KvEntry>> tsKvMap = JsonConverter.convertToTelemetry(result, ts);
+                List<TsKvEntry> tsKvEntryList = new ArrayList<>();
+                for (Entry<Long, List<KvEntry>> tsKvEntry : tsKvMap.entrySet()) {
+                    for (KvEntry kvEntry : tsKvEntry.getValue()) {
+                        tsKvEntryList.add(new BasicTsKvEntry(tsKvEntry.getKey(), kvEntry));
                     }
-
-                    telemetrySubscriptionService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
-                            .tenantId(tenantId)
-                            .entityId(entityId)
-                            .entries(tsKvEntryList)
-                            .strategy(new Strategy(true, false, false, false))
-                            .callback(wrappedCallback)
-                            .build()
-                    );
                 }
-                case ATTRIBUTES -> {
-                    List<AttributeKvEntry> attributes = new ArrayList<>(JsonConverter.convertToAttributes(result, ts));
-
-                    telemetrySubscriptionService.saveAttributes(AttributesSaveRequest.builder()
-                            .tenantId(tenantId)
-                            .entityId(entityId)
-                            .scope(calculatedFieldResult.getScope())
-                            .entries(attributes)
-                            .strategy(new AttributesSaveRequest.Strategy(true, false, false))
-                            .callback(wrappedCallback)
-                            .build()
-                    );
-                }
-                default -> {
-                    log.warn("[{}][{}] Unsupported OutputType: {}", tenantId, entityId, type);
-                    callback.onFailure(new IllegalArgumentException("Unsupported output type: " + type));
-                }
+                telemetrySubscriptionService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                        .tenantId(tenantId)
+                        .entityId(entityId)
+                        .entries(tsKvEntryList)
+                        .strategy(new Strategy(true, false, false, false))
+                        .future(future)
+                        .build()
+                );
             }
-        } catch (Exception e) {
-            log.warn("[{}][{}] Failed to persist result. CalculatedFieldResult: {}", tenantId, entityId, calculatedFieldResult, e);
-            callback.onFailure(e);
+            case ATTRIBUTES -> {
+                List<AttributeKvEntry> attributes = new ArrayList<>(JsonConverter.convertToAttributes(result, ts));
+                telemetrySubscriptionService.saveAttributes(AttributesSaveRequest.builder()
+                        .tenantId(tenantId)
+                        .entityId(entityId)
+                        .scope(calculatedFieldResult.getScope())
+                        .entries(attributes)
+                        .strategy(new AttributesSaveRequest.Strategy(true, false, false))
+                        .future(future)
+                        .build()
+                );
+            }
+            default -> {
+                throw new IllegalArgumentException("Unsupported output type: " + type);
+            }
         }
-    }
-
-    private FutureCallback<Void> wrapCallback(TbCallback callback) {
-        return new FutureCallback<>() {
-            @Override
-            public void onSuccess(Void result) {
-                callback.onSuccess();
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                callback.onFailure(t);
-            }
-        };
+        try {
+            future.get();
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Failed to save calculated field result", e.getCause());
+        }
     }
 
 }

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.job.task;
 
-import com.google.common.util.concurrent.SettableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +38,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.common.data.job.task.CfReprocessingTask;
 import org.thingsboard.server.common.data.job.task.CfReprocessingTaskResult;
-import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.queue.task.TaskProcessor;
 import org.thingsboard.server.queue.util.TbRuleEngineComponent;
 import org.thingsboard.server.service.cf.CalculatedFieldReprocessingService;
@@ -58,14 +56,12 @@ public class CfReprocessingTaskProcessor extends TaskProcessor<CfReprocessingTas
 
     @Override
     public CfReprocessingTaskResult process(CfReprocessingTask task) throws Exception {
-        SettableFuture<Void> future = SettableFuture.create();
-        cfReprocessingService.reprocess(task, TbCallback.wrap(future));
-        wait(future);
+        cfReprocessingService.reprocess(task);
         return CfReprocessingTaskResult.success(task);
     }
 
     @Override
-    public long getTaskProcessingTimeout() {
+    public long getProcessingTimeout(CfReprocessingTask task) {
         return timeoutMs;
     }
 
