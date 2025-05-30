@@ -74,7 +74,7 @@ public class WsClient extends WebSocketClient {
                     latch.countDown();
                 }
             } catch (IllegalArgumentException e) {
-                log.error("ws message can't be read");
+                log.error("ws message can't be read", e);
             }
         }
     }
