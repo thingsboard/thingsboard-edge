@@ -32,7 +32,18 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { Job, JobStatus } from '@app/shared/models/job.models';
 import { TbPopoverComponent } from '@shared/components/popover.component';
-import { ResourceReferences } from '@shared/models/resource.models';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
+import { getEntityDetailsPageURL } from '@core/utils';
+import { TranslateService } from '@ngx-translate/core';
+
+interface TaskError {
+  typeName: string;
+  detailsUrl: string;
+  entityName: string;
+  error: string;
+}
 
 @Component({
   selector: 'tb-task-info',
@@ -41,8 +52,6 @@ import { ResourceReferences } from '@shared/models/resource.models';
   encapsulation: ViewEncapsulation.None
 })
 export class TaskInfoPanelComponent implements OnInit {
-
-  JobStatus = JobStatus;
 
   @Input()
   job: Job;
@@ -53,16 +62,30 @@ export class TaskInfoPanelComponent implements OnInit {
   @Output()
   cancelTask = new EventEmitter<void>();
 
-  reference: ResourceReferences = [];
+  JobStatus = JobStatus;
 
-  constructor(private popover: TbPopoverComponent<TaskInfoPanelComponent>) {
+  hasWritePermission = false;
+  errors: TaskError[] = [];
+
+  constructor(private popover: TbPopoverComponent<TaskInfoPanelComponent>,
+              private translate: TranslateService,
+              private userPermissionsService: UserPermissionsService) {
+    this.hasWritePermission = this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE);
   }
 
   ngOnInit() {
     if (this.job.result.results.length > 0) {
       this.job.result.results.forEach((result) => {
         if (result.failure?.entityInfo) {
-          this.reference.push(result.failure.entityInfo);
+          const entityType = result.failure.entityInfo.id.entityType as EntityType;
+          const typeName = this.translate.instant(entityTypeTranslations.get(entityType).type);
+          const detailsUrl = getEntityDetailsPageURL(result.failure.entityInfo.id.id, entityType);
+          this.errors.push({
+            entityName: result.failure.entityInfo.name,
+            typeName,
+            detailsUrl,
+            error: result.failure.error
+          });
         }
       })
     }

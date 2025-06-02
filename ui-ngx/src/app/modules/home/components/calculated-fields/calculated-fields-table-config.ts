@@ -74,6 +74,8 @@ import { isObject } from '@core/utils';
 import { EntityDebugSettingsService } from '@home/components/entity/debug/entity-debug-settings.service';
 import { DatePipe } from '@angular/common';
 import { TbPopoverService } from '@shared/components/popover.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Resource } from '@shared/models/security.models';
 
 export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedField> {
 
@@ -98,6 +100,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
               private readonly: boolean = false,
               private hideClearEventAction: boolean = false,
               private popoverService: TbPopoverService,
+              private userPermissionsService: UserPermissionsService,
   ) {
     super();
     this.tableTitle = this.translate.instant('entity.type-calculated-fields');
@@ -148,7 +151,7 @@ export class CalculatedFieldsTableConfig extends EntityTableConfig<CalculatedFie
     this.columns.push(new EntityTableColumn<CalculatedField>('type', 'common.type', '50px', entity => this.translate.instant(CalculatedFieldTypeTranslations.get(entity.type))));
     this.columns.push(expressionColumn);
 
-    if (!this.readonly) {
+    if (!this.readonly && this.userPermissionsService.hasReadGenericPermission(Resource.JOB)) {
       this.cellActionDescriptors.push({
         name: this.translate.instant('calculated-fields.reprocess-calculated-field'),
         icon: 'autorenew',

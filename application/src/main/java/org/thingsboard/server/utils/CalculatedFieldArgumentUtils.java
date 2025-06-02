@@ -52,13 +52,15 @@ import java.util.Optional;
 public class CalculatedFieldArgumentUtils {
 
     public static ListenableFuture<ArgumentEntry> transformSingleValueArgument(ListenableFuture<Optional<? extends KvEntry>> kvEntryFuture, ListeningExecutorService executor) {
-        return Futures.transform(kvEntryFuture, kvEntry -> {
-            if (kvEntry.isPresent() && kvEntry.get().getValue() != null) {
-                return ArgumentEntry.createSingleValueArgument(kvEntry.get());
-            } else {
-                return new SingleValueArgumentEntry();
-            }
-        }, executor);
+        return Futures.transform(kvEntryFuture, CalculatedFieldArgumentUtils::transformSingleValueArgument, executor);
+    }
+
+    public static ArgumentEntry transformSingleValueArgument(Optional<? extends KvEntry> kvEntry) {
+        if (kvEntry.isPresent() && kvEntry.get().getValue() != null) {
+            return ArgumentEntry.createSingleValueArgument(kvEntry.get());
+        } else {
+            return new SingleValueArgumentEntry();
+        }
     }
 
     public static KvEntry createDefaultKvEntry(Argument argument) {

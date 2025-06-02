@@ -97,6 +97,7 @@ public class DummyJobProcessor implements JobProcessor {
                 .processingTimeMs(configuration.getTaskProcessingTimeMs())
                 .errors(errors)
                 .failAlways(failAlways)
+                .processingTimeoutMs(configuration.getTaskProcessingTimeoutMs())
                 .build();
     }
 

@@ -67,8 +67,26 @@
         <span class="failed">{{ 'task.failed' | translate }}:</span>
         <span class="font-normal">{{ job.result.failedCount }}</span>
       </div>
-      @if (reference.length) {
-        <tb-image-references [references]="reference"></tb-image-references>
+      @if (errors.length) {
+        <table class="table-error relative">
+          @for (error of errors; track error.detailsUrl) {
+            <tr>
+              <td class="tb-entity-type">{{ error.typeName }}</td>
+              <td class="tb-entity-name">
+                <a class="tb-reference" [routerLink]="error.detailsUrl">{{ error.entityName }}</a>
+              </td>
+              <td>
+                <mat-icon matSuffix
+                          matTooltipPosition="above"
+                          matTooltipClass="tb-error-tooltip"
+                          [matTooltip]="error.error"
+                          class="tb-error tb-mat-16 align-middle">
+                  warning
+                </mat-icon>
+              </td>
+            </tr>
+          }
+        </table>
       }
     }
   </div>
@@ -80,14 +98,14 @@
       {{ 'action.close' | translate }}
     </button>
     <button mat-raised-button
-            *ngIf="job.status === JobStatus.FAILED"
+            *ngIf="job.status === JobStatus.FAILED && hasWritePermission"
             color="primary"
             type="button"
             (click)="reprocess()">
       {{ 'task.reprocess' | translate : {count: job.result.failedCount ?? 0} }}
     </button>
     <button mat-raised-button
-            *ngIf="job.status === JobStatus.RUNNING"
+            *ngIf="job.status === JobStatus.RUNNING && hasWritePermission"
             color="accent"
             type="button"
             (click)="cancelJob()">

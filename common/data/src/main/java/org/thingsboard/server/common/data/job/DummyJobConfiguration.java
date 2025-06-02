@@ -53,6 +53,7 @@ public class DummyJobConfiguration extends JobConfiguration {
     private int permanentlyFailedTasksCount;
     private List<String> errors;
     private int retries;
+    private long taskProcessingTimeoutMs;
 
     private String generalError;
     private int submittedTasksBeforeGeneralError;

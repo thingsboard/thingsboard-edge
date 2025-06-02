@@ -43,6 +43,7 @@ import { Job, JobStatus } from '@app/shared/models/job.models';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { Ace } from 'ace-builds';
 import { getAce } from '@shared/models/ace/ace.models';
+import { deepClone } from '@core/utils';
 
 @Component({
   selector: 'tb-task-parameters-panel',
@@ -102,7 +103,11 @@ export class TaskParametersPanelComponent implements OnInit, OnDestroy {
       (ace) => {
         this.aceEditor = ace.edit(editorElement, editorOptions);
         this.aceEditor.session.setUseWrapMode(false);
-        const value = JSON.stringify(this.job.configuration, null, 2);
+        const cloneConfig = deepClone(this.job.configuration);
+        delete cloneConfig.toReprocess;
+        delete cloneConfig.tasksKey;
+        delete cloneConfig.type;
+        const value = JSON.stringify(cloneConfig, null, 2);
         this.aceEditor.setValue(value, -1);
         this.updateEditorSize(editorElement, value, this.aceEditor);
       }

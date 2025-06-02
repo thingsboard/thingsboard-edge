@@ -1499,7 +1499,9 @@ const menuFilters = new Map<MenuId, MenuFilter>([
             userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)
   ],
   [
-    MenuId.task_manager, (authState) => authState.authUser.authority === Authority.TENANT_ADMIN
+    MenuId.task_manager, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.JOB)
   ],
   [
     MenuId.trendz_settings, (authState, userPermissionsService) =>
