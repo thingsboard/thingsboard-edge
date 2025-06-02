@@ -9920,6 +9920,7 @@
             "range": "Range",
             "min": "min",
             "max": "max",
+            "value": "Value",
             "fallback-initial-value": "Fallback initial value"
         },
         "rpc": {
@@ -9977,7 +9978,8 @@
             "led-status-value-attribute": "Device attribute containing led status value",
             "led-status-value-timeseries": "Device time series containing led status value",
             "check-status-method": "RPC check device status method",
-            "parse-led-status-value-function": "Parse led status value function"
+            "parse-led-status-value-function": "Parse led status value function",
+            "knob-title": "Knob title"
         },
         "maps": {
             "map-type": {
