@@ -111,6 +111,8 @@ final class MqttClientImpl implements MqttClient {
 
     private final ListeningExecutor handlerExecutor;
 
+    private final static int DISCONNECT_FALLBACK_DELAY_SECS = 1;
+
     /**
      * Construct the MqttClientImpl with default config
      */
@@ -483,13 +485,13 @@ final class MqttClientImpl implements MqttClient {
                 future.channel().close();
                 disconnected = true;
             });
-
             eventLoop.schedule(() -> {
                 if (channel.isOpen()) {
+                    log.trace("[{}] Channel still open after {} second; forcing close now", channel.id(), DISCONNECT_FALLBACK_DELAY_SECS);
                     this.channel.close();
                     disconnected = true;
                 }
-            }, 1, TimeUnit.SECONDS);
+            }, DISCONNECT_FALLBACK_DELAY_SECS, TimeUnit.SECONDS);
         }
     }
 
