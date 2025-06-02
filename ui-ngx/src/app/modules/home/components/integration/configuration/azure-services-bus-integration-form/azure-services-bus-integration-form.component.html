@@ -70,6 +70,9 @@
       <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-name</mat-label>
         <input matInput formControlName="downlinkTopicName">
+        <mat-error translate *ngIf="azureServicesBusIntegrationConfigForm.get('downlinkTopicName').hasError('required')">
+          integration.downlink-topic-name-required
+        </mat-error>
       </mat-form-field>
 
       <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
