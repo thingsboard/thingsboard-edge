@@ -48,4 +48,36 @@ WHERE
 
 -- UPDATE INTEGRATION PROTOCOL VERSION FOR MQTT CLIENT TYPES END
 
+-- UPDATE TENANT PROFILE CASSANDRA RATE LIMITS START
+
+UPDATE tenant_profile
+SET profile_data = jsonb_set(
+        profile_data,
+        '{configuration}',
+        (
+            (profile_data -> 'configuration') - 'cassandraQueryTenantRateLimitsConfiguration'
+                ||
+            COALESCE(
+                    CASE
+                        WHEN profile_data -> 'configuration' ->
+                             'cassandraQueryTenantRateLimitsConfiguration' IS NOT NULL THEN
+                            jsonb_build_object(
+                                    'cassandraReadQueryTenantCoreRateLimits',
+                                    profile_data -> 'configuration' -> 'cassandraQueryTenantRateLimitsConfiguration',
+                                    'cassandraWriteQueryTenantCoreRateLimits',
+                                    profile_data -> 'configuration' -> 'cassandraQueryTenantRateLimitsConfiguration',
+                                    'cassandraReadQueryTenantRuleEngineRateLimits',
+                                    profile_data -> 'configuration' -> 'cassandraQueryTenantRateLimitsConfiguration',
+                                    'cassandraWriteQueryTenantRuleEngineRateLimits',
+                                    profile_data -> 'configuration' -> 'cassandraQueryTenantRateLimitsConfiguration'
+                            )
+                        END,
+                    '{}'::jsonb
+            )
+            )
+                   )
+WHERE profile_data -> 'configuration' ? 'cassandraQueryTenantRateLimitsConfiguration';
+
+-- UPDATE TENANT PROFILE CASSANDRA RATE LIMITS END
+
 ALTER TABLE component_descriptor ADD COLUMN IF NOT EXISTS has_secrets boolean default false;

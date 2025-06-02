@@ -105,7 +105,10 @@ export interface DefaultTenantProfileConfiguration {
   maxWsSubscriptionsPerPublicUser: number;
   wsUpdatesPerSessionRateLimit: string;
 
-  cassandraQueryTenantRateLimitsConfiguration: string;
+  cassandraWriteQueryTenantCoreRateLimits: string;
+  cassandraReadQueryTenantCoreRateLimits: string;
+  cassandraWriteQueryTenantRuleEngineRateLimits: string;
+  cassandraReadQueryTenantRuleEngineRateLimits: string;
 
   edgeEventRateLimits?: string;
   edgeEventRateLimitsPerEdge?: string;
@@ -176,7 +179,10 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxWsSubscriptionsPerRegularUser: 0,
           maxWsSubscriptionsPerPublicUser: 0,
           wsUpdatesPerSessionRateLimit: '',
-          cassandraQueryTenantRateLimitsConfiguration: '',
+          cassandraWriteQueryTenantCoreRateLimits: '',
+          cassandraReadQueryTenantCoreRateLimits: '',
+          cassandraWriteQueryTenantRuleEngineRateLimits: '',
+          cassandraReadQueryTenantRuleEngineRateLimits: '',
           defaultStorageTtlDays: 0,
           alarmsTtlDays: 0,
           rpcTtlDays: 0,
