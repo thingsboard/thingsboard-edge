@@ -81,6 +81,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     private RuleChainId defaultRuleChainId;
     protected Integration integration;
     protected Converter uplinkConverter;
+    protected Secret secret;
 
     protected final String JSON_CONVERTER_CONFIG = """
             {
@@ -135,6 +136,9 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
             testRestClient.deleteConverter(integration.getDefaultConverterId());
             if (integration.getDownlinkConverterId() != null) {
                 testRestClient.deleteConverter(integration.getDownlinkConverterId());
+            }
+            if (secret.getId() != null) {
+                testRestClient.deleteSecret(secret.getId());
             }
         }
     }
@@ -314,11 +318,8 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         secret.setValue(value);
         secret.setType(SecretType.TEXT);
         secret.setId(secretId);
-        return testRestClient.saveSecret(secret);
-    }
-
-    protected void deleteSecret(SecretId secretId) {
-        testRestClient.deleteSecret(secretId);
+        this.secret = testRestClient.saveSecret(secret);
+        return this.secret;
     }
 
     protected String toSecretPlaceholder(String name, SecretType type) {

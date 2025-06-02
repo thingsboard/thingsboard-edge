@@ -254,9 +254,6 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertFalse(latestTimeseries.isEmpty());
         Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
-
-        // delete secret
-        deleteSecret(secret.getId());
     }
 
     @Test
@@ -293,9 +290,6 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         password = "updated";
         createSecret(secret.getId(), "integrationRotatedSecret", password);
         waitForIntegrationEvent(integration, "UPDATED", 1);
-
-        // delete secret
-        deleteSecret(secret.getId());
     }
 
     @Test
