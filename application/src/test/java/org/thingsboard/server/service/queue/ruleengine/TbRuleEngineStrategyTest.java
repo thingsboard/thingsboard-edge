@@ -253,7 +253,7 @@ public class TbRuleEngineStrategyTest {
                 .map(this::toProto)
                 .toList();
 
-        consumerManager.processMsgs(protoMsgs, consumer, queue);
+        consumerManager.processMsgs(protoMsgs, consumer, queueKey, queue);
 
         processingData.forEach(data -> {
             verify(actorContext, times(data.attempts)).tell(argThat(msg ->
@@ -278,7 +278,7 @@ public class TbRuleEngineStrategyTest {
                 .setTenantIdMSB(tenantId.getMostSignificantBits())
                 .setTenantIdLSB(tenantId.getLeastSignificantBits())
                 .addRelationTypes("Success")
-                .setTbMsg(TbMsg.toByteString(tbMsg))
+                .setTbMsgProto(TbMsg.toProto(tbMsg))
                 .build());
     }
 

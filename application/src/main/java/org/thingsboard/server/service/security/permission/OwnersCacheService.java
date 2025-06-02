@@ -93,4 +93,7 @@ public interface OwnersCacheService {
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception;
 
     void changeEntityOwner(TenantId tenantId, EntityId entityId, EntityId targetOwnerId, EntityId currentOwnerId) throws ThingsboardException;
+
+    Set<EntityId> getOwnedEntities(TenantId tenantId, EntityId ownerId);
+
 }

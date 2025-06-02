@@ -690,4 +690,3 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
     }
 
 }
-

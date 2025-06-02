@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.queue.ProcessingStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantProfileDao;
@@ -66,9 +67,12 @@ public class TenantProfileDataValidator extends DataValidator<TenantProfile> {
         if (tenantProfile.getProfileData() == null) {
             throw new DataValidationException("Tenant profile data should be specified!");
         }
-        if (tenantProfile.getProfileData().getConfiguration() == null) {
+
+        Optional<DefaultTenantProfileConfiguration> profileConfiguration = tenantProfile.getProfileConfiguration();
+        if (profileConfiguration.isEmpty()) {
             throw new DataValidationException("Tenant profile data configuration should be specified!");
         }
+
         if (tenantProfile.isDefault()) {
             TenantProfile defaultTenantProfile = tenantProfileService.findDefaultTenantProfile(tenantId);
             if (defaultTenantProfile != null && !defaultTenantProfile.getId().equals(tenantProfile.getId())) {

@@ -38,8 +38,6 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.Getter;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -124,6 +122,7 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.JobId;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.MobileAppId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
@@ -135,6 +134,7 @@ import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
@@ -142,6 +142,7 @@ import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
@@ -171,6 +172,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
+import org.thingsboard.server.common.data.secret.SecretInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.util.ThrowingBiFunction;
@@ -200,6 +202,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.menu.CustomMenuService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -215,6 +218,7 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -484,7 +488,13 @@ public abstract class BaseController {
     protected NotificationTargetService notificationTargetService;
 
     @Autowired
+    protected JobService jobService;
+
+    @Autowired
     protected CalculatedFieldService calculatedFieldService;
+
+    @Autowired
+    protected SecretService secretService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -891,109 +901,47 @@ public abstract class BaseController {
         checkEntity(entityId, entity, resource, null);
     }
 
-    protected void checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
+    protected HasId<? extends EntityId> checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
         try {
             if (entityId == null) {
                 throw new ThingsboardException("Parameter entityId can't be empty!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
             validateId(entityId.getId(), id -> "Incorrect entityId " + id);
-            switch (entityId.getEntityType()) {
-                case ALARM:
-                    checkAlarmId(new AlarmId(entityId.getId()), operation);
-                    return;
-                case DEVICE:
-                    checkDeviceId(new DeviceId(entityId.getId()), operation);
-                    return;
-                case DEVICE_PROFILE:
-                    checkDeviceProfileId(new DeviceProfileId(entityId.getId()), operation);
-                    return;
-                case CUSTOMER:
-                    checkCustomerId(new CustomerId(entityId.getId()), operation);
-                    return;
-                case TENANT:
-                    checkTenantId(TenantId.fromUUID(entityId.getId()), operation);
-                    return;
-                case TENANT_PROFILE:
-                    checkTenantProfileId(new TenantProfileId(entityId.getId()), operation);
-                    return;
-                case RULE_CHAIN:
-                    checkRuleChain(new RuleChainId(entityId.getId()), operation);
-                    return;
-                case RULE_NODE:
-                    checkRuleNode(new RuleNodeId(entityId.getId()), operation);
-                    return;
-                case ASSET:
-                    checkAssetId(new AssetId(entityId.getId()), operation);
-                    return;
-                case ASSET_PROFILE:
-                    checkAssetProfileId(new AssetProfileId(entityId.getId()), operation);
-                    return;
-                case INTEGRATION:
-                    checkIntegrationId(new IntegrationId(entityId.getId()), operation);
-                    return;
-                case CONVERTER:
-                    checkConverterId(new ConverterId(entityId.getId()), operation);
-                    return;
-                case DASHBOARD:
-                    checkDashboardId(new DashboardId(entityId.getId()), operation);
-                    return;
-                case USER:
-                    checkUserId(new UserId(entityId.getId()), operation);
-                    return;
-                case ENTITY_GROUP:
-                    checkEntityGroupId(new EntityGroupId(entityId.getId()), operation);
-                    return;
-                case SCHEDULER_EVENT:
-                    checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()), operation);
-                    return;
-                case BLOB_ENTITY:
-                    checkBlobEntityInfoId(new BlobEntityId(entityId.getId()), operation);
-                    return;
-                case ENTITY_VIEW:
-                    checkEntityViewId(new EntityViewId(entityId.getId()), operation);
-                    return;
-                case EDGE:
-                    checkEdgeId(new EdgeId(entityId.getId()), operation);
-                    return;
-                case ROLE:
-                    checkRoleId(new RoleId(entityId.getId()), operation);
-                    return;
-                case WIDGETS_BUNDLE:
-                    checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);
-                    return;
-                case WIDGET_TYPE:
-                    checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);
-                    return;
-                case GROUP_PERMISSION:
-                    checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
-                    return;
-                case TB_RESOURCE:
-                    checkResourceInfoId(new TbResourceId(entityId.getId()), operation);
-                    return;
-                case OTA_PACKAGE:
-                    checkOtaPackageId(new OtaPackageId(entityId.getId()), operation);
-                    return;
-                case QUEUE:
-                    checkQueueId(new QueueId(entityId.getId()), operation);
-                    return;
-                case OAUTH2_CLIENT:
-                    checkOauth2ClientId(new OAuth2ClientId(entityId.getId()), operation);
-                    return;
-                case DOMAIN:
-                    checkDomainId(new DomainId(entityId.getId()), operation);
-                    return;
-                case MOBILE_APP:
-                    checkMobileAppId(new MobileAppId(entityId.getId()), operation);
-                    return;
-                case MOBILE_APP_BUNDLE:
-                    checkMobileAppBundleId(new MobileAppBundleId(entityId.getId()), operation);
-                    return;
-                case CALCULATED_FIELD:
-                    checkCalculatedFieldId(new CalculatedFieldId(entityId.getId()), operation);
-                    return;
-                default:
-                    checkEntityId(entityId, entitiesService::findEntityByTenantIdAndId, operation);
-            }
+            return switch (entityId.getEntityType()) {
+                case ALARM -> checkAlarmId(new AlarmId(entityId.getId()), operation);
+                case DEVICE -> checkDeviceId(new DeviceId(entityId.getId()), operation);
+                case DEVICE_PROFILE -> checkDeviceProfileId(new DeviceProfileId(entityId.getId()), operation);
+                case CUSTOMER -> checkCustomerId(new CustomerId(entityId.getId()), operation);
+                case TENANT -> checkTenantId(TenantId.fromUUID(entityId.getId()), operation);
+                case TENANT_PROFILE -> checkTenantProfileId(new TenantProfileId(entityId.getId()), operation);
+                case RULE_CHAIN -> checkRuleChain(new RuleChainId(entityId.getId()), operation);
+                case RULE_NODE -> checkRuleNode(new RuleNodeId(entityId.getId()), operation);
+                case ASSET -> checkAssetId(new AssetId(entityId.getId()), operation);
+                case ASSET_PROFILE -> checkAssetProfileId(new AssetProfileId(entityId.getId()), operation);
+                case INTEGRATION -> checkIntegrationId(new IntegrationId(entityId.getId()), operation);
+                case CONVERTER -> checkConverterId(new ConverterId(entityId.getId()), operation);
+                case DASHBOARD -> checkDashboardId(new DashboardId(entityId.getId()), operation);
+                case USER -> checkUserId(new UserId(entityId.getId()), operation);
+                case ENTITY_GROUP -> checkEntityGroupId(new EntityGroupId(entityId.getId()), operation);
+                case SCHEDULER_EVENT -> checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()), operation);
+                case BLOB_ENTITY -> checkBlobEntityInfoId(new BlobEntityId(entityId.getId()), operation);
+                case ENTITY_VIEW -> checkEntityViewId(new EntityViewId(entityId.getId()), operation);
+                case EDGE -> checkEdgeId(new EdgeId(entityId.getId()), operation);
+                case ROLE -> checkRoleId(new RoleId(entityId.getId()), operation);
+                case WIDGETS_BUNDLE -> checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);
+                case WIDGET_TYPE -> checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);
+                case GROUP_PERMISSION -> checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
+                case TB_RESOURCE -> checkResourceInfoId(new TbResourceId(entityId.getId()), operation);
+                case OTA_PACKAGE -> checkOtaPackageId(new OtaPackageId(entityId.getId()), operation);
+                case QUEUE -> checkQueueId(new QueueId(entityId.getId()), operation);
+                case OAUTH2_CLIENT -> checkOauth2ClientId(new OAuth2ClientId(entityId.getId()), operation);
+                case DOMAIN -> checkDomainId(new DomainId(entityId.getId()), operation);
+                case MOBILE_APP -> checkMobileAppId(new MobileAppId(entityId.getId()), operation);
+                case MOBILE_APP_BUNDLE -> checkMobileAppBundleId(new MobileAppBundleId(entityId.getId()), operation);
+                case CALCULATED_FIELD -> checkCalculatedFieldId(new CalculatedFieldId(entityId.getId()), operation);
+                case SECRET -> checkSecretId(new SecretId(entityId.getId()), operation);
+                default -> (HasId<? extends EntityId>) checkEntityId(entityId, entitiesService::findEntityByTenantIdAndId, operation);
+            };
         } catch (Exception e) {
             throw handleException(e, false);
         }
@@ -1254,6 +1202,14 @@ public abstract class BaseController {
         return checkEntityId(notificationTargetId, notificationTargetService::findNotificationTargetById, operation);
     }
 
+    Job checkJobId(JobId jobId, Operation operation) throws ThingsboardException {
+        return checkEntityId(jobId, jobService::findJobById, operation);
+    }
+
+    SecretInfo checkSecretId(SecretId secretId, Operation operation) throws ThingsboardException {
+        return checkEntityId(secretId, secretService::findSecretInfoById, operation);
+    }
+
     protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
@@ -1396,12 +1352,13 @@ public abstract class BaseController {
         }
     }
 
-    private void checkCalculatedFieldId(CalculatedFieldId calculatedFieldId, Operation operation) throws ThingsboardException {
+    private CalculatedField checkCalculatedFieldId(CalculatedFieldId calculatedFieldId, Operation operation) throws ThingsboardException {
         validateId(calculatedFieldId, "Invalid entity id");
         SecurityUser user = getCurrentUser();
         CalculatedField cf = calculatedFieldService.findById(user.getTenantId(), calculatedFieldId);
         checkNotNull(cf, calculatedFieldId.getEntityType().getNormalName() + " with id [" + calculatedFieldId + "] is not found");
         checkEntityId(cf.getEntityId(), operation);
+        return cf;
     }
 
     protected HomeDashboardInfo getHomeDashboardInfo(SecurityUser securityUser, JsonNode additionalInfo) {

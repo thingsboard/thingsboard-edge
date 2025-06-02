@@ -39,9 +39,6 @@ import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentScope;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 
-/**
- * @author Andrew Shvayka
- */
 public interface ComponentDescriptorService {
 
     ComponentDescriptor saveComponent(TenantId tenantId, ComponentDescriptor component);

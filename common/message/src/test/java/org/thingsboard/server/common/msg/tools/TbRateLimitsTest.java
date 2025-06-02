@@ -1,0 +1,140 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.common.msg.tools;
+
+import org.awaitility.pollinterval.FixedPollInterval;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+
+public class TbRateLimitsTest {
+
+    @Test
+    public void testRateLimits_greedyRefill() {
+        testRateLimitWithGreedyRefill(3, 10);
+        testRateLimitWithGreedyRefill(3, 3);
+        testRateLimitWithGreedyRefill(4, 2);
+    }
+
+    private void testRateLimitWithGreedyRefill(int capacity, int period) {
+        String rateLimitConfig = capacity + ":" + period;
+        TbRateLimits rateLimits = new TbRateLimits(rateLimitConfig);
+
+        rateLimits.tryConsume(capacity);
+        assertThat(rateLimits.tryConsume()).as("new token is available").isFalse();
+
+        int expectedRefillTime = (int) (((double) period / capacity) * 1000);
+        int gap = 500;
+
+        for (int i = 0; i < capacity; i++) {
+            await("token refill for rate limit " + rateLimitConfig)
+                    .pollInterval(new FixedPollInterval(10, TimeUnit.MILLISECONDS))
+                    .atLeast(expectedRefillTime - gap, TimeUnit.MILLISECONDS)
+                    .atMost(expectedRefillTime + gap, TimeUnit.MILLISECONDS)
+                    .untilAsserted(() -> {
+                        assertThat(rateLimits.tryConsume()).as("token is available").isTrue();
+                    });
+            assertThat(rateLimits.tryConsume()).as("new token is available").isFalse();
+        }
+    }
+
+    @Test
+    public void testRateLimits_intervalRefill() {
+        testRateLimitWithIntervalRefill(10, 5);
+        testRateLimitWithIntervalRefill(3, 3);
+        testRateLimitWithIntervalRefill(4, 2);
+    }
+
+    private void testRateLimitWithIntervalRefill(int capacity, int period) {
+        String rateLimitConfig = capacity + ":" + period;
+        TbRateLimits rateLimits = new TbRateLimits(rateLimitConfig, true);
+
+        rateLimits.tryConsume(capacity);
+        assertThat(rateLimits.tryConsume()).as("new token is available").isFalse();
+
+        int expectedRefillTime = period * 1000;
+        int gap = 500;
+
+        await("tokens refill for rate limit " + rateLimitConfig)
+                .pollInterval(new FixedPollInterval(10, TimeUnit.MILLISECONDS))
+                .atLeast(expectedRefillTime - gap, TimeUnit.MILLISECONDS)
+                .atMost(expectedRefillTime + gap, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> {
+                    for (int i = 0; i < capacity; i++) {
+                        assertThat(rateLimits.tryConsume()).as("token is available").isTrue();
+                    }
+                    assertThat(rateLimits.tryConsume()).as("new token is available").isFalse();
+                });
+    }
+
+    @Test
+    @DisplayName("TbRateLimits should construct with single rate limit")
+    void testSingleLimitConstructor() {
+        TbRateLimits limits = new TbRateLimits("10:1", false);
+        assertThat(limits.getConfiguration()).isEqualTo("10:1");
+    }
+
+    @Test
+    @DisplayName("TbRateLimits should construct with multiple rate limits")
+    void testMultipleLimitConstructor() {
+        String config = "10:1,100:10";
+        TbRateLimits limits = new TbRateLimits(config, false);
+        assertThat(limits.getConfiguration()).isEqualTo(config);
+    }
+
+    @Test
+    @DisplayName("TbRateLimits should throw IllegalArgumentException on empty string")
+    void testEmptyConfigThrows() {
+        assertThatThrownBy(() -> new TbRateLimits("", false))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Failed to parse rate limits configuration: ");
+    }
+
+    @Test
+    @DisplayName("TbRateLimits should throw NumberFormatException on malformed value")
+    void testMalformedConfigThrows() {
+        assertThatThrownBy(() -> new TbRateLimits("not_a_number:second", false))
+                .isInstanceOf(NumberFormatException.class);
+    }
+
+    @Test
+    @DisplayName("TbRateLimits should throw ArrayIndexOutOfBoundsException on missing colon")
+    void testColonMissingThrows() {
+        assertThatThrownBy(() -> new TbRateLimits("100", false))
+                .isInstanceOf(ArrayIndexOutOfBoundsException.class);
+    }
+
+}

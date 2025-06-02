@@ -52,9 +52,16 @@ import { AlarmSearchStatus } from '@shared/models/alarm.models';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import { IAliasController } from '@core/api/widget-api.models';
-import { EntityAliasSelectCallbacks } from '@home/components/widget/lib/settings/common/alias/entity-alias-select.component.models';
-import { FilterSelectCallbacks } from '@home/components/widget/lib/settings/common/filter/filter-select.component.models';
-import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
+import {
+  EntityAliasSelectCallbacks
+} from '@home/components/widget/lib/settings/common/alias/entity-alias-select.component.models';
+import {
+  FilterSelectCallbacks
+} from '@home/components/widget/lib/settings/common/filter/filter-select.component.models';
+import {
+  DataKeysCallbacks,
+  DataKeySettingsFunction
+} from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DatasourcesComponent } from '@home/components/widget/config/datasources.component';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
@@ -148,6 +155,10 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
 
   public get dataKeySettingsFunction(): DataKeySettingsFunction {
     return this.widgetConfigComponent.modelValue?.dataKeySettingsFunction;
+  }
+
+  public get supportsUnitConversion(): boolean {
+    return this.widgetConfigComponent.modelValue?.typeParameters?.supportsUnitConversion ?? false;
   }
 
   public get dashboard(): Dashboard {

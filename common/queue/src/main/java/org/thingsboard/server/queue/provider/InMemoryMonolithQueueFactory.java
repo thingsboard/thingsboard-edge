@@ -38,16 +38,17 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldStateProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdqsMsg;
 import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
@@ -62,6 +63,7 @@ import org.thingsboard.server.queue.edqs.EdqsConfig;
 import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
+import org.thingsboard.server.queue.settings.TasksQueueConfig;
 import org.thingsboard.server.queue.settings.TbQueueCalculatedFieldSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
@@ -93,6 +95,7 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueCalculatedFieldSettings calculatedFieldSettings;
     private final EdqsConfig edqsConfig;
+    private final TasksQueueConfig tasksQueueConfig;
     private final InMemoryStorage storage;
 
     @Override
@@ -321,9 +324,13 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
                 .build();
     }
 
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<JobStatsMsg>> createJobStatsConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, tasksQueueConfig.getStatsTopic());
+    }
+
     @Scheduled(fixedRateString = "${queue.in_memory.stats.print-interval-ms:60000}")
     private void printInMemoryStats() {
         storage.printStats();
     }
-
 }

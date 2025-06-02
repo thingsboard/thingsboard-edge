@@ -31,7 +31,6 @@
 
 import { InjectionToken } from '@angular/core';
 import { IModulesMap } from '@modules/common/modules-map.models';
-import { EntityType } from '@shared/models/entity-type.models';
 
 export const Constants = {
   serverErrorCode: {
@@ -272,6 +271,8 @@ export const HelpLinks = {
     roles: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rbac/`,
     selfRegistration: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/self-registration`,
     scheduler: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scheduler`,
+    trendzSettings: `${helpBaseUrl}/docs/trendz/`,
+    secretStorage: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/secret-storage`,
   }
 };
 /* eslint-enable max-len */

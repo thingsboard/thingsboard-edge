@@ -60,7 +60,8 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
                 " where created using <code>to Email</code> transformation Node, please connect this Node " +
                 "with <code>to Email</code> Node using <code>Successful</code> chain.",
         configDirective = "tbExternalNodeSendEmailConfig",
-        icon = "send"
+        icon = "send",
+        hasSecrets = true
 )
 public class TbSendEmailNode extends TbAbstractExternalNode {
 
