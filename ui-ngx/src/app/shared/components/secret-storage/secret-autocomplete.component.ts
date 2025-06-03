@@ -93,8 +93,6 @@ export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit
 
   constructor(private secretStorageService: SecretStorageService,
               private fb: FormBuilder) {
-    this.labelText = this.secretType === SecretStorageType.TEXT ? 'secret-storage.autocomplete-title.text' : 'secret-storage.autocomplete-title.file';
-    this.requiredText = this.secretType === SecretStorageType.TEXT ? 'secret-storage.autocomplete-title.text-required' : 'secret-storage.autocomplete-title.file-required'
     this.selectSecretFormGroup = this.fb.group({
       secret: [null, [Validators.required]]
     });
@@ -108,6 +106,9 @@ export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit
   }
 
   ngOnInit() {
+    this.labelText = this.secretType === SecretStorageType.TEXT ? 'secret-storage.autocomplete-title.text' : 'secret-storage.autocomplete-title.file';
+    this.requiredText = this.secretType === SecretStorageType.TEXT ? 'secret-storage.autocomplete-title.text-required' : 'secret-storage.autocomplete-title.file-required';
+
     this.filteredEntities = this.selectSecretFormGroup.get('secret').valueChanges
       .pipe(
         debounceTime(150),

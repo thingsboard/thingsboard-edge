@@ -185,6 +185,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
       if (value === 'headerButton') {
         this.widgetActionFormGroup.get('buttonType').enable({emitEvent: false});
         this.widgetActionFormGroup.get('buttonColor').enable({emitEvent: false});
+        this.widgetActionFormGroup.get('customButtonStyle').enable({emitEvent: false});
         this.widgetHeaderButtonValidators(true);
       } else {
         this.widgetActionFormGroup.get('buttonType').disable({emitEvent: false});
@@ -192,6 +193,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
         this.widgetActionFormGroup.get('buttonColor').disable({emitEvent: false});
         this.widgetActionFormGroup.get('buttonFillColor').disable({emitEvent: false});
         this.widgetActionFormGroup.get('buttonBorderColor').disable({emitEvent: false});
+        this.widgetActionFormGroup.get('customButtonStyle').disable({emitEvent: false});
       }
     });
     this.widgetActionFormGroup.get('useShowWidgetActionFunction').valueChanges.pipe(

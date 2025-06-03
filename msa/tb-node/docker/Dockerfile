@@ -41,8 +41,12 @@ RUN chmod a+x /tmp/*.sh \
     chown -R ${pkg.user}:${pkg.user} ${pkg.installFolder}/conf/logback.xml && \
     (systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :) && \
     chown -R ${pkg.user}:${pkg.user} /tmp && \
+    mkdir -p /data && \
+    chown -R ${pkg.user}:${pkg.user} /data && \
     chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
 
 USER ${pkg.user}
+
+VOLUME ["/data"]
 
 CMD ["start-tb-node.sh"]

@@ -154,7 +154,13 @@ export class UnitSettingsPanelComponent implements OnInit {
   }
 
   clearUnit() {
-    this.unitSettingsApplied.emit(null);
+    this.unitSettingForm.reset({
+      convertUnit: false
+    });
+    if (this.required) {
+      this.unitSettingForm.markAllAsTouched();
+    }
+    this.unitSettingForm.markAsDirty();
   }
 
   cancel() {

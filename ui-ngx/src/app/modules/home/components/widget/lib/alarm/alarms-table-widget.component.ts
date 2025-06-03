@@ -382,7 +382,6 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   public onDataUpdated() {
     this.alarmsDatasource.updateAlarms();
     this.clearCache();
-    this.ctx.detectChanges();
   }
 
   public onEditModeChanged() {
