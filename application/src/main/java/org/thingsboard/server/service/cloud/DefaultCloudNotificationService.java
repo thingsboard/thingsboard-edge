@@ -36,8 +36,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
@@ -79,7 +79,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             ListenableFuture<Void> future;
             switch (cloudEventType) {
                 // TODO: voba - handle cloud updates
-                case EDGE, ASSET, DEVICE, ASSET_PROFILE, DEVICE_PROFILE, ENTITY_VIEW, DASHBOARD, RULE_CHAIN, TB_RESOURCE ->
+                case EDGE, ASSET, DEVICE, ASSET_PROFILE, DEVICE_PROFILE, ENTITY_VIEW, DASHBOARD, RULE_CHAIN, TB_RESOURCE, CALCULATED_FIELD ->
                         future = processEntity(tenantId, cloudNotificationMsg);
                 case ALARM -> future = processAlarm(tenantId, cloudNotificationMsg);
                 case RELATION -> future = processRelation(tenantId, cloudNotificationMsg);

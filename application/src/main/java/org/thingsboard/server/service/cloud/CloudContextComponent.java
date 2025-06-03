@@ -31,6 +31,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCommentCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.CalculatedFieldCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
@@ -162,6 +163,9 @@ public class CloudContextComponent {
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
+
+    @Autowired
+    private CalculatedFieldCloudProcessor calculatedFieldProcessor;
 
     // callback
     @Autowired
