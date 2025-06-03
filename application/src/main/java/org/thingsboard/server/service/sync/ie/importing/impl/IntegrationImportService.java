@@ -89,7 +89,7 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
 
     //    @SneakyThrows({InterruptedException.class, ExecutionException.class, TimeoutException.class})
     @Override
-    protected Integration saveOrUpdate(EntitiesImportCtx ctx, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider) {
+    protected Integration saveOrUpdate(EntitiesImportCtx ctx, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider, CompareResult compareResult) {
         // Too aggressive operation
         // integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
         return integrationService.saveIntegration(integration);

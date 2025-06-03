@@ -43,6 +43,7 @@ import {
 } from '@shared/models/widget-settings.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { TbUnit } from '@shared/models/unit.models';
 
 export interface AttributeSourceProperty {
   valueSource: string;
@@ -124,7 +125,7 @@ export interface DigitalGaugeSettings {
   valueFont?: FontSettings;
   minMaxFont?: FontSettings;
   decimals?: number;
-  units?: string;
+  units?: TbUnit;
   hideValue?: boolean;
   hideMinMax?: boolean;
   showTicks?: boolean;

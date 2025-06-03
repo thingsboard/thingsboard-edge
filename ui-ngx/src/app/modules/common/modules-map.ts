@@ -392,10 +392,15 @@ import * as DatapointsLimitComponent from '@shared/components/time/datapoints-li
 import * as AggregationTypeSelectComponent from '@shared/components/time/aggregation/aggregation-type-select.component';
 import * as AggregationOptionsConfigComponent from '@shared/components/time/aggregation/aggregation-options-config-panel.component';
 import * as IntervalOptionsConfigPanelComponent from '@shared/components/time/interval-options-config-panel.component';
+import * as SecretKeyInputComponent from '@shared/components/secret-storage/secret-key-input.component';
+import * as SecretFileInputComponent from '@shared/components/secret-storage/secret-file-input.component';
+import * as SecretStorageDialogComponent from '@shared/components/secret-storage/secret-storage-dialog.component';
+import * as SecretAutocompleteComponent from '@shared/components/secret-storage/secret-autocomplete.component';
 
 import { IModulesMap } from '@modules/common/modules-map.models';
 import { Observable, of } from 'rxjs';
 import { isJSResourceUrl } from '@shared/public-api';
+
 
 class ModulesMap implements IModulesMap {
 
@@ -598,6 +603,10 @@ class ModulesMap implements IModulesMap {
     '@shared/components/role/group-permission-dialog.component': GroupPermissionDialogComponent,
     '@shared/components/group/share-entity-group.component': ShareEntityGroupComponent,
     '@shared/components/popover.service': TbPopoverService,
+    '@shared/components/secret-storage/secret-key-input.component': SecretKeyInputComponent,
+    '@shared/components/secret-storage/secret-file-input.component': SecretFileInputComponent,
+    '@shared/components/secret-storage/secret-storage-dialog.component': SecretStorageDialogComponent,
+    '@shared/components/secret-storage/secret-autocomplete.component': SecretAutocompleteComponent,
 
     '@home/components/alarm/alarm-filter-config.component': AlarmFilterConfigComponent,
     '@home/components/alarm/alarm-comment-dialog.component': AlarmCommentDialogComponent,

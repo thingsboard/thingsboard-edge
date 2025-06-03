@@ -85,11 +85,9 @@
           <mat-label translate>integration.username</mat-label>
           <input matInput formControlName="username" autocomplete="new-username">
         </mat-form-field>
-        <mat-form-field class="mat-block flex-1">
-          <mat-label translate>integration.password</mat-label>
-          <input matInput formControlName="password" type="password" autocomplete="new-password">
-          <tb-toggle-password matSuffix></tb-toggle-password>
-        </mat-form-field>
+        <tb-secret-key-input formControlName="password" class="mat-block flex-1"
+                             label="{{ 'integration.password' | translate }}">
+        </tb-secret-key-input>
       </div>
       <div class="flex flex-row xs:flex-col gt-xs:gap-2">
         <mat-form-field class="mat-block flex-1">

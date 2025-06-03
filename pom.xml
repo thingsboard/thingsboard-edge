@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>4.0.1PE-RC</version>
+    <version>4.1.0PE-RC</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard PE</name>
@@ -1002,6 +1002,11 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>cluster-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common</groupId>
+                <artifactId>discovery-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

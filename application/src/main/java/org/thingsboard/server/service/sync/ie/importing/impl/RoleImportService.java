@@ -85,7 +85,7 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
     }
 
     @Override
-    protected Role saveOrUpdate(EntitiesImportCtx ctx, Role role, EntityExportData<Role> exportData, IdProvider idProvider) {
+    protected Role saveOrUpdate(EntitiesImportCtx ctx, Role role, EntityExportData<Role> exportData, IdProvider idProvider, CompareResult compareResult) {
         return roleService.saveRole(ctx.getTenantId(), role);
     }
 

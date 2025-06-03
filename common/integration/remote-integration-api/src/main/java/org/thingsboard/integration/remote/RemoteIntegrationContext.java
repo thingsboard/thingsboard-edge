@@ -135,7 +135,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     @Override
     public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
-        eventStorage.write(UplinkMsg.newBuilder().addTbMsg(TbMsg.toByteString(msg)).build(), callback);
+        eventStorage.write(UplinkMsg.newBuilder().addTbMsgProto(TbMsg.toProto(msg)).build(), callback);
     }
 
     @Override

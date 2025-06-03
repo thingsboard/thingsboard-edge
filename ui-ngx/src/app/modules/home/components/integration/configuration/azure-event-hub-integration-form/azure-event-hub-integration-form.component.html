@@ -32,12 +32,11 @@
 -->
 <section [formGroup]="azureEventHubIntegrationConfigForm">
 
-  <mat-form-field class="mat-block">
-    <mat-label translate>integration.connection-string</mat-label>
-    <input matInput required formControlName="connectionString">
-    <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('connectionString').hasError('required')">
-      integration.connection-string-required</mat-error>
-  </mat-form-field>
+  <tb-secret-key-input formControlName="connectionString" class="mat-block flex-1"
+                       required
+                       label="{{ 'integration.connection-string' | translate }}"
+                       requiredText="{{ 'integration.connection-string-required' | translate }}">
+  </tb-secret-key-input>
   <mat-form-field class="mat-block">
     <mat-label translate>integration.iot-hub-name</mat-label>
     <input matInput [required]="isSetDownLink" formControlName="iotHubName">
@@ -58,13 +57,11 @@
       </mat-panel-title>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.storage-connection-string</mat-label>
-        <input required matInput formControlName="storageConnectionString">
-        <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('storageConnectionString').hasError('required')">
-          integration.storage-connection-string-required
-        </mat-error>
-      </mat-form-field>
+      <tb-secret-key-input formControlName="storageConnectionString" class="mat-block flex-1"
+                           required
+                           label="{{ 'integration.storage-connection-string' | translate }}"
+                           requiredText="{{ 'integration.storage-connection-string-required' | translate }}">
+      </tb-secret-key-input>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.container-name</mat-label>
         <input matInput formControlName="containerName">

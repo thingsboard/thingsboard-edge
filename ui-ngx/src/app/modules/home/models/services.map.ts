@@ -74,8 +74,11 @@ import { TenantProfileService } from '@core/http/tenant-profile.service';
 import { UiSettingsService } from '@core/http/ui-settings.service';
 import { UsageInfoService } from '@core/http/usage-info.service';
 import { EventService } from '@core/http/event.service';
+import { UnitService } from '@core/services/unit.service';
 import { AuditLogService } from '@core/http/audit-log.service';
 import { BlobEntityService } from '@core/http/blob-entity.service';
+import { TrendzSettingsService } from '@core/http/trendz-settings.service';
+import { SecretStorageService } from '@core/http/secret-storage.service';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -122,9 +125,12 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['usageInfoService', UsageInfoService],
    ['notificationService', NotificationService],
    ['eventService', EventService],
+   ['unitService', UnitService],
    ['auditLogService', AuditLogService],
    ['actionNotificationShow', ActionNotificationShow],
    ['actionNotificationHide', ActionNotificationHide],
-   ['store', Store]
+   ['store', Store],
+   ['trendzSettingsService', TrendzSettingsService],
+   ['secretStorageService', SecretStorageService]
   ]
 );

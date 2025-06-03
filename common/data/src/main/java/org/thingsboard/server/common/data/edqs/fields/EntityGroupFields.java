@@ -60,4 +60,10 @@ public class EntityGroupFields extends AbstractEntityFields {
         this.ownerId = checkId(ownerId);
         this.ownerType = ownerType;
     }
+
+    @Override
+    public UUID getOwnerId() {
+        return checkId(ownerId);
+    }
+
 }

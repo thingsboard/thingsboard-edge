@@ -128,4 +128,5 @@ public class JpaBaseComponentDescriptorDao extends JpaAbstractDao<ComponentDescr
     public void deleteByClazz(TenantId tenantId, String clazz) {
         componentDescriptorRepository.deleteByClazz(clazz);
     }
+
 }

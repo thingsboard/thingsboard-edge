@@ -36,6 +36,7 @@ import { otaUpdatesRoutes } from '@home/pages/ota-update/ota-update-routing.modu
 import { vcRoutes } from '@home/pages/vc/vc-routing.module';
 import { schedulerRoutes } from '@home/pages/scheduler/scheduler-routing.module';
 import { MenuId } from '@core/services/menu.models';
+import { taskManagerRoutes } from '@home/pages/task-manager/task-manager-routing.module';
 
 const routes: Routes = [
   {
@@ -60,7 +61,8 @@ const routes: Routes = [
       },
       ...otaUpdatesRoutes,
       ...vcRoutes,
-      ...schedulerRoutes
+      ...schedulerRoutes,
+      ...taskManagerRoutes
     ]
   }
 ];

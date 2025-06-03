@@ -60,6 +60,7 @@ import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.cache.CacheExecutorService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ConverterRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
@@ -99,6 +100,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     private final ConverterService converterService;
     private final TbTenantProfileCache tenantProfileCache;
     private final PlatformIntegrationService platformIntegrationService;
+    private final SecretConfigurationService secretConfigurationService;
     private final CacheExecutorService cacheExecutorService;
 
     @Value("${queue.integration_api.max_pending_requests:10000}")
@@ -209,7 +211,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
             } else if (msg.hasEntityViewDataProto()) {
                 return platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
             } else if (!msg.getCustomTbMsg().isEmpty()) {
-                return () -> platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(null, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+                return () -> platformIntegrationService.processUplinkData(info, TbMsg.fromProto(null, msg.getCustomTbMsgProto(), msg.getCustomTbMsg(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
             } else {
                 callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
             }
@@ -226,7 +228,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
 
     private ListenableFuture<IntegrationApiResponseMsg> handleConverterRequest(ConverterRequestProto request) {
         var converterId = new ConverterId(new UUID(request.getConverterIdMSB(), request.getConverterIdLSB()));
-        var tenantId = new TenantId(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
+        var tenantId = TenantId.fromUUID(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
         var future = converterService.findConverterByIdAsync(tenantId, converterId);
 
         return Futures.transform(future, converter -> IntegrationApiResponseMsg.newBuilder()
@@ -234,7 +236,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     }
 
     private ListenableFuture<IntegrationApiResponseMsg> handleIntegrationRequest(IntegrationRequestProto request) {
-        var tenantId = new TenantId(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
+        var tenantId = TenantId.fromUUID(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
         ListenableFuture<Integration> future;
         if (request.getIntegrationIdMSB() != 0 || request.getIntegrationIdLSB() != 0) {
             var integrationId = new IntegrationId(new UUID(request.getIntegrationIdMSB(), request.getIntegrationIdLSB()));
@@ -248,7 +250,9 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
         return Futures.transform(future, integration -> {
             var builder = IntegrationApiResponseMsg.newBuilder();
             if (integration != null) {
-                builder.setIntegrationResponse(ProtoUtils.toProto(integration));
+                Integration copy = new Integration(integration);
+                secretConfigurationService.replaceSecretUsages(tenantId, copy.getConfiguration());
+                builder.setIntegrationResponse(ProtoUtils.toProto(copy));
             }
             return builder.build();
         }, MoreExecutors.directExecutor());
@@ -266,7 +270,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     }
 
     private ListenableFuture<IntegrationApiResponseMsg> handleTenantProfileRequest(TenantProfileRequestProto request) {
-        TenantId tenantId = new TenantId(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
+        TenantId tenantId = TenantId.fromUUID(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
         TenantProfile tenantProfile = tenantProfileCache.get(tenantId);
         return Futures.immediateFuture(IntegrationApiResponseMsg.newBuilder()
                 .setTenantProfileResponse(ProtoUtils.toProto(tenantProfile))

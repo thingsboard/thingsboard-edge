@@ -97,6 +97,8 @@ import {
   TimeSeriesChartTooltipTrigger,
   TimeSeriesChartTooltipValueFormatFunction
 } from '@home/components/widget/lib/chart/time-series-chart-tooltip.models';
+import { UnitService } from '@core/services/unit.service';
+import { isNotEmptyTbUnits, TbUnit } from '@shared/models/unit.models';
 
 export class TbTimeSeriesChart {
 
@@ -178,6 +180,8 @@ export class TbTimeSeriesChart {
 
   private onParentScroll = this._onParentScroll.bind(this);
 
+  private unitService: UnitService;
+
   yMin$ = this.yMinSubject.asObservable();
   yMax$ = this.yMaxSubject.asObservable();
 
@@ -201,6 +205,7 @@ export class TbTimeSeriesChart {
     const $dashboardPageElement = this.ctx.$containerParent.parents('.tb-dashboard-page');
     const dashboardPageElement = $dashboardPageElement.length ? $($dashboardPageElement[$dashboardPageElement.length-1]) : null;
     this.darkMode = this.settings.darkMode || dashboardPageElement?.hasClass('dark');
+    this.unitService = this.ctx.$injector.get(UnitService);
     this.setupXAxes();
     this.setupYAxes();
     this.setupData();
@@ -249,7 +254,7 @@ export class TbTimeSeriesChart {
       const datasourceData = this.ctx.data ? this.ctx.data.find(d => d.dataKey === item.dataKey) : null;
       if (!isEqual(item.dataSet, datasourceData?.data)) {
         item.dataSet = datasourceData?.data;
-        item.data = datasourceData?.data ? toTimeSeriesChartDataSet(datasourceData.data, this.stateValueConverter?.valueConverter) : [];
+        item.data = datasourceData?.data ? toTimeSeriesChartDataSet(datasourceData.data, this.stateValueConverter?.valueConverter ?? item.unitConvertor) : [];
       }
     }
     this.onResize();
@@ -290,7 +295,7 @@ export class TbTimeSeriesChart {
         if (item.settings.type === ValueSourceType.latestKey && item.latestDataKey) {
           const data = this.ctx.latestData.find(d => d.dataKey === item.latestDataKey);
           if (data.data[0]) {
-            item.value = parseThresholdData(data.data[0][1]);
+            item.value = parseThresholdData(data.data[0][1], item.unitConvertor);
             update = true;
           }
         }
@@ -428,9 +433,11 @@ export class TbTimeSeriesChart {
           }
           dataKey.settings = keySettings;
           const datasourceData = this.ctx.data ? this.ctx.data.find(d => d.dataKey === dataKey) : null;
+          const units: TbUnit = isNotEmptyTbUnits(dataKey.units) ? dataKey.units : this.ctx.units;
+          const unitSymbol = this.unitService.getTargetUnitSymbol(units);
+          const unitConvertor = this.unitService.geUnitConverter(units);
           const data = datasourceData?.data ?
-            toTimeSeriesChartDataSet(datasourceData.data, this.stateValueConverter?.valueConverter) : [];
-          const units = dataKey.units && dataKey.units.length ? dataKey.units : this.ctx.units;
+            toTimeSeriesChartDataSet(datasourceData.data, this.stateValueConverter?.valueConverter ?? unitConvertor) : [];
           const decimals = isDefinedAndNotNull(dataKey.decimals) ? dataKey.decimals :
             (isDefinedAndNotNull(this.ctx.decimals) ? this.ctx.decimals : 2);
           let yAxisId = keySettings.yAxisId;
@@ -441,7 +448,7 @@ export class TbTimeSeriesChart {
           const xAxisIndex = comparisonItem ? 1 : 0;
           this.dataItems.push({
             id: this.nextComponentId(),
-            units,
+            units: unitSymbol,
             decimals,
             xAxisIndex,
             yAxisId,
@@ -451,7 +458,8 @@ export class TbTimeSeriesChart {
             dataKey,
             data,
             enabled: !keySettings.dataHiddenByDefault,
-            tooltipValueFormatFunction: createTooltipValueFormatFunction(keySettings.tooltipValueFormatter)
+            tooltipValueFormatFunction: createTooltipValueFormatFunction(keySettings.tooltipValueFormatter),
+            unitConvertor
           });
         }
       }
@@ -471,6 +479,9 @@ export class TbTimeSeriesChart {
       let latestDataKey: DataKey = null;
       let entityDataKey: DataKey = null;
       let value = null;
+      const units = isNotEmptyTbUnits(threshold.units) ? threshold.units : this.ctx.units;
+      const unitSymbol = this.unitService.getTargetUnitSymbol(units);
+      const unitConvertor = this.unitService.geUnitConverter(units);
       if (threshold.type === ValueSourceType.latestKey) {
         if (this.ctx.datasources.length) {
           for (const datasource of this.ctx.datasources) {
@@ -511,9 +522,8 @@ export class TbTimeSeriesChart {
           thresholdDatasources.push(datasource);
         }
       } else { // constant
-        value = threshold.value;
+        value = unitConvertor ? unitConvertor(threshold.value) : threshold.value;
       }
-      const units = threshold.units && threshold.units.length ? threshold.units : this.ctx.units;
       const decimals = isDefinedAndNotNull(threshold.decimals) ? threshold.decimals :
         (isDefinedAndNotNull(this.ctx.decimals) ? this.ctx.decimals : 2);
       let yAxisId = threshold.yAxisId;
@@ -522,13 +532,14 @@ export class TbTimeSeriesChart {
       }
       const thresholdItem: TimeSeriesChartThresholdItem = {
         id: this.nextComponentId(),
-        units,
+        units: unitSymbol,
         decimals,
         yAxisId,
         yAxisIndex: this.getYAxisIndex(yAxisId),
         value,
         latestDataKey,
-        settings: threshold
+        settings: threshold,
+        unitConvertor
       };
       if (entityDataKey) {
         entityDataKey.settings.thresholdItemId = thresholdItem.id;
@@ -556,14 +567,16 @@ export class TbTimeSeriesChart {
     for (const yAxisSettings of yAxisSettingsList) {
       const axisSettings = mergeDeep<TimeSeriesChartYAxisSettings>({} as TimeSeriesChartYAxisSettings,
         defaultTimeSeriesChartYAxisSettings, yAxisSettings);
-      const units = axisSettings.units && axisSettings.units.length ? axisSettings.units : this.ctx.units;
+      const units = isNotEmptyTbUnits(axisSettings.units) ? axisSettings.units : this.ctx.units;
+      const unitSymbol = this.unitService.getTargetUnitSymbol(units);
+      const unitConvertor = this.unitService.geUnitConverter(units);
       const decimals = isDefinedAndNotNull(axisSettings.decimals) ? axisSettings.decimals :
         (isDefinedAndNotNull(this.ctx.decimals) ? this.ctx.decimals : 2);
       if (this.stateValueConverter) {
         axisSettings.ticksGenerator = this.stateValueConverter.ticksGenerator;
         axisSettings.ticksFormatter = this.stateValueConverter.ticksFormatter;
       }
-      const yAxis = createTimeSeriesYAxis(units, decimals, axisSettings, this.ctx.utilsService, this.darkMode);
+      const yAxis = createTimeSeriesYAxis(unitSymbol, decimals, axisSettings, this.ctx.utilsService, this.darkMode, unitConvertor);
       this.yAxisList.push(yAxis);
     }
   }
@@ -607,7 +620,7 @@ export class TbTimeSeriesChart {
                 if (item.settings.type === ValueSourceType.entity) {
                   const data = subscription.data.find(d => d.dataKey.settings?.thresholdItemId === item.id);
                   if (data.data[0]) {
-                    item.value = parseThresholdData(data.data[0][1]);
+                    item.value = parseThresholdData(data.data[0][1], item.unitConvertor);
                     update = true;
                   }
                 }
