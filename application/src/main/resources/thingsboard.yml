@@ -2027,7 +2027,7 @@ queue:
     # The fetch size specifies how many rows will be fetched from the database per request for per-tenant fetching
     init_tenant_fetch_pack_size: "${TB_QUEUE_CF_TENANT_FETCH_PACK_SIZE:1000}"
     # The fetch size specifies how many rows will be fetched from the database per request for telemetry fetching
-    telemetry_fetch_pack_size: "${TB_QUEUE_CF_TELEMETRY_FETCH_PACK_SIZE:1000}"
+    telemetry_fetch_pack_size: "${TB_QUEUE_CF_TELEMETRY_FETCH_PACK_SIZE:2000}"
     # Timeout for CF reprocessing in milliseconds, default is 5 minutes
     reprocessing_timeout: "${TB_QUEUE_CF_REPROCESSING_TIMEOUT_MS:300000}"
   transport:

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.job.task;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -40,21 +41,24 @@ import org.thingsboard.server.common.data.job.JobType;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@SuperBuilder
 public class CfReprocessingTaskResult extends TaskResult {
 
     private CfReprocessingTaskFailure failure;
 
+    @Builder
+    private CfReprocessingTaskResult(boolean success, boolean discarded, CfReprocessingTaskFailure failure) {
+        super(success, discarded);
+        this.failure = failure;
+    }
+
     public static CfReprocessingTaskResult success(CfReprocessingTask task) {
         return CfReprocessingTaskResult.builder()
-                .key(task.getKey())
                 .success(true)
                 .build();
     }
 
     public static CfReprocessingTaskResult failed(CfReprocessingTask task, Throwable error) {
         return CfReprocessingTaskResult.builder()
-                .key(task.getKey())
                 .failure(CfReprocessingTaskFailure.builder()
                         .error(error.getMessage())
                         .entityInfo(task.getEntityInfo())
@@ -64,7 +68,6 @@ public class CfReprocessingTaskResult extends TaskResult {
 
     public static CfReprocessingTaskResult discarded(CfReprocessingTask task) {
         return CfReprocessingTaskResult.builder()
-                .key(task.getKey())
                 .discarded(true)
                 .build();
     }
