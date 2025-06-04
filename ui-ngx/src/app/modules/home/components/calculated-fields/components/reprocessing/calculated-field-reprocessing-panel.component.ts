@@ -266,7 +266,7 @@ export class CalculatedFieldReprocessingPanelComponent implements OnInit {
         this.resultIconColor = 'primary';
         break;
       case JobStatus.CANCELLED:
-        this.resultLabel = 'calculated-fields.calculated-fields.reprocessing-cancelled';
+        this.resultLabel = 'calculated-fields.reprocessing-cancelled';
         this.resultIcon = 'warning';
         this.resultIconColor = undefined;
         break;
