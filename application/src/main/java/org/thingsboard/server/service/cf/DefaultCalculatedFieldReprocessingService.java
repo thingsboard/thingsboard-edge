@@ -389,7 +389,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         try {
             result = timeseriesService.findAll(tenantId, sourceEntityId, List.of(query)).get();
         } catch (ExecutionException e) {
-            throw new RuntimeException("Failed to fetch telemetry for " + sourceEntityId + " for key " + argument.getRefEntityKey().getKey(), e.getCause());
+            throw new RuntimeException("Failed to fetch telemetry for " + sourceEntityId + " for key " + argument.getRefEntityKey().getKey() + ": " + e.getCause().getMessage(), e.getCause());
         }
         log.debug("[{}][{}] Fetched {} timeseries for query {}", tenantId, entityId, result.size(), query);
         return result;
@@ -444,7 +444,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
             future.get();
             log.debug("[{}][{}] Saved calculated field result: {}", tenantId, entityId, result);
         } catch (ExecutionException e) {
-            throw new RuntimeException("Failed to save calculated field result", e.getCause());
+            throw new RuntimeException("Failed to save calculated field result: " + e.getCause().getMessage(), e.getCause());
         }
     }
 
