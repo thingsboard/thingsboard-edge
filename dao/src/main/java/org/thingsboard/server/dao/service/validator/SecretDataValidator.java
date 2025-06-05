@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class SecretDataValidator extends DataValidator<Secret> {
 
-    private static final Pattern VALID_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._\\- ]+$");
+    private static final Pattern VALID_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._@\\- ]+$");
 
     @Lazy
     private final SecretService secretService;
@@ -53,7 +53,7 @@ public class SecretDataValidator extends DataValidator<Secret> {
     @Override
     protected void validateDataImpl(TenantId tenantId, Secret secret) {
         if (!VALID_NAME_PATTERN.matcher(secret.getName()).matches()) {
-            throw new DataValidationException("Secret name contains invalid characters. Letters, digits, spaces, dots (.), underscores (_) and dashes (-) are allowed.");
+            throw new DataValidationException("Secret name may only contain letters, digits, spaces, dots (.), underscores (_), dashes (-), and at signs (@).");
         }
     }
 
