@@ -97,7 +97,7 @@
       </div>
     </mat-toolbar>
     <div class="flex flex-1 flex-col">
-      <div class="table-container flex-1">
+      <div class="table-container">
         <table mat-table [dataSource]="dataSource"
                    matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
           <ng-container matColumnDef="select" sticky>
