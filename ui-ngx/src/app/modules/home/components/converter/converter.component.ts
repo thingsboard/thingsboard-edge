@@ -262,8 +262,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.prevLibraryConverterFormValue = null;
     this.prevNewConverterFormValue = null;
     this._converterTypeValue = ConverterSourceType.NEW;
-    this.updatedConverterLibraryDisableState(this.converterTypeValue);
     this.entityForm.get('converterLibrary').patchValue(null, {emitEvent: false});
+    this.updatedConverterLibraryDisableState(this.converterTypeValue);
   }
 
   hideDelete() {
@@ -359,6 +359,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   updatedValidators() {
     this.updatedConverterVersionDisableState();
     this.updatedConverterScriptLangDisableState(this.entity);
+    this.updatedConverterLibraryDisableState(this.converterTypeValue);
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup, emitEvent = true) {
