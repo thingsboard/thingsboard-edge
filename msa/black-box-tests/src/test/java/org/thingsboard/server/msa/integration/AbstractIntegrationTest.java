@@ -139,6 +139,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
             }
             if (secret != null) {
                 testRestClient.deleteSecret(secret.getId());
+                secret = null;
             }
         }
     }

@@ -166,6 +166,29 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void checkConnectionUsingSecret() {
+        String password = "pass";
+        Secret secret = createSecret(null, "integrationSecret", password);
+        String formattedSecret = toSecretPlaceholder(secret.getName(), secret.getType());
+
+        integration = Integration.builder()
+                .type(MQTT)
+                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, formattedSecret, TOPIC))
+                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter)).getId())
+                .downlinkConverterId(testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION)).getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugSettings(DebugSettings.until(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)))
+                .allowCreateDevicesOrAssets(true)
+                .build();
+
+        testRestClient.checkConnection(integration);
+    }
+
+    @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
         createIntegration(MQTT, defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC), configConverter, ROUTING_KEY, SECRET_KEY, false);
 
@@ -182,8 +205,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
         List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
         Assert.assertFalse(latestTimeseries.isEmpty());
-        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
-        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+        Assert.assertEquals(latestTimeseries.get(0).getKey(), TELEMETRY_KEY);
+        Assert.assertEquals(latestTimeseries.get(0).getValue().toString(), TELEMETRY_VALUE);
     }
 
     @Test
@@ -252,8 +275,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
         List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
         Assert.assertFalse(latestTimeseries.isEmpty());
-        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
-        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+        Assert.assertEquals(latestTimeseries.get(0).getKey(), TELEMETRY_KEY);
+        Assert.assertEquals(latestTimeseries.get(0).getValue().toString(), TELEMETRY_VALUE);
     }
 
     @Test
@@ -283,8 +306,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
         List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
         Assert.assertFalse(latestTimeseries.isEmpty());
-        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
-        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+        Assert.assertEquals(latestTimeseries.get(0).getKey(), TELEMETRY_KEY);
+        Assert.assertEquals(latestTimeseries.get(0).getValue().toString(), TELEMETRY_VALUE);
 
         // update secret value
         password = "updated";
@@ -308,8 +331,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(hasTelemetry);
 
         List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
-        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
-        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+        Assert.assertEquals(latestTimeseries.get(0).getKey(), TELEMETRY_KEY);
+        Assert.assertEquals(latestTimeseries.get(0).getValue().toString(), TELEMETRY_VALUE);
     }
 
     @Test
@@ -328,8 +351,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(hasTelemetry);
 
         List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
-        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
-        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+        Assert.assertEquals(latestTimeseries.get(0).getKey(), TELEMETRY_KEY);
+        Assert.assertEquals(latestTimeseries.get(0).getValue().toString(), TELEMETRY_VALUE);
 
         //check downlink uploaded after attribute updated
         MqttMessageListener messageListener = new MqttMessageListener();
