@@ -32,7 +32,6 @@ package org.thingsboard.server.service.notification.rule;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -114,7 +113,6 @@ public class DefaultNotificationRuleProcessor implements NotificationRuleProcess
         });
     }
 
-    @NotNull
     private List<NotificationRule> filterNotificationRules(NotificationRuleTrigger trigger, List<NotificationRule> enabledRules) {
         List<NotificationRule> rulesToProcess = new ArrayList<>(enabledRules);
         rulesToProcess.removeIf(rule -> switch (trigger.getDeduplicationStrategy()) {
