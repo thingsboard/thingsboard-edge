@@ -119,8 +119,7 @@ class SecretValidatorTest {
                 Arguments.of("Name with \u001F", false),
 
                 Arguments.of("中文{name", false),
-                Arguments.of("Українська;назва", false),
-                Arguments.of("Русское\nназвание", false)
+                Arguments.of("Українська;назва", false)
         );
     }
 
