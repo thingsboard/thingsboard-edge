@@ -212,8 +212,8 @@ export class CalculatedFieldReprocessingPanelComponent implements OnInit {
       takeUntil(this.destroy$),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      this[progressProp].update((value) => Math.min(value + increment, 100));
-      if (this[progressProp]() >= 100) {
+      this[progressProp].update((value) => Math.min(value + increment, 99));
+      if (this[progressProp]() >= 99) {
         this.destroy$.next();
       }
     });
@@ -266,7 +266,7 @@ export class CalculatedFieldReprocessingPanelComponent implements OnInit {
         this.resultIconColor = 'primary';
         break;
       case JobStatus.CANCELLED:
-        this.resultLabel = 'calculated-fields.calculated-fields.reprocessing-cancelled';
+        this.resultLabel = 'calculated-fields.reprocessing-cancelled';
         this.resultIcon = 'warning';
         this.resultIconColor = undefined;
         break;
