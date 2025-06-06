@@ -106,8 +106,8 @@ public class SecretController extends BaseController {
     public SecretInfo updateSecretDescription(
             @Parameter(description = "Unique identifier of the Secret to update", required = true)
             @PathVariable UUID id,
-            @Parameter(description = "New description for the Secret", example = "Description", required = true)
-            @RequestBody String description) throws Exception {
+            @Parameter(description = "New description for the Secret", example = "Description")
+            @RequestParam(required = false) String description) throws Exception {
         SecretId secretId = new SecretId(id);
         Secret secret = new Secret(checkSecretId(secretId, Operation.WRITE));
         secret.setDescription(description);
