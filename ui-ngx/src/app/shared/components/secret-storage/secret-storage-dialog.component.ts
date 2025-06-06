@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -45,6 +45,7 @@ import {
 } from '@shared/models/secret-storage.models';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { SecretStorageService } from '@core/http/secret-storage.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface SecretStorageData  {
   type: SecretStorageType;
@@ -77,7 +78,7 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
 
   secretForm = this.fb.group({
     type: [SecretStorageType.TEXT, []],
-    name: ['', [Validators.required]],
+    name: ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9._@\\- ]+$')]],
     description: ['', []],
     value: ['', [Validators.required]]
   });
@@ -87,6 +88,7 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: SecretStorageData,
               public dialogRef: MatDialogRef<SecretStorageDialogComponent, SecretStorage | string>,
+              private destroyRef: DestroyRef,
               private fb: FormBuilder,
               private secretStorageService: SecretStorageService) {
     super(store, router, dialogRef);
@@ -100,6 +102,10 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
     this.fileName = this.data.fileName;
     this.hideType = this.data.hideType;
     this.onlyCreateNew = this.data.onlyCreateNew;
+
+    this.secretForm.get('type').valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.secretForm.get('value').patchValue('', {emitEvent: false}));
 
     const secret = parseSecret(this.data.value);
     if (secret) {
