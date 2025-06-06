@@ -36,6 +36,7 @@ import {
   EntityLinkTableColumn,
   EntityTableColumn,
   EntityTableConfig,
+  GroupActionDescriptor,
   ProgressBarEntityTableColumn
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -57,7 +58,7 @@ import {
 import { JobService } from '@core/http/job.service';
 import { PageQueryParam, TimePageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { forAllTimeInterval } from '@shared/models/time/time.models';
 import { TaskManagerHeaderComponent } from '@home/pages/task-manager/task-manager-header.component';
@@ -130,6 +131,7 @@ export class TaskManagerTableConfigResolver {
     }
     this.config.tableTitle = this.translate.instant('task.task-manager');
     this.config.cellActionDescriptors = this.configureCellActions();
+    this.config.groupActionDescriptors = this.configureGroupActions();
     return this.config;
   }
 
@@ -155,7 +157,7 @@ export class TaskManagerTableConfigResolver {
       }
     );
     if (this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.DELETE) ||
-        this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE)) {
+      this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE)) {
       actions.push({
         name: this.translate.instant('task.delete-task'),
         nameFunction: (entity) => workingTask.includes(entity.status)
@@ -166,6 +168,27 @@ export class TaskManagerTableConfigResolver {
           ? this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE)
           : this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.DELETE),
         onAction: ($event, entity) => this.cancelOrDeleteTask($event, entity)
+      })
+    }
+    return actions;
+  }
+
+  private configureGroupActions(): Array<GroupActionDescriptor<Job>> {
+    const actions: Array<GroupActionDescriptor<Job>> = [];
+    if (this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE)) {
+      actions.push({
+        name: this.translate.instant('action.cancel'),
+        icon: 'close',
+        isEnabled: true,
+        onAction: ($event, entities) => this.cancelTasks($event, entities)
+      })
+    }
+    if (this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.DELETE)) {
+      actions.push({
+        name: this.translate.instant('action.delete'),
+        icon: 'delete',
+        isEnabled: true,
+        onAction: ($event, entities) => this.deleteTasks($event, entities)
       })
     }
     return actions;
@@ -234,7 +257,7 @@ export class TaskManagerTableConfigResolver {
       letterSpacing: '0.25px',
       textAlign: 'center'
     };
-    if (jobStatus === JobStatus.PENDING) {
+    if (jobStatus === JobStatus.PENDING || jobStatus === JobStatus.QUEUED) {
       style.visibility = 'hidden';
     }
     return style;
@@ -261,7 +284,7 @@ export class TaskManagerTableConfigResolver {
     return progress > 0 ? Math.round(progress / result.totalCount * 100) : (result.totalCount > 0 ? 0 : 100);
   }
 
-  private openTaskInfo($event: Event, job: Job) {
+  private openTaskInfo($event: Event, job: Job): void {
     $event?.stopPropagation();
     const trigger = $event.target as HTMLElement;
     if (this.popoverService.hasPopover(trigger)) {
@@ -281,7 +304,7 @@ export class TaskManagerTableConfigResolver {
       });
       taskInfoPanelPopover.tbComponentRef.instance.cancelTask.subscribe(() => {
         taskInfoPanelPopover.hide();
-        this.cancelTaskDialog(null, job);
+        this.cancelTaskDialog(job);
       });
       taskInfoPanelPopover.tbComponentRef.instance.reprocessTask.subscribe(() => {
         taskInfoPanelPopover.hide();
@@ -292,7 +315,7 @@ export class TaskManagerTableConfigResolver {
     }
   }
 
-  private openTaskParameters($event: Event, job: Job) {
+  private openTaskParameters($event: Event, job: Job): void {
     $event?.stopPropagation();
     const trigger = $event.target as HTMLElement;
     if (this.popoverService.hasPopover(trigger)) {
@@ -313,30 +336,16 @@ export class TaskManagerTableConfigResolver {
     }
   }
 
-  private cancelOrDeleteTask($event: Event, job: Job) {
+  private cancelOrDeleteTask($event: Event, job: Job): void {
     $event?.stopPropagation();
     if (workingTask.includes(job.status)) {
-      this.cancelTaskDialog($event, job);
+      this.cancelTaskDialog(job);
     } else {
-      this.dialogService.confirm(
-        this.translate.instant('task.delete-task-title'),
-        this.translate.instant('task.delete-task-text'),
-        this.translate.instant('action.no'),
-        this.translate.instant('action.yes'),
-        true
-      ).subscribe((result) => {
-        if (result) {
-          this.jobService.deleteJob(job.id.id).subscribe(() => {
-            this.config.getTable().updateData();
-            this.config.entitiesDeleted([job.id]);
-          });
-        }
-      });
+      this.deleteTaskDialog(job);
     }
   }
 
-  private cancelTaskDialog($event: Event, job: Job) {
-    $event?.stopPropagation();
+  private cancelTaskDialog(job: Job): void {
     let title = '';
     let message = '';
     switch (job.type) {
@@ -359,6 +368,90 @@ export class TaskManagerTableConfigResolver {
         });
       }
     });
+  }
+
+  private cancelTasks($event: Event, tasks: Job[]): void {
+    $event?.stopPropagation();
+    const workingTasks = tasks.filter(job => workingTask.includes(job.status));
+    let title = '';
+    let content = '';
+    if (!workingTasks.length) {
+      title = this.translate.instant('task.selected-tasks', {count: tasks.length});
+      content = this.translate.instant('task.selected-tasks-are-finished');
+      this.dialogService.alert(title, content).subscribe();
+    } else if (workingTasks.length === 1) {
+      this.cancelTaskDialog(workingTasks[0]);
+    } else {
+      title = this.translate.instant('task.cancel-tasks-title', {count: workingTasks.length});
+      content = this.translate.instant('task.cancel-tasks-text');
+      this.dialogService.confirm(
+        title,
+        content,
+        this.translate.instant('action.no'),
+        this.translate.instant('action.yes')
+      ).subscribe((res) => {
+        if (res) {
+          const tasks: Observable<void>[] = [];
+          for (const task of workingTasks) {
+            tasks.push(this.jobService.cancelJob(task.id.id));
+          }
+          forkJoin(tasks).subscribe(() => {
+            this.config.getTable().updateData();
+          });
+        }
+      });
+    }
+  }
+
+  private deleteTaskDialog(job: Job): void {
+    this.dialogService.confirm(
+      this.translate.instant('task.delete-task-title'),
+      this.translate.instant('task.delete-task-text'),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((result) => {
+      if (result) {
+        this.jobService.deleteJob(job.id.id).subscribe(() => {
+          this.config.getTable().updateData();
+          this.config.entitiesDeleted([job.id]);
+        });
+      }
+    });
+  }
+
+  private deleteTasks($event: Event, tasks: Job[]): void {
+    $event?.stopPropagation();
+    const finishTasks = tasks.filter(job => !workingTask.includes(job.status));
+    let title = '';
+    let content = '';
+    if (!finishTasks.length) {
+      title = this.translate.instant('task.selected-tasks', {count: tasks.length});
+      content = this.translate.instant('task.selected-tasks-are-progress');
+      this.dialogService.alert(title, content).subscribe();
+    } else if (finishTasks.length === 1) {
+      this.deleteTaskDialog(finishTasks[0]);
+    } else {
+      title = this.translate.instant('task.delete-tasks-title', {count: finishTasks.length});
+      content = this.translate.instant('task.delete-tasks-text');
+      this.dialogService.confirm(
+        title,
+        content,
+        this.translate.instant('action.no'),
+        this.translate.instant('action.yes')
+      ).subscribe((res) => {
+        if (res) {
+          const tasks: Observable<void>[] = [];
+          for (const task of finishTasks) {
+            tasks.push(this.jobService.deleteJob(task.id.id));
+          }
+          forkJoin(tasks).subscribe(() => {
+            this.config.getTable().updateData();
+            this.config.entitiesDeleted(finishTasks.map(job => job.id));
+          });
+        }
+      });
+    }
   }
 
   onLoadAction(config: TaskManagerConfig, route: ActivatedRoute): void {
