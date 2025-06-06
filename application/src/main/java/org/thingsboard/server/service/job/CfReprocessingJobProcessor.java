@@ -116,7 +116,7 @@ public class CfReprocessingJobProcessor implements JobProcessor {
                 .tenantId(job.getTenantId())
                 .jobId(job.getId())
                 .key(configuration.getTasksKey())
-                .retries(2) // 3 attempts in total
+                .retries(0) // only 1 attempt
                 .calculatedField(calculatedField)
                 .entityInfo(entityInfo)
                 .startTs(configuration.getStartTs())

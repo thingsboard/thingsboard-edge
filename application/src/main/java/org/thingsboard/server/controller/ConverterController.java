@@ -369,8 +369,22 @@ public class ConverterController extends AutoCommitController {
                 if (type.equals("Uplink")) {
                     String inContent = body.get("in").asText();
                     debugIn.put("inContent", inContent);
-                    String inMetadata = body.get("metadata").asText();
-                    debugIn.put("inMetadata", inMetadata);
+                    JsonNode rawMetadata = body.get("metadata");
+                    ObjectNode metadataNode;
+
+                    if (rawMetadata == null) {
+                        metadataNode = JacksonUtil.newObjectNode();
+                    } else if (rawMetadata.isObject()) {
+                        metadataNode = (ObjectNode) rawMetadata;
+                    } else {
+                        metadataNode = JacksonUtil.fromString(rawMetadata.asText(), ObjectNode.class);
+                    }
+
+                    if (!metadataNode.has(INCLUDE_GATEWAY_INFO)) {
+                        metadataNode.put(INCLUDE_GATEWAY_INFO, IS_GATEWAY_INFO_INCLUDED);
+                    }
+
+                    debugIn.put("inMetadata", metadataNode.toString());
                 } else { //Downlink
                     String inContent = "";
                     String inMsgType = "";

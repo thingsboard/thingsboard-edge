@@ -51,7 +51,7 @@ public class CfReprocessingTaskProcessor extends TaskProcessor<CfReprocessingTas
     @Lazy
     private CalculatedFieldReprocessingService cfReprocessingService;
 
-    @Value("${queue.calculated_fields.reprocessing_timeout:60000}")
+    @Value("${queue.calculated_fields.reprocessing_timeout:300000}")
     private int timeoutMs;
 
     @Override
