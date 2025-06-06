@@ -41,13 +41,14 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable, of, shareReplay } from 'rxjs';
-import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, switchMap, tap } from 'rxjs/operators';
 import { PageLink } from '@shared/models/page/page-link';
 import { isDefinedAndNotNull } from '@core/utils';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { SecretStorage, SecretStorageType } from '@shared/models/secret-storage.models';
 import { SecretStorageService } from '@core/http/secret-storage.service';
 import { emptyPageData } from '@shared/models/page/page-data';
+import { Direction } from '@shared/models/page/sort-order';
 
 @Component({
   selector: 'tb-secret-autocomplete',
@@ -182,7 +183,7 @@ export class SecretAutocompleteComponent implements ControlValueAccessor, OnInit
   private fetchEntities(searchText?: string): Observable<Array<SecretStorage>> {
     this.searchText = searchText;
     let limit = 50;
-    const pageLink = new PageLink(limit, 0, this.searchText);
+    const pageLink = new PageLink(limit, 0, this.searchText, {property: 'name', direction: Direction.ASC});
     return this.secretStorageService.getSecrets(pageLink, {ignoreLoading: true}).pipe(
       catchError(() => of(emptyPageData<SecretStorage>())),
       map((data) => {

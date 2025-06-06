@@ -1182,6 +1182,7 @@
         "type": "Type",
         "name": "Name",
         "name-required": "Name is required.",
+        "name-pattern": "Secret name contains unsupported characters. It must not include \"{\", \"}\", \";\" or control characters.",
         "description": "Description",
         "edit-description": "Edit description",
         "set-description": "Set description",
