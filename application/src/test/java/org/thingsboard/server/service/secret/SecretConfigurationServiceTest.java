@@ -48,7 +48,6 @@ public class SecretConfigurationServiceTest {
 
     @BeforeAll
     public static void setUp() throws Exception {
-        // Access the SECRET_PATTERN from DefaultSecretConfigurationService using reflection
         Field patternField = DefaultSecretConfigurationService.class.getDeclaredField("SECRET_PATTERN");
         patternField.setAccessible(true);
         SECRET_PATTERN = (Pattern) patternField.get(null);
@@ -56,7 +55,7 @@ public class SecretConfigurationServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideSecretPatternTestCases")
-    public void testSecretPattern(String input, boolean shouldMatch, String expectedName, String expectedType) {
+    public void testSecretPattern(String input, boolean shouldMatch, String expectedName) {
         Matcher matcher = SECRET_PATTERN.matcher(input);
         assertEquals(shouldMatch, matcher.find(), "Matching failed for input: " + input);
 
@@ -68,29 +67,29 @@ public class SecretConfigurationServiceTest {
     private static Stream<Arguments> provideSecretPatternTestCases() {
         return Stream.of(
                 // Valid placeholders with basic Latin characters
-                Arguments.of("${secret:mySecret;type:TEXT}", true, "mySecret", "TEXT"),
-                Arguments.of("${secret:api_key;type:TEXT_FILE}", true, "api_key", "TEXT_FILE"),
-                Arguments.of("${secret:db_password;type:TEXT}", true, "db_password", "TEXT"),
-                Arguments.of("${secret:token with spaces;type:TEXT_FILE}", true, "token with spaces", "TEXT_FILE"),
-                Arguments.of("${secret:special!@#$%^&*()_+-=[]|:\"'<>,./?;type:TEXT}", true, "special!@#$%^&*()_+-=[]|:\"'<>,./?", "TEXT"),
+                Arguments.of("${secret:mySecret;type:TEXT}", true, "mySecret"),
+                Arguments.of("${secret:api_key;type:TEXT_FILE}", true, "api_key"),
+                Arguments.of("${secret:db_password;type:TEXT}", true, "db_password"),
+                Arguments.of("${secret:token with spaces;type:TEXT_FILE}", true, "token with spaces"),
+                Arguments.of("${secret:special!@#$%^&*()_+-=[]|:\"'<>,./?;type:TEXT}", true, "special!@#$%^&*()_+-=[]|:\"'<>,./?"),
 
                 // Valid placeholders with international characters
-                Arguments.of("${secret:中文密码;type:TEXT}", true, "中文密码", "TEXT"),
-                Arguments.of("${secret:Український_ключ;type:TEXT_FILE}", true, "Український_ключ", "TEXT_FILE"),
-                Arguments.of("${secret:日本語のパスワード;type:TEXT}", true, "日本語のパスワード", "TEXT"),
-                Arguments.of("${secret:한국어 비밀번호;type:TEXT_FILE}", true, "한국어 비밀번호", "TEXT_FILE"),
-                Arguments.of("${secret:كلمة السر العربية;type:TEXT}", true, "كلمة السر العربية", "TEXT"),
+                Arguments.of("${secret:中文密码;type:TEXT}", true, "中文密码"),
+                Arguments.of("${secret:Український_ключ;type:TEXT_FILE}", true, "Український_ключ"),
+                Arguments.of("${secret:日本語のパスワード;type:TEXT}", true, "日本語のパスワード"),
+                Arguments.of("${secret:한국어 비밀번호;type:TEXT_FILE}", true, "한국어 비밀번호"),
+                Arguments.of("${secret:كلمة السر العربية;type:TEXT}", true, "كلمة السر العربية"),
 
                 // Invalid placeholders - wrong format
-                Arguments.of("${secret:mySecret:type:TEXT}", false, null, null),
-                Arguments.of("${secret=mySecret;type=TEXT}", false, null, null),
-                Arguments.of("{secret:mySecret;type:TEXT}", false, null, null),
-                Arguments.of("$secret:mySecret;type:TEXT}", false, null, null),
-                Arguments.of("${secret:mySecret;type:TEXT", false, null, null),
+                Arguments.of("${secret:mySecret:type:TEXT}", false, null),
+                Arguments.of("${secret=mySecret;type=TEXT}", false, null),
+                Arguments.of("{secret:mySecret;type:TEXT}", false, null),
+                Arguments.of("$secret:mySecret;type:TEXT}", false, null),
+                Arguments.of("${secret:mySecret;type:TEXT", false, null),
 
                 // Invalid placeholders - prohibited characters
-                Arguments.of("${secret:my{Secret;type:TEXT}", false, null, null),
-                Arguments.of("${secret:mySecret};type:TEXT}", false, null, null)
+                Arguments.of("${secret:my{Secret;type:TEXT}", false, null),
+                Arguments.of("${secret:mySecret};type:TEXT}", false, null)
         );
     }
 
