@@ -36,7 +36,7 @@ SET configuration = jsonb_set(configuration::jsonb,'{clientConfiguration,protoco
 WHERE
     configuration::text NOT LIKE '%\\u0000%' -- Just in case to skip corrupted or invalid binary JSON
     AND NOT (configuration::jsonb)->'clientConfiguration' ? 'protocolVersion'
-    AND type IN ('MQTT', 'AWS_IOT', 'IBM_WATSON_IOT');
+    AND type IN ('MQTT', 'AWS_IOT', 'IBM_WATSON_IOT', 'TTI', 'TTN');
 
 -- Set "MQTT_3_1_1" only for AZURE_IOT_HUB
 UPDATE integration
@@ -44,7 +44,7 @@ SET configuration = jsonb_set(configuration::jsonb,'{clientConfiguration,protoco
 WHERE
     configuration::text NOT LIKE '%\\u0000%' -- Just in case to skip corrupted or invalid binary JSON
     AND NOT (configuration::jsonb)->'clientConfiguration' ? 'protocolVersion'
-    AND type IN ('AZURE_IOT_HUB', 'TTI', 'TTN');
+    AND type = 'AZURE_IOT_HUB';
 
 -- UPDATE INTEGRATION PROTOCOL VERSION FOR MQTT CLIENT TYPES END
 
