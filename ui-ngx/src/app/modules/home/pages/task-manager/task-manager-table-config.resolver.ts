@@ -144,13 +144,13 @@ export class TaskManagerTableConfigResolver {
     const actions: Array<CellActionDescriptor<Job>> = [];
     actions.push(
       {
-        name: this.translate.instant('task.task-parameters'),
+        name: this.translate.instant('task.parameters'),
         icon: 'mdi:file-document-outline',
         isEnabled: () => true,
         onAction: ($event, job) => this.openTaskParameters($event, job),
       },
       {
-        name: this.translate.instant('task.task-info'),
+        name: this.translate.instant('task.info'),
         icon: 'info_outline',
         isEnabled: (entity) => entity.status !== JobStatus.QUEUED && entity.status !== JobStatus.PENDING,
         onAction: ($event, job) => this.openTaskInfo($event, job)
@@ -159,10 +159,10 @@ export class TaskManagerTableConfigResolver {
     if (this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.DELETE) ||
       this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE)) {
       actions.push({
-        name: this.translate.instant('task.delete-task'),
+        name: this.translate.instant('action.delete'),
         nameFunction: (entity) => workingTask.includes(entity.status)
-          ? this.translate.instant('task.cancel-task')
-          : this.translate.instant('task.delete-task'),
+          ? this.translate.instant('action.cancel')
+          : this.translate.instant('action.delete'),
         iconFunction: (entity) => workingTask.includes(entity.status) ? 'close' : 'delete',
         isEnabled: (entity) => workingTask.includes(entity.status)
           ? this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.WRITE)
@@ -258,13 +258,14 @@ export class TaskManagerTableConfigResolver {
       textAlign: 'center'
     };
     if (jobStatus === JobStatus.PENDING || jobStatus === JobStatus.QUEUED) {
-      style.visibility = 'hidden';
+      style.color = 'transparent';
+      style.userSelect = 'none';
     }
     return style;
   }
 
   private progressBarStyle(jobStatus: JobStatus): object {
-    const style = {
+    const style: Record<string, any> = {
       borderRadius: '6px',
       '--mdc-linear-progress-active-indicator-height': '12px',
       '--mdc-linear-progress-track-height': '12px',
@@ -275,6 +276,8 @@ export class TaskManagerTableConfigResolver {
       style['--mdc-linear-progress-active-indicator-color'] = 'rgba(0, 0, 0, 0.12)';
     } else if (jobStatus === JobStatus.FAILED) {
       style['--mdc-linear-progress-active-indicator-color'] = 'rgba(209, 39, 48, 0.40)';
+    } else if (jobStatus === JobStatus.PENDING || jobStatus === JobStatus.QUEUED) {
+      style.visibility = 'hidden';
     }
     return style;
   }

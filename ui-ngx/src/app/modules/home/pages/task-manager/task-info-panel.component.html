@@ -41,7 +41,11 @@
         <div class="metrics my-3 flex justify-between gap-4">
           <span> {{ 'task.time-taken' | translate }}:</span>
           <span class="font-normal">
-            {{ (job.result.finishTs - job.result.startTs) | milliSecondsToTimeString: true: true }}
+            @if (timeTaken >= 1000) {
+              {{ timeTaken | milliSecondsToTimeString: true: true }}
+            } @else {
+              {{ 'timewindow.short.milliseconds' | translate: {milliseconds: timeTaken} }}
+            }
           </span>
         </div>
         <mat-divider></mat-divider>

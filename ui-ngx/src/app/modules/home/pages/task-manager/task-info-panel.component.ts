@@ -66,6 +66,7 @@ export class TaskInfoPanelComponent implements OnInit {
 
   hasWritePermission = false;
   errors: TaskError[] = [];
+  timeTaken: number;
 
   constructor(private popover: TbPopoverComponent<TaskInfoPanelComponent>,
               private translate: TranslateService,
@@ -88,6 +89,9 @@ export class TaskInfoPanelComponent implements OnInit {
           });
         }
       })
+    }
+    if (this.job.status === JobStatus.COMPLETED || this.job.status === JobStatus.FAILED) {
+      this.timeTaken = this.job.result.finishTs - this.job.result.startTs;
     }
   }
 
