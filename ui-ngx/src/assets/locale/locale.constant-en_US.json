@@ -1182,7 +1182,6 @@
         "type": "Type",
         "name": "Name",
         "name-required": "Name is required.",
-        "name-pattern": "Secret name may only contain letters, digits, spaces, dots (.), underscores (_), dashes (-), and at signs (@).",
         "description": "Description",
         "edit-description": "Edit description",
         "set-description": "Set description",

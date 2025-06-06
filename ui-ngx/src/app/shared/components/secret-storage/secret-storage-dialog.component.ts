@@ -78,7 +78,7 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
 
   secretForm = this.fb.group({
     type: [SecretStorageType.TEXT, []],
-    name: ['', [Validators.required, Validators.pattern('^[a-zA-Z0-9._@\\- ]+$')]],
+    name: ['', [Validators.required]],
     description: ['', []],
     value: ['', [Validators.required]]
   });
