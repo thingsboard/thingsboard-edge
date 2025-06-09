@@ -80,7 +80,7 @@ import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldScriptEngine;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldTbelScriptEngine;
-import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CfReprocessingValidationResult;
 import org.thingsboard.server.service.entitiy.cf.TbCalculatedFieldService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -305,6 +305,10 @@ public class CalculatedFieldController extends BaseController {
         checkNotNull(calculatedField);
         EntityId entityId = calculatedField.getEntityId();
         checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
+        CfReprocessingValidationResult validationResult = tbCalculatedFieldService.validateForReprocessing(calculatedField);
+        if (!validationResult.isValid()) {
+            throw new IllegalArgumentException(validationResult.message());
+        }
 
         return jobManager.submitJob(Job.builder()
                 .tenantId(calculatedField.getTenantId())
@@ -334,14 +338,14 @@ public class CalculatedFieldController extends BaseController {
             notes = "Checks whether the specified calculated field can be reprocessed. Returns a validation result indicating if reprocessing is allowed and, if not, provides a reason. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/calculatedField/{calculatedFieldId}/reprocess/validate")
-    public CFReprocessingValidationResponse validateCalculatedFieldReprocessing(@PathVariable(CALCULATED_FIELD_ID) String strCalculatedFieldId) throws ThingsboardException {
+    public CfReprocessingValidationResult validateCalculatedFieldReprocessing(@PathVariable(CALCULATED_FIELD_ID) String strCalculatedFieldId) throws ThingsboardException {
         checkParameter(CALCULATED_FIELD_ID, strCalculatedFieldId);
         CalculatedFieldId calculatedFieldId = new CalculatedFieldId(toUUID(strCalculatedFieldId));
         CalculatedField calculatedField = tbCalculatedFieldService.findById(calculatedFieldId, getCurrentUser());
         checkNotNull(calculatedField);
         EntityId entityId = calculatedField.getEntityId();
         checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
-        return tbCalculatedFieldService.validate(calculatedField);
+        return tbCalculatedFieldService.validateForReprocessing(calculatedField);
     }
     
     private long getLastUpdateTimestamp(Map<String, TbelCfArg> arguments) {
