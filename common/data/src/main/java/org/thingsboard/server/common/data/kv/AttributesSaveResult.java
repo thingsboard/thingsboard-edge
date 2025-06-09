@@ -28,33 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cf;
+package org.thingsboard.server.common.data.kv;
 
-import com.google.common.util.concurrent.FutureCallback;
-import org.thingsboard.rule.engine.api.AttributesDeleteRequest;
-import org.thingsboard.rule.engine.api.AttributesSaveRequest;
-import org.thingsboard.rule.engine.api.RuleEngineCalculatedFieldQueueService;
-import org.thingsboard.rule.engine.api.TimeseriesDeleteRequest;
-import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
-import org.thingsboard.server.common.data.kv.AttributesSaveResult;
-import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
-
+import java.util.Collections;
 import java.util.List;
 
-public interface CalculatedFieldQueueService extends RuleEngineCalculatedFieldQueueService {
+public record AttributesSaveResult(List<Long> versions) {
 
-    /**
-     * Filter CFs based on the request entity. Push to the queue if any matching CF exist;
-     *
-     * @param request - telemetry save request;
-     * @param callback
-     */
-    void pushRequestToQueue(TimeseriesSaveRequest request, TimeseriesSaveResult result, FutureCallback<Void> callback);
+    public static final AttributesSaveResult EMPTY = new AttributesSaveResult(Collections.emptyList());
 
-    void pushRequestToQueue(AttributesSaveRequest request, AttributesSaveResult result, FutureCallback<Void> callback);
-
-    void pushRequestToQueue(AttributesDeleteRequest request, List<String> result, FutureCallback<Void> callback);
-
-    void pushRequestToQueue(TimeseriesDeleteRequest request, List<String> result, FutureCallback<Void> callback);
+    public static AttributesSaveResult of(List<Long> versions) {
+        if (versions == null) {
+            return EMPTY;
+        }
+        return new AttributesSaveResult(versions);
+    }
 
 }
