@@ -224,6 +224,32 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
         testRestClient.deleteCalculatedFieldIfExists(savedCalculatedField.getId());
     }
 
+    @Test
+    public void testPerformInitialCalculationWhenCurrentOwnerCustomer() {
+        // login tenant admin
+        testRestClient.getAndSetUserToken(tenantAdminId);
+
+        DeviceProfileId deviceProfileId = testRestClient.postDeviceProfile(defaultDeviceProfile("Customer Device Profile")).getId();
+        String deviceToken = "zm235nIVf26n67vnTP2XBE";
+        Device customerDevice = createDevice("Customer Device", deviceProfileId);
+        customerDevice.setOwnerId(customerId);
+        Device device = testRestClient.postDevice(deviceToken, customerDevice);
+
+        testRestClient.postTelemetryAttribute(customerId, AttributeScope.SERVER_SCOPE.name(), JacksonUtil.toJsonNode("{\"attrKey\":5}"));
+
+        CalculatedField savedCalculatedField = createSimpleCalculatedField(device.getId());
+
+        await().alias("create CF -> perform initial calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    JsonNode fahrenheitTemp = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(fahrenheitTemp).isNotNull();
+                    assertThat(fahrenheitTemp.get("result").get(0).get("value").asText()).isEqualTo("105");
+                });
+
+        testRestClient.deleteCalculatedFieldIfExists(savedCalculatedField.getId());
+    }
+
     private CalculatedField createSimpleCalculatedField(EntityId entityId) {
         CalculatedField calculatedField = new CalculatedField();
         calculatedField.setEntityId(entityId);

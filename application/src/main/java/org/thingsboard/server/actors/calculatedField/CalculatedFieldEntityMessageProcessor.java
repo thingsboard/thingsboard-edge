@@ -369,18 +369,20 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
     }
 
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, List<TsKvProto> data) {
-        Map<String, ArgumentEntry> allArguments = new HashMap<>();
-        allArguments.putAll(mapToArguments(ctx.getMainEntityArguments(), data));
-        allArguments.putAll(mapToArguments(ctx.getDynamicEntityArguments(), data));
-        return allArguments;
+        return mapToArguments(ctx.getMainEntityArguments(), data);
     }
 
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, EntityId entityId, List<TsKvProto> data) {
-        var argNames = ctx.getLinkedEntityArguments().get(entityId);
-        if (argNames.isEmpty()) {
-            return Collections.emptyMap();
+        Map<String, ArgumentEntry> allArguments = new HashMap<>();
+        var linkedArgNames = ctx.getLinkedEntityArguments().get(entityId);
+        if (linkedArgNames != null && !linkedArgNames.isEmpty()) {
+            allArguments.putAll(mapToArguments(linkedArgNames, data));
         }
-        return mapToArguments(argNames, data);
+        var dynamicArgNames = ctx.getDynamicEntityArguments();
+        if (dynamicArgNames != null && !dynamicArgNames.isEmpty()) {
+            allArguments.putAll(mapToArguments(dynamicArgNames, data));
+        }
+        return allArguments;
     }
 
     private Map<String, ArgumentEntry> mapToArguments(Map<ReferencedEntityKey, String> argNames, List<TsKvProto> data) {
@@ -404,18 +406,20 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
     }
 
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, AttributeScopeProto scope, List<AttributeValueProto> attrDataList) {
-        Map<String, ArgumentEntry> allArguments = new HashMap<>();
-        allArguments.putAll(mapToArguments(ctx.getMainEntityArguments(), scope, attrDataList));
-        allArguments.putAll(mapToArguments(ctx.getDynamicEntityArguments(), scope, attrDataList));
-        return allArguments;
+        return mapToArguments(ctx.getMainEntityArguments(), scope, attrDataList);
     }
 
     private Map<String, ArgumentEntry> mapToArguments(CalculatedFieldCtx ctx, EntityId entityId, AttributeScopeProto scope, List<AttributeValueProto> attrDataList) {
-        var argNames = ctx.getLinkedEntityArguments().get(entityId);
-        if (argNames.isEmpty()) {
-            return Collections.emptyMap();
+        Map<String, ArgumentEntry> allArguments = new HashMap<>();
+        var linkedArgNames = ctx.getLinkedEntityArguments().get(entityId);
+        if (linkedArgNames != null && !linkedArgNames.isEmpty()) {
+            allArguments.putAll(mapToArguments(linkedArgNames, scope, attrDataList));
         }
-        return mapToArguments(argNames, scope, attrDataList);
+        var dynamicArgNames = ctx.getDynamicEntityArguments();
+        if (dynamicArgNames != null && !dynamicArgNames.isEmpty()) {
+            allArguments.putAll(mapToArguments(dynamicArgNames, scope, attrDataList));
+        }
+        return allArguments;
     }
 
     private Map<String, ArgumentEntry> mapToArguments(Map<ReferencedEntityKey, String> argNames, AttributeScopeProto scope, List<AttributeValueProto> attrDataList) {
@@ -431,11 +435,16 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
     }
 
     private Map<String, ArgumentEntry> mapToArgumentsWithDefaultValue(CalculatedFieldCtx ctx, EntityId entityId, AttributeScopeProto scope, List<String> removedAttrKeys) {
-        var argNames = ctx.getLinkedEntityArguments().get(entityId);
-        if (argNames.isEmpty()) {
-            return Collections.emptyMap();
+        Map<String, ArgumentEntry> allArguments = new HashMap<>();
+        var linkedArgNames = ctx.getLinkedEntityArguments().get(entityId);
+        if (linkedArgNames != null && !linkedArgNames.isEmpty()) {
+            allArguments.putAll(mapToArgumentsWithDefaultValue(linkedArgNames, ctx.getArguments(), scope, removedAttrKeys));
         }
-        return mapToArgumentsWithDefaultValue(argNames, ctx.getArguments(), scope, removedAttrKeys);
+        var dynamicArgNames = ctx.getDynamicEntityArguments();
+        if (dynamicArgNames != null && !dynamicArgNames.isEmpty()) {
+            allArguments.putAll(mapToArgumentsWithDefaultValue(dynamicArgNames, ctx.getArguments(), scope, removedAttrKeys));
+        }
+        return allArguments;
     }
 
     private Map<String, ArgumentEntry> mapToArgumentsWithDefaultValue(CalculatedFieldCtx ctx, AttributeScopeProto scope, List<String> removedAttrKeys) {

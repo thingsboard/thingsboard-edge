@@ -62,6 +62,8 @@ public interface CalculatedFieldCache {
 
     void updateOwnerEntities(TenantId tenantId, EntityId owner, EntityId entityId);
 
+    void addOwnerEntity(TenantId tenantId, EntityId owner, EntityId entityId);
+
     void evictEntity(EntityId entityId);
 
     void evictOwner(EntityId owner);

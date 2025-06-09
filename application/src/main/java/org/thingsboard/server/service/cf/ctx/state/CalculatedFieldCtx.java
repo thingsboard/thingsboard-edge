@@ -281,6 +281,25 @@ public class CalculatedFieldCtx {
         return map != null && matchesTimeSeriesKeys(map, keys);
     }
 
+    public boolean dynamicSourceMatches(CalculatedFieldTelemetryMsgProto proto) {
+        if (!proto.getTsDataList().isEmpty()) {
+            List<TsKvEntry> updatedTelemetry = proto.getTsDataList().stream()
+                    .map(ProtoUtils::fromProto)
+                    .toList();
+            return dynamicSourceMatches(updatedTelemetry);
+        } else if (!proto.getAttrDataList().isEmpty()) {
+            AttributeScope scope = AttributeScope.valueOf(proto.getScope().name());
+            List<AttributeKvEntry> updatedTelemetry = proto.getAttrDataList().stream()
+                    .map(ProtoUtils::fromProto)
+                    .toList();
+            return dynamicSourceMatches(updatedTelemetry, scope);
+        } else if (!proto.getRemovedTsKeysList().isEmpty()) {
+            return matchesDynamicSourceKeys(proto.getRemovedTsKeysList());
+        } else {
+            return matchesDynamicSourceKeys(proto.getRemovedAttrKeysList(), AttributeScope.valueOf(proto.getScope().name()));
+        }
+    }
+
     public boolean linkMatches(EntityId entityId, CalculatedFieldTelemetryMsgProto proto) {
         if (!proto.getTsDataList().isEmpty()) {
             List<TsKvEntry> updatedTelemetry = proto.getTsDataList().stream()
