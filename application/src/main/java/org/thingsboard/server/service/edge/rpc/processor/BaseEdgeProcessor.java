@@ -28,6 +28,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -58,11 +59,13 @@ import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.entity.EntityDaoRegistry;
+import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 
@@ -411,6 +414,14 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
         }
         Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
         return customerById == null;
+    }
+
+    protected List<CalculatedFieldUpdateMsg> getCalculatedFieldUpdateMsgs(TenantId tenantId, EntityId entityId) {
+        List<CalculatedField> calculatedFields = edgeCtx.getCalculatedFieldService().findCalculatedFieldsByEntityId(tenantId, entityId);
+
+        return calculatedFields.stream()
+                .map(calculatedField -> EdgeMsgConstructorUtils.constructCalculatedFieldUpdatedMsg(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, calculatedField))
+                .toList();
     }
 
 }

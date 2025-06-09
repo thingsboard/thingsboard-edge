@@ -31,7 +31,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.MqttClientSettings;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.notification.SlackService;
@@ -96,6 +98,7 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.rule.RuleNodeStateService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -557,6 +560,14 @@ public class ActorSystemContext {
     @Getter
     private CalculatedFieldQueueService calculatedFieldQueueService;
 
+    @Autowired
+    @Getter
+    private JobService jobService;
+
+    @Autowired
+    @Getter
+    private JobManager jobManager;
+
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
     private int maxConcurrentSessionsPerDevice;
@@ -644,6 +655,10 @@ public class ActorSystemContext {
     @Value("${actors.calculated_fields.calculation_timeout:5}")
     @Getter
     private long cfCalculationResultTimeout;
+
+    @Autowired
+    @Getter
+    private MqttClientSettings mqttClientSettings;
 
     @Getter
     @Setter
