@@ -30,22 +30,18 @@
  */
 package org.thingsboard.monitoring.config.integration;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.thingsboard.monitoring.service.integration.IntegrationHealthChecker;
-import org.thingsboard.monitoring.service.integration.impl.CoapIntegrationHealthChecker;
-import org.thingsboard.monitoring.service.integration.impl.HttpIntegrationHealthChecker;
-import org.thingsboard.monitoring.service.integration.impl.MqttIntegrationHealthChecker;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-@AllArgsConstructor
-@Getter
-public enum IntegrationType {
+@Component
+@ConditionalOnProperty(name = "monitoring.integrations.mqtt.enabled", havingValue = "true")
+@ConfigurationProperties(prefix = "monitoring.integrations.mqtt")
+public class MqttIntegrationMonitoringConfig extends IntegrationMonitoringConfig {
 
-    HTTP("HTTP", HttpIntegrationHealthChecker.class),
-    COAP("CoAP", CoapIntegrationHealthChecker.class),
-    MQTT("MQTT", MqttIntegrationHealthChecker.class);
-
-    private final String name;
-    private final Class<? extends IntegrationHealthChecker<?>> serviceClass;
+    @Override
+    public IntegrationType getIntegrationType() {
+        return IntegrationType.MQTT;
+    }
 
 }

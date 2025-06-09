@@ -153,6 +153,18 @@ monitoring:
         check_domain_ips: '${COAP_INTEGRATION_CHECK_DOMAIN_IPS:false}'
         # Prefix for the target name
         name_prefix: '${COAP_INTEGRATION_TARGET_NAME_PREFIX:}'
+    mqtt:
+      # Enable MQTT integration checks
+      enabled: '${MQTT_INTEGRATION_MONITORING_ENABLED:false}'
+      # MQTT request timeout in milliseconds
+      request_timeout_ms: '${MQTT_REQUEST_TIMEOUT_MS:4000}'
+      target:
+        # MQTT integration base url, tcp://DOMAIN:1883 by default
+        base_url: '${MQTT_INTEGRATION_BASE_URL:tcp://${monitoring.domain}:1883}'
+        # Whether to monitor IPs associated with the domain from base url
+        check_domain_ips: '${MQTT_INTEGRATION_CHECK_DOMAIN_IPS:false}'
+        # Prefix for the target name
+        name_prefix: '${MQTT_INTEGRATION_TARGET_NAME_PREFIX:}'
 
   edqs:
     enabled: "${EDQS_MONITORING_ENABLED:false}"
