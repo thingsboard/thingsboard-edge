@@ -49,6 +49,7 @@ import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -416,6 +417,11 @@ public class EdgeImitator {
         if (downlinkMsg.getNotificationTargetUpdateMsgCount() > 0) {
             for (NotificationTargetUpdateMsg notificationTargetUpdateMsg : downlinkMsg.getNotificationTargetUpdateMsgList()) {
                 result.add(saveDownlinkMsg(notificationTargetUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getCalculatedFieldUpdateMsgCount() > 0) {
+            for (CalculatedFieldUpdateMsg calculatedFieldUpdateMsg : downlinkMsg.getCalculatedFieldUpdateMsgList()) {
+                result.add(saveDownlinkMsg(calculatedFieldUpdateMsg));
             }
         }
         if (downlinkMsg.hasEdgeConfiguration()) {
