@@ -106,7 +106,6 @@ export enum MenuId {
   version_control = 'version_control',
   api_usage = 'api_usage',
   trendz_settings = 'trendz_settings',
-  api_usage = 'api_usage',
   edge = 'edge',
   edge_status = 'edge_status',
   cloud_events = 'cloud_events'
