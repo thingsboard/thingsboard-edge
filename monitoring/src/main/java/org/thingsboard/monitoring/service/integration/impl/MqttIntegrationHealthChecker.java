@@ -61,7 +61,7 @@ public class MqttIntegrationHealthChecker extends IntegrationHealthChecker<MqttI
     @Override
     protected void initClient() throws Exception {
         if (mqttClient == null || !mqttClient.isConnected()) {
-            String clientId = MqttAsyncClient.generateClientId();
+            String clientId = domain + "-integration-monitoring-" + MqttAsyncClient.generateClientId();
             String userName = target.getIntegration().getConfiguration().get("clientConfiguration").get("credentials").get("username").asText();
             mqttClient = new MqttClient(target.getBaseUrl(), clientId, new MemoryPersistence());
             mqttClient.setTimeToWait(config.getRequestTimeoutMs());

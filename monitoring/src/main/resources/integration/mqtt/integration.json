@@ -19,7 +19,7 @@
       "retainedMessage": false,
       "ssl": false,
       "connectTimeoutSec": 10,
-      "clientId": "",
+      "clientId": "mqtt-integration-%3$s",
       "maxBytesInMessage": 32368,
       "protocolVersion": "MQTT_3_1_1",
       "credentials": {

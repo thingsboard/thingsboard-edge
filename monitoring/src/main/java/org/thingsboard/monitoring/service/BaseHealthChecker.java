@@ -66,8 +66,11 @@ public abstract class BaseHealthChecker<C extends MonitoringConfig, T extends Mo
     private MonitoringReporter reporter;
     @Autowired
     private TbStopWatch stopWatch;
+
     @Value("${monitoring.check_timeout_ms}")
     private int resultCheckTimeoutMs;
+    @Value("${monitoring.domain}")
+    protected String domain;
 
     @Getter
     private final Map<String, BaseHealthChecker<C, T>> associates = new HashMap<>();
