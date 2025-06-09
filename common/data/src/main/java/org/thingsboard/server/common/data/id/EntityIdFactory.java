@@ -195,6 +195,7 @@ public class EntityIdFactory {
             case WIDGETS_BUNDLE -> new WidgetsBundleId(uuid);
             case WIDGET_TYPE -> new WidgetTypeId(uuid);
             case TB_RESOURCE -> new TbResourceId(uuid);
+            case CALCULATED_FIELD -> new CalculatedFieldId(uuid);
             default -> throw new IllegalArgumentException("CloudEventType " + cloudEventType + " is not supported!");
         };
     }

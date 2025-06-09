@@ -33,6 +33,7 @@ import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -124,7 +125,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 }
             }
             if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
-                for (AssetProfileUpdateMsg assetProfileUpdateMsg  : downlinkMsg.getAssetProfileUpdateMsgList()) {
+                for (AssetProfileUpdateMsg assetProfileUpdateMsg : downlinkMsg.getAssetProfileUpdateMsgList()) {
                     result.add(cloudCtx.getAssetProfileProcessor().processAssetProfileMsgFromCloud(tenantId, assetProfileUpdateMsg));
                 }
             }
@@ -258,6 +259,12 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(cloudCtx.getResourceProcessor().processResourceMsgFromCloud(tenantId, resourceUpdateMsg));
                 }
             }
+            if (downlinkMsg.getCalculatedFieldUpdateMsgCount() > 0) {
+                for (CalculatedFieldUpdateMsg calculatedFieldUpdateMsg : downlinkMsg.getCalculatedFieldUpdateMsgList()) {
+                    result.add(cloudCtx.getCalculatedFieldProcessor().processCalculatedFieldMsgFromCloud(tenantId, calculatedFieldUpdateMsg));
+                }
+            }
+
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
         } catch (Exception e) {
             log.error("Can't process downlink message [{}]", downlinkMsg, e);
