@@ -310,7 +310,8 @@ public class MonitoringEntityService {
                             configParams = List.of(
                                     url.getHost() /* %1$s */,
                                     String.valueOf(url.getPort()) /* %2$s */,
-                                    defaultIntegration.getRoutingKey() /* %3$s */
+                                    defaultIntegration.getRoutingKey() /* %3$s */,
+                                    RandomStringUtils.randomNumeric(6) /* client id suffix, %4$s */
                             );
                         }
                         default -> {
