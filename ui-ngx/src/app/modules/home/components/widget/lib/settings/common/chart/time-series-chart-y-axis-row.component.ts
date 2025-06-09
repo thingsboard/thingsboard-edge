@@ -84,6 +84,10 @@ export class TimeSeriesChartYAxisRowComponent implements ControlValueAccessor, O
   @coerceBoolean()
   advanced = false;
 
+  @Input()
+  @coerceBoolean()
+  supportsUnitConversion = false;
+
   @Output()
   axisRemoved = new EventEmitter();
 

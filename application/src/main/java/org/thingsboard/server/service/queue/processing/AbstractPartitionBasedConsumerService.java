@@ -42,6 +42,7 @@ import org.thingsboard.server.service.cf.CalculatedFieldCache;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,8 +63,9 @@ public abstract class AbstractPartitionBasedConsumerService<N extends com.google
                                                  TbApiUsageStateService apiUsageStateService,
                                                  PartitionService partitionService,
                                                  ApplicationEventPublisher eventPublisher,
-                                                 JwtSettingsService jwtSettingsService) {
-        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService, eventPublisher, jwtSettingsService);
+                                                 JwtSettingsService jwtSettingsService,
+                                                 OwnersCacheService ownersCacheService) {
+        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService, eventPublisher, jwtSettingsService, ownersCacheService);
     }
 
     @PostConstruct

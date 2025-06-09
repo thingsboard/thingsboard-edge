@@ -112,7 +112,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected EntityGroup saveOrUpdate(EntitiesImportCtx ctx, EntityGroup entity, EntityGroupExportData exportData, IdProvider idProvider) {
+    protected EntityGroup saveOrUpdate(EntitiesImportCtx ctx, EntityGroup entity, EntityGroupExportData exportData, IdProvider idProvider, CompareResult compareResult) {
         return entityGroupService.saveEntityGroup(ctx.getTenantId(), entity.getOwnerId(), entity);
     }
 
@@ -183,13 +183,8 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected boolean compare(EntitiesImportCtx ctx, EntityGroupExportData exportData, EntityGroup prepared, EntityGroup existing) {
-        boolean different = super.compare(ctx, exportData, prepared, existing);
-        if (!different) {
-            different = ctx.isSaveUserGroupPermissions() && exportData.getPermissions() != null
-                    && prepared.getType() == EntityType.USER;
-        }
-        return different;
+    protected boolean isUpdateNeeded(EntitiesImportCtx ctx, EntityGroupExportData exportData, EntityGroup prepared, EntityGroup existing) {
+        return super.isUpdateNeeded(ctx, exportData, prepared, existing) || (ctx.isSaveUserGroupPermissions() && exportData.getPermissions() != null);
     }
 
     @Override

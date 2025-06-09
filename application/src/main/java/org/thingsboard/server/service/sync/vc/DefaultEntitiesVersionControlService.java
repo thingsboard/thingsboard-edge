@@ -92,6 +92,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.owner.OwnerService;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
@@ -148,6 +149,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private final EntityGroupService groupService;
     private final TbTransactionalCache<UUID, VersionControlTaskCacheEntry> taskCache;
     private final VersionControlExecutor executor;
+    private final SecretConfigurationService secretConfigurationService;
 
     private static final Set<EntityType> GROUP_ENTITIES = EnumSet.of(
             EntityType.CUSTOMER, EntityType.DEVICE, EntityType.ASSET, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.USER
@@ -787,7 +789,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     private VersionLoadResult onError(EntityId externalId, Throwable e) {
-        return analyze(e, externalId).orElse(VersionLoadResult.error(EntityLoadError.runtimeError(e)));
+        return analyze(e, externalId).orElse(VersionLoadResult.error(EntityLoadError.runtimeError(e, externalId)));
     }
 
     private Optional<VersionLoadResult> analyze(Throwable e, EntityId externalId) {

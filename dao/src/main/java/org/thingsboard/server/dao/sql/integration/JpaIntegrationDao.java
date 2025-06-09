@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edqs.fields.IntegrationFields;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -151,6 +152,11 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
     public IntegrationId getExternalIdByInternal(IntegrationId internalId) {
         return Optional.ofNullable(integrationRepository.getExternalIdById(internalId.getId()))
                 .map(IntegrationId::new).orElse(null);
+    }
+
+    @Override
+    public List<EntityInfo> findByTenantIdAndSecretPlaceholder(TenantId tenantId, String placeholder) {
+        return integrationRepository.findByTenantIdAndSecretPlaceholder(tenantId.getId(), placeholder);
     }
 
     @Override

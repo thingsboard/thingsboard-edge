@@ -70,6 +70,7 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.gen.MsgProtos;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -289,7 +290,13 @@ public final class IntegrationGrpcSession implements Closeable {
 
             if (msg.getTbMsgCount() > 0) {
                 for (ByteString tbMsgByteString : msg.getTbMsgList()) {
-                    TbMsg tbMsg = TbMsg.fromBytes(null, tbMsgByteString.toByteArray(), TbMsgCallback.EMPTY);
+                    TbMsg tbMsg = TbMsg.fromProto(null, null, tbMsgByteString, TbMsgCallback.EMPTY);
+                    ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
+                }
+            }
+            if (msg.getTbMsgProtoCount() > 0) {
+                for (MsgProtos.TbMsgProto tbMsgProto : msg.getTbMsgProtoList()) {
+                    TbMsg tbMsg = TbMsg.fromProto(null, tbMsgProto, null, TbMsgCallback.EMPTY);
                     ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
                 }
             }
@@ -421,21 +428,23 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     private IntegrationConfigurationProto constructIntegrationConfigProto(Integration configuration, ConverterConfigurationProto defaultConverterProto, ConverterConfigurationProto downLinkConverterProto) throws JsonProcessingException {
+        Integration copy = new Integration(configuration);
+        ctx.getSecretConfigurationService().replaceSecretUsages(copy.getTenantId(), copy.getConfiguration());
         var builder = IntegrationConfigurationProto.newBuilder()
-                .setIntegrationIdMSB(configuration.getId().getId().getMostSignificantBits())
-                .setIntegrationIdLSB(configuration.getId().getId().getLeastSignificantBits())
-                .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
-                .setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits())
+                .setIntegrationIdMSB(copy.getId().getId().getMostSignificantBits())
+                .setIntegrationIdLSB(copy.getId().getId().getLeastSignificantBits())
+                .setTenantIdMSB(copy.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(copy.getTenantId().getId().getLeastSignificantBits())
                 .setUplinkConverter(defaultConverterProto)
                 .setDownlinkConverter(downLinkConverterProto)
-                .setName(configuration.getName())
-                .setRoutingKey(configuration.getRoutingKey())
-                .setType(configuration.getType().toString())
-                .setConfiguration(JacksonUtil.writeValueAsString(configuration.getConfiguration()))
-                .setAdditionalInfo(JacksonUtil.writeValueAsString(configuration.getAdditionalInfo()))
-                .setEnabled(configuration.isEnabled());
-        if (configuration.getDebugSettings() != null) {
-            builder.setDebugSettings(JacksonUtil.toString(configuration.getDebugSettings()));
+                .setName(copy.getName())
+                .setRoutingKey(copy.getRoutingKey())
+                .setType(copy.getType().toString())
+                .setConfiguration(JacksonUtil.writeValueAsString(copy.getConfiguration()))
+                .setAdditionalInfo(JacksonUtil.writeValueAsString(copy.getAdditionalInfo()))
+                .setEnabled(copy.isEnabled());
+        if (copy.getDebugSettings() != null) {
+            builder.setDebugSettings(JacksonUtil.toString(copy.getDebugSettings()));
         }
         return builder.build();
     }
@@ -516,7 +525,7 @@ public final class IntegrationGrpcSession implements Closeable {
                                         DeviceDownlinkDataProto.newBuilder()
                                                 .setDeviceName(device.getName())
                                                 .setDeviceType(device.getType())
-                                                .setTbMsg(TbMsg.toByteString(msg.getTbMsg()))
+                                                .setTbMsgProto(TbMsg.toProto(msg.getTbMsg()))
                                                 .build()
                                 )
                                 .build())
@@ -564,4 +573,5 @@ public final class IntegrationGrpcSession implements Closeable {
                 })
                 .build());
     }
+
 }

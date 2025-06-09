@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -87,11 +88,13 @@ import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.entity.EntityDaoRegistry;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
@@ -590,6 +593,14 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
             log.error("Failed to remove entity from group", e);
         }
         return Futures.immediateFuture(null);
+    }
+
+    protected List<CalculatedFieldUpdateMsg> getCalculatedFieldUpdateMsgs(TenantId tenantId, EntityId entityId) {
+        List<CalculatedField> calculatedFields = edgeCtx.getCalculatedFieldService().findCalculatedFieldsByEntityId(tenantId, entityId);
+
+        return calculatedFields.stream()
+                .map(calculatedField -> EdgeMsgConstructorUtils.constructCalculatedFieldUpdatedMsg(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, calculatedField))
+                .toList();
     }
 
 }

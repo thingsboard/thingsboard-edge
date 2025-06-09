@@ -85,13 +85,11 @@
               integration.as-id-required
             </mat-error>
           </mat-form-field>
-          <mat-form-field class="mat-block flex-1">
-            <mat-label translate>integration.as-key</mat-label>
-            <input matInput required formControlName="asKey">
-            <mat-error translate *ngIf="thingParkConfigForm.get('asKey').hasError('required')">
-              integration.as-key-required
-            </mat-error>
-          </mat-form-field>
+          <tb-secret-key-input formControlName="asKey" class="mat-block flex-1"
+                               required
+                               label="{{ 'integration.as-key' | translate }}"
+                               requiredText="{{ 'integration.as-key-required' | translate }}">
+          </tb-secret-key-input>
         </section>
         <section *ngIf="thingParkConfigForm.get('enableSecurityNew').value" class="flex flex-row xs:flex-col gt-xs:gap-2">
           <mat-form-field class="mat-block flex-1">
@@ -100,12 +98,11 @@
             <mat-error translate *ngIf="thingParkConfigForm.get('clientIdNew').hasError('required')">
               integration.client-id-new-required</mat-error>
           </mat-form-field>
-          <mat-form-field class="mat-block flex-1">
-            <mat-label translate>integration.client-secret</mat-label>
-            <input matInput required formControlName="clientSecret">
-            <mat-error translate *ngIf="thingParkConfigForm.get('clientSecret').hasError('required')">
-              integration.client-secret-required</mat-error>
-          </mat-form-field>
+          <tb-secret-key-input formControlName="clientSecret" class="mat-block flex-1"
+                               required
+                               label="{{ 'integration.client-secret' | translate }}"
+                               requiredText="{{ 'integration.client-secret-required' | translate }}">
+          </tb-secret-key-input>
         </section>
         <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.max-time-diff-in-seconds</mat-label>

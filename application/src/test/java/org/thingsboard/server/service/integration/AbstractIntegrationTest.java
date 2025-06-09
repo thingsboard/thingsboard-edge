@@ -45,7 +45,9 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.debug.DebugSettings;
+import org.thingsboard.server.common.data.event.EventFilter;
 import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.event.LifeCycleEventFilter;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -209,8 +211,13 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
                 });
     }
 
-    private PageData<EventInfo> getEvents(TenantId tenantId, IntegrationId integrationId) throws Exception {
+    protected PageData<EventInfo> getEvents(TenantId tenantId, IntegrationId integrationId) throws Exception {
         return doGetTyped("/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&pageSize={pageSize}&page={page}",
                 new TypeReference<>() {}, EntityType.INTEGRATION, integrationId.toString(), EventType.LC_EVENT, tenantId.toString(), 1024, 0);
     }
+
+    protected void cleanUpEvents(EntityId entityId, EventFilter eventFilter) throws Exception {
+        doPost("/api/events/" + entityId.getEntityType().name() + "/" + entityId.getId() + "/clear", eventFilter);
+    }
+
 }

@@ -43,7 +43,8 @@ public enum ServiceType {
     JS_EXECUTOR("JS Executor"),
     TB_INTEGRATION_EXECUTOR("TB Integration Executor"),
     TB_VC_EXECUTOR("TB VC Executor"),
-    EDQS("TB Entity Data Query Service");
+    EDQS("TB Entity Data Query Service"),
+    TASK_PROCESSOR("Task Processor");
 
     private final String label;
 

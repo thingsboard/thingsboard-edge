@@ -76,7 +76,7 @@ export class TuyaIntegrationFormComponent extends IntegrationForm implements Con
       region: [TuyaRegion.CN, [Validators.required]],
       env: [TuyaEnv.PROD, [Validators.required]],
       accessId: ['', [Validators.required]],
-      accessKey: ['', [Validators.required, Validators.minLength(32), Validators.maxLength(32)]]
+      accessKey: ['', [Validators.required]]
     });
     this.tuyaIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)

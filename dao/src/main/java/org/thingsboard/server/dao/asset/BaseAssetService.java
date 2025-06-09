@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ProfileEntityIdInfo;
@@ -135,6 +136,11 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         log.trace("Executing findAssetInfoById [{}]", assetId);
         validateId(assetId, id -> INCORRECT_ASSET_ID + id);
         return assetInfoDao.findById(tenantId, assetId.getId());
+    }
+
+    @Override
+    public EntityInfo findAssetEntityInfoById(TenantId tenantId, AssetId assetId) {
+        return assetDao.findAssetEntityInfoById(tenantId, assetId);
     }
 
     @Override
@@ -290,6 +296,11 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         validateId(assetProfileId, id -> INCORRECT_ASSET_PROFILE_ID + id);
         validatePageLink(pageLink);
         return assetDao.findAssetIdsByTenantIdAndAssetProfileId(tenantId.getId(), assetProfileId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findAssetEntityInfosByTenantIdAndAssetProfileId(TenantId tenantId, AssetProfileId assetProfileId, PageLink pageLink) {
+        return assetDao.findAssetEntityInfosByTenantIdAndAssetProfileId(tenantId, assetProfileId, pageLink);
     }
 
     @Override

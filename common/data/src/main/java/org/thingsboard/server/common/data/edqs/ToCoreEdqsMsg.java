@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.edqs.EdqsState.EdqsSyncStatus;
 
 @Data
 @AllArgsConstructor
@@ -43,5 +44,8 @@ public class ToCoreEdqsMsg {
 
     private EdqsSyncRequest syncRequest;
     private Boolean apiEnabled;
+
+    private EdqsSyncStatus syncStatus;
+    private Boolean edqsReady;
 
 }

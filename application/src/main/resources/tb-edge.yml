@@ -275,7 +275,7 @@ ui:
   # Help parameters
   help:
     # Base URL for UI help assets
-    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-pe-ui-help/release-4.0}"
+    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-pe-ui-help/release-4.1}"
   # Solution templates parameters
   solution_templates:
     # Base URL for solution templates docs
@@ -805,6 +805,9 @@ cache:
     mobileSecretKey:
       timeToLiveInMinutes: "${CACHE_MOBILE_SECRET_KEY_TTL:2}" # QR secret key cache TTL
       maxSize: "${CACHE_MOBILE_SECRET_KEY_MAX_SIZE:10000}" # 0 means the cache is disabled
+    trendzSettings:
+      timeToLiveInMinutes: "${CACHE_SPECS_TRENDZ_SETTINGS_TTL:1440}" # Trendz settings cache TTL
+      maxSize: "${CACHE_SPECS_TRENDZ_SETTINGS_MAX_SIZE:10000}" # 0 means the cache is disabled
 
     # PE cache specs
     downlink:
@@ -866,7 +869,7 @@ cache:
 # Spring data parameters
 spring.data.redis.repositories.enabled: false # Disable this because it is not required.
 
-# Redis configuration parameters
+# Redis/Valkey configuration parameters
 redis:
   # standalone or cluster or sentinel
   connection:
@@ -1848,6 +1851,17 @@ queue:
         - key: max.poll.records
           # Max poll records for edqs.state topic
           value: "${TB_QUEUE_KAFKA_EDQS_STATE_MAX_POLL_RECORDS:512}"
+      tasks:
+        # Key-value properties for Kafka consumer for tasks topics
+        - key: max.poll.records
+          # Max poll records for tasks topics
+          value: "${TB_QUEUE_KAFKA_TASKS_MAX_POLL_RECORDS:1}"
+    # If you override any default Kafka topic name using environment variables, you must also specify the related consumer properties
+    # for the new topic in `consumer-properties-per-topic-inline`. Otherwise, the topic will not inherit its expected configuration (e.g., max.poll.records, timeouts, etc).
+    # Each entry sets a single property for a specific topic. To define multiple properties for a topic, repeat the topic key.
+    # Format: "topic1:key=value;topic1:key=value;topic2:key=value"
+    # Example: tb_core_updated:max.poll.records=10;tb_core_updated:bootstrap.servers=kafka1:9092,kafka2:9092;tb_edge_updated:auto.offset.reset=latest
+    consumer-properties-per-topic-inline: "${TB_QUEUE_KAFKA_CONSUMER_PROPERTIES_PER_TOPIC_INLINE:}"
     other-inline: "${TB_QUEUE_KAFKA_OTHER_PROPERTIES:}" # In this section you can specify custom parameters (semicolon separated) for Kafka consumer/producer/admin # Example "metrics.recording.level:INFO;metrics.sample.window.ms:30000"
     other: # DEPRECATED. In this section, you can specify custom parameters for Kafka consumer/producer and expose the env variables to configure outside
     #  - key: "request.timeout.ms" # refer to https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#producerconfigs_request.timeout.ms
@@ -1893,6 +1907,8 @@ queue:
       edqs-requests: "${TB_QUEUE_KAFKA_EDQS_REQUESTS_TOPIC_PROPERTIES:retention.ms:180000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
       # Kafka properties for EDQS state topic (infinite retention, compaction)
       edqs-state: "${TB_QUEUE_KAFKA_EDQS_STATE_TOPIC_PROPERTIES:retention.ms:-1;segment.bytes:52428800;retention.bytes:-1;partitions:1;min.insync.replicas:1;cleanup.policy:compact}"
+      # Kafka properties for tasks topics
+      tasks: "${TB_QUEUE_KAFKA_TASKS_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:52428800;retention.bytes:104857600;partitions:1;min.insync.replicas:1}"
     consumer-stats:
       # Prints lag between consumer group offset and last messages offset in Kafka topics
       enabled: "${TB_QUEUE_KAFKA_CONSUMER_STATS_ENABLED:true}"
@@ -1983,6 +1999,8 @@ queue:
       supported: "${TB_EDQS_API_SUPPORTED:false}"
       # Whether to auto-enable EDQS API (if queue.edqs.api.supported is true) when sync of data to Kafka is finished 
       auto_enable: "${TB_EDQS_API_AUTO_ENABLE:true}"
+    # Interval in milliseconds to check for ready EDQS servers
+    readiness_check_interval: "${TB_EDQS_READINESS_CHECK_INTERVAL_MS:60000}"
     # Mode of EDQS: local (for monolith) or remote (with separate EDQS microservices)
     mode: "${TB_EDQS_MODE:local}"
     local:
@@ -2006,6 +2024,10 @@ queue:
     max_pending_requests: "${TB_EDQS_MAX_PENDING_REQUESTS:10000}"
     # Maximum timeout for requests to EDQS
     max_request_timeout: "${TB_EDQS_MAX_REQUEST_TIMEOUT:20000}"
+    # Thread pool size for EDQS requests executor
+    request_executor_size: "${TB_EDQS_REQUEST_EXECUTOR_SIZE:50}"
+    # Time to live for EDQS versions cache in minutes. Must be bigger than the time taken for the sync process.
+    versions_cache_ttl: "${TB_EDQS_VERSIONS_CACHE_TTL_MINUTES:60}"
     # Strings longer than this threshold will be compressed
     string_compression_length_threshold: "${TB_EDQS_STRING_COMPRESSION_LENGTH_THRESHOLD:512}"
     stats:
@@ -2080,6 +2102,10 @@ queue:
     init_fetch_pack_size: "${TB_QUEUE_CF_FETCH_PACK_SIZE:50000}"
     # The fetch size specifies how many rows will be fetched from the database per request for per-tenant fetching
     init_tenant_fetch_pack_size: "${TB_QUEUE_CF_TENANT_FETCH_PACK_SIZE:1000}"
+    # The fetch size specifies how many rows will be fetched from the database per request for telemetry fetching
+    telemetry_fetch_pack_size: "${TB_QUEUE_CF_TELEMETRY_FETCH_PACK_SIZE:2000}"
+    # Timeout for CF reprocessing in milliseconds, default is 5 minutes
+    reprocessing_timeout: "${TB_QUEUE_CF_REPROCESSING_TIMEOUT_MS:300000}"
   transport:
     # For high-priority notifications that require minimum latency and processing time
     notifications_topic: "${TB_QUEUE_TRANSPORT_NOTIFICATIONS_TOPIC:tb_transport.notifications}"
@@ -2150,6 +2176,23 @@ queue:
     topic: "${TB_QUEUE_CLOUD_EVENT_TS_TOPIC:tb_cloud_event_ts}"
     # Poll interval for topics related to Cloud Event services
     poll-interval: "${TB_QUEUE_CLOUD_EVENT_TS_POLL_INTERVAL_MS:25}"
+  tasks:
+    # Poll interval in milliseconds for tasks topics
+    poll_interval: "${TB_QUEUE_TASKS_POLL_INTERVAL_MS:500}"
+    # Partitions count for tasks queues
+    partitions: "${TB_QUEUE_TASKS_PARTITIONS:12}"
+    # Custom partitions count for tasks queues per type. Format: 'TYPE1:24;TYPE2:36', e.g. 'CF_REPROCESSING:24;TENANT_EXPORT:6'
+    partitions_per_type: "${TB_QUEUE_TASKS_PARTITIONS_PER_TYPE:}"
+    # Tasks partitioning strategy: 'tenant' or 'entity'. By default, using 'tenant' - tasks of a specific tenant are processed in the same partition.
+    # In a single-tenant environment, use 'entity' strategy to distribute the tasks among multiple partitions.
+    partitioning_strategy: "${TB_QUEUE_TASKS_PARTITIONING_STRATEGY:tenant}"
+    stats:
+      # Name for the tasks stats topic
+      topic: "${TB_QUEUE_TASKS_STATS_TOPIC:jobs.stats}"
+      # Poll interval in milliseconds for tasks stats topic
+      poll_interval: "${TB_QUEUE_TASKS_STATS_POLL_INTERVAL_MS:500}"
+      # Interval in milliseconds to process job stats
+      processing_interval: "${TB_QUEUE_TASKS_STATS_PROCESSING_INTERVAL_MS:1000}"
 
 # Event configuration parameters
 event:

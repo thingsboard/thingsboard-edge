@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,9 +49,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.script.api.tbel.TbelCfArg;
 import org.thingsboard.script.api.tbel.TbelCfCtx;
 import org.thingsboard.script.api.tbel.TbelCfSingleValueArg;
+import org.thingsboard.script.api.tbel.TbelCfTsDoubleVal;
+import org.thingsboard.script.api.tbel.TbelCfTsRollingArg;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
@@ -64,14 +68,19 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.job.CfReprocessingJobConfiguration;
+import org.thingsboard.server.common.data.job.Job;
+import org.thingsboard.server.common.data.job.JobType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldScriptEngine;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldTbelScriptEngine;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CfReprocessingValidationResult;
 import org.thingsboard.server.service.entitiy.cf.TbCalculatedFieldService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -81,6 +90,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.controller.ControllerConstants.CF_TEXT_SEARCH_DESCRIPTION;
@@ -106,12 +116,15 @@ public class CalculatedFieldController extends BaseController {
     private final TbCalculatedFieldService tbCalculatedFieldService;
     private final EventService eventService;
     private final TbelInvokeService tbelInvokeService;
+    private final JobManager jobManager;
+    private final JobService jobService;
 
     public static final String CALCULATED_FIELD_ID = "calculatedFieldId";
 
     public static final int TIMEOUT = 20;
 
-    private static final String TEST_SCRIPT_EXPRESSION = "Execute the Script expression and return the result. The format of request: \n\n"
+    private static final String TEST_SCRIPT_EXPRESSION =
+            "Execute the Script expression and return the result. The format of request: \n\n"
             + MARKDOWN_CODE_BLOCK_START
             + "{\n" +
             "  \"expression\": \"var temp = 0; foreach(element: temperature.values) {temp += element.value;} var avgTemperature = temp / temperature.values.size(); var adjustedTemperature = avgTemperature + 0.1 * humidity.value; return {\\\"adjustedTemperature\\\": adjustedTemperature};\",\n" +
@@ -255,9 +268,8 @@ public class CalculatedFieldController extends BaseController {
                     ctxAndArgNames.toArray(String[]::new)
             );
 
-
             Object[] args = new Object[ctxAndArgNames.size()];
-            args[0] = new TbelCfCtx(arguments);
+            args[0] = new TbelCfCtx(arguments, getLastUpdateTimestamp(arguments));
             for (int i = 1; i < ctxAndArgNames.size(); i++) {
                 var arg = arguments.get(ctxAndArgNames.get(i));
                 if (arg instanceof TbelCfSingleValueArg svArg) {
@@ -280,6 +292,76 @@ public class CalculatedFieldController extends BaseController {
         return result;
     }
 
+    @ApiOperation(value = "Reprocess Calculated Field (reprocessCalculatedField)",
+            notes = "Reprocesses the calculated field." + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @GetMapping(value = "/calculatedField/{calculatedFieldId}/reprocess", params = {"startTs", "endTs"})
+    public Job reprocessCalculatedField(@PathVariable(CALCULATED_FIELD_ID) String strCalculatedFieldId,
+                                        @RequestParam(name = "startTs") Long startTs,
+                                        @RequestParam(name = "endTs") Long endTs) throws Exception {
+        checkParameter(CALCULATED_FIELD_ID, strCalculatedFieldId);
+        CalculatedFieldId calculatedFieldId = new CalculatedFieldId(toUUID(strCalculatedFieldId));
+        CalculatedField calculatedField = tbCalculatedFieldService.findById(calculatedFieldId, getCurrentUser());
+        checkNotNull(calculatedField);
+        EntityId entityId = calculatedField.getEntityId();
+        checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
+        CfReprocessingValidationResult validationResult = tbCalculatedFieldService.validateForReprocessing(calculatedField);
+        if (!validationResult.isValid()) {
+            throw new IllegalArgumentException(validationResult.message());
+        }
+
+        return jobManager.submitJob(Job.builder()
+                .tenantId(calculatedField.getTenantId())
+                .type(JobType.CF_REPROCESSING)
+                .key(calculatedField.getId().toString())
+                .entityId(entityId)
+                .configuration(CfReprocessingJobConfiguration.builder()
+                        .calculatedFieldId(calculatedField.getId())
+                        .startTs(startTs)
+                        .endTs(endTs)
+                        .build())
+                .build()).get();
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @GetMapping(value = "/calculatedField/{calculatedFieldId}/reprocess/job")
+    public Job getLastCalculatedFieldReprocessingJob(@PathVariable(CALCULATED_FIELD_ID) UUID id) throws ThingsboardException {
+        CalculatedFieldId calculatedFieldId = new CalculatedFieldId(id);
+        CalculatedField calculatedField = tbCalculatedFieldService.findById(calculatedFieldId, getCurrentUser());
+        checkNotNull(calculatedField);
+        EntityId entityId = calculatedField.getEntityId();
+        checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
+        return jobService.findLatestJobByKey(calculatedField.getTenantId(), calculatedField.getId().toString());
+    }
+
+    @ApiOperation(value = "Validate reprocessing capability of a calculated field (validateCalculatedFieldReprocessing)",
+            notes = "Checks whether the specified calculated field can be reprocessed. Returns a validation result indicating if reprocessing is allowed and, if not, provides a reason. " + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @GetMapping(value = "/calculatedField/{calculatedFieldId}/reprocess/validate")
+    public CfReprocessingValidationResult validateCalculatedFieldReprocessing(@PathVariable(CALCULATED_FIELD_ID) String strCalculatedFieldId) throws ThingsboardException {
+        checkParameter(CALCULATED_FIELD_ID, strCalculatedFieldId);
+        CalculatedFieldId calculatedFieldId = new CalculatedFieldId(toUUID(strCalculatedFieldId));
+        CalculatedField calculatedField = tbCalculatedFieldService.findById(calculatedFieldId, getCurrentUser());
+        checkNotNull(calculatedField);
+        EntityId entityId = calculatedField.getEntityId();
+        checkEntityId(entityId, Operation.READ_CALCULATED_FIELD);
+        return tbCalculatedFieldService.validateForReprocessing(calculatedField);
+    }
+    
+    private long getLastUpdateTimestamp(Map<String, TbelCfArg> arguments) {
+        long lastUpdateTimestamp = -1;
+        for (TbelCfArg entry : arguments.values()) {
+            if (entry instanceof TbelCfSingleValueArg singleValueArg) {
+                long ts = singleValueArg.getTs();
+                lastUpdateTimestamp = Math.max(lastUpdateTimestamp, ts);
+            } else if (entry instanceof TbelCfTsRollingArg tsRollingArg) {
+                long maxTs = tsRollingArg.getValues().stream().mapToLong(TbelCfTsDoubleVal::getTs).max().orElse(-1);
+                lastUpdateTimestamp = Math.max(lastUpdateTimestamp, maxTs);
+            }
+        }
+        return lastUpdateTimestamp == -1 ? System.currentTimeMillis() : lastUpdateTimestamp;
+    }
+
     private <E extends HasId<I> & HasTenantId, I extends EntityId> void checkReferencedEntities(CalculatedFieldConfiguration calculatedFieldConfig, SecurityUser user) throws ThingsboardException {
         List<EntityId> referencedEntityIds = calculatedFieldConfig.getReferencedEntities();
         for (EntityId referencedEntityId : referencedEntityIds) {
@@ -289,8 +371,7 @@ public class CalculatedFieldController extends BaseController {
                     return;
                 }
                 case CUSTOMER, ASSET, DEVICE -> checkEntityId(referencedEntityId, Operation.READ);
-                default ->
-                        throw new IllegalArgumentException("Calculated fields do not support '" + entityType + "' for referenced entities.");
+                default -> throw new IllegalArgumentException("Calculated fields do not support '" + entityType + "' for referenced entities.");
             }
         }
 

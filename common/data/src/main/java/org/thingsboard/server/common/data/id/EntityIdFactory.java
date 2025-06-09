@@ -151,6 +151,10 @@ public class EntityIdFactory {
                 return new CalculatedFieldId(uuid);
             case CALCULATED_FIELD_LINK:
                 return new CalculatedFieldLinkId(uuid);
+            case JOB:
+                return new JobId(uuid);
+            case SECRET:
+                return new SecretId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }
@@ -216,6 +220,8 @@ public class EntityIdFactory {
                 return new OAuth2ClientId(uuid);
             case DOMAIN:
                 return new DomainId(uuid);
+            case CALCULATED_FIELD:
+                return new CalculatedFieldId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }

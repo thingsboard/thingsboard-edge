@@ -74,6 +74,7 @@ import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
@@ -89,6 +90,7 @@ import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -104,6 +106,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
@@ -118,6 +121,7 @@ import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -206,6 +210,10 @@ public class TenantIdLoaderTest {
     private MobileAppBundleService mobileAppBundleService;
     @Mock
     private CalculatedFieldService calculatedFieldService;
+    @Mock
+    private JobService jobService;
+    @Mock
+    private SecretService secretService;
 
     private TenantId tenantId;
     private TenantProfileId tenantProfileId;
@@ -429,59 +437,52 @@ public class TenantIdLoaderTest {
                 EntityGroup entityGroup = new EntityGroup();
                 entityGroup.setOwnerId(tenantId);
                 entityGroup.setTenantId(tenantId);
-
                 when(tbPeContext.getEntityGroupService()).thenReturn(entityGroupService);
                 doReturn(entityGroup).when(entityGroupService).findEntityGroupById(eq(tenantId), any());
-
                 break;
             case CONVERTER:
                 Converter converter = new Converter();
                 converter.setTenantId(tenantId);
-
                 when(tbPeContext.getConverterService()).thenReturn(converterService);
                 doReturn(converter).when(converterService).findConverterById(eq(tenantId), any());
-
                 break;
             case INTEGRATION:
                 Integration integration = new Integration();
                 integration.setTenantId(tenantId);
-
                 when(tbPeContext.getIntegrationService()).thenReturn(integrationService);
                 doReturn(integration).when(integrationService).findIntegrationById(eq(tenantId), any());
-
                 break;
             case SCHEDULER_EVENT:
                 SchedulerEvent schedulerEvent = new SchedulerEvent();
                 schedulerEvent.setTenantId(tenantId);
-
                 when(tbPeContext.getSchedulerEventService()).thenReturn(schedulerEventService);
                 doReturn(schedulerEvent).when(schedulerEventService).findSchedulerEventById(eq(tenantId), any());
-
                 break;
             case BLOB_ENTITY:
                 BlobEntity blobEntity = new BlobEntity();
                 blobEntity.setTenantId(tenantId);
-
                 when(tbPeContext.getBlobEntityService()).thenReturn(blobEntityService);
                 doReturn(blobEntity).when(blobEntityService).findBlobEntityById(eq(tenantId), any());
-
                 break;
             case ROLE:
                 Role role = new Role();
                 role.setTenantId(tenantId);
-
                 when(tbPeContext.getRoleService()).thenReturn(roleService);
                 doReturn(role).when(roleService).findRoleById(eq(tenantId), any());
-
                 break;
             case GROUP_PERMISSION:
                 GroupPermission groupPermission = new GroupPermission();
                 groupPermission.setTenantId(tenantId);
-
                 when(tbPeContext.getGroupPermissionService()).thenReturn(groupPermissionService);
                 doReturn(groupPermission).when(groupPermissionService).findGroupPermissionById(eq(tenantId), any());
-
                 break;
+            case SECRET:
+                Secret secret = new Secret();
+                secret.setTenantId(tenantId);
+                when(ctx.getPeContext().getSecretService()).thenReturn(secretService);
+                doReturn(secret).when(secretService).findSecretInfoById(eq(tenantId), any());
+                break;
+            // ... PE entities
             case QUEUE_STATS:
                 QueueStats queueStats = new QueueStats();
                 queueStats.setTenantId(tenantId);
@@ -523,6 +524,12 @@ public class TenantIdLoaderTest {
                 calculatedFieldLink.setTenantId(tenantId);
                 when(ctx.getCalculatedFieldService()).thenReturn(calculatedFieldService);
                 doReturn(calculatedFieldLink).when(calculatedFieldService).findCalculatedFieldLinkById(eq(tenantId), any());
+                break;
+            case JOB:
+                Job job = new Job();
+                job.setTenantId(tenantId);
+                when(ctx.getJobService()).thenReturn(jobService);
+                doReturn(job).when(jobService).findJobById(eq(tenantId), any());
                 break;
             default:
                 throw new RuntimeException("Unexpected originator EntityType " + entityType);

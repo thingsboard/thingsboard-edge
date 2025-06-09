@@ -32,6 +32,7 @@ package org.thingsboard.server.common.msg.edqs;
 
 import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.EdqsObject;
+import org.thingsboard.server.common.data.edqs.EdqsState;
 import org.thingsboard.server.common.data.edqs.ToCoreEdqsMsg;
 import org.thingsboard.server.common.data.edqs.ToCoreEdqsRequest;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -50,5 +51,9 @@ public interface EdqsService {
     void processSystemRequest(ToCoreEdqsRequest request);
 
     void processSystemMsg(ToCoreEdqsMsg request);
+
+    boolean isApiEnabled();
+
+    EdqsState getState();
 
 }

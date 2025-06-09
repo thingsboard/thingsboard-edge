@@ -249,7 +249,7 @@ public class DefaultTbClusterService implements TbClusterService {
                 .setTenantIdLSB(downlink.getTenantId().getId().getLeastSignificantBits())
                 .setIntegrationIdMSB(downlink.getIntegrationId().getId().getMostSignificantBits())
                 .setIntegrationIdLSB(downlink.getIntegrationId().getId().getLeastSignificantBits())
-                .setData(TbMsg.toByteString(downlink.getTbMsg()));
+                .setDataProto(TbMsg.toProto(downlink.getTbMsg()));
         ToCoreNotificationMsg msg = ToCoreNotificationMsg.newBuilder().setIntegrationDownlinkMsg(builder).build();
         producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(downlink.getTbMsg().getId(), msg), callback);
         toCoreNfs.incrementAndGet();
@@ -645,7 +645,8 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
-    private void broadcast(ComponentLifecycleMsg msg) {
+    @Override
+    public void broadcast(ComponentLifecycleMsg msg) {
         ComponentLifecycleMsgProto componentLifecycleMsgProto = toProto(msg);
         TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineProducer = producerProvider.getRuleEngineNotificationsMsgProducer();
         Set<String> tbRuleEngineServices = partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE);
@@ -666,15 +667,16 @@ public class DefaultTbClusterService implements TbClusterService {
         }
 
         boolean toCore = entityType.equals(EntityType.TENANT) ||
-                entityType.equals(EntityType.TENANT_PROFILE) ||
-                entityType.equals(EntityType.DEVICE_PROFILE) ||
-                (entityType.equals(EntityType.ASSET) && msg.getEvent() == ComponentLifecycleEvent.UPDATED) ||
-                entityType.equals(EntityType.ASSET_PROFILE) ||
-                entityType.equals(EntityType.API_USAGE_STATE) ||
-                (entityType.equals(EntityType.DEVICE) && msg.getEvent() == ComponentLifecycleEvent.UPDATED) ||
-                entityType.equals(EntityType.ENTITY_VIEW) ||
-                entityType.equals(EntityType.NOTIFICATION_RULE) ||
-                entityType.equals(EntityType.CALCULATED_FIELD);
+                         entityType.equals(EntityType.TENANT_PROFILE) ||
+                         entityType.equals(EntityType.DEVICE_PROFILE) ||
+                         (entityType.equals(EntityType.ASSET) && msg.getEvent() == ComponentLifecycleEvent.UPDATED) ||
+                         entityType.equals(EntityType.ASSET_PROFILE) ||
+                         entityType.equals(EntityType.API_USAGE_STATE) ||
+                         (entityType.equals(EntityType.DEVICE) && msg.getEvent() == ComponentLifecycleEvent.UPDATED) ||
+                         entityType.equals(EntityType.ENTITY_VIEW) ||
+                         entityType.equals(EntityType.NOTIFICATION_RULE) ||
+                         entityType.equals(EntityType.CALCULATED_FIELD) ||
+                         entityType.equals(EntityType.JOB);
 
         boolean toRuleEngine = !toIntegrationExecutor;
 
@@ -713,7 +715,7 @@ public class DefaultTbClusterService implements TbClusterService {
             int toEdgeNfsCnt = toEdgeNfs.getAndSet(0);
             if (toCoreMsgCnt > 0 || toCoreNfsCnt > 0 || toIeNfsCnt > 0 || toRuleEngineMsgsCnt > 0 || toRuleEngineNfsCnt > 0 || toTransportNfsCnt > 0 || toEdgeMsgCnt > 0 || toEdgeNfsCnt > 0) {
                 log.info("To TbCore: [{}] messages [{}] notifications; To TbRuleEngine: [{}] messages [{}] notifications; To Transport: [{}] notifications; " +
-                                "To Integration Executor: [{}] notifications; To Edge: [{}] messages [{}] notifications",
+                         "To Integration Executor: [{}] notifications; To Edge: [{}] messages [{}] notifications",
                         toCoreMsgCnt, toCoreNfsCnt, toRuleEngineMsgsCnt, toRuleEngineNfsCnt, toTransportNfsCnt, toIeNfsCnt, toEdgeMsgCnt, toEdgeNfsCnt);
             }
         }

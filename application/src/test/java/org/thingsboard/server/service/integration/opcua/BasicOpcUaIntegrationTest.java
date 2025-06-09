@@ -306,7 +306,8 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                 .setIntegrationIdLSB(integration.getId().getId().getLeastSignificantBits())
                 .setIntegrationIdMSB(integration.getId().getId().getMostSignificantBits())
-                .setData(TbMsg.toByteString(tbMsg)).build();
+                .setDataProto(TbMsg.toProto(tbMsg))
+                .build();
     }
 
     private Boolean integrationConnectionStatusEquals(long startTs, IntegrationDebugMessageStatus expectedStatus) throws Exception {

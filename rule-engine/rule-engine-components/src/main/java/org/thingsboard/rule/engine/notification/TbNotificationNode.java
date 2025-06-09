@@ -58,7 +58,8 @@ import java.util.concurrent.ExecutionException;
         nodeDescription = "Sends notification to targets using the template",
         nodeDetails = "Will send notification to the specified targets using the template",
         configDirective = "tbExternalNodeNotificationConfig",
-        icon = "notifications"
+        icon = "notifications",
+        hasSecrets = true
 )
 public class TbNotificationNode extends TbAbstractExternalNode {
 

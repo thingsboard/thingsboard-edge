@@ -48,7 +48,7 @@ public class ControllerConstants {
     protected static final String ASSIGNEE_ID = "assigneeId";
     protected static final String INTEGRATION_NAME = "integrationName";
     protected static final String INCLUDE_GATEWAY_INFO = "includeGatewayInfo";
-    protected static final String IS_GATEWAY_INFO_INCLUDED = "false";
+    protected static final boolean IS_GATEWAY_INFO_INCLUDED = false;
 
     protected static final String PAGE_DATA_PARAMETERS = "You can specify parameters to filter the results. " +
             "The result is wrapped with PageData object that allows you to iterate over result set using pagination. " +
@@ -140,6 +140,7 @@ public class ControllerConstants {
     protected static final String TENANT_PROFILE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the tenant profile name.";
     protected static final String RULE_CHAIN_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the rule chain name.";
     protected static final String DEVICE_PROFILE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the device profile name.";
+    protected static final String SECRET_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the secret name.";
 
     protected static final String ASSET_PROFILE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the asset profile name.";
     protected static final String CUSTOMER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the customer title.";

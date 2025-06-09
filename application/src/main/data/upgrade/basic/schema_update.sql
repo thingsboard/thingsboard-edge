@@ -29,98 +29,73 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
--- CONVERTERS 2.0 START
+-- UPDATE INTEGRATION PROTOCOL VERSION FOR MQTT CLIENT TYPES START
 
-ALTER TABLE converter ADD COLUMN IF NOT EXISTS integration_type varchar(255);
-
-ALTER TABLE converter ADD COLUMN IF NOT EXISTS converter_version INT DEFAULT 1;
-
--- CONVERTERS 2.0 END
-
--- UPDATE DEFAULT TENANT USERS ROLE START
-
-UPDATE role SET permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY", "READ_CALCULATED_FIELD"]}'
-WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' and customer_id = '13814000-1dd2-11b2-8080-808080808080' and name = 'Tenant User'
-  and permissions = '{"PROFILE":["ALL"],"ALL":["READ","RPC_CALL","READ_CREDENTIALS","READ_ATTRIBUTES","READ_TELEMETRY"]}';
-
--- UPDATE DEFAULT TENANT USERS ROLE END
-
--- UPDATE SAVE TIME SERIES NODES START
-
-UPDATE rule_node
-SET configuration = (
-    (configuration::jsonb - 'skipLatestPersistence')
-        || jsonb_build_object(
-            'processingSettings', jsonb_build_object(
-                    'type',       'ADVANCED',
-                    'timeseries',       jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
-                    'latest',           jsonb_build_object('type', 'SKIP'),
-                    'webSockets',       jsonb_build_object('type', 'ON_EVERY_MESSAGE'),
-                    'calculatedFields', jsonb_build_object('type', 'ON_EVERY_MESSAGE')
-                                  )
-           )
-    )::text,
-    configuration_version = 1
-WHERE type = 'org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode'
-  AND configuration_version = 0
-  AND configuration::jsonb ->> 'skipLatestPersistence' = 'true';
-
-UPDATE rule_node
-SET configuration = (
-    (configuration::jsonb - 'skipLatestPersistence')
-        || jsonb_build_object(
-            'processingSettings', jsonb_build_object(
-                    'type', 'ON_EVERY_MESSAGE'
-                                  )
-           )
-    )::text,
-    configuration_version = 1
-WHERE type = 'org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode'
-  AND configuration_version = 0
-  AND (configuration::jsonb ->> 'skipLatestPersistence' != 'true' OR configuration::jsonb ->> 'skipLatestPersistence' IS NULL);
-
--- UPDATE SAVE TIME SERIES NODES END
-
--- UPDATE SAVE ATTRIBUTES NODES START
-
-UPDATE rule_node
-SET configuration = (
-    configuration::jsonb
-        || jsonb_build_object(
-            'processingSettings', jsonb_build_object('type', 'ON_EVERY_MESSAGE')
-           )
-    )::text,
-    configuration_version = 3
-WHERE type = 'org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode'
-  AND configuration_version = 2;
-
--- UPDATE SAVE ATTRIBUTES NODES END
-
-ALTER TABLE api_usage_state ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;
-
--- UPDATE TENANT PROFILE CALCULATED FIELD LIMITS START
-
-UPDATE tenant_profile
-SET profile_data = profile_data
-    || jsonb_build_object(
-                           'configuration', profile_data->'configuration' || jsonb_build_object(
-                    'maxCalculatedFieldsPerEntity', COALESCE(profile_data->'configuration'->>'maxCalculatedFieldsPerEntity', '5')::bigint,
-                    'maxArgumentsPerCF', COALESCE(profile_data->'configuration'->>'maxArgumentsPerCF', '10')::bigint,
-                    'maxDataPointsPerRollingArg', COALESCE(profile_data->'configuration'->>'maxDataPointsPerRollingArg', '1000')::bigint,
-                    'maxStateSizeInKBytes', COALESCE(profile_data->'configuration'->>'maxStateSizeInKBytes', '32')::bigint,
-                    'maxSingleValueArgumentSizeInKBytes', COALESCE(profile_data->'configuration'->>'maxSingleValueArgumentSizeInKBytes', '2')::bigint
-                                                                             )
-       )
-WHERE profile_data->'configuration'->>'maxCalculatedFieldsPerEntity' IS NULL;
-
--- UPDATE TENANT PROFILE CALCULATED FIELD LIMITS END
-
--- UPDATE TENANT PROFILE DEBUG DURATION START
-
-UPDATE tenant_profile
-SET profile_data = jsonb_set(profile_data, '{configuration,maxDebugModeDurationMinutes}', '15', true)
+UPDATE integration
+SET configuration = jsonb_set(configuration::jsonb,'{clientConfiguration,protocolVersion}','"MQTT_3_1"', true)::varchar
 WHERE
-    profile_data->'configuration' ? 'maxDebugModeDurationMinutes' = false
-    OR (profile_data->'configuration'->>'maxDebugModeDurationMinutes')::int = 0;
+    configuration::text NOT LIKE '%\\u0000%' -- Just in case to skip corrupted or invalid binary JSON
+    AND NOT (configuration::jsonb)->'clientConfiguration' ? 'protocolVersion'
+    AND type IN ('MQTT', 'AWS_IOT', 'IBM_WATSON_IOT', 'TTI', 'TTN');
 
--- UPDATE TENANT PROFILE DEBUG DURATION END
+-- Set "MQTT_3_1_1" only for AZURE_IOT_HUB
+UPDATE integration
+SET configuration = jsonb_set(configuration::jsonb,'{clientConfiguration,protocolVersion}','"MQTT_3_1_1"', true)::varchar
+WHERE
+    configuration::text NOT LIKE '%\\u0000%' -- Just in case to skip corrupted or invalid binary JSON
+    AND NOT (configuration::jsonb)->'clientConfiguration' ? 'protocolVersion'
+    AND type = 'AZURE_IOT_HUB';
+
+-- UPDATE INTEGRATION PROTOCOL VERSION FOR MQTT CLIENT TYPES END
+
+-- UPDATE TENANT PROFILE CASSANDRA RATE LIMITS START
+
+UPDATE tenant_profile
+SET profile_data = jsonb_set(
+        profile_data,
+        '{configuration}',
+        (
+            (profile_data -> 'configuration') - 'cassandraQueryTenantRateLimitsConfiguration'
+                ||
+            COALESCE(
+                    CASE
+                        WHEN profile_data -> 'configuration' ->
+                             'cassandraQueryTenantRateLimitsConfiguration' IS NOT NULL THEN
+                            jsonb_build_object(
+                                    'cassandraReadQueryTenantCoreRateLimits',
+                                    profile_data -> 'configuration' -> 'cassandraQueryTenantRateLimitsConfiguration',
+                                    'cassandraWriteQueryTenantCoreRateLimits',
+                                    profile_data -> 'configuration' -> 'cassandraQueryTenantRateLimitsConfiguration',
+                                    'cassandraReadQueryTenantRuleEngineRateLimits',
+                                    profile_data -> 'configuration' -> 'cassandraQueryTenantRateLimitsConfiguration',
+                                    'cassandraWriteQueryTenantRuleEngineRateLimits',
+                                    profile_data -> 'configuration' -> 'cassandraQueryTenantRateLimitsConfiguration'
+                            )
+                        END,
+                    '{}'::jsonb
+            )
+            )
+                   )
+WHERE profile_data -> 'configuration' ? 'cassandraQueryTenantRateLimitsConfiguration';
+
+-- UPDATE TENANT PROFILE CASSANDRA RATE LIMITS END
+
+-- UPDATE NOTIFICATION RULE CASSANDRA RATE LIMITS START
+
+UPDATE notification_rule
+SET trigger_config = REGEXP_REPLACE(
+        trigger_config,
+        '"CASSANDRA_QUERIES"',
+        '"CASSANDRA_WRITE_QUERIES_CORE","CASSANDRA_READ_QUERIES_CORE","CASSANDRA_WRITE_QUERIES_RULE_ENGINE","CASSANDRA_READ_QUERIES_RULE_ENGINE","CASSANDRA_WRITE_QUERIES_MONOLITH","CASSANDRA_READ_QUERIES_MONOLITH"',
+        'g'
+                     )
+WHERE trigger_type = 'RATE_LIMITS'
+  AND trigger_config LIKE '%"CASSANDRA_QUERIES"%';
+
+-- UPDATE NOTIFICATION RULE CASSANDRA RATE LIMITS END
+
+-- UPDATE COMPONENT DESCRIPTOR SECRETS START
+
+ALTER TABLE component_descriptor ADD COLUMN IF NOT EXISTS has_secrets boolean default false;
+
+-- UPDATE COMPONENT DESCRIPTOR SECRETS END

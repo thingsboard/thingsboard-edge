@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -149,6 +150,11 @@ public class DeviceServiceImpl extends CachedVersionedEntityService<DeviceCacheK
         log.trace("Executing findDeviceInfoById [{}]", deviceId);
         validateId(deviceId, id -> INCORRECT_DEVICE_ID + id);
         return deviceInfoDao.findById(tenantId, deviceId.getId());
+    }
+
+    @Override
+    public EntityInfo findDeviceEntityInfoById(TenantId tenantId, DeviceId deviceId) {
+        return deviceDao.findDeviceEntityInfoById(tenantId, deviceId);
     }
 
     @Override
@@ -425,6 +431,11 @@ public class DeviceServiceImpl extends CachedVersionedEntityService<DeviceCacheK
     }
 
     @Override
+    public PageData<EntityInfo> findDeviceEntityInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink) {
+        return deviceDao.findDeviceEntityInfosByTenantIdAndDeviceProfileId(tenantId, deviceProfileId, pageLink);
+    }
+
+    @Override
     public ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(TenantId tenantId, List<DeviceId> deviceIds) {
         log.trace("Executing findDevicesByTenantIdAndIdsAsync, tenantId [{}], deviceIds [{}]", tenantId, deviceIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
@@ -598,10 +609,10 @@ public class DeviceServiceImpl extends CachedVersionedEntityService<DeviceCacheK
         }
         Device savedDevice = saveDevice(device);
         if (!StringUtils.isEmpty(provisionRequest.getCredentialsData().getToken()) ||
-                !StringUtils.isEmpty(provisionRequest.getCredentialsData().getX509CertHash()) ||
-                !StringUtils.isEmpty(provisionRequest.getCredentialsData().getUsername()) ||
-                !StringUtils.isEmpty(provisionRequest.getCredentialsData().getPassword()) ||
-                !StringUtils.isEmpty(provisionRequest.getCredentialsData().getClientId())) {
+            !StringUtils.isEmpty(provisionRequest.getCredentialsData().getX509CertHash()) ||
+            !StringUtils.isEmpty(provisionRequest.getCredentialsData().getUsername()) ||
+            !StringUtils.isEmpty(provisionRequest.getCredentialsData().getPassword()) ||
+            !StringUtils.isEmpty(provisionRequest.getCredentialsData().getClientId())) {
             DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(savedDevice.getTenantId(), savedDevice.getId());
             if (deviceCredentials == null) {
                 deviceCredentials = new DeviceCredentials();
@@ -679,7 +690,7 @@ public class DeviceServiceImpl extends CachedVersionedEntityService<DeviceCacheK
                                                                                 OtaPackageType type,
                                                                                 PageLink pageLink) {
         log.trace("Executing findByEntityGroupIdAndDeviceProfileAndFirmwareIsNull, groupId [{}], deviceProfileId [{}], " +
-                " firmwareType [{}]", groupId, deviceProfileId, type);
+                  " firmwareType [{}]", groupId, deviceProfileId, type);
         validateId(groupId, id -> "Incorrect groupId" + id);
         validateId(deviceProfileId, id -> "Incorrect deviceProfileId" + id);
         validatePageLink(pageLink);

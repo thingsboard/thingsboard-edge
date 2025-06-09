@@ -92,7 +92,8 @@ public abstract class AbstractComponentDescriptorInsertRepository implements Com
                 .setParameter("scope", entity.getScope().name())
                 .setParameter("type", entity.getType().name())
                 .setParameter("clustering_mode", entity.getClusteringMode().name())
-                .setParameter("has_queue_name", entity.isHasQueueName());
+                .setParameter("has_queue_name", entity.isHasQueueName())
+                .setParameter("has_secrets", entity.isHasSecrets());
     }
 
     private ComponentDescriptorEntity processSaveOrUpdate(ComponentDescriptorEntity entity, String query) {

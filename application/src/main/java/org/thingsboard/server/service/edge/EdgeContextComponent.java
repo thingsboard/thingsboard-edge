@@ -46,6 +46,7 @@ import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -88,6 +89,7 @@ import org.thingsboard.server.service.edge.rpc.processor.alarm.comment.AlarmComm
 import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.asset.profile.AssetProfileEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.converter.ConverterEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.calculated.CalculatedFieldProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.dashboard.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.device.DeviceEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.device.ota.DeviceOtaPackageEdgeProcessor;
@@ -376,6 +378,12 @@ public class EdgeContextComponent {
     // callback
     @Autowired
     private GrpcCallbackExecutorService grpcCallbackExecutorService;
+
+    @Autowired
+    private CalculatedFieldService calculatedFieldService;
+
+    @Autowired
+    private CalculatedFieldProcessor calculatedFieldProcessor;
 
     public EdgeProcessor getProcessor(EdgeEventType edgeEventType) {
         EdgeProcessor processor = processorMap.get(edgeEventType);

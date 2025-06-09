@@ -127,6 +127,7 @@ import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
@@ -217,9 +218,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbCustomTranslationService translationService,
                                         TbCustomMenuService customMenuService,
                                         CalculatedFieldCache calculatedFieldCache,
-                                        EdqsService edqsService) {
+                                        EdqsService edqsService,
+                                        OwnersCacheService ownersCacheService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService,
-                eventPublisher, jwtSettingsService);
+                eventPublisher, jwtSettingsService, ownersCacheService);
         this.stateService = stateService;
         this.schedulerService = schedulerService;
         this.localSubscriptionService = localSubscriptionService;
@@ -305,14 +307,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         mainConsumer.update(event.getCorePartitions());
         usageStatsConsumer.subscribe(event.getCorePartitions()
                 .stream()
-                .map(tpi -> tpi.newByTopic(usageStatsConsumer.getConsumer().getTopic()))
+                .map(tpi -> tpi.withTopic(usageStatsConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
         integrationApiConsumer.subscribe(event.getCorePartitions().stream()
-                .map(tpi -> tpi.newByTopic(integrationApiConsumer.getConsumer().getTopic()))
+                .map(tpi -> tpi.withTopic(integrationApiConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
     }
 
-    private void processMsgs(List<TbProtoQueueMsg<ToCoreMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> consumer, QueueConfig config) throws Exception {
+    private void processMsgs(List<TbProtoQueueMsg<ToCoreMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> consumer, Object consumerKey, QueueConfig config) throws Exception {
         List<IdMsgPair<ToCoreMsg>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).toList();
         ConcurrentMap<UUID, TbProtoQueueMsg<ToCoreMsg>> pendingMap = orderedMsgList.stream().collect(
                 Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));
@@ -651,19 +653,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                     proto.getScope(), KvProtoUtil.toAttributeKvList(proto.getDataList()), callback);
         } else if (msg.hasAttrDelete()) {
             TbAttributeDeleteProto proto = msg.getAttrDelete();
-            if (proto.hasNotifyDevice()) {
-                // handles old messages with deprecated 'notifyDevice'
-                subscriptionManagerService.onAttributesDelete(
-                        toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),
-                        TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
-                        proto.getScope(), proto.getKeysList(), proto.getNotifyDevice(), callback);
-            } else {
-                // handles new messages without 'notifyDevice'
-                subscriptionManagerService.onAttributesDelete(
-                        toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),
-                        TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
-                        proto.getScope(), proto.getKeysList(), callback);
-            }
+            subscriptionManagerService.onAttributesDelete(
+                    toTenantId(proto.getTenantIdMSB(), proto.getTenantIdLSB()),
+                    TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
+                    proto.getScope(), proto.getKeysList(), callback);
         } else if (msg.hasTsDelete()) {
             TbTimeSeriesDeleteProto proto = msg.getTsDelete();
             subscriptionManagerService.onTimeSeriesDelete(

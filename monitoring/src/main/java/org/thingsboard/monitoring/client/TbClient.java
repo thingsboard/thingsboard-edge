@@ -30,17 +30,15 @@
  */
 package org.thingsboard.monitoring.client;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rest.client.RestClient;
 
 import java.time.Duration;
 
 @Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class TbClient extends RestClient {
 
     @Value("${monitoring.rest.username}")
@@ -54,6 +52,11 @@ public class TbClient extends RestClient {
                 .setConnectTimeout(Duration.ofMillis(requestTimeoutMs))
                 .setReadTimeout(Duration.ofMillis(requestTimeoutMs))
                 .build(), baseUrl);
+    }
+
+    @PostConstruct
+    private void init() {
+        logIn();
     }
 
     public String logIn() {

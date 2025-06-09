@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -108,6 +109,10 @@ import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DaoSqlTest
+@TestPropertySource(properties = {
+        "queue.edqs.sync.enabled=true", // only enabling sync
+        "queue.edqs.api.supported=false",
+})
 public class EntityQueryControllerTest extends AbstractControllerTest {
 
     protected final String CUSTOMER_ADMIN_EMAIL = "testadmincustomer@thingsboard.org";
