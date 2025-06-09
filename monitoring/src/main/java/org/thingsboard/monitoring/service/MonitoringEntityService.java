@@ -84,6 +84,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -302,9 +303,26 @@ public class MonitoringEntityService {
                     defaultIntegration.setName(integrationName);
                     defaultIntegration.setDefaultConverterId(converterId);
                     defaultIntegration.setRoutingKey(UUID.randomUUID().toString());
+                    List<String> configParams;
+                    switch (config.getIntegrationType()) {
+                        case MQTT -> {
+                            URI url = URI.create(target.getBaseUrl());
+                            configParams = List.of(
+                                    url.getHost() /* %1$s */,
+                                    String.valueOf(url.getPort()) /* %2$s */,
+                                    defaultIntegration.getRoutingKey() /* %3$s */
+                            );
+                        }
+                        default -> {
+                            configParams = List.of(
+                                    target.getBaseUrl() /* %1$s */,
+                                    defaultIntegration.getRoutingKey() /* %2$s */
+                            );
+                        }
+                    }
                     defaultIntegration.setConfiguration(JacksonUtil.toJsonNode(
                             String.format(defaultIntegration.getConfiguration().toString(),
-                                    target.getBaseUrl() /* %1$s */, defaultIntegration.getRoutingKey() /* %2$s */)));
+                                    configParams.toArray())));
                     log.info("Creating new integration '{}'", integrationName);
                     return tbClient.saveIntegration(defaultIntegration);
                 });
