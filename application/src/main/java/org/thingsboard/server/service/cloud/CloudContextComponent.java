@@ -102,6 +102,9 @@ public class CloudContextComponent {
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
 
+    @Autowired
+    private CalculatedFieldCloudProcessor calculatedFieldProcessor;
+
     // callback
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;

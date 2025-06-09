@@ -51,6 +51,7 @@ import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -237,6 +238,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private OAuth2CloudProcessor oAuth2CloudProcessor;
+
+    @Autowired
+    private CalculatedFieldCloudProcessor calculatedFieldCloudProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -473,6 +477,12 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(deviceProcessor.processDeviceGroupOtaPackageFromCloud(tenantId, deviceGroupOtaPackageUpdateMsg));
                 }
             }
+            if (downlinkMsg.getCalculatedFieldUpdateMsgCount() > 0) {
+                for (CalculatedFieldUpdateMsg calculatedFieldUpdateMsg : downlinkMsg.getCalculatedFieldUpdateMsgList()) {
+                    result.add(calculatedFieldCloudProcessor.processCalculatedFieldMsgFromCloud(tenantId, calculatedFieldUpdateMsg));
+                }
+            }
+
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
         } catch (Exception e) {
             log.error("Can't process downlink message [{}]", downlinkMsg, e);

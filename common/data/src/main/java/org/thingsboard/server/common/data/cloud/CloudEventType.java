@@ -57,7 +57,8 @@ public enum CloudEventType {
     ENTITY_GROUP(EntityType.ENTITY_GROUP),
     SCHEDULER_EVENT(EntityType.SCHEDULER_EVENT),
     ROLE(EntityType.ROLE),
-    GROUP_PERMISSION(EntityType.GROUP_PERMISSION);
+    GROUP_PERMISSION(EntityType.GROUP_PERMISSION),
+    CALCULATED_FIELD(EntityType.CALCULATED_FIELD);
 
     private final EntityType entityType;
 
