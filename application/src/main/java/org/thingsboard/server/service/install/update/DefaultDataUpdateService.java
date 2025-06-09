@@ -182,16 +182,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private TenantProfileService tenantProfileService;
 
-    // edge-only: for case "edge" in updateData
-    @Autowired
-    private TenantService tenantService;
-
-    @Autowired
-    private EdgeSettingsService edgeSettingsService;
-
-    @Autowired
-    private WidgetsBundleService widgetsBundleService;
-
     @Override
     public void updateData(boolean fromCe) throws Exception {
         log.info("Updating data ...");
