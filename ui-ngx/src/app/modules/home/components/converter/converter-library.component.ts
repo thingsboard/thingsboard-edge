@@ -38,6 +38,7 @@ import {
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   Output,
   SimpleChanges,
   ViewChild,
@@ -59,7 +60,6 @@ import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterLibraryInfo, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-converter-library',
@@ -80,7 +80,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges, OnDestroy {
+export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges, OnDestroy, OnInit {
 
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
@@ -120,8 +120,12 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     this.libraryFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.updateView(this.libraryFormGroup.getRawValue()));
+  }
 
+  ngOnInit() {
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
+      switchMap(() => of(`${this.integrationType};${this.converterType}`)),
+      distinctUntilChanged(),
       switchMap(() =>
         this.converterLibraryService.getVendors(this.integrationType, this.converterType)
       ),
@@ -183,7 +187,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
         map((converter: Converter) => {
           const defaultDebugSettings = { allEnabled: true, failuresEnabled: true };
           const defaultConverter = {
-            type: this.converterType,
             integrationType: this.integrationType,
             converterVersion: 1,
             debugSettings: defaultDebugSettings
@@ -264,7 +267,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       this.libraryFormGroup.patchValue(converterLibraryValue, {emitEvent: true});
     } else {
       this.modelValue = null;
-      this.libraryFormGroup.patchValue( {vendor: '', model: ''}, {emitEvent: false})
+      this.libraryFormGroup.patchValue( {vendor: '', model: ''}, {emitEvent: true})
     }
   }
 

@@ -259,11 +259,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   private resetToNewTab() {
-    this.updatedConverterLibraryDisableState(this.converterTypeValue);
-    this.entityForm.get('converterLibrary').patchValue(null, {emitEvent: false});
     this.prevLibraryConverterFormValue = null;
     this.prevNewConverterFormValue = null;
     this._converterTypeValue = ConverterSourceType.NEW;
+    this.entityForm.get('converterLibrary').patchValue(null, {emitEvent: false});
+    this.updatedConverterLibraryDisableState(this.converterTypeValue);
   }
 
   hideDelete() {
@@ -277,6 +277,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     if (this.prevLibraryConverterFormValue) {
       this.updateForm(this.prevLibraryConverterFormValue, false);
     } else {
+      if (converter.type !== this.entityForm.get('type').value) {
+        converter.type = this.entityForm.get('type').value;
+      }
       this.updateForm(converter, false);
     }
   }
@@ -355,13 +358,13 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   updatedValidators() {
     this.updatedConverterVersionDisableState();
+    this.updatedConverterScriptLangDisableState(this.entity);
+    this.updatedConverterLibraryDisableState(this.converterTypeValue);
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup, emitEvent = true) {
-    this.updatedConverterScriptLangDisableState(entity);
     if (entity && !entity.id) {
       if (!this.entityForm.get('converterLibrary').value) {
-        form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent});
         form.get('configuration.scriptLang').patchValue(
           this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent});
         if (!emitEvent) {
@@ -372,6 +375,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       } else {
         this.updatedPredefinedConverterKeys();
         this.updatedConverterVersionDisableState();
+        this.updatedConverterScriptLangDisableState(entity);
         form.updateValueAndValidity();
       }
     } else {
@@ -478,7 +482,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   private onSetDefaultScriptBody(converterType: ConverterType): void {
-    if (this.entityForm.get('converterLibrary').value) {
+    if (this.entityForm.get('converterLibrary').value && this.converterTypeValue === ConverterSourceType.LIBRARY) {
       return;
     }
 

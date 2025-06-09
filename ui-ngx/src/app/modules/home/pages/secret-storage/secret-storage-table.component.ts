@@ -76,6 +76,7 @@ import {
   SecretStorageData,
   SecretStorageDialogComponent
 } from '@shared/components/secret-storage/secret-storage-dialog.component';
+import { Direction } from '@shared/models/page/sort-order';
 
 @Component({
   selector: 'tb-secret-storage-table',
@@ -109,6 +110,7 @@ export class SecretStorageTableComponent implements OnInit {
     this.secretStorageTableConfig.entityTranslations = entityTypeTranslations.get(EntityType.SECRET);
     this.secretStorageTableConfig.entityResources = entityTypeResources.get(EntityType.SECRET);
     this.secretStorageTableConfig.entitiesFetchFunction = pageLink => this.secretStorageService.getSecrets(pageLink);
+    this.secretStorageTableConfig.defaultSortOrder = {property: 'name', direction: Direction.ASC}
     this.secretStorageTableConfig.onEntityAction = action => this.onSecretAction(action);
     this.secretStorageTableConfig.entitiesDeleteEnabled = false;
     this.secretStorageTableConfig.saveEntity = secret => this.secretStorageService.saveSecret(secret as SecretStorageInfo);

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { SubscriptSizing, MatFormFieldAppearance } from '@angular/material/form-field';
@@ -45,7 +45,7 @@ import { MqttVersionTranslation, MqttVersion } from '@shared/models/mqtt.models'
     multi: true
   }]
 })
-export class MqttVersionSelectComponent implements ControlValueAccessor {
+export class MqttVersionSelectComponent implements ControlValueAccessor, OnChanges {
 
   @Input()
   disabled: boolean;
@@ -56,7 +56,10 @@ export class MqttVersionSelectComponent implements ControlValueAccessor {
   @Input()
   appearance: MatFormFieldAppearance = 'fill';
 
-  mqttVersions = Object.values(MqttVersion);
+  @Input()
+  excludeVersions: MqttVersion[];
+
+  mqttVersions =  Object.values(MqttVersion);
   mqttVersionTranslation = MqttVersionTranslation;
   modelValue: MqttVersion;
 
@@ -67,6 +70,20 @@ export class MqttVersionSelectComponent implements ControlValueAccessor {
   private propagateChange = (v: any) => { };
 
   constructor() {
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (propName === 'excludeVersions' && change.currentValue !== change.previousValue) {
+        const excludeVersions = change.currentValue;
+        if (excludeVersions?.length) {
+          this.mqttVersions = Object.values(MqttVersion).filter(v => !excludeVersions.includes(v));
+        } else {
+          this.mqttVersions = Object.values(MqttVersion);
+        }
+      }
+    }
   }
 
   registerOnChange(fn: any): void {

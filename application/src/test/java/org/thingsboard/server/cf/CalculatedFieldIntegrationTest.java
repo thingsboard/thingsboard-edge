@@ -72,7 +72,7 @@ import org.thingsboard.server.controller.CalculatedFieldControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator;
-import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CfReprocessingValidationResult;
 
 import java.util.List;
 import java.util.Map;
@@ -1004,7 +1004,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         CalculatedField savedCalculatedField = doPost("/api/calculatedField", calculatedField, CalculatedField.class);
 
-        var response = doGet("/api/calculatedField/" + savedCalculatedField.getUuidId() + "/reprocess/validate", CFReprocessingValidationResponse.class);
+        var response = doGet("/api/calculatedField/" + savedCalculatedField.getUuidId() + "/reprocess/validate", CfReprocessingValidationResult.class);
 
         assertThat(response.isValid()).isFalse();
         assertThat(response.message()).contains(CalculatedFieldReprocessingValidator.NO_TELEMETRY_ARGS);
@@ -1024,7 +1024,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
         CalculatedField savedCalculatedField = createCalculatedField(testDevice.getId(), testAsset.getId());
         reprocessCalculatedField(savedCalculatedField, startTs, endTs);
 
-        var response = doGet("/api/calculatedField/" + savedCalculatedField.getUuidId() + "/reprocess/validate", CFReprocessingValidationResponse.class);
+        var response = doGet("/api/calculatedField/" + savedCalculatedField.getUuidId() + "/reprocess/validate", CfReprocessingValidationResult.class);
 
         assertThat(response.isValid()).isFalse();
         assertThat(response.lastJobStatus().isOneOf(QUEUED, PENDING, RUNNING)).isTrue();

@@ -52,7 +52,7 @@ import {
   ttnVersionMap
 } from '@home/components/integration/integration.models';
 import { IntegrationCredentialType, TtnIntegration, } from '@shared/models/integration.models';
-import { DEFAULT_MQTT_VERSION } from '@shared/models/mqtt.models';
+import { DEFAULT_MQTT_VERSION, MqttVersion } from '@shared/models/mqtt.models';
 
 @Component({
   selector: 'tb-ttn-integration-form',
@@ -80,6 +80,7 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
   ThingsStartHostTypes = Object.values(ThingsStartHostType).filter(v => isNumber(v));
   ThingsStartHostTypeTranslation = ThingsStartHostTypeTranslation;
   IntegrationCredentialType = IntegrationCredentialType;
+  MqttVersion = MqttVersion;
 
   hostRegionSuffix = '.cloud.thethings.network';
   hideSelectVersion = false;

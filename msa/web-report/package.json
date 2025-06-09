@@ -18,8 +18,8 @@
     "express": "~4.21.1",
     "js-yaml": "^4.1.0",
     "patch-package": "^8.0.0",
-    "playwright-chromium": "~1.48.2",
-    "playwright-core": "~1.48.2",
+    "playwright-chromium": "~1.52.0",
+    "playwright-core": "~1.52.0",
     "postinstall-postinstall": "^2.1.0",
     "winston": "~3.16.0",
     "winston-daily-rotate-file": "~5.0.0"
