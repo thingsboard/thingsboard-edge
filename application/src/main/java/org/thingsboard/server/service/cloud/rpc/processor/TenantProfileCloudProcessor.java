@@ -54,7 +54,7 @@ import java.util.List;
 public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processTenantProfileMsgFromCloud(TenantId tenantId, TenantProfileUpdateMsg tenantProfileUpdateMsg) {
-        TenantProfile tenantProfileMsg  = JacksonUtil.fromString(tenantProfileUpdateMsg.getEntity(), TenantProfile.class, true);
+        TenantProfile tenantProfileMsg = JacksonUtil.fromString(tenantProfileUpdateMsg.getEntity(), TenantProfile.class, true);
         if (tenantProfileMsg == null) {
             throw new RuntimeException("[{" + tenantId + "}] tenantProfileUpdateMsg {" + tenantProfileUpdateMsg + "} cannot be converted to tenant profile");
         }
@@ -116,7 +116,10 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
         configuration.setTenantEntityExportRateLimit(null);
         configuration.setTenantEntityImportRateLimit(null);
         configuration.setWsUpdatesPerSessionRateLimit(null);
-        configuration.setCassandraQueryTenantRateLimitsConfiguration(null);
+        configuration.setCassandraReadQueryTenantCoreRateLimits(null);
+        configuration.setCassandraWriteQueryTenantCoreRateLimits(null);
+        configuration.setCassandraReadQueryTenantRuleEngineRateLimits(null);
+        configuration.setCassandraWriteQueryTenantRuleEngineRateLimits(null);
         configuration.setTenantNotificationRequestsRateLimit(null);
         configuration.setTenantNotificationRequestsPerRuleRateLimit(null);
         configuration.setEdgeEventRateLimits(null);
