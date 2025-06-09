@@ -66,72 +66,72 @@ public class CalculatedFieldReprocessingValidator {
     private final TbelInvokeService tbelInvokeService;
     private final ApiLimitService apiLimitService;
 
-    public CFReprocessingValidationResponse validate(CalculatedField calculatedField) {
+    public CfReprocessingValidationResult validate(CalculatedField calculatedField) {
         return checkJobStatus(calculatedField.getTenantId(), calculatedField.getId())
                 .or(() -> checkArguments(calculatedField.getConfiguration().getArguments()))
                 .or(() -> checkExpression(calculatedField))
                 .or(() -> checkOutput(calculatedField.getConfiguration().getOutput()))
-                .orElse(CFReprocessingValidationResponse.valid());
+                .orElse(CfReprocessingValidationResult.valid());
     }
 
-    private Optional<CFReprocessingValidationResponse> checkJobStatus(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
+    private Optional<CfReprocessingValidationResult> checkJobStatus(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
         Job job = jobService.findLatestJobByKey(tenantId, calculatedFieldId.getId().toString());
         if (job != null && job.getStatus().isOneOf(QUEUED, PENDING, RUNNING)) {
-            return Optional.of(CFReprocessingValidationResponse.invalid("Calculated field reprocessing is already " + job.getStatus().name().toLowerCase(), job.getStatus()));
+            return Optional.of(CfReprocessingValidationResult.invalid("Calculated field reprocessing is already " + job.getStatus().name().toLowerCase(), job.getStatus()));
         }
         return Optional.empty();
     }
 
-    private Optional<CFReprocessingValidationResponse> checkArguments(Map<String, Argument> arguments) {
+    private Optional<CfReprocessingValidationResult> checkArguments(Map<String, Argument> arguments) {
         if (arguments == null || arguments.isEmpty()) {
-            return Optional.of(CFReprocessingValidationResponse.invalid(NO_ARGUMENTS));
+            return Optional.of(CfReprocessingValidationResult.invalid(NO_ARGUMENTS));
         }
         boolean containsTelemetry = arguments.values().stream()
                 .anyMatch(arg -> ArgumentType.TS_LATEST.equals(arg.getRefEntityKey().getType()) ||
-                        ArgumentType.TS_ROLLING.equals(arg.getRefEntityKey().getType()));
+                                 ArgumentType.TS_ROLLING.equals(arg.getRefEntityKey().getType()));
 
         if (!containsTelemetry) {
-            return Optional.of(CFReprocessingValidationResponse.invalid(NO_TELEMETRY_ARGS));
+            return Optional.of(CfReprocessingValidationResult.invalid(NO_TELEMETRY_ARGS));
         }
         return Optional.empty();
     }
 
-    private Optional<CFReprocessingValidationResponse> checkExpression(CalculatedField calculatedField) {
+    private Optional<CfReprocessingValidationResult> checkExpression(CalculatedField calculatedField) {
         CalculatedFieldCtx ctx = new CalculatedFieldCtx(calculatedField, tbelInvokeService, apiLimitService);
         try {
             ctx.init();
         } catch (Exception e) {
-            return Optional.of(CFReprocessingValidationResponse.invalid(e.getMessage()));
+            return Optional.of(CfReprocessingValidationResult.invalid(e.getMessage()));
         } finally {
             ctx.stop();
         }
         return Optional.empty();
     }
 
-    private Optional<CFReprocessingValidationResponse> checkOutput(Output output) {
+    private Optional<CfReprocessingValidationResult> checkOutput(Output output) {
         if (output == null) {
-            return Optional.of(CFReprocessingValidationResponse.invalid(NO_OUTPUT));
+            return Optional.of(CfReprocessingValidationResult.invalid(NO_OUTPUT));
         }
         if (OutputType.ATTRIBUTES.equals(output.getType())) {
-            return Optional.of(CFReprocessingValidationResponse.invalid(INVALID_OUTPUT_TYPE));
+            return Optional.of(CfReprocessingValidationResult.invalid(INVALID_OUTPUT_TYPE));
         }
         return Optional.empty();
     }
 
-    public record CFReprocessingValidationResponse(boolean isValid, String message, JobStatus lastJobStatus) {
+    public record CfReprocessingValidationResult(boolean isValid, String message, JobStatus lastJobStatus) {
 
-        private static final CFReprocessingValidationResponse VALID = new CFReprocessingValidationResponse(true, null, null);
+        private static final CfReprocessingValidationResult VALID = new CfReprocessingValidationResult(true, null, null);
 
-        public static CFReprocessingValidationResponse valid() {
+        public static CfReprocessingValidationResult valid() {
             return VALID;
         }
 
-        public static CFReprocessingValidationResponse invalid(String message) {
-            return new CFReprocessingValidationResponse(false, "Calculated field cannot be reprocessed: " + message, null);
+        public static CfReprocessingValidationResult invalid(String message) {
+            return new CfReprocessingValidationResult(false, "Calculated field cannot be reprocessed: " + message, null);
         }
 
-        public static CFReprocessingValidationResponse invalid(String message, JobStatus jobStatus) {
-            return new CFReprocessingValidationResponse(false, message, jobStatus);
+        public static CfReprocessingValidationResult invalid(String message, JobStatus jobStatus) {
+            return new CfReprocessingValidationResult(false, message, jobStatus);
         }
 
     }

@@ -47,7 +47,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
-import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CfReprocessingValidationResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Optional;
@@ -114,7 +114,7 @@ public class DefaultTbCalculatedFieldService extends AbstractTbEntityService imp
     }
 
     @Override
-    public CFReprocessingValidationResponse validate(CalculatedField calculatedField) {
+    public CfReprocessingValidationResult validateForReprocessing(CalculatedField calculatedField) {
         return cfReprocessingValidator.validate(calculatedField);
     }
 

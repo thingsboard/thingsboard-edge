@@ -37,7 +37,7 @@ import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CFReprocessingValidationResponse;
+import org.thingsboard.server.service.entitiy.cf.CalculatedFieldReprocessingValidator.CfReprocessingValidationResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface TbCalculatedFieldService {
@@ -52,6 +52,6 @@ public interface TbCalculatedFieldService {
 
     void delete(CalculatedFieldId calculatedFieldId, User user);
 
-    CFReprocessingValidationResponse validate(CalculatedField calculatedField);
+    CfReprocessingValidationResult validateForReprocessing(CalculatedField calculatedField);
 
 }
