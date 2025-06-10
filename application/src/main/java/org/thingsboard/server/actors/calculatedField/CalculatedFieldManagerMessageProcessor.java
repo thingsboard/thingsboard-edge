@@ -439,7 +439,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         }
         // process all cfs related to owner entity
         if (entityId.getEntityType().isOneOf(EntityType.TENANT, EntityType.CUSTOMER)) {
-            List<CalculatedFieldEntityCtxId> ownerCFs = filterOwnerEntityCFs(msg);
+            List<CalculatedFieldEntityCtxId> ownerCFs = filterOwnerEntitiesCFs(msg);
             if (!ownerCFs.isEmpty()) {
                 cfExecService.pushMsgToLinks(msg, ownerCFs, callback);
             } else {
@@ -528,7 +528,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         return result;
     }
 
-    private List<CalculatedFieldEntityCtxId> filterOwnerEntityCFs(CalculatedFieldTelemetryMsg msg) {
+    private List<CalculatedFieldEntityCtxId> filterOwnerEntitiesCFs(CalculatedFieldTelemetryMsg msg) {
         Set<EntityId> entities = getOwnerEntities(msg.getEntityId());
         var proto = msg.getProto();
         List<CalculatedFieldEntityCtxId> result = new ArrayList<>();

@@ -45,7 +45,6 @@ import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -67,7 +66,6 @@ import org.thingsboard.server.service.cf.CalculatedFieldCache;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
-import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.List;
 import java.util.UUID;
@@ -94,7 +92,6 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
     protected final PartitionService partitionService;
     protected final ApplicationEventPublisher eventPublisher;
     protected final JwtSettingsService jwtSettingsService;
-    protected final OwnersCacheService ownersCacheService;
 
     protected QueueConsumerManager<TbProtoQueueMsg<N>> nfConsumer;
 
@@ -202,8 +199,9 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         } else if (EntityType.DEVICE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
             deviceProfileCache.evict(tenantId, new DeviceId(componentLifecycleMsg.getEntityId().getId()));
             if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.CREATED)) {
-                EntityId owner = ownersCacheService.getOwner(tenantId, componentLifecycleMsg.getEntityId());
-                calculatedFieldCache.addOwnerEntity(tenantId, owner, componentLifecycleMsg.getEntityId());
+                calculatedFieldCache.addOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());
+            } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED)) {
+                calculatedFieldCache.updateOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());
             } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.DELETED)) {
                 calculatedFieldCache.evictEntity(componentLifecycleMsg.getEntityId());
             }
@@ -212,8 +210,9 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         } else if (EntityType.ASSET.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
             assetProfileCache.evict(tenantId, new AssetId(componentLifecycleMsg.getEntityId().getId()));
             if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.CREATED)) {
-                EntityId owner = ownersCacheService.getOwner(tenantId, componentLifecycleMsg.getEntityId());
-                calculatedFieldCache.addOwnerEntity(tenantId, owner, componentLifecycleMsg.getEntityId());
+                calculatedFieldCache.addOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());
+            } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED)) {
+                calculatedFieldCache.updateOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());
             } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.DELETED)) {
                 calculatedFieldCache.evictEntity(componentLifecycleMsg.getEntityId());
             }
@@ -237,8 +236,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         }
         if (componentLifecycleMsg.getEvent() == ComponentLifecycleEvent.OWNER_CHANGED) {
             if (componentLifecycleMsg.getEntityId().getEntityType().isOneOf(EntityType.ASSET, EntityType.DEVICE)) {
-                EntityId owner = ownersCacheService.getOwner(tenantId, componentLifecycleMsg.getEntityId());
-                calculatedFieldCache.updateOwnerEntities(tenantId, owner, componentLifecycleMsg.getEntityId());
+                calculatedFieldCache.updateOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());
             }
         }
 

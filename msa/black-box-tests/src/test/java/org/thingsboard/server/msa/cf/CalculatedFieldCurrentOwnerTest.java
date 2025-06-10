@@ -225,7 +225,7 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testPerformInitialCalculationWhenCurrentOwnerCustomer() {
+    public void testPerformInitialCalculationWhenCurrentOwnerCustomerAndAddedNewEntityToOwner() {
         // login tenant admin
         testRestClient.getAndSetUserToken(tenantAdminId);
 
@@ -243,6 +243,19 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     JsonNode fahrenheitTemp = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(fahrenheitTemp).isNotNull();
+                    assertThat(fahrenheitTemp.get("result").get(0).get("value").asText()).isEqualTo("105");
+                });
+
+        String deviceToken2 = "zm235nIVf26n67vhdgtn91E";
+        Device customerDevice2 = createDevice("Customer Device 2", deviceProfileId);
+        customerDevice2.setOwnerId(customerId);
+        Device device2 = testRestClient.postDevice(deviceToken2, customerDevice2);
+
+        await().alias("add device -> perform calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    JsonNode fahrenheitTemp = testRestClient.getLatestTelemetry(device2.getId());
                     assertThat(fahrenheitTemp).isNotNull();
                     assertThat(fahrenheitTemp.get("result").get(0).get("value").asText()).isEqualTo("105");
                 });

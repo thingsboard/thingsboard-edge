@@ -319,6 +319,18 @@ public class CalculatedFieldCtx {
         }
     }
 
+    public Map<ReferencedEntityKey, String> getLinkedAndDynamicArgs(EntityId entityId) {
+        var argNames = new HashMap<ReferencedEntityKey, String>();
+        var linkedArgNames = linkedEntityArguments.get(entityId);
+        if (linkedArgNames != null && !linkedArgNames.isEmpty()) {
+            argNames.putAll(linkedArgNames);
+        }
+        if (dynamicEntityArguments != null && !dynamicEntityArguments.isEmpty()) {
+            argNames.putAll(dynamicEntityArguments);
+        }
+        return argNames;
+    }
+
     public CalculatedFieldEntityCtxId toCalculatedFieldEntityCtxId() {
         return new CalculatedFieldEntityCtxId(tenantId, cfId, entityId);
     }
