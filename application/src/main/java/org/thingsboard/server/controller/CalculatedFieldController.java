@@ -317,6 +317,7 @@ public class CalculatedFieldController extends BaseController {
                 .entityId(entityId)
                 .configuration(CfReprocessingJobConfiguration.builder()
                         .calculatedFieldId(calculatedField.getId())
+                        .calculatedFieldName(calculatedField.getName())
                         .startTs(startTs)
                         .endTs(endTs)
                         .build())
