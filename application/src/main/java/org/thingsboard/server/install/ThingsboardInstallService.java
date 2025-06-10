@@ -121,7 +121,7 @@ public class ThingsboardInstallService {
                     dataUpdateService.updateData();
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
-                    // systemDataLoaderService.loadSystemWidgets();
+                     systemDataLoaderService.loadSystemWidgets();
                     // installScripts.loadSystemLwm2mResources();
                     installScripts.loadSystemImagesAndResources();
                     databaseSchemaVersionService.updateSchemaVersion();
