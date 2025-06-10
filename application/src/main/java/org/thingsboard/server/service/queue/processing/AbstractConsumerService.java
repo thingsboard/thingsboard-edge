@@ -234,11 +234,6 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
                 calculatedFieldCache.evict((CalculatedFieldId) componentLifecycleMsg.getEntityId());
             }
         }
-        if (componentLifecycleMsg.getEvent() == ComponentLifecycleEvent.OWNER_CHANGED) {
-            if (componentLifecycleMsg.getEntityId().getEntityType().isOneOf(EntityType.ASSET, EntityType.DEVICE)) {
-                calculatedFieldCache.updateOwnerEntity(tenantId, componentLifecycleMsg.getEntityId());
-            }
-        }
 
         eventPublisher.publishEvent(componentLifecycleMsg);
         log.trace("[{}] Forwarding component lifecycle message to App Actor {}", id, componentLifecycleMsg);

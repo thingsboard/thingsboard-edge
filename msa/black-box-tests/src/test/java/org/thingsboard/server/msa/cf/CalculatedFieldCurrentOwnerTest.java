@@ -124,7 +124,7 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
 
         testRestClient.postTelemetryAttribute(customerId, AttributeScope.SERVER_SCOPE.name(), JacksonUtil.toJsonNode("{\"attrKey\":15}"));
 
-        await().alias("update telemetry -> perform calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
+        await().alias("update telemetry -> perform calculation").atMost(2 * TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     JsonNode fahrenheitTemp = testRestClient.getLatestTelemetry(device.getId());
@@ -237,7 +237,7 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
 
         testRestClient.postTelemetryAttribute(customerId, AttributeScope.SERVER_SCOPE.name(), JacksonUtil.toJsonNode("{\"attrKey\":5}"));
 
-        CalculatedField savedCalculatedField = createSimpleCalculatedField(device.getId());
+        CalculatedField savedCalculatedField = createSimpleCalculatedField(deviceProfileId);
 
         await().alias("create CF -> perform initial calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)

@@ -221,9 +221,6 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
                     case DELETED:
                         onEntityDeleted(msg.getData(), msg.getCallback());
                         break;
-                    case OWNER_CHANGED:
-                        onEntityOwnerChanged(msg.getData(), msg.getCallback());
-                        break;
                     default:
                         msg.getCallback().onSuccess();
                         break;
@@ -292,6 +289,8 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             } else {
                 callback.onSuccess();
             }
+        } else if (msg.isOwnerChanged()) {
+            onEntityOwnerChanged(msg, callback);
         } else {
             callback.onSuccess();
         }
@@ -536,13 +535,13 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             var ownerEntityCFs = getCalculatedFieldsByEntityId(entityId);
             for (var ctx : ownerEntityCFs) {
                 if (ctx.dynamicSourceMatches(proto)) {
-                    result.add(ctx.toCalculatedFieldEntityCtxId());
+                    result.add(new CalculatedFieldEntityCtxId(tenantId, ctx.getCfId(), entityId));
                 }
             }
             var ownerEntityProfileCFs = getCalculatedFieldsByEntityId(getProfileId(tenantId, entityId));
             for (var ctx : ownerEntityProfileCFs) {
                 if (ctx.dynamicSourceMatches(proto)) {
-                    result.add(ctx.toCalculatedFieldEntityCtxId());
+                    result.add(new CalculatedFieldEntityCtxId(tenantId, ctx.getCfId(), entityId));
                 }
             }
         }
