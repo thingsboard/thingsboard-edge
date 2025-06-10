@@ -67,7 +67,7 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
         this.groupType = filter.getGroupType().name();
         this.ownerId = filter.getOwnerId() != null ? filter.getOwnerId().getId() : null;
         this.ownerType = filter.getOwnerId() != null ? filter.getOwnerId().getEntityType() : null;
-        this.pattern = RepositoryUtils.toSqlLikePattern(filter.getEntityGroupNameFilter());
+        this.pattern = RepositoryUtils.toContainsSqlLikePattern(filter.getEntityGroupNameFilter());
         if (ctx.getCustomerId() != null) {
             allCustomers = repo.getAllCustomers(ctx.getCustomerId().getId());
         } else {
