@@ -109,7 +109,7 @@
       {{ 'action.close' | translate }}
     </button>
     <button mat-raised-button
-            *ngIf="state() === ReprocessingState.CONFIG || (state() === ReprocessingState.RESULTS && job()?.status === JobStatus.FAILED && hasWritePermission)"
+            *ngIf="state() === ReprocessingState.CONFIG || (state() === ReprocessingState.RESULTS && job()?.status === JobStatus.FAILED && hasWritePermission && failedTasks <= 100)"
             color="primary"
             type="button"
             (click)="reprocessing()">
