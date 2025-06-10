@@ -70,6 +70,7 @@ import { CancelTaskDialogComponent, CancelTaskDialogData } from '@home/component
 import { ActivatedRoute, Router } from '@angular/router';
 import { deepClone, getEntityDetailsPageURL } from '@core/utils';
 import { Operation, Resource } from '@shared/models/security.models';
+import { finalize } from 'rxjs/operators';
 
 interface TaskManagerPageQueryParams extends PageQueryParam {
   entityId?: string;
@@ -94,6 +95,7 @@ export class TaskManagerTableConfigResolver {
 
     this.config.addEnabled = false;
     this.config.detailsPanelEnabled = false;
+    this.config.searchEnabled = false;
     this.config.useTimePageLink = true;
     this.config.forAllTimeEnabled = true;
     this.config.entitiesDeleteEnabled = false;
@@ -366,9 +368,9 @@ export class TaskManagerTableConfigResolver {
       panelClass: ['tb-fullscreen-dialog']
     }).afterClosed().subscribe((result) => {
       if (result) {
-        this.jobService.cancelJob(job.id.id).subscribe(() => {
-          this.config.getTable().updateData();
-        });
+        this.jobService.cancelJob(job.id.id).pipe(
+          finalize(() => this.config.getTable().updateData())
+        ).subscribe();
       }
     });
   }
@@ -398,9 +400,9 @@ export class TaskManagerTableConfigResolver {
           for (const task of workingTasks) {
             tasks.push(this.jobService.cancelJob(task.id.id));
           }
-          forkJoin(tasks).subscribe(() => {
-            this.config.getTable().updateData();
-          });
+          forkJoin(tasks).pipe(
+            finalize(() => this.config.getTable().updateData())
+          ).subscribe();
         }
       });
     }
