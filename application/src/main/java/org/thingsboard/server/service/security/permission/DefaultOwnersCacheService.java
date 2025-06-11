@@ -216,6 +216,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         changeEntityOwner(tenantId, targetOwnerId, device.getId(), device, d -> deviceService.saveDevice(d));
     }
 
+    @Transactional
     @Override
     public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException {
         switch (entityId.getEntityType()) {
@@ -366,8 +367,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         clearOwners(entityId);
     }
 
-    @Transactional
-    protected <T extends HasOwnerId> void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, T entity, Consumer<T> saveFunction)
+    private <T extends HasOwnerId> void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, T entity, Consumer<T> saveFunction)
             throws ThingsboardException {
         if (entity.getOwnerId().equals(targetOwnerId)) {
             throw new ThingsboardException("Entity already belongs to this owner!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
