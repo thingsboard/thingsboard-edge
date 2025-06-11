@@ -73,6 +73,7 @@ import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.AttributesSaveResult;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.DoubleDataEntry;
@@ -418,7 +419,7 @@ public class EntityServiceTest extends AbstractControllerTest {
 
         List<Long> temperatures = new ArrayList<>();
         Random random = new Random();
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         long lastUpdateTs = System.currentTimeMillis() - 1024 * 1024;
         for (int i = 0; i < evenDevices.size(); i++) {
             Device device = evenDevices.get(i);
@@ -630,7 +631,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<Long> highTemperatures = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), temperatures, highTemperatures);
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temperatures.get(i), AttributeScope.CLIENT_SCOPE));
@@ -780,7 +781,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<Long> highTemperatures = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), temperatures, highTemperatures);
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temperatures.get(i), AttributeScope.CLIENT_SCOPE));
@@ -834,7 +835,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<Long> highConsumptions = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, consumptions, highConsumptions, new ArrayList<>(), new ArrayList<>());
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < assets.size(); i++) {
             Asset asset = assets.get(i);
             attributeFutures.add(saveLongAttribute(asset.getId(), "consumption", consumptions.get(i), AttributeScope.SERVER_SCOPE));
@@ -2222,7 +2223,7 @@ public class EntityServiceTest extends AbstractControllerTest {
             }
         }
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             for (AttributeScope currentScope : AttributeScope.values()) {
@@ -2282,7 +2283,7 @@ public class EntityServiceTest extends AbstractControllerTest {
             temperatures.add(temperature);
         }
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             for (AttributeScope currentScope : AttributeScope.values()) {
@@ -2580,7 +2581,7 @@ public class EntityServiceTest extends AbstractControllerTest {
             }
         }
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temperatures.get(i), AttributeScope.CLIENT_SCOPE));
@@ -2810,7 +2811,7 @@ public class EntityServiceTest extends AbstractControllerTest {
             }
         }
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveStringAttribute(device.getId(), "attributeString", attributeStrings.get(i), AttributeScope.CLIENT_SCOPE));
@@ -3271,20 +3272,20 @@ public class EntityServiceTest extends AbstractControllerTest {
         return filter;
     }
 
-    private ListenableFuture<List<Long>> saveLongAttribute(EntityId entityId, String key, long value, AttributeScope scope) {
+    private ListenableFuture<AttributesSaveResult> saveLongAttribute(EntityId entityId, String key, long value, AttributeScope scope) {
         return saveLongAttribute(entityId, key, value, 42L, scope);
     }
 
-    private ListenableFuture<List<Long>> saveLongAttribute(EntityId entityId, String key, long value, long lastUpdateTs, AttributeScope scope) {
+    private ListenableFuture<AttributesSaveResult> saveLongAttribute(EntityId entityId, String key, long value, long lastUpdateTs, AttributeScope scope) {
         KvEntry attrValue = new LongDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, lastUpdateTs);
-        return attributesService.save(tenantId, entityId, scope, Collections.singletonList(attr));
+        return attributesService.save(tenantId, entityId, scope, List.of(attr));
     }
 
-    private ListenableFuture<List<Long>> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
+    private ListenableFuture<AttributesSaveResult> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
         KvEntry attrValue = new StringDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
-        return attributesService.save(tenantId, entityId, scope, Collections.singletonList(attr));
+        return attributesService.save(tenantId, entityId, scope, List.of(attr));
     }
 
     private ListenableFuture<TimeseriesSaveResult> saveTimeseries(EntityId entityId, String key, Double value) {
