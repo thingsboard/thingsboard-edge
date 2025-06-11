@@ -217,9 +217,15 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
     }
 
     @Override
-    public void updateOwnerEntities(TenantId tenantId, EntityId owner, EntityId entityId) {
-        evictEntity(entityId);
+    public void addOwnerEntity(TenantId tenantId, EntityId entityId) {
+        EntityId owner = ownersCacheService.getOwner(tenantId, entityId);
         getOwnedEntities(tenantId, owner).add(entityId);
+    }
+
+    @Override
+    public void updateOwnerEntity(TenantId tenantId, EntityId entityId) {
+        evictEntity(entityId);
+        addOwnerEntity(tenantId, entityId);
     }
 
     @Override
