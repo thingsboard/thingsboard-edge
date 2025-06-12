@@ -61,7 +61,9 @@ export interface SecretStorageData  {
 })
 export class SecretStorageDialogComponent extends DialogComponent<SecretStorageDialogComponent, SecretStorage | string> implements OnInit {
 
+  // dialogTitle: string;
   createNewLabel: string;
+  // addButtonLabel: string;
 
   createNew = true;
 
@@ -126,6 +128,14 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
       this.secretForm.disable({emitEvent: false});
       this.secret.enable({emitEvent: false})
     }
+  }
+
+  get dialogTitle(): string {
+    return  this.createNew ? 'secret-storage.dialog-title' : 'secret-storage.use-secret';
+  }
+
+  get addButtonLabel(): string {
+    return this.createNew ? 'action.add' : 'secret-storage.action-use';
   }
 
   helpLinkId(): string {
