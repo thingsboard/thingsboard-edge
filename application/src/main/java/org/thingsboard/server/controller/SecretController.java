@@ -60,6 +60,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.secret.TbSecretService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
@@ -107,10 +108,10 @@ public class SecretController extends BaseController {
             @Parameter(description = "Unique identifier of the Secret to update", required = true)
             @PathVariable UUID id,
             @Parameter(description = "New description for the Secret", example = "Description")
-            @RequestParam(required = false) String description) throws Exception {
+            @RequestBody Optional<String> description) throws Exception {
         SecretId secretId = new SecretId(id);
         Secret secret = new Secret(checkSecretId(secretId, Operation.WRITE));
-        secret.setDescription(description);
+        secret.setDescription(description.orElse(null));
         return tbSecretService.save(secret, getCurrentUser());
     }
 
@@ -179,8 +180,8 @@ public class SecretController extends BaseController {
 
     @ApiOperation(value = "Get Secret info by name (getSecretInfoByName)", notes = TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    @GetMapping(value = "/secret/{name}")
-    public SecretInfo getSecretInfoByName(@PathVariable String name) throws ThingsboardException {
+    @GetMapping(value = "/secret")
+    public SecretInfo getSecretInfoByName(@RequestParam String name) throws ThingsboardException {
         checkParameter("name", name);
         accessControlService.checkPermission(getCurrentUser(), Resource.SECRET, Operation.READ);
         return checkNotNull(secretService.findSecretInfoByName(getTenantId(), name));

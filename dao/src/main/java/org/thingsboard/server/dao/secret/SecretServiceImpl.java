@@ -106,7 +106,7 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
                 secret.setRawValue(encrypted);
                 isValueUpdated = true;
             } else if (old != null) {
-                secret.setValue(old.getValue());
+                secret.setRawValue(old.getRawValue());
             }
 
             Secret savedSecret = secretDao.save(tenantId, secret);
