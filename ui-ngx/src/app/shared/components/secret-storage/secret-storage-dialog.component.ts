@@ -61,9 +61,7 @@ export interface SecretStorageData  {
 })
 export class SecretStorageDialogComponent extends DialogComponent<SecretStorageDialogComponent, SecretStorage | string> implements OnInit {
 
-  // dialogTitle: string;
   createNewLabel: string;
-  // addButtonLabel: string;
 
   createNew = true;
 
