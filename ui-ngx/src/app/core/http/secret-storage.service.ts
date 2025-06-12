@@ -59,7 +59,7 @@ export class SecretStorageService {
   }
 
   public updateSecretDescription(secretId: string, description: string, config?: RequestConfig): Observable<void> {
-    return this.http.put<void>(`/api/secret/${secretId}/description`, description,
+    return this.http.put<void>(`/api/secret/${secretId}/description?description=${description}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -69,6 +69,6 @@ export class SecretStorageService {
   }
 
   public getSecretByName(name: string, config?: RequestConfig): Observable<SecretStorage> {
-    return this.http.get<SecretStorage>(`/api/secret/${name}`, defaultHttpOptionsFromConfig(config));
+    return this.http.get<SecretStorage>(`/api/secret?name=${name}`, defaultHttpOptionsFromConfig(config));
   }
 }

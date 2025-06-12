@@ -1201,7 +1201,7 @@
         "delete-secrets-text": "Be careful, after the confirmation all selected secrets will be removed and all related data will become unrecoverable.",
         "delete-secrets-in-use-text": "To delete this secret, first remove its usage from the entities above.",
         "secrets-is-in-use-text": "This secret is currently used by other entities in the platform and cannot be deleted until it is no longer in use:",
-        "secrets-are-in-use-text": "Not all secrets have been deleted because they are used by other entities.</br>You can view referenced entities by clicking the <b>References</b> button in the corresponding secret row.</br>To delete this secrets, first remove its usage from the entities above.",
+        "secrets-are-in-use-text": "Not all secrets have been deleted because they are used by other entities.</br>You can view referenced entities by clicking the <b>References</b> button in the corresponding secret row.</br>To delete these secrets,  first remove their usage from the entities where they are mentioned.",
         "selected-secrets": "{ count, plural, =1 {1 secret} other {# secrets} } selected",
         "use-secret-storage": "Use Secret storage",
         "dialog-title": {
@@ -1223,7 +1223,8 @@
         "no-secrets-matching": "No secrets matching '{{entity}}' were found.",
         "no-secrets-found": "No secrets found.",
         "use-secret": "Use secret",
-        "change-value": "Change value"
+        "change-value": "Change value",
+        "action-use": "Use"
     },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",
