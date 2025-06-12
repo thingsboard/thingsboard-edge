@@ -59,7 +59,7 @@ export class SecretStorageService {
   }
 
   public updateSecretDescription(secretId: string, description: string, config?: RequestConfig): Observable<void> {
-    return this.http.put<void>(`/api/secret/${secretId}/description?description=${description}`,
+    return this.http.put<void>(`/api/secret/${secretId}/description`, description,
       defaultHttpOptionsFromConfig(config));
   }
 
