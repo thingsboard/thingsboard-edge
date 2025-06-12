@@ -412,7 +412,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
                         .tenantId(ctx.getTenantId())
                         .entityId(ctx.getEntityId())
                         .entries(tsKvEntryList)
-                        .strategy(new Strategy(true, false, false, false))
+                        .strategy(new Strategy(true, true, true, false))
                         .future(future)
                         .build()
                 );
@@ -424,7 +424,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
                         .entityId(ctx.getEntityId())
                         .scope(calculatedFieldResult.getScope())
                         .entries(attributes)
-                        .strategy(new AttributesSaveRequest.Strategy(true, false, false))
+                        .strategy(new AttributesSaveRequest.Strategy(true, true, false))
                         .future(future)
                         .build()
                 );
