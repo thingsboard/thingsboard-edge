@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.DebugModeUtil;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.TbActorCtx;
 import org.thingsboard.server.actors.shared.AbstractContextAwareMsgProcessor;
@@ -332,7 +331,7 @@ public class CalculatedFieldEntityMessageProcessor extends AbstractContextAwareM
                         callback.onSuccess();
                     }
                     if (DebugModeUtil.isDebugAllAvailable(ctx.getCalculatedField())) {
-                        systemContext.persistCalculatedFieldDebugEvent(tenantId, ctx.getCfId(), entityId, state.getArguments(), tbMsgId, tbMsgType, JacksonUtil.writeValueAsString(calculationResult.getResult()), null);
+                        systemContext.persistCalculatedFieldDebugEvent(tenantId, ctx.getCfId(), entityId, state.getArguments(), tbMsgId, tbMsgType, calculationResult.getResult().toString(), null);
                     }
                 }
             } else {
