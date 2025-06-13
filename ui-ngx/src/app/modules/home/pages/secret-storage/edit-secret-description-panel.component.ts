@@ -66,7 +66,7 @@ export class EditSecretDescriptionPanelComponent implements OnInit {
   }
 
   applyDescription() {
-    const description = this.descriptionFormControl.value;
+    const description = this.descriptionFormControl.value.trim();
     this.secretStorageService.updateSecretDescription(this.secretId, description).subscribe(() => {
       this.descriptionApplied.emit(description);
     });

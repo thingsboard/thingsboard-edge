@@ -1183,6 +1183,7 @@
         "name": "Name",
         "name-required": "Name is required.",
         "name-pattern": "Secret name contains unsupported characters. It must not include \"{\", \"}\", \";\" or control characters.",
+        "name-max-length": "Name should be less than 256.",
         "description": "Description",
         "edit-description": "Edit description",
         "set-description": "Set description",
