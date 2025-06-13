@@ -135,7 +135,8 @@ export class SecretStorageTableComponent implements OnInit {
       }),
       new EntityTableColumn<SecretStorage>('description', 'secret-storage.description', '60%',
         (secret) => secret?.description ? this.customTranslate.transform(secret?.description) : this.translate.instant('secret-storage.set-description'),
-        (secret) => (!secret?.description ? {color: 'rgba(0, 0, 0, 0.38)'} : {}), false, () => ({}), () => undefined, false,
+        (secret) => (!secret?.description ? {color: 'rgba(0, 0, 0, 0.38)'} : {}), false, () => ({}),
+        (secret) => secret?.description?.length > 80 ? this.customTranslate.transform(secret?.description) : undefined, false,
         {
           name: this.translate.instant('secret-storage.edit-description'),
           icon: 'edit',

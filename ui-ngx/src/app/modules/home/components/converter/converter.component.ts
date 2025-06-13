@@ -276,7 +276,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   onConverterSelected(converter: Converter) {
     if (this.prevLibraryConverterFormValue) {
       this.updateForm(this.prevLibraryConverterFormValue, false);
-    } else {
+    } else if (converter) {
       if (converter.type !== this.entityForm.get('type').value) {
         converter.type = this.entityForm.get('type').value;
       }

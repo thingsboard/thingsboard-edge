@@ -40,7 +40,7 @@ export const secretsRoutes: Routes = [
     component: SecretStorageTableComponent,
     data: {
       auth: [Authority.TENANT_ADMIN],
-      title: 'secret-storage.secret-storage',
+      title: 'secret-storage.secrets-storage',
       breadcrumb: {
         menuId: MenuId.secrets
       }

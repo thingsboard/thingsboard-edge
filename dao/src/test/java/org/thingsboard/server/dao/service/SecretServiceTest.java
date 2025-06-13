@@ -95,7 +95,7 @@ public class SecretServiceTest extends AbstractServiceTest {
     @Test
     public void testSaveSecret() {
         String password = "Password";
-        Secret secret = constructSecret(tenantId, "Test Secret", password);
+        Secret secret = constructSecret(tenantId, "Test Secret", password, SecretType.TEXT);
         Secret savedSecret = secretService.saveSecret(tenantId, secret);
 
         Secret retrievedSecret = secretService.findSecretById(tenantId, savedSecret.getId());
@@ -119,7 +119,7 @@ public class SecretServiceTest extends AbstractServiceTest {
     @Test
     public void testUpdateSecretInfoDescription_thenValueShouldFetchedFromOldSecret() {
         String password = "Password";
-        Secret secret = constructSecret(tenantId, "Test Secret", password);
+        Secret secret = constructSecret(tenantId, "Test Secret", password, SecretType.TEXT);
         Secret savedSecret = secretService.saveSecret(tenantId, secret);
 
         Secret retrievedSecret = secretService.findSecretById(tenantId, savedSecret.getId());
@@ -141,7 +141,7 @@ public class SecretServiceTest extends AbstractServiceTest {
 
     @Test
     public void testUpdateSecretName_thenReceiveDataValidationException() {
-        Secret secret = constructSecret(tenantId, "Test Validation Exception", "Validation");
+        Secret secret = constructSecret(tenantId, "Test Validation Exception", "Validation", SecretType.TEXT);
         Secret savedSecret = secretService.saveSecret(tenantId, secret);
 
         Secret retrievedSecret = secretService.findSecretById(tenantId, savedSecret.getId());
@@ -155,7 +155,7 @@ public class SecretServiceTest extends AbstractServiceTest {
     @Test
     public void testFindSecretByName() {
         String name = "Test Secret Password";
-        Secret secret = constructSecret(tenantId, name, "test");
+        Secret secret = constructSecret(tenantId, name, "test", SecretType.TEXT);
         Secret savedSecret = secretService.saveSecret(tenantId, secret);
         assertThat(savedSecret.getName()).isEqualTo(name);
 
@@ -169,7 +169,7 @@ public class SecretServiceTest extends AbstractServiceTest {
     public void testGetTenantSecrets() {
         List<Secret> secrets = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
-            Secret savedSecret = secretService.saveSecret(tenantId, constructSecret(tenantId, "Name_" + i, "Password"));
+            Secret savedSecret = secretService.saveSecret(tenantId, constructSecret(tenantId, "Name_" + i, "Password", SecretType.TEXT));
             secrets.add(savedSecret);
         }
         PageData<SecretInfo> retrieved = secretService.findSecretInfosByTenantId(tenantId, new PageLink(10, 0));
@@ -184,7 +184,7 @@ public class SecretServiceTest extends AbstractServiceTest {
     @Test
     public void testDeleteSecret_whenUsedInIntegration_thenReceiveFailureDeleteResult() {
         String secretName = "IntegrationSecret";
-        Secret secret = constructSecret(tenantId, secretName, "Password");
+        Secret secret = constructSecret(tenantId, secretName, "Password", SecretType.TEXT);
         Secret savedSecret = secretService.saveSecret(tenantId, secret);
 
         Secret retrievedSecret = secretService.findSecretById(tenantId, savedSecret.getId());
@@ -203,11 +203,30 @@ public class SecretServiceTest extends AbstractServiceTest {
         assertThat(integrationName).isEqualTo(result.getReferences().get(EntityType.INTEGRATION).get(0).getName());
     }
 
-    private Secret constructSecret(TenantId tenantId, String name, String value) {
+    @Test
+    public void testSaveSecretWithExceededTextSizeLimit_thenReceiveDataValidationException() {
+        String value = "a".repeat(256);
+        Secret secret = constructSecret(tenantId, "Test Secret With Long Value", value, SecretType.TEXT);
+
+        DataValidationException exception = Assertions.assertThrows(DataValidationException.class, () -> secretService.saveSecret(tenantId, secret));
+        assertThat(exception.getMessage()).contains("Secret value is 256 characters; exceeds maximum of 255 characters");
+    }
+
+    @Test
+    public void testSaveSecretWithExceededFileSizeLimit_thenReceiveDataValidationException() {
+        String value = "a".repeat(512 * 1024 + 1);
+
+        Secret secret = constructSecret(tenantId, "Test Secret With Large File", value, SecretType.TEXT_FILE);
+
+        DataValidationException exception = Assertions.assertThrows(DataValidationException.class, () -> secretService.saveSecret(tenantId, secret));
+        assertThat(exception.getMessage()).contains("Secret file size is " + value.length() + " bytes; exceeds the maximum of " + (512 * 1024) + " bytes");
+    }
+
+    private Secret constructSecret(TenantId tenantId, String name, String value, SecretType secretType) {
         Secret secret = new Secret();
         secret.setTenantId(tenantId);
         secret.setName(name);
-        secret.setType(SecretType.TEXT);
+        secret.setType(secretType);
         secret.setValue(value);
         return secret;
     }

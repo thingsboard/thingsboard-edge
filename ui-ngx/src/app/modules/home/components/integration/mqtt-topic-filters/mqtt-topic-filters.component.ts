@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -62,7 +62,7 @@ import { isNumber } from '@core/utils';
     multi: true,
   }]
 })
-export class MqttTopicFiltersComponent implements ControlValueAccessor, Validator, OnDestroy {
+export class MqttTopicFiltersComponent implements ControlValueAccessor, Validator, OnDestroy, OnChanges {
 
   mqttTopicFiltersForm: UntypedFormGroup;
   mqttQosTypes = Object.values(MqttQos).filter(v => isNumber(v));
@@ -70,6 +70,9 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, Validato
 
   @Input()
   disabled: boolean;
+
+  @Input()
+  excludeQos: MqttQos[];
 
   private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
@@ -88,6 +91,20 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, Validato
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (propName === 'excludeQos' && change.currentValue !== change.previousValue) {
+        const excludeQos = change.currentValue;
+        if (excludeQos?.length) {
+          this.mqttQosTypes = Object.values(MqttQos).filter(v => !excludeQos.includes(v) && isNumber(v));
+        } else {
+          this.mqttQosTypes = Object.values(MqttQos).filter(v => isNumber(v));
+        }
+      }
+    }
   }
 
   writeValue(value: MqttTopicFilter[]) {

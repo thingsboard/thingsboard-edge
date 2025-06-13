@@ -164,11 +164,11 @@ export class SecretFileInputComponent extends PageComponent implements OnInit, C
 
   writeValue(value: string): void {
     const parsedSecret = parseSecret(value);
+    this.modelValue = value;
     if (parsedSecret) {
       this.secretStorageService.getSecretByName(parsedSecret, {ignoreErrors: true}).subscribe({
         next: () => {
           this.secretStorageFile = parsedSecret;
-          this.modelValue = value;
           this.existingFileName = null;
           this.secretFileFormGroup.patchValue(
             {secretFile: this.modelValue}, {emitEvent: false}
@@ -176,16 +176,14 @@ export class SecretFileInputComponent extends PageComponent implements OnInit, C
         },
         error: () => {
           this.secretStorageFile = null;
-          this.modelValue = null;
           this.existingFileName = null;
           this.secretFileFormGroup.patchValue(
-            {secretFile: this.modelValue}, {emitEvent: true}
+            {secretFile: null}, {emitEvent: true}
           );
         }
       })
     } else {
       this.secretStorageFile = null;
-      this.modelValue = value;
       this.secretFileFormGroup.patchValue(
         { secretFile: this.modelValue }, {emitEvent: false}
       );

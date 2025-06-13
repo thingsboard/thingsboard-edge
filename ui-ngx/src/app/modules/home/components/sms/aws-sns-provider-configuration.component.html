@@ -38,14 +38,23 @@
       {{ 'admin.aws-access-key-id-required' | translate }}
     </mat-error>
   </mat-form-field>
-  <mat-form-field class="mat-block">
-    <mat-label translate>admin.aws-secret-access-key</mat-label>
-    <input required type="password" matInput formControlName="secretAccessKey">
-    <tb-toggle-password matSuffix></tb-toggle-password>
-    <mat-error *ngIf="awsSnsProviderConfigurationFormGroup.get('secretAccessKey').hasError('required')">
-      {{ 'admin.aws-secret-access-key-required' | translate }}
-    </mat-error>
-  </mat-form-field>
+  @if (isRuleNode) {
+    <tb-secret-key-input formControlName="secretAccessKey"
+                         required
+                         class="mat-block flex-1"
+                         label="{{ 'admin.aws-secret-access-key' | translate }}"
+                         requiredText="{{ 'admin.aws-secret-access-key-required' | translate }}">
+    </tb-secret-key-input>
+  } @else {
+    <mat-form-field class="mat-block">
+      <mat-label translate>admin.aws-secret-access-key</mat-label>
+      <input required type="password" matInput formControlName="secretAccessKey">
+      <tb-toggle-password matSuffix></tb-toggle-password>
+      <mat-error *ngIf="awsSnsProviderConfigurationFormGroup.get('secretAccessKey').hasError('required')">
+        {{ 'admin.aws-secret-access-key-required' | translate }}
+      </mat-error>
+    </mat-form-field>
+  }
   <mat-form-field class="mat-block">
     <mat-label translate>admin.aws-region</mat-label>
     <input required matInput formControlName="region">
