@@ -119,14 +119,14 @@ export class TaskParametersPanelComponent implements OnInit, OnDestroy {
     let newWidth = 200;
     if (content && content.length > 0) {
       const lines = content.split('\n');
-      newHeight = 18 * lines.length + 16;
+      newHeight = 19 * lines.length + 16;
       let maxLineLength = 0;
       lines.forEach((row) => {
         const line = row.replace(/\t/g, '    ').replace(/\n/g, '');
         const lineLength = line.length;
         maxLineLength = Math.max(maxLineLength, lineLength);
       });
-      newWidth = Math.max(9 * maxLineLength + 16, 200);
+      newWidth = Math.max(10 * maxLineLength + 16, 200);
     }
     this.renderer.setStyle(editorElement, 'height', newHeight.toString() + 'px');
     this.renderer.setStyle(this.taskPanelElmRef.nativeElement, 'width', newWidth.toString() + 'px');

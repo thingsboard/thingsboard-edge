@@ -50,7 +50,7 @@ import { JobService } from '@core/http/job.service';
 import { Job, JobStatus, processTask, workingTask } from '@shared/models/job.models';
 import { switchMap, takeUntil, takeWhile } from 'rxjs/operators';
 import { EntityType } from '@shared/models/entity-type.models';
-import { isDefinedAndNotNull } from '@core/utils';
+import { isDefinedAndNotNull, parseHttpErrorMessage } from '@core/utils';
 import { ThemePalette } from '@angular/material/core';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -151,10 +151,17 @@ export class CalculatedFieldReprocessingPanelComponent implements OnInit {
       this.startProgress('submitProgress', this.submitDuration);
       const interval = getTimePageLinkInterval(this.timeWindow);
       const tsOffset = calculateTsOffset(this.timeWindow.timezone);
-      this.calculatedFieldsService.reprocessCalculatedField(this.entityId.id, interval.startTime + tsOffset, interval.endTime + tsOffset, {ignoreLoading: true}).subscribe(() => {
-        this.completeProgress('submitProgress');
-        this.findJob();
-      });
+      this.calculatedFieldsService.reprocessCalculatedField(this.entityId.id, interval.startTime + tsOffset, interval.endTime + tsOffset, {ignoreLoading: true, ignoreErrors: true})
+        .subscribe({
+          next: () => {
+            this.completeProgress('submitProgress');
+            this.findJob();
+          },
+          error: (error) => {
+            this.validationMgs = parseHttpErrorMessage(error, this.translate).message;
+            this.state.set(ReprocessingState.VALIDATION_ERROR);
+          }
+        });
     } else {
       this.startProgress('processProgress', this.processDuration);
       this.processInfo.set('');
