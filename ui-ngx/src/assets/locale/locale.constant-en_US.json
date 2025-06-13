@@ -1211,10 +1211,10 @@
             "file": "Upload new"
         },
         "autocomplete-title": {
-            "text": "Secret Access Key",
-            "text-required": "Secret Access Key is required.",
-            "file": "CA certificate file",
-            "file-required": "CA certificate file is required."
+            "text": "Secret",
+            "text-required": "Secret is required.",
+            "file": "File secret",
+            "file-required": "File secret is required."
         },
         "used-secret-title": "Secret is in use by other entities",
         "no-secrets-matching": "No secrets matching '{{entity}}' were found.",

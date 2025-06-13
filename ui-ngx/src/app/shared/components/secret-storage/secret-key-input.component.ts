@@ -150,27 +150,25 @@ export class SecretKeyInputComponent extends PageComponent implements OnInit, Co
 
   writeValue(value: string): void {
     const parsedSecret = parseSecret(value);
+    this.modelValue = value;
     if (parsedSecret) {
       this.secretStorageService.getSecretByName(parsedSecret, {ignoreErrors: true}).subscribe({
         next: () => {
           this.secretStorageKey = parsedSecret;
-          this.modelValue = value;
           this.secretKeyFormGroup.patchValue(
             {secretKey: this.modelValue}, {emitEvent: false}
           );
         },
         error: () => {
           this.secretStorageKey = null;
-          this.modelValue = null;
           this.secretKeyFormGroup.patchValue(
-            {secretKey: this.modelValue}, {emitEvent: false}
+            {secretKey: null}, {emitEvent: true}
           );
           this.secretKeyFormGroup.get('secretKey').markAsTouched();
         }
       })
     } else {
       this.secretStorageKey = null;
-      this.modelValue = value;
       this.secretKeyFormGroup.patchValue(
         { secretKey: this.modelValue }, {emitEvent: false}
       );

@@ -69,6 +69,7 @@ export class SecretStorageService {
   }
 
   public getSecretByName(name: string, config?: RequestConfig): Observable<SecretStorage> {
-    return this.http.get<SecretStorage>(`/api/secret?name=${name}`, defaultHttpOptionsFromConfig(config));
+    const encodedName = encodeURIComponent(name);
+    return this.http.get<SecretStorage>(`/api/secret?name=${encodedName}`, defaultHttpOptionsFromConfig(config));
   }
 }
