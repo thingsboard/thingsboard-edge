@@ -36,12 +36,10 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.SecretType;
 import org.thingsboard.server.common.data.id.SecretId;
 
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 @Schema
 @Data
