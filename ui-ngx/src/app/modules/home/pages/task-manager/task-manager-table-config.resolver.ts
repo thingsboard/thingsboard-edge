@@ -125,6 +125,16 @@ export class TaskManagerTableConfigResolver {
       )
     );
     this.config.onLoadAction = (activatedRoute) => this.onLoadAction(this.config, activatedRoute);
+
+    this.config.handleRowClick = ($event, job) => {
+      const path: HTMLElement[] = ($event as any).path || ($event.composedPath && $event.composedPath());
+      const progressBarCell = path?.find(el => el.classList.contains('mat-column-progress'));
+      if (progressBarCell) {
+        this.openTaskInfo(progressBarCell, job);
+        return true;
+      }
+      return false;
+    };
   }
 
   resolve(): EntityTableConfig<Job> {
@@ -155,7 +165,10 @@ export class TaskManagerTableConfigResolver {
         name: this.translate.instant('task.info'),
         icon: 'info_outline',
         isEnabled: (entity) => entity.status !== JobStatus.QUEUED && entity.status !== JobStatus.PENDING,
-        onAction: ($event, job) => this.openTaskInfo($event, job)
+        onAction: ($event, job) => {
+          $event?.stopPropagation();
+          this.openTaskInfo($event.target as HTMLElement, job);
+        }
       }
     );
     if (this.userPermissionsService.hasGenericPermission(Resource.JOB, Operation.DELETE) ||
@@ -289,9 +302,7 @@ export class TaskManagerTableConfigResolver {
     return progress > 0 ? Math.round(progress / result.totalCount * 100) : (result.totalCount > 0 ? 0 : 100);
   }
 
-  private openTaskInfo($event: Event, job: Job): void {
-    $event?.stopPropagation();
-    const trigger = $event.target as HTMLElement;
+  private openTaskInfo(trigger: HTMLElement, job: Job): void {
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
