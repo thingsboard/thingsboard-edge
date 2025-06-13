@@ -46,7 +46,7 @@
       [allowCredentialTypes]="[IntegrationCredentialType.CertPEM]">
     </tb-integration-credentials>
   </fieldset>
-  <tb-mqtt-topic-filters formControlName="topicFilters">
+  <tb-mqtt-topic-filters formControlName="topicFilters" [excludeQos]="[MqttQos.EXACTLY_ONCE]">
   </tb-mqtt-topic-filters>
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
   </ng-container>
