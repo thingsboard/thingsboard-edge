@@ -136,7 +136,8 @@
         <kafka.version>3.7.2</kafka.version>
         <bucket4j.version>8.10.1</bucket4j.version>
         <antlr.version>3.5.3</antlr.version>
-        <amazon-kinesis-producer>0.15.10</amazon-kinesis-producer>
+        <amazon-kinesis-producer>0.15.12</amazon-kinesis-producer>
+        <org.json.version>20250517</org.json.version> <!-- Transitive dependency by amazon-kinesis-producer 0.15.10, 0.15.12 to address CVE-2023-5072 -->
         <amazon-kinesis-client>3.0.1</amazon-kinesis-client>
         <apache-avro.version>1.11.4</apache-avro.version> <!--vulnerability fix, related to the kinesis client-->
         <snakeyaml.version>2.2</snakeyaml.version>
@@ -2268,6 +2269,11 @@
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${org.json.version}</version>  <!-- Transitive dependency by amazon-kinesis-producer 0.15.10, 0.15.12 to address CVE-2023-5072 -->
             </dependency>
             <dependency>
                 <groupId>software.amazon.kinesis</groupId>
