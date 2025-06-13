@@ -30,9 +30,6 @@
  */
 package org.thingsboard.server.service.cf;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -46,12 +43,12 @@ import jakarta.annotation.PreDestroy;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.rule.engine.api.AttributesSaveRequest;
 import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
 import org.thingsboard.rule.engine.api.TimeseriesSaveRequest.Strategy;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
@@ -74,6 +71,7 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
@@ -194,6 +192,11 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
                         .mapToLong(buffer -> buffer.get(0).getTs())
                         .min();
                 if (minTs.isEmpty()) {
+                    var latestResult = ctx.getLatestResult();
+                    if (latestResult != null) {
+                        Future<Void> result = saveResult(ctx, latestResult.getSecond(), latestResult.getFirst(), Strategy.LATEST_AND_WS);
+                        ctx.addResult(result, telemetryFetchPackSize);
+                    }
                     break;
                 }
 
@@ -238,42 +241,13 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
             CalculatedFieldResult calculationResult = state.performCalculation(ctx.getCfCtx()).get(cfCalculationResultTimeout, TimeUnit.SECONDS);
             ctx.checkStateSize();
             if (!calculationResult.isEmpty()) {
-                return saveResult(ctx, checkAndSetTs(calculationResult, ts), ts);
+                ctx.setLatestResult(new TbPair<>(ts, calculationResult));
+                return saveResult(ctx, calculationResult, ts, Strategy.TIME_SERIES_ONLY);
             }
         } else {
             ctx.checkStateSize();
         }
         return Futures.immediateVoidFuture();
-    }
-
-    private CalculatedFieldResult checkAndSetTs(CalculatedFieldResult result, long ts) {
-        JsonNode resultJson = result.getResult();
-        JsonNode newResultJson = resultJson.deepCopy();
-        if (newResultJson.isObject()) {
-            newResultJson = withTs(newResultJson, ts);
-        }
-        if (newResultJson.isArray()) {
-            ArrayNode newArray = JacksonUtil.newArrayNode();
-            for (JsonNode entry : newResultJson) {
-                newArray.add(withTs(entry, ts));
-            }
-            newResultJson = newArray;
-        }
-        return new CalculatedFieldResult(result.getType(), result.getScope(), newResultJson);
-    }
-
-    private JsonNode withTs(JsonNode node, long ts) {
-        if (node.isObject() && !node.has("ts")) {
-            if (!node.has("values")) {
-                ObjectNode wrapped = JacksonUtil.newObjectNode();
-                wrapped.put("ts", ts);
-                wrapped.set("values", node);
-                return wrapped;
-            } else {
-                ((ObjectNode) node).put("ts", ts);
-            }
-        }
-        return node;
     }
 
     private Future<Void> processArgumentValuesUpdate(CfReprocessingCtx ctx, Map<String, ArgumentEntry> newArgValues, long ts) throws Exception {
@@ -394,43 +368,25 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         return result;
     }
 
-    private Future<Void> saveResult(CfReprocessingCtx ctx, CalculatedFieldResult calculatedFieldResult, long ts) throws InterruptedException {
-        OutputType type = calculatedFieldResult.getType();
+    private Future<Void> saveResult(CfReprocessingCtx ctx, CalculatedFieldResult calculatedFieldResult, long ts, Strategy strategy) throws InterruptedException {
         JsonElement result = JsonParser.parseString(Objects.requireNonNull(JacksonUtil.toString(calculatedFieldResult.getResult())));
         log.trace("[{}][{}] Saving CF result: {}", ctx.getTenantId(), ctx.getEntityId(), result);
         SettableFuture<Void> future = SettableFuture.create();
-        switch (type) {
-            case TIME_SERIES -> {
-                Map<Long, List<KvEntry>> tsKvMap = JsonConverter.convertToTelemetry(result, ts);
-                List<TsKvEntry> tsKvEntryList = new ArrayList<>();
-                for (Entry<Long, List<KvEntry>> tsKvEntry : tsKvMap.entrySet()) {
-                    for (KvEntry kvEntry : tsKvEntry.getValue()) {
-                        tsKvEntryList.add(new BasicTsKvEntry(tsKvEntry.getKey(), kvEntry));
-                    }
-                }
-                telemetrySubscriptionService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
-                        .tenantId(ctx.getTenantId())
-                        .entityId(ctx.getEntityId())
-                        .entries(tsKvEntryList)
-                        .strategy(new Strategy(true, false, false, false))
-                        .future(future)
-                        .build()
-                );
+        Map<Long, List<KvEntry>> tsKvMap = JsonConverter.convertToTelemetry(result, ts);
+        List<TsKvEntry> tsKvEntryList = new ArrayList<>();
+        for (Entry<Long, List<KvEntry>> tsKvEntry : tsKvMap.entrySet()) {
+            for (KvEntry kvEntry : tsKvEntry.getValue()) {
+                tsKvEntryList.add(new BasicTsKvEntry(tsKvEntry.getKey(), kvEntry));
             }
-            case ATTRIBUTES -> {
-                List<AttributeKvEntry> attributes = new ArrayList<>(JsonConverter.convertToAttributes(result, ts));
-                telemetrySubscriptionService.saveAttributes(AttributesSaveRequest.builder()
-                        .tenantId(ctx.getTenantId())
-                        .entityId(ctx.getEntityId())
-                        .scope(calculatedFieldResult.getScope())
-                        .entries(attributes)
-                        .strategy(new AttributesSaveRequest.Strategy(true, false, false))
-                        .future(future)
-                        .build()
-                );
-            }
-            default -> throw new IllegalArgumentException("Unsupported output type: " + type);
         }
+        telemetrySubscriptionService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                .tenantId(ctx.getTenantId())
+                .entityId(ctx.getEntityId())
+                .entries(tsKvEntryList)
+                .strategy(strategy)
+                .future(future)
+                .build()
+        );
         if (log.isTraceEnabled()) {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
@@ -457,9 +413,13 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         private final CalculatedFieldId cfId;
         private final CalculatedFieldEntityCtxId ctxId;
 
+        @Setter
+        private TbPair<Long, CalculatedFieldResult> latestResult;
+
         private final Map<String, LinkedList<TsKvEntry>> telemetryBuffers = new HashMap<>();
         private final Map<String, Long> cursors = new HashMap<>();
         private final List<Future<Void>> resultFutures = new ArrayList<>();
+
 
         @Builder
         public CfReprocessingCtx(TenantId tenantId, EntityId entityId, CalculatedFieldCtx cfCtx, CalculatedFieldState state) {
