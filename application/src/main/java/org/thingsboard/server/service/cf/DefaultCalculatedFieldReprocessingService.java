@@ -194,7 +194,8 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
                 if (minTs.isEmpty()) {
                     var latestResult = ctx.getLatestResult();
                     if (latestResult != null) {
-                        saveResult(ctx, latestResult.getSecond(), latestResult.getFirst(), Strategy.LATEST_AND_WS);
+                        Future<Void> result = saveResult(ctx, latestResult.getSecond(), latestResult.getFirst(), Strategy.LATEST_AND_WS);
+                        ctx.addResult(result, telemetryFetchPackSize);
                     }
                     break;
                 }
@@ -368,29 +369,24 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
     }
 
     private Future<Void> saveResult(CfReprocessingCtx ctx, CalculatedFieldResult calculatedFieldResult, long ts, Strategy strategy) throws InterruptedException {
-        OutputType type = calculatedFieldResult.getType();
         JsonElement result = JsonParser.parseString(Objects.requireNonNull(JacksonUtil.toString(calculatedFieldResult.getResult())));
         log.trace("[{}][{}] Saving CF result: {}", ctx.getTenantId(), ctx.getEntityId(), result);
         SettableFuture<Void> future = SettableFuture.create();
-        if (OutputType.TIME_SERIES.equals(type)) {
-            Map<Long, List<KvEntry>> tsKvMap = JsonConverter.convertToTelemetry(result, ts);
-            List<TsKvEntry> tsKvEntryList = new ArrayList<>();
-            for (Entry<Long, List<KvEntry>> tsKvEntry : tsKvMap.entrySet()) {
-                for (KvEntry kvEntry : tsKvEntry.getValue()) {
-                    tsKvEntryList.add(new BasicTsKvEntry(tsKvEntry.getKey(), kvEntry));
-                }
+        Map<Long, List<KvEntry>> tsKvMap = JsonConverter.convertToTelemetry(result, ts);
+        List<TsKvEntry> tsKvEntryList = new ArrayList<>();
+        for (Entry<Long, List<KvEntry>> tsKvEntry : tsKvMap.entrySet()) {
+            for (KvEntry kvEntry : tsKvEntry.getValue()) {
+                tsKvEntryList.add(new BasicTsKvEntry(tsKvEntry.getKey(), kvEntry));
             }
-            telemetrySubscriptionService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
-                    .tenantId(ctx.getTenantId())
-                    .entityId(ctx.getEntityId())
-                    .entries(tsKvEntryList)
-                    .strategy(strategy)
-                    .future(future)
-                    .build()
-            );
-        } else {
-            throw new IllegalArgumentException("Unsupported output type: " + type);
         }
+        telemetrySubscriptionService.saveTimeseriesInternal(TimeseriesSaveRequest.builder()
+                .tenantId(ctx.getTenantId())
+                .entityId(ctx.getEntityId())
+                .entries(tsKvEntryList)
+                .strategy(strategy)
+                .future(future)
+                .build()
+        );
         if (log.isTraceEnabled()) {
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override

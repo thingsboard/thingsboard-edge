@@ -707,6 +707,9 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         CalculatedField savedCalculatedField = createCalculatedField(testDevice.getId(), testAsset.getId());
 
+        pushTelemetry(testDevice.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"a\":10}}", currentTime)));
+        pushTelemetry(testAsset.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"b\":100}}", currentTime)));
+
         reprocessCalculatedField(savedCalculatedField, startTs, endTs);
 
         await().alias("reprocess -> perform calculation for time window").atMost(TIMEOUT, TimeUnit.SECONDS)
@@ -729,6 +732,10 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
                     assertThat(result.get("result").get(4).get("ts").asText()).isEqualTo(Long.toString(startTs)); // we use reprocessing startTs instead of telemetry ts for initial calculation
                     assertThat(result.get("result").get(4).get("value").asText()).isEqualTo("12.0");
+
+                    ObjectNode resultLatest = getLatestTelemetry(testDevice.getId(), "result");
+                    assertThat(resultLatest).isNotNull();
+                    assertThat(resultLatest.get("result").get(0).get("value").asText()).isEqualTo("110.0"); // reprocessing result did not overwrite the actual latest value
                 });
 
         await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
@@ -806,6 +813,10 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
                     assertThat(ab_1.get("result").get(3).get("ts").asText()).isEqualTo(Long.toString(aTs_1));
                     assertThat(ab_1.get("result").get(3).get("value").asText()).isEqualTo("110.0");
+
+                    ObjectNode resultLatest = getLatestTelemetry(testDevice1.getId(), "result");
+                    assertThat(resultLatest).isNotNull();
+                    assertThat(resultLatest.get("result").get(0).get("value").asText()).isEqualTo("320.0");
                 });
 
         await().alias("reprocess -> perform calculation for device 2").atMost(TIMEOUT, TimeUnit.SECONDS)
@@ -825,6 +836,10 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
                     assertThat(ab_2.get("result").get(3).get("ts").asText()).isEqualTo(Long.toString(d2Ts_1));
                     assertThat(ab_2.get("result").get(3).get("value").asText()).isEqualTo("101.0");
+
+                    ObjectNode resultLatest = getLatestTelemetry(testDevice2.getId(), "result");
+                    assertThat(resultLatest).isNotNull();
+                    assertThat(resultLatest.get("result").get(0).get("value").asText()).isEqualTo("302.0");
                 });
 
         await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
@@ -903,6 +918,10 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
                     assertThat(airDensity.get("airDensity").get(2).get("ts").asText()).isEqualTo(Long.toString(d1Ts_1));
                     assertThat(airDensity.get("airDensity").get(2).get("value").asText()).isEqualTo("1.0");
+
+                    ObjectNode airDensityLatest = getLatestTelemetry(testDevice1.getId(), "airDensity");
+                    assertThat(airDensityLatest).isNotNull();
+                    assertThat(airDensityLatest.get("airDensity").get(0).get("value").asText()).isEqualTo("1.02");
                 });
 
         await().alias("reprocess -> perform calculation for device 2").atMost(TIMEOUT, TimeUnit.SECONDS)
@@ -919,6 +938,10 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
                     assertThat(airDensity.get("airDensity").get(2).get("ts").asText()).isEqualTo(Long.toString(d2Ts_1));
                     assertThat(airDensity.get("airDensity").get(2).get("value").asText()).isEqualTo("1.03");
+
+                    ObjectNode airDensityLatest = getLatestTelemetry(testDevice2.getId(), "airDensity");
+                    assertThat(airDensityLatest).isNotNull();
+                    assertThat(airDensityLatest.get("airDensity").get(0).get("value").asText()).isEqualTo("1.02");
                 });
 
         await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
