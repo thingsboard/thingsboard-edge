@@ -120,4 +120,5 @@ public class BaseComponentDescriptorService implements ComponentDescriptorServic
             throw new IncorrectParameterException(e.getMessage(), e);
         }
     }
+
 }

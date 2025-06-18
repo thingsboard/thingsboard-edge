@@ -105,7 +105,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
 
     private void onDownlinkToRemoteIntegrationMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsg) {
         IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId,
-                TbMsg.fromBytes(null, downlinkMsg.getData().toByteArray(), TbMsgCallback.EMPTY), null);
+                TbMsg.fromProto(null, downlinkMsg.getDataProto(), downlinkMsg.getData(), TbMsgCallback.EMPTY), null);
         remoteRpcService.handleRemoteDownlink(msg);
     }
 }

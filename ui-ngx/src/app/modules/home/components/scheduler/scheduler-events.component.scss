@@ -80,6 +80,7 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
 
     .table-container {
       overflow: auto;
+      flex: 1 1 0;
 
       .mat-sort-header-sorted .mat-sort-header-arrow {
         opacity: 1 !important;

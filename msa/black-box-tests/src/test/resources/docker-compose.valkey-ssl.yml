@@ -1,0 +1,145 @@
+#
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+#
+# Copyright © 2016-2025 ThingsBoard, Inc. All Rights Reserved.
+#
+# NOTICE: All information contained herein is, and remains
+# the property of ThingsBoard, Inc. and its suppliers,
+# if any.  The intellectual and technical concepts contained
+# herein are proprietary to ThingsBoard, Inc.
+# and its suppliers and may be covered by U.S. and Foreign Patents,
+# patents in process, and are protected by trade secret or copyright law.
+#
+# Dissemination of this information or reproduction of this material is strictly forbidden
+# unless prior written permission is obtained from COMPANY.
+#
+# Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+# managers or contractors who have executed Confidentiality and Non-disclosure agreements
+# explicitly covering such access.
+#
+# The copyright notice above does not evidence any actual or intended publication
+# or disclosure  of  this source code, which includes
+# information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+# ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+# OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+# THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+# AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+# THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+# DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+# OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+#
+
+version: '3.0'
+
+services:
+# Valkey standalone
+# The latest version of Valkey compatible with ThingsBoard is 8.0
+  valkey:
+    restart: always
+    image: bitnami/valkey:8.0
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - 'ALLOW_EMPTY_PASSWORD=yes'
+      - 'VALKEY_TLS_ENABLED=yes'
+      - 'VALKEY_TLS_CERT_FILE=/valkey/certs/valkey.crt'
+      - 'VALKEY_TLS_KEY_FILE=/valkey/certs/valkey.key'
+      - 'VALKEY_TLS_CA_FILE=/valkey/certs/valkeyCA.crt'
+      - 'VALKEY_TLS_AUTH_CLIENTS=no'
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./tb-node/valkey-data:/bitnami/valkey/data
+      - ./valkey-certs:/valkey/certs
+
+# ThingsBoard setup to use valkey-standalone
+  tb-core1:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-core2:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-rule-engine1:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-rule-engine2:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-mqtt-transport1:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-mqtt-transport2:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-http-transport1:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-http-transport2:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-coap-transport:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-lwm2m-transport:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-snmp-transport:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-vc-executor1:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey
+  tb-vc-executor2:
+    env_file:
+      - cache-valkey.env
+    volumes:
+      - ./valkey-certs:/valkey/certs
+    depends_on:
+      - valkey

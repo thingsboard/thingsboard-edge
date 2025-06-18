@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.entity;
 
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -45,7 +46,9 @@ import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface EntityService {
 
@@ -56,6 +59,8 @@ public interface EntityService {
     Optional<CustomerId> fetchEntityCustomerId(TenantId tenantId, EntityId entityId);
 
     Optional<HasId<?>> fetchEntity(TenantId tenantId, EntityId entityId);
+
+    Map<EntityId, EntityInfo> fetchEntityInfos(TenantId tenantId, CustomerId customerId, Set<EntityId> entityIds, MergedUserPermissions userPermissions);
 
     Optional<NameLabelAndCustomerDetails> fetchNameLabelAndCustomerDetails(TenantId tenantId, EntityId entityId);
 

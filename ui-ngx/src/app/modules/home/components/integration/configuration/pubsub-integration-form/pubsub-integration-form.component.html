@@ -51,14 +51,13 @@
       </mat-form-field>
     </div>
     <fieldset [disabled]="disabled">
-      <tb-file-input [existingFileName]="pubSubIntegrationConfigForm.get('serviceAccountKeyFileName').value"
-                     formControlName="serviceAccountKey"
-                     required
-                     dropLabel="{{ 'integration.drop-file-or' | translate }}"
-                     label="{{ 'integration.service-account-key' | translate }}"
-                     (fileNameChanged)="pubSubIntegrationConfigForm.get('serviceAccountKeyFileName').setValue($event)"
-                     inputId="service-account-key">
-      </tb-file-input>
+      <tb-secret-file-input formControlName="serviceAccountKey"
+                            label="{{'integration.service-account-key' | translate}}"
+                            inputId="service-account-key"
+                            required
+                            [existingFileName]="pubSubIntegrationConfigForm.get('serviceAccountKeyFileName').value"
+                            (fileNameChanged)="pubSubIntegrationConfigForm.get('serviceAccountKeyFileName').setValue($event)">
+      </tb-secret-file-input>
     </fieldset>
   </fieldset>
 

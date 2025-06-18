@@ -221,7 +221,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void processTenantUpdate(ComponentLifecycleMsg componentLifecycleMsg) {
-        TenantId tenantId = new TenantId(componentLifecycleMsg.getEntityId().getId());
+        TenantId tenantId = TenantId.fromUUID(componentLifecycleMsg.getEntityId().getId());
         if (ComponentLifecycleEvent.DELETED.equals(componentLifecycleMsg.getEvent())) {
             integrations.values().stream().filter(state -> state.getTenantId().equals(tenantId)).forEach(state -> {
                 scheduleIntegrationEvent(state.getTenantId(), state.getId(), DELETED);
@@ -234,9 +234,9 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     public void handleDownlink(IntegrationDownlinkMsgProto proto, TbCallback callback) {
         commandExecutorService.submit(() -> {
             try {
-                TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
+                TenantId tenantId = TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
                 IntegrationId integrationId = new IntegrationId(new UUID(proto.getIntegrationIdMSB(), proto.getIntegrationIdLSB()));
-                IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(null, proto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
+                IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromProto(null, proto.getDataProto(), proto.getData(), TbMsgCallback.EMPTY), null);
                 var state = integrations.get(integrationId);
                 if (state == null) {
                     callback.onFailure(new RuntimeException("Integration is missing!"));

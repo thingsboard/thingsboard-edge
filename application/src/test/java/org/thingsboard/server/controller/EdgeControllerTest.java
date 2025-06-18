@@ -1515,6 +1515,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         // 30 connect messages
         // + 13 fetchers messages in sync process
         edgeImitator.expectMessageAmount(CONNECT_MESSAGE_COUNT + 13);
+
         doPost("/api/edge/sync/" + edge.getId());
         edgeImitator.waitForMessages();
 

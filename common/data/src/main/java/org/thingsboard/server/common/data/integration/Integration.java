@@ -87,7 +87,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         this.downlinkConverterId = integration.getDownlinkConverterId();
         this.routingKey = integration.getRoutingKey();
         this.secret = integration.getSecret();
-        this.configuration = integration.getConfiguration();
+        this.configuration = integration.getConfiguration().deepCopy();
         this.additionalInfo = integration.getAdditionalInfo();
         this.externalId = integration.getExternalId();
     }

@@ -61,13 +61,11 @@
       integration.application-server-url-required
     </mat-error>
   </mat-form-field>
-  <mat-form-field class="mat-block">
-    <mat-label translate>integration.application-server-api-token</mat-label>
-    <input matInput formControlName="applicationServerAPIToken" required>
-    <mat-error translate *ngIf="chirpStackIntegrationConfigForm.get('applicationServerAPIToken').hasError('required')">
-      integration.application-server-api-token-required
-    </mat-error>
-  </mat-form-field>
+  <tb-secret-key-input formControlName="applicationServerAPIToken" class="mat-block flex-1"
+                       required
+                       label="{{ 'integration.application-server-api-token' | translate }}"
+                       requiredText="{{ 'integration.application-server-api-token-required' | translate }}">
+  </tb-secret-key-input>
   <mat-slide-toggle class="mat-slide" style="padding-bottom: 16px;"
                     formControlName="useAPI4Plus">
     {{ 'integration.use-api-four-plus' | translate }}

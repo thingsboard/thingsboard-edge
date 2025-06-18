@@ -85,6 +85,9 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
     @Column(name = ModelConstants.COMPONENT_DESCRIPTOR_HAS_QUEUE_NAME_PROPERTY)
     private boolean hasQueueName;
 
+    @Column(name = ModelConstants.COMPONENT_DESCRIPTOR_HAS_SECRETS_PROPERTY)
+    private boolean hasSecrets;
+
     public ComponentDescriptorEntity() {
     }
 
@@ -102,6 +105,7 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
         this.configurationDescriptor = component.getConfigurationDescriptor();
         this.configurationVersion = component.getConfigurationVersion();
         this.hasQueueName = component.isHasQueueName();
+        this.hasSecrets = component.isHasSecrets();
     }
 
     @Override
@@ -117,6 +121,8 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
         data.setConfigurationDescriptor(configurationDescriptor);
         data.setConfigurationVersion(configurationVersion);
         data.setHasQueueName(hasQueueName);
+        data.setHasSecrets(hasSecrets);
         return data;
     }
+
 }

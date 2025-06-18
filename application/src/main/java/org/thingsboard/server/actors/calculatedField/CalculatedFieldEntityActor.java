@@ -90,6 +90,9 @@ public class CalculatedFieldEntityActor extends AbstractCalculatedFieldActor {
             case CF_LINKED_TELEMETRY_MSG:
                 processor.process((EntityCalculatedFieldLinkedTelemetryMsg) msg);
                 break;
+            case CF_ARGUMENT_RESET_MSG:
+                processor.process((CalculatedFieldArgumentResetMsg) msg);
+                break;
             default:
                 return false;
         }

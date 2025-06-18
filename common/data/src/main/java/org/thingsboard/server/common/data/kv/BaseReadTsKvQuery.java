@@ -32,11 +32,13 @@ package org.thingsboard.server.common.data.kv;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.ZoneId;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class BaseReadTsKvQuery extends BaseTsKvQuery implements ReadTsKvQuery {
 
     private final AggregationParams aggParameters;

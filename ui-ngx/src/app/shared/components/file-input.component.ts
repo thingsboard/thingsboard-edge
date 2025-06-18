@@ -30,7 +30,7 @@
 ///
 
 import {
-  AfterViewInit,
+  AfterViewInit, booleanAttribute,
   Component,
   ElementRef,
   EventEmitter,
@@ -140,6 +140,9 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
   get multipleFile(): boolean {
     return this.multipleFileValue;
   }
+
+  @Input({transform: booleanAttribute})
+  hideClearButtonOnEmpty = false;
 
   @Output()
   fileNameChanged = new EventEmitter<string|string[]>();

@@ -57,6 +57,7 @@
       <tb-entity-list-select
         formControlName="targetEntityIds"
         [operation]="!readonly ? operation.WRITE : operation.READ"
+        [additionEntityTypes]="additionEntityTypes"
         required="true">
       </tb-entity-list-select>
       <tb-json-object-edit

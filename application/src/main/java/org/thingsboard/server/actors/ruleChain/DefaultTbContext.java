@@ -40,6 +40,7 @@ import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.MqttClientSettings;
 import org.thingsboard.rule.engine.api.NotificationCenter;
@@ -123,6 +124,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
@@ -140,6 +142,7 @@ import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
@@ -269,7 +272,8 @@ public class DefaultTbContext implements TbContext, TbPeContext {
         TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
-                .setTbMsg(TbMsg.toByteString(tbMsg)).build();
+                .setTbMsgProto(TbMsg.toProto(tbMsg))
+                .build();
         mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg, callback);
     }
 
@@ -348,7 +352,7 @@ public class DefaultTbContext implements TbContext, TbPeContext {
         TransportProtos.ToRuleEngineMsg.Builder msg = TransportProtos.ToRuleEngineMsg.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
-                .setTbMsg(TbMsg.toByteString(tbMsg))
+                .setTbMsgProto(TbMsg.toProto(tbMsg))
                 .addAllRelationTypes(relationTypes);
         if (failureMessage != null) {
             msg.setFailureMessage(failureMessage);
@@ -933,6 +937,16 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public JobService getJobService() {
+        return mainCtx.getJobService();
+    }
+
+    @Override
+    public JobManager getJobManager() {
+        return mainCtx.getJobManager();
+    }
+
+    @Override
     public boolean isExternalNodeForceAck() {
         return mainCtx.isExternalNodeForceAck();
     }
@@ -1056,7 +1070,8 @@ public class DefaultTbContext implements TbContext, TbPeContext {
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
                 .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
                 .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
-                .setData(TbMsg.toByteString(msg)).build();
+                .setDataProto(TbMsg.toProto(msg))
+                .build();
         mainCtx.getDownlinkService().onRuleEngineDownlinkMsg(getTenantId(), integrationId, downlinkMsgProto, new TbCallback() {
 
             @Override
@@ -1195,6 +1210,11 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public SchedulerEventService getSchedulerEventService() {
         return mainCtx.getSchedulerEventService();
+    }
+
+    @Override
+    public SecretService getSecretService() {
+        return mainCtx.getSecretService();
     }
 
     @Override

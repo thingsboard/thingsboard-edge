@@ -37,6 +37,7 @@ import {
   Font,
   simpleDateFormat,
   sortedColorRange,
+  ValueFormatProcessor,
   ValueSourceType
 } from '@shared/models/widget-settings.models';
 import { LegendPosition } from '@shared/models/widget.models';
@@ -57,7 +58,7 @@ import {
   TimeSeriesChartXAxisSettings,
   TimeSeriesChartYAxisSettings
 } from '@home/components/widget/lib/chart/time-series-chart.models';
-import { isNumber, mergeDeep, plainColorFromVariable } from '@core/utils';
+import { isDefinedAndNotNull, isNumber, mergeDeep, plainColorFromVariable } from '@core/utils';
 import { DeepPartial } from '@shared/models/common';
 import {
   chartAnimationDefaultSettings,
@@ -235,13 +236,13 @@ export const rangeChartDefaultSettings: RangeChartWidgetSettings = {
 };
 
 export const rangeChartTimeSeriesSettings = (settings: RangeChartWidgetSettings, rangeItems: RangeItem[],
-                                             decimals: number, units: string): DeepPartial<TimeSeriesChartSettings> => {
+                                             decimals: number, units: string, valueConvertor: (x: number) => number): DeepPartial<TimeSeriesChartSettings> => {
   let thresholds: DeepPartial<TimeSeriesChartThreshold>[] = settings.showRangeThresholds ? getMarkPoints(rangeItems).map(item => ({
     ...{type: ValueSourceType.constant,
     yAxisId: 'default',
     units,
     decimals,
-    value: item},
+    value: valueConvertor(item)},
     ...settings.rangeThreshold
   } as DeepPartial<TimeSeriesChartThreshold>)) : [];
   if (settings.thresholds?.length) {
@@ -306,20 +307,21 @@ export const rangeChartTimeSeriesKeySettings = (settings: RangeChartWidgetSettin
     }
   });
 
-export const toRangeItems = (colorRanges: Array<ColorRange>): RangeItem[] => {
+export const toRangeItems = (colorRanges: Array<ColorRange>, valueFormat: ValueFormatProcessor): RangeItem[] => {
   const rangeItems: RangeItem[] = [];
   let counter = 0;
   const ranges = sortedColorRange(filterIncludingColorRanges(colorRanges)).filter(r => isNumber(r.from) || isNumber(r.to));
   for (let i = 0; i < ranges.length; i++) {
     const range = ranges[i];
     let from = range.from;
-    const to = range.to;
+    const to = isDefinedAndNotNull(range.to) ? Number(valueFormat.format(range.to)) : range.to;
     if (i > 0) {
       const prevRange = ranges[i - 1];
       if (isNumber(prevRange.to) && isNumber(from) && from < prevRange.to) {
         from = prevRange.to;
       }
     }
+    from = isDefinedAndNotNull(from) ? Number(valueFormat.format(from)) : from;
     rangeItems.push(
       {
         index: counter++,

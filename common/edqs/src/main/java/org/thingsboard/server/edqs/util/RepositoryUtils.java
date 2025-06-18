@@ -93,7 +93,7 @@ public class RepositoryUtils {
     public static final Comparator<SortableEntityData> SORT_ASC = Comparator.comparing(SortableEntityData::getSortValue, Comparator.nullsFirst(Comparator.naturalOrder()))
             .thenComparing(sp -> sp.getId().toString());
 
-    public static final Comparator<SortableEntityData> SORT_DESC =  Comparator.comparing(SortableEntityData::getSortValue, Comparator.nullsFirst(Comparator.naturalOrder()))
+    public static final Comparator<SortableEntityData> SORT_DESC = Comparator.comparing(SortableEntityData::getSortValue, Comparator.nullsFirst(Comparator.naturalOrder()))
             .thenComparing(sp -> sp.getId().toString()).reversed();
 
     public static final MergedUserPermissions SYS_ADMIN_PERMISSIONS = new MergedUserPermissions(Collections.singletonMap(Resource.ALL, Set.of(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY)), Collections.emptyMap());
@@ -129,11 +129,11 @@ public class RepositoryUtils {
         }
         for (EntityType entityType : EntityGroup.groupTypes) {
             if (permissionsMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead() ||
-                    !permissionsMap.get(Resource.resourceFromEntityType(entityType)).getEntityGroupIds().isEmpty()) {
+                !permissionsMap.get(Resource.resourceFromEntityType(entityType)).getEntityGroupIds().isEmpty()) {
                 return false;
             }
             if (permissionsMap.get(Resource.groupResourceFromGroupType(entityType)).isHasGenericRead() ||
-                    !permissionsMap.get(Resource.groupResourceFromGroupType(entityType)).getEntityGroupIds().isEmpty()) {
+                !permissionsMap.get(Resource.groupResourceFromGroupType(entityType)).getEntityGroupIds().isEmpty()) {
                 return false;
             }
         }
@@ -169,7 +169,7 @@ public class RepositoryUtils {
     private static boolean isSystemOrTenantEntity(EntityType entityType) {
         return switch (entityType) {
             case INTEGRATION, CONVERTER, DEVICE_PROFILE, ASSET_PROFILE, RULE_CHAIN, SCHEDULER_EVENT, TENANT,
-                    TENANT_PROFILE, WIDGET_TYPE, WIDGETS_BUNDLE -> true;
+                 TENANT_PROFILE, WIDGET_TYPE, WIDGETS_BUNDLE -> true;
             default -> false;
         };
     }
@@ -419,7 +419,7 @@ public class RepositoryUtils {
         if (sortKey == null) {
             return null;
         }
-       return entity.getDataPoint(sortKey, queryContext);
+        return entity.getDataPoint(sortKey, queryContext);
     }
 
     public static boolean checkFilters(EdqsQuery query, EntityData entity) {
