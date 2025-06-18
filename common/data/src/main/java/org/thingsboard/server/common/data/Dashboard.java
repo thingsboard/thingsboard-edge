@@ -76,7 +76,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     private boolean mobileHide;
     private Integer mobileOrder;
 
-    private JsonNode configuration;
+    private transient JsonNode configuration;
 
     @Getter
     @Setter
