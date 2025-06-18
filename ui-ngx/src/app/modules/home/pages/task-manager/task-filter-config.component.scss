@@ -58,9 +58,11 @@
         overflow: hidden;
       }
     }
-
-    @media #{$mat-gt-xs} {
-      tb-entity-list, tb-string-items-list {
+    tb-entity-list, tb-string-items-list {
+      .mdc-evolution-chip-set__chips {
+        width: 100%;
+      }
+      @media #{$mat-gt-xs} {
         width: 180px;
       }
     }
