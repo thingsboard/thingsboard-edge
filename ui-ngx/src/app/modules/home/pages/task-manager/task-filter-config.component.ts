@@ -49,7 +49,7 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { fromEvent, Subscription } from 'rxjs';
 import { StringItemsOption } from '@shared/components/string-items-list.component';
 import { EntityType } from '@shared/models/entity-type.models';
-import { Operation, resourceByEntityType } from '@shared/models/security.models';
+import { groupResourceByGroupType, Operation, resourceByEntityType } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { deepClone } from '@core/utils';
 
@@ -104,8 +104,16 @@ export class TaskFilterConfigComponent implements ControlValueAccessor, OnDestro
               private viewContainerRef: ViewContainerRef,
               private userPermissionsService: UserPermissionsService ) {
     this.filteredEntityType = this.filteredEntityType.filter(entityType => {
-      const resource = resourceByEntityType.get(entityType);
-      return resource ? this.userPermissionsService.hasGenericPermission(resource, Operation.READ) : false;
+      let hasGenericRead = false;
+      if (resourceByEntityType.has(entityType)) {
+        const resource = resourceByEntityType.get(entityType);
+        hasGenericRead = this.userPermissionsService.hasGenericPermission(resource, Operation.READ);
+      }
+      let hasGroupRead = false;
+      if (groupResourceByGroupType.has(entityType)) {
+        hasGroupRead = this.userPermissionsService.hasReadGroupsPermission(entityType);
+      }
+      return hasGenericRead || hasGroupRead;
     })
   }
 

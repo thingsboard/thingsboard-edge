@@ -78,7 +78,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -94,7 +93,7 @@ public class RepositoryUtils {
     public static final Comparator<SortableEntityData> SORT_ASC = Comparator.comparing(SortableEntityData::getSortValue, Comparator.nullsFirst(Comparator.naturalOrder()))
             .thenComparing(sp -> sp.getId().toString());
 
-    public static final Comparator<SortableEntityData> SORT_DESC =  Comparator.comparing(SortableEntityData::getSortValue, Comparator.nullsFirst(Comparator.naturalOrder()))
+    public static final Comparator<SortableEntityData> SORT_DESC = Comparator.comparing(SortableEntityData::getSortValue, Comparator.nullsFirst(Comparator.naturalOrder()))
             .thenComparing(sp -> sp.getId().toString()).reversed();
 
     public static final MergedUserPermissions SYS_ADMIN_PERMISSIONS = new MergedUserPermissions(Collections.singletonMap(Resource.ALL, Set.of(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY)), Collections.emptyMap());
@@ -130,11 +129,11 @@ public class RepositoryUtils {
         }
         for (EntityType entityType : EntityGroup.groupTypes) {
             if (permissionsMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead() ||
-                    !permissionsMap.get(Resource.resourceFromEntityType(entityType)).getEntityGroupIds().isEmpty()) {
+                !permissionsMap.get(Resource.resourceFromEntityType(entityType)).getEntityGroupIds().isEmpty()) {
                 return false;
             }
             if (permissionsMap.get(Resource.groupResourceFromGroupType(entityType)).isHasGenericRead() ||
-                    !permissionsMap.get(Resource.groupResourceFromGroupType(entityType)).getEntityGroupIds().isEmpty()) {
+                !permissionsMap.get(Resource.groupResourceFromGroupType(entityType)).getEntityGroupIds().isEmpty()) {
                 return false;
             }
         }
@@ -170,7 +169,7 @@ public class RepositoryUtils {
     private static boolean isSystemOrTenantEntity(EntityType entityType) {
         return switch (entityType) {
             case INTEGRATION, CONVERTER, DEVICE_PROFILE, ASSET_PROFILE, RULE_CHAIN, SCHEDULER_EVENT, TENANT,
-                    TENANT_PROFILE, WIDGET_TYPE, WIDGETS_BUNDLE -> true;
+                 TENANT_PROFILE, WIDGET_TYPE, WIDGETS_BUNDLE -> true;
             default -> false;
         };
     }
@@ -299,11 +298,11 @@ public class RepositoryUtils {
         }
         return switch (predicate.getOperation()) {
             case EQUAL -> value.equals(predicateValue);
-            case STARTS_WITH -> toStartsWithSqlLikePattern(predicateValue).matcher(value).matches();
-            case ENDS_WITH -> toEndsWithSqlLikePattern(predicateValue).matcher(value).matches();
+            case STARTS_WITH -> toSqlLikePattern(predicateValue, "^", ".*").matcher(value).matches();
+            case ENDS_WITH -> toSqlLikePattern(predicateValue, ".*", "$").matcher(value).matches();
             case NOT_EQUAL -> !value.equals(predicateValue);
-            case CONTAINS -> toContainsSqlLikePattern(predicateValue).matcher(value).matches();
-            case NOT_CONTAINS -> !toContainsSqlLikePattern(predicateValue).matcher(value).matches();
+            case CONTAINS -> toSqlLikePattern(predicateValue, ".*", ".*").matcher(value).matches();
+            case NOT_CONTAINS -> !toSqlLikePattern(predicateValue, ".*", ".*").matcher(value).matches();
             case IN -> equalsAny(value, splitByCommaWithoutQuotes(predicateValue));
             case NOT_IN -> !equalsAny(value, splitByCommaWithoutQuotes(predicateValue));
         };
@@ -373,38 +372,32 @@ public class RepositoryUtils {
         }
     }
 
-    public static Pattern toContainsSqlLikePattern(String filter) {
+    public static Pattern toEntityNameSqlLikePattern(String filter) {
         if (StringUtils.isNotBlank(filter)) {
-            return toSqlLikePattern(filter, ".*", ".*");
+            return toSqlLikePattern(filter, "", ".*", true);
         }
         return null;
     }
 
-    private static Pattern toStartsWithSqlLikePattern(String filter) {
-        return toSqlLikePattern(filter, "^", ".*");
-    }
-
-    private static Pattern toEndsWithSqlLikePattern(String filter) {
-        return toSqlLikePattern(filter, ".*", "$");
-    }
-
     private static Pattern toSqlLikePattern(String value, String prefix, String suffix) {
+        return toSqlLikePattern(value, prefix, suffix, false);
+    }
+
+    private static Pattern toSqlLikePattern(String value, String prefix, String suffix, boolean ignoreCase) {
+        String regexValue;
         if (value.contains("%") || value.contains("_")) {
-            String regexValue = value
+            regexValue = value
                     .replace("_", ".")
                     .replace("%", ".*");
-            String regex;
             if ("^".equals(prefix)) {
-                regex = "^" + regexValue + (regexValue.endsWith(".*") ? "" : ".*");
+                regexValue = "^" + regexValue + (regexValue.endsWith(".*") ? "" : ".*");
             } else if ("$".equals(suffix)) {
-                regex = (regexValue.startsWith(".*") ? "" : ".*") + regexValue + "$";
-            } else {
-                regex = (regexValue.startsWith(".*") ? "" : ".*") + regexValue + (regexValue.endsWith(".*") ? "" : ".*");
+                regexValue = (regexValue.startsWith(".*") ? "" : ".*") + regexValue + "$";
             }
-            return Pattern.compile(regex);
         } else {
-            return Pattern.compile(prefix + Pattern.quote(value) + suffix);
+            regexValue = prefix + Pattern.quote(value) + suffix;
         }
+        return ignoreCase ? Pattern.compile(regexValue, Pattern.CASE_INSENSITIVE) : Pattern.compile(regexValue);
     }
 
     @FunctionalInterface
@@ -426,7 +419,7 @@ public class RepositoryUtils {
         if (sortKey == null) {
             return null;
         }
-       return entity.getDataPoint(sortKey, queryContext);
+        return entity.getDataPoint(sortKey, queryContext);
     }
 
     public static boolean checkFilters(EdqsQuery query, EntityData entity) {
