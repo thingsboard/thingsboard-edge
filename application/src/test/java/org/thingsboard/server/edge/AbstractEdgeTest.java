@@ -99,6 +99,7 @@ import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.model.JwtSettings;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
@@ -633,6 +634,15 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
         Assert.assertEquals(thermostatDeviceProfile.getUuidId().getMostSignificantBits(), deviceProfileUpdateMsg.getIdMSB());
         Assert.assertEquals(thermostatDeviceProfile.getUuidId().getLeastSignificantBits(), deviceProfileUpdateMsg.getIdLSB());
+
+        Optional<DeviceCredentialsUpdateMsg> deviceCredentialsUpdateMsgOpt = edgeImitator.findMessageByType(DeviceCredentialsUpdateMsg.class);
+        Assert.assertTrue(deviceCredentialsUpdateMsgOpt.isPresent());
+        DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = deviceCredentialsUpdateMsgOpt.get();
+        DeviceCredentials deviceCredentialsMsg = JacksonUtil.fromString(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class, true);
+        Assert.assertNotNull(deviceCredentialsMsg);
+        Assert.assertEquals(savedDevice.getId(), deviceCredentialsMsg.getDeviceId());
+        Assert.assertEquals(deviceCredentials, deviceCredentialsMsg);
+
         return savedDevice;
     }
 
