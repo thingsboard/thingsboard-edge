@@ -45,6 +45,7 @@ import {
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { SecretStorageService } from '@core/http/secret-storage.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { deepTrim } from '@core/utils';
 
 export interface SecretStorageData  {
   type: SecretStorageType;
@@ -76,7 +77,7 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
 
   secretForm = this.fb.group({
     type: [SecretStorageType.TEXT, []],
-    name: ['', [Validators.required, Validators.pattern('^[^{};]+$')]],
+    name: ['', [Validators.required, Validators.pattern('^[^{};]+$'), Validators.maxLength(255)]],
     description: ['', []],
     value: ['', [Validators.required]]
   });
@@ -150,7 +151,10 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
 
   add(): void {
     if (this.createNew) {
-      this.secretStorageService.saveSecret(this.secretForm.value as SecretStorageInfo).subscribe(
+      this.secretStorageService.saveSecret({
+        ...deepTrim(this.secretForm.value),
+        value: this.secretForm.value.value
+      } as SecretStorageInfo).subscribe(
         (secret) => {
           if (this.onlyCreateNew) {
             this.dialogRef.close(secret);

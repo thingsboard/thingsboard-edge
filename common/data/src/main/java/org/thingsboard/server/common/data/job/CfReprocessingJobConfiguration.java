@@ -47,6 +47,7 @@ public class CfReprocessingJobConfiguration extends JobConfiguration {
 
     @NotNull
     private CalculatedFieldId calculatedFieldId;
+    private String calculatedFieldName;
     private long startTs;
     private long endTs;
 
