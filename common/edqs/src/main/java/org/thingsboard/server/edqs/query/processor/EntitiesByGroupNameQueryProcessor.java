@@ -123,7 +123,9 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
             if (matches(ed)) {
                 Collection<EntityData<?>> groupEntities = repository.getEntityGroup(ed.getId()).getEntities();
                 for (EntityData<?> groupEntity : groupEntities) {
-                    processor.accept(groupEntity);
+                    if (super.matches(groupEntity)) {
+                        processor.accept(groupEntity);
+                    }
                 }
                 return;
             }
@@ -133,7 +135,7 @@ public class EntitiesByGroupNameQueryProcessor extends AbstractSingleEntityTypeQ
     @Override
     protected boolean matches(EntityData ed) {
         EntityGroupFields fields = (EntityGroupFields)ed.getFields();
-        return super.matches(ed) && groupType.equals(fields.getType())
+        return groupType.equals(fields.getType())
                 && (pattern == null || pattern.matcher(fields.getName()).matches())
                 && checkOwnerId(fields);
     }
