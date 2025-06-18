@@ -55,7 +55,7 @@ public class EntityGroupNameQueryProcessor extends AbstractEntityGroupQueryProce
     public EntityGroupNameQueryProcessor(TenantRepo repo, QueryContext ctx, EdqsQuery query) {
         super(repo, ctx, query, (EntityGroupNameFilter) query.getEntityFilter());
         this.groupType = filter.getGroupType().name();
-        this.groupNamePattern = RepositoryUtils.toSqlLikePattern(filter.getEntityGroupNameFilter());
+        this.groupNamePattern = RepositoryUtils.toContainsSqlLikePattern(filter.getEntityGroupNameFilter());
     }
 
     @Override
