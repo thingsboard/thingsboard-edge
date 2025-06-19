@@ -749,6 +749,70 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
     }
 
     @Test
+    public void testReprocessCalculatedFieldWhenUseLatestTsTrue() throws Exception {
+        Device testDevice = createDevice("Test device", "1234567890");
+
+        long currentTime = System.currentTimeMillis();
+        // reprocessing time window(TW)
+        long startTs = currentTime - TimeUnit.SECONDS.toMillis(120);
+        long endTs = currentTime - TimeUnit.SECONDS.toMillis(45);
+
+        long x1Ts = currentTime - TimeUnit.SECONDS.toMillis(80); // inside the TW
+        long x2Ts = currentTime - TimeUnit.SECONDS.toMillis(60); // inside the TW
+        long x3y1Ts = currentTime - TimeUnit.SECONDS.toMillis(50); // inside the TW
+        long x4Ts = currentTime - TimeUnit.SECONDS.toMillis(47); // inside the TW
+
+        pushTelemetry(testDevice.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"x\":1}}", x1Ts)));
+        pushTelemetry(testDevice.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"x\":2}}", x2Ts)));
+        pushTelemetry(testDevice.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"x\":3}}", x3y1Ts)));
+        pushTelemetry(testDevice.getId(), JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"x\":4}}", x4Ts)));
+        doPost("/api/plugins/telemetry/DEVICE/" + testDevice.getUuidId() + "/attributes/" + DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode("{\"y\":10}"));
+
+    /*      telemetry flow:
+             startTs          endTs
+                |____________________|
+           | ts |   1    2    3    4 |
+           | x  |-> 1 -> 2 -> 3 -> 4 |
+           | y  |->   ->   -> 10 ->  |
+                |____________________|
+                        |--- reprocessing time window
+           the result should be: 11 -> 12 -> 13 -> 14
+    */
+
+        CalculatedField savedCalculatedField = createCalculatedFieldWhenUseLatestTs(testDevice.getId());
+
+        reprocessCalculatedField(savedCalculatedField, startTs, endTs);
+
+        await().alias("reprocess -> perform calculation for time window").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    ObjectNode z = getTimeSeries(testDevice.getId(), startTs, endTs, "z");
+                    assertThat(z).isNotNull();
+
+                    assertThat(z.get("z").get(0).get("ts").asText()).isEqualTo(Long.toString(x4Ts));
+                    assertThat(z.get("z").get(0).get("value").asText()).isEqualTo("14");
+
+                    assertThat(z.get("z").get(1).get("ts").asText()).isEqualTo(Long.toString(x3y1Ts));
+                    assertThat(z.get("z").get(1).get("value").asText()).isEqualTo("13");
+
+                    assertThat(z.get("z").get(2).get("ts").asText()).isEqualTo(Long.toString(x2Ts));
+                    assertThat(z.get("z").get(2).get("value").asText()).isEqualTo("12");
+
+                    assertThat(z.get("z").get(3).get("ts").asText()).isEqualTo(Long.toString(x1Ts));
+                    assertThat(z.get("z").get(3).get("value").asText()).isEqualTo("11");
+                });
+
+        await().atMost(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
+            Job cfReprocessingJob = findJobs(List.of(JobType.CF_REPROCESSING), List.of(testDevice.getUuidId())).stream().findFirst().orElseThrow();
+            assertThat(cfReprocessingJob.getStatus()).isEqualTo(JobStatus.COMPLETED);
+            assertThat(cfReprocessingJob.getResult().getSuccessfulCount()).isEqualTo(1);
+            assertThat(cfReprocessingJob.getResult().getTotalCount()).isEqualTo(1);
+            assertThat(cfReprocessingJob.getEntityId()).isEqualTo(testDevice.getId());
+            assertThat(cfReprocessingJob.getEntityName()).isEqualTo(testDevice.getName());
+        });
+    }
+
+    @Test
     public void testReprocessCalculatedFieldWhenEntityIsProfile() throws Exception {
         long currentTime = System.currentTimeMillis();
         // reprocessing time window(TW)
@@ -1171,6 +1235,38 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
         output.setName("result");
         output.setType(OutputType.TIME_SERIES);
         config.setOutput(output);
+
+        calculatedField.setConfiguration(config);
+
+        return doPost("/api/calculatedField", calculatedField, CalculatedField.class);
+    }
+
+    private CalculatedField createCalculatedFieldWhenUseLatestTs(EntityId entityId) {
+        CalculatedField calculatedField = new CalculatedField();
+        calculatedField.setEntityId(entityId);
+        calculatedField.setType(CalculatedFieldType.SIMPLE);
+        calculatedField.setName("x + y");
+        calculatedField.setDebugSettings(DebugSettings.all());
+        calculatedField.setConfigurationVersion(1);
+
+        SimpleCalculatedFieldConfiguration config = new SimpleCalculatedFieldConfiguration();
+
+        Argument x = new Argument();
+        ReferencedEntityKey refEntityKeyX = new ReferencedEntityKey("x", ArgumentType.TS_LATEST, null);
+        x.setRefEntityKey(refEntityKeyX);
+        Argument y = new Argument();
+        ReferencedEntityKey refEntityKeyY = new ReferencedEntityKey("y", ArgumentType.ATTRIBUTE, AttributeScope.SERVER_SCOPE);
+        y.setRefEntityKey(refEntityKeyY);
+        config.setArguments(Map.of("x", x, "y", y));
+        config.setExpression("x + y");
+
+        Output output = new Output();
+        output.setName("z");
+        output.setType(OutputType.TIME_SERIES);
+        output.setDecimalsByDefault(0);
+        config.setOutput(output);
+
+        config.setUseLatestTs(true);
 
         calculatedField.setConfiguration(config);
 
