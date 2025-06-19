@@ -48,6 +48,7 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.credentials.CertPemCredentials;
 import org.thingsboard.rule.engine.mqtt.TbMqttNodeConfiguration;
+import org.thingsboard.server.common.data.StringUtils;
 
 import java.util.stream.Stream;
 
@@ -104,7 +105,8 @@ public class TbAzureIotHubNodeTest extends AbstractRuleNodeUpgradeTest {
         azureIotHubNode.prepareMqttClientConfig(mqttClientConfig);
 
         assertThat(mqttClientConfig.getUsername()).isEqualTo(AzureIotHubUtil.buildUsername(azureIotHubNodeConfig.getHost(), mqttClientConfig.getClientId()));
-        assertThat(mqttClientConfig.getPassword()).isEqualTo(AzureIotHubUtil.buildSasToken(azureIotHubNodeConfig.getHost(), credentials.getSasKey()));
+        assertThat(StringUtils.substringBefore(mqttClientConfig.getPassword(), "&sig=")) // not verifying the signature part because it is time-dependent
+                .isEqualTo(StringUtils.substringBefore(AzureIotHubUtil.buildSasToken(azureIotHubNodeConfig.getHost(), credentials.getSasKey()), "&sig="));
     }
 
     @Test
