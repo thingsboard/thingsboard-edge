@@ -76,7 +76,7 @@
           @for (error of errors; track error.detailsUrl) {
             <tr>
               <td class="tb-entity-type">{{ error.typeName }}</td>
-              <td class="tb-entity-name">
+              <td class="tb-entity-name" tbTruncateWithTooltip>
                 <a class="tb-reference" [routerLink]="error.detailsUrl">{{ error.entityName }}</a>
               </td>
               <td>
@@ -102,7 +102,7 @@
       {{ 'action.close' | translate }}
     </button>
     <button mat-raised-button
-            *ngIf="job.status === JobStatus.FAILED && hasWritePermission"
+            *ngIf="job.status === JobStatus.FAILED && hasWritePermission && job.result.failedCount <= 100"
             color="primary"
             type="button"
             (click)="reprocess()">

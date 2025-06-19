@@ -671,7 +671,7 @@ CREATE TABLE IF NOT EXISTS secret (
     tenant_id uuid,
     name varchar(255),
     type varchar(255),
-    description varchar(1024),
+    description varchar(255),
     value bytea,
     CONSTRAINT secret_unq_key UNIQUE (tenant_id, name)
 );

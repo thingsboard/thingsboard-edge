@@ -62,7 +62,8 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         uiResources = {"static/rulenode/twilio-config.js"},
         configDirective = "tbActionNodeTwilioVoiceConfig",
         icon = "phone_in_talk",
-        docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-voice-node"
+        docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-voice-node",
+        hasSecrets = true
 )
 public class TbTwilioVoiceNode implements TbNode {
 

@@ -67,13 +67,12 @@
             {{ 'rule-node-config.aws-access-key-id-required' | translate }}
           </mat-error>
         </mat-form-field>
-        <mat-form-field class="mat-block">
-          <mat-label translate>rule-node-config.aws-secret-access-key</mat-label>
-          <input required matInput formControlName="secretKey">
-          <mat-error *ngIf="lambdaConfigForm.get('secretKey').hasError('required')">
-            {{ 'rule-node-config.aws-secret-access-key-required' | translate }}
-          </mat-error>
-        </mat-form-field>
+        <tb-secret-key-input formControlName="secretKey"
+                             required
+                             class="mat-block flex-1"
+                             label="{{ 'rule-node-config.aws-secret-access-key' | translate }}"
+                             requiredText="{{ 'rule-node-config.aws-secret-access-key-required' | translate }}">
+        </tb-secret-key-input>
         <mat-form-field class="mat-block">
           <mat-label translate>rule-node-config.aws-region</mat-label>
           <input required matInput formControlName="region">

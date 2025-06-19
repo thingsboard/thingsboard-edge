@@ -199,7 +199,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
               debugSettings: defaultDebugSettings
             };
           }
-          return defaultConverter;
+          return null;
         }),
         takeUntil(this.destroy$)
     ).subscribe(value => this.converter.emit(value));

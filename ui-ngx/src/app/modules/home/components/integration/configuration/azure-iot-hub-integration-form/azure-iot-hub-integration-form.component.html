@@ -60,7 +60,7 @@
     </tb-integration-credentials>
   </fieldset>
 
-  <tb-mqtt-topic-filters formControlName="topicFilters">
+  <tb-mqtt-topic-filters formControlName="topicFilters" [excludeQos]="[MqttQos.EXACTLY_ONCE]">
   </tb-mqtt-topic-filters>
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
   </ng-container>
@@ -72,7 +72,7 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <tb-mqtt-version-select subscriptSizing="fixed" formControlName="protocolVersion"></tb-mqtt-version-select>
+      <tb-mqtt-version-select subscriptSizing="fixed" formControlName="protocolVersion" [excludeVersions]="[MqttVersion.MQTT_3_1, MqttVersion.MQTT_5]"></tb-mqtt-version-select>
       <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.max-bytes-in-message</mat-label>
         <input matInput type="number" formControlName="maxBytesInMessage">

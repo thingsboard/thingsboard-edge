@@ -47,8 +47,8 @@ public class AdminSettings extends BaseData<AdminSettingsId> implements HasTenan
     @NoXss
     @Length(fieldName = "key")
     private String key;
-    private transient JsonNode jsonValue;
-    
+    private JsonNode jsonValue;
+
     public AdminSettings() {
         super();
     }
@@ -56,7 +56,7 @@ public class AdminSettings extends BaseData<AdminSettingsId> implements HasTenan
     public AdminSettings(AdminSettingsId id) {
         super(id);
     }
-    
+
     public AdminSettings(AdminSettings adminSettings) {
         super(adminSettings);
         this.tenantId = adminSettings.getTenantId();

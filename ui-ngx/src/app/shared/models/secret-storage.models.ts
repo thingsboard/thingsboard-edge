@@ -59,13 +59,6 @@ export const secretStorageTypeTranslationMap = new Map<SecretStorageType, string
   ]
 );
 
-export const secretStorageTypeDialogTitleTranslationMap = new Map<SecretStorageType, string>(
-  [
-    [SecretStorageType.TEXT, 'secret-storage.dialog-title.text'],
-    [SecretStorageType.TEXT_FILE, 'secret-storage.dialog-title.file'],
-  ]
-);
-
 export const secretStorageCreateTitleTranslationMap = new Map<SecretStorageType, string>(
   [
     [SecretStorageType.TEXT, 'secret-storage.create.text'],

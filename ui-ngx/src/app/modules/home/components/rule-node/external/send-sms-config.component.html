@@ -53,6 +53,7 @@
   <tb-sms-provider-configuration
     *ngIf="sendSmsConfigForm.get('useSystemSmsSettings').value === false"
     formControlName="smsProviderConfiguration"
+    isRuleNode
     required>
   </tb-sms-provider-configuration>
 </section>

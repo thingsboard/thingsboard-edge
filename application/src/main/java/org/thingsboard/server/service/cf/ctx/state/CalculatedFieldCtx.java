@@ -78,7 +78,7 @@ public class CalculatedFieldCtx {
     private final List<String> argNames;
     private Output output;
     private String expression;
-    private boolean preserveMsgTs;
+    private boolean useLatestTs;
     private TbelInvokeService tbelInvokeService;
     private CalculatedFieldScriptEngine calculatedFieldScriptEngine;
     private ThreadLocal<Expression> customExpression;
@@ -115,7 +115,7 @@ public class CalculatedFieldCtx {
         this.argNames = new ArrayList<>(arguments.keySet());
         this.output = configuration.getOutput();
         this.expression = configuration.getExpression();
-        this.preserveMsgTs = CalculatedFieldType.SIMPLE.equals(calculatedField.getType()) && ((SimpleCalculatedFieldConfiguration) configuration).isPreserveMsgTs();
+        this.useLatestTs = CalculatedFieldType.SIMPLE.equals(calculatedField.getType()) && ((SimpleCalculatedFieldConfiguration) configuration).isUseLatestTs();
         this.tbelInvokeService = tbelInvokeService;
 
         this.maxDataPointsPerRollingArg = apiLimitService.getLimit(tenantId, DefaultTenantProfileConfiguration::getMaxDataPointsPerRollingArg);
@@ -208,26 +208,37 @@ public class CalculatedFieldCtx {
     }
 
     private boolean matchesAttributes(Map<ReferencedEntityKey, String> argMap, List<AttributeKvEntry> values, AttributeScope scope) {
+        if (argMap.isEmpty() || values.isEmpty()) {
+            return false;
+        }
+
         for (AttributeKvEntry attrKv : values) {
-            ReferencedEntityKey attrKey = new ReferencedEntityKey(attrKv.getKey(), ArgumentType.ATTRIBUTE, scope);
-            if (argMap.containsKey(attrKey)) {
+            if (argMap.containsKey(new ReferencedEntityKey(attrKv.getKey(), ArgumentType.ATTRIBUTE, scope))) {
                 return true;
             }
         }
+
         return false;
     }
 
     private boolean matchesTimeSeries(Map<ReferencedEntityKey, String> argMap, List<TsKvEntry> values) {
+        if (argMap.isEmpty() || values.isEmpty()) {
+            return false;
+        }
+
         for (TsKvEntry tsKv : values) {
+
             ReferencedEntityKey latestKey = new ReferencedEntityKey(tsKv.getKey(), ArgumentType.TS_LATEST, null);
             if (argMap.containsKey(latestKey)) {
                 return true;
             }
+
             ReferencedEntityKey rollingKey = new ReferencedEntityKey(tsKv.getKey(), ArgumentType.TS_ROLLING, null);
             if (argMap.containsKey(rollingKey)) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -248,26 +259,38 @@ public class CalculatedFieldCtx {
     }
 
     private boolean matchesAttributesKeys(Map<ReferencedEntityKey, String> argMap, List<String> keys, AttributeScope scope) {
+        if (argMap.isEmpty() || keys.isEmpty()) {
+            return false;
+        }
+
         for (String key : keys) {
             ReferencedEntityKey attrKey = new ReferencedEntityKey(key, ArgumentType.ATTRIBUTE, scope);
             if (argMap.containsKey(attrKey)) {
                 return true;
             }
         }
+
         return false;
     }
 
     private boolean matchesTimeSeriesKeys(Map<ReferencedEntityKey, String> argMap, List<String> keys) {
+        if (argMap.isEmpty() || keys.isEmpty()) {
+            return false;
+        }
+
         for (String key : keys) {
+
             ReferencedEntityKey latestKey = new ReferencedEntityKey(key, ArgumentType.TS_LATEST, null);
             if (argMap.containsKey(latestKey)) {
                 return true;
             }
+
             ReferencedEntityKey rollingKey = new ReferencedEntityKey(key, ArgumentType.TS_ROLLING, null);
             if (argMap.containsKey(rollingKey)) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -279,6 +302,25 @@ public class CalculatedFieldCtx {
     public boolean linkMatchesTsKeys(EntityId entityId, List<String> keys) {
         var map = linkedEntityArguments.get(entityId);
         return map != null && matchesTimeSeriesKeys(map, keys);
+    }
+
+    public boolean dynamicSourceMatches(CalculatedFieldTelemetryMsgProto proto) {
+        if (!proto.getTsDataList().isEmpty()) {
+            List<TsKvEntry> updatedTelemetry = proto.getTsDataList().stream()
+                    .map(ProtoUtils::fromProto)
+                    .toList();
+            return dynamicSourceMatches(updatedTelemetry);
+        } else if (!proto.getAttrDataList().isEmpty()) {
+            AttributeScope scope = AttributeScope.valueOf(proto.getScope().name());
+            List<AttributeKvEntry> updatedTelemetry = proto.getAttrDataList().stream()
+                    .map(ProtoUtils::fromProto)
+                    .toList();
+            return dynamicSourceMatches(updatedTelemetry, scope);
+        } else if (!proto.getRemovedTsKeysList().isEmpty()) {
+            return matchesDynamicSourceKeys(proto.getRemovedTsKeysList());
+        } else {
+            return matchesDynamicSourceKeys(proto.getRemovedAttrKeysList(), AttributeScope.valueOf(proto.getScope().name()));
+        }
     }
 
     public boolean linkMatches(EntityId entityId, CalculatedFieldTelemetryMsgProto proto) {
@@ -298,6 +340,18 @@ public class CalculatedFieldCtx {
         } else {
             return linkMatchesAttrKeys(entityId, proto.getRemovedAttrKeysList(), AttributeScope.valueOf(proto.getScope().name()));
         }
+    }
+
+    public Map<ReferencedEntityKey, String> getLinkedAndDynamicArgs(EntityId entityId) {
+        var argNames = new HashMap<ReferencedEntityKey, String>();
+        var linkedArgNames = linkedEntityArguments.get(entityId);
+        if (linkedArgNames != null && !linkedArgNames.isEmpty()) {
+            argNames.putAll(linkedArgNames);
+        }
+        if (dynamicEntityArguments != null && !dynamicEntityArguments.isEmpty()) {
+            argNames.putAll(dynamicEntityArguments);
+        }
+        return argNames;
     }
 
     public CalculatedFieldEntityCtxId toCalculatedFieldEntityCtxId() {

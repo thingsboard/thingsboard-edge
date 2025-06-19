@@ -318,6 +318,48 @@ public class SecretControllerTest extends AbstractControllerTest {
         });
     }
 
+    @Test
+    public void testGetSecretInfoByName() throws Exception {
+        String secretName = "T!^%|]/.@x()";
+        Secret secret = constructSecret(secretName, "TestPassword");
+        SecretInfo savedSecret = doPost("/api/secret", secret, SecretInfo.class);
+
+        assertNotNull(savedSecret);
+        assertNotNull(savedSecret.getId());
+
+        SecretInfo retrievedSecret = doGet("/api/secret?name=" + secretName, SecretInfo.class);
+        assertThat(retrievedSecret).isEqualTo(savedSecret);
+
+        doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testUpdateSecretDescription() throws Exception {
+        String secretName = "TestUpdateDescriptionSecret";
+        Secret secret = constructSecret(secretName, "TestPassword");
+        SecretInfo savedSecret = doPost("/api/secret", secret, SecretInfo.class);
+
+        assertNotNull(savedSecret);
+        assertNotNull(savedSecret.getId());
+        assertThat(savedSecret.getDescription()).isNull();
+
+        String newDescription = "New description for the secret";
+        SecretInfo updatedSecret = doPut("/api/secret/" + savedSecret.getId().getId() + "/description", newDescription, SecretInfo.class);
+
+        assertThat(updatedSecret.getDescription()).isEqualTo(newDescription);
+
+        SecretInfo retrievedSecret = doGet("/api/secret/{id}/info", SecretInfo.class, savedSecret.getId().getId());
+        assertThat(retrievedSecret.getDescription()).isEqualTo(newDescription);
+
+        updatedSecret = doPut("/api/secret/" + savedSecret.getId().getId() + "/description", "", SecretInfo.class);
+
+        assertThat(updatedSecret.getDescription()).isNull();
+
+        doDelete("/api/secret/" + savedSecret.getId().getId()).andExpect(status().isOk());
+        doGet("/api/secret/{id}/info", savedSecret.getId().getId()).andExpect(status().isNotFound());
+    }
+
     private Secret constructSecret(String name, String value) {
         Secret secret = new Secret();
         secret.setName(name);

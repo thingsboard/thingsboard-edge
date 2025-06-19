@@ -34,7 +34,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.EntityType;
@@ -67,15 +69,14 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
 
-    private static final Integer UNKNOWN_PARTITION = -1;
-
-    private final Lock calculatedFieldFetchLock = new ReentrantLock();
+    private final ConcurrentReferenceHashMap<CalculatedFieldId, Lock> calculatedFieldFetchLocks = new ConcurrentReferenceHashMap<>();
 
     private final CalculatedFieldService calculatedFieldService;
     private final TbelInvokeService tbelInvokeService;
-    private final ActorSystemContext actorSystemContext;
     private final ApiLimitService apiLimitService;
     private final OwnersCacheService ownersCacheService;
+    @Lazy
+    private final ActorSystemContext actorSystemContext;
 
     private final ConcurrentMap<CalculatedFieldId, CalculatedField> calculatedFields = new ConcurrentHashMap<>();
     private final ConcurrentMap<EntityId, List<CalculatedField>> entityIdCalculatedFields = new ConcurrentHashMap<>();
@@ -91,11 +92,12 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
 
     @AfterStartUp(order = AfterStartUp.CF_READ_CF_SERVICE)
     public void init() {
-        //TODO: move to separate place to avoid circular references with the ActorSystemContext (@Lazy for tsSubService)
         PageDataIterable<CalculatedField> cfs = new PageDataIterable<>(calculatedFieldService::findAllCalculatedFields, initFetchPackSize);
         cfs.forEach(cf -> {
-            calculatedFields.putIfAbsent(cf.getId(), cf);
-            actorSystemContext.tell(new CalculatedFieldInitMsg(cf.getTenantId(), cf));
+            if (cf != null) {
+                calculatedFields.putIfAbsent(cf.getId(), cf);
+                actorSystemContext.tell(new CalculatedFieldInitMsg(cf.getTenantId(), cf));
+            }
         });
         calculatedFields.values().forEach(cf -> {
             entityIdCalculatedFields.computeIfAbsent(cf.getEntityId(), id -> new CopyOnWriteArrayList<>()).add(cf);
@@ -119,19 +121,20 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
 
     @Override
     public List<CalculatedField> getCalculatedFieldsByEntityId(EntityId entityId) {
-        return entityIdCalculatedFields.getOrDefault(entityId, new CopyOnWriteArrayList<>());
+        return entityIdCalculatedFields.getOrDefault(entityId, Collections.emptyList());
     }
 
     @Override
     public List<CalculatedFieldLink> getCalculatedFieldLinksByEntityId(EntityId entityId) {
-        return entityIdCalculatedFieldLinks.getOrDefault(entityId, new CopyOnWriteArrayList<>());
+        return entityIdCalculatedFieldLinks.getOrDefault(entityId, Collections.emptyList());
     }
 
     @Override
     public CalculatedFieldCtx getCalculatedFieldCtx(CalculatedFieldId calculatedFieldId) {
         CalculatedFieldCtx ctx = calculatedFieldsCtx.get(calculatedFieldId);
         if (ctx == null) {
-            calculatedFieldFetchLock.lock();
+            Lock lock = getFetchLock(calculatedFieldId);
+            lock.lock();
             try {
                 ctx = calculatedFieldsCtx.get(calculatedFieldId);
                 if (ctx == null) {
@@ -143,7 +146,7 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
                     }
                 }
             } finally {
-                calculatedFieldFetchLock.unlock();
+                lock.unlock();
             }
         }
         log.trace("[{}] Found calculated field ctx in cache: {}", calculatedFieldId, ctx);
@@ -162,7 +165,8 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
 
     @Override
     public void addCalculatedField(TenantId tenantId, CalculatedFieldId calculatedFieldId) {
-        calculatedFieldFetchLock.lock();
+        Lock lock = getFetchLock(calculatedFieldId);
+        lock.lock();
         try {
             CalculatedField calculatedField = calculatedFieldService.findById(tenantId, calculatedFieldId);
             if (calculatedField == null) {
@@ -184,7 +188,7 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
                                 .add(configuration.buildCalculatedFieldLink(tenantId, referencedEntityId, calculatedFieldId));
                     });
         } finally {
-            calculatedFieldFetchLock.unlock();
+            lock.unlock();
         }
     }
 
@@ -217,9 +221,15 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
     }
 
     @Override
-    public void updateOwnerEntities(TenantId tenantId, EntityId owner, EntityId entityId) {
-        evictEntity(entityId);
+    public void addOwnerEntity(TenantId tenantId, EntityId entityId) {
+        EntityId owner = ownersCacheService.getOwner(tenantId, entityId);
         getOwnedEntities(tenantId, owner).add(entityId);
+    }
+
+    @Override
+    public void updateOwnerEntity(TenantId tenantId, EntityId entityId) {
+        evictEntity(entityId);
+        addOwnerEntity(tenantId, entityId);
     }
 
     @Override
@@ -238,6 +248,10 @@ public class DefaultCalculatedFieldCache implements CalculatedFieldCache {
             entities.addAll(ownersCacheService.getOwnedEntities(tenantId, ownerId));
             return entities;
         });
+    }
+
+    private Lock getFetchLock(CalculatedFieldId id) {
+        return calculatedFieldFetchLocks.computeIfAbsent(id, __ -> new ReentrantLock());
     }
 
 }

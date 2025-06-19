@@ -117,9 +117,9 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
         await().alias("create CF -> perform initial calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    JsonNode fahrenheitTemp = testRestClient.getLatestTelemetry(device.getId());
-                    assertThat(fahrenheitTemp).isNotNull();
-                    assertThat(fahrenheitTemp.get("result").get(0).get("value").asText()).isEqualTo("105");
+                    JsonNode result = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(result).isNotNull();
+                    assertThat(result.get("result").get(0).get("value").asText()).isEqualTo("105");
                 });
 
         testRestClient.postTelemetryAttribute(customerId, AttributeScope.SERVER_SCOPE.name(), JacksonUtil.toJsonNode("{\"attrKey\":15}"));
@@ -127,9 +127,9 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
         await().alias("update telemetry -> perform calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    JsonNode fahrenheitTemp = testRestClient.getLatestTelemetry(device.getId());
-                    assertThat(fahrenheitTemp).isNotNull();
-                    assertThat(fahrenheitTemp.get("result").get(0).get("value").asText()).isEqualTo("115");
+                    JsonNode result = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(result).isNotNull();
+                    assertThat(result.get("result").get(0).get("value").asText()).isEqualTo("115");
                 });
 
         testRestClient.deleteCalculatedFieldIfExists(savedCalculatedField.getId());
@@ -156,9 +156,9 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
         await().alias("create CF -> perform initial calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    JsonNode fahrenheitTemp = testRestClient.getLatestTelemetry(device.getId());
-                    assertThat(fahrenheitTemp).isNotNull();
-                    assertThat(fahrenheitTemp.get("result").get(0).get("value").asText()).isEqualTo("105");
+                    JsonNode result = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(result).isNotNull();
+                    assertThat(result.get("result").get(0).get("value").asText()).isEqualTo("105");
                 });
 
         testRestClient.changeOwner(tenantId, device.getId());
@@ -166,9 +166,9 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
         await().alias("change owner -> perform calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    JsonNode fahrenheitTemp = testRestClient.getLatestTelemetry(device.getId());
-                    assertThat(fahrenheitTemp).isNotNull();
-                    assertThat(fahrenheitTemp.get("result").get(0).get("value").asText()).isEqualTo("150");
+                    JsonNode result = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(result).isNotNull();
+                    assertThat(result.get("result").get(0).get("value").asText()).isEqualTo("150");
                 });
 
         testRestClient.deleteCalculatedFieldIfExists(savedCalculatedField.getId());
@@ -216,9 +216,63 @@ public class CalculatedFieldCurrentOwnerTest extends AbstractContainerTest {
         await().alias("change owner -> perform calculation for device2").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    JsonNode avgValue = testRestClient.getLatestTelemetry(newDevice.getId());
+                    JsonNode avgValue = testRestClient.getLatestTelemetry(device.getId());
                     assertThat(avgValue).isNotNull();
                     assertThat(avgValue.get("avgValue").get(0).get("value").asText()).isEqualTo("150.0");
+                });
+
+        testRestClient.deleteCalculatedFieldIfExists(savedCalculatedField.getId());
+    }
+
+    @Test
+    public void testAddedNewEntityToProfile() {
+        testRestClient.login("sysadmin@thingsboard.org", "sysadmin");
+
+        testRestClient.postTelemetryAttribute(tenantId, AttributeScope.SERVER_SCOPE.name(), JacksonUtil.toJsonNode("{\"attrKey\":50}"));
+        // login tenant admin
+        testRestClient.getAndSetUserToken(tenantAdminId);
+
+        DeviceProfileId deviceProfileId = testRestClient.postDeviceProfile(defaultDeviceProfile("New Device Profile")).getId();
+        String deviceToken = "zm235nIVf26n67vnTP2XBE";
+        Device customerDevice = createDevice("Customer Device", deviceProfileId);
+        customerDevice.setOwnerId(customerId);
+        Device device = testRestClient.postDevice(deviceToken, customerDevice);
+
+        testRestClient.postTelemetryAttribute(customerId, AttributeScope.SERVER_SCOPE.name(), JacksonUtil.toJsonNode("{\"attrKey\":5}"));
+
+        CalculatedField savedCalculatedField = createSimpleCalculatedField(deviceProfileId);
+
+        await().alias("create CF -> perform initial calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    JsonNode result = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(result).isNotNull();
+                    assertThat(result.get("result").get(0).get("value").asText()).isEqualTo("105");
+                });
+
+        String tenantDeviceToken = "zm235nIVf26n67vhdgtn91E";
+        Device tenantDevice = testRestClient.postDevice(tenantDeviceToken, createDevice("Tenant Device", deviceProfileId));
+
+        await().alias("add device -> perform calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    JsonNode result = testRestClient.getLatestTelemetry(tenantDevice.getId());
+                    assertThat(result).isNotNull();
+                    assertThat(result.get("result").get(0).get("value").asText()).isEqualTo("150");
+                });
+
+        testRestClient.postTelemetryAttribute(customerId, AttributeScope.SERVER_SCOPE.name(), JacksonUtil.toJsonNode("{\"attrKey\":80}"));
+
+        await().alias("update telemetry for customer -> perform calculation only for customer device").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    JsonNode result1 = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(result1).isNotNull();
+                    assertThat(result1.get("result").get(0).get("value").asText()).isEqualTo("180");
+
+                    JsonNode result2 = testRestClient.getLatestTelemetry(tenantDevice.getId());
+                    assertThat(result2).isNotNull();
+                    assertThat(result2.get("result").get(0).get("value").asText()).isEqualTo("150");
                 });
 
         testRestClient.deleteCalculatedFieldIfExists(savedCalculatedField.getId());

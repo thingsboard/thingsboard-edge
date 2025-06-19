@@ -40,12 +40,12 @@ import {
   SecretStorage,
   secretStorageCreateTitleTranslationMap,
   SecretStorageInfo,
-  SecretStorageType,
-  secretStorageTypeDialogTitleTranslationMap
+  SecretStorageType
 } from '@shared/models/secret-storage.models';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { SecretStorageService } from '@core/http/secret-storage.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { deepTrim } from '@core/utils';
 
 export interface SecretStorageData  {
   type: SecretStorageType;
@@ -62,7 +62,6 @@ export interface SecretStorageData  {
 })
 export class SecretStorageDialogComponent extends DialogComponent<SecretStorageDialogComponent, SecretStorage | string> implements OnInit {
 
-  dialogTitle: string;
   createNewLabel: string;
 
   createNew = true;
@@ -78,7 +77,7 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
 
   secretForm = this.fb.group({
     type: [SecretStorageType.TEXT, []],
-    name: ['', [Validators.required, Validators.pattern('^[^{};]+$')]],
+    name: ['', [Validators.required, Validators.pattern('^[^{};]+$'), Validators.maxLength(255)]],
     description: ['', []],
     value: ['', [Validators.required]]
   });
@@ -95,7 +94,6 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
   }
 
   ngOnInit() {
-    this.dialogTitle = secretStorageTypeDialogTitleTranslationMap.get(this.data.type);
     this.createNewLabel = secretStorageCreateTitleTranslationMap.get(this.data.type);
     this.secretForm.get('type').patchValue(this.data.type, {emitEvent: false});
     this.secretType = this.data.type;
@@ -131,6 +129,14 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
     }
   }
 
+  get dialogTitle(): string {
+    return  this.createNew ? 'secret-storage.dialog-title' : 'secret-storage.use-secret';
+  }
+
+  get addButtonLabel(): string {
+    return this.createNew ? 'action.add' : 'secret-storage.action-use';
+  }
+
   helpLinkId(): string {
     return 'secretStorage';
   }
@@ -145,7 +151,10 @@ export class SecretStorageDialogComponent extends DialogComponent<SecretStorageD
 
   add(): void {
     if (this.createNew) {
-      this.secretStorageService.saveSecret(this.secretForm.value as SecretStorageInfo).subscribe(
+      this.secretStorageService.saveSecret({
+        ...deepTrim(this.secretForm.value),
+        value: this.secretForm.value.value
+      } as SecretStorageInfo).subscribe(
         (secret) => {
           if (this.onlyCreateNew) {
             this.dialogRef.close(secret);

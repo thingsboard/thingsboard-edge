@@ -29,8 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { booleanAttribute, Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import {
   AwsSnsSmsProviderConfiguration,
   BindTypes,
@@ -77,6 +83,9 @@ export class SmppSmsProviderConfigurationComponent  implements ControlValueAcces
   }
   @Input()
   disabled: boolean;
+
+  @Input({transform: booleanAttribute})
+  isRuleNode = false;
 
   smppSmsProviderConfigurationFormGroup: UntypedFormGroup;
 
