@@ -36,7 +36,11 @@
   flex-direction: column;
   gap: 16px;
   max-height: calc(100vh - 24px);
-  @media #{$mat-xs} {
+  max-width: 50vw;
+  @media #{$mat-lg} {
+    max-width: 70vw;
+  }
+  @media #{$mat-lt-lg} {
     max-width: 80vw;
   }
   .tb-task-parameters-title {

@@ -380,6 +380,8 @@ public class CalculatedFieldTest extends AbstractContainerTest {
 
         CalculatedField savedCalculatedField = createSimpleCalculatedField(device.getId());
 
+        testRestClient.postTelemetry(deviceToken, JacksonUtil.toJsonNode(String.format("{\"ts\":%s, \"values\":{\"temperature\":24.5}}", currentTime)));
+
         testRestClient.reprocessCalculatedField(savedCalculatedField, startTs, endTs);
 
         await().alias("reprocess -> perform calculation for time window").atMost(TIMEOUT, TimeUnit.SECONDS)
@@ -393,6 +395,10 @@ public class CalculatedFieldTest extends AbstractContainerTest {
 
                     assertThat(fahrenheitTemp.get("fahrenheitTemp").get(1).get("ts").asText()).isEqualTo(Long.toString(startTs)); // we use reprocessing startTs instead of telemetry ts for initial calculation
                     assertThat(fahrenheitTemp.get("fahrenheitTemp").get(1).get("value").asText()).isEqualTo("74.48");
+
+                    JsonNode fahrenheitTempLatest = testRestClient.getLatestTelemetry(device.getId());
+                    assertThat(fahrenheitTempLatest).isNotNull();
+                    assertThat(fahrenheitTempLatest.get("fahrenheitTemp").get(0).get("value").asText()).isEqualTo("76.1"); // reprocessing result did not overwrite the actual latest value
                 });
     }
 
@@ -455,6 +461,10 @@ public class CalculatedFieldTest extends AbstractContainerTest {
 
                     assertThat(airDensity.get("airDensity").get(2).get("ts").asText()).isEqualTo(Long.toString(d1Ts_1));
                     assertThat(airDensity.get("airDensity").get(2).get("value").asText()).isEqualTo("1.0");
+
+                    JsonNode airDensityLatest = testRestClient.getLatestTelemetry(device2.getId());
+                    assertThat(airDensityLatest).isNotNull();
+                    assertThat(airDensityLatest.get("airDensity").get(0).get("value").asText()).isEqualTo("1.02");
                 });
 
         await().alias("reprocess -> perform calculation for device 2").atMost(TIMEOUT, TimeUnit.SECONDS)
@@ -471,6 +481,10 @@ public class CalculatedFieldTest extends AbstractContainerTest {
 
                     assertThat(airDensity.get("airDensity").get(2).get("ts").asText()).isEqualTo(Long.toString(d2Ts_1));
                     assertThat(airDensity.get("airDensity").get(2).get("value").asText()).isEqualTo("1.03");
+
+                    JsonNode airDensityLatest = testRestClient.getLatestTelemetry(newDevice.getId());
+                    assertThat(airDensityLatest).isNotNull();
+                    assertThat(airDensityLatest.get("airDensity").get(0).get("value").asText()).isEqualTo("1.02");
                 });
     }
 

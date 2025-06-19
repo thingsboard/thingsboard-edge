@@ -63,14 +63,23 @@
         {{'admin.smpp-provider.system-id-required' | translate}}
       </mat-error>
     </mat-form-field>
-    <mat-form-field class="mat-block flex-1">
-      <mat-label translate>admin.smpp-provider.password</mat-label>
-      <input required matInput type="password" autocomplete="new-password" formControlName="password">
-      <tb-toggle-password matSuffix></tb-toggle-password>
-      <mat-error *ngIf="smppSmsProviderConfigurationFormGroup.get('password').hasError('required')">
-        {{'admin.smpp-provider.password-required' | translate}}
-      </mat-error>
-    </mat-form-field>
+    @if (isRuleNode) {
+      <tb-secret-key-input formControlName="password"
+                           required
+                           class="mat-block flex-1"
+                           label="{{ 'admin.smpp-provider.password' | translate }}"
+                           requiredText="{{ 'admin.smpp-provider.password-required' | translate }}">
+      </tb-secret-key-input>
+    } @else {
+      <mat-form-field class="mat-block flex-1">
+        <mat-label translate>admin.smpp-provider.password</mat-label>
+        <input required matInput type="password" autocomplete="new-password" formControlName="password">
+        <tb-toggle-password matSuffix></tb-toggle-password>
+        <mat-error *ngIf="smppSmsProviderConfigurationFormGroup.get('password').hasError('required')">
+          {{'admin.smpp-provider.password-required' | translate}}
+        </mat-error>
+      </mat-form-field>
+    }
   </div>
   <mat-accordion multi>
     <mat-expansion-panel>

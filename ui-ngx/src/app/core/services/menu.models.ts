@@ -1203,7 +1203,7 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     MenuId.secrets,
     {
       id: MenuId.secrets,
-      name: 'secret-storage.secret-storage',
+      name: 'secret-storage.secrets-storage',
       type: 'link',
       path: '/security-settings/secrets',
       icon: 'mdi:key-variant'

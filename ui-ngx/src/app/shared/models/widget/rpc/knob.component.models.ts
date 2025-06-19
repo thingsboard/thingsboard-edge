@@ -60,7 +60,7 @@ export const knobWidgetDefaultSettings: KnobSettings = {
     defaultValue: 50,
     executeRpc: {
       method: 'getValue',
-      requestTimeout: 500,
+      requestTimeout: 5000,
       requestPersistent: false,
       persistentPollingInterval: 5000
     },
@@ -85,7 +85,7 @@ export const knobWidgetDefaultSettings: KnobSettings = {
     action: SetValueAction.EXECUTE_RPC,
     executeRpc: {
       method: 'setValue',
-      requestTimeout: 500,
+      requestTimeout: 5000,
       requestPersistent: false,
       persistentPollingInterval: 5000
     },

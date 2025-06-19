@@ -43,9 +43,9 @@ import {
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
-import { AzureIotHubIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
+import { AzureIotHubIntegration, IntegrationCredentialType, MqttQos } from '@shared/models/integration.models';
 import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
-import { DEFAULT_MQTT_VERSION } from '@shared/models/mqtt.models';
+import { DEFAULT_MQTT_VERSION, MqttVersion } from '@shared/models/mqtt.models';
 
 @Component({
   selector: 'tb-azure-iot-hub-integration-form',
@@ -67,6 +67,8 @@ export class AzureIotHubIntegrationFormComponent extends IntegrationForm impleme
   azureIotConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
+  MqttVersion = MqttVersion;
+  MqttQos = MqttQos;
 
   private propagateChange = (v: any) => { };
 

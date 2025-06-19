@@ -73,7 +73,6 @@ import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.processing.AbstractPartitionBasedConsumerService;
 import org.thingsboard.server.service.queue.processing.IdMsgPair;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
-import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.List;
 import java.util.Set;
@@ -107,10 +106,9 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBa
                                                    ApplicationEventPublisher eventPublisher,
                                                    JwtSettingsService jwtSettingsService,
                                                    CalculatedFieldCache calculatedFieldCache,
-                                                   CalculatedFieldStateService stateService,
-                                                   OwnersCacheService ownersCacheService) {
+                                                   CalculatedFieldStateService stateService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, calculatedFieldCache, apiUsageStateService, partitionService,
-                eventPublisher, jwtSettingsService, ownersCacheService);
+                eventPublisher, jwtSettingsService);
         this.queueFactory = tbQueueFactory;
         this.stateService = stateService;
     }

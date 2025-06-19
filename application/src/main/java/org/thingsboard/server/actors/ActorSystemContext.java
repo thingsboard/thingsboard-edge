@@ -367,7 +367,6 @@ public class ActorSystemContext {
     @Getter
     private TbEntityViewService tbEntityViewService;
 
-    @Lazy
     @Autowired
     @Getter
     private CloudEventService cloudEventService;
@@ -541,12 +540,10 @@ public class ActorSystemContext {
     @Getter
     private ApiLimitService apiLimitService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private RateLimitService rateLimitService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private DebugModeRateLimitsConfig debugModeRateLimitsConfig;
@@ -637,7 +634,6 @@ public class ActorSystemContext {
     @Getter
     private EntityService entityService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private SchedulerEventService schedulerEventService;
@@ -647,12 +643,10 @@ public class ActorSystemContext {
     @Getter
     private CalculatedFieldProcessingService calculatedFieldProcessingService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private CalculatedFieldStateService calculatedFieldStateService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private CalculatedFieldQueueService calculatedFieldQueueService;

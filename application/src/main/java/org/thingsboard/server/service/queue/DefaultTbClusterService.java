@@ -162,11 +162,9 @@ public class DefaultTbClusterService implements TbClusterService {
     private final AtomicInteger toEdgeNfs = new AtomicInteger(0);
 
     @Autowired
-    @Lazy
     private PartitionService partitionService;
 
     @Autowired
-    @Lazy
     private TbQueueProducerProvider producerProvider;
 
     @Autowired
@@ -757,6 +755,7 @@ public class DefaultTbClusterService implements TbClusterService {
             }
             msg.event(ComponentLifecycleEvent.UPDATED)
                     .oldProfileId(old.getDeviceProfileId())
+                    .ownerChanged(!entity.getOwnerId().equals(old.getOwnerId()))
                     .oldName(old.getName());
         }
         broadcast(msg.build());
@@ -777,6 +776,7 @@ public class DefaultTbClusterService implements TbClusterService {
         } else {
             msg.event(ComponentLifecycleEvent.UPDATED)
                     .oldProfileId(old.getAssetProfileId())
+                    .ownerChanged(!entity.getOwnerId().equals(old.getOwnerId()))
                     .oldName(old.getName());
         }
         broadcast(msg.build());

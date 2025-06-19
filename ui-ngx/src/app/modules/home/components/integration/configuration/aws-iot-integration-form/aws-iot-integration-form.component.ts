@@ -67,6 +67,7 @@ export class AwsIotIntegrationFormComponent extends IntegrationForm implements C
   awsIotIntegrationConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
+  MqttQos = MqttQos;
 
   private propagateChange = (v: any) => { };
 

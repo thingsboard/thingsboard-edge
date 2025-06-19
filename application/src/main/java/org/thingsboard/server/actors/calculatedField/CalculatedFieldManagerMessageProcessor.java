@@ -221,9 +221,6 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
                     case DELETED:
                         onEntityDeleted(msg.getData(), msg.getCallback());
                         break;
-                    case OWNER_CHANGED:
-                        onEntityOwnerChanged(msg.getData(), msg.getCallback());
-                        break;
                     default:
                         msg.getCallback().onSuccess();
                         break;
@@ -292,6 +289,8 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             } else {
                 callback.onSuccess();
             }
+        } else if (msg.isOwnerChanged()) {
+            onEntityOwnerChanged(msg, callback);
         } else {
             callback.onSuccess();
         }
@@ -439,7 +438,12 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         }
         // process all cfs related to owner entity
         if (entityId.getEntityType().isOneOf(EntityType.TENANT, EntityType.CUSTOMER)) {
-            processOwnerTelemetryMsg(msg, callback);
+            List<CalculatedFieldEntityCtxId> ownerCFs = filterOwnerEntitiesCFs(msg);
+            if (!ownerCFs.isEmpty()) {
+                cfExecService.pushMsgToLinks(msg, ownerCFs, callback);
+            } else {
+                callback.onSuccess();
+            }
         } else {
             callback.onSuccess();
         }
@@ -523,6 +527,27 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         return result;
     }
 
+    private List<CalculatedFieldEntityCtxId> filterOwnerEntitiesCFs(CalculatedFieldTelemetryMsg msg) {
+        Set<EntityId> entities = getOwnerEntities(msg.getEntityId());
+        var proto = msg.getProto();
+        List<CalculatedFieldEntityCtxId> result = new ArrayList<>();
+        for (var entityId : entities) {
+            var ownerEntityCFs = getCalculatedFieldsByEntityId(entityId);
+            for (var ctx : ownerEntityCFs) {
+                if (ctx.dynamicSourceMatches(proto)) {
+                    result.add(new CalculatedFieldEntityCtxId(tenantId, ctx.getCfId(), entityId));
+                }
+            }
+            var ownerEntityProfileCFs = getCalculatedFieldsByEntityId(getProfileId(tenantId, entityId));
+            for (var ctx : ownerEntityProfileCFs) {
+                if (ctx.dynamicSourceMatches(proto)) {
+                    result.add(new CalculatedFieldEntityCtxId(tenantId, ctx.getCfId(), entityId));
+                }
+            }
+        }
+        return result;
+    }
+
     private List<CalculatedFieldCtx> getCalculatedFieldsByEntityId(EntityId entityId) {
         if (entityId == null) {
             return Collections.emptyList();
@@ -543,27 +568,6 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             result = Collections.emptyList();
         }
         return result;
-    }
-
-    private void processOwnerTelemetryMsg(CalculatedFieldTelemetryMsg msg, MultipleTbCallback callback) {
-        Set<EntityId> entities = getOwnerEntities(msg.getEntityId());
-        if (!entities.isEmpty()) {
-            MultipleTbCallback ownerEntitiesCallback = new MultipleTbCallback(entities.size(), callback);
-            entities.forEach(entity -> {
-                if (isMyPartition(entity, ownerEntitiesCallback)) {
-                    var ownerEntityFields = getCalculatedFieldsByEntityId(entity);
-                    var ownerEntityProfileFields = getCalculatedFieldsByEntityId(getProfileId(tenantId, entity));
-                    if (!ownerEntityFields.isEmpty() || !ownerEntityProfileFields.isEmpty()) {
-                        log.debug("Pushing telemetry msg to specific actor [{}]", entity);
-                        getOrCreateActor(entity).tell(new EntityCalculatedFieldTelemetryMsg(msg, ownerEntityFields, ownerEntityProfileFields, ownerEntitiesCallback));
-                    } else {
-                        ownerEntitiesCallback.onSuccess();
-                    }
-                }
-            });
-        } else {
-            callback.onSuccess();
-        }
     }
 
     private Set<EntityId> getOwnerEntities(EntityId entityId) {

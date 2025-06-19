@@ -164,8 +164,10 @@ export class IntegrationWizardDialogComponent extends
         this.downlinkConverter = {...this.downlinkConverter, integrationType: null};
       }
       this.integrationConfigurationForm.get('configuration').setValue(null);
-      this.uplinkConverterForm.get('converterType').patchValue(ConverterSourceType.NEW, {emitEvent: false});
-      this.downlinkConverterForm.get('converterType').patchValue(ConverterSourceType.SKIP, {emitEvent: false});
+      this.uplinkConverterForm.get('uplinkConverterId').patchValue(null, {emitEvent: false});
+      this.downlinkConverterForm.get('downlinkConverterId').patchValue(null, {emitEvent: false});
+      this.uplinkConverterForm.get('converterType').patchValue(ConverterSourceType.NEW, {emitEvent: true});
+      this.downlinkConverterForm.get('converterType').patchValue(ConverterSourceType.SKIP, {emitEvent: true});
     });
 
     this.uplinkConverterForm = this.fb.group({

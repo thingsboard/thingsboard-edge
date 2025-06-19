@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
@@ -215,6 +216,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         changeEntityOwner(tenantId, targetOwnerId, device.getId(), device, d -> deviceService.saveDevice(d));
     }
 
+    @Transactional
     @Override
     public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException {
         switch (entityId.getEntityType()) {

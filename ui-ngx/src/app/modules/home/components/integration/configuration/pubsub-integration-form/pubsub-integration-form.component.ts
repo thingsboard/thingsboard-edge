@@ -72,7 +72,7 @@ export class PubSubIntegrationFormComponent extends IntegrationForm implements C
       projectId: [null, Validators.required],
       subscriptionId: [null, Validators.required],
       serviceAccountKey: [null, Validators.required],
-      serviceAccountKeyFileName: [null, Validators.required]
+      serviceAccountKeyFileName: [null]
     });
     this.pubSubIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
