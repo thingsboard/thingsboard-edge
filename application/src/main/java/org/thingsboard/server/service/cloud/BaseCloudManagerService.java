@@ -700,7 +700,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 return Futures.immediateFuture(true);
             }
 
-            processMsgPack(uplinkMsgPack);
+            processMsgPack(uplinkMsgPack, isGeneralMsg);
         } finally {
             uplinkSendLock.unlock();
         }
@@ -725,7 +725,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         }
     }
 
-    private void processMsgPack(List<UplinkMsg> uplinkMsgPack) {
+    private void processMsgPack(List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
         pendingMsgMap.clear();
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
         sendUplinkFuture = uplinkExecutor.schedule(() -> {
@@ -739,7 +739,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     success = sendUplinkMsgPack(new LinkedBlockingQueue<>(pendingMsgMap.values())) && pendingMsgMap.isEmpty();
 
                     if (!success) {
-                        log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
+                        String batchPrefix = isGeneralMsg ? "General" : "Timeseries";
+                        log.warn("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgMap.values().size(), attempt);
+                        log.trace("Entities in failed batch: {}", pendingMsgMap.values());
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
@@ -756,7 +758,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
                     attempt++;
 
-                    if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
+                    if (isGeneralMsg && attempt > MAX_SEND_UPLINK_ATTEMPTS) {
                         log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
                                 MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
                         sendUplinkFutureResult.set(false);
