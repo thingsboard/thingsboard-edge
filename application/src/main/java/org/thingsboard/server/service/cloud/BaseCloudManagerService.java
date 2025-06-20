@@ -326,7 +326,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     protected TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart, String key, CloudEventFinder finder) {
         try {
-            long queueStartTs = getLongAttrByKey(tenantId, key).get();
+            // Subtract 10 minutes to ensure no events are missed in a clustered environment.
+            // While events are identified using seqId, we use partitioning for performance reasons
+            // and partitioning is based on created_time.
+            long queueStartTs = getLongAttrByKey(tenantId, key).get() - TimeUnit.MINUTES.toMillis(10);
             long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
             log.trace("newCloudEventsAvailable, queueSeqIdStart = {}, key = {}, queueStartTs = {}, queueEndTs = {}",
                     queueSeqIdStart, key, queueStartTs, queueEndTs);
