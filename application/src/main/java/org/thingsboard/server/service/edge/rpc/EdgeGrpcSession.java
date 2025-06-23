@@ -983,7 +983,9 @@ public abstract class EdgeGrpcSession implements Closeable {
         return Futures.allAsList(result);
     }
 
-    protected void destroy() {}
+    protected boolean destroy() {
+        return true;
+    }
 
     protected void cleanUp() {}
 
