@@ -102,7 +102,7 @@ public class EntitiesByGroupQueryProcessor extends AbstractSingleEntityTypeQuery
 
     @Override
     protected boolean matches(EntityData ed) {
-        return groupType.equals(ed.getFields().getType());
+        return ed.getFields() != null && groupType.equals(ed.getFields().getType());
     }
 
     @Override
