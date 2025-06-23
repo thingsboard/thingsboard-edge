@@ -109,6 +109,8 @@ import static org.thingsboard.server.service.state.DefaultDeviceStateService.LAS
 @TbCoreComponent
 public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase implements EdgeRpcService {
 
+    private static final int DESTROY_SESSION_MAX_ATTEMPTS = 10;
+
     private final ConcurrentMap<EdgeId, EdgeGrpcSession> sessions = new ConcurrentHashMap<>();
     private final ConcurrentMap<EdgeId, Lock> sessionNewEventsLocks = new ConcurrentHashMap<>();
     private final Map<EdgeId, Boolean> sessionNewEvents = new HashMap<>();
@@ -298,9 +300,8 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
         EdgeGrpcSession session = sessions.get(edgeId);
         if (session != null && session.isConnected()) {
             log.info("[{}] Closing and removing session for edge [{}]", tenantId, edgeId);
-            session.destroy();
+            destroySession(session);
             session.cleanUp();
-            session.close();
             sessions.remove(edgeId);
             final Lock newEventLock = sessionNewEventsLocks.computeIfAbsent(edgeId, id -> new ReentrantLock());
             newEventLock.lock();
@@ -536,7 +537,15 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
 
     private void destroySession(EdgeGrpcSession session) {
         try (session) {
-            session.destroy();
+            for (int i = 0; i < DESTROY_SESSION_MAX_ATTEMPTS; i++) {
+                if (session.destroy()) {
+                    break;
+                } else {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignored) {}
+                }
+            }
         }
     }
 
@@ -658,9 +667,11 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
             }
             for (EdgeId edgeId : toRemove) {
                 log.info("[{}] Destroying session for edge because edge is not connected", edgeId);
-                EdgeGrpcSession removed = sessions.remove(edgeId);
+                EdgeGrpcSession removed = sessions.get(edgeId);
                 if (removed instanceof KafkaEdgeGrpcSession kafkaSession) {
-                    kafkaSession.destroy();
+                    if (kafkaSession.destroy()) {
+                        sessions.remove(edgeId);
+                    }
                 }
             }
         } catch (Exception e) {
