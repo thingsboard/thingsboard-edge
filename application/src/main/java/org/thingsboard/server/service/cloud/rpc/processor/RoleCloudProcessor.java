@@ -79,7 +79,8 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
     private final Set<Operation> fullEntityUpdateOperations = new HashSet<>(Arrays.asList(
             Operation.CHANGE_OWNER, Operation.CREATE,
             Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY,
-            Operation.WRITE, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
+            Operation.WRITE, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY,
+            Operation.READ_CALCULATED_FIELD, Operation.WRITE_CALCULATED_FIELD));
 
     private final Set<Operation> edgeOperations = new HashSet<>(Arrays.asList(
             Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY,
