@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface CalculatedFieldDao extends Dao<CalculatedField> {
 
@@ -51,7 +50,7 @@ public interface CalculatedFieldDao extends Dao<CalculatedField> {
 
     List<CalculatedField> findAll();
 
-    Optional<CalculatedField> findByEntityIdAndName(EntityId entityId, String name);
+    CalculatedField findByEntityIdAndName(EntityId entityId, String name);
 
     PageData<CalculatedField> findAll(PageLink pageLink);
 

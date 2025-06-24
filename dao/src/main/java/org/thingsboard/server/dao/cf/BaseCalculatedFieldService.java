@@ -83,10 +83,13 @@ public class BaseCalculatedFieldService extends AbstractEntityService implements
 
         if (doValidate) {
             oldCalculatedField = calculatedFieldDataValidator.validate(calculatedField, CalculatedField::getTenantId);
+        } else if (calculatedField.getId() != null) {
+            oldCalculatedField = findById(calculatedField.getTenantId(), calculatedField.getId());
         }
 
         return doSave(calculatedField, oldCalculatedField);
     }
+
 
     private CalculatedField doSave(CalculatedField calculatedField, CalculatedField oldCalculatedField) {
         try {
@@ -119,7 +122,7 @@ public class BaseCalculatedFieldService extends AbstractEntityService implements
         log.trace("Executing findByEntityIdAndName [{}], calculatedFieldName[{}]", entityId, name);
         validateId(entityId.getId(), id -> INCORRECT_ENTITY_ID + id);
 
-        return calculatedFieldDao.findByEntityIdAndName(entityId, name).orElse(null);
+        return calculatedFieldDao.findByEntityIdAndName(entityId, name);
     }
 
     @Override
