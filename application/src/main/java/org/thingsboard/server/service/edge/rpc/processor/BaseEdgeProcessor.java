@@ -438,6 +438,16 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
         return entityDaoRegistry.getDao(entityId.getEntityType()).existsById(tenantId, entityId.getId());
     }
 
+    protected ListenableFuture<Void> requestForCalculatedFieldData(TenantId tenantId, EntityId entityId) {
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
+        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+        log.info("Adding CALCULATED_FIELD_REQUEST {} {}", entityId, cloudEventType);
+        futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                EdgeEventActionType.CALCULATED_FIELD_REQUEST, entityId, null, null));
+
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
     protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, EntityId entityId) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());

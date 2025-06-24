@@ -685,11 +685,12 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                      ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> convertEntityEventToUplink(cloudEvent);
                 case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
                         cloudCtx.getTelemetryProcessor().convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
-                case ATTRIBUTES_REQUEST ->  cloudCtx.getTelemetryProcessor().convertAttributesRequestEventToUplink(cloudEvent);
+                case ATTRIBUTES_REQUEST -> cloudCtx.getTelemetryProcessor().convertAttributesRequestEventToUplink(cloudEvent);
+                case CALCULATED_FIELD_REQUEST -> cloudCtx.getCalculatedFieldProcessor().convertCalculatedFieldRequestEventToUplink(cloudEvent);
                 case GROUP_ENTITIES_REQUEST -> entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
                 case GROUP_PERMISSIONS_REQUEST -> groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
-                case RELATION_REQUEST ->  cloudCtx.getRelationProcessor().convertRelationRequestEventToUplink(cloudEvent);
-                case RPC_CALL ->  cloudCtx.getDeviceProcessor().convertRpcCallEventToUplink(cloudEvent);
+                case RELATION_REQUEST -> cloudCtx.getRelationProcessor().convertRelationRequestEventToUplink(cloudEvent);
+                case RPC_CALL -> cloudCtx.getDeviceProcessor().convertRpcCallEventToUplink(cloudEvent);
                 default -> {
                     log.warn("Unsupported action type [{}]", cloudEvent);
                     yield null;

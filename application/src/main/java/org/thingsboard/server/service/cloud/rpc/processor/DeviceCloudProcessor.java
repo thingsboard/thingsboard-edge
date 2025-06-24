@@ -72,6 +72,8 @@ import org.thingsboard.server.service.edge.rpc.processor.device.BaseDeviceProces
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -93,7 +95,15 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
             return switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                     boolean created = saveOrUpdateDeviceFromCloud(tenantId, deviceId, deviceUpdateMsg);
-                    yield created ? requestForAdditionalData(tenantId, deviceId) : Futures.immediateFuture(null);
+                    if (created) {
+                        List<ListenableFuture<Void>> futures = new ArrayList<>();
+
+                        futures.add(requestForAdditionalData(tenantId, deviceId));
+                        futures.add(requestForCalculatedFieldData(tenantId, deviceId));
+
+                        yield Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+                    }
+                    yield Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
                     deviceCreationLock.lock();

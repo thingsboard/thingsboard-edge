@@ -42,9 +42,12 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.gen.edge.v1.CalculatedFieldRequestMsg;
 import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -65,8 +68,8 @@ public class CalculatedFieldCloudProcessor extends BaseCalculatedFieldProcessor 
             cloudSynchronizationManager.getSync().set(true);
             return switch (calculatedFieldUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
-                    boolean wasCreated = saveOrUpdateCalculatedFieldFromCloud(tenantId, calculatedFieldId, calculatedFieldUpdateMsg);
-                    yield wasCreated ? requestForAdditionalData(tenantId, calculatedFieldId) : Futures.immediateFuture(null);
+                    saveOrUpdateCalculatedFieldFromCloud(tenantId, calculatedFieldId, calculatedFieldUpdateMsg);
+                    yield Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
                     CalculatedField calculatedField = edgeCtx.getCalculatedFieldService().findById(tenantId, calculatedFieldId);
@@ -83,7 +86,7 @@ public class CalculatedFieldCloudProcessor extends BaseCalculatedFieldProcessor 
         }
     }
 
-    private boolean saveOrUpdateCalculatedFieldFromCloud(TenantId tenantId, CalculatedFieldId calculatedFieldId, CalculatedFieldUpdateMsg calculatedFieldUpdateMsg) {
+    private void saveOrUpdateCalculatedFieldFromCloud(TenantId tenantId, CalculatedFieldId calculatedFieldId, CalculatedFieldUpdateMsg calculatedFieldUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateCalculatedField(tenantId, calculatedFieldId, calculatedFieldUpdateMsg);
         Boolean wasCreated = resultPair.getFirst();
         if (wasCreated) {
@@ -94,7 +97,6 @@ public class CalculatedFieldCloudProcessor extends BaseCalculatedFieldProcessor 
         if (calculatedFieldNameWasUpdated) {
             cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.CALCULATED_FIELD, EdgeEventActionType.UPDATED, calculatedFieldId, null, null);
         }
-        return wasCreated;
     }
 
     private void pushCalculatedFieldEventToRuleEngine(TenantId tenantId, CalculatedField calculatedField, TbMsgType msgType) {
@@ -132,6 +134,19 @@ public class CalculatedFieldCloudProcessor extends BaseCalculatedFieldProcessor 
             }
         }
         return null;
+    }
+
+    public UplinkMsg convertCalculatedFieldRequestEventToUplink(CloudEvent cloudEvent) {
+        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
+        CalculatedFieldRequestMsg calculatedFieldRequestMsg = CalculatedFieldRequestMsg.newBuilder()
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                .addCalculatedFieldRequestMsg(calculatedFieldRequestMsg);
+        return builder.build();
     }
 
     @Override
