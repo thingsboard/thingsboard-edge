@@ -28,38 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cf;
+package org.thingsboard.server.service.edge.rpc.processor.cf;
 
-import org.thingsboard.server.common.data.cf.CalculatedField;
-import org.thingsboard.server.common.data.id.CalculatedFieldId;
-import org.thingsboard.server.common.data.id.EntityId;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
 
-import java.util.List;
+public interface CalculatedFieldProcessor extends EdgeProcessor {
 
-public interface CalculatedFieldDao extends Dao<CalculatedField> {
-
-    List<CalculatedField> findAllByTenantId(TenantId tenantId);
-
-    List<CalculatedFieldId> findCalculatedFieldIdsByEntityId(TenantId tenantId, EntityId entityId);
-
-    List<CalculatedField> findCalculatedFieldsByEntityId(TenantId tenantId, EntityId entityId);
-
-    List<CalculatedField> findAll();
-
-    CalculatedField findByEntityIdAndName(EntityId entityId, String name);
-
-    PageData<CalculatedField> findAll(PageLink pageLink);
-
-    PageData<CalculatedField> findAllByTenantId(TenantId tenantId, PageLink pageLink);
-
-    PageData<CalculatedField> findAllByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
-
-    List<CalculatedField> removeAllByEntityId(TenantId tenantId, EntityId entityId);
-
-    long countCFByEntityId(TenantId tenantId, EntityId entityId);
+    ListenableFuture<Void> processCalculatedFieldMsgFromEdge(TenantId tenantId, Edge edge, CalculatedFieldUpdateMsg calculatedFieldUpdateMsg);
 
 }
