@@ -149,7 +149,7 @@ public class CalculatedFieldEdgeProcessor extends BaseCalculatedFieldProcessor i
 
                     return edgeId != null ?
                             saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body) :
-                            processNotificationToRelatedEdges(tenantId, calculatedFieldOwnerId, entityId, type, actionType, originatorEdgeId);
+                            pushNotificationToAllRelatedEdges(tenantId, calculatedFieldOwnerId, entityId, type, actionType, null, null, originatorEdgeId);
                 } else {
                     return processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
                 }
