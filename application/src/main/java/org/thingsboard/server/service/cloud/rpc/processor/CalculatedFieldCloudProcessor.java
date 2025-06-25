@@ -38,7 +38,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
-import org.thingsboard.server.service.edge.rpc.processor.calculated.BaseCalculatedFieldProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.cf.BaseCalculatedFieldProcessor;
 
 import java.util.UUID;
 
