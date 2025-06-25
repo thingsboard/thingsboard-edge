@@ -98,18 +98,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
     public void updateData() throws Exception {
         log.info("Updating data ...");
         //TODO: should be cleaned after each release
+        updateInputNodes();
+        deduplicateRateLimitsPerSecondsConfigurations();
 
         // Edge-only: always run next config:
 
-        // remove this line in 4+ release
-        fixDuplicateSystemWidgetsBundles();
         // reset full sync required - to upload latest widgets from cloud
         tenantsFullSyncRequiredUpdater.updateEntities(null);
 
         // ... Edge-only
 
-        updateInputNodes();
-        deduplicateRateLimitsPerSecondsConfigurations();
         log.info("Data updated.");
     }
 

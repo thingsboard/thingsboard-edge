@@ -26,6 +26,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.AttributesSaveResult;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -70,7 +71,7 @@ public class DefaultEdgeSettingsService implements EdgeSettingsService {
     }
 
     @Override
-    public ListenableFuture<List<Long>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
+    public ListenableFuture<AttributesSaveResult> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
         StringDataEntry dataEntry = new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, JacksonUtil.toString(edgeSettings));
         BaseAttributeKvEntry edgeSettingAttr = new BaseAttributeKvEntry(dataEntry, System.currentTimeMillis());
         List<AttributeKvEntry> attributes = Collections.singletonList(edgeSettingAttr);
