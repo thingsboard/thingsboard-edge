@@ -189,7 +189,6 @@ export enum MenuId {
   converter_templates = 'converter_templates',
   scheduler = 'scheduler',
   roles = 'roles',
-  self_registration = 'self_registration',
   edge = 'edge',
   edge_status = 'edge_status',
   cloud_events = 'cloud_events',
