@@ -29,6 +29,7 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.CalculatedFieldStateProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
@@ -64,6 +65,7 @@ import org.thingsboard.server.queue.kafka.TbKafkaConsumerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaProducerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
+import org.thingsboard.server.queue.settings.TasksQueueConfig;
 import org.thingsboard.server.queue.settings.TbQueueCalculatedFieldSettings;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
@@ -95,6 +97,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueCalculatedFieldSettings calculatedFieldSettings;
     private final TbKafkaConsumerStatsService consumerStatsService;
     private final EdqsConfig edqsConfig;
+    private final TasksQueueConfig tasksQueueConfig;
 
     private final TbQueueCloudEventSettings cloudEventSettings;
     private final TbQueueCloudEventTSSettings cloudEventTSSettings;
@@ -116,6 +119,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueAdmin cfStateAdmin;
     private final TbQueueAdmin edqsEventsAdmin;
     private final TbKafkaAdmin edqsRequestsAdmin;
+    private final TbQueueAdmin tasksAdmin;
 
     private final TbQueueAdmin cloudEventAdmin;
     private final TbQueueAdmin cloudEventTSAdmin;
@@ -137,7 +141,8 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
                                      TbKafkaTopicConfigs kafkaTopicConfigs,
                                      TbQueueCloudEventSettings cloudEventSettings,
                                      TbQueueCloudEventTSSettings cloudEventTSSettings,
-                                     EdqsConfig edqsConfig) {
+                                     EdqsConfig edqsConfig,
+                                     TasksQueueConfig tasksQueueConfig) {
         this.topicService = topicService;
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -153,6 +158,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.cloudEventTSSettings = cloudEventTSSettings;
         this.calculatedFieldSettings = calculatedFieldSettings;
         this.edqsConfig = edqsConfig;
+        this.tasksQueueConfig = tasksQueueConfig;
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
@@ -173,6 +179,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.cfStateAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCalculatedFieldStateConfigs());
         this.edqsEventsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsEventsConfigs());
         this.edqsRequestsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsRequestsConfigs());
+        this.tasksAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTasksConfigs());
     }
 
     @Override
@@ -704,6 +711,19 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
                 .maxPendingRequests(edqsConfig.getMaxPendingRequests())
                 .maxRequestTimeout(edqsConfig.getMaxRequestTimeout())
                 .pollInterval(edqsConfig.getPollInterval())
+                .build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<JobStatsMsg>> createJobStatsConsumer() {
+        return TbKafkaConsumerTemplate.<TbProtoQueueMsg<JobStatsMsg>>builder()
+                .settings(kafkaSettings)
+                .topic(topicService.buildTopicName(tasksQueueConfig.getStatsTopic()))
+                .clientId("job-stats-consumer-" + serviceInfoProvider.getServiceId())
+                .groupId(topicService.buildTopicName("job-stats-consumer-group"))
+                .decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), JobStatsMsg.parseFrom(msg.getData()), msg.getHeaders()))
+                .admin(tasksAdmin)
+                .statsService(consumerStatsService)
                 .build();
     }
 

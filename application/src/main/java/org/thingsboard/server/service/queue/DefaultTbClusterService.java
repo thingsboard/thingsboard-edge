@@ -132,11 +132,9 @@ public class DefaultTbClusterService implements TbClusterService {
     private final AtomicInteger toEdgeNfs = new AtomicInteger(0);
 
     @Autowired
-    @Lazy
     private PartitionService partitionService;
 
     @Autowired
-    @Lazy
     private TbQueueProducerProvider producerProvider;
 
     @Autowired
@@ -581,7 +579,8 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
-    private void broadcast(ComponentLifecycleMsg msg) {
+    @Override
+    public void broadcast(ComponentLifecycleMsg msg) {
         ComponentLifecycleMsgProto componentLifecycleMsgProto = toProto(msg);
         TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineProducer = producerProvider.getRuleEngineNotificationsMsgProducer();
         Set<String> tbRuleEngineServices = partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE);
@@ -596,6 +595,7 @@ public class DefaultTbClusterService implements TbClusterService {
                 || entityType.equals(EntityType.ENTITY_VIEW)
                 || entityType.equals(EntityType.NOTIFICATION_RULE)
                 || entityType.equals(EntityType.CALCULATED_FIELD)
+                || entityType.equals(EntityType.JOB)
         ) {
             TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toCoreNfProducer = producerProvider.getTbCoreNotificationsMsgProducer();
             Set<String> tbCoreServices = partitionService.getAllServiceIds(ServiceType.TB_CORE);

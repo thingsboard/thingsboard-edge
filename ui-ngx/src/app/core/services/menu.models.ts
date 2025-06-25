@@ -108,6 +108,7 @@ export enum MenuId {
   edge = 'edge',
   edge_status = 'edge_status',
   cloud_events = 'cloud_events',
+  trendz_settings = 'trendz_settings'
 }
 
 declare type MenuFilter = (authState: AuthState) => boolean;
@@ -717,6 +718,17 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       path: '/edge/cloudEvents',
       icon: 'date_range'
     }
+  ],
+  [
+    MenuId.trendz_settings,
+    {
+      id: MenuId.trendz_settings,
+      name: 'admin.trendz',
+      fullName: 'admin.trendz-settings',
+      type: 'link',
+      path: '/settings/trendz',
+      icon: 'trendz-settings'
+    }
   ]
 ]);
 
@@ -905,7 +917,8 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.home_settings},
           {id: MenuId.notification_settings},
           {id: MenuId.repository_settings},
-          {id: MenuId.auto_commit_settings}
+          {id: MenuId.auto_commit_settings},
+          {id: MenuId.trendz_settings}
         ]
       },
       {
@@ -1008,7 +1021,7 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
       },
       {
         name: 'admin.system-settings',
-        places: [MenuId.home_settings, MenuId.resources_library, MenuId.repository_settings, MenuId.auto_commit_settings]
+        places: [MenuId.home_settings, MenuId.resources_library, MenuId.repository_settings, MenuId.auto_commit_settings, MenuId.trendz_settings]
       }
     ]
   ],
