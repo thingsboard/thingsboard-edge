@@ -615,7 +615,6 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             case RULE_CHAIN:
             case SCHEDULER_EVENT:
             case INTEGRATION:
-            case CALCULATED_FIELD:
                 return relatedEdgesService.findEdgeIdsByEntityId(tenantId, entityId, pageLink);
             case CONVERTER:
                 List<Integration> integrationsByConverterId =

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.calculated;
+package org.thingsboard.server.service.edge.rpc.processor.cf;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
@@ -149,9 +149,9 @@ public class CalculatedFieldEdgeProcessor extends BaseCalculatedFieldProcessor i
 
                     return edgeId != null ?
                             saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body) :
-                            pushEventToAllRelatedEdges(tenantId, calculatedFieldOwnerId, entityId, type, actionType, originatorEdgeId);
+                            pushNotificationToAllRelatedEdges(tenantId, calculatedFieldOwnerId, entityId, type, actionType, null, null, originatorEdgeId);
                 } else {
-                    return pushEventToAllEdges(tenantId, type, actionType, entityId, originatorEdgeId);
+                    return processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
                 }
             default:
                 return super.processEntityNotification(tenantId, edgeNotificationMsg);

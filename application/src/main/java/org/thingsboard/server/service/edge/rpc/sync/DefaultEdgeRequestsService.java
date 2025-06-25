@@ -384,11 +384,10 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                             return saveEdgeEvent(tenantId, edgeId, EdgeEventType.CALCULATED_FIELD,
                                     EdgeEventActionType.ADDED, calculatedField.getId(), JacksonUtil.valueToTree(calculatedField));
                         } catch (Exception e) {
-                            String errMsg = String.format("[%s][%s] Exception during loading calculatedField [%s] to edge on sync!", tenantId, edgeId, calculatedField);
-                            log.error(errMsg, e);
+                            log.error("[{}][{}] Exception during loading calculatedField [{}] to edge on sync!", tenantId, edgeId, calculatedField, e);
                             return Futures.immediateFailedFuture(e);
                         }
-                    }).collect(Collectors.toList());
+                    }).toList();
 
                     return Futures.transform(
                             Futures.allAsList(futures),

@@ -278,7 +278,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
                     if (edgeId != null) {
                         return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body, entityGroupId);
                     } else {
-                        return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, body, entityGroupId, originatorEdgeId);
+                        return pushNotificationToAllRelatedEdges(tenantId, entityId, entityId, type, actionType, body, entityGroupId, originatorEdgeId);
                     }
                 case DELETED:
                 case REMOVED_FROM_ENTITY_GROUP:
@@ -316,17 +316,6 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
         }
     }
 
-    public ListenableFuture<Void> processDeviceOtaNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
-        EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
-        EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
-        EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type, new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
-        JsonNode body = JacksonUtil.toJsonNode(edgeNotificationMsg.getBody());
-        return switch (actionType) {
-            case ADDED, UPDATED, DELETED -> pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, body, null, null);
-            default -> Futures.immediateFuture(null);
-        };
-    }
-
     protected EdgeId safeGetEdgeId(long edgeIdMSB, long edgeIdLSB) {
         if (edgeIdMSB != 0 && edgeIdLSB != 0) {
             return new EdgeId(new UUID(edgeIdMSB, edgeIdLSB));
@@ -352,12 +341,12 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
         }
     }
 
-    private ListenableFuture<Void> pushNotificationToAllRelatedEdges(TenantId tenantId, EntityId entityId, EdgeEventType type,
+    protected ListenableFuture<Void> pushNotificationToAllRelatedEdges(TenantId tenantId, EntityId ownerEntityId, EntityId entityId, EdgeEventType type,
                                                                      EdgeEventActionType actionType, JsonNode body,
                                                                      EntityGroupId entityGroupId, EdgeId sourceEdgeId) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         PageDataIterableByTenantIdEntityId<EdgeId> edgeIds =
-                new PageDataIterableByTenantIdEntityId<>(edgeCtx.getEdgeService()::findRelatedEdgeIdsByEntityId, tenantId, entityId, RELATED_EDGES_CACHE_ITEMS);
+                new PageDataIterableByTenantIdEntityId<>(edgeCtx.getEdgeService()::findRelatedEdgeIdsByEntityId, tenantId, ownerEntityId, RELATED_EDGES_CACHE_ITEMS);
         for (EdgeId relatedEdgeId : edgeIds) {
             if (!relatedEdgeId.equals(sourceEdgeId)) {
                 futures.add(saveEdgeEvent(tenantId, relatedEdgeId, type, actionType, entityId, body, entityGroupId));
