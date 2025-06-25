@@ -58,7 +58,8 @@ browser:
   # - When this parameter is disabled ('false'), all web reports will open on a single page,
   #   allowing caching to be used for improved performance and faster page loading.
   useNewPage: false
-
+  # Used to override baseUrl when it points to localhost or 127.0.0.1
+  localhostBaseUrlOverride: ""
 logger:
   # Sets the logging level.
   # Available levels and their priorities:

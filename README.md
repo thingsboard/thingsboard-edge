@@ -8,6 +8,7 @@ You cannot share ThingsBoard Edge between multiple tenants or customers or you c
 In this case you'll need to provision multiple ThingsBoard Edge instances for every tenant (customer).
 But you can use a single ThingsBoard Edge instance for one tenant and one customer from the same tenant.
 
+
 ## Documentation
 
 ThingsBoard Edge PE documentation is hosted on [thingsboard.io](https://thingsboard.io/docs/pe/edge/).

@@ -108,7 +108,9 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, new PermissionChecker.GenericPermissionChecker(Operation.READ));
         put(Resource.MOBILE_APP, tenantStandaloneEntityPermissionChecker);
         put(Resource.MOBILE_APP_BUNDLE, tenantStandaloneEntityPermissionChecker);
+        put(Resource.JOB, tenantStandaloneEntityPermissionChecker);
         put(Resource.DOMAIN, tenantStandaloneEntityPermissionChecker);
+        put(Resource.SECRET, tenantStandaloneEntityPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
@@ -335,7 +337,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         @Override
         public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), null) ||
-                    !user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)) {
+                !user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)) {
                 return false;
             }
             if (operation == Operation.READ) {

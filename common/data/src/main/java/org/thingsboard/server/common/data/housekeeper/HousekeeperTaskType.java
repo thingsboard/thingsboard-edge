@@ -47,7 +47,8 @@ public enum HousekeeperTaskType {
     DELETE_TENANT_ENTITIES("tenant entities deletion"),
     DELETE_ENTITIES("entities deletion"),
     CLEANUP_ENTITIES("entities cleanup"),
-    DELETE_CALCULATED_FIELDS("calculated fields deletion");
+    DELETE_CALCULATED_FIELDS("calculated fields deletion"),
+    DELETE_JOBS("jobs deletion");
 
     private final String description;
 

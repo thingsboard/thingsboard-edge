@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
@@ -54,6 +55,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -66,8 +68,10 @@ import org.thingsboard.server.common.data.query.DynamicValue;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -79,13 +83,14 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.sql.JpaExecutorService;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
+import org.thingsboard.server.service.install.DbUpgradeExecutorService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
@@ -96,8 +101,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.dao.rule.BaseRuleChainService.TB_RULE_CHAIN_INPUT_NODE;
 
 @Service
 @Profile("install")
@@ -160,7 +168,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private ComponentDiscoveryService componentDiscoveryService;
 
     @Autowired
-    JpaExecutorService jpaExecutorService;
+    private DbUpgradeExecutorService executorService;
+
+    @Autowired
+    private TenantProfileService tenantProfileService;
 
     @Override
     public void updateData(boolean fromCe) throws Exception {
@@ -169,11 +180,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
             updateDataFromCe();
         } else {
             //TODO: should be cleaned after each release
+            updateInputNodes();
+            deduplicateRateLimitsPerSecondsConfigurations();
         }
         // Edge-only: always run next config:
 
-        // remove this line in 4+ release
-        fixDuplicateSystemWidgetsBundles();
         // reset full sync required - to upload latest widgets from cloud
         tenantsFullSyncRequiredUpdater.updateEntities(null);
 
@@ -192,6 +203,71 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } else {
             systemDataLoaderService.updateMailTemplates(mailTemplatesSettings);
         }
+    }
+
+    private void deduplicateRateLimitsPerSecondsConfigurations() {
+        log.info("Starting update of tenant profiles...");
+
+        int totalProfiles = 0;
+        int updatedTenantProfiles = 0;
+        int skippedProfiles = 0;
+        int failedProfiles = 0;
+
+        var tenantProfiles = new PageDataIterable<>(
+                pageLink -> tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, pageLink), 1024);
+
+        for (TenantProfile tenantProfile : tenantProfiles) {
+            totalProfiles++;
+            String profileName = tenantProfile.getName();
+            UUID profileId = tenantProfile.getId().getId();
+            try {
+                Optional<DefaultTenantProfileConfiguration> profileConfiguration = tenantProfile.getProfileConfiguration();
+                if (profileConfiguration.isEmpty()) {
+                    log.debug("[{}][{}] Skipping tenant profile with non-default configuration.", profileId, profileName);
+                    skippedProfiles++;
+                    continue;
+                }
+
+                DefaultTenantProfileConfiguration defaultTenantProfileConfiguration = profileConfiguration.get();
+                defaultTenantProfileConfiguration.deduplicateRateLimitsConfigs();
+                tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+                updatedTenantProfiles++;
+                log.debug("[{}][{}] Successfully updated tenant profile.", profileId, profileName);
+            } catch (Exception e) {
+                log.error("[{}][{}] Failed to updated tenant profile: ", profileId, profileName, e);
+                failedProfiles++;
+            }
+        }
+
+        log.info("Tenant profiles update completed. Total: {}, Updated: {}, Skipped: {}, Failed: {}",
+                totalProfiles, updatedTenantProfiles, skippedProfiles, failedProfiles);
+    }
+
+    private void updateInputNodes() {
+        log.info("Creating relations for input nodes...");
+        int n = 0;
+        var inputNodes = new PageDataIterable<>(pageLink -> ruleChainService.findAllRuleNodesByType(TB_RULE_CHAIN_INPUT_NODE, pageLink), 1024);
+        for (RuleNode inputNode : inputNodes) {
+            try {
+                RuleChainId targetRuleChainId = Optional.ofNullable(inputNode.getConfiguration().get("ruleChainId"))
+                        .filter(JsonNode::isTextual).map(JsonNode::asText).map(id -> new RuleChainId(UUID.fromString(id)))
+                        .orElse(null);
+                if (targetRuleChainId == null) {
+                    continue;
+                }
+
+                EntityRelation relation = new EntityRelation();
+                relation.setFrom(inputNode.getRuleChainId());
+                relation.setTo(targetRuleChainId);
+                relation.setType(EntityRelation.USES_TYPE);
+                relation.setTypeGroup(RelationTypeGroup.COMMON);
+                relationService.saveRelation(TenantId.SYS_TENANT_ID, relation);
+                n++;
+            } catch (Exception e) {
+                log.error("Failed to save relation for input node: {}", inputNode, e);
+            }
+        }
+        log.info("Created {} relations for input nodes", n);
     }
 
     @Override
@@ -237,7 +313,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     ruleNodeId, ruleNodeType, fromVersion, toVersion);
             try {
                 TbNodeUpgradeUtils.upgradeConfigurationAndVersion(ruleNode, ruleNodeClassInfo);
-                saveFutures.add(jpaExecutorService.submit(() -> {
+                saveFutures.add(executorService.submit(() -> {
                     ruleChainService.saveRuleNode(TenantId.SYS_TENANT_ID, ruleNode);
                     log.debug("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
                             ruleNodeId, ruleNodeType, fromVersion, toVersion);

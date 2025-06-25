@@ -167,4 +167,5 @@ public class EdgeSyncCursor {
         currentIdx++;
         return edgeEventFetcher;
     }
+
 }

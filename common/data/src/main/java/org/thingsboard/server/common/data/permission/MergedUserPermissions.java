@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,8 @@ public final class MergedUserPermissions implements Serializable {
     private final Map<Resource, MergedGroupTypePermissionInfo> readAttrPermissions;
     @Schema(description = "Map of read entity time-series permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readTsPermissions;
+
+    public static final MergedUserPermissions ALL = new MergedUserPermissions(Map.of(Resource.ALL, Set.of(Operation.ALL)), Collections.emptyMap());
 
     @JsonCreator
     public MergedUserPermissions(@JsonProperty("genericPermissions") Map<Resource, Set<Operation>> genericPermissions,

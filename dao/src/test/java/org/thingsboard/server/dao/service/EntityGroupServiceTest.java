@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.AttributesSaveResult;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
@@ -330,7 +331,7 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
             devices.add(deviceService.saveDevice(device));
         }
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_" + i, AttributeScope.SERVER_SCOPE));
@@ -410,7 +411,7 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
         device.setLabel("testLabel1");
         device = deviceService.saveDevice(device);
 
-        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<AttributesSaveResult>> attributeFutures = new ArrayList<>();
         attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_1", AttributeScope.SERVER_SCOPE));
         attributeFutures.add(saveLongAttribute(device.getId(), "serverAttr2", 1, AttributeScope.SERVER_SCOPE));
         attributeFutures.add(saveStringAttribute(device.getId(), "sharedAttr1", "sharedValue1_1", AttributeScope.SHARED_SCOPE));
@@ -544,13 +545,13 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
                 .hasMessage("Entity '" + entityGroupId.getEntityType() + "' is not a group entity!");
     }
 
-    private ListenableFuture<List<Long>> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
+    private ListenableFuture<AttributesSaveResult> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
         KvEntry attrValue = new StringDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));
     }
 
-    private ListenableFuture<List<Long>> saveLongAttribute(EntityId entityId, String key, long value, AttributeScope scope) {
+    private ListenableFuture<AttributesSaveResult> saveLongAttribute(EntityId entityId, String key, long value, AttributeScope scope) {
         KvEntry attrValue = new LongDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));

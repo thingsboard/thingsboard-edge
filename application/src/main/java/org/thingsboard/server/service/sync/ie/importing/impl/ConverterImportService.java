@@ -66,7 +66,7 @@ public class ConverterImportService extends BaseEntityImportService<ConverterId,
     }
 
     @Override
-    protected Converter saveOrUpdate(EntitiesImportCtx ctx, Converter entity, EntityExportData<Converter> exportData, IdProvider idProvider) {
+    protected Converter saveOrUpdate(EntitiesImportCtx ctx, Converter entity, EntityExportData<Converter> exportData, IdProvider idProvider, CompareResult compareResult) {
         return converterService.saveConverter(entity);
     }
 

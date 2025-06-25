@@ -45,7 +45,7 @@ import {
   getTimewindowConfig,
   setTimewindowConfig
 } from '@home/components/widget/config/timewindow-config-panel.component';
-import { formatValue, isUndefined } from '@core/utils';
+import { formatValue, isDefined, isUndefined } from '@core/utils';
 import { Component } from '@angular/core';
 import {
   convertLevelColorsSettingsToColorProcessor,
@@ -57,6 +57,7 @@ import {
   DigitalGaugeType
 } from '@home/components/widget/lib/digital-gauge.models';
 import { ColorSettings, ColorType } from '@shared/models/widget-settings.models';
+import { getSourceTbUnitSymbol } from '@shared/models/unit.models';
 
 @Component({
   selector: 'tb-digital-simple-gauge-basic-config',
@@ -129,7 +130,7 @@ export class DigitalSimpleGaugeBasicConfigComponent extends BasicWidgetConfigCom
       minMaxColor: [settings.minMaxFont?.color, []],
 
       showValue: [settings.showValue, []],
-      decimals: [configData.config.decimals, []],
+      decimals: [isDefined(configData.config.decimals) ? configData.config.decimals : settings.decimals, []],
       units: [configData.config.units, []],
       valueFont: [settings.valueFont, []],
       valueColor: [settings.valueFont?.color, []],
@@ -171,6 +172,9 @@ export class DigitalSimpleGaugeBasicConfigComponent extends BasicWidgetConfigCom
     this.widgetConfig.config.settings.showValue = config.showValue;
     this.widgetConfig.config.units = config.units;
     this.widgetConfig.config.decimals = config.decimals;
+    if (isDefined(this.widgetConfig.config.settings.decimals)) {
+      delete this.widgetConfig.config.settings.decimals;
+    }
     this.widgetConfig.config.settings.valueFont = config.valueFont;
     this.widgetConfig.config.settings.valueFont.color = config.valueColor;
 
@@ -285,6 +289,6 @@ export class DigitalSimpleGaugeBasicConfigComponent extends BasicWidgetConfigCom
   }
 
   private _valuePreviewFn(units: boolean): string {
-    return formatValue(22, 0, units ? this.simpleGaugeWidgetConfigForm.get('units').value : null, true);
+    return formatValue(22, 0, units ? getSourceTbUnitSymbol(this.simpleGaugeWidgetConfigForm.get('units').value) : null, true);
   }
 }

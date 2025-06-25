@@ -69,13 +69,11 @@
         <mat-error translate *ngIf="awsKinesisConfigForm.get('accessKeyId').hasError('required')">
           integration.kinesis-access-key-id-required</mat-error>
       </mat-form-field>
-      <mat-form-field class="mat-block flex-1">
-        <mat-label translate>integration.kinesis-secret-access-key</mat-label>
-        <input matInput required type="password" autocomplete="new-password" formControlName="secretAccessKey">
-        <tb-toggle-password matSuffix></tb-toggle-password>
-        <mat-error translate *ngIf="awsKinesisConfigForm.get('secretAccessKey').hasError('required')">
-          integration.kinesis-secret-access-key-required</mat-error>
-      </mat-form-field>
+      <tb-secret-key-input formControlName="secretAccessKey" class="mat-block flex-1"
+                           required
+                           label="{{ 'integration.kinesis-secret-access-key' | translate }}"
+                           requiredText="{{ 'integration.kinesis-secret-access-key-required' | translate }}">
+      </tb-secret-key-input>
     </div>
   </section>
 

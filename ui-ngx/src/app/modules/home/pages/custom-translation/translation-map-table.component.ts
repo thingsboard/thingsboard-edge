@@ -380,7 +380,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
   }
 
   addNewTranslated() {
-    if (this.newKey.valid) {
+    if (this.newKey.valid && this.newKey.dirty) {
       const {key, translated} = this.newKey.value;
       let original = this.newKey.value.original;
       let observable: Observable<any>;
@@ -393,9 +393,15 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
           this.customTranslationService.patchCustomTranslation(this.defaultLang, {[key]: original})
         ]);
       }
-      observable.subscribe(() => {
-        this.dataSource.addedTranslation(key, translated, original);
-        this.resetNewKeyForm();
+      this.newKey.markAsPristine();
+      observable.subscribe({
+        next: () => {
+          this.dataSource.addedTranslation(key, translated, original);
+          this.resetNewKeyForm();
+        },
+        error: () => {
+          this.newKey.markAsDirty();
+        }
       });
     }
   }

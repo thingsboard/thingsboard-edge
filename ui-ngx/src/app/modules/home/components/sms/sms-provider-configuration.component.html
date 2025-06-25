@@ -46,18 +46,21 @@
     <ng-template [ngSwitchCase]="smsProviderType.AWS_SNS">
       <tb-aws-sns-provider-configuration
         [required]="required"
+        [isRuleNode]="isRuleNode"
         formControlName="configuration">
       </tb-aws-sns-provider-configuration>
     </ng-template>
     <ng-template [ngSwitchCase]="smsProviderType.TWILIO">
       <tb-twilio-sms-provider-configuration
         [required]="required"
+        [isRuleNode]="isRuleNode"
         formControlName="configuration">
       </tb-twilio-sms-provider-configuration>
     </ng-template>
     <ng-template [ngSwitchCase]="smsProviderType.SMPP">
       <tb-smpp-sms-provider-configuration
         [required]="required"
+        [isRuleNode]="isRuleNode"
         formControlName="configuration">
       </tb-smpp-sms-provider-configuration>
     </ng-template>

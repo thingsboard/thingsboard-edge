@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.ProfileEntityIdInfo;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
@@ -61,6 +62,8 @@ public interface DeviceService extends EntityDaoService {
     Device findDeviceById(TenantId tenantId, DeviceId deviceId);
 
     DeviceInfo findDeviceInfoById(TenantId tenantId, DeviceId deviceId);
+
+    EntityInfo findDeviceEntityInfoById(TenantId tenantId, DeviceId deviceId);
 
     ListenableFuture<Device> findDeviceByIdAsync(TenantId tenantId, DeviceId deviceId);
 
@@ -95,6 +98,8 @@ public interface DeviceService extends EntityDaoService {
     PageData<ProfileEntityIdInfo> findProfileEntityIdInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
     PageData<DeviceId> findDeviceIdsByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink);
+
+    PageData<EntityInfo> findDeviceEntityInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink);
 
     ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(TenantId tenantId, List<DeviceId> deviceIds);
 

@@ -97,10 +97,9 @@
         <mat-label translate>rule-node-config.proxy-user</mat-label>
         <input matInput formControlName="proxyUser">
       </mat-form-field>
-      <mat-form-field class="mat-block">
-        <mat-label translate>rule-node-config.proxy-password</mat-label>
-        <input matInput formControlName="proxyPassword">
-      </mat-form-field>
+      <tb-secret-key-input formControlName="proxyPassword" class="mat-block flex-1"
+                           label="{{ 'rule-node-config.proxy-password' | translate }}">
+      </tb-secret-key-input>
     </div>
   </div>
   <mat-form-field *ngIf="!restApiCallConfigForm.get('useSimpleClientHttpFactory').value || restApiCallConfigForm.get('enableProxy').value" class="mat-block"

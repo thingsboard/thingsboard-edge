@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.JobManager;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Customer;
@@ -59,11 +60,13 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.job.Job;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -75,9 +78,11 @@ import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.TbQueueCallback;
 
+import java.util.List;
 import java.util.Set;
 
 @Slf4j
@@ -88,6 +93,8 @@ public class EntityStateSourcingListener {
     private final TenantService tenantService;
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
+    private final JobManager jobManager;
+    private final SecretService secretService;
 
     @PostConstruct
     public void init() {
@@ -174,6 +181,18 @@ public class EntityStateSourcingListener {
             }
             case CALCULATED_FIELD -> {
                 onCalculatedFieldUpdate(event.getEntity(), event.getOldEntity());
+            }
+            case JOB -> {
+                onJobUpdate((Job) event.getEntity());
+            }
+            case SECRET -> {
+                if (isCreated) {
+                    break;
+                }
+                Secret secret = (Secret) event.getEntity();
+                var entityInfos = secretService.findEntitiesBySecret(tenantId, secret);
+                entityInfos.values().stream().flatMap(List::stream).forEach(entityInfo ->
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityInfo.getId(), lifecycleEvent));
             }
             default -> {}
         }
@@ -344,6 +363,28 @@ public class EntityStateSourcingListener {
             oldCalculatedField = (CalculatedField) oldEntity;
         }
         tbClusterService.onCalculatedFieldUpdated(calculatedField, oldCalculatedField, TbQueueCallback.EMPTY);
+    }
+
+    private void onJobUpdate(Job job) {
+        jobManager.onJobUpdate(job);
+
+        ComponentLifecycleEvent event;
+        if (job.getResult().getCancellationTs() > 0) {
+            event = ComponentLifecycleEvent.STOPPED;
+        } else if (job.getResult().getGeneralError() != null) {
+            event = ComponentLifecycleEvent.FAILED;
+        } else {
+            return;
+        }
+        ComponentLifecycleMsg msg = ComponentLifecycleMsg.builder()
+                .tenantId(job.getTenantId())
+                .entityId(job.getId())
+                .event(event)
+                .info(JacksonUtil.newObjectNode()
+                        .put("tasksKey", job.getConfiguration().getTasksKey()))
+                .build();
+        // task processors will add this job to the list of discarded
+        tbClusterService.broadcast(msg);
     }
 
     private void pushAssignedFromNotification(Tenant currentTenant, TenantId newTenantId, Device assignedDevice) {

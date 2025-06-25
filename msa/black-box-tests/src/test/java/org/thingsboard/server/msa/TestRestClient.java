@@ -59,8 +59,9 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.cf.CalculatedField;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edqs.EdqsState;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
@@ -79,6 +80,7 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SecretId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -95,6 +97,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.secret.Secret;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 
 import java.util.HashMap;
@@ -110,6 +113,7 @@ import static org.hamcrest.core.AnyOf.anyOf;
 import static org.thingsboard.server.common.data.StringUtils.isEmpty;
 
 public class TestRestClient {
+
     private static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
     private static final String CONTENT_TYPE_HEADER = "Content-Type";
     private final RequestSpecification requestSpec;
@@ -183,6 +187,13 @@ public class TestRestClient {
                 .statusCode(HTTP_OK)
                 .extract()
                 .as(CalculatedField.class);
+    }
+
+    public void reprocessCalculatedField(CalculatedField calculatedField, long startTs, long endTs) {
+        given().spec(requestSpec)
+                .get("/api/calculatedField/" + calculatedField.getUuidId() + "/reprocess?startTs={startTs}&endTs={endTs}", startTs, endTs)
+                .then()
+                .statusCode(HTTP_OK);
     }
 
     public Device getDeviceByName(String deviceName) {
@@ -264,6 +275,13 @@ public class TestRestClient {
                 .statusCode(HTTP_OK);
     }
 
+    public ValidatableResponse postTelemetry(EntityId entityId, JsonNode telemetry) {
+        return given().spec(requestSpec).body(telemetry)
+                .post("/api/plugins/telemetry/{entityType}/{entityId}/timeseries/SERVER_SCOPE", entityId.getEntityType(), entityId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
     public List<JsonNode> getEntityAttributeByScopeAndKey(EntityId entityId, String scope, String key) {
         return given().spec(requestSpec)
                 .get("/api/plugins/telemetry/{entityType}/{entityId}/values/attributes/{scope}?keys={key}", entityId.getEntityType(), entityId.getId(), scope, key)
@@ -308,6 +326,15 @@ public class TestRestClient {
                 .statusCode(HTTP_OK)
                 .extract()
                 .as(JsonNode.class);
+    }
+
+    public ObjectNode getTimeSeries(EntityId entityId, long startTs, long endTs, String... keys) {
+        return given().spec(requestSpec)
+                .get("/api/plugins/telemetry/" + entityId.getEntityType().name() + "/" + entityId.getId() + "/values/timeseries?keys={keys}&startTs={startTs}&endTs={endTs}", String.join(",", keys), startTs, endTs)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(ObjectNode.class);
     }
 
     public JsonPath postProvisionRequest(String provisionRequest) {
@@ -855,13 +882,13 @@ public class TestRestClient {
                 .as(Long.class);
     }
 
-    public Boolean isEdqsApiEnabled() {
+    public EdqsState getEdqsState() {
         return given().spec(requestSpec)
-                .get("/api/edqs/enabled")
+                .get("/api/edqs/state")
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
-                .as(Boolean.class);
+                .as(EdqsState.class);
     }
 
     public void deleteTenant(TenantId tenantId) {
@@ -1082,8 +1109,7 @@ public class TestRestClient {
                 .then()
                 .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
         if (((ValidatableResponseImpl) response).extract().response().getStatusCode() == HTTP_OK) {
-            return response.extract()
-                    .as(Device.class);
+            return response.extract().as(Device.class);
         } else {
             return null;
         }
@@ -1125,7 +1151,6 @@ public class TestRestClient {
                 .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
     }
 
-
     public EntityGroupInfo findCustomerAdminsGroup(CustomerId customerId) throws Exception {
         return findGroupByOwnerIdTypeAndName(customerId, EntityType.USER, EntityGroup.GROUP_CUSTOMER_ADMINS_NAME);
     }
@@ -1150,4 +1175,29 @@ public class TestRestClient {
                 .as(new TypeRef<List<EntityGroupInfo>>() {
                 });
     }
+
+    public void changeOwner(EntityId ownerId, EntityId entityId) {
+        given().spec(requestSpec)
+                .post("/api/owner/{ownerEntityType}/{ownerId}/{entityType}/{entityId}", ownerId.getEntityType().name(), ownerId.getId(), entityId.getEntityType().name(), entityId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public Secret saveSecret(Secret secret) {
+        return given().spec(requestSpec)
+                .body(secret)
+                .post("/api/secret")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Secret.class);
+    }
+
+    public ValidatableResponse deleteSecret(SecretId secretId) {
+        return given().spec(requestSpec)
+                .delete("/api/secret/{secretId}", secretId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
 }

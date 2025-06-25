@@ -51,6 +51,7 @@ import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.exception.RateLimitExceededException;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -70,7 +71,6 @@ import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
-import org.thingsboard.server.dao.util.TenantRateLimitException;
 import org.thingsboard.server.exception.UnauthorizedException;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -301,7 +301,7 @@ public class DefaultWebSocketService implements WebSocketService {
     @Override
     public void sendUpdate(String sessionId, int cmdId, TelemetrySubscriptionUpdate update) {
         // We substitute the subscriptionId with cmdId for old-style subscriptions.
-        doSendUpdate(sessionId, cmdId, update.copyWithNewSubscriptionId(cmdId));
+        doSendUpdate(sessionId, cmdId, update.withSubscriptionId(cmdId));
     }
 
     @Override
@@ -771,7 +771,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
             @Override
             public void onFailure(Throwable e) {
-                if (e instanceof TenantRateLimitException || e.getCause() instanceof TenantRateLimitException) {
+                if (e instanceof RateLimitExceededException || e.getCause() instanceof RateLimitExceededException) {
                     log.trace("[{}] Tenant rate limit detected for subscription: [{}]:{}", sessionRef.getSecurityCtx().getTenantId(), entityId, cmd);
                 } else {
                     log.info(FAILED_TO_FETCH_DATA, e);

@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.encryptionkey.EncryptionService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
@@ -98,6 +99,8 @@ class InstallScriptsTest {
     NotificationTemplateService notificationTemplateService;
     @MockBean
     ResourcesUpdater resourcesUpdater;
+    @MockBean
+    EncryptionService encryptionService;
     @SpyBean
     InstallScripts installScripts;
 

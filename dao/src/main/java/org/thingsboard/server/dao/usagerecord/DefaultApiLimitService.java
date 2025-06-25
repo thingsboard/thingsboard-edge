@@ -92,9 +92,7 @@ public class DefaultApiLimitService implements ApiLimitService {
         } else {
             query = new EntityCountQuery(filter);
         }
-        long currentCount = entityService.countEntitiesByQuery(tenantId, new CustomerId(EntityId.NULL_UUID),
-                new MergedUserPermissions(Map.of(Resource.ALL, Set.of(Operation.ALL)), Collections.emptyMap()),
-                query);
+        long currentCount = entityService.countEntitiesByQuery(tenantId, new CustomerId(EntityId.NULL_UUID), MergedUserPermissions.ALL, query);
         return currentCount < limit;
     }
 

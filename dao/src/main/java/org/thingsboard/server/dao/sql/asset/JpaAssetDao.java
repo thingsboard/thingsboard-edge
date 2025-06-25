@@ -37,12 +37,14 @@ import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ProfileEntityIdInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edqs.fields.AssetFields;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -181,6 +183,14 @@ public class JpaAssetDao extends JpaAbstractDao<AssetEntity, Asset> implements A
     }
 
     @Override
+    public PageData<EntityInfo> findAssetEntityInfosByTenantIdAndAssetProfileId(TenantId tenantId, AssetProfileId assetProfileId, PageLink pageLink) {
+        return DaoUtil.pageToPageData(assetRepository.findEntityInfosByTenantIdAndProfileId(
+                tenantId.getId(),
+                assetProfileId.getId(),
+                DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public PageData<Asset> findAssetsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink) {
         return DaoUtil.toPageData(assetRepository
                 .findByTenantIdAndCustomerIdAndType(
@@ -239,6 +249,11 @@ public class JpaAssetDao extends JpaAbstractDao<AssetEntity, Asset> implements A
     public PageData<ProfileEntityIdInfo> findProfileEntityIdInfosByTenantId(UUID tenantId, PageLink pageLink) {
         log.debug("Find profile asset id infos by pageLink [{}]", pageLink);
         return nativeAssetRepository.findProfileEntityIdInfosByTenantId(tenantId, DaoUtil.toPageable(pageLink));
+    }
+
+    @Override
+    public EntityInfo findAssetEntityInfoById(TenantId tenantId, AssetId assetId) {
+        return assetRepository.findEntityInfoById(assetId.getId());
     }
 
     @Override

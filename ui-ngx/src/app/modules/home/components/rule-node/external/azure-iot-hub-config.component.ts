@@ -37,6 +37,7 @@ import {
   azureIotHubCredentialsTypes,
   azureIotHubCredentialsTypeTranslations
 } from '@home/components/rule-node/rule-node-config.models';
+import { MqttVersion } from '@shared/models/mqtt.models';
 
 @Component({
   selector: 'tb-external-node-azure-iot-hub-config',
@@ -49,6 +50,7 @@ export class AzureIotHubConfigComponent extends RuleNodeConfigurationComponent {
 
   allAzureIotHubCredentialsTypes = azureIotHubCredentialsTypes;
   azureIotHubCredentialsTypeTranslationsMap = azureIotHubCredentialsTypeTranslations;
+  MqttVersion = MqttVersion;
 
   constructor(private fb: UntypedFormBuilder) {
     super();
@@ -68,6 +70,7 @@ export class AzureIotHubConfigComponent extends RuleNodeConfigurationComponent {
       clientId: [configuration ? configuration.clientId : null, [Validators.required]],
       cleanSession: [configuration ? configuration.cleanSession : false, []],
       ssl: [configuration ? configuration.ssl : false, []],
+      protocolVersion: [configuration ? configuration.protocolVersion : null, []],
       credentials: this.fb.group(
         {
           type: [configuration && configuration.credentials ? configuration.credentials.type : null, [Validators.required]],
@@ -109,24 +112,18 @@ export class AzureIotHubConfigComponent extends RuleNodeConfigurationComponent {
     }
     credentialsControl.get('sasKey').setValidators([]);
     credentialsControl.get('privateKey').setValidators([]);
-    credentialsControl.get('privateKeyFileName').setValidators([]);
     credentialsControl.get('cert').setValidators([]);
-    credentialsControl.get('certFileName').setValidators([]);
     switch (credentialsType) {
       case 'sas':
         credentialsControl.get('sasKey').setValidators([Validators.required]);
         break;
       case 'cert.PEM':
         credentialsControl.get('privateKey').setValidators([Validators.required]);
-        credentialsControl.get('privateKeyFileName').setValidators([Validators.required]);
         credentialsControl.get('cert').setValidators([Validators.required]);
-        credentialsControl.get('certFileName').setValidators([Validators.required]);
         break;
     }
     credentialsControl.get('sasKey').updateValueAndValidity({emitEvent});
     credentialsControl.get('privateKey').updateValueAndValidity({emitEvent});
-    credentialsControl.get('privateKeyFileName').updateValueAndValidity({emitEvent});
     credentialsControl.get('cert').updateValueAndValidity({emitEvent});
-    credentialsControl.get('certFileName').updateValueAndValidity({emitEvent});
   }
 }

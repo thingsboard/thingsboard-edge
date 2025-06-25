@@ -117,9 +117,9 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     }
 
     @Schema(description = "JSON object with the dashboard Id. " +
-            "Specify existing dashboard Id to update the dashboard. " +
-            "Referencing non-existing dashboard id will cause error. " +
-            "Omit this field to create new dashboard.")
+                          "Specify existing dashboard Id to update the dashboard. " +
+                          "Referencing non-existing dashboard id will cause error. " +
+                          "Omit this field to create new dashboard.")
     @Override
     public DashboardId getId() {
         return super.getId();
@@ -218,8 +218,8 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     }
 
     @Schema(description = "JSON object with main configuration of the dashboard: layouts, widgets, aliases, etc. " +
-            "The JSON structure of the dashboard configuration is quite complex. " +
-            "The easiest way to learn it is to export existing dashboard to JSON."
+                          "The JSON structure of the dashboard configuration is quite complex. " +
+                          "The easiest way to learn it is to export existing dashboard to JSON."
             , implementation = com.fasterxml.jackson.databind.JsonNode.class)
     public JsonNode getConfiguration() {
         return configuration;

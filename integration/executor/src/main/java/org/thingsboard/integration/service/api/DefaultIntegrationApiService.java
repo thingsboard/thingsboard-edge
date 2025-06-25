@@ -99,13 +99,13 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
 
     @Override
     public void sendUplinkData(Integration integration, IntegrationInfoProto proto, TbMsg data, IntegrationCallback<Void> callback) {
-        sendUplinkData(integration, proto, data, (b, d) -> b.setCustomTbMsg(TbMsg.toByteString(data)).build(), callback);
+        sendUplinkData(integration, proto, data, (b, d) -> b.setCustomTbMsgProto(TbMsg.toProto(data)).build(), callback);
     }
 
     @Override
     public void sendEventData(TenantId tenantId, EntityId entityId, TbIntegrationEventProto data, IntegrationCallback<Void> callback) {
         var producer = producerProvider.getTbCoreIntegrationMsgProducer();
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId).newByTopic(producer.getDefaultTopic());
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId).withTopic(producer.getDefaultTopic());
         if (log.isTraceEnabled()) {
             log.trace("[{}][{}] Pushing to topic {} message {}", tenantId, entityId, tpi.getFullTopicName(), data);
         }
@@ -120,7 +120,7 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
     @Override
     public void sendTsData(TenantId tenantId, EntityId entityId, TbIntegrationTsDataProto tsData, IntegrationCallback<Void> callback) {
         var producer = producerProvider.getTbCoreIntegrationMsgProducer();
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId).newByTopic(producer.getDefaultTopic());
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId).withTopic(producer.getDefaultTopic());
         if (log.isTraceEnabled()) {
             log.trace("[{}][{}] Pushing to topic {} message {}", tenantId, entityId, tpi.getFullTopicName(), tsData);
         }
@@ -136,7 +136,7 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
                                    BiFunction<ToCoreIntegrationMsg.Builder, T, ToCoreIntegrationMsg> messageConstructor,
                                    IntegrationCallback<Void> callback) {
         var producer = producerProvider.getTbCoreIntegrationMsgProducer();
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId()).newByTopic(producer.getDefaultTopic());
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId()).withTopic(producer.getDefaultTopic());
         if (log.isTraceEnabled()) {
             log.trace("[{}][{}] Pushing to topic {} message {}", integration.getTenantId(), integration.getId(), tpi.getFullTopicName(), data);
         }

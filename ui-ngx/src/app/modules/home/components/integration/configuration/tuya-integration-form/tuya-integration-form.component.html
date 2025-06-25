@@ -63,16 +63,11 @@
         {{ 'integration.access-id-required' | translate }}
       </mat-error>
     </mat-form-field>
-    <mat-form-field class="mat-block flex-1">
-      <mat-label translate>integration.access-key</mat-label>
-      <input matInput minlength="32" maxlength="32" required formControlName="accessKey" autocomplete="new-password">
-      <mat-error *ngIf="tuyaIntegrationConfigForm.get('accessKey').hasError('required')">
-        {{ 'integration.access-key-required' | translate }}
-      </mat-error>
-      <mat-error *ngIf="!tuyaIntegrationConfigForm.get('accessKey').hasError('minLength')">
-        {{ 'integration.access-key-min-length' | translate }}
-      </mat-error>
-    </mat-form-field>
+    <tb-secret-key-input formControlName="accessKey" class="mat-block flex-1"
+                         required
+                         label="{{ 'integration.access-key' | translate }}"
+                         requiredText="{{ 'integration.access-key-required' | translate }}">
+    </tb-secret-key-input>
   </div>
 
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">

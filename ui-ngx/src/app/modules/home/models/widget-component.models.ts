@@ -67,7 +67,8 @@ import {
   ChangeDetectorRef,
   InjectionToken,
   Injector,
-  NgZone, Renderer2,
+  NgZone,
+  Renderer2,
   TemplateRef,
   Type,
   ViewContainerRef
@@ -135,6 +136,8 @@ import { UtilsService } from '@core/services/utils.service';
 import { CompiledTbFunction } from '@shared/models/js-function.models';
 import { FormProperty } from '@shared/models/dynamic-form.models';
 import { ExportableEntity } from '@shared/models/base-data';
+import { TbUnit } from '@shared/models/unit.models';
+import { UnitService } from '@core/services/unit.service';
 
 export interface IWidgetAction {
   name: string;
@@ -193,7 +196,7 @@ export class WidgetContext {
     return this.widget.config.settings;
   }
 
-  get units(): string {
+  get units(): TbUnit {
     return this.widget.config.units || '';
   }
 
@@ -243,6 +246,7 @@ export class WidgetContext {
   userSettingsService: UserSettingsService;
   utilsService: UtilsService;
   telemetryWsService: TelemetryWebsocketService;
+  unitService: UnitService;
   telemetrySubscribers?: Array<TelemetrySubscriber | SharedTelemetrySubscriber>;
   date: DatePipe;
   imagePipe: ImagePipe;

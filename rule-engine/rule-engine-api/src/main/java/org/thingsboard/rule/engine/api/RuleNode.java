@@ -88,4 +88,6 @@ public @interface RuleNode {
 
     int version() default 0;
 
+    boolean hasSecrets() default false;
+
 }

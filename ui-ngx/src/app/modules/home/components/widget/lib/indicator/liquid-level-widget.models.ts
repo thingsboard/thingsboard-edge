@@ -50,6 +50,7 @@ import { IAliasController } from '@core/api/widget-api.models';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ResourcesService } from '@core/services/resources.service';
 import { FormGroup } from '@angular/forms';
+import { TbUnit } from '@shared/models/unit.models';
 
 export interface SvgInfo {
   svg: string;
@@ -85,7 +86,7 @@ export interface LevelCardWidgetSettings extends WidgetConfig {
   backgroundOverlayColor: ColorSettings;
   showTooltip: boolean;
   showTooltipLevel: boolean;
-  tooltipUnits: CapacityUnits;
+  tooltipUnits: TbUnit | CapacityUnits;
   tooltipLevelDecimals: number;
   tooltipLevelFont: Font;
   tooltipLevelColor: ColorSettings;

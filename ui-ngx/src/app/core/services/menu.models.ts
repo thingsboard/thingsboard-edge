@@ -192,7 +192,11 @@ export enum MenuId {
   self_registration = 'self_registration',
   edge = 'edge',
   edge_status = 'edge_status',
-  cloud_events = 'cloud_events'
+  cloud_events = 'cloud_events',
+  self_registration = 'self_registration',
+  task_manager = 'task_manager',
+  trendz_settings = 'trendz_settings',
+  secrets = 'secrets'
 }
 
 declare type MenuFilter = (_authState: AuthState, userPermissionsService: UserPermissionsService) => boolean;
@@ -1197,6 +1201,16 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
+    MenuId.secrets,
+    {
+      id: MenuId.secrets,
+      name: 'secret-storage.secrets-storage',
+      type: 'link',
+      path: '/security-settings/secrets',
+      icon: 'mdi:key-variant'
+    }
+  ],
+  [
     MenuId.self_registration,
     {
       id: MenuId.self_registration,
@@ -1204,6 +1218,27 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/security-settings/selfRegistration',
       icon: 'group_add'
+    }
+  ],
+  [
+    MenuId.task_manager,
+    {
+      id: MenuId.task_manager,
+      name: 'task.task-manager',
+      type: 'link',
+      path: '/features/taskManager',
+      icon: 'mdi:invoice-text-clock-outline'
+    }
+  ],
+  [
+    MenuId.trendz_settings,
+    {
+      id: MenuId.trendz_settings,
+      name: 'admin.trendz',
+      fullName: 'admin.trendz-settings',
+      type: 'link',
+      path: '/settings/trendz',
+      icon: 'trendz-settings'
     }
   ]
 ]);
@@ -1473,6 +1508,10 @@ const menuFilters = new Map<MenuId, MenuFilter>([
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
+    MenuId.secrets, (_authState, userPermissionsService) =>
+            userPermissionsService.hasReadGenericPermission(Resource.SECRET)
+  ],
+  [
     MenuId.roles, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.ROLE)
   ],
@@ -1492,6 +1531,16 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   [
     MenuId.audit_log, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)
+  ],
+  [
+    MenuId.task_manager, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.JOB)
+  ],
+  [
+    MenuId.trendz_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.ADMIN_SETTINGS)
   ],
   // merge comment: sections below should not be visible on edge
   [
@@ -1699,7 +1748,8 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         pages: [
           {id: MenuId.otaUpdates},
           {id: MenuId.version_control},
-          {id: MenuId.scheduler}
+          {id: MenuId.scheduler},
+          {id: MenuId.task_manager}
         ]
       },
       {
@@ -1754,7 +1804,8 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.mail_server},
           {id: MenuId.notification_settings},
           {id: MenuId.repository_settings},
-          {id: MenuId.auto_commit_settings}
+          {id: MenuId.auto_commit_settings},
+          {id: MenuId.trendz_settings}
         ]
       },
       {
@@ -1762,6 +1813,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         pages: [
           {id: MenuId.two_fa},
           {id: MenuId.roles},
+          {id: MenuId.secrets},
           {id: MenuId.self_registration},
           {id: MenuId.audit_log},
           {
@@ -1998,7 +2050,7 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
       {
         name: 'admin.system-settings',
         places: [MenuId.home_settings, MenuId.mail_server, MenuId.notification_settings, MenuId.self_registration,
-          MenuId.two_fa, MenuId.resources_library, MenuId.repository_settings, MenuId.auto_commit_settings]
+          MenuId.two_fa, MenuId.resources_library, MenuId.repository_settings, MenuId.auto_commit_settings, MenuId.trendz_settings]
       }
     ]
   ],

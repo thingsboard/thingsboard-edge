@@ -93,14 +93,16 @@ public class EntitiesByGroupQueryProcessor extends AbstractSingleEntityTypeQuery
         EntityGroupData entityGroup = repository.getEntityGroup(groupId);
         if (matches(entityGroup)) {
             for (EntityData<?> ed : entityGroup.getEntities()) {
-                processor.accept(ed);
+                if (super.matches(ed)) {
+                    processor.accept(ed);
+                }
             }
         }
     }
 
     @Override
     protected boolean matches(EntityData ed) {
-        return super.matches(ed) && groupType.equals(ed.getFields().getType());
+        return ed.getFields() != null && groupType.equals(ed.getFields().getType());
     }
 
     @Override

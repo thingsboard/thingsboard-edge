@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.config.annotations.ApiOperation;
+import org.thingsboard.server.dao.secret.SecretConfigurationService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.integration.TbIntegrationService;
@@ -106,14 +107,14 @@ public class IntegrationController extends AutoCommitController {
 
     private final IntegrationManagerService integrationManagerService;
     private final TbIntegrationService tbIntegrationService;
+    private final SecretConfigurationService secretConfigurationService;
 
     private static final String INTEGRATION_ID = "integrationId";
 
     @ApiOperation(value = "Get Integration (getIntegrationById)",
             notes = "Fetch the Integration object based on the provided Integration Id. " +
                     "The server checks that the integration is owned by the same tenant. "
-                    + NEW_LINE + RBAC_READ_CHECK
-            )
+                    + NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.GET)
     @ResponseBody
@@ -127,8 +128,7 @@ public class IntegrationController extends AutoCommitController {
     @ApiOperation(value = "Get Integration by Routing Key (getIntegrationByRoutingKey)",
             notes = "Fetch the Integration object based on the provided routing key. " +
                     "The server checks that the integration is owned by the same tenant. "
-                    + NEW_LINE + RBAC_READ_CHECK
-            )
+                    + NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/routingKey/{routingKey}", method = RequestMethod.GET)
     @ResponseBody
@@ -156,14 +156,17 @@ public class IntegrationController extends AutoCommitController {
                                        @RequestBody Integration integration) throws Exception {
         SecurityUser currentUser = getCurrentUser();
         try {
-            integration.setTenantId(currentUser.getTenantId());
+            TenantId tenantId = getTenantId();
+            integration.setTenantId(tenantId);
             boolean created = integration.getId() == null;
 
             checkEntity(integration.getId(), integration, Resource.INTEGRATION, null);
 
             if (!integration.isEdgeTemplate()) {
                 try {
-                    integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
+                    Integration copy = new Integration(integration);
+                    secretConfigurationService.replaceSecretUsages(tenantId, copy.getConfiguration());
+                    integrationManagerService.validateIntegrationConfiguration(copy).get(20, TimeUnit.SECONDS);
                 } catch (ExecutionException e) {
                     throwRealCause(e);
                 }
@@ -250,9 +253,12 @@ public class IntegrationController extends AutoCommitController {
                                            @RequestBody Integration integration) throws Exception {
         try {
             checkNotNull(integration);
-            integration.setTenantId(getCurrentUser().getTenantId());
+            TenantId tenantId = getCurrentUser().getTenantId();
+            integration.setTenantId(tenantId);
             try {
-                integrationManagerService.checkIntegrationConnection(integration).get(integrationManagerService.getIntegrationConnectionCheckApiRequestTimeoutSec(), TimeUnit.SECONDS);
+                Integration copy = new Integration(integration);
+                secretConfigurationService.replaceSecretUsages(tenantId, copy.getConfiguration());
+                integrationManagerService.checkIntegrationConnection(copy).get(integrationManagerService.getIntegrationConnectionCheckApiRequestTimeoutSec(), TimeUnit.SECONDS);
             } catch (ExecutionException e) {
                 throwRealCause(e);
             }

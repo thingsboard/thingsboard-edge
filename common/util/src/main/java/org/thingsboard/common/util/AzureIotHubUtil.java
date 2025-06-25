@@ -81,11 +81,11 @@ public final class AzureIotHubUtil {
 
     public static String buildSasToken(String host, String sasKey) {
         try {
-            final String targetUri = URLEncoder.encode(host.toLowerCase(), "UTF-8");
+            final String targetUri = URLEncoder.encode(host.toLowerCase(), StandardCharsets.UTF_8);
             final long expiryTime = buildExpiresOn();
             String toSign = targetUri + "\n" + expiryTime;
             byte[] rawHmac = HmacSHA256Util.sign(toSign, Base64.getDecoder().decode(sasKey.getBytes(StandardCharsets.UTF_8)));
-            String signature = URLEncoder.encode(Base64.getEncoder().encodeToString(rawHmac), "UTF-8");
+            String signature = URLEncoder.encode(Base64.getEncoder().encodeToString(rawHmac), StandardCharsets.UTF_8);
             return String.format(SAS_TOKEN_FORMAT, targetUri, signature, expiryTime);
         } catch (Exception e) {
             throw new RuntimeException("Failed to build SAS token!!!", e);
