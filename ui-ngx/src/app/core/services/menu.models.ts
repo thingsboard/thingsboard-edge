@@ -729,36 +729,6 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       path: '/settings/trendz',
       icon: 'trendz-settings'
     }
-  ],
-  [
-    MenuId.edge,
-    {
-      id: MenuId.edge,
-      name: 'edge.edge',
-      type: 'toggle',
-      path: '/edge',
-      icon: 'router'
-    }
-  ],
-  [
-    MenuId.edge_status,
-    {
-      id: MenuId.edge_status,
-      name: 'edge.status',
-      type: 'link',
-      path: '/edge/status',
-      icon: 'info'
-    }
-  ],
-  [
-    MenuId.cloud_events,
-    {
-      id: MenuId.cloud_events,
-      name: 'edge.cloud-events',
-      type: 'link',
-      path: '/edge/cloudEvents',
-      icon: 'date_range'
-    }
   ]
 ]);
 
