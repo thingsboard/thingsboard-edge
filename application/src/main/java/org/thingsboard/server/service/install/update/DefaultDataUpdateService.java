@@ -194,8 +194,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
         // Edge-only: always run next config:
 
-        // remove this line in 4+ release
-        fixDuplicateSystemWidgetsBundles();
         // reset full sync required - to upload latest widgets from cloud
         tenantsFullSyncRequiredUpdater.updateEntities(null);
 

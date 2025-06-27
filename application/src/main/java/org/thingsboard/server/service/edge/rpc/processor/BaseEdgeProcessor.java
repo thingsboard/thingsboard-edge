@@ -275,7 +275,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
                 case UPDATED:
                 case CREDENTIALS_UPDATED:
                 case ADDED_TO_ENTITY_GROUP:
-                    if (edgeId != null) {
+                    if (edgeId != null && !edgeId.equals(originatorEdgeId)) {
                         return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body, entityGroupId);
                     } else {
                         return pushNotificationToAllRelatedEdges(tenantId, entityId, entityId, type, actionType, body, entityGroupId, originatorEdgeId);

@@ -142,7 +142,7 @@ public class ThingsboardInstallService {
                     dataUpdateService.updateData(updateFromCE);
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
-                    // systemDataLoaderService.loadSystemWidgets();
+                     systemDataLoaderService.loadSystemWidgets();
                     // installScripts.loadSystemLwm2mResources();
                     installScripts.loadSystemImagesAndResources();
                     // systemDataLoaderService.createDefaultCustomMenu();
@@ -185,7 +185,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createDefaultTenantProfiles();
                 // systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.createRandomJwtSettings();
-                // systemDataLoaderService.loadSystemWidgets();
+                systemDataLoaderService.loadSystemWidgets();
                 // systemDataLoaderService.createOAuth2Templates();
                 systemDataLoaderService.createQueues();
                 // systemDataLoaderService.createDefaultNotificationConfigs();

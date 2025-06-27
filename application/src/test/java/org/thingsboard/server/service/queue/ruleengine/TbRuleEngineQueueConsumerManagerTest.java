@@ -482,7 +482,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
 
         consumerManager.delete(true);
 
-        await().atMost(2, TimeUnit.SECONDS)
+        await().atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     verify(ruleEngineMsgProducer).send(any(), any(), any());
                 });

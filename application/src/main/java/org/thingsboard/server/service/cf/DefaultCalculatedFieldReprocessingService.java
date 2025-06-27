@@ -156,6 +156,7 @@ public class DefaultCalculatedFieldReprocessingService implements CalculatedFiel
         long endTs = task.getEndTs();
 
         CalculatedFieldCtx cfCtx = new CalculatedFieldCtx(calculatedField, tbelInvokeService, apiLimitService);
+        cfCtx.setUseLatestTs(false);
         CalculatedFieldState state = initState(tenantId, entityId, cfCtx, startTs);
         cfCtx.init();
         CfReprocessingCtx ctx = CfReprocessingCtx.builder()
