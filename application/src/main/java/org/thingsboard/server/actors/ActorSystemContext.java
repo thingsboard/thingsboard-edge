@@ -82,6 +82,7 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
@@ -98,7 +99,6 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.rule.RuleNodeStateService;
-import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -321,7 +321,6 @@ public class ActorSystemContext {
     @Getter
     private TbEntityViewService tbEntityViewService;
 
-    @Lazy
     @Autowired
     @Getter
     private CloudEventService cloudEventService;
@@ -459,12 +458,10 @@ public class ActorSystemContext {
     @Getter
     private ApiLimitService apiLimitService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private RateLimitService rateLimitService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private DebugModeRateLimitsConfig debugModeRateLimitsConfig;
@@ -545,17 +542,14 @@ public class ActorSystemContext {
     @Getter
     private EntityService entityService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private CalculatedFieldProcessingService calculatedFieldProcessingService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private CalculatedFieldStateService calculatedFieldStateService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private CalculatedFieldQueueService calculatedFieldQueueService;

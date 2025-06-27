@@ -132,11 +132,9 @@ public class DefaultTbClusterService implements TbClusterService {
     private final AtomicInteger toEdgeNfs = new AtomicInteger(0);
 
     @Autowired
-    @Lazy
     private PartitionService partitionService;
 
     @Autowired
-    @Lazy
     private TbQueueProducerProvider producerProvider;
 
     @Autowired

@@ -105,10 +105,10 @@ export enum MenuId {
   otaUpdates = 'otaUpdates',
   version_control = 'version_control',
   api_usage = 'api_usage',
-  trendz_settings = 'trendz_settings',
   edge = 'edge',
   edge_status = 'edge_status',
-  cloud_events = 'cloud_events'
+  cloud_events = 'cloud_events',
+  trendz_settings = 'trendz_settings'
 }
 
 declare type MenuFilter = (authState: AuthState) => boolean;
@@ -687,6 +687,36 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/usage',
       icon: 'insert_chart'
+    }
+  ],
+  [
+    MenuId.edge,
+    {
+      id: MenuId.edge,
+      name: 'edge.edge',
+      type: 'toggle',
+      path: '/edge',
+      icon: 'router'
+    }
+  ],
+  [
+    MenuId.edge_status,
+    {
+      id: MenuId.edge_status,
+      name: 'edge.status',
+      type: 'link',
+      path: '/edge/status',
+      icon: 'info'
+    }
+  ],
+  [
+    MenuId.cloud_events,
+    {
+      id: MenuId.cloud_events,
+      name: 'edge.cloud-events',
+      type: 'link',
+      path: '/edge/cloudEvents',
+      icon: 'date_range'
     }
   ],
   [
