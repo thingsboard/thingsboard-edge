@@ -35,13 +35,15 @@ import lombok.Getter;
 import org.thingsboard.monitoring.service.integration.IntegrationHealthChecker;
 import org.thingsboard.monitoring.service.integration.impl.CoapIntegrationHealthChecker;
 import org.thingsboard.monitoring.service.integration.impl.HttpIntegrationHealthChecker;
+import org.thingsboard.monitoring.service.integration.impl.MqttIntegrationHealthChecker;
 
 @AllArgsConstructor
 @Getter
 public enum IntegrationType {
 
     HTTP("HTTP", HttpIntegrationHealthChecker.class),
-    COAP("CoAP", CoapIntegrationHealthChecker.class);
+    COAP("CoAP", CoapIntegrationHealthChecker.class),
+    MQTT("MQTT", MqttIntegrationHealthChecker.class);
 
     private final String name;
     private final Class<? extends IntegrationHealthChecker<?>> serviceClass;

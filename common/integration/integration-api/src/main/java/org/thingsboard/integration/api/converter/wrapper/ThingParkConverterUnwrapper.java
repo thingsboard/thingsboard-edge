@@ -94,9 +94,11 @@ public class ThingParkConverterUnwrapper extends AbstractConverterUnwrapper {
         if (uplink.has("payload")) {
             var decoded = uplink.get("payload");
             return TbPair.of(JacksonUtil.writeValueAsBytes(decoded), ContentType.JSON);
-        } else {
+        } else if (uplink.has("payload_hex")) {
             var data = uplink.get("payload_hex").textValue();
             return TbPair.of(Hex.decodeHex(data.toCharArray()), ContentType.BINARY);
+        } else {
+            return TbPair.of(EMPTY_BYTE_ARRAY, ContentType.BINARY);
         }
     }
 

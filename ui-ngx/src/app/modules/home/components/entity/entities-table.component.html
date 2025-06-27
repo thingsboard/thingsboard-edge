@@ -213,6 +213,15 @@
                   <ng-template [ngSwitchCase]="'chart'">
                     <tb-spark-line [chartData]="cellContent(entity, column, row)" [chartProperty]="cellChartStyle(entity, column, row)"></tb-spark-line>
                   </ng-template>
+                  <ng-template [ngSwitchCase]="'progressBar'">
+                    <div class="flex items-center gap-2">
+                      <mat-progress-bar mode="determinate"
+                                        [style]="cellChartStyle(entity, column, row)"
+                                        [value]="cellContent(entity, column, row)"
+                      ></mat-progress-bar>
+                      <span style="min-width: 4.5ch">{{ cellContent(entity, column, row) }}%</span>
+                    </div>
+                  </ng-template>
                   <ng-template [ngSwitchCase]="'link'">
                     <a *ngIf="column.entityURL(entity) as detailsPageURL; else defaultContent"
                        [routerLink]="detailsPageURL" [innerHTML]="cellContent(entity, column, row)"

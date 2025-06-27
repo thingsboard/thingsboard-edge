@@ -50,7 +50,7 @@ import { FcRuleNode, ruleNodeTypeDescriptors } from '@shared/models/rule-node.mo
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { RuleChainImport } from '@shared/models/rule-chain.models';
 import { Filter, FilterInfo, Filters, FiltersInfo, getFilterId } from '@shared/models/query/query.models';
-import { getWidgetExportDefinition } from '@shared/models/widget/widget-export.models';
+import { findWidgetModelDefinition } from '@shared/models/widget/widget-model.definition';
 
 const WIDGET_ITEM = 'widget_item';
 const WIDGET_REFERENCE = 'widget_reference';
@@ -157,7 +157,7 @@ export class ItemBufferService {
       }
     }
     let widgetExportInfo: any;
-    const exportDefinition = getWidgetExportDefinition(widget);
+    const exportDefinition = findWidgetModelDefinition(widget);
     if (exportDefinition) {
       widgetExportInfo = exportDefinition.prepareExportInfo(dashboard, widget);
     }
@@ -285,7 +285,7 @@ export class ItemBufferService {
     let callFilterUpdateFunction = false;
     let newEntityAliases: EntityAliases;
     let newFilters: Filters;
-    const exportDefinition = getWidgetExportDefinition(widget);
+    const exportDefinition = findWidgetModelDefinition(widget);
     if (exportDefinition && widgetExportInfo || aliasesInfo) {
       newEntityAliases = deepClone(dashboard.configuration.entityAliases);
     }

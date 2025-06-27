@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -86,7 +87,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     }
 
     @Override
-    protected Dashboard saveOrUpdate(EntitiesImportCtx ctx, Dashboard dashboard, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider) {
+    protected Dashboard saveOrUpdate(EntitiesImportCtx ctx, Dashboard dashboard, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider, CompareResult compareResult) {
         return dashboardService.saveDashboard(dashboard);
     }
 
@@ -96,8 +97,8 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     }
 
     @Override
-    protected boolean compare(EntitiesImportCtx ctx, GroupEntityExportData<Dashboard> exportData, Dashboard prepared, Dashboard existing) {
-        return super.compare(ctx, exportData, prepared, existing) || !prepared.getConfiguration().equals(existing.getConfiguration());
+    protected boolean isUpdateNeeded(EntitiesImportCtx ctx, GroupEntityExportData<Dashboard> exportData, Dashboard prepared, Dashboard existing) {
+        return super.isUpdateNeeded(ctx, exportData, prepared, existing) || !prepared.getConfiguration().equals(existing.getConfiguration());
     }
 
     @Override

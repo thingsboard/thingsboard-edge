@@ -36,6 +36,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.edqs.fields.IntegrationFields;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.IntegrationEntity;
@@ -75,6 +76,11 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
                                                     @Param("searchText") String searchText,
                                                     Pageable pageable);
 
+    @Query("SELECT new org.thingsboard.server.common.data.EntityInfo(integration.id, 'INTEGRATION', integration.name) " +
+            "FROM IntegrationEntity integration WHERE integration.tenantId = :tenantId AND ilike(integration.configuration, CONCAT('%', :placeholder, '%'))")
+    List<EntityInfo> findByTenantIdAndSecretPlaceholder(@Param("tenantId") UUID tenantId,
+                                                        @Param("placeholder") String placeholder);
+
     Long countByTenantId(UUID tenantId);
 
     Long countByTenantIdAndEdgeTemplateFalse(UUID tenantId);
@@ -89,4 +95,5 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
     @Query("SELECT new org.thingsboard.server.common.data.edqs.fields.IntegrationFields(i.id, i.createdTime," +
             "i.tenantId, i.name, i.version, i.type, i.additionalInfo) FROM IntegrationEntity i WHERE i.id > :id ORDER BY i.id")
     List<IntegrationFields> findNextBatch(@Param("id") UUID id, Limit limit);
+
 }

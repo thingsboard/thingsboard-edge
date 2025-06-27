@@ -33,58 +33,28 @@ package org.thingsboard.server.msa.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.debug.DebugSettings;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.LORIOT;
-import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfig;
 
 @Slf4j
 public class LoriotIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-loriot";
     private static final String SECRET_KEY = "secret-key-loriot";
-
-    private final String JSON_CONVERTER_CONFIG = """
-            {
-                "isDevice": true,
-                "name": "DEVICE_NAME",
-                "profile": "default",
-                "customer": null,
-                "group": null,
-                "attributes": [
-                    "eui",
-                    "fPort",
-                    "rssi"
-                ],
-                "telemetry": [
-                    "data"
-                ],
-                "scriptLang": "TBEL",
-                "decoder": "",
-                "tbelDecoder": "var payloadStr = decodeToString(payload);\\nvar result = {\\n    attributes: {},\\n    telemetry: {\\n        ts: metadata.ts,\\n        values: {\\n            temperature: payload[0],\\n            humidity: payload[1]\\n        }\\n    }\\n};\\n\\nreturn result;",
-                "encoder": null,
-                "tbelEncoder": null,
-                "updateOnlyKeys": [
-                    "fPort",
-                    "frequency",
-                    "vdd",
-                    "eui",
-                    "ack",
-                    "dr"
-                ]
-            }
-            """;
 
     private WsClient wsClient;
 
@@ -98,32 +68,12 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void checkTelemetryUploadedWithLocalIntegration() throws Exception {
         JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
-
         JsonNode integrationConfig = defaultConfig(HTTPS_URL);
-
-        Integration integration = Integration.builder()
-                .type(LORIOT)
-                .name("loriot_" + RandomStringUtils.randomAlphanumeric(7))
-                .configuration(integrationConfig)
-                .defaultConverterId(testRestClient.postConverter(uplinkConverterPrototype(configConverter, LORIOT, 2)).getId())
-                .routingKey(ROUTING_KEY)
-                .secret(SECRET_KEY)
-                .isRemote(false)
-                .enabled(true)
-                .debugSettings(DebugSettings.until(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15)))
-                .allowCreateDevicesOrAssets(true)
-                .build();
-
-        this.integration = testRestClient.postIntegration(integration);
+        createIntegration(LORIOT, integrationConfig, configConverter, null, ROUTING_KEY, SECRET_KEY, false, 2);
 
         wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", AbstractContainerTest.CmdsType.TS_SUB_CMDS);
 
-        ObjectNode payloadMsg = JacksonUtil.newObjectNode();
-        payloadMsg.put("ts", System.currentTimeMillis());
-        payloadMsg.put("data", "2A3F");
-        payloadMsg.put("rssi", -130);
-        payloadMsg.put("port", 80);
-        payloadMsg.put("EUI", "BE7A123456789");
+        ObjectNode payloadMsg = createPayloadMsg();
 
         testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, LORIOT);
 
@@ -133,8 +83,48 @@ public class LoriotIntegrationTest extends AbstractIntegrationTest {
         assertThat(actualLatestTelemetry.getDataValuesByKey("humidity").get(1)).isEqualTo("63");
     }
 
+    @Test
+    public void checkAttributesUploadedWithLocalIntegration() {
+        JsonNode configConverter = JacksonUtil.toJsonNode(JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
+        JsonNode integrationConfig = defaultConfig(HTTPS_URL);
+        createIntegration(LORIOT, integrationConfig, configConverter, null, ROUTING_KEY, SECRET_KEY, false, 2);
+
+        ObjectNode payloadMsg = createPayloadMsg();
+
+        testRestClient.postUplinkPayloadForHttpBasedIntegration(integration.getRoutingKey(), payloadMsg, LORIOT);
+
+        await()
+                .pollInterval(1, TimeUnit.SECONDS)
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, "rssi,eui,fPort");
+                    Map<String, JsonNode> attributeMap = attributes.stream()
+                            .collect(Collectors.toMap(
+                                    node -> node.get("key").asText(),
+                                    node -> node
+                            ));
+
+                    assertThat(attributeMap.get("rssi").get("value").asInt()).isEqualTo(-130);
+                    assertThat(attributeMap.get("eui").get("value").asText()).isEqualTo("BE7A123456789");
+                    assertThat(attributeMap.get("fPort").get("value").asInt()).isEqualTo(80);
+                });
+    }
+
     @Override
     protected String getDevicePrototypeSufix() {
         return "loriot_";
     }
+
+    private ObjectNode createPayloadMsg() {
+        ObjectNode payloadMsg = JacksonUtil.newObjectNode();
+        payloadMsg.put("ts", System.currentTimeMillis());
+        payloadMsg.put("data", "2A3F");
+        payloadMsg.put("rssi", -130);
+        payloadMsg.put("port", 80);
+        payloadMsg.put("EUI", "BE7A123456789");
+        payloadMsg.put("snr", 11.5);
+
+        return payloadMsg;
+    }
+
 }

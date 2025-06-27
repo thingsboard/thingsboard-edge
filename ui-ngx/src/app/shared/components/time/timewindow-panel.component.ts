@@ -29,7 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, InjectionToken, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Inject,
+  InjectionToken,
+  OnDestroy,
+  OnInit,
+  Optional,
+  Output,
+  ViewContainerRef
+} from '@angular/core';
 import {
   AggregationType,
   currentHistoryTimewindow,
@@ -72,6 +82,7 @@ export interface TimewindowPanelData {
   aggregation: boolean;
   timezone: boolean;
   isEdit: boolean;
+  panelMode: boolean;
 }
 
 export const TIMEWINDOW_PANEL_DATA = new InjectionToken<any>('TimewindowPanelData');
@@ -82,6 +93,9 @@ export const TIMEWINDOW_PANEL_DATA = new InjectionToken<any>('TimewindowPanelDat
   styleUrls: ['./timewindow-panel.component.scss', './timewindow-form.scss']
 })
 export class TimewindowPanelComponent extends PageComponent implements OnInit, OnDestroy {
+
+  @Output()
+  changeTimewindow = new EventEmitter<Timewindow>();
 
   historyOnly = false;
 
@@ -94,6 +108,8 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit, O
   timezone = false;
 
   isEdit = false;
+
+  panelMode = true;
 
   timewindow: Timewindow;
 
@@ -140,7 +156,7 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit, O
   private destroy$ = new Subject<void>();
 
   constructor(@Inject(TIMEWINDOW_PANEL_DATA) public data: TimewindowPanelData,
-              public overlayRef: OverlayRef,
+              @Optional() public overlayRef: OverlayRef,
               protected store: Store<AppState>,
               public fb: UntypedFormBuilder,
               private timeService: TimeService,
@@ -155,6 +171,7 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit, O
     this.aggregation = data.aggregation;
     this.timezone = data.timezone;
     this.isEdit = data.isEdit;
+    this.panelMode = data.panelMode;
 
     this.updateTimewindowAdvancedParams();
 
@@ -292,7 +309,8 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit, O
           disabled: hideAggInterval
         }],
         fixedTimewindow: [{
-          value: isDefined(history?.fixedTimewindow) ? history.fixedTimewindow : null,
+          value: isDefined(history?.fixedTimewindow) && this.timewindow.selectedTab === TimewindowType.HISTORY
+            && history.historyType === HistoryWindowType.FIXED ? history.fixedTimewindow : null,
           disabled: history.hideInterval || history.hideFixedInterval
         }],
         quickInterval: [{
@@ -371,6 +389,15 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit, O
     ).subscribe((selectedTab: TimewindowType) => {
       this.onTimewindowTypeChange(selectedTab);
     });
+
+    if (!this.panelMode) {
+      this.timewindowForm.valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(() => {
+        this.prepareTimewindowConfig();
+        this.changeTimewindow.emit(this.timewindow);
+      });
+    }
   }
 
   ngOnDestroy() {
@@ -396,7 +423,7 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit, O
   update() {
     this.prepareTimewindowConfig();
     this.result = this.timewindow;
-    this.overlayRef.dispose();
+    this.overlayRef?.dispose();
   }
 
   private prepareTimewindowConfig() {
@@ -498,7 +525,7 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit, O
   }
 
   cancel() {
-    this.overlayRef.dispose();
+    this.overlayRef?.dispose();
   }
 
   get minRealtimeAggInterval() {

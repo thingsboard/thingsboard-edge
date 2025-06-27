@@ -42,10 +42,12 @@ import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.ObjectType;
 import org.thingsboard.server.common.data.edqs.EdqsObject;
+import org.thingsboard.server.common.data.edqs.EdqsObjectKey;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.validation.Length;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Slf4j
 @Schema
@@ -59,6 +61,7 @@ public class EntityRelation implements HasVersion, Serializable, EdqsObject {
     public static final String EDGE_TYPE = "ManagedByEdge";
     public static final String CONTAINS_TYPE = "Contains";
     public static final String MANAGES_TYPE = "Manages";
+    public static final String USES_TYPE = "Uses";
 
     @Setter
     private EntityId from;
@@ -134,8 +137,8 @@ public class EntityRelation implements HasVersion, Serializable, EdqsObject {
         BaseDataWithAdditionalInfo.setJson(addInfo, json -> this.additionalInfo = json, bytes -> this.additionalInfoBytes = bytes);
     }
 
-    @JsonIgnore
-    public String key() {
+    @Override
+    public String stringKey() {
         return "r_" + from + "_" + to + "_" + typeGroup + "_" + type;
     }
 
@@ -148,5 +151,7 @@ public class EntityRelation implements HasVersion, Serializable, EdqsObject {
     public ObjectType type() {
         return ObjectType.RELATION;
     }
+
+    public record Key(UUID from, UUID to, RelationTypeGroup typeGroup, String type) implements EdqsObjectKey {}
 
 }

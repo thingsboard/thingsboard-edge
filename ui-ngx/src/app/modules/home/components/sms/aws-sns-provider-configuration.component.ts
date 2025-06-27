@@ -29,8 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { booleanAttribute, Component, DestroyRef, forwardRef, Input, OnInit } from '@angular/core';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
@@ -69,6 +75,9 @@ export class AwsSnsProviderConfigurationComponent implements ControlValueAccesso
 
   @Input()
   disabled: boolean;
+
+  @Input({transform: booleanAttribute})
+  isRuleNode = false;
 
   private propagateChange = (v: any) => { };
 

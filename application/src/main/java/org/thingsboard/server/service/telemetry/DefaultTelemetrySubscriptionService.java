@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rule.engine.api.AttributesDeleteRequest;
 import org.thingsboard.rule.engine.api.AttributesSaveRequest;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.AttributesSaveResult;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
@@ -81,14 +82,12 @@ import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import static java.util.Comparator.comparing;
@@ -115,6 +114,8 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
 
     @Value("${sql.ts.value_no_xss_validation:false}")
     private boolean valueNoXssValidation;
+    @Value("${sql.ts.callback_thread_pool_size:12}")
+    private int callbackThreadPoolSize;
 
     public DefaultTelemetrySubscriptionService(AttributesService attrService,
                                                TimeseriesService tsService,
@@ -135,7 +136,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     @PostConstruct
     public void initExecutor() {
         super.initExecutor();
-        tsCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ts-service-ts-callback"));
+        tsCallBackExecutor = ThingsBoardExecutors.newWorkStealingPool(callbackThreadPoolSize, "ts-service-ts-callback");
     }
 
     @Override
@@ -209,17 +210,16 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     }
 
     @Override
-    public void saveAttributesInternal(AttributesSaveRequest request) {
-        log.trace("Executing saveInternal [{}]", request);
+    public ListenableFuture<AttributesSaveResult> saveAttributesInternal(AttributesSaveRequest request) {
         TenantId tenantId = request.getTenantId();
         EntityId entityId = request.getEntityId();
         AttributesSaveRequest.Strategy strategy = request.getStrategy();
-        ListenableFuture<List<Long>> resultFuture;
+        ListenableFuture<AttributesSaveResult> resultFuture;
 
         if (strategy.saveAttributes()) {
             resultFuture = attrService.save(tenantId, entityId, request.getScope(), request.getEntries());
         } else {
-            resultFuture = Futures.immediateFuture(Collections.emptyList());
+            resultFuture = Futures.immediateFuture(AttributesSaveResult.EMPTY);
         }
 
         addMainCallback(resultFuture, result -> {
@@ -261,6 +261,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         if (strategy.sendWsUpdate()) {
             addWsCallback(resultFuture, success -> onAttributesUpdate(tenantId, entityId, request.getScope().name(), request.getEntries()));
         }
+        return resultFuture;
     }
 
     private static boolean shouldSendSharedAttributesUpdatedNotification(AttributesSaveRequest request) {
@@ -398,7 +399,8 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
                                             .strategy(TimeseriesSaveRequest.Strategy.LATEST_AND_WS)
                                             .callback(new FutureCallback<>() {
                                                 @Override
-                                                public void onSuccess(@Nullable Void tmp) {}
+                                                public void onSuccess(@Nullable Void tmp) {
+                                                }
 
                                                 @Override
                                                 public void onFailure(Throwable t) {
@@ -486,7 +488,8 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
             }
 
             @Override
-            public void onFailure(Throwable t) {}
+            public void onFailure(Throwable t) {
+            }
         };
     }
 

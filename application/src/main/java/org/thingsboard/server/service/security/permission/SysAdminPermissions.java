@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-@Component(value="sysAdminPermissions")
+@Component(value = "sysAdminPermissions")
 public class SysAdminPermissions extends AbstractPermissions {
 
     public SysAdminPermissions() {
@@ -68,6 +68,7 @@ public class SysAdminPermissions extends AbstractPermissions {
         put(Resource.NOTIFICATION, systemEntityPermissionChecker);
         put(Resource.MOBILE_APP_SETTINGS, PermissionChecker.allowAllPermissionChecker);
         put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
+        put(Resource.SECRET, systemEntityPermissionChecker);
     }
 
     private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {

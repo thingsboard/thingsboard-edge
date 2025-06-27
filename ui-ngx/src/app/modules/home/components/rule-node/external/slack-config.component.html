@@ -42,13 +42,13 @@
   <mat-checkbox formControlName="useSystemSettings">
     {{ 'rule-node-config.use-system-slack-settings' | translate }}
   </mat-checkbox>
-  <mat-form-field *ngIf="!slackConfigForm.get('useSystemSettings').value" class="mat-block">
-    <mat-label translate>rule-node-config.slack-api-token</mat-label>
-    <input required matInput formControlName="botToken">
-    <mat-error *ngIf="slackConfigForm.get('botToken').hasError('required')">
-      {{ 'rule-node-config.slack-api-token-required' | translate }}
-    </mat-error>
-  </mat-form-field>
+  <tb-secret-key-input *ngIf="!slackConfigForm.get('useSystemSettings').value"
+                       formControlName="botToken"
+                       required
+                       class="mat-block flex-1"
+                       label="{{ 'rule-node-config.slack-api-token' | translate }}"
+                       requiredText="{{ 'rule-node-config.slack-api-token-required' | translate }}">
+  </tb-secret-key-input>
   <label class="tb-title">{{ 'notification.slack-chanel-type' | translate }}</label>
   <mat-radio-group formControlName="conversationType">
     <mat-radio-button *ngFor="let slackChanelType of slackChanelTypes" [value]="slackChanelType">

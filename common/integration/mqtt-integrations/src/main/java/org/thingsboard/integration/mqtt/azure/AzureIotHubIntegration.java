@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.mqtt.azure;
 
-import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.ssl.SslContext;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.AzureIotHubUtil;
@@ -59,13 +58,11 @@ public class AzureIotHubIntegration extends BasicMqttIntegration {
         mqttClientConfiguration.setCredentials(new MqttClientCredentials() {
             @Override
             public Optional<SslContext> initSslContext() {
-                if (credentials instanceof AzureIotHubSasCredentials) {
-                    AzureIotHubSasCredentials sasCredentials = (AzureIotHubSasCredentials) credentials;
+                if (credentials instanceof AzureIotHubSasCredentials sasCredentials) {
                     if (sasCredentials.getCaCert() == null || sasCredentials.getCaCert().isEmpty()) {
                         sasCredentials.setCaCert(AzureIotHubUtil.getDefaultCaCert());
                     }
-                } else if (credentials instanceof CertPemClientCredentials) {
-                    CertPemClientCredentials pemCredentials = (CertPemClientCredentials) credentials;
+                } else if (credentials instanceof CertPemClientCredentials pemCredentials) {
                     if (pemCredentials.getCaCert() == null || pemCredentials.getCaCert().isEmpty()) {
                         pemCredentials.setCaCert(AzureIotHubUtil.getDefaultCaCert());
                     }
@@ -75,13 +72,12 @@ public class AzureIotHubIntegration extends BasicMqttIntegration {
 
             @Override
             public void configure(MqttClientConfig config) {
-                config.setProtocolVersion(MqttVersion.MQTT_3_1_1);
                 config.setUsername(AzureIotHubUtil.buildUsername(mqttClientConfiguration.getHost(), config.getClientId()));
-                if (credentials instanceof AzureIotHubSasCredentials) {
-                    AzureIotHubSasCredentials sasCredentials = (AzureIotHubSasCredentials) credentials;
+                if (credentials instanceof AzureIotHubSasCredentials sasCredentials) {
                     config.setPassword(AzureIotHubUtil.buildSasToken(mqttClientConfiguration.getHost(), sasCredentials.getSasKey()));
                 }
             }
         });
     }
+
 }

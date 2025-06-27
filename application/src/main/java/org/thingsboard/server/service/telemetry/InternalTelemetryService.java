@@ -36,6 +36,7 @@ import org.thingsboard.rule.engine.api.AttributesSaveRequest;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.TimeseriesDeleteRequest;
 import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
+import org.thingsboard.server.common.data.kv.AttributesSaveResult;
 import org.thingsboard.server.common.data.kv.TimeseriesSaveResult;
 
 /**
@@ -45,7 +46,7 @@ public interface InternalTelemetryService extends RuleEngineTelemetryService {
 
     ListenableFuture<TimeseriesSaveResult> saveTimeseriesInternal(TimeseriesSaveRequest request);
 
-    void saveAttributesInternal(AttributesSaveRequest request);
+    ListenableFuture<AttributesSaveResult> saveAttributesInternal(AttributesSaveRequest request);
 
     void deleteTimeseriesInternal(TimeseriesDeleteRequest request);
 

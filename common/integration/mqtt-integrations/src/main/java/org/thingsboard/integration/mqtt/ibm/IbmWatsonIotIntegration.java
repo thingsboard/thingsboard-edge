@@ -38,7 +38,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.thingsboard.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.credentials.BasicCredentials;
-import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
 import org.thingsboard.server.common.data.StringUtils;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -61,11 +60,9 @@ public class IbmWatsonIotIntegration extends BasicMqttIntegration {
     @Override
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
         mqttClientConfiguration.setCleanSession(true);
-        MqttClientCredentials credentials = mqttClientConfiguration.getCredentials();
-        if (credentials == null || !(credentials instanceof BasicCredentials)) {
+        if (!(mqttClientConfiguration.getCredentials() instanceof BasicCredentials basicCredentials)) {
             throw new RuntimeException("Can't setup IBM Watson IoT integration without Application Credentials!");
         }
-        BasicCredentials basicCredentials = (BasicCredentials) credentials;
         if (StringUtils.isEmpty(basicCredentials.getUsername()) ||
                 StringUtils.isEmpty(basicCredentials.getPassword())) {
             throw new RuntimeException("Can't setup IBM Watson IoT integration. Required IBM Watson IoT Application Credentials values are missing!");

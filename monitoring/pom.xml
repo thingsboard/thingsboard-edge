@@ -36,7 +36,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.0.1EDGEPE-RC</version>
+        <version>4.1.0EDGEPE-RC</version>
         <artifactId>thingsboard</artifactId>
     </parent>
 
@@ -56,7 +56,6 @@
         <pkg.win.dist>${project.build.directory}/windows</pkg.win.dist>
         <pkg.implementationTitle>ThingsBoard Monitoring Service</pkg.implementationTitle>
         <pkg.mainClass>org.thingsboard.monitoring.ThingsboardMonitoringApplication</pkg.mainClass>
-
     </properties>
 
     <dependencies>

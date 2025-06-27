@@ -46,7 +46,7 @@
       [allowCredentialTypes]="[IntegrationCredentialType.CertPEM]">
     </tb-integration-credentials>
   </fieldset>
-  <tb-mqtt-topic-filters formControlName="topicFilters">
+  <tb-mqtt-topic-filters formControlName="topicFilters" [excludeQos]="[MqttQos.EXACTLY_ONCE]">
   </tb-mqtt-topic-filters>
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
   </ng-container>
@@ -57,6 +57,7 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
+      <tb-mqtt-version-select subscriptSizing="fixed" formControlName="protocolVersion"></tb-mqtt-version-select>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.client-id</mat-label>
         <input matInput formControlName="clientId" autocomplete="new-clientId">

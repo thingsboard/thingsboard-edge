@@ -40,9 +40,9 @@ public abstract class BaseData<I extends UUIDBased> extends IdBased<I> implement
 
     private static final long serialVersionUID = 5422817607129962637L;
     public static final ObjectMapper mapper = new ObjectMapper();
-    
+
     protected long createdTime;
-    
+
     public BaseData() {
         super();
     }
@@ -50,7 +50,7 @@ public abstract class BaseData<I extends UUIDBased> extends IdBased<I> implement
     public BaseData(I id) {
         super(id);
     }
-    
+
     public BaseData(BaseData<I> data) {
         super(data.getId());
         this.createdTime = data.getCreatedTime();
@@ -68,7 +68,7 @@ public abstract class BaseData<I extends UUIDBased> extends IdBased<I> implement
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + (int) (createdTime ^ (createdTime >>> 32));
+        result = prime * result + Long.hashCode(createdTime);
         return result;
     }
 

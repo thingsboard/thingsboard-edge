@@ -68,6 +68,8 @@ import { MenuId } from '@core/services/menu.models';
 import { CustomMenuRoutes } from '@home/pages/custom-menu/custom-menu-routing.module';
 import { catchError } from 'rxjs/operators';
 import { JsLibraryTableConfigResolver } from '@home/pages/admin/resource/js-library-table-config.resolver';
+import { TrendzSettingsComponent } from '@home/pages/admin/trendz-settings.component';
+import { secretsRoutes } from '@home/pages/secret-storage/secret-storage-routing.module';
 
 export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
@@ -383,6 +385,18 @@ const routes: Routes = [
         }
       },
       {
+        path: 'trendz',
+        component: TrendzSettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          title: 'admin.trendz-settings',
+          breadcrumb: {
+            menuId: MenuId.trendz_settings
+          }
+        }
+      },
+      {
         path: 'security-settings',
         redirectTo: '/security-settings/general'
       },
@@ -460,6 +474,7 @@ const routes: Routes = [
       },
       ...oAuth2Routes,
       ...rolesRoutes,
+      ...secretsRoutes,
       {
         path: 'selfRegistration',
         component: SelfRegistrationComponent,

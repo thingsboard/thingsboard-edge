@@ -63,7 +63,9 @@ import { ManageWidgetActionsComponent } from '@home/components/widget/action/man
 import { WidgetActionDialogComponent } from '@home/components/widget/action/widget-action-dialog.component';
 import { CustomDialogService } from '@home/components/widget/dialog/custom-dialog.service';
 import { CustomDialogContainerComponent } from '@home/components/widget/dialog/custom-dialog-container.component';
-import { AddWidgetToDashboardDialogComponent } from '@home/components/attribute/add-widget-to-dashboard-dialog.component';
+import {
+  AddWidgetToDashboardDialogComponent
+} from '@home/components/attribute/add-widget-to-dashboard-dialog.component';
 import { EventContentDialogComponent } from '@home/components/event/event-content-dialog.component';
 import { SharedHomeComponentsModule } from '@home/components/shared-home-components.module';
 import { SelectTargetLayoutDialogComponent } from '@home/components/dashboard/select-target-layout-dialog.component';
@@ -76,7 +78,9 @@ import { ComplexFilterPredicateComponent } from '@home/components/filter/complex
 import { FilterPredicateComponent } from '@home/components/filter/filter-predicate.component';
 import { FilterPredicateListComponent } from '@home/components/filter/filter-predicate-list.component';
 import { KeyFilterListComponent } from '@home/components/filter/key-filter-list.component';
-import { ComplexFilterPredicateDialogComponent } from '@home/components/filter/complex-filter-predicate-dialog.component';
+import {
+  ComplexFilterPredicateDialogComponent
+} from '@home/components/filter/complex-filter-predicate-dialog.component';
 import { KeyFilterDialogComponent } from '@home/components/filter/key-filter-dialog.component';
 import { FiltersDialogComponent } from '@home/components/filter/filters-dialog.component';
 import { FilterDialogComponent } from '@home/components/filter/filter-dialog.component';
@@ -90,15 +94,27 @@ import { TenantProfileAutocompleteComponent } from '@home/components/profile/ten
 import { TenantProfileComponent } from '@home/components/profile/tenant-profile.component';
 import { TenantProfileDialogComponent } from '@home/components/profile/tenant-profile-dialog.component';
 import { TenantProfileDataComponent } from '@home/components/profile/tenant-profile-data.component';
-import { DefaultDeviceProfileConfigurationComponent } from '@home/components/profile/device/default-device-profile-configuration.component';
-import { DeviceProfileConfigurationComponent } from '@home/components/profile/device/device-profile-configuration.component';
+import {
+  DefaultDeviceProfileConfigurationComponent
+} from '@home/components/profile/device/default-device-profile-configuration.component';
+import {
+  DeviceProfileConfigurationComponent
+} from '@home/components/profile/device/device-profile-configuration.component';
 import { DeviceProfileComponent } from '@home/components/profile/device-profile.component';
-import { DefaultDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/default-device-profile-transport-configuration.component';
-import { DeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/device-profile-transport-configuration.component';
+import {
+  DefaultDeviceProfileTransportConfigurationComponent
+} from '@home/components/profile/device/default-device-profile-transport-configuration.component';
+import {
+  DeviceProfileTransportConfigurationComponent
+} from '@home/components/profile/device/device-profile-transport-configuration.component';
 import { DeviceProfileDialogComponent } from '@home/components/profile/device-profile-dialog.component';
 import { DeviceProfileAutocompleteComponent } from '@home/components/profile/device-profile-autocomplete.component';
-import { MqttDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/mqtt-device-profile-transport-configuration.component';
-import { CoapDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/coap-device-profile-transport-configuration.component';
+import {
+  MqttDeviceProfileTransportConfigurationComponent
+} from '@home/components/profile/device/mqtt-device-profile-transport-configuration.component';
+import {
+  CoapDeviceProfileTransportConfigurationComponent
+} from '@home/components/profile/device/coap-device-profile-transport-configuration.component';
 import { DeviceProfileAlarmsComponent } from '@home/components/profile/alarm/device-profile-alarms.component';
 import { DeviceProfileAlarmComponent } from '@home/components/profile/alarm/device-profile-alarm.component';
 import { CreateAlarmRulesComponent } from '@home/components/profile/alarm/create-alarm-rules.component';
@@ -107,19 +123,29 @@ import { AlarmRuleConditionComponent } from '@home/components/profile/alarm/alar
 import { FilterTextComponent } from '@home/components/filter/filter-text.component';
 import { AddDeviceProfileDialogComponent } from '@home/components/profile/add-device-profile-dialog.component';
 import { RuleChainAutocompleteComponent } from '@home/components/rule-chain/rule-chain-autocomplete.component';
-import { DeviceProfileProvisionConfigurationComponent } from '@home/components/profile/device-profile-provision-configuration.component';
+import {
+  DeviceProfileProvisionConfigurationComponent
+} from '@home/components/profile/device-profile-provision-configuration.component';
 import { AlarmScheduleComponent } from '@home/components/profile/alarm/alarm-schedule.component';
 import { DeviceWizardDialogComponent } from '@home/components/wizard/device-wizard-dialog.component';
 import { AlarmScheduleInfoComponent } from '@home/components/profile/alarm/alarm-schedule-info.component';
 import { AlarmScheduleDialogComponent } from '@home/components/profile/alarm/alarm-schedule-dialog.component';
 import { EditAlarmDetailsDialogComponent } from '@home/components/profile/alarm/edit-alarm-details-dialog.component';
-import { AlarmRuleConditionDialogComponent } from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
-import { DefaultTenantProfileConfigurationComponent } from '@home/components/profile/tenant/default-tenant-profile-configuration.component';
-import { TenantProfileConfigurationComponent } from '@home/components/profile/tenant/tenant-profile-configuration.component';
+import {
+  AlarmRuleConditionDialogComponent
+} from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
+import {
+  DefaultTenantProfileConfigurationComponent
+} from '@home/components/profile/tenant/default-tenant-profile-configuration.component';
+import {
+  TenantProfileConfigurationComponent
+} from '@home/components/profile/tenant/tenant-profile-configuration.component';
 import { SmsProviderConfigurationComponent } from '@home/components/sms/sms-provider-configuration.component';
 import { AwsSnsProviderConfigurationComponent } from '@home/components/sms/aws-sns-provider-configuration.component';
 import { SmppSmsProviderConfigurationComponent } from '@home/components/sms/smpp-sms-provider-configuration.component';
-import { TwilioSmsProviderConfigurationComponent } from '@home/components/sms/twilio-sms-provider-configuration.component';
+import {
+  TwilioSmsProviderConfigurationComponent
+} from '@home/components/sms/twilio-sms-provider-configuration.component';
 import { Lwm2mProfileComponentsModule } from '@home/components/profile/device/lwm2m/lwm2m-profile-components.module';
 import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
 import { DashboardToolbarComponent } from '@home/components/dashboard-page/dashboard-toolbar.component';
@@ -128,12 +154,16 @@ import { DashboardLayoutComponent } from '@home/components/dashboard-page/layout
 import { EditWidgetComponent } from '@home/components/dashboard-page/edit-widget.component';
 import { DashboardWidgetSelectComponent } from '@home/components/dashboard-page/dashboard-widget-select.component';
 import { AddWidgetDialogComponent } from '@home/components/dashboard-page/add-widget-dialog.component';
-import { ManageDashboardLayoutsDialogComponent } from '@home/components/dashboard-page/layout/manage-dashboard-layouts-dialog.component';
+import {
+  ManageDashboardLayoutsDialogComponent
+} from '@home/components/dashboard-page/layout/manage-dashboard-layouts-dialog.component';
 import {
   AddNewBreakpointDialogComponent
 } from '@home/components/dashboard-page/layout/add-new-breakpoint-dialog.component';
 import { DashboardSettingsDialogComponent } from '@home/components/dashboard-page/dashboard-settings-dialog.component';
-import { ManageDashboardStatesDialogComponent } from '@home/components/dashboard-page/states/manage-dashboard-states-dialog.component';
+import {
+  ManageDashboardStatesDialogComponent
+} from '@home/components/dashboard-page/states/manage-dashboard-states-dialog.component';
 import { DashboardStateDialogComponent } from '@home/components/dashboard-page/states/dashboard-state-dialog.component';
 import { EmbedDashboardDialogComponent } from '@home/components/widget/dialog/embed-dashboard-dialog.component';
 import { EMBED_DASHBOARD_DIALOG_TOKEN } from '@home/components/widget/dialog/embed-dashboard-dialog-token';
@@ -166,7 +196,9 @@ import { EntityGroupComponent } from '@home/components/group/entity-group.compon
 import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
 import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
 import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
-import { AlarmDurationPredicateValueComponent } from '@home/components/profile/alarm/alarm-duration-predicate-value.component';
+import {
+  AlarmDurationPredicateValueComponent
+} from '@home/components/profile/alarm/alarm-duration-predicate-value.component';
 import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config/ota-update-event-config.component';
 import { TargetSelectComponent } from '@home/components/scheduler/config/target-select.component';
 import { DashboardImageDialogComponent } from '@home/components/dashboard-page/dashboard-image-dialog.component';
@@ -174,7 +206,9 @@ import {
   EditWidgetActionsTooltipComponent,
   WidgetContainerComponent
 } from '@home/components/widget/widget-container.component';
-import { SnmpDeviceProfileTransportModule } from '@home/components/profile/device/snmp/snmp-device-profile-transport.module';
+import {
+  SnmpDeviceProfileTransportModule
+} from '@home/components/profile/device/snmp/snmp-device-profile-transport.module';
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
 import { SolutionInstallDialogComponent } from '@home/components/solution/solution-install-dialog.component';
@@ -204,7 +238,9 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
 import { RateLimitsComponent } from '@home/components/profile/tenant/rate-limits/rate-limits.component';
 import { RateLimitsTextComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-text.component';
 import { RateLimitsListComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-list.component';
-import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
+import {
+  RateLimitsDetailsDialogComponent
+} from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
 import { AssetProfileComponent } from '@home/components/profile/asset-profile.component';
 import { AssetProfileDialogComponent } from '@home/components/profile/asset-profile-dialog.component';
 import { AssetProfileAutocompleteComponent } from '@home/components/profile/asset-profile-autocomplete.component';
@@ -239,7 +275,9 @@ import { EntityChipsComponent } from '@home/components/entity/entity-chips.compo
 import { DashboardViewComponent } from '@home/components/dashboard-view/dashboard-view.component';
 import { ConverterLibraryComponent } from '@home/components/converter/converter-library.component';
 import { CalculatedFieldsTableComponent } from '@home/components/calculated-fields/calculated-fields-table.component';
-import { CalculatedFieldDialogComponent } from '@home/components/calculated-fields/components/dialog/calculated-field-dialog.component';
+import {
+  CalculatedFieldDialogComponent
+} from '@home/components/calculated-fields/components/dialog/calculated-field-dialog.component';
 import {
   EntityDebugSettingsButtonComponent
 } from '@home/components/entity/debug/entity-debug-settings-button.component';
@@ -258,6 +296,10 @@ import {
 import {
   CalculatedFieldTestArgumentsComponent
 } from '@home/components/calculated-fields/components/test-arguments/calculated-field-test-arguments.component';
+import {
+  CalculatedFieldReprocessingPanelComponent
+} from '@home/components/calculated-fields/components/reprocessing/calculated-field-reprocessing-panel.component';
+import { CancelTaskDialogComponent } from '@home/components/task/cancel-task-dialog.component';
 
 @NgModule({
   declarations:
@@ -443,6 +485,8 @@ import {
       CalculatedFieldDebugDialogComponent,
       CalculatedFieldScriptTestDialogComponent,
       CalculatedFieldTestArgumentsComponent,
+      CalculatedFieldReprocessingPanelComponent,
+      CancelTaskDialogComponent,
     ],
   imports: [
     CommonModule,
@@ -619,6 +663,7 @@ import {
     CalculatedFieldDebugDialogComponent,
     CalculatedFieldScriptTestDialogComponent,
     CalculatedFieldTestArgumentsComponent,
+    CancelTaskDialogComponent,
   ],
   providers: [
     WidgetComponentService,

@@ -83,6 +83,8 @@ public class TbKafkaTopicConfigs {
     private String edqsRequestsProperties;
     @Value("${queue.kafka.topic-properties.edqs-state:}")
     private String edqsStateProperties;
+    @Value("${queue.kafka.topic-properties.tasks:}")
+    private String tasksProperties;
 
     @Getter
     private Map<String, String> coreConfigs;
@@ -128,6 +130,8 @@ public class TbKafkaTopicConfigs {
     private Map<String, String> edqsRequestsConfigs;
     @Getter
     private Map<String, String> edqsStateConfigs;
+    @Getter
+    private Map<String, String> tasksConfigs;
 
     @PostConstruct
     private void init() {
@@ -156,6 +160,7 @@ public class TbKafkaTopicConfigs {
         edqsEventsConfigs = PropertyUtils.getProps(edqsEventsProperties);
         edqsRequestsConfigs = PropertyUtils.getProps(edqsRequestsProperties);
         edqsStateConfigs = PropertyUtils.getProps(edqsStateProperties);
+        tasksConfigs = PropertyUtils.getProps(tasksProperties);
     }
 
 }
