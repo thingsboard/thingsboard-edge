@@ -20,7 +20,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.0.1EDGE-RC</version>
+        <version>4.1.0EDGE-RC</version>
+
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>tools</artifactId>
@@ -54,10 +55,6 @@
         <dependency>
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-all</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cassandra</groupId>
-            <artifactId>cassandra-thrift</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
