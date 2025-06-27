@@ -114,7 +114,7 @@ import {
   TimeSeriesChartTooltipValueFormatFunction,
   TimeSeriesChartTooltipWidgetSettings
 } from '@home/components/widget/lib/chart/time-series-chart-tooltip.models';
-import { TbUnitConverter } from '@shared/models/unit.models';
+import { TbUnit, TbUnitConverter } from '@shared/models/unit.models';
 
 type TimeSeriesChartDataEntry = [number, any, number, number];
 
@@ -393,7 +393,7 @@ export type TimeSeriesChartTicksFormatter =
 export interface TimeSeriesChartYAxisSettings extends TimeSeriesChartAxisSettings {
   id?: TimeSeriesChartYAxisId;
   order?: number;
-  units?: string;
+  units?: TbUnit;
   decimals?: number;
   interval?: number;
   splitNumber?: number;
