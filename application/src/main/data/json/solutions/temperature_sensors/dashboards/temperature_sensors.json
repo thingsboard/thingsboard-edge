@@ -99,7 +99,12 @@
                     "useCellContentFunction": false
                   },
                   "_hash": 0.9801965063904188,
-                  "units": "°C",
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": 1
                 },
                 {
@@ -236,7 +241,10 @@
           "enableDataExport": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "configMode": "advanced",
+          "titleFont": null,
+          "titleColor": null
         },
         "id": "f33c746c-0dfc-c212-395b-b448c8a17209",
         "typeFullFqn": "system.cards.entities_table"
@@ -387,7 +395,7 @@
                 {
                   "name": "temperatureAlarmThreshold",
                   "type": "attribute",
-                  "label": "High temperature threshold, °C",
+                  "label": "High temperature threshold",
                   "color": "#f44336",
                   "settings": {
                     "dataKeyHidden": false,
@@ -398,10 +406,29 @@
                     "disabledOnDataKey": "temperatureAlarmFlag",
                     "appearance": "outline",
                     "subscriptSizing": "dynamic",
+                    "slideToggleLabelPosition": "after",
+                    "selectOptions": [],
+                    "radioColor": null,
+                    "radioColumns": 1,
+                    "radioLabelPosition": "after",
                     "step": 1,
+                    "minValue": null,
+                    "maxValue": null,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "invalidJsonErrorMessage": "",
+                    "dialogTitle": "",
+                    "saveButtonLabel": "",
+                    "cancelButtonLabel": "",
                     "useCustomIcon": false,
-                    "useGetValueFunction": false,
-                    "useSetValueFunction": false
+                    "icon": "",
+                    "customIcon": "",
+                    "useGetValueFunction": true,
+                    "getValueFunctionBody": "const unit = {\n  from: '°C',\n  METRIC: '°C',\n  IMPERIAL: '°F',\n  HYBRID: '°C'\n}\n\nreturn ctx.unitService.convertUnitValue(value, unit);\n",
+                    "useSetValueFunction": true,
+                    "setValueFunctionBody": "const unit = {\n  from: '°C',\n  METRIC: '°C',\n  IMPERIAL: '°F',\n  HYBRID: '°C'\n}\n\nconst targetUnit = ctx.unitService.getTargetUnitSymbol(unit);\nreturn ctx.unitService.convertUnitValue(value, targetUnit, unit.from);"
                   },
                   "_hash": 0.7316078472857874,
                   "aggregationType": null,
@@ -670,7 +697,12 @@
                     }
                   },
                   "_hash": 0.5653951876189471,
-                  "units": "°C",
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": 1,
                   "aggregationType": null,
                   "funcBody": null,
@@ -721,19 +753,26 @@
           "settings": {
             "showLegend": true,
             "legendConfig": {
+              "direction": "column",
               "position": "bottom",
               "sortDataKeys": false,
               "showMin": true,
               "showMax": true,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [
               {
                 "type": "latestKey",
                 "yAxisId": "default",
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "lineColor": "#E91E63",
                 "lineType": "solid",
@@ -871,7 +910,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -964,7 +1008,41 @@
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": true,
               "splitLinesColor": "rgba(0, 0, 0, 0.12)"
-            }
+            },
+            "grid": {
+              "show": false,
+              "backgroundColor": null,
+              "borderWidth": 1,
+              "borderColor": "#ccc"
+            },
+            "legendColumnTitleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "legendColumnTitleColor": "rgba(0, 0, 0, 0.38)",
+            "legendValueFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "500",
+              "lineHeight": "16px"
+            },
+            "legendValueColor": "rgba(0, 0, 0, 0.87)",
+            "tooltipLabelFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Temperature",
           "dropShadow": true,
@@ -1518,7 +1596,7 @@
                 "referenceLayer": "openstreetmap_hybrid"
               }
             ],
-            "trips": [],
+            "imageSource": null,
             "markers": [
               {
                 "dsType": "entity",
@@ -1526,6 +1604,7 @@
                 "dsDeviceId": null,
                 "dsEntityAliasId": "68a058e1-fdda-8482-715b-3ae4a488568e",
                 "dsFilterId": null,
+                "additionalDataSources": null,
                 "additionalDataKeys": [
                   {
                     "name": "temperature",
@@ -1572,9 +1651,9 @@
                 },
                 "tooltip": {
                   "show": true,
-                  "type": "pattern",
+                  "type": "function",
                   "pattern": "<b>${entityName}</b><br/><br/><b>Temperature:</b> ${temperature:1} °C<br/><b>Humidity:</b> ${humidity:0} %<br/><br/><link-act name=\"navigate_to_details\">Sensor details</link-act><br/>",
-                  "patternFunction": null,
+                  "patternFunction": "const unit = {\n  from: '°C',\n  METRIC: '°C',\n  IMPERIAL: '°F',\n  HYBRID: '°C'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data.temperature, unit).toFixed(1);\n\nreturn `<b>${data.entityName}</b><br/><br/><b>Temperature:</b> ${unitValue} ${usrUnit}<br/><b>Humidity:</b> ${data.humidity} %<br/><br/><link-act name=\"navigate_to_details\">Sensor details</link-act><br/>`;\n",
                   "trigger": "click",
                   "autoclose": true,
                   "offsetX": 0,
@@ -1672,29 +1751,8 @@
             "useDefaultCenterPosition": false,
             "defaultCenterPosition": "0,0",
             "defaultZoomLevel": 14,
-            "minZoomLevel": 16,
             "mapPageSize": 16384,
             "mapActionButtons": [],
-            "tripTimeline": {
-              "showTimelineControl": false,
-              "timeStep": 1000,
-              "speedOptions": [
-                1,
-                5,
-                10,
-                15,
-                25
-              ],
-              "showTimestamp": true,
-              "timestampFormat": {
-                "format": "yyyy-MM-dd HH:mm:ss",
-                "lastUpdateAgo": false,
-                "custom": false,
-                "auto": false
-              },
-              "snapToRealLocation": false,
-              "locationSnapFilter": "return true;"
-            },
             "background": {
               "type": "color",
               "color": "#fff",
@@ -1704,8 +1762,7 @@
                 "blur": 3
               }
             },
-            "padding": "8px",
-            "imageSource": null
+            "padding": "8px"
           },
           "title": "Map",
           "useDashboardTimewindow": true,
@@ -2069,6 +2126,7 @@
                 "dsDeviceId": null,
                 "dsEntityAliasId": "12ae98c7-1ea2-52cf-64d5-763e9d993547",
                 "dsFilterId": null,
+                "additionalDataSources": null,
                 "additionalDataKeys": [
                   {
                     "name": "temperature",
@@ -2115,9 +2173,9 @@
                 },
                 "tooltip": {
                   "show": true,
-                  "type": "pattern",
+                  "type": "function",
                   "pattern": "<b>${entityName}</b><br/><br/><b>Temperature:</b> ${temperature:1} °C<br/><b>Humidity:</b> ${humidity:0} %<br/><br/><link-act name='delete'>Delete</link-act>",
-                  "patternFunction": null,
+                  "patternFunction": "const unit = {\n  from: '°C',\n  METRIC: '°C',\n  IMPERIAL: '°F',\n  HYBRID: '°C'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data.temperature, unit).toFixed(1);\n\nreturn `<b>${data.entityName}</b><br/><br/><b>Temperature:</b> ${unitValue} ${usrUnit}<br/><b>Humidity:</b> ${data.humidity} %<br/><br/><link-act name='delete'>Delete</link-act>`;\n",
                   "trigger": "click",
                   "autoclose": true,
                   "offsetX": 0,

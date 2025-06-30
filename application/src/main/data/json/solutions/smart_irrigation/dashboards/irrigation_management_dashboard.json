@@ -1688,8 +1688,14 @@
                   "color": "#2196f3",
                   "settings": {
                     "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
                     "useCellContentFunction": true,
-                    "cellContentFunction": "var data;\nif (value) {\n    try {\n        data = JSON.parse(value);\n    } catch (e){}\n}\nif (data) {\n    var durationThreshold = data.durationThreshold;\n    var consumptionThreshold = data.consumptionThreshold;\n    var text = 'N/A';\n    if (durationThreshold) {\n        text = (durationThreshold / 60000).toFixed(0) + ' min';\n    } else if (consumptionThreshold) {\n        text = consumptionThreshold.toFixed(0) + ' l';\n    }\n    return '<span style=\"font-weight: 600; background: rgba(111, 116, 242, 0.08); border-radius: 16px; padding: 4px 8px;  color: #5553AF;\">'+text+'</span>';\n} else {\n    return '';\n}\n"
+                    "useCellContentFunctionOnExport": true,
+                    "cellContentFunction": "  const unit = {\n    from: 'L',\n    METRIC:  'L',\n    IMPERIAL:'gal',\n    HYBRID:  'L'\n  };\n\nvar data;\nif (value) {\n    try {\n        data = JSON.parse(value);\n    } catch (e){}\n}\nif (data) {\n    var durationThreshold = data.durationThreshold;\n    var consumptionThreshold = data.consumptionThreshold;\n    var text = 'N/A';\n    if (durationThreshold) {\n        text = (durationThreshold / 60000).toFixed(0) + ' min';\n    } else if (consumptionThreshold) {\n        const converted = ctx.unitService.convertUnitValue(consumptionThreshold, unit);\n        const usrUnit   = ctx.unitService.getTargetUnitSymbol(unit);\n        text = converted.toFixed(0) + ' ' + usrUnit;\n    }\n    return '<span style=\"font-weight: 600; background: rgba(111, 116, 242, 0.08); border-radius: 16px; padding: 4px 8px;  color: #5553AF;\">'+ text +'</span>';\n} else {\n    return '';\n}\n",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible",
+                    "disableSorting": false
                   },
                   "_hash": 0.40035296849915825,
                   "aggregationType": null,
@@ -1755,6 +1761,11 @@
                   "postFuncBody": null
                 }
               ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              },
               "latestDataKeys": []
             }
           ],
@@ -2218,8 +2229,10 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "8px",
           "settings": {
-            "useMarkdownTextFunction": false,
+            "useMarkdownTextFunction": true,
             "markdownTextPattern": "<div class=\"daily-water-consumption flex flex-col items-center justify-center\"><div class=\"text\">${DailyWaterConsumption:0} l</div></div>",
+            "markdownTextFunction": "// return '# Some title\\\\n - Entity name: ' + data[0]['entityName'];\n\nconst unit = {\n  from: 'L',\n  METRIC: 'L',\n  IMPERIAL: 'gal',\n  HYBRID: 'L'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data[0]['DailyWaterConsumption'], unit).toFixed(1);\n\nreturn '<div class=\"daily-water-consumption flex flex-col items-center justify-center\"><div class=\"text\">' + unitValue + ' ' + usrUnit +'</div></div>';",
+            "applyDefaultMarkdownStyle": true,
             "markdownCss": ".daily-water-consumption {\n    width: 100%;\n    height: 100%;\n    padding: 0;\n}\n\n.daily-water-consumption .text {\n    font-weight: 700;\n    font-size: 36px;\n    color: #000;\n}\n\n@media only screen and (min-width: 960px) and (max-width: 1200px) {\n    .daily-water-consumption .text {\n        font-size: 24px;\n    }\n}"
           },
           "title": "Daily water consumption",
@@ -2829,7 +2842,12 @@
                     }
                   },
                   "_hash": 0.191123640361619,
-                  "units": "L",
+                  "units": {
+                    "from": "L",
+                    "METRIC": "L",
+                    "IMPERIAL": "gal",
+                    "HYBRID": "L"
+                  },
                   "decimals": null,
                   "aggregationType": null,
                   "funcBody": null,
@@ -2964,7 +2982,12 @@
                 "splitNumber": null
               },
               "axis1": {
-                "units": "L",
+                "units": {
+                  "from": "L",
+                  "METRIC": "L",
+                  "IMPERIAL": "gal",
+                  "HYBRID": "L"
+                },
                 "decimals": null,
                 "show": true,
                 "label": "",
@@ -3123,7 +3146,8 @@
               "showMax": false,
               "showAvg": false,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -3178,7 +3202,35 @@
                 "blur": 3
               }
             },
-            "padding": "12px"
+            "padding": "12px",
+            "legendColumnTitleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "legendColumnTitleColor": "rgba(0, 0, 0, 0.38)",
+            "legendValueFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "500",
+              "lineHeight": "16px"
+            },
+            "legendValueColor": "rgba(0, 0, 0, 0.87)",
+            "tooltipLabelFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Statistics",
           "dropShadow": false,
