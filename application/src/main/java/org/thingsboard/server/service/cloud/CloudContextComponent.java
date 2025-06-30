@@ -40,6 +40,7 @@ import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
+import org.thingsboard.server.service.cloud.rpc.processor.CalculatedFieldCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
@@ -101,6 +102,9 @@ public class CloudContextComponent {
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
+
+    @Autowired
+    private CalculatedFieldCloudProcessor calculatedFieldProcessor;
 
     // callback
     @Autowired

@@ -189,13 +189,13 @@ export enum MenuId {
   converter_templates = 'converter_templates',
   scheduler = 'scheduler',
   roles = 'roles',
-  edge = 'edge',
-  edge_status = 'edge_status',
-  cloud_events = 'cloud_events',
   self_registration = 'self_registration',
   task_manager = 'task_manager',
   trendz_settings = 'trendz_settings',
-  secrets = 'secrets'
+  secrets = 'secrets',
+  edge = 'edge',
+  edge_status = 'edge_status',
+  cloud_events = 'cloud_events'
 }
 
 declare type MenuFilter = (_authState: AuthState, userPermissionsService: UserPermissionsService) => boolean;
@@ -1238,6 +1238,36 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/settings/trendz',
       icon: 'trendz-settings'
+    }
+  ],
+  [
+    MenuId.edge,
+    {
+      id: MenuId.edge,
+      name: 'edge.edge',
+      type: 'toggle',
+      path: '/edge',
+      icon: 'router'
+    }
+  ],
+  [
+    MenuId.edge_status,
+    {
+      id: MenuId.edge_status,
+      name: 'edge.status',
+      type: 'link',
+      path: '/edge/status',
+      icon: 'info'
+    }
+  ],
+  [
+    MenuId.cloud_events,
+    {
+      id: MenuId.cloud_events,
+      name: 'edge.cloud-events',
+      type: 'link',
+      path: '/edge/cloudEvents',
+      icon: 'date_range'
     }
   ]
 ]);

@@ -99,6 +99,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                         }
                         if (created) {
                             pushAssetProfileCreatedEventToRuleEngine(tenantId, assetProfileId);
+                            return requestForCalculatedFieldData(tenantId, assetProfileId);
                         }
                     } finally {
                         assetCreationLock.unlock();

@@ -247,6 +247,7 @@ public class EntityIdFactory {
             case SCHEDULER_EVENT -> new SchedulerEventId(uuid);
             case ROLE -> new RoleId(uuid);
             case GROUP_PERMISSION -> new GroupPermissionId(uuid);
+            case CALCULATED_FIELD -> new CalculatedFieldId(uuid);
             default -> throw new IllegalArgumentException("CloudEventType " + cloudEventType + " is not supported!");
         };
     }

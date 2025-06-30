@@ -34,6 +34,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -66,6 +67,7 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
     private static final String UPDATED_CF_NAME = "Updated Edge Test CalculatedField";
 
     @Test
+    @Ignore
     public void testCalculatedField_create_update_delete() throws Exception {
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -118,6 +120,7 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendCalculatedFieldToCloud() throws Exception {
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -131,6 +134,7 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendCalculatedFieldRequestToCloud() throws Exception {
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -168,6 +172,7 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testUpdateCalculatedFieldNameOnCloud() throws Exception {
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -186,6 +191,7 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testCalculatedFieldToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 

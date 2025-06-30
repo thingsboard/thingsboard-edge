@@ -50,6 +50,7 @@ import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
@@ -90,6 +91,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCommentCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.CalculatedFieldCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.ConverterCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomMenuCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomTranslationCloudProcessor;
@@ -237,6 +239,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private OAuth2CloudProcessor oAuth2CloudProcessor;
+
+    @Autowired
+    private CalculatedFieldCloudProcessor calculatedFieldCloudProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -473,6 +478,12 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(deviceProcessor.processDeviceGroupOtaPackageFromCloud(tenantId, deviceGroupOtaPackageUpdateMsg));
                 }
             }
+            if (downlinkMsg.getCalculatedFieldUpdateMsgCount() > 0) {
+                for (CalculatedFieldUpdateMsg calculatedFieldUpdateMsg : downlinkMsg.getCalculatedFieldUpdateMsgList()) {
+                    result.add(calculatedFieldCloudProcessor.processCalculatedFieldMsgFromCloud(tenantId, calculatedFieldUpdateMsg));
+                }
+            }
+
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
         } catch (Exception e) {
             log.error("Can't process downlink message [{}]", downlinkMsg, e);
