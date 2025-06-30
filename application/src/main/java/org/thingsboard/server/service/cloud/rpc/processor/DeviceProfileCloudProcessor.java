@@ -84,6 +84,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                         }
                         if (created) {
                             pushDeviceProfileCreatedEventToRuleEngine(tenantId, deviceProfileId);
+                            return requestForCalculatedFieldData(tenantId, deviceProfileId);
                         }
                     } finally {
                         deviceCreationLock.unlock();

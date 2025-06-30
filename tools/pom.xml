@@ -21,7 +21,6 @@
     <parent>
         <groupId>org.thingsboard</groupId>
         <version>4.1.0EDGE-RC</version>
-
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>tools</artifactId>

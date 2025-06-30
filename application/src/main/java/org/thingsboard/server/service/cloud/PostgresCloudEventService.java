@@ -49,7 +49,8 @@ public class PostgresCloudEventService implements CloudEventService {
 
     private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES = List.of(
             EdgeEventActionType.ATTRIBUTES_REQUEST,
-            EdgeEventActionType.RELATION_REQUEST
+            EdgeEventActionType.RELATION_REQUEST,
+            EdgeEventActionType.CALCULATED_FIELD_REQUEST
     );
 
     private final AttributesService attributesService;
