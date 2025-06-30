@@ -6286,18 +6286,6 @@
           "stateEntityParamName": null,
           "defaultStateEntity": null
         }
-      },
-      "7ca40654-ec46-858c-8779-3ec6082b32ba": {
-        "id": "7ca40654-ec46-858c-8779-3ec6082b32ba",
-        "alias": "000",
-        "filter": {
-          "type": "singleEntity",
-          "resolveMultiple": false,
-          "singleEntity": {
-            "entityType": "USER",
-            "id": "e6dadad0-5271-11f0-a9ca-71801a2e484f"
-          }
-        }
       }
     },
     "filters": {},
