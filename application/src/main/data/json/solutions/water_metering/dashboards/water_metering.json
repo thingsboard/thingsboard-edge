@@ -213,11 +213,17 @@
                     "useCellContentFunction": false
                   },
                   "_hash": 0.6622074305397865,
-                  "units": "m³",
+                  "units": {
+                    "from": "m³",
+                    "METRIC": "m³",
+                    "IMPERIAL": "ft³",
+                    "HYBRID": "m³"
+                  },
                   "decimals": 2,
                   "postFuncBody": "return value || 0;",
                   "usePostProcessing": true,
-                  "funcBody": null
+                  "funcBody": null,
+                  "aggregationType": "NONE"
                 },
                 {
                   "name": "active",
@@ -249,7 +255,12 @@
                   "usePostProcessing": null,
                   "postFuncBody": null
                 }
-              ]
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "showTitleIcon": false,
@@ -293,102 +304,6 @@
         },
         "id": "b790fdaa-727a-2572-b2a2-c72a55444cbc",
         "typeFullFqn": "system.cards.entities_table"
-      },
-      "0f9314f3-6f25-3e97-e2a4-8e2a16feda2b": {
-        "type": "latest",
-        "sizeX": 8,
-        "sizeY": 3,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "dataKeys": [
-                {
-                  "name": "weeklyConsumption",
-                  "type": "timeseries",
-                  "label": "weeklyConsumption",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.6873469556096485,
-                  "postFuncBody": "return value || 0;"
-                }
-              ],
-              "entityAliasId": "9da9bd9c-a7cc-244f-16ac-3e2045cff5b1"
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideQuickInterval": false
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678090031165,
-                "endTimeMs": 1678176431165
-              },
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideFixedInterval": false,
-              "hideQuickInterval": false
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
-          "settings": {
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   border: 1px solid #E0E0E0;\n   box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}",
-            "cardHtml": "<div class='card' id=\"analyticsCard\">\n    <div class='content' id=\"analyticsCard\">\n        <div class='value' id=\"analyticsCard\">\n            ${weeklyConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description' id=\"analyticsCard\">\n            Consumed per current week\n        </div>\n    </div>\n</div>"
-          },
-          "title": "New HTML Value Card",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "widgetStyle": {},
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "actions": {
-            "elementClick": [
-              {
-                "name": "analyticsCard",
-                "icon": "more_horiz",
-                "type": "updateDashboardState",
-                "targetDashboardStateId": "analytics",
-                "setEntityId": false,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "id": "6580398e-9bb7-d7c7-8cde-c1a190adb9cd"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "titleIcon": null,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "displayTimewindow": true
-        },
-        "id": "0f9314f3-6f25-3e97-e2a4-8e2a16feda2b",
-        "typeFullFqn": "system.cards.html_value_card"
       },
       "17543c57-af4a-2c1e-bf12-53a7b46791e6": {
         "type": "latest",
@@ -781,11 +696,17 @@
                     "useCellContentFunction": false
                   },
                   "_hash": 0.6622074305397865,
-                  "units": "m³",
+                  "units": {
+                    "from": "m³",
+                    "METRIC": "m³",
+                    "IMPERIAL": "ft³",
+                    "HYBRID": "m³"
+                  },
                   "decimals": 2,
                   "postFuncBody": "return value || 0;",
                   "usePostProcessing": true,
-                  "funcBody": null
+                  "funcBody": null,
+                  "aggregationType": "NONE"
                 },
                 {
                   "name": "address",
@@ -831,7 +752,12 @@
                   "usePostProcessing": null,
                   "postFuncBody": null
                 }
-              ]
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "showTitleIcon": false,
@@ -1117,6 +1043,7 @@
           "datasources": [
             {
               "type": "entity",
+              "entityAliasId": "f7bed459-ea25-5a39-bfc1-a3bb8c941d8d",
               "dataKeys": [
                 {
                   "name": "meterReading",
@@ -1129,9 +1056,17 @@
                     "useCellContentFunction": false
                   },
                   "_hash": 0.6622074305397865,
-                  "units": "m³",
+                  "units": {
+                    "from": "m³",
+                    "METRIC": "m³",
+                    "IMPERIAL": "ft³",
+                    "HYBRID": "m³"
+                  },
                   "decimals": 2,
-                  "postFuncBody": "return value || 0;"
+                  "postFuncBody": "return value || 0;",
+                  "usePostProcessing": true,
+                  "aggregationType": "NONE",
+                  "funcBody": null
                 },
                 {
                   "name": "active",
@@ -1147,7 +1082,11 @@
                   "postFuncBody": "if (value === 'true') {\n    return 'Active';\n} else {\n    return 'Inactive';\n}"
                 }
               ],
-              "entityAliasId": "f7bed459-ea25-5a39-bfc1-a3bb8c941d8d"
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "showTitleIcon": false,
@@ -1299,89 +1238,6 @@
         "id": "db53f985-2418-e36d-6b5d-c51eb80c6264",
         "typeFullFqn": "system.alarm_widgets.alarms_table"
       },
-      "2f9a86a1-b6ac-6fee-e67c-cbe72f2d41a7": {
-        "type": "latest",
-        "sizeX": 8,
-        "sizeY": 3,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "dataKeys": [
-                {
-                  "name": "weeklyConsumption",
-                  "type": "timeseries",
-                  "label": "weeklyConsumption",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.5838592690087288,
-                  "postFuncBody": "return value || 0;"
-                }
-              ],
-              "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73"
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideQuickInterval": false
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678090031165,
-                "endTimeMs": 1678176431165
-              },
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideFixedInterval": false,
-              "hideQuickInterval": false
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
-          "settings": {
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   border: 1px solid #E0E0E0;\n   box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}",
-            "cardHtml": "<div class='card'>\n    <div class='content'>\n        <div class='value'>\n            ${weeklyConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description'>\n            Consumed per week\n        </div>\n    </div>\n</div>"
-          },
-          "title": "New HTML Value Card",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "widgetStyle": {},
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "actions": {},
-          "showTitleIcon": false,
-          "titleIcon": null,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "displayTimewindow": true
-        },
-        "id": "2f9a86a1-b6ac-6fee-e67c-cbe72f2d41a7",
-        "typeFullFqn": "system.cards.html_value_card"
-      },
       "1bfaeb7d-8b3c-d7cb-20bb-3cb9bcca4b7c": {
         "type": "alarm",
         "sizeX": 8,
@@ -1499,184 +1355,6 @@
         },
         "id": "1bfaeb7d-8b3c-d7cb-20bb-3cb9bcca4b7c",
         "typeFullFqn": "system.alarm_widgets.alarms_table"
-      },
-      "6f390f15-d267-3d9d-3afd-5b18247ddc2d": {
-        "type": "latest",
-        "sizeX": 8,
-        "sizeY": 3,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "pulseCounter",
-                  "type": "timeseries",
-                  "label": "totalConsumption",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.9485144836240813,
-                  "postFuncBody": "return value || 0;",
-                  "usePostProcessing": true,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideQuickInterval": false
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678090031165,
-                "endTimeMs": 1678176431165
-              },
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideFixedInterval": false,
-              "hideQuickInterval": false
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
-          "settings": {
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   border: 1px solid #E0E0E0;\n   box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}",
-            "cardHtml": "<div class='card'>\n    <div class='content'>\n        <div class='value'>\n            ${totalConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description'>\n            Consumed for all time\n        </div>\n    </div>\n</div>"
-          },
-          "title": "New HTML Value Card",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "widgetStyle": {},
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "actions": {},
-          "showTitleIcon": false,
-          "titleIcon": null,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "displayTimewindow": true
-        },
-        "id": "6f390f15-d267-3d9d-3afd-5b18247ddc2d",
-        "typeFullFqn": "system.cards.html_value_card"
-      },
-      "328e8d85-ed7c-ae06-d537-3edc002de94c": {
-        "type": "latest",
-        "sizeX": 8,
-        "sizeY": 3,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "temperature",
-                  "type": "timeseries",
-                  "label": "temperature",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.21584949493784333,
-                  "postFuncBody": "if (typeof value === 'number') {\n    return value.toFixed(1) +' &#8451;';\n} else {\n    return value;\n}",
-                  "decimals": 1,
-                  "usePostProcessing": true,
-                  "units": null,
-                  "funcBody": null
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideQuickInterval": false
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678090031165,
-                "endTimeMs": 1678176431165
-              },
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideFixedInterval": false,
-              "hideQuickInterval": false
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
-          "settings": {
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   border: 1px solid #E0E0E0;\n   box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}",
-            "cardHtml": "<div class='card'>\n    <div class='content'>\n        <div class='value'>\n            ${temperature:0}\n        </div> \n        <div class='description'>\n            Temperature\n        </div>\n    </div>\n</div>"
-          },
-          "title": "New HTML Value Card",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "widgetStyle": {},
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "actions": {},
-          "showTitleIcon": false,
-          "titleIcon": null,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "displayTimewindow": true
-        },
-        "id": "328e8d85-ed7c-ae06-d537-3edc002de94c",
-        "typeFullFqn": "system.cards.html_value_card"
       },
       "b96457f0-6b59-a580-4c3d-2eb919d56603": {
         "type": "latest",
@@ -3432,9 +3110,17 @@
                     "useCellContentFunction": false
                   },
                   "_hash": 0.6622074305397865,
-                  "units": "m³",
+                  "units": {
+                    "from": "m³",
+                    "METRIC": "m³",
+                    "IMPERIAL": "ft³",
+                    "HYBRID": "m³"
+                  },
                   "decimals": 2,
-                  "postFuncBody": "return value || 0;"
+                  "postFuncBody": "return value || 0;",
+                  "usePostProcessing": true,
+                  "aggregationType": "NONE",
+                  "funcBody": null
                 },
                 {
                   "name": "address",
@@ -3480,7 +3166,12 @@
                   "usePostProcessing": null,
                   "postFuncBody": null
                 }
-              ]
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "showTitleIcon": false,
@@ -3685,89 +3376,6 @@
         },
         "id": "046968a1-fc76-2177-cf2b-d185b8e1ec84",
         "typeFullFqn": "system.alarm_widgets.alarms_table"
-      },
-      "41f3bd64-9293-91b4-60aa-eeb4971f96bd": {
-        "type": "latest",
-        "sizeX": 8,
-        "sizeY": 3,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "dataKeys": [
-                {
-                  "name": "weeklyConsumption",
-                  "type": "timeseries",
-                  "label": "weeklyConsumption",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.6873469556096485,
-                  "postFuncBody": "return value || 0;"
-                }
-              ],
-              "entityAliasId": "9da9bd9c-a7cc-244f-16ac-3e2045cff5b1"
-            }
-          ],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideQuickInterval": false
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1678090031166,
-                "endTimeMs": 1678176431166
-              },
-              "quickInterval": "CURRENT_DAY",
-              "hideInterval": false,
-              "hideLastInterval": false,
-              "hideFixedInterval": false,
-              "hideQuickInterval": false
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
-          "settings": {
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   border: 1px solid #E0E0E0;\n   box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}\n",
-            "cardHtml": "<div class='card'>\n    <div class='content'>\n        <div class='value'>\n            ${weeklyConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description'>\n            Consumed per current week\n        </div>\n    </div>\n</div>"
-          },
-          "title": "New HTML Value Card",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "widgetStyle": {},
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "actions": {},
-          "showTitleIcon": false,
-          "titleIcon": null,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "enableDataExport": false,
-          "displayTimewindow": true
-        },
-        "id": "41f3bd64-9293-91b4-60aa-eeb4971f96bd",
-        "typeFullFqn": "system.cards.html_value_card"
       },
       "47beef8a-be00-49f9-fd8e-3b4c409e0a1a": {
         "type": "latest",
@@ -5137,7 +4745,12 @@
                     }
                   },
                   "_hash": 0.6850103979581212,
-                  "units": "m³",
+                  "units": {
+                    "from": "m³",
+                    "METRIC": "m³",
+                    "IMPERIAL": "ft³",
+                    "HYBRID": "m³"
+                  },
                   "decimals": 2,
                   "aggregationType": null,
                   "funcBody": null,
@@ -5154,9 +4767,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -5180,13 +4790,15 @@
           "settings": {
             "showLegend": true,
             "legendConfig": {
+              "direction": "column",
               "position": "bottom",
               "sortDataKeys": false,
               "showMin": false,
               "showMax": false,
               "showAvg": false,
               "showTotal": true,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -5303,7 +4915,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "m³",
+                "units": {
+                  "from": "m³",
+                  "METRIC": "m³",
+                  "IMPERIAL": "ft³",
+                  "HYBRID": "m³"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -5404,7 +5021,35 @@
               "backgroundColor": null,
               "borderWidth": 1,
               "borderColor": "#ccc"
-            }
+            },
+            "legendColumnTitleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "legendColumnTitleColor": "rgba(0, 0, 0, 0.38)",
+            "legendValueFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "500",
+              "lineHeight": "16px"
+            },
+            "legendValueColor": "rgba(0, 0, 0, 0.87)",
+            "tooltipLabelFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Water Consumption",
           "dropShadow": false,
@@ -5550,7 +5195,12 @@
                     }
                   },
                   "_hash": 0.19778923192757314,
-                  "units": "m³",
+                  "units": {
+                    "from": "m³",
+                    "METRIC": "m³",
+                    "IMPERIAL": "ft³",
+                    "HYBRID": "m³"
+                  },
                   "decimals": 2,
                   "aggregationType": null,
                   "funcBody": null,
@@ -5567,9 +5217,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -5604,7 +5251,8 @@
               "showMax": true,
               "showAvg": true,
               "showTotal": true,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -5721,7 +5369,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "m³",
+                "units": {
+                  "from": "m³",
+                  "METRIC": "m³",
+                  "IMPERIAL": "ft³",
+                  "HYBRID": "m³"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -5822,7 +5475,35 @@
               "backgroundColor": null,
               "borderWidth": 1,
               "borderColor": "#ccc"
-            }
+            },
+            "legendColumnTitleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "legendColumnTitleColor": "rgba(0, 0, 0, 0.38)",
+            "legendValueFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "500",
+              "lineHeight": "16px"
+            },
+            "legendValueColor": "rgba(0, 0, 0, 0.87)",
+            "tooltipLabelFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Water Consumption",
           "dropShadow": false,
@@ -5967,7 +5648,12 @@
                     }
                   },
                   "_hash": 0.6850103979581212,
-                  "units": "m³",
+                  "units": {
+                    "from": "m³",
+                    "METRIC": "m³",
+                    "IMPERIAL": "ft³",
+                    "HYBRID": "m³"
+                  },
                   "decimals": 2,
                   "aggregationType": null,
                   "funcBody": null,
@@ -5984,9 +5670,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -6017,7 +5700,8 @@
               "showMax": false,
               "showAvg": false,
               "showTotal": true,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -6136,7 +5820,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "m³",
+                "units": {
+                  "from": "m³",
+                  "METRIC": "m³",
+                  "IMPERIAL": "ft³",
+                  "HYBRID": "m³"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -6237,7 +5926,35 @@
               "backgroundColor": null,
               "borderWidth": 1,
               "borderColor": "#ccc"
-            }
+            },
+            "legendColumnTitleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "legendColumnTitleColor": "rgba(0, 0, 0, 0.38)",
+            "legendValueFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "500",
+              "lineHeight": "16px"
+            },
+            "legendValueColor": "rgba(0, 0, 0, 0.87)",
+            "tooltipLabelFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Water Consumption",
           "dropShadow": false,
@@ -16207,6 +15924,7 @@
                 "dsDeviceId": null,
                 "dsEntityAliasId": "f7bed459-ea25-5a39-bfc1-a3bb8c941d8d",
                 "dsFilterId": null,
+                "additionalDataSources": null,
                 "additionalDataKeys": [
                   {
                     "name": "dailyConsumptionThresholdExceeded",
@@ -16281,8 +15999,8 @@
                     "units": null,
                     "decimals": null,
                     "funcBody": null,
-                    "usePostProcessing": true,
-                    "postFuncBody": "if (typeof value === 'number') {\n    return value.toFixed(1) +' &#8451;';\n} else {\n    return '';\n}"
+                    "usePostProcessing": false,
+                    "postFuncBody": null
                   },
                   {
                     "name": "dailyConsumption",
@@ -16314,13 +16032,13 @@
                 },
                 "tooltip": {
                   "show": true,
-                  "trigger": "hover",
-                  "autoclose": true,
                   "type": "function",
                   "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See tooltip settings for details</small>",
+                  "patternFunction": "const unitTemp = {\n  from: '°C',\n  METRIC: '°C',\n  IMPERIAL: '°F',\n  HYBRID: '°C'\n}\n\nconst unitVol = {\n  from: 'm³',\n  METRIC: 'm³',\n  IMPERIAL: 'ft³',\n  HYBRID: 'm³'\n}\n\nvar usrUnitVol = ctx.unitService.getTargetUnitSymbol(unitVol);\nvar unitValueWeeklyCons = ctx.unitService.convertUnitValue(data['weeklyConsumption'], unitVol).toFixed(1);\nvar unitValueDailyCons = ctx.unitService.convertUnitValue(data['dailyConsumption'], unitVol).toFixed(1);\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unitTemp);\nvar unitValueTemperature = ctx.unitService.convertUnitValue(data.temperature, unitTemp).toFixed(1);\n\nvar dailyConsumptionThresholdExceeded = (data['dailyConsumptionThresholdExceeded'] && data['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (data['weeklyConsumptionThresholdExceeded'] && data['weeklyConsumptionThresholdExceeded'] === 'true');\nvar inactive = (data['deviceInactive'] && data['deviceInactive'] === 'true');\nvar lowBattery = (data['lowBattery'] && data['lowBattery'] === 'true');\nvar lowTemperature = (data['temperatureUnderThreshold'] && data['temperatureUnderThreshold'] === 'true');\n\nvar generalInfo = '<div><b style=\"line-height: 2; font-size: 14px;\">${entityName}</b><br/><span style=\"line-height: 2;\">Address: ${address}</span></div>';\nvar telemetryInfo = '<div><span>Consumed per week: '+ unitValueWeeklyCons + ' ' + usrUnitVol + '</span><br/><span>Consumed per day: '+ unitValueDailyCons + ' ' + usrUnitVol + '</span><br/><span>Temperature: ' + unitValueTemperature + ' ' + usrUnit +'</span></div>';\n\nvar alarmsInfo = '';\nif (inactive) {\n    alarmsInfo += '<br/><span>Device inactive.</span>';\n} else {\n    if (dailyConsumptionThresholdExceeded) {\n        alarmsInfo += '<br/><span>Daily consumption threshold exceeded.</span>';\n    } \n    if (weeklyConsumptionThresholdExceeded) {\n        alarmsInfo += '<br/><span>Weekly consumption threshold exceeded.</span>';\n    } \n    if (lowBattery) {\n        alarmsInfo += '<br/><span>Low battery.</span>';\n    } \n    if (lowTemperature) {\n        alarmsInfo += '<br/><span>Low temperature.</span>';\n    }\n}\n\nvar label = generalInfo + telemetryInfo;\n\nif (alarmsInfo) {\n    label += '<div style=\"margin-top: 8px;\"><span>Alarms:</span>' + alarmsInfo + '</div>'\n}\n\nreturn label;",
+                  "trigger": "hover",
+                  "autoclose": true,
                   "offsetX": 0,
                   "offsetY": -1,
-                  "patternFunction": "var dailyConsumptionThresholdExceeded = (data['dailyConsumptionThresholdExceeded'] && data['dailyConsumptionThresholdExceeded'] === 'true');\nvar weeklyConsumptionThresholdExceeded = (data['weeklyConsumptionThresholdExceeded'] && data['weeklyConsumptionThresholdExceeded'] === 'true');\nvar inactive = (data['deviceInactive'] && data['deviceInactive'] === 'true');\nvar lowBattery = (data['lowBattery'] && data['lowBattery'] === 'true');\nvar lowTemperature = (data['temperatureUnderThreshold'] && data['temperatureUnderThreshold'] === 'true');\n\nvar generalInfo = '<div><b style=\"line-height: 2; font-size: 14px;\">${entityName}</b><br/><span style=\"line-height: 2;\">Address: ${address}</span></div>';\nvar telemetryInfo = '<div><span>Consumed per week: ${weeklyConsumption:2} m<sup style=\"font-size: 9px;\">3</sup></span><br/><span>Consumed per day: ${dailyConsumption:2} m<sup style=\"font-size: 9px;\">3</sup></span><br/><span>Temperature: ${temperature:1}</span></div>';\n\nvar alarmsInfo = '';\nif (inactive) {\n    alarmsInfo += '<br/><span>Device inactive.</span>';\n} else {\n    if (dailyConsumptionThresholdExceeded) {\n        alarmsInfo += '<br/><span>Daily consumption threshold exceeded.</span>';\n    } \n    if (weeklyConsumptionThresholdExceeded) {\n        alarmsInfo += '<br/><span>Weekly consumption threshold exceeded.</span>';\n    } \n    if (lowBattery) {\n        alarmsInfo += '<br/><span>Low battery.</span>';\n    } \n    if (lowTemperature) {\n        alarmsInfo += '<br/><span>Low temperature.</span>';\n    }\n}\n\nvar label = generalInfo + telemetryInfo;\n\nif (alarmsInfo) {\n    label += '<div style=\"margin-top: 8px;\"><span>Alarms:</span>' + alarmsInfo + '</div>'\n}\n\nreturn label;",
                   "tagActions": null
                 },
                 "click": {
@@ -16729,6 +16447,506 @@
         "row": 0,
         "col": 0,
         "id": "3e8c1a00-e58c-df85-7bf2-4f0db71b4c4f"
+      },
+      "1c92c222-750e-39ff-fc80-ee3a1fc4035c": {
+        "typeFullFqn": "system.cards.markdown_card",
+        "type": "latest",
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": "",
+              "entityAliasId": "9da9bd9c-a7cc-244f-16ac-3e2045cff5b1",
+              "dataKeys": [
+                {
+                  "name": "weeklyConsumption",
+                  "type": "timeseries",
+                  "label": "weeklyConsumption",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.27364482120638345,
+                  "aggregationType": "NONE",
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value || 0;"
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1750835338770,
+                "endTimeMs": 1750921738770
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextPattern": "<div class='card' id=\"analyticsCard\">\n    <div class='content' id=\"analyticsCard\">\n        <div class='value' id=\"analyticsCard\">\n            ${weeklyConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description' id=\"analyticsCard\">\n            Consumed per current week\n        </div>\n    </div>\n</div>",
+            "markdownTextFunction": "const unit = {\n  from: 'm³',\n  METRIC: 'm³',\n  IMPERIAL: 'ft³',\n  HYBRID: 'm³'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data[0]['weeklyConsumption'], unit).toFixed(1);\n\nreturn `<div class='card' id=\"analyticsCard\">\n<div class='content' id=\"analyticsCard\">\n<div class='value' id=\"analyticsCard\">\n${unitValue} ${usrUnit}</sup>\n</div> \n<div class='description' id=\"analyticsCard\">\nConsumed per current week\n</div>\n</div>\n</div>`;",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": ".card {\n position: absolute;   /* тягнеться у всі краї */\n  top: 0; right: 0; bottom: 0; left: 0;\n  border: 1px solid #E0E0E0;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}"
+          },
+          "title": "Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "1c92c222-750e-39ff-fc80-ee3a1fc4035c"
+      },
+      "70d8ba92-8972-373a-abdd-3e037b0715ea": {
+        "typeFullFqn": "system.cards.markdown_card",
+        "type": "latest",
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": "",
+              "entityAliasId": "9da9bd9c-a7cc-244f-16ac-3e2045cff5b1",
+              "dataKeys": [
+                {
+                  "name": "weeklyConsumption",
+                  "type": "timeseries",
+                  "label": "weeklyConsumption",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.27364482120638345,
+                  "aggregationType": "NONE",
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value || 0;"
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1750835338770,
+                "endTimeMs": 1750921738770
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextPattern": "<div class='card' id=\"analyticsCard\">\n    <div class='content' id=\"analyticsCard\">\n        <div class='value' id=\"analyticsCard\">\n            ${weeklyConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description' id=\"analyticsCard\">\n            Consumed per current week\n        </div>\n    </div>\n</div>",
+            "markdownTextFunction": "const unit = {\n  from: 'm³',\n  METRIC: 'm³',\n  IMPERIAL: 'ft³',\n  HYBRID: 'm³'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data[0]['weeklyConsumption'], unit).toFixed(1);\n\nreturn `<div class='card' id=\"analyticsCard\">\n<div class='content' id=\"analyticsCard\">\n<div class='value' id=\"analyticsCard\">\n${unitValue} ${usrUnit}</sup>\n</div> \n<div class='description' id=\"analyticsCard\">\nConsumed per current week\n</div>\n</div>\n</div>`;",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": ".card {\n position: absolute;   /* тягнеться у всі краї */\n  top: 0; right: 0; bottom: 0; left: 0;\n  border: 1px solid #E0E0E0;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}"
+          },
+          "title": "Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "70d8ba92-8972-373a-abdd-3e037b0715ea"
+      },
+      "f12dfc5f-eb54-5c71-e1df-d585eeca7a00": {
+        "typeFullFqn": "system.cards.markdown_card",
+        "type": "latest",
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": "",
+              "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
+              "dataKeys": [
+                {
+                  "name": "weeklyConsumption",
+                  "type": "timeseries",
+                  "label": "weeklyConsumption",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.27364482120638345,
+                  "aggregationType": "NONE",
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value || 0;"
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1750835338770,
+                "endTimeMs": 1750921738770
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextPattern": "<div class='card' id=\"analyticsCard\">\n    <div class='content' id=\"analyticsCard\">\n        <div class='value' id=\"analyticsCard\">\n            ${weeklyConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description' id=\"analyticsCard\">\n            Consumed per current week\n        </div>\n    </div>\n</div>",
+            "markdownTextFunction": "const unit = {\n  from: 'm³',\n  METRIC: 'm³',\n  IMPERIAL: 'ft³',\n  HYBRID: 'm³'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data[0]['weeklyConsumption'], unit).toFixed(1);\n\nreturn `<div class='card' id=\"analyticsCard\">\n<div class='content' id=\"analyticsCard\">\n<div class='value' id=\"analyticsCard\">\n${unitValue} ${usrUnit}</sup>\n</div> \n<div class='description' id=\"analyticsCard\">\nConsumed per current week\n</div>\n</div>\n</div>`;",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": ".card {\n position: absolute;   /* тягнеться у всі краї */\n  top: 0; right: 0; bottom: 0; left: 0;\n  border: 1px solid #E0E0E0;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}"
+          },
+          "title": "Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "f12dfc5f-eb54-5c71-e1df-d585eeca7a00"
+      },
+      "781e5013-2cb9-9413-7323-bbef50068462": {
+        "typeFullFqn": "system.cards.markdown_card",
+        "type": "latest",
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": "",
+              "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
+              "dataKeys": [
+                {
+                  "name": "pulseCounter",
+                  "type": "timeseries",
+                  "label": "totalConsumption",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.7394107634683736,
+                  "aggregationType": "NONE",
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value || 0;"
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1750835338770,
+                "endTimeMs": 1750921738770
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextPattern": "<div class='card' id=\"analyticsCard\">\n    <div class='content' id=\"analyticsCard\">\n        <div class='value' id=\"analyticsCard\">\n            ${weeklyConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description' id=\"analyticsCard\">\n            Consumed per current week\n        </div>\n    </div>\n</div>",
+            "markdownTextFunction": "const unit = {\n  from: 'm³',\n  METRIC: 'm³',\n  IMPERIAL: 'ft³',\n  HYBRID: 'm³'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data[0]['totalConsumption'], unit).toFixed(2);\n\nreturn `<div class='card'>\n<div class='content'>\n<div class='value'>\n${unitValue} ${usrUnit}</sup>\n</div> \n<div class='description'>\nConsumed for all time\n</div>\n</div>\n</div>`;",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": ".card {\n position: absolute;   /* тягнеться у всі краї */\n  top: 0; right: 0; bottom: 0; left: 0;\n  border: 1px solid #E0E0E0;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}"
+          },
+          "title": "Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "781e5013-2cb9-9413-7323-bbef50068462"
+      },
+      "6f217a43-ea57-bc4e-750b-823758ace483": {
+        "typeFullFqn": "system.cards.markdown_card",
+        "type": "latest",
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": "",
+              "entityAliasId": "2754dd92-28a3-a689-d65c-ab9001a86f73",
+              "dataKeys": [
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "temperature",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.7394107634683736,
+                  "aggregationType": "NONE",
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": false,
+                  "postFuncBody": null
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1750835338770,
+                "endTimeMs": 1750921738770
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextPattern": "<div class='card' id=\"analyticsCard\">\n    <div class='content' id=\"analyticsCard\">\n        <div class='value' id=\"analyticsCard\">\n            ${weeklyConsumption:2} m<sup>3</sup>\n        </div> \n        <div class='description' id=\"analyticsCard\">\n            Consumed per current week\n        </div>\n    </div>\n</div>",
+            "markdownTextFunction": "const unit = {\n  from: '°C',\n  METRIC: '°C',\n  IMPERIAL: '°F',\n  HYBRID: '°C'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\nvar unitValue = ctx.unitService.convertUnitValue(data[0]['temperature'], unit).toFixed(2);\n\nreturn `<div class='card'>\n<div class='content'>\n<div class='value'>\n${unitValue} ${usrUnit}</sup>\n</div> \n<div class='description'>\nTemperature\n</div>\n</div>\n</div>`;",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": ".card {\n position: absolute;   /* тягнеться у всі краї */\n  top: 0; right: 0; bottom: 0; left: 0;\n  border: 1px solid #E0E0E0;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  box-sizing: border-box;\n}\n\n.card .content {\n   padding: 22px 30px;\n   display: flex;\n   flex-direction: column;\n   align-items: center;\n   justify-content: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .value {\n    font-size: 1.5em;\n    font-weight: bold;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n.card .description {\n    font-size: 1em;\n    font-weight: normal;\n    line-height: 1.5;\n    color: #333333;\n    text-align: center;\n}\n\n@media (min-width: 960px) and (max-width: 1200px) {\n    .card .value {\n        font-size: 1.2em;\n        line-height: 1;\n    }\n    \n    .card .description {\n        font-size: 0.8em;\n        line-height: 1;\n    }\n}"
+          },
+          "title": "Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "6f217a43-ea57-bc4e-750b-823758ace483"
       }
     },
     "states": {
@@ -16753,14 +16971,6 @@
                 "mobileHeight": 4,
                 "row": 4,
                 "col": 27
-              },
-              "0f9314f3-6f25-3e97-e2a4-8e2a16feda2b": {
-                "sizeX": 9,
-                "sizeY": 3,
-                "mobileOrder": 7,
-                "mobileHeight": 2,
-                "row": 1,
-                "col": 0
               },
               "17543c57-af4a-2c1e-bf12-53a7b46791e6": {
                 "sizeX": 9,
@@ -16850,6 +17060,12 @@
                 "resizable": true,
                 "row": 4,
                 "col": 0
+              },
+              "1c92c222-750e-39ff-fc80-ee3a1fc4035c": {
+                "sizeX": 9,
+                "sizeY": 3,
+                "row": 1,
+                "col": 0
               }
             },
             "gridSettings": {
@@ -16874,12 +17090,6 @@
         "layouts": {
           "main": {
             "widgets": {
-              "41f3bd64-9293-91b4-60aa-eeb4971f96bd": {
-                "sizeX": 9,
-                "sizeY": 3,
-                "row": 1,
-                "col": 0
-              },
               "47beef8a-be00-49f9-fd8e-3b4c409e0a1a": {
                 "sizeX": 9,
                 "sizeY": 3,
@@ -16959,6 +17169,12 @@
                 "col": 30,
                 "mobileOrder": 6,
                 "mobileHeight": 1
+              },
+              "70d8ba92-8972-373a-abdd-3e037b0715ea": {
+                "sizeX": 9,
+                "sizeY": 3,
+                "row": 1,
+                "col": 0
               }
             },
             "gridSettings": {
@@ -17252,14 +17468,6 @@
         "layouts": {
           "main": {
             "widgets": {
-              "2f9a86a1-b6ac-6fee-e67c-cbe72f2d41a7": {
-                "sizeX": 9,
-                "sizeY": 3,
-                "row": 1,
-                "col": 0,
-                "mobileOrder": 7,
-                "mobileHeight": 2
-              },
               "1bfaeb7d-8b3c-d7cb-20bb-3cb9bcca4b7c": {
                 "sizeX": 9,
                 "sizeY": 8,
@@ -17267,22 +17475,6 @@
                 "col": 27,
                 "mobileOrder": 12,
                 "mobileHeight": 4
-              },
-              "6f390f15-d267-3d9d-3afd-5b18247ddc2d": {
-                "sizeX": 9,
-                "sizeY": 3,
-                "row": 1,
-                "col": 9,
-                "mobileOrder": 8,
-                "mobileHeight": 2
-              },
-              "328e8d85-ed7c-ae06-d537-3edc002de94c": {
-                "sizeX": 9,
-                "sizeY": 3,
-                "row": 1,
-                "col": 18,
-                "mobileOrder": 9,
-                "mobileHeight": 2
               },
               "b96457f0-6b59-a580-4c3d-2eb919d56603": {
                 "sizeX": 9,
@@ -17388,6 +17580,24 @@
                 "resizable": true,
                 "row": 12,
                 "col": 0
+              },
+              "f12dfc5f-eb54-5c71-e1df-d585eeca7a00": {
+                "sizeX": 9,
+                "sizeY": 3,
+                "row": 1,
+                "col": 0
+              },
+              "781e5013-2cb9-9413-7323-bbef50068462": {
+                "sizeX": 9,
+                "sizeY": 3,
+                "row": 1,
+                "col": 9
+              },
+              "6f217a43-ea57-bc4e-750b-823758ace483": {
+                "sizeX": 9,
+                "sizeY": 3,
+                "row": 1,
+                "col": 18
               }
             },
             "gridSettings": {
