@@ -38,6 +38,7 @@ import {
   OnDestroy,
   OnInit,
   Renderer2,
+  TemplateRef,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
