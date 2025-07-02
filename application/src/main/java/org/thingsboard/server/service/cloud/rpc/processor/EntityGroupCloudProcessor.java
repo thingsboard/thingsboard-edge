@@ -122,7 +122,7 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                                 }, dbCallbackExecutorService);
                             }, dbCallbackExecutorService);
                         } else {
-                            log.info("[{}] Entity group was not found [{}]", tenantId, entityGroupUpdateMsg);
+                            log.trace("[{}] Entity group was not found [{}]", tenantId, entityGroupUpdateMsg);
                             return Futures.immediateFuture(null);
                         }
                     }, dbCallbackExecutorService);

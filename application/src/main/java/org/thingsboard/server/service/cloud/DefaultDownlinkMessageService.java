@@ -379,20 +379,6 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(userProcessor.processUserCredentialsMsgFromCloud(tenantId, userCredentialsUpdateMsg));
                 }
             }
-            if (downlinkMsg.getEntityGroupUpdateMsgCount() > 0) {
-                for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
-                    result.add(entityGroupProcessor.processEntityGroupMsgFromCloud(tenantId, entityGroupUpdateMsg));
-                }
-            }
-            if (downlinkMsg.hasCustomTranslationUpdateMsg()) {
-                result.add(customTranslationProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomTranslationUpdateMsg()));
-            }
-            if (downlinkMsg.hasCustomMenuProto()) {
-                result.add(customMenuProcessor.processCustomMenuMsgFromCloud(tenantId, downlinkMsg.getCustomMenuProto()));
-            }
-            if (downlinkMsg.hasWhiteLabelingProto()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingMsgFromCloud(tenantId, downlinkMsg.getWhiteLabelingProto()));
-            }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
                     result.add(schedulerEventProcessor.processScheduleEventFromCloud(tenantId, schedulerEventUpdateMsg));
@@ -460,7 +446,31 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getOAuth2DomainUpdateMsgCount() > 0) {
                 for (OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg : downlinkMsg.getOAuth2DomainUpdateMsgList()) {
-                    result.add(oAuth2CloudProcessor.processDomainMsgFromCloud(oAuth2DomainUpdateMsg));
+                    sequenceDependencyLock.lock();
+                    try {
+                        result.add(oAuth2CloudProcessor.processDomainMsgFromCloud(oAuth2DomainUpdateMsg));
+                    } finally {
+                        sequenceDependencyLock.unlock();
+                    }
+                }
+            }
+            if (downlinkMsg.getEntityGroupUpdateMsgCount() > 0) {
+                for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
+                    result.add(entityGroupProcessor.processEntityGroupMsgFromCloud(tenantId, entityGroupUpdateMsg));
+                }
+            }
+            if (downlinkMsg.hasCustomTranslationUpdateMsg()) {
+                result.add(customTranslationProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomTranslationUpdateMsg()));
+            }
+            if (downlinkMsg.hasCustomMenuProto()) {
+                result.add(customMenuProcessor.processCustomMenuMsgFromCloud(tenantId, downlinkMsg.getCustomMenuProto()));
+            }
+            if (downlinkMsg.hasWhiteLabelingProto()) {
+                sequenceDependencyLock.lock();
+                try {
+                    result.add(whiteLabelingProcessor.processWhiteLabelingMsgFromCloud(tenantId, downlinkMsg.getWhiteLabelingProto()));
+                } finally {
+                    sequenceDependencyLock.unlock();
                 }
             }
             if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
