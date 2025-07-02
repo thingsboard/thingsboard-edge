@@ -91,9 +91,11 @@
                                     <arguments>
                                         <argument>buildx</argument>
                                         <argument>build</argument>
+                                        <argument>--pull</argument> <!-- forces latest base image -->
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${docker.name}:latest</argument>
                                         <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
+                                        <argument>--no-cache</argument> <!-- ensures no cache is used -->
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>
@@ -112,9 +114,11 @@
                                     <arguments>
                                         <argument>buildx</argument>
                                         <argument>build</argument>
+                                        <argument>--pull</argument> <!-- forces latest base image -->
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${docker.name}:${project.version}</argument>
                                         <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
+                                        <argument>--no-cache</argument> <!-- ensures no cache is used -->
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>
