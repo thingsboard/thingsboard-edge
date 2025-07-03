@@ -5065,12 +5065,16 @@ public class RestClient implements Closeable {
                 WhiteLabelingParams.class).getBody();
     }
 
+    public void deleteWhiteLabelParams() {restTemplate.delete(baseURL + "/api/whiteLabel/currentWhiteLabelParams");}
+
     public LoginWhiteLabelingParams saveLoginWhiteLabelParams(LoginWhiteLabelingParams loginWhiteLabelingParams) {
         return restTemplate.postForEntity(
                 baseURL + "/api/whiteLabel/loginWhiteLabelParams",
                 loginWhiteLabelingParams,
                 LoginWhiteLabelingParams.class).getBody();
     }
+
+    public void deleteLoginWhiteLabelParams() {restTemplate.delete(baseURL + "/api/whiteLabel/currentLoginWhiteLabelParams");}
 
     public WhiteLabelingParams previewWhiteLabelParams(WhiteLabelingParams whiteLabelingParams) {
         return restTemplate.postForEntity(
@@ -5100,4 +5104,5 @@ public class RestClient implements Closeable {
                 baseURL + "/api/whiteLabel/appThemeCss",
                 paletteSettings, String.class).getBody();
     }
+
 }
