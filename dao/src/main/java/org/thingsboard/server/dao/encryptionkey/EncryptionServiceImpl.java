@@ -126,6 +126,11 @@ public class EncryptionServiceImpl implements EncryptionService {
         encryptionKeyDao.deleteByTenantId(tenantId);
     }
 
+    @Override
+    public EncryptionKey findByTenantId(TenantId tenantId) {
+        return encryptionKeyDao.findByTenantId(tenantId);
+    }
+
     @EventListener(ComponentLifecycleMsg.class)
     public void handleComponentLifecycleEvent(ComponentLifecycleMsg event) {
         if (ComponentLifecycleEvent.DELETED.equals(event.getEvent())) {

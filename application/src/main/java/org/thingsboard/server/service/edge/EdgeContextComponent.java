@@ -55,6 +55,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.encryptionkey.EncryptionService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -72,6 +73,7 @@ import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.secret.SecretService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -381,6 +383,12 @@ public class EdgeContextComponent {
 
     @Autowired
     private CalculatedFieldService calculatedFieldService;
+
+    @Autowired
+    private EncryptionService encryptionService;
+
+    @Autowired
+    private SecretService secretService;
 
     @Autowired
     private CalculatedFieldProcessor calculatedFieldProcessor;

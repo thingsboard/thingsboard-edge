@@ -186,7 +186,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
             default -> switch (type) {
                 case ALARM, ALARM_COMMENT, RULE_CHAIN, RULE_CHAIN_METADATA, CUSTOMER, TENANT, TENANT_PROFILE, WIDGETS_BUNDLE, WIDGET_TYPE,
                      ADMIN_SETTINGS, OTA_PACKAGE, QUEUE, RELATION, CALCULATED_FIELD, NOTIFICATION_TEMPLATE, NOTIFICATION_TARGET, NOTIFICATION_RULE,
-                     ROLE, INTEGRATION, CONVERTER, WHITE_LABELING, LOGIN_WHITE_LABELING, CUSTOM_TRANSLATION, CUSTOM_MENU, MAIL_TEMPLATES -> true;
+                     ROLE, INTEGRATION, CONVERTER, WHITE_LABELING, LOGIN_WHITE_LABELING, CUSTOM_TRANSLATION, CUSTOM_MENU, MAIL_TEMPLATES, SECRET -> true;
                 default -> false;
             };
         };
@@ -335,8 +335,8 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
     }
 
     protected ListenableFuture<Void> pushNotificationToAllRelatedEdges(TenantId tenantId, EntityId ownerEntityId, EntityId entityId, EdgeEventType type,
-                                                                     EdgeEventActionType actionType, JsonNode body,
-                                                                     EntityGroupId entityGroupId, EdgeId sourceEdgeId) {
+                                                                       EdgeEventActionType actionType, JsonNode body,
+                                                                       EntityGroupId entityGroupId, EdgeId sourceEdgeId) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         PageDataIterableByTenantIdEntityId<EdgeId> edgeIds =
                 new PageDataIterableByTenantIdEntityId<>(edgeCtx.getEdgeService()::findRelatedEdgeIdsByEntityId, tenantId, ownerEntityId, RELATED_EDGES_CACHE_ITEMS);

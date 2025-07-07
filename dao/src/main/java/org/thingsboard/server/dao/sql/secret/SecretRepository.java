@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.dao.sql.secret;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -40,6 +42,14 @@ import org.thingsboard.server.dao.model.sql.SecretEntity;
 import java.util.UUID;
 
 public interface SecretRepository extends JpaRepository<SecretEntity, UUID> {
+
+    @Query("SELECT d FROM SecretEntity d WHERE d.tenantId = :tenantId AND " +
+            "(:searchText is NULL OR " +
+            "ilike(d.name, concat('%', :searchText, '%')) = true OR " +
+            "ilike(d.description, concat('%', :searchText, '%')) = true)")
+    Page<SecretEntity> findByTenantId(@Param("tenantId") UUID tenantId,
+                                      @Param("searchText") String searchText,
+                                      Pageable pageable);
 
     SecretEntity findByTenantIdAndName(UUID id, String name);
 

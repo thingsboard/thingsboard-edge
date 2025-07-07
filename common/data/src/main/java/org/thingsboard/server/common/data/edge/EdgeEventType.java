@@ -74,7 +74,9 @@ public enum EdgeEventType {
     DEVICE_GROUP_OTA(false, null),
     OAUTH2_CLIENT(true, EntityType.OAUTH2_CLIENT),
     DOMAIN(true, EntityType.DOMAIN),
-    CALCULATED_FIELD(false, EntityType.CALCULATED_FIELD);
+    CALCULATED_FIELD(false, EntityType.CALCULATED_FIELD),
+    ENCRYPTION_KEY(true, null),
+    SECRET(true, EntityType.SECRET);
 
     private final boolean allEdgesRelated;
 

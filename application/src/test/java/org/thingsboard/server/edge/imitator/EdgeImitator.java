@@ -48,8 +48,8 @@ import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -61,6 +61,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.v1.EncryptionKeyUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
@@ -79,6 +80,7 @@ import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.SecretUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -326,7 +328,7 @@ public class EdgeImitator {
             }
         }
         if (downlinkMsg.getEntityGroupUpdateMsgCount() > 0) {
-            for (EntityGroupUpdateMsg entityGroupUpdateMsg: downlinkMsg.getEntityGroupUpdateMsgList()) {
+            for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
                 result.add(saveDownlinkMsg(entityGroupUpdateMsg));
             }
         }
@@ -422,6 +424,16 @@ public class EdgeImitator {
         if (downlinkMsg.getCalculatedFieldUpdateMsgCount() > 0) {
             for (CalculatedFieldUpdateMsg calculatedFieldUpdateMsg : downlinkMsg.getCalculatedFieldUpdateMsgList()) {
                 result.add(saveDownlinkMsg(calculatedFieldUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getEncryptionKeyUpdateMsgCount() > 0) {
+            for (EncryptionKeyUpdateMsg encryptionKeyUpdateMsg : downlinkMsg.getEncryptionKeyUpdateMsgList()) {
+                result.add(saveDownlinkMsg(encryptionKeyUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getSecretUpdateMsgCount() > 0) {
+            for (SecretUpdateMsg secretUpdateMsg : downlinkMsg.getSecretUpdateMsgList()) {
+                result.add(saveDownlinkMsg(secretUpdateMsg));
             }
         }
         if (downlinkMsg.hasEdgeConfiguration()) {

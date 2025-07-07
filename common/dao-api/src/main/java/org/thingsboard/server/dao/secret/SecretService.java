@@ -60,6 +60,8 @@ public interface SecretService extends EntityDaoService {
 
     List<String> findSecretNamesByTenantId(TenantId tenantId);
 
+    PageData<Secret> findSecretsByTenantId(TenantId tenantId, PageLink pageLink);
+
     PageData<SecretInfo> findSecretInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
     Map<EntityType, List<EntityInfo>> findEntitiesBySecret(TenantId tenantId, SecretInfo secretInfo);
