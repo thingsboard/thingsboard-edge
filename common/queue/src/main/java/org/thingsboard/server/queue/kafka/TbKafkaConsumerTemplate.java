@@ -24,6 +24,7 @@ import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.util.StopWatch;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -49,7 +50,7 @@ import java.util.stream.IntStream;
  * Created by ashvayka on 24.09.18.
  */
 @Slf4j
-public class TbKafkaConsumerTemplate<T extends TbQueueMsg> extends AbstractTbQueueConsumerTemplate<ConsumerRecord<String, byte[]>, T> {
+public class TbKafkaConsumerTemplate<T extends TbQueueMsg> extends AbstractTbQueueConsumerTemplate<ConsumerRecord<String, byte[]>, T> implements KafkaLagAware {
 
     private final TbKafkaAdmin admin;
     private final KafkaConsumer<String, byte[]> consumer;
@@ -238,6 +239,35 @@ public class TbKafkaConsumerTemplate<T extends TbQueueMsg> extends AbstractTbQue
     @Override
     public boolean isLongPollingSupported() {
         return true;
+    }
+
+    @Override
+    public Map<TopicPartition, Long> getLagPerPartition() {
+        try {
+            Set<TopicPartition> assignedPartitions = consumer.assignment();
+
+            if (assignedPartitions.isEmpty()) {
+                log.debug("No assigned partitions to calculate lag");
+                return Collections.emptyMap();
+            }
+
+            Map<TopicPartition, Long> endOffsets = consumer.endOffsets(assignedPartitions);
+            Map<TopicPartition, Long> lagMap = new HashMap<>();
+
+            for (TopicPartition tp : assignedPartitions) {
+                OffsetAndMetadata committed = consumer.committed(tp);
+                if (committed != null) {
+                    long lag = endOffsets.get(tp) - committed.offset();
+                    lagMap.put(tp, lag);
+                } else {
+                    lagMap.put(tp, endOffsets.get(tp));
+                }
+            }
+            return lagMap;
+        } catch (Exception e) {
+            log.error("Failed to get Kafka lag", e);
+            return Collections.emptyMap();
+        }
     }
 
 }

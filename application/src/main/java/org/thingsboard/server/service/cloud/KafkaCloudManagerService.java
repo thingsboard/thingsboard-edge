@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -161,6 +162,18 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         } catch (Exception e) {
             log.error("Failed to process all uplink messages", e);
         }
+    }
+
+    public long getUplinkLag() {
+        if (consumer != null && tsConsumer != null) {
+            long result = Stream.concat(
+                    consumer.getLagPerPartition().values().stream(),
+                    tsConsumer.getLagPerPartition().values().stream()
+            ).mapToLong(Long::longValue).sum();
+            log.debug("Calculated kafka uplink lag: {}", result);
+            return result;
+        }
+        return 0;
     }
 
 }
