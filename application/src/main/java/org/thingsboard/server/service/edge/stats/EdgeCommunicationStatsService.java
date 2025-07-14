@@ -39,12 +39,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class EdgeCommunicationStatsService {
+    private static final long IGNORE_SELF_STATS_DELTA = -1;
+
     private static final String UPLINK_MSGS_ADDED = "uplinkMsgsAdded";
     private static final String UPLINK_MSGS_PUSHED = "uplinkMsgsPushed";
     private static final String UPLINK_MSGS_PERMANENTLY_FAILED = "uplinkMsgsPermanentlyFailed";
@@ -56,6 +57,7 @@ public class EdgeCommunicationStatsService {
     private static final String DOWNLINK_MSGS_PERMANENTLY_FAILED = "downlinkMsgsPermanentlyFailed";
     private static final String DOWNLINK_MSGS_LAG = "downlinkMsgsLag";
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Autowired
     private EdgeSettingsService edgeSettingsService;
@@ -63,7 +65,7 @@ public class EdgeCommunicationStatsService {
     private TimeseriesService tsService;
     @Autowired
     private TbClusterService tbClusterService;
-    @Autowired
+    @Autowired(required = false)
     private KafkaCloudManagerService kafkaCloudManagerService;
 
     private TenantId tenantId;
@@ -76,16 +78,8 @@ public class EdgeCommunicationStatsService {
     @Value("${edge.stats.report-interval-millis:20000}")
     private long reportIntervalMillis;
 
-    private final AtomicLong uplinkMsgsAdded = new AtomicLong();
-    private final AtomicLong uplinkMsgsPushed = new AtomicLong();
-    private final AtomicLong uplinkMsgsPermanentlyFailed = new AtomicLong();
-    private final AtomicLong uplinkMsgsTmpFailed = new AtomicLong();
-    private final AtomicLong uplinkMsgsLag = new AtomicLong();
-
-    private final AtomicLong downlinkMsgsAdded = new AtomicLong();
-    private final AtomicLong downlinkMsgsPushed = new AtomicLong();
-    private final AtomicLong downlinkMsgsPermanentlyFailed = new AtomicLong();
-    private final AtomicLong downlinkMsgsLag = new AtomicLong();
+    private final EdgeMsgCounters uplinkCounters = new EdgeMsgCounters();
+    private final EdgeMsgCounters downlinkCounters = new EdgeMsgCounters();
 
     @Scheduled(fixedDelayString = "${edge.stats.report-interval-millis:20000}")
     public void reportStats() {
@@ -95,21 +89,29 @@ public class EdgeCommunicationStatsService {
                 return;
             }
             initTenantIdAndEdgeId();
-            setUplinkMsgsLag(kafkaCloudManagerService.getUplinkLag());
+
+            if (kafkaCloudManagerService != null) {
+                uplinkCounters.getMsgsLag().set(kafkaCloudManagerService.getUplinkLag());
+            }
+            // Exclude self-generated stats TbMsg from uplink stats
+            uplinkCounters.getMsgsAdded().addAndGet(IGNORE_SELF_STATS_DELTA);
+            uplinkCounters.getMsgsPushed().addAndGet(IGNORE_SELF_STATS_DELTA);
+            downlinkCounters.getMsgsLag().updateAndGet(value -> Math.max(0, value));
 
             long ts = (System.currentTimeMillis() / reportIntervalMillis) * reportIntervalMillis;
             List<TsKvEntry> statsEntries = List.of(
-                    new BasicTsKvEntry(ts, new LongDataEntry(UPLINK_MSGS_ADDED, uplinkMsgsAdded.get())),
-                    new BasicTsKvEntry(ts, new LongDataEntry(UPLINK_MSGS_PUSHED, uplinkMsgsPushed.get())),
-                    new BasicTsKvEntry(ts, new LongDataEntry(UPLINK_MSGS_PERMANENTLY_FAILED, uplinkMsgsPermanentlyFailed.get())),
-                    new BasicTsKvEntry(ts, new LongDataEntry(UPLINK_MSGS_TMP_FAILED, uplinkMsgsTmpFailed.get())),
-                    new BasicTsKvEntry(ts, new LongDataEntry(UPLINK_MSGS_LAG, uplinkMsgsLag.get())),
+                    entry(ts, UPLINK_MSGS_ADDED, uplinkCounters.getMsgsAdded().get()),
+                    entry(ts, UPLINK_MSGS_PUSHED, uplinkCounters.getMsgsPushed().get()),
+                    entry(ts, UPLINK_MSGS_PERMANENTLY_FAILED, uplinkCounters.getMsgsPermanentlyFailed().get()),
+                    entry(ts, UPLINK_MSGS_TMP_FAILED, uplinkCounters.getMsgsTmpFailed().get()),
+                    entry(ts, UPLINK_MSGS_LAG, uplinkCounters.getMsgsLag().get()),
 
-                    new BasicTsKvEntry(ts, new LongDataEntry(DOWNLINK_MSGS_ADDED, downlinkMsgsAdded.get())),
-                    new BasicTsKvEntry(ts, new LongDataEntry(DOWNLINK_MSGS_PUSHED, downlinkMsgsPushed.get())),
-                    new BasicTsKvEntry(ts, new LongDataEntry(DOWNLINK_MSGS_PERMANENTLY_FAILED, downlinkMsgsPermanentlyFailed.get())),
-                    new BasicTsKvEntry(ts, new LongDataEntry(DOWNLINK_MSGS_LAG, downlinkMsgsLag.get()))
+                    entry(ts, DOWNLINK_MSGS_ADDED, downlinkCounters.getMsgsAdded().get()),
+                    entry(ts, DOWNLINK_MSGS_PUSHED, downlinkCounters.getMsgsPushed().get()),
+                    entry(ts, DOWNLINK_MSGS_PERMANENTLY_FAILED, downlinkCounters.getMsgsPermanentlyFailed().get()),
+                    entry(ts, DOWNLINK_MSGS_LAG, downlinkCounters.getMsgsLag().get())
             );
+
             log.trace("Reported Edge communication stats: {}",
                     statsEntries.stream()
                             .map(entry -> entry.getKey() + "=" + entry.getValueAsString())
@@ -119,10 +121,9 @@ public class EdgeCommunicationStatsService {
             long telemetryTtlSeconds = TimeUnit.DAYS.toSeconds(edgeStatsTtlDays);
             tsService.save(tenantId, edgeId, statsEntries, telemetryTtlSeconds);
 
-            ObjectMapper objectMapper = new ObjectMapper();
             Map<String, String> statsMap = statsEntries.stream()
                     .collect(Collectors.toMap(TsKvEntry::getKey, TsKvEntry::getValueAsString));
-            String statsJson = objectMapper.writeValueAsString(statsMap);
+            String statsJson = OBJECT_MAPPER.writeValueAsString(statsMap);
 
             TbMsg tbMsg = TbMsg.newMsg()
                     .type(TbMsgType.POST_TELEMETRY_REQUEST)
@@ -137,7 +138,13 @@ public class EdgeCommunicationStatsService {
             log.warn("Failed to push telemetry TbMsg to Rule Engine", e);
         }
 
-        clearCounters();
+        // clear counters for next interval
+        uplinkCounters.clear();
+        downlinkCounters.clear();
+    }
+
+    private BasicTsKvEntry entry(long ts, String key, long value) {
+        return new BasicTsKvEntry(ts, new LongDataEntry(key, value));
     }
 
     private void initTenantIdAndEdgeId() {
@@ -148,52 +155,44 @@ public class EdgeCommunicationStatsService {
         }
     }
 
-    private void clearCounters() {
-        uplinkMsgsAdded.set(0);
-        uplinkMsgsPushed.set(0);
-        uplinkMsgsPermanentlyFailed.set(0);
-        uplinkMsgsTmpFailed.set(0);
-        downlinkMsgsAdded.set(0);
-        downlinkMsgsPushed.set(0);
-        downlinkMsgsPermanentlyFailed.set(0);
-    }
-
     public void incrementUplinkMsgsAdded(long count) {
-        uplinkMsgsAdded.addAndGet(count);
+        uplinkCounters.getMsgsAdded().addAndGet(count);
     }
 
     public void incrementUplinkMsgsPushed(long count) {
-        uplinkMsgsPushed.addAndGet(count);
+        uplinkCounters.getMsgsPushed().addAndGet(count);
     }
 
     public void incrementUplinkMsgsPermanentlyFailed(long count) {
-        uplinkMsgsPermanentlyFailed.addAndGet(count);
+        uplinkCounters.getMsgsPermanentlyFailed().addAndGet(count);
     }
 
     public void incrementUplinkMsgsTmpFailed(long count) {
-        uplinkMsgsTmpFailed.addAndGet(count);
+        uplinkCounters.getMsgsTmpFailed().addAndGet(count);
     }
 
-    public void setUplinkMsgsLag(long count) {uplinkMsgsLag.set(count);}
+    public void setUplinkMsgsLag(long count) {
+        uplinkCounters.getMsgsLag().set(count);
+    }
 
     public void incrementDownlinkMsgsAdded() {
-        downlinkMsgsAdded.incrementAndGet();
+        downlinkCounters.getMsgsAdded().incrementAndGet();
     }
 
     public void incrementDownlinkMsgsPushed() {
-        downlinkMsgsPushed.incrementAndGet();
+        downlinkCounters.getMsgsPushed().incrementAndGet();
     }
 
     public void incrementDownlinkMsgsPermanentlyFailed() {
-        downlinkMsgsPermanentlyFailed.incrementAndGet();
+        downlinkCounters.getMsgsPermanentlyFailed().incrementAndGet();
     }
 
     public void incrementDownlinkMsgsLag() {
-        downlinkMsgsLag.incrementAndGet();
+        downlinkCounters.getMsgsLag().incrementAndGet();
     }
 
     public void decrementDownlinkMsgsLag() {
-        downlinkMsgsLag.decrementAndGet();
+        downlinkCounters.getMsgsLag().decrementAndGet();
     }
 
 }

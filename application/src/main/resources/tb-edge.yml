@@ -2106,6 +2106,9 @@ mqtt:
 
 edge:
   stats:
+    # Enable or disable reporting of edge communication stats (true or false)
+    enabled: "${EDGE_STATS_ENABLED:true}"
+    # Time-to-live in days for stored edge communication stats in timeseries
     ttl: "${EDGE_STATS_TTL:7}"
+    # How often to report edge communication stats in milliseconds
     report-interval-millis: "${EDGE_STATS_REPORT_INTERVAL_MS:20000}"
-    enabled: "${EDGE_STATS_ENABLED:true}}"

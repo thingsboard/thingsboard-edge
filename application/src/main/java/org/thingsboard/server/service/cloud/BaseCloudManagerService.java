@@ -294,7 +294,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     pageLink = pageLink.nextPageLink();
                     if (cloudEvents.hasNext()) {
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
-                        int queueSize = pageLink.getPageSize() * (cloudEvents.getTotalPages() - pageLink.getPage());
+                        long queueSize = cloudEvents.getTotalElements() - (long) pageLink.getPageSize() * (cloudEvents.getTotalPages() - pageLink.getPage());
                         edgeStatsService.setUplinkMsgsLag(queueSize);
                         log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
                                 queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
@@ -755,9 +755,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     success = sendUplinkMsgPack(new LinkedBlockingQueue<>(pendingMsgMap.values())) && pendingMsgMap.isEmpty();
 
                     if (!success) {
-                        if (attempt == 1) {
-                            edgeStatsService.incrementUplinkMsgsTmpFailed(pendingMsgMap.size());
-                        }
+                        edgeStatsService.incrementUplinkMsgsTmpFailed(pendingMsgMap.size());
                         log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
