@@ -15,38 +15,38 @@
  */
 package org.thingsboard.server.service.edge.stats;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.msg.TbMsgType;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.discovery.TopicService;
 import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class EdgeCommunicationStatsService {
     private static final long IGNORE_SELF_STATS_DELTA = -1;
+
+    private static final String CLOUD_EVENT_CONSUMER = "-cloud-event-consumer";
+    private static final String CLOUD_EVENT_TS_CONSUMER = "-cloud-event-ts-consumer";
 
     private static final String UPLINK_MSGS_ADDED = "uplinkMsgsAdded";
     private static final String UPLINK_MSGS_PUSHED = "uplinkMsgsPushed";
@@ -54,14 +54,12 @@ public class EdgeCommunicationStatsService {
     private static final String UPLINK_MSGS_TMP_FAILED = "uplinkMsgsTmpFailed";
     private static final String UPLINK_MSGS_LAG = "uplinkMsgsLag";
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     @Autowired
     private EdgeSettingsService edgeSettingsService;
     @Autowired
     private TimeseriesService tsService;
     @Autowired
-    private TbClusterService tbClusterService;
+    private CloudEventService cloudEventService;
     @Autowired(required = false)
     private TbKafkaAdmin tbKafkaAdmin;
     @Autowired(required = false)
@@ -70,12 +68,14 @@ public class EdgeCommunicationStatsService {
     private TenantId tenantId;
     private EdgeId edgeId;
 
-    @Value("${edge.stats.enabled:true}")
+    @Value("${cloud.stats.enabled:true}")
     private boolean edgeStatsEnabled;
-    @Value("${edge.stats.ttl-days:7}")
+    @Value("${cloud.stats.ttl-days:7}")
     private int edgeStatsTtlDays;
-    @Value("${edge.stats.report-interval-millis:20000}")
+    @Value("${cloud.stats.report-interval-millis:20000}")
     private long reportIntervalMillis;
+    @Value("${service.type:monolith}")
+    private String serviceType;
 
     private final EdgeMsgCounters uplinkCounters = new EdgeMsgCounters();
 
@@ -88,12 +88,8 @@ public class EdgeCommunicationStatsService {
                 return;
             }
             initTenantIdAndEdgeId();
-            TopicPartitionInfo topic = topicService.getEdgeEventNotificationsTopic(tenantId, edgeId);
-            if (topic != null) {
-                String groupId = topic.getTopic();
-                long uplinkLag = tbKafkaAdmin.getTotalLagForGroup(groupId);
-                uplinkCounters.getMsgsLag().set(uplinkLag);
-            }
+            updateLagIfKafkaEnabled();
+
             // Exclude self-generated stats TbMsg from uplink stats
             uplinkCounters.getMsgsAdded().addAndGet(IGNORE_SELF_STATS_DELTA);
             uplinkCounters.getMsgsPushed().addAndGet(IGNORE_SELF_STATS_DELTA);
@@ -107,34 +103,37 @@ public class EdgeCommunicationStatsService {
                     entry(ts, UPLINK_MSGS_LAG, uplinkCounters.getMsgsLag().get())
             );
 
-            log.trace("Reported Edge communication stats: {}",
-                    statsEntries.stream()
-                            .map(entry -> entry.getKey() + "=" + entry.getValueAsString())
-                            .collect(Collectors.joining(", "))
-            );
+            ObjectNode statsJson = JacksonUtil.newObjectNode();
+            statsEntries.forEach(entry -> statsJson.put(entry.getKey(), entry.getValueAsString()));
+
+            log.trace("Reported Edge communication stats: {}", statsJson);
 
             long telemetryTtlSeconds = TimeUnit.DAYS.toSeconds(edgeStatsTtlDays);
             tsService.save(tenantId, edgeId, statsEntries, telemetryTtlSeconds);
 
-            Map<String, String> statsMap = statsEntries.stream()
-                    .collect(Collectors.toMap(TsKvEntry::getKey, TsKvEntry::getValueAsString));
-            String statsJson = OBJECT_MAPPER.writeValueAsString(statsMap);
+            cloudEventService.saveCloudEvent(
+                    tenantId,
+                    CloudEventType.EDGE,
+                    EdgeEventActionType.TIMESERIES_UPDATED,
+                    edgeId,
+                    statsJson
+            );
 
-            TbMsg tbMsg = TbMsg.newMsg()
-                    .type(TbMsgType.POST_TELEMETRY_REQUEST)
-                    .originator(edgeId)
-                    .dataType(TbMsgDataType.JSON)
-                    .data(statsJson)
-                    .build();
-
-            tbClusterService.pushMsgToRuleEngine(tenantId, edgeId, tbMsg, null);
-            log.info("Successfully pushed telemetry TbMsg to Rule Engine: {}", statsJson);
+            log.info("Successfully saved cloud event with stats: {}", statsJson);
         } catch (Exception e) {
             log.warn("Failed to push telemetry TbMsg to Rule Engine", e);
+        } finally {
+            // clear counters for next interval
+            uplinkCounters.clear();
         }
+    }
 
-        // clear counters for next interval
-        uplinkCounters.clear();
+    private void updateLagIfKafkaEnabled() {
+        if (tbKafkaAdmin != null) {
+            String cloudEventConsumerGroupId = topicService.buildTopicName(serviceType + CLOUD_EVENT_CONSUMER);
+            String cloudEventTsConsumerGroupId = topicService.buildTopicName(serviceType + CLOUD_EVENT_TS_CONSUMER);
+            setUplinkMsgsLag(tbKafkaAdmin.getTotalLagForGroups(cloudEventConsumerGroupId, cloudEventTsConsumerGroupId));
+        }
     }
 
     private BasicTsKvEntry entry(long ts, String key, long value) {
@@ -149,14 +148,14 @@ public class EdgeCommunicationStatsService {
         }
     }
 
-    public void incrementUplinkMsgsAdded(long count) {uplinkCounters.getMsgsAdded().addAndGet(count);}
+    public void addUplinkMsgsAdded(long value) {uplinkCounters.getMsgsAdded().addAndGet(value);}
 
-    public void incrementUplinkMsgsPushed(long count) {uplinkCounters.getMsgsPushed().addAndGet(count);}
+    public void addUplinkMsgsPushed(long value) {uplinkCounters.getMsgsPushed().addAndGet(value);}
 
-    public void incrementUplinkMsgsPermanentlyFailed(long count) {uplinkCounters.getMsgsPermanentlyFailed().addAndGet(count);}
+    public void addUplinkMsgsPermanentlyFailed(long value) {uplinkCounters.getMsgsPermanentlyFailed().addAndGet(value);}
 
-    public void incrementUplinkMsgsTmpFailed(long count) {uplinkCounters.getMsgsTmpFailed().addAndGet(count);}
+    public void addUplinkMsgsTmpFailed(long value) {uplinkCounters.getMsgsTmpFailed().addAndGet(value);}
 
-    public void setUplinkMsgsLag(long count) {uplinkCounters.getMsgsLag().set(count);}
+    public void setUplinkMsgsLag(long value) {uplinkCounters.getMsgsLag().set(value);}
 
 }

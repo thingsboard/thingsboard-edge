@@ -16,6 +16,7 @@
 package org.thingsboard.server.service.cloud;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -115,35 +116,29 @@ public class PostgresCloudEventService implements CloudEventService {
     public ListenableFuture<Void> saveAsync(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
         log.trace("Save cloud event {}", cloudEvent);
-        ListenableFuture<Void> saveFuture = cloudEventDao.saveAsync(cloudEvent);
-
-        saveFuture.addListener(() -> {
-            try {
-                saveFuture.get();
-                edgeStatsService.incrementUplinkMsgsAdded(1);
-            } catch (Exception e) {
-                log.error("Failed to save cloud event", e);
-            }
-        }, MoreExecutors.directExecutor());
-
-        return saveFuture;
+        return saveCloudEvent(cloudEventDao.saveAsync(cloudEvent));
     }
 
     @Override
     public ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
-        ListenableFuture<Void> saveFuture = tsKvCloudEventDao.saveAsync(cloudEvent);
+        return saveCloudEvent(tsKvCloudEventDao.saveAsync(cloudEvent));
+    }
 
-        saveFuture.addListener(() -> {
-            try {
-                saveFuture.get();
-                edgeStatsService.incrementUplinkMsgsAdded(1);
-            } catch (Exception e) {
-                log.error("Failed to save TS KV cloud event", e);
+    private ListenableFuture<Void> saveCloudEvent(ListenableFuture<Void> cloudEventDao) {
+        Futures.addCallback(cloudEventDao, new FutureCallback<>() {
+            @Override
+            public void onSuccess(Void result) {
+                edgeStatsService.addUplinkMsgsAdded(1);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to save cloud event", t);
             }
         }, MoreExecutors.directExecutor());
 
-        return saveFuture;
+        return cloudEventDao;
     }
 
     @Override

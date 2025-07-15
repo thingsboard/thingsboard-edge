@@ -94,7 +94,7 @@ public class KafkaCloudEventService implements CloudEventService {
         saveCloudEventToTopic(cloudEvent, producer, new TbQueueCallback() {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
-                edgeStatsService.incrementUplinkMsgsAdded(1);
+                edgeStatsService.addUplinkMsgsAdded(1);
                 futureToSet.set(null);
             }
 

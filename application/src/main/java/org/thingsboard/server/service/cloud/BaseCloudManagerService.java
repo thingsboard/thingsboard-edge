@@ -404,11 +404,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         try {
             if (sendingInProgress) {
                 if (msg.getSuccess()) {
-                    edgeStatsService.incrementUplinkMsgsPushed(1);
+                    edgeStatsService.addUplinkMsgsPushed(1);
                     pendingMsgMap.remove(msg.getUplinkMsgId());
                     log.debug("uplink msg has been processed successfully! {}", msg);
                 } else {
-                    edgeStatsService.incrementUplinkMsgsTmpFailed(1);
+                    edgeStatsService.addUplinkMsgsTmpFailed(1);
                     if (msg.getErrorMsg().contains(RATE_LIMIT_REACHED)) {
                         log.warn("uplink msg processing failed! {}", RATE_LIMIT_REACHED);
                         isRateLimitViolated = true;
@@ -767,7 +767,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
                         log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
                                 MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
-                        edgeStatsService.incrementUplinkMsgsPermanentlyFailed(pendingMsgMap.size());
+                        edgeStatsService.addUplinkMsgsPermanentlyFailed(pendingMsgMap.size());
                         sendUplinkFutureResult.set(false);
                         return;
                     }
@@ -806,7 +806,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
                             "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}",
                     uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
-            edgeStatsService.incrementUplinkMsgsPermanentlyFailed(1);
+            edgeStatsService.addUplinkMsgsPermanentlyFailed(1);
             pendingMsgMap.remove(uplinkMsg.getUplinkMsgId());
             latch.countDown();
         }
