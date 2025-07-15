@@ -79,7 +79,7 @@ public class EdgeCommunicationStatsService {
 
     private final EdgeMsgCounters uplinkCounters = new EdgeMsgCounters();
 
-    @Scheduled(fixedDelayString = "${edge.stats.report-interval-millis:20000}")
+    @Scheduled(fixedDelayString = "${cloud.stats.report-interval-millis:20000}")
     public void reportStats() {
         log.debug("Reporting Edge communication stats...");
         try {
