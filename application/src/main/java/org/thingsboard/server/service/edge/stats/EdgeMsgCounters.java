@@ -24,7 +24,7 @@ public class EdgeMsgCounters {
     private final AtomicLong msgsAdded = new AtomicLong();
     private final AtomicLong msgsPushed = new AtomicLong();
     private final AtomicLong msgsPermanentlyFailed = new AtomicLong();
-    private final AtomicLong msgsTmpFailed = new AtomicLong(); // for uplink only
+    private final AtomicLong msgsTmpFailed = new AtomicLong();
     private final AtomicLong msgsLag = new AtomicLong();
 
     public void clear() {

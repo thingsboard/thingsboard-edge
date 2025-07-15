@@ -18,16 +18,12 @@ package org.thingsboard.server.queue.common.consumer;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.TopicPartition;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueMsg;
-import org.thingsboard.server.queue.kafka.KafkaLagAware;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -121,15 +117,7 @@ public class QueueConsumerManager<M extends TbQueueMsg> {
 
     public interface MsgPackProcessor<M extends TbQueueMsg> {
         void process(List<M> msgs, TbQueueConsumer<M> consumer) throws Exception;
-    }
 
-    public Map<TopicPartition, Long> getLagPerPartition() {
-        if (consumer instanceof KafkaLagAware) {
-            return ((KafkaLagAware) consumer).getLagPerPartition();
-        } else {
-            log.warn("[{}] Lag not supported for consumer type: {}", name, consumer.getClass().getSimpleName());
-            return Collections.emptyMap();
-        }
     }
 
 }

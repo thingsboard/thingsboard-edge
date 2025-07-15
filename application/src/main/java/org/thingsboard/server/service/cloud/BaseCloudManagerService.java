@@ -294,7 +294,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     pageLink = pageLink.nextPageLink();
                     if (cloudEvents.hasNext()) {
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
-                        long queueSize = cloudEvents.getTotalElements() - (long) pageLink.getPageSize() * (cloudEvents.getTotalPages() - pageLink.getPage());
+                        long queueSize = Math.max(cloudEvents.getTotalElements() - ((long) pageLink.getPage() * pageLink.getPageSize()), 0);
                         edgeStatsService.setUplinkMsgsLag(queueSize);
                         log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
                                 queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
@@ -404,9 +404,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         try {
             if (sendingInProgress) {
                 if (msg.getSuccess()) {
+                    edgeStatsService.incrementUplinkMsgsPushed(1);
                     pendingMsgMap.remove(msg.getUplinkMsgId());
                     log.debug("uplink msg has been processed successfully! {}", msg);
                 } else {
+                    edgeStatsService.incrementUplinkMsgsTmpFailed(1);
                     if (msg.getErrorMsg().contains(RATE_LIMIT_REACHED)) {
                         log.warn("uplink msg processing failed! {}", RATE_LIMIT_REACHED);
                         isRateLimitViolated = true;
@@ -542,9 +544,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        edgeStatsService.incrementDownlinkMsgsLag();
-        edgeStatsService.incrementDownlinkMsgsAdded();
-
         boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
         if (syncInProgress && downlinkMsg.hasSyncCompletedMsg()) {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
@@ -554,9 +553,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
-                edgeStatsService.decrementDownlinkMsgsLag();
-                edgeStatsService.incrementDownlinkMsgsPushed();
-
                 log.trace("[{}] DownlinkMsg has been processed successfully! DownlinkMsgId {}", routingKey, downlinkMsg.getDownlinkMsgId());
                 DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
                         .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
@@ -573,9 +569,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
             @Override
             public void onFailure(Throwable t) {
-                edgeStatsService.decrementDownlinkMsgsLag();
-                edgeStatsService.incrementDownlinkMsgsPermanentlyFailed();
-
                 log.error("[{}] Failed to process DownlinkMsg! DownlinkMsgId {}", routingKey, downlinkMsg.getDownlinkMsgId());
                 String errorMsg = EdgeUtils.createErrorMsgFromRootCauseAndStackTrace(t);
                 DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
@@ -741,7 +734,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     }
 
     private void processMsgPack(List<UplinkMsg> uplinkMsgPack) {
-        edgeStatsService.incrementUplinkMsgsAdded(uplinkMsgPack.size());
         pendingMsgMap.clear();
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
         sendUplinkFuture = uplinkExecutor.schedule(() -> {
@@ -755,7 +747,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     success = sendUplinkMsgPack(new LinkedBlockingQueue<>(pendingMsgMap.values())) && pendingMsgMap.isEmpty();
 
                     if (!success) {
-                        edgeStatsService.incrementUplinkMsgsTmpFailed(pendingMsgMap.size());
                         log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
@@ -768,16 +759,15 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                             log.error("Error during sleep between batches or on rate limit violation", e);
                         }
                     } else {
-                        edgeStatsService.incrementUplinkMsgsPushed(uplinkMsgPack.size());
                         log.info("Sending of [{}] uplink msg(s) took {} ms.", uplinkMsgPack.size(), System.currentTimeMillis() - startTime);
                     }
 
                     attempt++;
 
                     if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
-                        edgeStatsService.incrementUplinkMsgsPermanentlyFailed(pendingMsgMap.size());
                         log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
                                 MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
+                        edgeStatsService.incrementUplinkMsgsPermanentlyFailed(pendingMsgMap.size());
                         sendUplinkFutureResult.set(false);
                         return;
                     }
@@ -816,6 +806,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
                             "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}",
                     uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
+            edgeStatsService.incrementUplinkMsgsPermanentlyFailed(1);
             pendingMsgMap.remove(uplinkMsg.getUplinkMsgId());
             latch.countDown();
         }

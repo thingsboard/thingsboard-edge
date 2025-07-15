@@ -39,6 +39,7 @@ import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCloudEventProvider;
+import org.thingsboard.server.service.edge.stats.EdgeCommunicationStatsService;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -51,7 +52,7 @@ import static org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventM
 @AllArgsConstructor
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class KafkaCloudEventService implements CloudEventService {
-
+    private final EdgeCommunicationStatsService edgeStatsService;
     private final TbCloudEventProvider tbCloudEventProvider;
     private final DataValidator<CloudEvent> cloudEventValidator;
 
@@ -93,6 +94,7 @@ public class KafkaCloudEventService implements CloudEventService {
         saveCloudEventToTopic(cloudEvent, producer, new TbQueueCallback() {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
+                edgeStatsService.incrementUplinkMsgsAdded(1);
                 futureToSet.set(null);
             }
 

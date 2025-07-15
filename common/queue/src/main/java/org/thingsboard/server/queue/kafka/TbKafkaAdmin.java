@@ -260,4 +260,35 @@ public class TbKafkaAdmin implements TbQueueAdmin, TbEdgeQueueAdmin {
         }
     }
 
+    public long getTotalLagForGroup(String groupId) {
+        try {
+            Map<TopicPartition, OffsetAndMetadata> committedOffsets = getConsumerGroupOffsets(groupId);
+
+            if (committedOffsets.isEmpty()) {
+                return 0L;
+            }
+
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> endOffsets =
+                    settings.getAdminClient().listOffsets(
+                            committedOffsets.keySet().stream()
+                                    .collect(Collectors.toMap(tp -> tp, tp -> OffsetSpec.latest()))
+                    ).all().get(10, TimeUnit.SECONDS);
+
+            long totalLag = 0L;
+            for (var entry : committedOffsets.entrySet()) {
+                TopicPartition tp = entry.getKey();
+                long committed = entry.getValue().offset();
+                long end = endOffsets.get(tp).offset();
+                long lag = end - committed;
+
+                totalLag += lag;
+            }
+
+            return totalLag;
+        } catch (Exception e) {
+            log.error("Failed to get total lag for consumer group [{}]", groupId, e);
+            return 0L;
+        }
+    }
+
 }
