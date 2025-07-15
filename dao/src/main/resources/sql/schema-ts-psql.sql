@@ -77,6 +77,7 @@ BEGIN
                                        AND tablename != 'ts_kv_latest'
                                        AND tablename != 'key_dictionary'
                                        AND tablename != 'ts_kv_indefinite'
+                                       AND tablename != 'ts_kv_cloud_event'
                                        AND tablename != partition_by_max_ttl_date
                         LOOP
                             partition_year := SPLIT_PART(partition, '_', 3)::integer;
@@ -98,6 +99,7 @@ BEGIN
                                                AND tablename != 'ts_kv_latest'
                                                AND tablename != 'key_dictionary'
                                                AND tablename != 'ts_kv_indefinite'
+                                               AND tablename != 'ts_kv_cloud_event'
                                                AND tablename != partition_by_max_ttl_date
                                 LOOP
                                     partition_year := SPLIT_PART(partition, '_', 3)::integer;
@@ -140,6 +142,7 @@ BEGIN
                                                        AND tablename != 'ts_kv_latest'
                                                        AND tablename != 'key_dictionary'
                                                        AND tablename != 'ts_kv_indefinite'
+                                                       AND tablename != 'ts_kv_cloud_event'
                                                        AND tablename != partition_by_max_ttl_date
                                         LOOP
                                             partition_year := SPLIT_PART(partition, '_', 3)::integer;
