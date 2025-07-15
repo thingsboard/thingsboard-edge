@@ -42,9 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-public class EdgeCommunicationStatsService {
-    private static final long IGNORE_SELF_STATS_DELTA = -1;
-
+public class CloudCommunicationStatsService {
     private static final String CLOUD_EVENT_CONSUMER = "-cloud-event-consumer";
     private static final String CLOUD_EVENT_TS_CONSUMER = "-cloud-event-ts-consumer";
 
@@ -69,30 +67,26 @@ public class EdgeCommunicationStatsService {
     private EdgeId edgeId;
 
     @Value("${cloud.stats.enabled:true}")
-    private boolean edgeStatsEnabled;
+    private boolean cloudStatsEnabled;
     @Value("${cloud.stats.ttl-days:7}")
-    private int edgeStatsTtlDays;
+    private int cloudStatsTtlDays;
     @Value("${cloud.stats.report-interval-millis:20000}")
     private long reportIntervalMillis;
     @Value("${service.type:monolith}")
     private String serviceType;
 
-    private final EdgeMsgCounters uplinkCounters = new EdgeMsgCounters();
+    private final MsgCounters uplinkCounters = new MsgCounters();
 
     @Scheduled(fixedDelayString = "${cloud.stats.report-interval-millis:20000}")
     public void reportStats() {
-        log.debug("Reporting Edge communication stats...");
+        log.debug("Reporting cloud communication stats...");
         try {
-            if (!edgeStatsEnabled) {
-                log.debug("Edge stats reporting is disabled by configuration.");
+            if (!cloudStatsEnabled) {
+                log.debug("Cloud stats reporting is disabled by configuration.");
                 return;
             }
             initTenantIdAndEdgeId();
             updateLagIfKafkaEnabled();
-
-            // Exclude self-generated stats from uplink stats
-            uplinkCounters.getMsgsAdded().addAndGet(IGNORE_SELF_STATS_DELTA);
-            uplinkCounters.getMsgsPushed().addAndGet(IGNORE_SELF_STATS_DELTA);
 
             long ts = (System.currentTimeMillis() / reportIntervalMillis) * reportIntervalMillis;
             List<TsKvEntry> statsEntries = List.of(
@@ -106,9 +100,9 @@ public class EdgeCommunicationStatsService {
             ObjectNode statsJson = JacksonUtil.newObjectNode();
             statsEntries.forEach(entry -> statsJson.put(entry.getKey(), entry.getValueAsString()));
 
-            log.trace("Reported Edge communication stats: {}", statsJson);
+            log.trace("Reported cloud communication stats: {}", statsJson);
 
-            long telemetryTtlSeconds = TimeUnit.DAYS.toSeconds(edgeStatsTtlDays);
+            long telemetryTtlSeconds = TimeUnit.DAYS.toSeconds(cloudStatsTtlDays);
             tsService.save(tenantId, edgeId, statsEntries, telemetryTtlSeconds);
 
             cloudEventService.saveCloudEvent(
@@ -121,7 +115,7 @@ public class EdgeCommunicationStatsService {
 
             log.info("Successfully saved cloud event with stats: {}", statsJson);
         } catch (Exception e) {
-            log.warn("Failed to push telemetry TbMsg to Rule Engine", e);
+            log.warn("Failed to push stats message", e);
         } finally {
             // clear counters for next interval
             uplinkCounters.clear();
@@ -148,13 +142,13 @@ public class EdgeCommunicationStatsService {
         }
     }
 
-    public void addUplinkMsgsAdded(long value) {uplinkCounters.getMsgsAdded().addAndGet(value);}
+    public void incrementUplinkMsgsAdded() {uplinkCounters.getMsgsAdded().incrementAndGet();}
 
-    public void addUplinkMsgsPushed(long value) {uplinkCounters.getMsgsPushed().addAndGet(value);}
+    public void incrementUplinkMsgsPushed() {uplinkCounters.getMsgsPushed().incrementAndGet();}
 
     public void addUplinkMsgsPermanentlyFailed(long value) {uplinkCounters.getMsgsPermanentlyFailed().addAndGet(value);}
 
-    public void addUplinkMsgsTmpFailed(long value) {uplinkCounters.getMsgsTmpFailed().addAndGet(value);}
+    public void incrementUplinkMsgsTmpFailed() {uplinkCounters.getMsgsTmpFailed().incrementAndGet();}
 
     public void setUplinkMsgsLag(long value) {uplinkCounters.getMsgsLag().set(value);}
 

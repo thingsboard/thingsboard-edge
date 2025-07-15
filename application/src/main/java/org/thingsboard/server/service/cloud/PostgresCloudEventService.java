@@ -37,7 +37,7 @@ import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.TsKvCloudEventDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.service.edge.stats.EdgeCommunicationStatsService;
+import org.thingsboard.server.service.edge.stats.CloudCommunicationStatsService;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +56,7 @@ public class PostgresCloudEventService implements CloudEventService {
             EdgeEventActionType.CALCULATED_FIELD_REQUEST
     );
 
-    private final EdgeCommunicationStatsService edgeStatsService;
+    private final CloudCommunicationStatsService edgeStatsService;
     private final AttributesService attributesService;
     private final CloudEventDao cloudEventDao;
     private final TsKvCloudEventDao tsKvCloudEventDao;
@@ -116,20 +116,20 @@ public class PostgresCloudEventService implements CloudEventService {
     public ListenableFuture<Void> saveAsync(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
         log.trace("Save cloud event {}", cloudEvent);
-        return saveCloudEvent(cloudEventDao.saveAsync(cloudEvent));
+        return handleSaveResult(cloudEventDao.saveAsync(cloudEvent));
     }
 
     @Override
     public ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
-        return saveCloudEvent(tsKvCloudEventDao.saveAsync(cloudEvent));
+        return handleSaveResult(tsKvCloudEventDao.saveAsync(cloudEvent));
     }
 
-    private ListenableFuture<Void> saveCloudEvent(ListenableFuture<Void> cloudEventDao) {
-        Futures.addCallback(cloudEventDao, new FutureCallback<>() {
+    private ListenableFuture<Void> handleSaveResult(ListenableFuture<Void> saveFuture) {
+        Futures.addCallback(saveFuture, new FutureCallback<>() {
             @Override
             public void onSuccess(Void result) {
-                edgeStatsService.addUplinkMsgsAdded(1);
+                edgeStatsService.incrementUplinkMsgsAdded();
             }
 
             @Override
@@ -138,7 +138,7 @@ public class PostgresCloudEventService implements CloudEventService {
             }
         }, MoreExecutors.directExecutor());
 
-        return cloudEventDao;
+        return saveFuture;
     }
 
     @Override

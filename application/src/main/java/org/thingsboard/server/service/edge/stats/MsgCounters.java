@@ -20,7 +20,7 @@ import lombok.Data;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
-public class EdgeMsgCounters {
+public class MsgCounters {
     private final AtomicLong msgsAdded = new AtomicLong();
     private final AtomicLong msgsPushed = new AtomicLong();
     private final AtomicLong msgsPermanentlyFailed = new AtomicLong();
