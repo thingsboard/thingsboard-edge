@@ -117,7 +117,6 @@ public class QueueConsumerManager<M extends TbQueueMsg> {
 
     public interface MsgPackProcessor<M extends TbQueueMsg> {
         void process(List<M> msgs, TbQueueConsumer<M> consumer) throws Exception;
-
     }
 
 }
