@@ -90,7 +90,7 @@ public class EdgeCommunicationStatsService {
             initTenantIdAndEdgeId();
             updateLagIfKafkaEnabled();
 
-            // Exclude self-generated stats TbMsg from uplink stats
+            // Exclude self-generated stats from uplink stats
             uplinkCounters.getMsgsAdded().addAndGet(IGNORE_SELF_STATS_DELTA);
             uplinkCounters.getMsgsPushed().addAndGet(IGNORE_SELF_STATS_DELTA);
 
