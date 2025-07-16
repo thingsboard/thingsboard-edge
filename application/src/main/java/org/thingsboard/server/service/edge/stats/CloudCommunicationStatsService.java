@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class CloudCommunicationStatsService {
+
     private static final String CLOUD_EVENT_CONSUMER = "-cloud-event-consumer";
     private static final String CLOUD_EVENT_TS_CONSUMER = "-cloud-event-ts-consumer";
 
@@ -62,7 +63,8 @@ public class CloudCommunicationStatsService {
     private TbKafkaAdmin tbKafkaAdmin;
     @Autowired(required = false)
     private TopicService topicService;
-
+    @Autowired
+    private CloudStatsCounterService statsCounterService;
     private TenantId tenantId;
     private EdgeId edgeId;
 
@@ -74,8 +76,6 @@ public class CloudCommunicationStatsService {
     private long reportIntervalMillis;
     @Value("${service.type:monolith}")
     private String serviceType;
-
-    private final MsgCounters uplinkCounters = new MsgCounters();
 
     @Scheduled(fixedDelayString = "${cloud.stats.report-interval-millis:20000}")
     public void reportStats() {
@@ -89,12 +89,14 @@ public class CloudCommunicationStatsService {
             updateLagIfKafkaEnabled();
 
             long ts = (System.currentTimeMillis() / reportIntervalMillis) * reportIntervalMillis;
+            MsgCounters counters = statsCounterService.getUplinkCounters();
+
             List<TsKvEntry> statsEntries = List.of(
-                    entry(ts, UPLINK_MSGS_ADDED, uplinkCounters.getMsgsAdded().get()),
-                    entry(ts, UPLINK_MSGS_PUSHED, uplinkCounters.getMsgsPushed().get()),
-                    entry(ts, UPLINK_MSGS_PERMANENTLY_FAILED, uplinkCounters.getMsgsPermanentlyFailed().get()),
-                    entry(ts, UPLINK_MSGS_TMP_FAILED, uplinkCounters.getMsgsTmpFailed().get()),
-                    entry(ts, UPLINK_MSGS_LAG, uplinkCounters.getMsgsLag().get())
+                    entry(ts, UPLINK_MSGS_ADDED, counters.getMsgsAdded().get()),
+                    entry(ts, UPLINK_MSGS_PUSHED, counters.getMsgsPushed().get()),
+                    entry(ts, UPLINK_MSGS_PERMANENTLY_FAILED, counters.getMsgsPermanentlyFailed().get()),
+                    entry(ts, UPLINK_MSGS_TMP_FAILED, counters.getMsgsTmpFailed().get()),
+                    entry(ts, UPLINK_MSGS_LAG, counters.getMsgsLag().get())
             );
 
             ObjectNode statsJson = JacksonUtil.newObjectNode();
@@ -118,7 +120,7 @@ public class CloudCommunicationStatsService {
             log.warn("Failed to push stats message", e);
         } finally {
             // clear counters for next interval
-            uplinkCounters.clear();
+            statsCounterService.clear();
         }
     }
 
@@ -126,7 +128,9 @@ public class CloudCommunicationStatsService {
         if (tbKafkaAdmin != null) {
             String cloudEventConsumerGroupId = topicService.buildTopicName(serviceType + CLOUD_EVENT_CONSUMER);
             String cloudEventTsConsumerGroupId = topicService.buildTopicName(serviceType + CLOUD_EVENT_TS_CONSUMER);
-            setUplinkMsgsLag(tbKafkaAdmin.getTotalLagForGroups(cloudEventConsumerGroupId, cloudEventTsConsumerGroupId));
+            statsCounterService.setUplinkMsgsLag(
+                    tbKafkaAdmin.getTotalLagForGroups(cloudEventConsumerGroupId, cloudEventTsConsumerGroupId)
+            );
         }
     }
 
@@ -141,15 +145,5 @@ public class CloudCommunicationStatsService {
             this.edgeId = new EdgeId(UUID.fromString(edgeSettings.getEdgeId()));
         }
     }
-
-    public void incrementUplinkMsgsAdded() {uplinkCounters.getMsgsAdded().incrementAndGet();}
-
-    public void incrementUplinkMsgsPushed() {uplinkCounters.getMsgsPushed().incrementAndGet();}
-
-    public void addUplinkMsgsPermanentlyFailed(long value) {uplinkCounters.getMsgsPermanentlyFailed().addAndGet(value);}
-
-    public void incrementUplinkMsgsTmpFailed() {uplinkCounters.getMsgsTmpFailed().incrementAndGet();}
-
-    public void setUplinkMsgsLag(long value) {uplinkCounters.getMsgsLag().set(value);}
 
 }

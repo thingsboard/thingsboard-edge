@@ -37,7 +37,7 @@ import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.TsKvCloudEventDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.service.edge.stats.CloudCommunicationStatsService;
+import org.thingsboard.server.service.edge.stats.CloudStatsCounterService;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +56,7 @@ public class PostgresCloudEventService implements CloudEventService {
             EdgeEventActionType.CALCULATED_FIELD_REQUEST
     );
 
-    private final CloudCommunicationStatsService edgeStatsService;
+    private final CloudStatsCounterService statsCounterService;
     private final AttributesService attributesService;
     private final CloudEventDao cloudEventDao;
     private final TsKvCloudEventDao tsKvCloudEventDao;
@@ -129,7 +129,7 @@ public class PostgresCloudEventService implements CloudEventService {
         Futures.addCallback(saveFuture, new FutureCallback<>() {
             @Override
             public void onSuccess(Void result) {
-                edgeStatsService.incrementUplinkMsgsAdded();
+                statsCounterService.incrementUplinkMsgsAdded();
             }
 
             @Override
