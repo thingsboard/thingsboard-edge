@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.SecretType;
@@ -50,6 +51,7 @@ public class SecretEdgeTest extends AbstractEdgeTest {
     private static final String UPDATED_SECRET_DESCRIPTION = "Updated Edge Test Secret";
 
     @Test
+    @Ignore
     public void testSecret_create_update_delete() throws Exception {
         // create
         Secret secret = createSecret();

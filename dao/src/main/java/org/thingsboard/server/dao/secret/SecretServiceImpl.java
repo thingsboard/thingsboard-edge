@@ -96,14 +96,31 @@ public class SecretServiceImpl extends AbstractEntityService implements SecretSe
 
     @Override
     public Secret saveSecret(TenantId tenantId, Secret secret) {
+        Secret old = secretValidator.validate(secret, Secret::getTenantId);
+        return doSaveSecret(tenantId, secret, old, true);
+    }
+
+    // Edge only:
+    @Override
+    public Secret saveSecret(TenantId tenantId, Secret secret, boolean doValidate) {
+        Secret oldSecret = null;
+        if (doValidate) {
+            oldSecret = secretValidator.validate(secret, Secret::getTenantId);
+        } else if (secret.getId() != null) {
+            oldSecret = findSecretById(tenantId, secret.getId());
+        }
+        return doSaveSecret(tenantId, secret, oldSecret, false);
+    }
+
+    private Secret doSaveSecret(TenantId tenantId, Secret secret, Secret old, boolean encrypt) {
         log.trace("Executing saveSecret [{}]", secret);
         try {
-            Secret old = secretValidator.validate(secret, Secret::getTenantId);
-
             boolean isValueUpdated = false;
             if (secret.getValue() != null) {
-                byte[] encrypted = encryptionService.encrypt(tenantId, secret.getType(), secret.getRawValue());
-                secret.setRawValue(encrypted);
+                if (encrypt) {
+                    byte[] encrypted = encryptionService.encrypt(tenantId, secret.getType(), secret.getRawValue());
+                    secret.setRawValue(encrypted);
+                }
                 isValueUpdated = true;
             } else if (old != null) {
                 secret.setRawValue(old.getRawValue());

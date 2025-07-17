@@ -47,6 +47,8 @@ import java.util.Map;
 public interface SecretService extends EntityDaoService {
 
     Secret saveSecret(TenantId tenantId, Secret secret);
+    // Edge only:
+    Secret saveSecret(TenantId tenantId, Secret secret, boolean validation);
 
     TbSecretDeleteResult deleteSecret(TenantId tenantId, SecretInfo secretInfo);
 

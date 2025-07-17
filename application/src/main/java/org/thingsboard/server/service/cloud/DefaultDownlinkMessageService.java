@@ -61,6 +61,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EncryptionKeyUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
@@ -79,6 +80,7 @@ import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.SecretUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
@@ -100,6 +102,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcesso
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.EncryptionKeyCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
@@ -113,6 +116,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor
 import org.thingsboard.server.service.cloud.rpc.processor.RoleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.SchedulerEventCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.SecretCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TenantProfileCloudProcessor;
@@ -242,6 +246,12 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private CalculatedFieldCloudProcessor calculatedFieldCloudProcessor;
+
+    @Autowired
+    private EncryptionKeyCloudProcessor encryptionKeyCloudProcessor;
+
+    @Autowired
+    private SecretCloudProcessor secretCloudProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -491,6 +501,16 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.getCalculatedFieldUpdateMsgCount() > 0) {
                 for (CalculatedFieldUpdateMsg calculatedFieldUpdateMsg : downlinkMsg.getCalculatedFieldUpdateMsgList()) {
                     result.add(calculatedFieldCloudProcessor.processCalculatedFieldMsgFromCloud(tenantId, calculatedFieldUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getEncryptionKeyUpdateMsgCount() > 0) {
+                for (EncryptionKeyUpdateMsg encryptionKeyUpdateMsg : downlinkMsg.getEncryptionKeyUpdateMsgList()) {
+                    result.add(encryptionKeyCloudProcessor.processEncryptionKeyMsgFromCloud(tenantId, encryptionKeyUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getSecretUpdateMsgCount() > 0) {
+                for (SecretUpdateMsg secretMsg : downlinkMsg.getSecretUpdateMsgList()) {
+                    result.add(secretCloudProcessor.processSecretMsgFromCloud(tenantId, secretMsg));
                 }
             }
 

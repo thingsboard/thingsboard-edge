@@ -131,6 +131,15 @@ public class EncryptionServiceImpl implements EncryptionService {
         return encryptionKeyDao.findByTenantId(tenantId);
     }
 
+    @Override
+    public EncryptionKey save(TenantId tenantId, EncryptionKey encryptionKey) {
+        EncryptionKey oldEncryptionKey = encryptionKeyDao.findByTenantId(encryptionKey.getTenantId());
+        if (oldEncryptionKey != null && oldEncryptionKey.equals(encryptionKey)) {
+            return oldEncryptionKey;
+        }
+        return encryptionKeyDao.save(tenantId, encryptionKey);
+    }
+
     @EventListener(ComponentLifecycleMsg.class)
     public void handleComponentLifecycleEvent(ComponentLifecycleMsg event) {
         if (ComponentLifecycleEvent.DELETED.equals(event.getEvent())) {
