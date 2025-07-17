@@ -116,6 +116,7 @@ import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.v1.EncryptionKeyUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
@@ -149,7 +150,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @Slf4j
 abstract public class AbstractEdgeTest extends AbstractControllerTest {
-    public static final Integer CONNECT_MESSAGE_COUNT = 30;
+    public static final Integer CONNECT_MESSAGE_COUNT = 31;
     public static final Integer INSTALLATION_MESSAGE_COUNT = 6;
     public static final Integer SYNC_MESSAGE_COUNT = CONNECT_MESSAGE_COUNT + INSTALLATION_MESSAGE_COUNT;
     protected static final String THERMOSTAT_DEVICE_PROFILE_NAME = "Thermostat";
@@ -191,7 +192,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        // 30 connect messages + 6 installation messages
+        // 31 connect messages + 6 installation messages
         edgeImitator.expectMessageAmount(SYNC_MESSAGE_COUNT);
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
@@ -322,7 +323,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(CustomerUpdateMsg.class, 1);
         validatePublicCustomer();
 
-        // 5 messages
+        // 6 messages
         // - 2 messages from SysAdminRolesEdgeEventFetcher
         // - 2 messages from TenantRolesEdgeEventFetcher
         // - 2 messages from public customer role
@@ -359,6 +360,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         // 1 message from fetcher
         validateMsgsCnt(UserCredentialsUpdateMsg.class, 1);
+
+        // 1 message from fetcher
+        validateMsgsCnt(EncryptionKeyUpdateMsg.class, 1);
 
         // 1 message sync completed
         validateMsgsCnt(SyncCompletedMsg.class, 1);
@@ -833,7 +837,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(previousCustomer.getUuidId().getMostSignificantBits(), previousCustomerDeleteMsg.getIdMSB());
         Assert.assertEquals(previousCustomer.getUuidId().getLeastSignificantBits(), previousCustomerDeleteMsg.getIdLSB());
 
-        CustomerUpdateMsg newCustomerUpdateMsg =  customerMsgs.get(1);
+        CustomerUpdateMsg newCustomerUpdateMsg = customerMsgs.get(1);
         Customer customerMsg = JacksonUtil.fromString(newCustomerUpdateMsg.getEntity(), Customer.class, true);
         Assert.assertNotNull(customerMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, newCustomerUpdateMsg.getMsgType());
@@ -986,8 +990,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     protected List<EntityGroupInfo> getEntityGroupsByOwnerAndType(EntityId ownerId, EntityType groupType) throws Exception {
         return JacksonUtil.convertValue(
-                        doGet("/api/entityGroups/" + ownerId.getEntityType() + "/" + ownerId.getId() + "/" + groupType.name(), JsonNode.class),
-                        new TypeReference<>() {});
+                doGet("/api/entityGroups/" + ownerId.getEntityType() + "/" + ownerId.getId() + "/" + groupType.name(), JsonNode.class),
+                new TypeReference<>() {});
     }
 
     protected void addEntitiesToEntityGroup(List<EntityId> entityIds, EntityGroupId entityGroupId) throws Exception {

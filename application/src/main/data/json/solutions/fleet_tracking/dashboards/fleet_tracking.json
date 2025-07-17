@@ -151,7 +151,18 @@
           "titleTooltip": "",
           "enableDataExport": false,
           "widgetStyle": {},
-          "showLegend": false
+          "showLegend": false,
+          "configMode": "basic",
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true,
+          "actions": {},
+          "borderRadius": null,
+          "units": {
+            "from": "mph",
+            "METRIC": "km/h",
+            "IMPERIAL": "mph",
+            "HYBRID": "mph"
+          }
         },
         "row": 11,
         "col": 0,
@@ -410,11 +421,17 @@
                     "useCellContentFunction": false
                   },
                   "_hash": 0.04419334338671943,
-                  "units": "MPH",
-                  "decimals": null,
+                  "units": {
+                    "from": "mph",
+                    "METRIC": "km/h",
+                    "IMPERIAL": "mph",
+                    "HYBRID": "mph"
+                  },
+                  "decimals": 0,
                   "funcBody": null,
                   "usePostProcessing": null,
-                  "postFuncBody": null
+                  "postFuncBody": null,
+                  "aggregationType": "NONE"
                 },
                 {
                   "name": "fuel",
@@ -433,7 +450,12 @@
                   "usePostProcessing": null,
                   "postFuncBody": null
                 }
-              ]
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
             }
           ],
           "showTitleIcon": false,
@@ -493,7 +515,12 @@
               }
             ],
             "rowDoubleClick": []
-          }
+          },
+          "displayTimewindow": true,
+          "configMode": "basic",
+          "titleFont": null,
+          "titleColor": null,
+          "titleIcon": null
         },
         "row": 0,
         "col": 0,
@@ -922,7 +949,12 @@
                     }
                   },
                   "_hash": 0.9413377847345124,
-                  "units": "mph",
+                  "units": {
+                    "from": "mph",
+                    "METRIC": "km/h",
+                    "IMPERIAL": "mph",
+                    "HYBRID": "mph"
+                  },
                   "decimals": 0,
                   "aggregationType": null,
                   "funcBody": null,
@@ -939,9 +971,6 @@
             }
           ],
           "timewindow": {
-            "hideInterval": false,
-            "hideLastInterval": false,
-            "hideQuickInterval": false,
             "hideAggregation": false,
             "hideAggInterval": false,
             "hideTimezone": false,
@@ -972,7 +1001,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -1089,7 +1119,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "mph",
+                "units": {
+                  "from": "mph",
+                  "METRIC": "km/h",
+                  "IMPERIAL": "mph",
+                  "HYBRID": "mph"
+                },
                 "decimals": 1,
                 "show": true,
                 "label": "Speed, mph",
@@ -1181,7 +1216,41 @@
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": true,
               "splitLinesColor": "rgba(0, 0, 0, 0.12)"
-            }
+            },
+            "grid": {
+              "show": false,
+              "backgroundColor": null,
+              "borderWidth": 1,
+              "borderColor": "#ccc"
+            },
+            "legendColumnTitleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "legendColumnTitleColor": "rgba(0, 0, 0, 0.38)",
+            "legendValueFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "500",
+              "lineHeight": "16px"
+            },
+            "legendValueColor": "rgba(0, 0, 0, 0.87)",
+            "tooltipLabelFont": {
+              "family": "Roboto",
+              "size": 12,
+              "sizeUnit": "px",
+              "style": "normal",
+              "weight": "400",
+              "lineHeight": "16px"
+            },
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Speed tracking",
           "dropShadow": true,
@@ -1709,6 +1778,7 @@
                 "dsDeviceId": null,
                 "dsEntityAliasId": "0d54b239-c13d-b9ca-a71d-2e8af860d803",
                 "dsFilterId": null,
+                "additionalDataSources": null,
                 "additionalDataKeys": [
                   {
                     "name": "speed",
@@ -1751,19 +1821,19 @@
                 ],
                 "label": {
                   "show": true,
-                  "type": "pattern",
+                  "type": "function",
                   "pattern": "<div style='position: relative; white-space: nowrap; text-align: center; font-size: 16px;'><div style='border: solid ${statusColor}; border-radius: 10px; color: ${statusColor}; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;'>${entityName}<div style='font-size: 10px;'> Status: ${status}</div><div style='font-size: 10px;'> Speed: ${speed:0} MPH</div></div></div>",
-                  "patternFunction": null
+                  "patternFunction": "const unit = {\n  from: 'mph',\n  METRIC: 'km/h',\n  IMPERIAL: 'mph',\n  HYBRID: 'km/h'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data.speed, unit).toFixed(1);\n\nreturn `<div style='position: relative; white-space: nowrap; text-align: center; font-size: 16px;'><div style='border: solid ${data.statusColor}; border-radius: 10px; color: ${data.statusColor}; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;'>${data.entityName}<div style='font-size: 10px;'> Status: ${data.status}</div><div style='font-size: 10px;'> Speed: ${unitValue} ${usrUnit}</div></div></div>`;"
                 },
                 "tooltip": {
                   "show": true,
-                  "type": "pattern",
-                  "pattern": "<b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Speed:</b> ${speed:0} MPH<br/><b>Fuel level:</b> ${fuel:0} %<br/><b>Status:</b> ${status}<br/><br/><link-act name='route-history'>Route history</link-act><br/><br/><button-act name='bus-details'>Bus details</button-act>",
-                  "patternFunction": null,
                   "trigger": "click",
                   "autoclose": true,
+                  "type": "function",
+                  "pattern": "<b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Speed:</b> ${speed:0} MPH<br/><b>Fuel level:</b> ${fuel:0} %<br/><b>Status:</b> ${status}<br/><br/><link-act name='route-history'>Route history</link-act><br/><br/><button-act name='bus-details'>Bus details</button-act>",
                   "offsetX": 0,
                   "offsetY": -1,
+                  "patternFunction": "const unit = {\n  from: 'mph',\n  METRIC: 'km/h',\n  IMPERIAL: 'mph',\n  HYBRID: 'km/h'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data.speed, unit).toFixed(1);\n\nreturn `<b>Latitude:</b> ${data.latitude}<br/><b>Longitude:</b> ${data.longitude}<br/><b>Speed:</b> ${unitValue} ${usrUnit}<br/><b>Fuel level:</b> ${data.fuel} %<br/><b>Status:</b> ${data.status}<br/><br/><link-act name='route-history'>Route history</link-act><br/><br/><button-act name='bus-details'>Bus details</button-act>`;",
                   "tagActions": [
                     {
                       "name": "bus-details",
@@ -1941,10 +2011,7 @@
               "historyType": 0,
               "interval": 1000,
               "timewindowMs": 86400000,
-              "fixedTimewindow": {
-                "startTimeMs": 1742736923988,
-                "endTimeMs": 1742823323988
-              },
+              "fixedTimewindow": null,
               "quickInterval": "CURRENT_DAY",
               "hideInterval": false,
               "hideLastInterval": false,
@@ -1954,7 +2021,8 @@
             "aggregation": {
               "type": "NONE",
               "limit": 5000
-            }
+            },
+            "timezone": null
           },
           "showTitle": true,
           "backgroundColor": "rgba(0, 0, 0, 0)",
@@ -2007,6 +2075,7 @@
                 "dsDeviceId": null,
                 "dsEntityAliasId": "302cf6c2-0d32-95ff-63f3-1bfa43b3b75e",
                 "dsFilterId": null,
+                "additionalDataSources": null,
                 "additionalDataKeys": [
                   {
                     "name": "fuel",
@@ -2040,9 +2109,9 @@
                 },
                 "tooltip": {
                   "show": true,
-                  "type": "pattern",
+                  "type": "function",
                   "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Speed:</b> ${speed:0} MPH<br/><b>Fuel level:</b> ${fuel:0} %<br/><b>Status:</b> ${status}",
-                  "patternFunction": null,
+                  "patternFunction": "const unit = {\n  from: 'mph',\n  METRIC: 'km/h',\n  IMPERIAL: 'mph',\n  HYBRID: 'km/h'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data.speed, unit).toFixed(1);\n\nreturn `<b>${data.entityName}</b><br/><br/><b>Latitude:</b> ${data.latitude}<br/><b>Longitude:</b> ${data.longitude}<br/><b>Speed:</b> ${unitValue} ${usrUnit}<br/><b>Fuel level:</b> ${data.fuel} %<br/><b>Status:</b> ${data.status}`;",
                   "trigger": "click",
                   "autoclose": true,
                   "offsetX": 0,
@@ -2165,7 +2234,7 @@
             "color": "rgba(0,0,0,.47)"
           },
           "mobileHeight": null,
-          "configMode": "basic",
+          "configMode": "advanced",
           "actions": {},
           "showTitleIcon": false,
           "titleIcon": "assistant_navigation",
@@ -2304,6 +2373,7 @@
                 "dsDeviceId": null,
                 "dsEntityAliasId": "302cf6c2-0d32-95ff-63f3-1bfa43b3b75e",
                 "dsFilterId": null,
+                "additionalDataSources": null,
                 "additionalDataKeys": [
                   {
                     "name": "fuel",
@@ -2337,9 +2407,9 @@
                 },
                 "tooltip": {
                   "show": true,
-                  "type": "pattern",
+                  "type": "function",
                   "pattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Speed:</b> ${speed:0} MPH<br/><b>Fuel level:</b> ${fuel:0} %<br/><b>Status:</b> ${status}",
-                  "patternFunction": null,
+                  "patternFunction": "const unit = {\n  from: 'mph',\n  METRIC: 'km/h',\n  IMPERIAL: 'mph',\n  HYBRID: 'km/h'\n}\n\nvar usrUnit = ctx.unitService.getTargetUnitSymbol(unit);\n\nvar unitValue = ctx.unitService.convertUnitValue(data.speed, unit).toFixed(1);\n\nreturn `<b>${data.entityName}</b><br/><br/><b>Latitude:</b> ${data.latitude}<br/><b>Longitude:</b> ${data.longitude}<br/><b>Speed:</b> ${unitValue} ${usrUnit}<br/><b>Fuel level:</b> ${data.fuel} %<br/><b>Status:</b> ${data.status}`;",
                   "trigger": "click",
                   "autoclose": true,
                   "offsetX": 0,

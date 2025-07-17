@@ -141,6 +141,7 @@ public class DefaultTranslationService implements TranslationService {
         loginPageTranslation.set("action", fullTranslation.get("action"));
         loginPageTranslation.set("security", newObjectNode().set("2fa", fullTranslation.get("security").get("2fa")));
         loginPageTranslation.set("access", fullTranslation.get("access"));
+        loginPageTranslation.set("user", newObjectNode().set("invalid-email-format", fullTranslation.get("user").get("invalid-email-format")));
         return loginPageTranslation;
     }
 

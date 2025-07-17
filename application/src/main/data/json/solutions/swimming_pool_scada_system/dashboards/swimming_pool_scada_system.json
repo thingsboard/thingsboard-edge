@@ -5904,9 +5904,9 @@
                 "click": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "high_perf_heat_pump",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 }
@@ -5927,8 +5927,13 @@
                   "weight": "500",
                   "style": "normal"
                 },
-                "valueUnits": false,
-                "units": "&#176;C",
+                "valueUnits": true,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "valueBoxBackground": "#FFFFFF"
               }
             }
@@ -6241,7 +6246,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -6417,7 +6427,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -8063,7 +8078,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "L",
+          "units": {
+            "from": "L",
+            "METRIC": "L",
+            "IMPERIAL": "gal",
+            "HYBRID": "L"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -8649,7 +8669,7 @@
             },
             "padding": "0"
           },
-          "title": "pH",
+          "title": "pH level",
           "dropShadow": false,
           "enableFullscreen": false,
           "titleStyle": null,
@@ -8676,7 +8696,7 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "bar",
+          "units": null,
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -10503,8 +10523,13 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "mm/s",
-          "decimals": 0,
+          "units": {
+            "from": "mm/s",
+            "METRIC": "mm/s",
+            "IMPERIAL": "in/s",
+            "HYBRID": "mm/s"
+          },
+          "decimals": 2,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
             "showIcon": false,
@@ -10847,7 +10872,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "BTU",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -11191,7 +11221,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -11256,8 +11291,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "flowRate"
@@ -11268,6 +11303,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -11338,7 +11374,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "L/min",
+                "units": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -11514,7 +11555,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -11782,8 +11828,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "vibration"
@@ -11794,6 +11840,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -11844,7 +11891,7 @@
                 "showLowCriticalScale": false,
                 "lowCriticalScale": 15,
                 "value": true,
-                "valueDecimals": 0,
+                "valueDecimals": 2,
                 "valueFont": {
                   "size": 60,
                   "sizeUnit": "px",
@@ -11864,7 +11911,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "mm/s",
+                "units": {
+                  "from": "mm/s",
+                  "METRIC": "mm/s",
+                  "IMPERIAL": "in/s",
+                  "HYBRID": "mm/s"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -12040,7 +12092,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "Wh",
+                "units": {
+                  "from": "Wh",
+                  "METRIC": "Wh",
+                  "IMPERIAL": "BTU",
+                  "HYBRID": "Wh"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -12830,7 +12887,12 @@
                     }
                   },
                   "_hash": 0.01729562154325226,
-                  "units": "L/min",
+                  "units": {
+                    "from": "L/min",
+                    "METRIC": "L/min",
+                    "IMPERIAL": "GPM",
+                    "HYBRID": "L/min"
+                  },
                   "decimals": 0
                 }
               ],
@@ -12890,7 +12952,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -13007,7 +13070,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "L/min",
+                "units": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -13137,7 +13205,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Flow rate",
           "dropShadow": false,
@@ -22872,7 +22941,12 @@
                     }
                   },
                   "_hash": 0.2498947516192267,
-                  "units": "L/min",
+                  "units": {
+                    "from": "L/min",
+                    "METRIC": "L/min",
+                    "IMPERIAL": "GPM",
+                    "HYBRID": "L/min"
+                  },
                   "decimals": 0
                 }
               ],
@@ -22932,7 +23006,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -23049,7 +23124,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "L/min",
+                "units": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -23179,7 +23259,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Flow rate",
           "dropShadow": false,
@@ -23326,7 +23407,12 @@
                     }
                   },
                   "_hash": 0.18297757464438402,
-                  "units": "L",
+                  "units": {
+                    "from": "L",
+                    "METRIC": "L",
+                    "IMPERIAL": "gal",
+                    "HYBRID": "L"
+                  },
                   "decimals": 0,
                   "aggregationType": null,
                   "funcBody": null,
@@ -23390,7 +23476,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -23507,7 +23594,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "L",
+                "units": {
+                  "from": "L",
+                  "METRIC": "L",
+                  "IMPERIAL": "gal",
+                  "HYBRID": "L"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -23637,7 +23729,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Water level",
           "dropShadow": false,
@@ -25309,7 +25402,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "L/min",
+          "units": {
+            "from": "L/min",
+            "METRIC": "L/min",
+            "IMPERIAL": "GPM",
+            "HYBRID": "L/min"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -26598,9 +26696,9 @@
                 "warningClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -26635,9 +26733,9 @@
                 "criticalClick": {
                   "type": "updateDashboardState",
                   "targetDashboardStateId": "alarms",
+                  "openRightLayout": false,
                   "setEntityId": false,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
                   "openInSeparateDialog": false,
                   "openInPopover": false
                 },
@@ -26691,8 +26789,13 @@
                   "weight": "500",
                   "style": "normal"
                 },
-                "valueUnits": false,
-                "units": "&#176;C",
+                "valueUnits": true,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "valueBoxBackground": "#FFFFFF"
               }
             }
@@ -27564,7 +27667,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -27886,7 +27994,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -28253,8 +28366,13 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "mm/s",
-          "decimals": 0,
+          "units": {
+            "from": "mm/s",
+            "METRIC": "mm/s",
+            "IMPERIAL": "in/s",
+            "HYBRID": "mm/s"
+          },
+          "decimals": 2,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
             "showIcon": false,
@@ -28597,7 +28715,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "BTU",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -28941,7 +29064,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "bar",
+          "units": {
+            "from": "bar",
+            "METRIC": "bar",
+            "IMPERIAL": "psi",
+            "HYBRID": "bar"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -29396,7 +29524,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -29525,7 +29658,8 @@
               "showMax": false,
               "showAvg": false,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -29587,7 +29721,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Temperature",
           "dropShadow": false,
@@ -29916,7 +30051,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "Wh",
+                "units": {
+                  "from": "Wh",
+                  "METRIC": "Wh",
+                  "IMPERIAL": "BTU",
+                  "HYBRID": "Wh"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -30009,8 +30149,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "vibration"
@@ -30021,6 +30161,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -30071,7 +30212,7 @@
                 "showLowCriticalScale": false,
                 "lowCriticalScale": 15,
                 "value": true,
-                "valueDecimals": 0,
+                "valueDecimals": 2,
                 "valueFont": {
                   "size": 60,
                   "sizeUnit": "px",
@@ -30091,7 +30232,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "mm/s",
+                "units": {
+                  "from": "mm/s",
+                  "METRIC": "mm/s",
+                  "IMPERIAL": "in/s",
+                  "HYBRID": "mm/s"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -30267,7 +30413,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "bar",
+                "units": {
+                  "from": "bar",
+                  "METRIC": "bar",
+                  "IMPERIAL": "psi",
+                  "HYBRID": "bar"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -31286,8 +31437,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "flowRate"
@@ -31298,6 +31449,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -31368,7 +31520,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "L/min",
+                "units": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -31514,7 +31671,12 @@
                     }
                   },
                   "_hash": 0.01729562154325226,
-                  "units": "L/min",
+                  "units": {
+                    "from": "L/min",
+                    "METRIC": "L/min",
+                    "IMPERIAL": "GPM",
+                    "HYBRID": "L/min"
+                  },
                   "decimals": 0
                 }
               ],
@@ -31574,7 +31736,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -31691,7 +31854,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "L/min",
+                "units": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -31821,7 +31989,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Flow rate",
           "dropShadow": false,
@@ -31915,8 +32084,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "vibration"
@@ -31927,6 +32096,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -31977,7 +32147,7 @@
                 "showLowCriticalScale": false,
                 "lowCriticalScale": 15,
                 "value": true,
-                "valueDecimals": 0,
+                "valueDecimals": 2,
                 "valueFont": {
                   "size": 60,
                   "sizeUnit": "px",
@@ -31997,7 +32167,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "mm/s",
+                "units": {
+                  "from": "mm/s",
+                  "METRIC": "mm/s",
+                  "IMPERIAL": "in/s",
+                  "HYBRID": "mm/s"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -32139,6 +32314,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -32363,8 +32539,13 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "mm/s",
-          "decimals": 0,
+          "units": {
+            "from": "mm/s",
+            "METRIC": "mm/s",
+            "IMPERIAL": "in/s",
+            "HYBRID": "mm/s"
+          },
+          "decimals": 2,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
             "showIcon": false,
@@ -32511,7 +32692,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "bar",
+                "units": {
+                  "from": "bar",
+                  "METRIC": "bar",
+                  "IMPERIAL": "psi",
+                  "HYBRID": "bar"
+                },
                 "unitsFont": {
                   "size": 50,
                   "sizeUnit": "px",
@@ -32658,6 +32844,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 0,
@@ -32882,7 +33069,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "bar",
+          "units": {
+            "from": "bar",
+            "METRIC": "bar",
+            "IMPERIAL": "psi",
+            "HYBRID": "bar"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -42828,7 +43020,7 @@
               }
             },
             "autoScale": true,
-            "label": "pH",
+            "label": "pH level",
             "labelFont": {
               "size": 14,
               "sizeUnit": "px",
@@ -43418,7 +43610,12 @@
                     }
                   },
                   "_hash": 0.7579199441611837,
-                  "units": "L/min",
+                  "units": {
+                    "from": "L/min",
+                    "METRIC": "L/min",
+                    "IMPERIAL": "GPM",
+                    "HYBRID": "L/min"
+                  },
                   "decimals": 0
                 }
               ],
@@ -43461,7 +43658,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -43579,7 +43777,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "L/min",
+                "units": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -43704,7 +43907,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Flow rate",
           "dropShadow": true,
@@ -44376,7 +44580,12 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "BTU",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -44694,7 +44903,12 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -45007,8 +45221,13 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "mm/s",
-          "decimals": 0,
+          "units": {
+            "from": "mm/s",
+            "METRIC": "mm/s",
+            "IMPERIAL": "in/s",
+            "HYBRID": "mm/s"
+          },
+          "decimals": 2,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
             "showIcon": false,
@@ -45185,8 +45404,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "compressorTemperature"
@@ -45202,8 +45421,8 @@
                   },
                   "dataToValue": {
                     "type": "FUNCTION",
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data>100;",
-                    "compareToValue": true
+                    "compareToValue": true,
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data>100;"
                   }
                 },
                 "critical": {
@@ -45216,8 +45435,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "compressorTemperature"
@@ -45230,8 +45449,8 @@
                   },
                   "dataToValue": {
                     "type": "FUNCTION",
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data>200;",
-                    "compareToValue": true
+                    "compareToValue": true,
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data>200;"
                   }
                 },
                 "criticalAnimation": {
@@ -45308,8 +45527,13 @@
                   "weight": "500",
                   "style": "normal"
                 },
-                "valueUnits": false,
-                "units": "°C",
+                "valueUnits": true,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "valueBoxBackground": "#FFFFFF",
                 "powerButtonBackground": "#1ABB48",
                 "disabledPowerButtonBackground": "#FFFFFF",
@@ -45542,7 +45766,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 2,
           "useDashboardTimewindow": true,
           "widgetStyle": null,
@@ -46620,8 +46849,13 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "mm/s",
-          "decimals": 0,
+          "units": {
+            "from": "mm/s",
+            "METRIC": "mm/s",
+            "IMPERIAL": "in/s",
+            "HYBRID": "mm/s"
+          },
+          "decimals": 2,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
             "showIcon": false,
@@ -46772,9 +47006,13 @@
             "tooltipDateInterval": true,
             "showRangeThresholds": true,
             "rangeThreshold": {
-              "type": "constant",
               "yAxisId": "default",
-              "units": null,
+              "units": {
+                "from": "bar",
+                "METRIC": "bar",
+                "IMPERIAL": "psi",
+                "HYBRID": "bar"
+              },
               "decimals": 0,
               "lineColor": "#37383b",
               "lineType": "dashed",
@@ -46939,7 +47177,12 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "bar",
+          "units": {
+            "from": "bar",
+            "METRIC": "bar",
+            "IMPERIAL": "psi",
+            "HYBRID": "bar"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -47106,8 +47349,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "compressorTemperature"
@@ -47123,8 +47366,8 @@
                   },
                   "dataToValue": {
                     "type": "FUNCTION",
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data>100;",
-                    "compareToValue": true
+                    "compareToValue": true,
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data>100;"
                   }
                 },
                 "critical": {
@@ -47137,8 +47380,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "compressorTemperature"
@@ -47151,8 +47394,8 @@
                   },
                   "dataToValue": {
                     "type": "FUNCTION",
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data>200;",
-                    "compareToValue": true
+                    "compareToValue": true,
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data>200;"
                   }
                 },
                 "criticalAnimation": {
@@ -47229,8 +47472,13 @@
                   "weight": "500",
                   "style": "normal"
                 },
-                "valueUnits": false,
-                "units": "°C",
+                "valueUnits": true,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "valueBoxBackground": "#FFFFFF",
                 "powerButtonBackground": "#1ABB48",
                 "disabledPowerButtonBackground": "#FFFFFF",
@@ -48046,8 +48294,13 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "mm/s",
-          "decimals": 0,
+          "units": {
+            "from": "mm/s",
+            "METRIC": "mm/s",
+            "IMPERIAL": "in/s",
+            "HYBRID": "mm/s"
+          },
+          "decimals": 2,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
             "showIcon": false,
@@ -48365,7 +48618,12 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "bar",
+          "units": {
+            "from": "bar",
+            "METRIC": "bar",
+            "IMPERIAL": "psi",
+            "HYBRID": "bar"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -48684,7 +48942,12 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "BTU",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -49020,7 +49283,12 @@
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -49136,7 +49404,12 @@
                     }
                   },
                   "_hash": 0.028824759853643966,
-                  "units": "°C",
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": 2
                 },
                 {
@@ -49215,7 +49488,12 @@
                   },
                   "_hash": 0.14205209595266677,
                   "decimals": 2,
-                  "units": "°C"
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  }
                 },
                 {
                   "name": "currentOutTemperature",
@@ -49293,7 +49571,12 @@
                   },
                   "_hash": 0.061104889320705125,
                   "decimals": 2,
-                  "units": "°C"
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  }
                 },
                 {
                   "name": "ambientTemperature",
@@ -49371,7 +49654,12 @@
                   },
                   "_hash": 0.1612774455127337,
                   "decimals": 2,
-                  "units": "°C"
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  }
                 }
               ],
               "alarmFilterConfig": {
@@ -49413,7 +49701,8 @@
               "showMax": false,
               "showAvg": false,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -49531,7 +49820,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -49656,7 +49950,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Temperature",
           "dropShadow": true,
@@ -51562,6 +51857,10 @@
                   "getTimeSeries": {
                     "key": "flowRate"
                   },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
+                  },
                   "dataToValue": {
                     "type": "NONE",
                     "compareToValue": true,
@@ -51583,6 +51882,15 @@
                   },
                   "getTimeSeries": {
                     "key": "state"
+                  },
+                  "getAlarmStatus": {
+                    "severityList": [
+                      "MAJOR",
+                      "MINOR",
+                      "WARNING",
+                      "INDETERMINATE"
+                    ],
+                    "typeList": null
                   },
                   "dataToValue": {
                     "type": "NONE",
@@ -51606,6 +51914,12 @@
                   "getTimeSeries": {
                     "key": "state"
                   },
+                  "getAlarmStatus": {
+                    "severityList": [
+                      "CRITICAL"
+                    ],
+                    "typeList": null
+                  },
                   "dataToValue": {
                     "type": "NONE",
                     "compareToValue": true,
@@ -51627,6 +51941,10 @@
                   },
                   "getTimeSeries": {
                     "key": "state"
+                  },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
                   },
                   "dataToValue": {
                     "type": "NONE",
@@ -51650,6 +51968,10 @@
                   "getTimeSeries": {
                     "key": "state"
                   },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
+                  },
                   "dataToValue": {
                     "type": "NONE",
                     "compareToValue": true,
@@ -51659,17 +51981,17 @@
                 "displayClick": {
                   "type": "openDashboardState",
                   "targetDashboardStateId": "traditional_flow_rate",
+                  "openRightLayout": false,
                   "setEntityId": true,
                   "stateEntityParamName": null,
-                  "openRightLayout": false,
+                  "openInSeparateDialog": false,
+                  "openInPopover": true,
                   "popoverPreferredPlacement": "top",
                   "popoverHideOnClickOutside": true,
                   "popoverHideDashboardToolbar": true,
                   "popoverWidth": "40vw",
                   "popoverHeight": "40vh",
-                  "popoverStyle": {},
-                  "openInSeparateDialog": false,
-                  "openInPopover": true
+                  "popoverStyle": {}
                 },
                 "fluid": {
                   "action": "DO_NOTHING",
@@ -51686,6 +52008,10 @@
                   },
                   "getTimeSeries": {
                     "key": "state"
+                  },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
                   },
                   "dataToValue": {
                     "type": "NONE",
@@ -51709,6 +52035,10 @@
                   "getTimeSeries": {
                     "key": "state"
                   },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
+                  },
                   "dataToValue": {
                     "type": "NONE",
                     "compareToValue": true,
@@ -51730,6 +52060,10 @@
                   },
                   "getTimeSeries": {
                     "key": "state"
+                  },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
                   },
                   "dataToValue": {
                     "type": "NONE",
@@ -51753,6 +52087,10 @@
                   "getTimeSeries": {
                     "key": "state"
                   },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
+                  },
                   "dataToValue": {
                     "type": "NONE",
                     "compareToValue": true,
@@ -51775,6 +52113,10 @@
                   "getTimeSeries": {
                     "key": "state"
                   },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
+                  },
                   "dataToValue": {
                     "type": "NONE",
                     "compareToValue": true,
@@ -51783,7 +52125,13 @@
                 }
               },
               "properties": {
-                "valueUnits": "L/min",
+                "valueUnits": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
+                "valueDecimals": 0,
                 "defaultBorderColor": {
                   "type": "constant",
                   "color": "#4A4848",
@@ -54525,7 +54873,12 @@
                     }
                   },
                   "_hash": 0.7495950427355096,
-                  "units": "L/min",
+                  "units": {
+                    "from": "L/min",
+                    "METRIC": "L/min",
+                    "IMPERIAL": "GPM",
+                    "HYBRID": "L/min"
+                  },
                   "decimals": 0
                 }
               ],
@@ -54568,7 +54921,8 @@
               "showMax": false,
               "showAvg": false,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -54686,7 +55040,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "L/min",
+                "units": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -54811,7 +55170,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Flow rate",
           "dropShadow": true,
@@ -54954,7 +55314,12 @@
                     }
                   },
                   "_hash": 0.7495950427355096,
-                  "units": "L/min",
+                  "units": {
+                    "from": "L/min",
+                    "METRIC": "L/min",
+                    "IMPERIAL": "GPM",
+                    "HYBRID": "L/min"
+                  },
                   "decimals": 0
                 }
               ],
@@ -54997,7 +55362,8 @@
               "showMax": false,
               "showAvg": false,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -55115,7 +55481,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "L/min",
+                "units": {
+                  "from": "L/min",
+                  "METRIC": "L/min",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/min"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -55240,7 +55611,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Flow rate",
           "dropShadow": false,
@@ -55701,7 +56073,12 @@
                     }
                   },
                   "_hash": 0.8671197248532456,
-                  "units": "°C",
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": 0
                 }
               ],
@@ -55744,7 +56121,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -55861,7 +56239,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -55986,7 +56369,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Pool temperature",
           "dropShadow": false,
@@ -57007,6 +57391,10 @@
                   "getTimeSeries": {
                     "key": "state"
                   },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
+                  },
                   "dataToValue": {
                     "type": "NONE",
                     "compareToValue": true,
@@ -57029,6 +57417,10 @@
                   "getTimeSeries": {
                     "key": "waterLevel"
                   },
+                  "getAlarmStatus": {
+                    "severityList": null,
+                    "typeList": null
+                  },
                   "dataToValue": {
                     "type": "FUNCTION",
                     "compareToValue": true,
@@ -57048,7 +57440,12 @@
                 "fluidColor": "#1EC1F480",
                 "valueBox": false,
                 "valueBoxColor": "#F3F3F3",
-                "valueUnits": "L",
+                "valueUnits": {
+                  "from": "L",
+                  "METRIC": "L",
+                  "IMPERIAL": "gal",
+                  "HYBRID": "L"
+                },
                 "valueTextFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -61111,7 +61508,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "L",
+          "units": {
+            "from": "L",
+            "METRIC": "L",
+            "IMPERIAL": "gal",
+            "HYBRID": "L"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": null,
@@ -61358,7 +61760,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 2,
           "useDashboardTimewindow": true,
           "widgetStyle": null,
@@ -61605,7 +62012,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 2,
           "useDashboardTimewindow": true,
           "widgetStyle": null,
@@ -62058,7 +62470,12 @@
                     }
                   },
                   "_hash": 0.39932892654573315,
-                  "units": "°C",
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": 0
                 }
               ],
@@ -62101,7 +62518,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -62218,7 +62636,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -62343,7 +62766,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Target temperature",
           "dropShadow": false,
@@ -62486,7 +62910,12 @@
                     }
                   },
                   "_hash": 0.5249908902776084,
-                  "units": "°C",
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": 0
                 }
               ],
@@ -62529,7 +62958,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -62646,7 +63076,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -62771,7 +63206,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Outdoor temperature",
           "dropShadow": false,
@@ -63050,7 +63486,12 @@
                     }
                   },
                   "_hash": 0.1429213224271817,
-                  "units": "L",
+                  "units": {
+                    "from": "L",
+                    "METRIC": "L",
+                    "IMPERIAL": "gal",
+                    "HYBRID": "L"
+                  },
                   "decimals": 0,
                   "aggregationType": null,
                   "funcBody": null,
@@ -63097,7 +63538,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -63214,7 +63656,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "L",
+                "units": {
+                  "from": "L",
+                  "METRIC": "L",
+                  "IMPERIAL": "gal",
+                  "HYBRID": "L"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -63339,7 +63786,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Water level",
           "dropShadow": false,
@@ -81232,10 +81680,10 @@
                 "col": 3
               },
               "79175c29-bc00-ccad-2398-70c699ac1363": {
-                "sizeX": 2,
+                "sizeX": 3,
                 "sizeY": 1,
                 "row": 13,
-                "col": 49
+                "col": 48
               },
               "d5d57e9c-f535-aff0-3327-cc574c37dea9": {
                 "sizeX": 4,

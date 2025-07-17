@@ -516,6 +516,21 @@ message QueueUpdateMsg {
   string entity = 14;
 }
 
+message EncryptionKeyUpdateMsg{
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string entity = 4;
+}
+
+message SecretUpdateMsg{
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string entity = 4;
+  bytes rawValue = 5;
+}
+
 /**
  * Main Messages;
  */
@@ -608,4 +623,6 @@ message DownlinkMsg {
   CustomTranslationUpdateMsg customTranslationUpdateMsg = 100;
   repeated OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg = 52;
   repeated CalculatedFieldUpdateMsg calculatedFieldUpdateMsg = 53;
+  repeated EncryptionKeyUpdateMsg encryptionKeyUpdateMsg = 54;
+  repeated SecretUpdateMsg secretUpdateMsg = 55;
 }

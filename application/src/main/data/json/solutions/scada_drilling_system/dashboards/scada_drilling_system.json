@@ -4429,7 +4429,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "m",
+                "units": {
+                  "from": "m",
+                  "METRIC": "m",
+                  "IMPERIAL": "ft",
+                  "HYBRID": "m"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -5246,7 +5251,12 @@
           "decimals": 0,
           "titleColor": "rgba(0, 0, 0, 0.87)",
           "borderRadius": "4px",
-          "units": "t",
+          "units": {
+            "from": "t",
+            "METRIC": "t",
+            "IMPERIAL": "cwt",
+            "HYBRID": "t"
+          },
           "displayTimewindow": true,
           "timewindow": {
             "hideAggregation": false,
@@ -5615,7 +5625,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "MPa",
+                "units": {
+                  "from": "MPa",
+                  "METRIC": "MPa",
+                  "IMPERIAL": "ksi",
+                  "HYBRID": "MPa"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -5947,7 +5962,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "m/min",
+                "units": {
+                  "from": "m/min",
+                  "METRIC": "m/min",
+                  "IMPERIAL": "ft/min",
+                  "HYBRID": "m/min"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -6298,7 +6318,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "t",
+                "units": {
+                  "from": "t",
+                  "METRIC": "t",
+                  "IMPERIAL": "cwt",
+                  "HYBRID": "t"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -6558,16 +6583,16 @@
                     "icon": "",
                     "customIcon": "",
                     "useGetValueFunction": false,
-                    "getValueFunctionBody": "",
+                    "getValueFunctionBody": "\n",
                     "useSetValueFunction": false,
                     "setValueFunctionBody": ""
                   },
                   "_hash": 0.2513756245418346,
                   "aggregationType": null,
-                  "units": "m",
+                  "units": "meters",
                   "decimals": null,
                   "funcBody": null,
-                  "usePostProcessing": null,
+                  "usePostProcessing": false,
                   "postFuncBody": null
                 },
                 {
@@ -6610,7 +6635,7 @@
                   },
                   "_hash": 0.2342105363520035,
                   "aggregationType": null,
-                  "units": "m/h",
+                  "units": "meters/h",
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
@@ -6846,7 +6871,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "m",
+          "units": {
+            "from": "m",
+            "METRIC": "m",
+            "IMPERIAL": "ft",
+            "HYBRID": "m"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -7045,7 +7075,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -7668,7 +7703,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "MPa",
+          "units": {
+            "from": "MPa",
+            "METRIC": "MPa",
+            "IMPERIAL": "ksi",
+            "HYBRID": "MPa"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -7867,7 +7907,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -8464,7 +8509,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "L/s",
+          "units": {
+            "from": "L/s",
+            "METRIC": "L/s",
+            "IMPERIAL": "GPM",
+            "HYBRID": "L/s"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -8862,7 +8912,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -9485,7 +9540,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "t",
+          "units": {
+            "from": "t",
+            "METRIC": "t",
+            "IMPERIAL": "cwt",
+            "HYBRID": "t"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -9684,7 +9744,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "MPH",
+          "units": {
+            "from": "mph",
+            "METRIC": "km/h",
+            "IMPERIAL": "mph",
+            "HYBRID": "mph"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -10327,7 +10392,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "t",
+          "units": {
+            "from": "t",
+            "METRIC": "t",
+            "IMPERIAL": "cwt",
+            "HYBRID": "t"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -10526,7 +10596,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "MPH",
+          "units": {
+            "from": "mph",
+            "METRIC": "km/h",
+            "IMPERIAL": "mph",
+            "HYBRID": "mph"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -10725,7 +10800,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "m",
+          "units": {
+            "from": "m",
+            "METRIC": "m",
+            "IMPERIAL": "ft",
+            "HYBRID": "m"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -11600,7 +11680,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "L/s",
+          "units": {
+            "from": "L/s",
+            "METRIC": "L/s",
+            "IMPERIAL": "GPM",
+            "HYBRID": "L/s"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -11998,7 +12083,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -12197,7 +12287,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "MPa",
+          "units": {
+            "from": "MPa",
+            "METRIC": "MPa",
+            "IMPERIAL": "psi",
+            "HYBRID": "MPa"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -12396,7 +12491,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "g/cm³",
+          "units": {
+            "from": "g/cm³",
+            "METRIC": "g/cm³",
+            "IMPERIAL": "lb/ft³",
+            "HYBRID": "g/cm³"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {
@@ -14665,7 +14765,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "m/min",
+          "units": {
+            "from": "m/min",
+            "METRIC": "m/min",
+            "IMPERIAL": "ft/min",
+            "HYBRID": "m/min"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -14721,7 +14826,8 @@
                 "statusList": [
                   "ACTIVE"
                 ]
-              }
+              },
+              "latestDataKeys": []
             }
           ],
           "timewindow": {
@@ -14791,7 +14897,12 @@
             "rangeThreshold": {
               "type": "constant",
               "yAxisId": "default",
-              "units": null,
+              "units": {
+                "from": "MPa",
+                "METRIC": "MPa",
+                "IMPERIAL": "psi",
+                "HYBRID": "MPa"
+              },
               "decimals": 0,
               "lineColor": "#37383b",
               "lineType": "dashed",
@@ -15014,7 +15125,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "MPa",
+          "units": {
+            "from": "MPa",
+            "METRIC": "MPa",
+            "IMPERIAL": "psi",
+            "HYBRID": "MPa"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -15489,7 +15605,12 @@
             "rangeThreshold": {
               "type": "constant",
               "yAxisId": "default",
-              "units": null,
+              "units": {
+                "from": "t",
+                "METRIC": "t",
+                "IMPERIAL": "lb",
+                "HYBRID": "t"
+              },
               "decimals": 0,
               "lineColor": "#37383b",
               "lineType": "dashed",
@@ -15712,7 +15833,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "t",
+          "units": {
+            "from": "t",
+            "METRIC": "t",
+            "IMPERIAL": "cwt",
+            "HYBRID": "t"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -15830,7 +15956,12 @@
                     }
                   },
                   "_hash": 0.01729562154325226,
-                  "units": "°C",
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": 0,
                   "aggregationType": null,
                   "funcBody": null,
@@ -15912,7 +16043,12 @@
                     }
                   },
                   "_hash": 0.4560436473085747,
-                  "units": "°C",
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": 0
                 }
               ],
@@ -15965,13 +16101,15 @@
           "settings": {
             "showLegend": true,
             "legendConfig": {
+              "direction": "column",
               "position": "top",
               "sortDataKeys": false,
               "showMin": false,
               "showMax": false,
               "showAvg": false,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -16088,7 +16226,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -16218,7 +16361,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Temperature",
           "dropShadow": false,
@@ -16921,7 +17065,12 @@
             "rangeThreshold": {
               "type": "constant",
               "yAxisId": "default",
-              "units": null,
+              "units": {
+                "from": "MPa",
+                "METRIC": "MPa",
+                "IMPERIAL": "psi",
+                "HYBRID": "MPa"
+              },
               "decimals": 0,
               "lineColor": "#37383b",
               "lineType": "dashed",
@@ -17010,7 +17159,7 @@
               "interval": null,
               "splitNumber": null,
               "min": 0,
-              "max": 55
+              "max": null
             },
             "xAxis": {
               "show": true,
@@ -17142,7 +17291,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "MPa",
+          "units": {
+            "from": "MPa",
+            "METRIC": "MPa",
+            "IMPERIAL": "psi",
+            "HYBRID": "MPa"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -17676,6 +17830,8 @@
               "borderColor": "#ccc"
             },
             "yAxis": {
+              "units": null,
+              "decimals": 0,
               "show": true,
               "label": "",
               "labelFont": {
@@ -17698,15 +17854,15 @@
                 "lineHeight": "1"
               },
               "tickLabelColor": "#198038",
+              "ticksFormatter": null,
               "showTicks": false,
               "ticksColor": "rgba(0, 0, 0, 0.54)",
               "showLine": false,
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": true,
               "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-              "units": null,
-              "decimals": 0,
-              "ticksFormatter": null,
+              "id": "default",
+              "order": 0,
               "ticksGenerator": null,
               "interval": null,
               "splitNumber": null,
@@ -17843,7 +17999,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "L/s",
+          "units": {
+            "from": "L/s",
+            "METRIC": "L/s",
+            "IMPERIAL": "GPM",
+            "HYBRID": "L/s"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -17991,7 +18152,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "MPa",
+                "units": {
+                  "from": "MPa",
+                  "METRIC": "MPa",
+                  "IMPERIAL": "ksi",
+                  "HYBRID": "MPa"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -18259,8 +18425,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "flowRate"
@@ -18271,6 +18437,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -18341,7 +18508,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "L/s",
+                "units": {
+                  "from": "L/s",
+                  "METRIC": "L/s",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/s"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -18767,7 +18939,12 @@
                     }
                   },
                   "_hash": 0.11778616272017262,
-                  "units": "m",
+                  "units": {
+                    "from": "m",
+                    "METRIC": "m",
+                    "IMPERIAL": "ft",
+                    "HYBRID": "m"
+                  },
                   "decimals": 0
                 }
               ],
@@ -18827,7 +19004,8 @@
               "showMax": false,
               "showAvg": false,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "thresholds": [],
             "dataZoom": false,
@@ -18944,7 +19122,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "m",
+                "units": {
+                  "from": "m",
+                  "METRIC": "m",
+                  "IMPERIAL": "ft",
+                  "HYBRID": "m"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -19074,7 +19257,8 @@
               "weight": "400",
               "lineHeight": "16px"
             },
-            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)"
+            "tooltipLabelColor": "rgba(0, 0, 0, 0.76)",
+            "tooltipHideZeroValues": null
           },
           "title": "Well depth",
           "dropShadow": false,
@@ -19251,7 +19435,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "m",
+                "units": {
+                  "from": "m",
+                  "METRIC": "m",
+                  "IMPERIAL": "ft",
+                  "HYBRID": "m"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -19602,7 +19791,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -20335,7 +20529,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -21178,8 +21377,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "flowRate"
@@ -21190,6 +21389,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -21260,7 +21460,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "L/s",
+                "units": {
+                  "from": "L/s",
+                  "METRIC": "L/s",
+                  "IMPERIAL": "GPM",
+                  "HYBRID": "L/s"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -21436,7 +21641,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "g/cm³",
+                "units": {
+                  "from": "g/cm³",
+                  "METRIC": "g/cm³",
+                  "IMPERIAL": "lb/ft³",
+                  "HYBRID": "g/cm³"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -21529,8 +21739,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "temperature"
@@ -21541,6 +21751,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -21611,7 +21822,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -21787,7 +22003,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "MPa",
+                "units": {
+                  "from": "MPa",
+                  "METRIC": "MPa",
+                  "IMPERIAL": "ksi",
+                  "HYBRID": "MPa"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -22170,7 +22391,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "L/s",
+          "units": {
+            "from": "L/s",
+            "METRIC": "L/s",
+            "IMPERIAL": "GPM",
+            "HYBRID": "L/s"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -22305,6 +22531,7 @@
             "outOfRangeColor": "#ccc",
             "showRangeThresholds": true,
             "rangeThreshold": {
+              "type": "constant",
               "yAxisId": "default",
               "units": null,
               "decimals": 1,
@@ -22360,8 +22587,6 @@
               "borderColor": "#ccc"
             },
             "yAxis": {
-              "units": null,
-              "decimals": 0,
               "show": true,
               "label": "",
               "labelFont": {
@@ -22384,20 +22609,20 @@
                 "lineHeight": "1"
               },
               "tickLabelColor": "#198038",
-              "ticksFormatter": null,
               "showTicks": false,
               "ticksColor": "rgba(0, 0, 0, 0.54)",
               "showLine": false,
               "lineColor": "rgba(0, 0, 0, 0.54)",
               "showSplitLines": true,
               "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-              "id": "default",
-              "order": 0,
+              "units": null,
+              "decimals": 0,
+              "ticksFormatter": null,
               "ticksGenerator": null,
               "interval": null,
               "splitNumber": null,
-              "min": null,
-              "max": 2
+              "min": 0,
+              "max": null
             },
             "xAxis": {
               "show": true,
@@ -22529,7 +22754,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "g/cm³",
+          "units": {
+            "from": "g/cm³",
+            "METRIC": "g/cm³",
+            "IMPERIAL": "lb/ft³",
+            "HYBRID": "g/cm³"
+          },
           "decimals": 1,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -22884,7 +23114,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "°C",
+          "units": {
+            "from": "°C",
+            "METRIC": "°C",
+            "IMPERIAL": "°F",
+            "HYBRID": "°C"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -23239,7 +23474,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "MPa",
+          "units": {
+            "from": "MPa",
+            "METRIC": "MPa",
+            "IMPERIAL": "psi",
+            "HYBRID": "MPa"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -23484,8 +23724,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "tension"
@@ -23496,6 +23736,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -23566,7 +23807,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "t",
+                "units": {
+                  "from": "t",
+                  "METRIC": "t",
+                  "IMPERIAL": "cwt",
+                  "HYBRID": "t"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -23742,7 +23988,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "m/min",
+                "units": {
+                  "from": "m/min",
+                  "METRIC": "m/min",
+                  "IMPERIAL": "ft/min",
+                  "HYBRID": "m/min"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -23861,8 +24112,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": null
+                    "key": null,
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "length"
@@ -23873,6 +24124,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -23917,7 +24169,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "m",
+                "units": {
+                  "from": "m",
+                  "METRIC": "m",
+                  "IMPERIAL": "ft",
+                  "HYBRID": "m"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -24650,7 +24907,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "t",
+          "units": {
+            "from": "t",
+            "METRIC": "t",
+            "IMPERIAL": "cwt",
+            "HYBRID": "t"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -25010,7 +25272,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "m/min",
+          "units": {
+            "from": "m/min",
+            "METRIC": "m/min",
+            "IMPERIAL": "ft/min",
+            "HYBRID": "m/min"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {
@@ -26065,7 +26332,12 @@
           },
           "widgetCss": "",
           "pageSize": 1024,
-          "units": "m",
+          "units": {
+            "from": "m",
+            "METRIC": "m",
+            "IMPERIAL": "ft",
+            "HYBRID": "m"
+          },
           "decimals": 0,
           "noDataDisplayMessage": "",
           "timewindowStyle": {

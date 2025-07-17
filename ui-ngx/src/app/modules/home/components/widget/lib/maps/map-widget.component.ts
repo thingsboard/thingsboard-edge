@@ -36,6 +36,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  TemplateRef,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
@@ -68,6 +69,9 @@ export class MapWidgetComponent implements OnInit, OnDestroy {
 
   @Input()
   ctx: WidgetContext;
+
+  @Input()
+  widgetTitlePanel: TemplateRef<any>;
 
   backgroundStyle$: Observable<ComponentStyle>;
   overlayStyle: ComponentStyle = {};

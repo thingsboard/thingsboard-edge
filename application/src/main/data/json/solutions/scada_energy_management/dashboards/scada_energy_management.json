@@ -1,6 +1,6 @@
 {
   "title": "SCADA Energy management",
-  "image": "tb-image;/api/images/tenant/scada-energy.jpg",
+  "image": "tb-image;/api/images/system/scada-energy.jpg",
   "mobileHide": false,
   "mobileOrder": null,
   "configuration": {
@@ -1954,7 +1954,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -3114,7 +3119,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -4266,7 +4276,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -5995,7 +6010,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -6666,8 +6686,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": "CLIENT_SCOPE",
-                    "key": "l1Mode"
+                    "key": "l1Mode",
+                    "scope": "CLIENT_SCOPE"
                   },
                   "getTimeSeries": {
                     "key": null
@@ -6678,6 +6698,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -6849,7 +6870,7 @@
                 "warningColor": "#FAA405",
                 "criticalColor": "#D12730",
                 "showInputLabel": true,
-                "inputLabel": "in",
+                "inputLabel": "in (W)",
                 "inputLabelFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -6868,7 +6889,7 @@
                 "inputValueColor": "#002878",
                 "inputValueBoxBackground": "#DEDEDE",
                 "showOutputLabel": true,
-                "outputLabel": "out",
+                "outputLabel": "out (W)",
                 "outputLabelFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -11475,8 +11496,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": "SHARED_SCOPE",
-                    "key": "running"
+                    "key": "running",
+                    "scope": "SHARED_SCOPE"
                   },
                   "getTimeSeries": {
                     "key": "running"
@@ -11487,8 +11508,8 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
-                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;",
-                    "compareToValue": true
+                    "compareToValue": true,
+                    "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
                 "dayRate": {
@@ -11501,8 +11522,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "dayConsumption"
@@ -11513,6 +11534,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -11526,8 +11548,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "nightConsumption"
@@ -11538,6 +11560,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -11694,7 +11717,12 @@
                 "nightValueColor": "#002878",
                 "nightValueBoxBackground": "#DEDEDE",
                 "showUnits": true,
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "unitsFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -12988,7 +13016,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -13641,7 +13674,12 @@
                   },
                   "_hash": 0.7179364327454885,
                   "aggregationType": null,
-                  "units": "kWh",
+                  "units": {
+                    "from": "kWh",
+                    "METRIC": "kWh",
+                    "IMPERIAL": "MBtu",
+                    "HYBRID": "kWh"
+                  },
                   "decimals": 1,
                   "funcBody": null,
                   "usePostProcessing": true,
@@ -13731,7 +13769,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "decimals": 1,
                 "show": true,
                 "label": "",
@@ -13858,7 +13901,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -13920,7 +13964,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Consumption",
           "dropShadow": false,
@@ -14134,7 +14179,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -14329,7 +14379,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "showLegend": false,
@@ -14527,7 +14582,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "showLegend": false,
@@ -19860,7 +19920,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -20542,7 +20607,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -20745,7 +20815,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -25796,7 +25871,12 @@
                   },
                   "_hash": 0.7179364327454885,
                   "aggregationType": null,
-                  "units": null,
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
@@ -25878,7 +25958,12 @@
                   },
                   "_hash": 0.831791615642302,
                   "aggregationType": null,
-                  "units": null,
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
@@ -25960,7 +26045,12 @@
                   },
                   "_hash": 0.16863081882292574,
                   "aggregationType": null,
-                  "units": null,
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
@@ -26050,7 +26140,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -26092,7 +26187,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -26119,7 +26219,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -26146,7 +26251,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -26259,7 +26369,8 @@
               "showMax": false,
               "showAvg": false,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -26321,7 +26432,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Inverter temperature",
           "dropShadow": false,
@@ -26415,8 +26527,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "avgInverterTemperature"
@@ -26427,6 +26539,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -26497,7 +26610,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -26915,7 +27033,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "lx",
+          "units": {
+            "from": "lx",
+            "METRIC": "lx",
+            "IMPERIAL": "fc",
+            "HYBRID": "lx"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "showLegend": false,
@@ -27949,7 +28072,12 @@
                   },
                   "_hash": 0.7179364327454885,
                   "aggregationType": null,
-                  "units": null,
+                  "units": {
+                    "from": "kWh",
+                    "METRIC": "kWh",
+                    "IMPERIAL": "BTU",
+                    "HYBRID": "kWh"
+                  },
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
@@ -28039,8 +28167,13 @@
             },
             "yAxes": {
               "default": {
-                "units": "kWh",
-                "decimals": 1,
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "BTU",
+                  "HYBRID": "kWh"
+                },
+                "decimals": 2,
                 "show": true,
                 "label": "",
                 "labelFont": {
@@ -28081,7 +28214,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "BTU",
+                  "HYBRID": "kWh"
+                },
                 "decimals": 1,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -28108,7 +28246,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "BTU",
+                  "HYBRID": "kWh"
+                },
                 "decimals": 1,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -28221,7 +28364,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -28283,7 +28427,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Power output",
           "dropShadow": false,
@@ -29035,8 +29180,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "powerOuput"
@@ -29047,6 +29192,7 @@
                   },
                   "dataToValue": {
                     "type": "FUNCTION",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data ? data / 1000 : 0;"
                   }
                 },
@@ -29117,7 +29263,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -29510,7 +29661,13 @@
                       "color": ""
                     }
                   },
-                  "_hash": 0.7179364327454885
+                  "_hash": 0.7179364327454885,
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  }
                 }
               ],
               "alarmFilterConfig": {
@@ -29596,7 +29753,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -29805,7 +29967,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -29867,7 +30030,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Temperature",
           "dropShadow": false,
@@ -30044,7 +30208,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -30260,7 +30429,12 @@
                   "color": "#4caf50",
                   "settings": {},
                   "_hash": 0.6855444552144632,
-                  "units": "m/s",
+                  "units": {
+                    "from": "m/s",
+                    "METRIC": "m/s",
+                    "IMPERIAL": "ft/s",
+                    "HYBRID": "m/s"
+                  },
                   "decimals": 1,
                   "aggregationType": "NONE",
                   "funcBody": null,
@@ -31228,8 +31402,13 @@
                   },
                   "_hash": 0.7179364327454885,
                   "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
+                  "units": {
+                    "from": "kWh",
+                    "METRIC": "kWh",
+                    "IMPERIAL": "MBtu",
+                    "HYBRID": "kWh"
+                  },
+                  "decimals": 1,
                   "funcBody": null,
                   "usePostProcessing": true,
                   "postFuncBody": "return value ? value / 1000 : 0;"
@@ -31318,7 +31497,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "decimals": 1,
                 "show": true,
                 "label": "",
@@ -31360,7 +31544,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "BTU",
+                  "HYBRID": "kWh"
+                },
                 "decimals": 1,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -31387,7 +31576,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "BTU",
+                  "HYBRID": "kWh"
+                },
                 "decimals": 1,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -31500,7 +31694,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -31562,7 +31757,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Power output",
           "dropShadow": false,
@@ -31921,7 +32117,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -37235,7 +37436,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -37444,7 +37650,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -37506,7 +37713,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Battery temperature",
           "dropShadow": false,
@@ -37683,7 +37891,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -38714,8 +38927,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": "CLIENT_SCOPE",
-                    "key": "l1Mode"
+                    "key": "l1Mode",
+                    "scope": "CLIENT_SCOPE"
                   },
                   "getTimeSeries": {
                     "key": "l1Mode"
@@ -38726,6 +38939,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -38895,7 +39109,7 @@
                 "warningColor": "#FAA405",
                 "criticalColor": "#D12730",
                 "showInputLabel": true,
-                "inputLabel": "in",
+                "inputLabel": "in (W)",
                 "inputLabelFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -38914,7 +39128,7 @@
                 "inputValueColor": "#002878",
                 "inputValueBoxBackground": "#DEDEDE",
                 "showOutputLabel": true,
-                "outputLabel": "out",
+                "outputLabel": "out (W)",
                 "outputLabelFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -39008,8 +39222,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": "CLIENT_SCOPE",
-                    "key": "l2Mode"
+                    "key": "l2Mode",
+                    "scope": "CLIENT_SCOPE"
                   },
                   "getTimeSeries": {
                     "key": "l2Mode"
@@ -39020,6 +39234,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -39189,7 +39404,7 @@
                 "warningColor": "#FAA405",
                 "criticalColor": "#D12730",
                 "showInputLabel": true,
-                "inputLabel": "in",
+                "inputLabel": "in (W)",
                 "inputLabelFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -39208,7 +39423,7 @@
                 "inputValueColor": "#002878",
                 "inputValueBoxBackground": "#DEDEDE",
                 "showOutputLabel": true,
-                "outputLabel": "out",
+                "outputLabel": "out (W)",
                 "outputLabelFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -39302,8 +39517,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": "CLIENT_SCOPE",
-                    "key": "l3Mode"
+                    "key": "l3Mode",
+                    "scope": "CLIENT_SCOPE"
                   },
                   "getTimeSeries": {
                     "key": "l3Mode"
@@ -39314,6 +39529,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -39483,7 +39699,7 @@
                 "warningColor": "#FAA405",
                 "criticalColor": "#D12730",
                 "showInputLabel": true,
-                "inputLabel": "in",
+                "inputLabel": "in (W)",
                 "inputLabelFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -39502,7 +39718,7 @@
                 "inputValueColor": "#002878",
                 "inputValueBoxBackground": "#DEDEDE",
                 "showOutputLabel": true,
-                "outputLabel": "out",
+                "outputLabel": "out (W)",
                 "outputLabelFont": {
                   "size": 36,
                   "sizeUnit": "px",
@@ -43791,8 +44007,13 @@
                   },
                   "_hash": 0.7179364327454885,
                   "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
+                  "units": {
+                    "from": "kWh",
+                    "METRIC": "kWh",
+                    "IMPERIAL": "MBtu",
+                    "HYBRID": "kWh"
+                  },
+                  "decimals": 1,
                   "funcBody": null,
                   "usePostProcessing": true,
                   "postFuncBody": "return value ? value / 1000 : 0;"
@@ -43881,7 +44102,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "decimals": 1,
                 "show": true,
                 "label": "",
@@ -44008,7 +44234,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -44070,7 +44297,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Power output",
           "dropShadow": false,
@@ -44164,8 +44392,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": null,
-                    "key": "state"
+                    "key": "state",
+                    "scope": null
                   },
                   "getTimeSeries": {
                     "key": "power"
@@ -44176,6 +44404,7 @@
                   },
                   "dataToValue": {
                     "type": "FUNCTION",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data ? data/1000 : 0;"
                   }
                 },
@@ -44246,7 +44475,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -44741,8 +44975,13 @@
                   },
                   "_hash": 0.7179364327454885,
                   "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
+                  "units": {
+                    "from": "kWh",
+                    "METRIC": "kWh",
+                    "IMPERIAL": "MBtu",
+                    "HYBRID": "kWh"
+                  },
+                  "decimals": 1,
                   "funcBody": null,
                   "usePostProcessing": true,
                   "postFuncBody": "return value ? value / 1000 : 0;"
@@ -44831,7 +45070,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "decimals": 1,
                 "show": true,
                 "label": "",
@@ -44958,7 +45202,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -45020,7 +45265,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Power output",
           "dropShadow": false,
@@ -45197,7 +45443,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -46232,7 +46483,12 @@
                   },
                   "_hash": 0.7179364327454885,
                   "aggregationType": null,
-                  "units": null,
+                  "units": {
+                    "from": "°C",
+                    "METRIC": "°C",
+                    "IMPERIAL": "°F",
+                    "HYBRID": "°C"
+                  },
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
@@ -46322,7 +46578,12 @@
             },
             "yAxes": {
               "default": {
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "show": true,
                 "label": "",
@@ -46364,7 +46625,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -46391,7 +46657,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -46418,7 +46689,12 @@
               {
                 "type": "constant",
                 "yAxisId": "default",
-                "units": null,
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "decimals": 0,
                 "lineColor": "rgba(0, 0, 0, 0.76)",
                 "lineType": "dashed",
@@ -46531,7 +46807,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -46593,7 +46870,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Oil temperature",
           "dropShadow": false,
@@ -46702,8 +46980,8 @@
                     "persistentPollingInterval": 1000
                   },
                   "getAttribute": {
-                    "scope": "SERVER_SCOPE",
-                    "key": "target"
+                    "key": "target",
+                    "scope": "SERVER_SCOPE"
                   },
                   "getTimeSeries": {
                     "key": "state"
@@ -46714,6 +46992,7 @@
                   },
                   "dataToValue": {
                     "type": "NONE",
+                    "compareToValue": true,
                     "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
                   }
                 },
@@ -46758,7 +47037,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "°C",
+                "units": {
+                  "from": "°C",
+                  "METRIC": "°C",
+                  "IMPERIAL": "°F",
+                  "HYBRID": "°C"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -48679,7 +48963,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -49101,7 +49390,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -49304,7 +49598,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "Wh",
+          "units": {
+            "from": "Wh",
+            "METRIC": "Wh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "Wh"
+          },
           "decimals": 0,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -49630,7 +49929,7 @@
                 "showLowCriticalScale": false,
                 "lowCriticalScale": 10,
                 "value": true,
-                "valueDecimals": 0,
+                "valueDecimals": 1,
                 "valueFont": {
                   "size": 60,
                   "sizeUnit": "px",
@@ -49650,7 +49949,12 @@
                 },
                 "labelColor": "#000000DE",
                 "showUnits": true,
-                "units": "kWh",
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
                 "unitsFont": {
                   "size": 56,
                   "sizeUnit": "px",
@@ -49797,8 +50101,13 @@
                   },
                   "_hash": 0.7179364327454885,
                   "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
+                  "units": {
+                    "from": "kWh",
+                    "METRIC": "kWh",
+                    "IMPERIAL": "MBtu",
+                    "HYBRID": "kWh"
+                  },
+                  "decimals": 1,
                   "funcBody": null,
                   "usePostProcessing": true,
                   "postFuncBody": "return value ? value / 1000 : 0;"
@@ -49887,8 +50196,13 @@
             },
             "yAxes": {
               "default": {
-                "units": "kWh",
-                "decimals": 0,
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
+                "decimals": 1,
                 "show": true,
                 "label": "",
                 "labelFont": {
@@ -50014,7 +50328,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -50076,7 +50391,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Power consumption",
           "dropShadow": false,
@@ -53644,8 +53960,13 @@
                     }
                   },
                   "_hash": 0.6584827583338981,
-                  "units": null,
-                  "decimals": null,
+                  "units": {
+                    "from": "kWh",
+                    "METRIC": "kWh",
+                    "IMPERIAL": "MBtu",
+                    "HYBRID": "kWh"
+                  },
+                  "decimals": 1,
                   "aggregationType": null,
                   "funcBody": null,
                   "usePostProcessing": true,
@@ -53735,8 +54056,13 @@
             },
             "yAxes": {
               "default": {
-                "units": "kWh",
-                "decimals": 0,
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
+                "decimals": 1,
                 "show": true,
                 "label": "",
                 "labelFont": {
@@ -53864,7 +54190,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -53926,7 +54253,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Energy consumption (Daily)",
           "dropShadow": false,
@@ -54074,8 +54402,13 @@
                   },
                   "_hash": 0.10057181338109622,
                   "aggregationType": null,
-                  "units": null,
-                  "decimals": null,
+                  "units": {
+                    "from": "kWh",
+                    "METRIC": "kWh",
+                    "IMPERIAL": "MBtu",
+                    "HYBRID": "kWh"
+                  },
+                  "decimals": 1,
                   "funcBody": null,
                   "usePostProcessing": true,
                   "postFuncBody": "return value ? value / 1000 : 0;"
@@ -54164,8 +54497,13 @@
             },
             "yAxes": {
               "default": {
-                "units": "kWh",
-                "decimals": 0,
+                "units": {
+                  "from": "kWh",
+                  "METRIC": "kWh",
+                  "IMPERIAL": "MBtu",
+                  "HYBRID": "kWh"
+                },
+                "decimals": 1,
                 "show": true,
                 "label": "",
                 "labelFont": {
@@ -54293,7 +54631,8 @@
               "showMax": false,
               "showAvg": true,
               "showTotal": false,
-              "showLatest": false
+              "showLatest": false,
+              "valueFormat": null
             },
             "showTooltip": true,
             "tooltipTrigger": "axis",
@@ -54355,7 +54694,8 @@
                 "blur": 3
               }
             },
-            "padding": "0"
+            "padding": "0",
+            "tooltipHideZeroValues": null
           },
           "title": "Energy consumption (Monthly)",
           "dropShadow": false,
@@ -62680,7 +63020,12 @@
             "fontSize": "16px",
             "fontWeight": 400
           },
-          "units": "kWh",
+          "units": {
+            "from": "kWh",
+            "METRIC": "kWh",
+            "IMPERIAL": "MBtu",
+            "HYBRID": "kWh"
+          },
           "decimals": 1,
           "useDashboardTimewindow": true,
           "widgetStyle": {},
@@ -81418,7 +81763,7 @@
   "name": "SCADA Energy management",
   "resources": [
     {
-      "link": "/api/images/tenant/scada-energy.jpg",
+      "link": "/api/images/system/scada-energy.jpg",
       "title": "scada-energy.jpg",
       "type": "IMAGE",
       "subType": "IMAGE",
