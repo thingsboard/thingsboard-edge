@@ -60,6 +60,8 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
+import org.thingsboard.server.service.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.service.edge.stats.CounterEventType;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -139,6 +141,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     @Autowired(required = false)
     private CloudEventMigrationService cloudEventMigrationService;
+
+    @Autowired
+    protected CloudStatsCounterService statsCounterService;
 
     private ScheduledExecutorService uplinkExecutor;
     private ScheduledFuture<?> sendUplinkFuture;
@@ -290,7 +295,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     pageLink = pageLink.nextPageLink();
                     if (cloudEvents.hasNext()) {
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
-                        int queueSize = pageLink.getPageSize() * (cloudEvents.getTotalPages() - pageLink.getPage());
+                        log.error("TEST totalElements - {}, page - {}, pageSize - {}", cloudEvents.getTotalElements(), pageLink.getPage(), pageLink.getPageSize());
+
+                        long queueSize = Math.max(cloudEvents.getTotalElements() - ((long) pageLink.getPage() * pageLink.getPageSize()), 0);
+                        statsCounterService.setUplinkMsgsLag(queueSize);
                         log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
                                 queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
                     }
@@ -399,9 +407,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         try {
             if (sendingInProgress) {
                 if (msg.getSuccess()) {
+                    statsCounterService.recordEvent(CounterEventType.DOWNLINK_MSG_PUSHED, tenantId, 1);
                     pendingMsgMap.remove(msg.getUplinkMsgId());
                     log.debug("uplink msg has been processed successfully! {}", msg);
                 } else {
+                    statsCounterService.recordEvent(CounterEventType.DOWNLINK_MSG_TMP_FAILED, tenantId, 1);
                     if (msg.getErrorMsg().contains(RATE_LIMIT_REACHED)) {
                         log.warn("uplink msg processing failed! {}", RATE_LIMIT_REACHED);
                         isRateLimitViolated = true;
@@ -760,6 +770,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
                         log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
                                 MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
+                        statsCounterService.recordEvent(CounterEventType.DOWNLINK_MSG_PERMANENTLY_FAILED, tenantId, pendingMsgMap.size());
                         sendUplinkFutureResult.set(false);
                         return;
                     }
@@ -798,6 +809,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
                             "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}",
                     uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
+            statsCounterService.recordEvent(CounterEventType.DOWNLINK_MSG_PERMANENTLY_FAILED, tenantId, 1);
             pendingMsgMap.remove(uplinkMsg.getUplinkMsgId());
             latch.countDown();
         }
