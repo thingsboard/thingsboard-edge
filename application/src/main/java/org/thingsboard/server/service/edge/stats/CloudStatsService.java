@@ -94,7 +94,7 @@ public class CloudStatsService {
         initTenantIdAndEdgeId();
 
         long ts = (System.currentTimeMillis() / reportIntervalMillis) * reportIntervalMillis;
-        MsgCounters counters = statsCounterService.getCounter();
+        MsgCounters counters = statsCounterService.getCounter(tenantId);
         tbKafkaAdmin.ifPresent(this::prepareUplinkLag);
 
         List<TsKvEntry> statsEntries = List.of(

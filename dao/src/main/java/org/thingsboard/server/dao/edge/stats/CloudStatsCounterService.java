@@ -15,7 +15,6 @@
  */
 package org.thingsboard.server.dao.edge.stats;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 @ConditionalOnProperty(prefix = "cloud.stats", name = "enabled", havingValue = "true", matchIfMissing = false)
 @Service
 @Slf4j
-@Getter
 public class CloudStatsCounterService {
 
     private MsgCounters counter;
@@ -52,6 +50,11 @@ public class CloudStatsCounterService {
         if (counter == null) {
             counter = new MsgCounters(tenantId);
         }
+    }
+
+    public MsgCounters getCounter(TenantId tenantId) {
+        initCounter(tenantId);
+        return counter;
     }
 
 }
