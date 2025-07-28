@@ -205,6 +205,8 @@ import {
 import {
   CalculatedFieldTestArgumentsComponent
 } from '@home/components/calculated-fields/components/test-arguments/calculated-field-test-arguments.component';
+import { CheckConnectivityDialogComponent } from '@home/components/ai-model/check-connectivity-dialog.component';
+import { AIModelDialogComponent } from '@home/components/ai-model/ai-model-dialog.component';
 
 @NgModule({
   declarations:
@@ -358,6 +360,8 @@ import {
       CalculatedFieldDebugDialogComponent,
       CalculatedFieldScriptTestDialogComponent,
       CalculatedFieldTestArgumentsComponent,
+      CheckConnectivityDialogComponent,
+      AIModelDialogComponent,
     ],
   imports: [
     CommonModule,
@@ -505,6 +509,8 @@ import {
     CalculatedFieldDebugDialogComponent,
     CalculatedFieldScriptTestDialogComponent,
     CalculatedFieldTestArgumentsComponent,
+    CheckConnectivityDialogComponent,
+    AIModelDialogComponent,
   ],
   providers: [
     WidgetComponentService,
