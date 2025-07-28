@@ -296,7 +296,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     pageLink = pageLink.nextPageLink();
                     if (cloudEvents.hasNext()) {
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
-                        log.error("TEST totalElements - {}, page - {}, pageSize - {}", cloudEvents.getTotalElements(), pageLink.getPage(), pageLink.getPageSize());
 
                         long queueSize = Math.max(cloudEvents.getTotalElements() - ((long) pageLink.getPage() * pageLink.getPageSize()), 0);
                         statsCounterService.setUplinkMsgsLag(tenantId, queueSize);
