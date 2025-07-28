@@ -33,14 +33,14 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCloudEventProvider;
-import org.thingsboard.server.service.edge.stats.CloudStatsCounterService;
-import org.thingsboard.server.service.edge.stats.CounterEventType;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -96,7 +96,7 @@ public class KafkaCloudEventService implements CloudEventService {
         saveCloudEventToTopic(cloudEvent, producer, new TbQueueCallback() {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
-                statsCounterService.recordEvent(CounterEventType.DOWNLINK_MSG_ADDED, cloudEvent.getTenantId(), 1);
+                statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_ADDED, cloudEvent.getTenantId(), 1);
                 futureToSet.set(null);
             }
 

@@ -36,9 +36,9 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.TsKvCloudEventDao;
+import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.service.edge.stats.CloudStatsCounterService;
-import org.thingsboard.server.service.edge.stats.CounterEventType;
 
 import java.util.List;
 import java.util.Optional;
@@ -130,7 +130,7 @@ public class PostgresCloudEventService implements CloudEventService {
         Futures.addCallback(saveFuture, new FutureCallback<>() {
             @Override
             public void onSuccess(Void result) {
-                statsCounterService.recordEvent(CounterEventType.DOWNLINK_MSG_ADDED, cloudEvent.getTenantId(), 1);;
+                statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_ADDED, cloudEvent.getTenantId(), 1); ;
             }
 
             @Override
