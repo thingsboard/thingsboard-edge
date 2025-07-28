@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.edge.stats;
+package org.thingsboard.server.dao.edge.stats;
 
-public enum CounterEventType {
-    DOWNLINK_MSG_PUSHED,
-    DOWNLINK_MSG_PERMANENTLY_FAILED,
-    DOWNLINK_MSG_TMP_FAILED,
-    DOWNLINK_MSG_ADDED
+import lombok.Getter;
+
+@Getter
+public enum EdgeStatsKey {
+    DOWNLINK_MSGS_ADDED("downlinkMsgsAdded"),
+    DOWNLINK_MSGS_PUSHED("downlinkMsgsPushed"),
+    DOWNLINK_MSGS_PERMANENTLY_FAILED("downlinkMsgsPermanentlyFailed"),
+    DOWNLINK_MSGS_TMP_FAILED("downlinkMsgsTmpFailed"),
+    DOWNLINK_MSGS_LAG("downlinkMsgsLag");
+
+    private final String key;
+
+    EdgeStatsKey(String key) {
+        this.key = key;
+    }
 
 }

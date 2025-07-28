@@ -38,6 +38,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.edge.stats.EdgeStatsCounterService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
@@ -73,12 +74,12 @@ import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainEdgeProce
 import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainMetadataEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.telemetry.TelemetryEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.sync.EdgeRequestsService;
-import org.thingsboard.server.service.edge.stats.EdgeStatsCounterService;
 import org.thingsboard.server.service.executors.GrpcCallbackExecutorService;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Lazy
 @Data
@@ -200,7 +201,7 @@ public class EdgeContextComponent {
     private WidgetsBundleService widgetsBundleService;
 
     @Autowired
-    private EdgeStatsCounterService statsCounterService;
+    private Optional<EdgeStatsCounterService> statsCounterService;
 
 
     // processors

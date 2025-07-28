@@ -264,43 +264,39 @@ public class TbKafkaAdmin implements TbQueueAdmin, TbEdgeQueueAdmin {
 
     public Map<String, Long> getTotalLagForGroupsBulk(Set<String> groupIds) {
         Map<String, Long> result = new HashMap<>();
+        for (String groupId : groupIds) {
+            result.put(groupId, getTotalConsumerGroupLag(groupId));
+        }
+        return result;
+    }
+
+    public long getTotalConsumerGroupLag(String groupId) {
         try {
-            Map<String, Map<TopicPartition, OffsetAndMetadata>> allCommittedOffsets = new HashMap<>();
-            for (String groupId : groupIds) {
-                allCommittedOffsets.put(groupId, getConsumerGroupOffsets(groupId));
+            Map<TopicPartition, OffsetAndMetadata> committedOffsets = getConsumerGroupOffsets(groupId);
+            if (committedOffsets.isEmpty()) {
+                return 0L;
             }
 
-            Set<TopicPartition> allPartitions = allCommittedOffsets.values().stream()
-                    .flatMap(map -> map.keySet().stream())
-                    .collect(Collectors.toSet());
-
-            if (allPartitions.isEmpty()) {
-                return result;
-            }
-
-            Map<TopicPartition, OffsetSpec> latestOffsetsSpec = allPartitions.stream()
+            Map<TopicPartition, OffsetSpec> latestOffsetsSpec = committedOffsets.keySet().stream()
                     .collect(Collectors.toMap(tp -> tp, tp -> OffsetSpec.latest()));
 
             Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> endOffsets =
                     settings.getAdminClient().listOffsets(latestOffsetsSpec)
                             .all().get(10, TimeUnit.SECONDS);
 
-            for (String groupId : groupIds) {
-                Map<TopicPartition, OffsetAndMetadata> committedOffsets = allCommittedOffsets.get(groupId);
-                long lag = committedOffsets.entrySet().stream()
-                        .mapToLong(entry -> {
-                            TopicPartition tp = entry.getKey();
-                            long committed = entry.getValue().offset();
-                            long end = endOffsets.getOrDefault(tp,
-                                    new ListOffsetsResult.ListOffsetsResultInfo(0L, 0L, Optional.empty())).offset();
-                            return end - committed;
-                        }).sum();
-                result.put(groupId, lag);
-            }
+            return committedOffsets.entrySet().stream()
+                    .mapToLong(entry -> {
+                        TopicPartition tp = entry.getKey();
+                        long committed = entry.getValue().offset();
+                        long end = endOffsets.getOrDefault(tp,
+                                new ListOffsetsResult.ListOffsetsResultInfo(0L, 0L, Optional.empty())).offset();
+                        return end - committed;
+                    }).sum();
+
         } catch (Exception e) {
-            log.error("Failed to get total lag for consumer groups: {}", groupIds, e);
+            log.error("Failed to get total lag for consumer group: {}", groupId, e);
+            return 0L;
         }
-        return result;
     }
 
 }
