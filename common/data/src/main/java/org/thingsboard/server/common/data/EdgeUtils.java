@@ -28,9 +28,13 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.EnumMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public final class EdgeUtils {
+
+    // Subtract from queueStartTs to ensure no data is lost due to potential misordering of edge events by created_time.
+    public static final long MISORDERING_COMPENSATION_MILLIS = TimeUnit.SECONDS.toMillis(60);
 
     private static final EnumMap<EntityType, EdgeEventType> entityTypeEdgeEventTypeEnumMap;
     private static final EnumMap<ActionType, EdgeEventActionType> actionTypeEdgeEventActionTypeEnumMap;

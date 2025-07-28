@@ -82,6 +82,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.thingsboard.server.common.data.EdgeUtils.MISORDERING_COMPENSATION_MILLIS;
 import static org.thingsboard.server.service.edge.rpc.EdgeGrpcSession.RATE_LIMIT_REACHED;
 
 @Slf4j
@@ -335,6 +336,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     protected TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart, String key, CloudEventFinder finder) {
         try {
             long queueStartTs = getLongAttrByKey(tenantId, key).get();
+            // Subtract MISORDERING_COMPENSATION_MILLIS to ensure no events are missed in a clustered environment.
+            // While events are identified using seqId, we use partitioning for performance reasons
+            // and partitioning is based on created_time.
+            queueStartTs = queueStartTs > 0 ? queueStartTs - MISORDERING_COMPENSATION_MILLIS : 0;
             long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
             log.trace("newCloudEventsAvailable, queueSeqIdStart = {}, key = {}, queueStartTs = {}, queueEndTs = {}",
                     queueSeqIdStart, key, queueStartTs, queueEndTs);
@@ -711,7 +716,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 return Futures.immediateFuture(true);
             }
 
-            processMsgPack(uplinkMsgPack);
+            processMsgPack(uplinkMsgPack, isGeneralMsg);
         } finally {
             uplinkSendLock.unlock();
         }
@@ -736,7 +741,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         }
     }
 
-    private void processMsgPack(List<UplinkMsg> uplinkMsgPack) {
+    private void processMsgPack(List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
         pendingMsgMap.clear();
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
         sendUplinkFuture = uplinkExecutor.schedule(() -> {
@@ -750,7 +755,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     success = sendUplinkMsgPack(new LinkedBlockingQueue<>(pendingMsgMap.values())) && pendingMsgMap.isEmpty();
 
                     if (!success) {
-                        log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
+                        String batchPrefix = isGeneralMsg ? "General" : "Timeseries";
+                        log.warn("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgMap.values().size(), attempt);
+                        log.trace("Entities in failed batch: {}", pendingMsgMap.values());
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
@@ -767,7 +774,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
                     attempt++;
 
-                    if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
+                    if (isGeneralMsg && attempt > MAX_SEND_UPLINK_ATTEMPTS) {
                         log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
                                 MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
                         statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_PERMANENTLY_FAILED, tenantId, pendingMsgMap.size());
