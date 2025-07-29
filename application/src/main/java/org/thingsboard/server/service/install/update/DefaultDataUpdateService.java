@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -55,34 +56,20 @@ import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-
-import static org.thingsboard.server.dao.rule.BaseRuleChainService.TB_RULE_CHAIN_INPUT_NODE;
 
 @Service
 @Profile("install")
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultDataUpdateService implements DataUpdateService {
 
     private static final int MAX_PENDING_SAVE_RULE_NODE_FUTURES = 256;
     private static final int DEFAULT_PAGE_SIZE = 1024;
 
-    @Autowired
-    private RuleChainService ruleChainService;
-
-    @Autowired
-    private RelationService relationService;
-
-    @Autowired
-    private ComponentDiscoveryService componentDiscoveryService;
-
-    @Autowired
-    private DbUpgradeExecutorService executorService;
-
-    @Autowired
-    private TenantProfileService tenantProfileService;
+    private final RuleChainService ruleChainService;
+    private final ComponentDiscoveryService componentDiscoveryService;
+    private final DbUpgradeExecutorService executorService;
 
     // edge-only: for case "edge" in updateData
     @Autowired
@@ -98,8 +85,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     public void updateData() throws Exception {
         log.info("Updating data ...");
         //TODO: should be cleaned after each release
-        updateInputNodes();
-        deduplicateRateLimitsPerSecondsConfigurations();
 
         // Edge-only: always run next config:
 
@@ -109,72 +94,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         // ... Edge-only
 
         log.info("Data updated.");
-    }
-
-    private void deduplicateRateLimitsPerSecondsConfigurations() {
-        log.info("Starting update of tenant profiles...");
-
-        int totalProfiles = 0;
-        int updatedTenantProfiles = 0;
-        int skippedProfiles = 0;
-        int failedProfiles = 0;
-
-        var tenantProfiles = new PageDataIterable<>(
-                pageLink -> tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, pageLink), 1024);
-
-        for (TenantProfile tenantProfile : tenantProfiles) {
-            totalProfiles++;
-            String profileName = tenantProfile.getName();
-            UUID profileId = tenantProfile.getId().getId();
-            try {
-                Optional<DefaultTenantProfileConfiguration> profileConfiguration = tenantProfile.getProfileConfiguration();
-                if (profileConfiguration.isEmpty()) {
-                    log.debug("[{}][{}] Skipping tenant profile with non-default configuration.", profileId, profileName);
-                    skippedProfiles++;
-                    continue;
-                }
-
-                DefaultTenantProfileConfiguration defaultTenantProfileConfiguration = profileConfiguration.get();
-                defaultTenantProfileConfiguration.deduplicateRateLimitsConfigs();
-                tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
-                updatedTenantProfiles++;
-                log.debug("[{}][{}] Successfully updated tenant profile.", profileId, profileName);
-            } catch (Exception e) {
-                log.error("[{}][{}] Failed to updated tenant profile: ", profileId, profileName, e);
-                failedProfiles++;
-            }
-        }
-
-        log.info("Tenant profiles update completed. Total: {}, Updated: {}, Skipped: {}, Failed: {}",
-                totalProfiles, updatedTenantProfiles, skippedProfiles, failedProfiles);
-    }
-
-
-    private void updateInputNodes() {
-        log.info("Creating relations for input nodes...");
-        int n = 0;
-        var inputNodes = new PageDataIterable<>(pageLink -> ruleChainService.findAllRuleNodesByType(TB_RULE_CHAIN_INPUT_NODE, pageLink), 1024);
-        for (RuleNode inputNode : inputNodes) {
-            try {
-                RuleChainId targetRuleChainId = Optional.ofNullable(inputNode.getConfiguration().get("ruleChainId"))
-                        .filter(JsonNode::isTextual).map(JsonNode::asText).map(id -> new RuleChainId(UUID.fromString(id)))
-                        .orElse(null);
-                if (targetRuleChainId == null) {
-                    continue;
-                }
-
-                EntityRelation relation = new EntityRelation();
-                relation.setFrom(inputNode.getRuleChainId());
-                relation.setTo(targetRuleChainId);
-                relation.setType(EntityRelation.USES_TYPE);
-                relation.setTypeGroup(RelationTypeGroup.COMMON);
-                relationService.saveRelation(TenantId.SYS_TENANT_ID, relation);
-                n++;
-            } catch (Exception e) {
-                log.error("Failed to save relation for input node: {}", inputNode, e);
-            }
-        }
-        log.info("Created {} relations for input nodes", n);
     }
 
     @Override
