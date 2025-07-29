@@ -33,6 +33,8 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
@@ -52,6 +54,7 @@ import static org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventM
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class KafkaCloudEventService implements CloudEventService {
 
+    private final CloudStatsCounterService statsCounterService;
     private final TbCloudEventProvider tbCloudEventProvider;
     private final DataValidator<CloudEvent> cloudEventValidator;
 
@@ -93,6 +96,7 @@ public class KafkaCloudEventService implements CloudEventService {
         saveCloudEventToTopic(cloudEvent, producer, new TbQueueCallback() {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
+                statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_ADDED, cloudEvent.getTenantId(), 1);
                 futureToSet.set(null);
             }
 
