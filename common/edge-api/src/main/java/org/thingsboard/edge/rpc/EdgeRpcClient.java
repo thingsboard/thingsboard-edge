@@ -15,6 +15,7 @@
  */
 package org.thingsboard.edge.rpc;
 
+import org.thingsboard.server.gen.edge.v1.BandwidthTestMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
@@ -41,4 +42,6 @@ public interface EdgeRpcClient {
     void sendDownlinkResponseMsg(DownlinkResponseMsg downlinkResponseMsg);
 
     int getServerMaxInboundMessageSize();
+
+    void sendBandwidthTestMsg(BandwidthTestMsg bandwidthTestMsg);
 }
