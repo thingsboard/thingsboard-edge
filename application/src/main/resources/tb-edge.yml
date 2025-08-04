@@ -139,6 +139,11 @@ cloud:
       no_read_records_sleep: "${CLOUD_RPC_NO_READ_RECORDS_SLEEP:1000}"
       # Interval in milliseconds to retry sending a failed batch of cloud events
       sleep_between_batches: "${CLOUD_RPC_SLEEP_BETWEEN_BATCHES:1000}"
+      # Time (in milliseconds) to subtract from the start timestamp when fetching events.
+      # This compensates for possible misordering between `created_time` (used for partitioning)
+      # and `seqId` (used for sorting). Without this, events with smaller seqId but larger created_time
+      # might be skipped, especially across partition boundaries.
+      misordering_compensation_millis: "${CLOUD_RPC_MISORDERING_COMPENSATION_MILLIS:60000}"
     # Maximum size in bytes of inbound messages from the cloud
     max_inbound_message_size: "${CLOUD_RPC_MAX_INBOUND_MESSAGE_SIZE:4194304}"
     proxy:
