@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
+import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -53,6 +54,7 @@ import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
+import org.thingsboard.server.gen.edge.v1.BandwidthTestMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
@@ -506,6 +508,24 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         }
 
         initialized = true;
+        sendBandwidthTestMsg();
+    }
+
+    private void sendBandwidthTestMsg() {
+        try {
+            int testPayloadSize = 1024 * 1024 * 3;
+            long time = System.currentTimeMillis();
+            BandwidthTestMsg bandwidthTestMsg = BandwidthTestMsg.newBuilder()
+                    .setTestPayloadSize(testPayloadSize)
+                    .setTimestamp(time)
+                    .setPayload(ByteString.copyFrom(new byte[(int) testPayloadSize]))
+                    .build();
+
+            edgeRpcClient.sendBandwidthTestMsg(bandwidthTestMsg);
+            log.trace("Sent BandwidthTestMsg to cloud to measure connection bandwidth. TestPayloadSize - {}, time - {}", testPayloadSize, time);
+        } catch (Exception e) {
+            log.trace("Failed to send BandwidthTestMsg", e);
+        }
     }
 
     private boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration) {
