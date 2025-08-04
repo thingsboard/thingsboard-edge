@@ -39,6 +39,8 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
+import org.thingsboard.server.dao.edge.stats.EdgeStats;
 import org.thingsboard.server.dao.edge.stats.MsgCounters;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.discovery.TopicService;
@@ -48,6 +50,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +60,7 @@ import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.UPLINK_MSGS_LA
 import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.UPLINK_MSGS_PERMANENTLY_FAILED;
 import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.UPLINK_MSGS_PUSHED;
 import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.UPLINK_MSGS_TMP_FAILED;
+import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.UPLINK_RATE;
 
 @TbCoreComponent
 @ConditionalOnProperty(prefix = "cloud.stats", name = "enabled", havingValue = "true", matchIfMissing = false)
@@ -90,11 +94,14 @@ public class CloudStatsService {
             initialDelayString = "${cloud.stats.report-interval-millis:600000}"
     )
     public void reportStats() {
+        if (!initTenantIdAndEdgeId()) {
+            return;
+        }
         log.debug("Reporting cloud communication stats...");
-        initTenantIdAndEdgeId();
 
         long ts = (System.currentTimeMillis() / reportIntervalMillis) * reportIntervalMillis;
-        MsgCounters counters = statsCounterService.getCounter(tenantId);
+        EdgeStats edgeStats = statsCounterService.getEdgeStats(tenantId);
+        MsgCounters counters = edgeStats.getMsgCounters();
         tbKafkaAdmin.ifPresent(this::prepareUplinkLag);
 
         List<TsKvEntry> statsEntries = List.of(
@@ -102,17 +109,29 @@ public class CloudStatsService {
                 entry(ts, UPLINK_MSGS_PUSHED.getKey(), counters.getMsgsPushed().get()),
                 entry(ts, UPLINK_MSGS_PERMANENTLY_FAILED.getKey(), counters.getMsgsPermanentlyFailed().get()),
                 entry(ts, UPLINK_MSGS_TMP_FAILED.getKey(), counters.getMsgsTmpFailed().get()),
-                entry(ts, UPLINK_MSGS_LAG.getKey(), counters.getMsgsLag().get())
+                entry(ts, UPLINK_MSGS_LAG.getKey(), counters.getMsgsLag().get()),
+                entry(ts, UPLINK_RATE.getKey(), getAverageUplinkRate(edgeStats.getUplinkRate()))
         );
 
         saveTs(ts, statsEntries);
     }
 
-    private void initTenantIdAndEdgeId() {
-        if (tenantId == null || edgeId == null) {
+    private boolean initTenantIdAndEdgeId() {
+        if (tenantId != null && edgeId != null) {
+            return true;
+        }
+        try {
             EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings();
-            this.tenantId = TenantId.fromUUID(UUID.fromString(edgeSettings.getTenantId()));
-            this.edgeId = new EdgeId(UUID.fromString(edgeSettings.getEdgeId()));
+            if (edgeSettings == null) {
+                log.warn("EdgeSettings not found, skipping stats reporting.");
+                return false;
+            }
+            tenantId = TenantId.fromUUID(UUID.fromString(edgeSettings.getTenantId()));
+            edgeId = new EdgeId(UUID.fromString(edgeSettings.getEdgeId()));
+            return true;
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid UUID format in EdgeSettings, skipping stats reporting.", e);
+            return false;
         }
     }
 
@@ -126,7 +145,16 @@ public class CloudStatsService {
         long lagCloudEvent = groupIdToLag.getOrDefault(cloudEventConsumerGroupId, 0L);
         long lagCloudEventTs = groupIdToLag.getOrDefault(cloudEventTsConsumerGroupId, 0L);
 
-        statsCounterService.setUplinkMsgsLag(tenantId, lagCloudEvent + lagCloudEventTs);
+        statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_LAG, tenantId, lagCloudEvent + lagCloudEventTs);
+    }
+
+    private Long getAverageUplinkRate(Queue<Long> kbpsQueue) {
+        double average = kbpsQueue.stream()
+                .mapToLong(Long::longValue)
+                .average()
+                .orElse(0);
+
+        return Math.round(average);
     }
 
     private BasicTsKvEntry entry(long ts, String key, long value) {
@@ -157,12 +185,11 @@ public class CloudStatsService {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    log.warn("Failed to save cloud event with stats: {}", statsEntries, t);
+                    log.warn("Failed to save cloud event with stats: {}, tenantId: {}, edgeId: {}", statsEntries, tenantId, edgeId, t);
                 }
             }, MoreExecutors.directExecutor());
         } finally {
-            // clear counters for next interval
-            statsCounterService.clear();
+            statsCounterService.resetStats();
         }
     }
 
