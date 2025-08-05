@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
+import org.thingsboard.server.common.data.query.AliasEntityId;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
@@ -68,11 +69,13 @@ import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmStatusUpdate;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountCmd;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountUpdate;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
+import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -330,7 +333,7 @@ public class WebsocketApiTest extends AbstractControllerTest {
         loginTenantAdmin();
 
         SingleEntityFilter singleEntityFilter = new SingleEntityFilter();
-        singleEntityFilter.setSingleEntity(tenantId);
+        singleEntityFilter.setSingleEntity(AliasEntityId.fromEntityId(tenantId));
         AlarmCountQuery alarmCountQuery = new AlarmCountQuery(singleEntityFilter);
         AlarmCountCmd cmd1 = new AlarmCountCmd(1, alarmCountQuery);
 
@@ -354,7 +357,7 @@ public class WebsocketApiTest extends AbstractControllerTest {
         Assert.assertEquals(1, update.getCount());
 
         // set wrong entity id in filter, check count = 0
-        singleEntityFilter.setSingleEntity(tenantAdminUserId);
+        singleEntityFilter.setSingleEntity(AliasEntityId.fromEntityId(tenantAdminUserId));
         AlarmCountCmd cmd3 = new AlarmCountCmd(2, alarmCountQuery);
 
         getWsClient().send(cmd3);
@@ -580,6 +583,33 @@ public class WebsocketApiTest extends AbstractControllerTest {
         //Sending duplicate update again
         getWsClient().registerWaitForUpdate();
         sendTelemetry(device, Arrays.asList(dataPoint2));
+        msg = getWsClient().waitForUpdate(TimeUnit.SECONDS.toMillis(1));
+        Assert.assertNull(msg);
+    }
+
+    @Test
+    public void testTimeseriesSubscriptionCmd() throws Exception {
+        long now = System.currentTimeMillis() - 100;
+
+        long lastTs = now - TimeUnit.MINUTES.toMillis(1);
+        TsKvEntry dataPoint1 = new BasicTsKvEntry(lastTs, new LongDataEntry("temperature", 42L));
+        sendTelemetry(device, List.of(dataPoint1));
+
+        JsonNode update = getWsClient().sendTimeseriesCmd(device.getId(), "LATEST_TELEMETRY");
+        JsonNode data = update.get("data");
+        Assert.assertEquals(1, data.size());
+        Assert.assertEquals(JacksonUtil.newArrayNode().add(lastTs).add("42"), data.get("temperature").get(0));
+
+        //Sending update from the past, while latest value has new timestamp;
+        TsKvEntry dataPoint4 = new BasicTsKvEntry(now - TimeUnit.MINUTES.toMillis(5), new LongDataEntry("temperature", 45L));
+        getWsClient().registerWaitForUpdate();
+        sendTelemetry(device, List.of(dataPoint4));
+        String msg = getWsClient().waitForUpdate(TimeUnit.SECONDS.toMillis(1));
+        Assert.assertNull(msg);
+
+        //Sending duplicate update again
+        getWsClient().registerWaitForUpdate();
+        sendTelemetry(device, List.of(dataPoint4));
         msg = getWsClient().waitForUpdate(TimeUnit.SECONDS.toMillis(1));
         Assert.assertNull(msg);
     }
@@ -836,7 +866,7 @@ public class WebsocketApiTest extends AbstractControllerTest {
     public void testAttributesSubscription_sysAdmin() throws Exception {
         loginSysAdmin();
         SingleEntityFilter entityFilter = new SingleEntityFilter();
-        entityFilter.setSingleEntity(tenantId);
+        entityFilter.setSingleEntity(AliasEntityId.fromEntityId(tenantId));
 
         assertThatNoException().as("subscribeForAttributes").isThrownBy(() -> {
             JsonNode update = getWsClient().subscribeForAttributes(tenantId, TbAttributeSubscriptionScope.SERVER_SCOPE.name(), List.of("attr"));

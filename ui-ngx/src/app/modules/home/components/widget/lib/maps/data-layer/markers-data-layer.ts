@@ -37,7 +37,7 @@ import {
   TbMapDatasource
 } from '@shared/models/widget/maps/map.models';
 import L, { FeatureGroup } from 'leaflet';
-import { FormattedData } from '@shared/models/widget.models';
+import { DataKey, FormattedData } from '@shared/models/widget.models';
 import { forkJoin, Observable, of } from 'rxjs';
 import { CompiledTbFunction } from '@shared/models/js-function.models';
 import {
@@ -396,6 +396,8 @@ class TbMarkerDataLayerItem extends TbLatestDataLayerItem<MarkersDataLayerSettin
   private labelOffset: L.PointTuple;
   private iconClassList: string[];
   private moving = false;
+  private dragStart: () => void;
+  private dragEnd: () => void;
 
   constructor(data: FormattedData<TbMapDatasource>,
               dsData: FormattedData<TbMapDatasource>[],
@@ -415,6 +417,8 @@ class TbMarkerDataLayerItem extends TbLatestDataLayerItem<MarkersDataLayerSettin
   protected create(data: FormattedData<TbMapDatasource>, dsData: FormattedData<TbMapDatasource>[]): L.Marker {
     this.iconClassList = [];
     const location = this.dataLayer.dataProcessor.extractLocation(data, dsData);
+    this.dragStart = this._dragStart.bind(this);
+    this.dragEnd = this._dragEnd.bind(this);
     this.marker = L.marker(location, {
       tbMarkerData: data,
       snapIgnore: !this.dataLayer.isSnappable(),
@@ -465,44 +469,28 @@ class TbMarkerDataLayerItem extends TbLatestDataLayerItem<MarkersDataLayerSettin
   }
 
   protected enableDrag(): void {
-    if (this.settings.markerClustering?.enable) {
-      this.marker.options.draggable = true;
-      this.marker.on('dragstart', () => {
-        this.moving = true;
-      });
-      this.marker.on('dragend', () => {
-        this.saveMarkerLocation();
-        this.moving = false;
-      });
-    } else {
+    this.marker.options.draggable = true;
+    this.marker.dragging?.enable();
+    if (!this.settings.markerClustering?.enable) {
       this.marker.pm.setOptions({
         snappable: this.dataLayer.isSnappable()
       });
       this.marker.pm.enableLayerDrag();
-      this.marker.on('pm:dragstart', () => {
-        (this.marker.dragging as any)._draggable = { _moved: true, off: (_args: any) => { return { disable: () => {}} } };
-        (this.marker.dragging as any)._enabled = true;
-        this.moving = true;
-      });
-      this.marker.on('pm:dragend', () => {
-        this.saveMarkerLocation();
-        delete (this.marker.dragging as any)._draggable;
-        delete (this.marker.dragging as any)._enabled;
-        this.moving = false;
-      });
     }
+    const evtPrefix = this.settings.markerClustering?.enable ? '' : 'pm:';
+    this.marker.on(evtPrefix + 'dragstart', this.dragStart);
+    this.marker.on(evtPrefix + 'dragend', this.dragEnd);
   }
 
   protected disableDrag(): void {
-    if (this.settings.markerClustering?.enable) {
-      this.marker.options.draggable = false;
-      this.marker.off('dragstart');
-      this.marker.off('dragend');
-    } else {
+    this.marker.options.draggable = false;
+    this.marker.dragging?.disable();
+    if (!this.settings.markerClustering?.enable) {
       this.marker.pm.disableLayerDrag();
-      this.marker.off('pm:dragstart');
-      this.marker.off('pm:dragend');
     }
+    const evtPrefix = this.settings.markerClustering?.enable ? '' : 'pm:';
+    this.marker.off(evtPrefix + 'dragstart', this.dragStart);
+    this.marker.off(evtPrefix + 'dragend', this.dragEnd);
   }
 
   protected removeDataItemTitle(): string {
@@ -511,6 +499,15 @@ class TbMarkerDataLayerItem extends TbLatestDataLayerItem<MarkersDataLayerSettin
 
   protected removeDataItem(): Observable<any> {
     return this.dataLayer.saveMarkerLocation(this.data, null);
+  }
+
+  private _dragStart() {
+    this.moving = true;
+  }
+
+  private _dragEnd() {
+    this.saveMarkerLocation();
+    this.moving = false;
   }
 
   private saveMarkerLocation() {
@@ -628,9 +625,8 @@ export class TbMarkersDataLayer extends TbLatestMapDataLayer<MarkersDataLayerSet
     }
   }
 
-  protected setupDatasource(datasource: TbMapDatasource): TbMapDatasource {
-    datasource.dataKeys.push(this.settings.xKey, this.settings.yKey);
-    return datasource;
+  protected getDataKeys(): DataKey[] {
+    return [this.settings.xKey, this.settings.yKey];
   }
 
   protected allColorSettings(): DataLayerColorSettings[] {

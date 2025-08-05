@@ -73,7 +73,7 @@ public class KafkaCalculatedFieldStateService extends AbstractCalculatedFieldSta
                 .queueKey(queueKey)
                 .topic(partitionService.getTopic(queueKey))
                 .pollInterval(pollInterval)
-                .msgPackProcessor((msgs, consumer, config) -> {
+                .msgPackProcessor((msgs, consumer, consumerKey, config) -> {
                     for (TbProtoQueueMsg<CalculatedFieldStateProto> msg : msgs) {
                         try {
                             if (msg.getValue() != null) {
@@ -91,13 +91,16 @@ public class KafkaCalculatedFieldStateService extends AbstractCalculatedFieldSta
                         }
                     }
                 })
-                .consumerCreator((config, partitionId) -> queueFactory.createCalculatedFieldStateConsumer())
+                .consumerCreator((queueConfig, tpi) -> queueFactory.createCalculatedFieldStateConsumer())
                 .queueAdmin(queueFactory.getCalculatedFieldQueueAdmin())
                 .consumerExecutor(eventConsumer.getConsumerExecutor())
                 .scheduler(eventConsumer.getScheduler())
                 .taskExecutor(eventConsumer.getTaskExecutor())
                 .build();
-        super.stateService = new KafkaQueueStateService<>(eventConsumer, stateConsumer);
+        super.stateService = KafkaQueueStateService.<TbProtoQueueMsg<ToCalculatedFieldMsg>, TbProtoQueueMsg<CalculatedFieldStateProto>>builder()
+                .eventConsumer(eventConsumer)
+                .stateConsumer(stateConsumer)
+                .build();
         this.stateProducer = (TbKafkaProducerTemplate<TbProtoQueueMsg<CalculatedFieldStateProto>>) queueFactory.createCalculatedFieldStateProducer();
     }
 
@@ -111,18 +114,14 @@ public class KafkaCalculatedFieldStateService extends AbstractCalculatedFieldSta
         stateProducer.send(tpi, stateId.toKey(), msg, new TbQueueCallback() {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
-                if (callback != null) {
-                    callback.onSuccess();
-                }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                if (callback != null) {
-                    callback.onFailure(t);
-                }
+                log.error("Failed to send state message: {}", stateId, t);
             }
         });
+        callback.onSuccess();
     }
 
     @Override

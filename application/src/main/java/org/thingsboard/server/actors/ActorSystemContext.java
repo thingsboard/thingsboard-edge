@@ -30,9 +30,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.api.MailService;
-import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.DeviceStateManager;
+import org.thingsboard.rule.engine.api.JobManager;
+import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.MqttClientSettings;
+import org.thingsboard.rule.engine.api.NotificationCenter;
+import org.thingsboard.rule.engine.api.RuleEngineAiChatModelService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.notification.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
@@ -60,6 +63,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.dao.ai.AiModelService;
 import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -80,6 +84,7 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.job.JobService;
 import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
@@ -107,11 +112,11 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.discovery.DiscoveryService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.settings.TbQueueCalculatedFieldSettings;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cf.CalculatedFieldProcessingService;
 import org.thingsboard.server.service.cf.CalculatedFieldQueueService;
 import org.thingsboard.server.service.cf.CalculatedFieldStateService;
-import org.thingsboard.server.service.cf.cache.CalculatedFieldEntityProfileCache;
 import org.thingsboard.server.service.cf.ctx.state.ArgumentEntry;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
@@ -311,6 +316,14 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private RuleEngineAiChatModelService aiChatModelService;
+
+    @Autowired
+    @Getter
+    private AiModelService aiModelService;
+
+    @Autowired
+    @Getter
     private EntityViewService entityViewService;
 
     @Lazy
@@ -318,7 +331,6 @@ public class ActorSystemContext {
     @Getter
     private TbEntityViewService tbEntityViewService;
 
-    @Lazy
     @Autowired
     @Getter
     private CloudEventService cloudEventService;
@@ -456,15 +468,18 @@ public class ActorSystemContext {
     @Getter
     private ApiLimitService apiLimitService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private RateLimitService rateLimitService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private DebugModeRateLimitsConfig debugModeRateLimitsConfig;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private TbQueueCalculatedFieldSettings calculatedFieldSettings;
 
     /**
      * The following Service will be null if we operate in tb-core mode
@@ -537,25 +552,25 @@ public class ActorSystemContext {
     @Getter
     private EntityService entityService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private CalculatedFieldProcessingService calculatedFieldProcessingService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private CalculatedFieldStateService calculatedFieldStateService;
 
-    @Lazy
     @Autowired(required = false)
     @Getter
     private CalculatedFieldQueueService calculatedFieldQueueService;
 
-    @Lazy
-    @Autowired(required = false)
+    @Autowired
     @Getter
-    private CalculatedFieldEntityProfileCache calculatedFieldEntityProfileCache;
+    private JobService jobService;
+
+    @Autowired
+    @Getter
+    private JobManager jobManager;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
@@ -644,6 +659,10 @@ public class ActorSystemContext {
     @Value("${actors.calculated_fields.calculation_timeout:5}")
     @Getter
     private long cfCalculationResultTimeout;
+
+    @Autowired
+    @Getter
+    private MqttClientSettings mqttClientSettings;
 
     @Getter
     @Setter

@@ -1,6 +1,6 @@
 {
   "name": "thingsboard",
-  "version": "4.0.0EDGE",
+  "version": "4.3.0EDGE",
   "scripts": {
     "ng": "ng",
     "start": "node --max_old_space_size=8048 ./node_modules/@angular/cli/bin/ng serve --configuration development --host 0.0.0.0 --open",
@@ -28,7 +28,7 @@
     "@emotion/styled": "11.13.0",
     "@flowjs/flow.js": "^2.14.1",
     "@flowjs/ngx-flow": "18.0.1",
-    "@geoman-io/leaflet-geoman-free": "2.17.0",
+    "@geoman-io/leaflet-geoman-free": "2.18.3",
     "@iplab/ngx-color-picker": "^18.0.1",
     "@mat-datetimepicker/core": "~14.0.0",
     "@mdi/svg": "^7.4.47",
@@ -168,6 +168,7 @@
     "tinymce": "6.8.5",
     "rollup": "4.22.4",
     "@babel/core": "7.25.2",
-    "esbuild": "0.23.0"
+    "esbuild": "0.23.0",
+    "jquery.terminal/coveralls-next/form-data": "4.0.4"
   }
 }

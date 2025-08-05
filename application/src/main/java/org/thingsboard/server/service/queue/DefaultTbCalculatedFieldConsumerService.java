@@ -16,7 +16,6 @@
 package org.thingsboard.server.service.queue;
 
 import jakarta.annotation.PreDestroy;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,7 +53,7 @@ import org.thingsboard.server.service.cf.CalculatedFieldCache;
 import org.thingsboard.server.service.cf.CalculatedFieldStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.service.queue.processing.AbstractConsumerPartitionedService;
+import org.thingsboard.server.service.queue.processing.AbstractPartitionBasedConsumerService;
 import org.thingsboard.server.service.queue.processing.IdMsgPair;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
 
@@ -70,8 +69,7 @@ import java.util.stream.Collectors;
 
 @Service
 @TbRuleEngineComponent
-@Slf4j
-public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerPartitionedService<ToCalculatedFieldNotificationMsg> implements TbCalculatedFieldConsumerService {
+public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBasedConsumerService<ToCalculatedFieldNotificationMsg> implements TbCalculatedFieldConsumerService {
 
     @Value("${queue.calculated_fields.poll_interval:25}")
     private long pollInterval;
@@ -99,14 +97,14 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerPar
     }
 
     @Override
-    protected void doAfterStartUp() {
+    protected void onStartUp() {
         var queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, DataConstants.CF_QUEUE_NAME);
-        PartitionedQueueConsumerManager<TbProtoQueueMsg<ToCalculatedFieldMsg>> eventConsumer = PartitionedQueueConsumerManager.<TbProtoQueueMsg<ToCalculatedFieldMsg>>create()
+        var eventConsumer = PartitionedQueueConsumerManager.<TbProtoQueueMsg<ToCalculatedFieldMsg>>create()
                 .queueKey(queueKey)
                 .topic(partitionService.getTopic(queueKey))
                 .pollInterval(pollInterval)
                 .msgPackProcessor(this::processMsgs)
-                .consumerCreator((config, partitionId) -> queueFactory.createToCalculatedFieldMsgConsumer())
+                .consumerCreator((queueConfig, tpi) -> queueFactory.createToCalculatedFieldMsgConsumer(tpi))
                 .queueAdmin(queueFactory.getCalculatedFieldQueueAdmin())
                 .consumerExecutor(consumersExecutor)
                 .scheduler(scheduler)
@@ -126,10 +124,10 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerPar
     }
 
     @Override
-    protected void processPartitionChangeEvent(PartitionChangeEvent event) {
+    protected void onPartitionChangeEvent(PartitionChangeEvent event) {
         try {
             event.getNewPartitions().forEach((queueKey, partitions) -> {
-                if (queueKey.getQueueName().equals(DataConstants.CF_QUEUE_NAME)) {
+                if (DataConstants.CF_QUEUE_NAME.equals(queueKey.getQueueName())) {
                     stateService.restore(queueKey, partitions);
                 }
             });
@@ -143,12 +141,7 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerPar
         }
     }
 
-    @Override
-    protected String getPrefix() {
-        return "tb-cf";
-    }
-
-    private void processMsgs(List<TbProtoQueueMsg<ToCalculatedFieldMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCalculatedFieldMsg>> consumer, QueueConfig config) throws Exception {
+    private void processMsgs(List<TbProtoQueueMsg<ToCalculatedFieldMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCalculatedFieldMsg>> consumer, Object consumerKey, QueueConfig config) throws Exception {
         List<IdMsgPair<ToCalculatedFieldMsg>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).toList();
         ConcurrentMap<UUID, TbProtoQueueMsg<ToCalculatedFieldMsg>> pendingMap = orderedMsgList.stream().collect(
                 Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));
@@ -182,9 +175,7 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerPar
                 packSubmitFuture.cancel(true);
                 log.info("Timeout to process message: {}", pendingMsgHolder.getMsg());
             }
-            if (log.isDebugEnabled()) {
-                ctx.getAckMap().forEach((id, msg) -> log.debug("[{}] Timeout to process message: {}", id, msg.getValue()));
-            }
+            ctx.getAckMap().forEach((id, msg) -> log.warn("[{}] Timeout to process message: {}", id, msg.getValue()));
             ctx.getFailedMap().forEach((id, msg) -> log.warn("[{}] Failed to process message: {}", id, msg.getValue()));
         }
         consumer.commit();
@@ -193,6 +184,11 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractConsumerPar
     @Override
     protected ServiceType getServiceType() {
         return ServiceType.TB_RULE_ENGINE;
+    }
+
+    @Override
+    protected String getPrefix() {
+        return "tb-cf";
     }
 
     @Override

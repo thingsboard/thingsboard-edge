@@ -14,31 +14,27 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, SkipSelf, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, forwardRef, Input, OnInit, SkipSelf, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
-  UntypedFormBuilder,
-  UntypedFormControl,
-  UntypedFormGroup,
   FormGroupDirective,
   NG_VALUE_ACCESSOR,
-  NgForm
+  NgForm,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup
 } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { map, mergeMap, share, tap } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
-import { AppState } from '@app/core/core.state';
-import { TranslateService } from '@ngx-translate/core';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { IAliasController } from '@core/api/widget-api.models';
-import { TruncatePipe } from '@shared/pipe/truncate.pipe';
-import { MatAutocomplete, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatAutocomplete } from '@angular/material/autocomplete';
 import { ENTER } from '@angular/cdk/keycodes';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { FilterSelectCallbacks } from './filter-select.component.models';
 import { Filter } from '@shared/models/query/query.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-filter-select',
@@ -54,7 +50,7 @@ import { MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-
       useExisting: FilterSelectComponent
     }]
 })
-export class FilterSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit, ErrorStateMatcher {
+export class FilterSelectComponent implements ControlValueAccessor, OnInit, ErrorStateMatcher {
 
   selectFilterFormGroup: UntypedFormGroup;
 
@@ -71,46 +67,37 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
   showLabel: boolean;
 
   @Input()
+  @coerceBoolean()
+  inlineField: boolean;
+
+  @Input()
   appearance: MatFormFieldAppearance = 'fill';
 
   @Input()
   subscriptSizing: SubscriptSizing = 'fixed';
 
   @ViewChild('filterAutocomplete') filterAutocomplete: MatAutocomplete;
-  @ViewChild('autocomplete', { read: MatAutocompleteTrigger }) autoCompleteTrigger: MatAutocompleteTrigger;
 
-
-  private requiredValue: boolean;
-  get tbRequired(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set tbRequired(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  tbRequired: boolean;
 
   @Input()
   disabled: boolean;
 
   @ViewChild('filterInput', {static: true}) filterInput: ElementRef;
 
-  filterList: Array<Filter> = [];
-
   filteredFilters: Observable<Array<Filter>>;
 
   searchText = '';
 
   private dirty = false;
+  private filterList: Array<Filter> = [];
+  private propagateChange = (_v: any) => { };
 
-  private creatingFilter = false;
-
-  private propagateChange = (v: any) => { };
-
-  constructor(private store: Store<AppState>,
-              @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public translate: TranslateService,
-              public truncate: TruncatePipe,
-              private fb: UntypedFormBuilder) {
+  constructor(@SkipSelf() private errorStateMatcher: ErrorStateMatcher,
+              private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef) {
     this.selectFilterFormGroup = this.fb.group({
       filter: [null]
     });
@@ -120,19 +107,16 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   ngOnInit() {
-    const filters = this.aliasController.getFilters();
-    for (const filterId of Object.keys(filters)) {
-      this.filterList.push(filters[filterId]);
-    }
+    this.loadFilters();
 
     this.filteredFilters = this.selectFilterFormGroup.get('filter').valueChanges
       .pipe(
         tap(value => {
-          let modelValue;
+          let modelValue: Filter;
           if (typeof value === 'string' || !value) {
             modelValue = null;
           } else {
@@ -147,6 +131,12 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
         mergeMap(name => this.fetchFilters(name) ),
         share()
       );
+
+    this.aliasController.filtersChanged.pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
+      this.loadFilters();
+    });
   }
 
   isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -154,8 +144,6 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
     const customErrorState = this.tbRequired && !this.modelValue;
     return originalErrorState || customErrorState;
   }
-
-  ngAfterViewInit(): void {}
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
@@ -223,7 +211,7 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
   }
 
   textIsNotEmpty(text: string): boolean {
-    return (text && text != null && text.length > 0) ? true : false;
+    return text?.length > 0;
   }
 
   filterEnter($event: KeyboardEvent) {
@@ -238,7 +226,6 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
   createFilter($event: Event, filter: string, focusOnCancel = true) {
     $event.preventDefault();
     $event.stopPropagation();
-    this.creatingFilter = true;
     if (this.callbacks && this.callbacks.createFilter) {
       this.callbacks.createFilter(filter).subscribe((newFilter) => {
           if (!newFilter) {
@@ -249,7 +236,6 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
               }, 0);
             }
           } else {
-            this.filterList.push(newFilter);
             this.modelValue = newFilter.id;
             this.selectFilterFormGroup.get('filter').patchValue(newFilter, {emitEvent: true});
             this.propagateChange(this.modelValue);
@@ -257,5 +243,14 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
         }
       );
     }
+  }
+
+  private loadFilters(): void {
+    this.filterList = [];
+    const filters = this.aliasController.getFilters();
+    for (const filterId of Object.keys(filters)) {
+      this.filterList.push(filters[filterId]);
+    }
+    this.dirty = true;
   }
 }

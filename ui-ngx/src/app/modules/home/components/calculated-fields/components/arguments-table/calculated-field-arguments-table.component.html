@@ -80,7 +80,7 @@
           {{ 'entity.key' | translate }}
         </mat-header-cell>
         <mat-cell *matCellDef="let argument" class="w-1/4 xs:w-1/3">
-          <mat-chip>
+          <mat-chip class="tb-chip-row-ellipsis">
             <div tbTruncateWithTooltip class="key-text">{{ argument.refEntityKey.key }}</div>
           </mat-chip>
         </mat-cell>
@@ -116,7 +116,7 @@
         </mat-cell>
       </ng-container>
       <mat-header-row class="mat-row-select"
-                      *matHeaderRowDef="['name', 'entityType', 'target', 'type', 'key', 'actions']; sticky: true"></mat-header-row>
+                      *matHeaderRowDef="['name', 'entityType', 'target', 'type', 'key', 'actions']"></mat-header-row>
       <mat-row
         *matRowDef="let argument; columns: ['name', 'entityType', 'target', 'type', 'key', 'actions']"></mat-row>
     </table>

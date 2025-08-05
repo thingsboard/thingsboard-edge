@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
@@ -44,6 +44,7 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
 import org.thingsboard.server.service.install.InstallScripts;
+import org.thingsboard.server.service.install.DbUpgradeExecutorService;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
 import java.util.ArrayList;
@@ -53,29 +54,20 @@ import java.util.concurrent.ExecutionException;
 @Service
 @Profile("install")
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultDataUpdateService implements DataUpdateService {
 
     private static final int MAX_PENDING_SAVE_RULE_NODE_FUTURES = 256;
     private static final int DEFAULT_PAGE_SIZE = 1024;
 
-    @Autowired
-    private RuleChainService ruleChainService;
-
-    @Autowired
-    private ComponentDiscoveryService componentDiscoveryService;
-
-    @Autowired
-    JpaExecutorService jpaExecutorService;
+    private final RuleChainService ruleChainService;
+    private final ComponentDiscoveryService componentDiscoveryService;
+    private final DbUpgradeExecutorService executorService;
 
     // edge-only: for case "edge" in updateData
-    @Autowired
-    private TenantService tenantService;
-
-    @Autowired
-    private EdgeSettingsService edgeSettingsService;
-
-    @Autowired
-    private WidgetsBundleService widgetsBundleService;
+    private final TenantService tenantService;
+    private final EdgeSettingsService edgeSettingsService;
+    private final WidgetsBundleService widgetsBundleService;
 
     @Override
     public void updateData() throws Exception {
@@ -84,8 +76,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         // Edge-only: always run next config:
 
-        // remove this line in 4+ release
-        fixDuplicateSystemWidgetsBundles();
         // reset full sync required - to upload latest widgets from cloud
         tenantsFullSyncRequiredUpdater.updateEntities(null);
 
@@ -137,7 +127,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     ruleNodeId, ruleNodeType, fromVersion, toVersion);
             try {
                 TbNodeUpgradeUtils.upgradeConfigurationAndVersion(ruleNode, ruleNodeClassInfo);
-                saveFutures.add(jpaExecutorService.submit(() -> {
+                saveFutures.add(executorService.submit(() -> {
                     ruleChainService.saveRuleNode(TenantId.SYS_TENANT_ID, ruleNode);
                     log.debug("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
                             ruleNodeId, ruleNodeType, fromVersion, toVersion);

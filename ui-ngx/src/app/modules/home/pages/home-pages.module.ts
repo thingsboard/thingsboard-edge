@@ -48,6 +48,7 @@ import { AccountModule } from '@home/pages/account/account.module';
 import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module';
 import { GatewaysModule } from '@home/pages/gateways/gateways.module';
 import { MobileModule } from '@home/pages/mobile/mobile.module';
+import { AiModelModule } from '@home/pages/ai-model/ai-model.module';
 
 @NgModule({
   exports: [
@@ -81,6 +82,7 @@ import { MobileModule } from '@home/pages/mobile/mobile.module';
     VcModule,
     AccountModule,
     ScadaSymbolModule,
+    AiModelModule,
     CloudEventModule,
     EdgeStatusModule
   ]

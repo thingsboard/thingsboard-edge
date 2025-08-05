@@ -7,6 +7,7 @@ The **ThingsBoard Edge** is an open source software solution from ThingsBoard de
 
 The **ThingsBoard Edge** enables users to process and analyze data closer to the source, improving performance and reducing latency. At the same time **ThingsBoard Edge** seamlessly synchronizes with the ThingsBoard Cloud ([ThingsBoard Demo](https://demo.thingsboard.io/) or [ThingsBoard CE](https://github.com/thingsboard/thingsboard)), tailored to meet your specific business needs.
 
+
 ## Documentation
 
 The **ThingsBoard Edge** documentation is hosted on [thingsboard.io](https://thingsboard.io/docs/edge/).

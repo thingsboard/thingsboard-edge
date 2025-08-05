@@ -349,7 +349,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     if (this.isClientSideTelemetryTypeMap.get(this.attributeScope) || this.readonly) {
       return;
     }
-    const target = $event.target || $event.srcElement || $event.currentTarget;
+    const target = $event.target || $event.currentTarget;
     const config = new OverlayConfig();
     config.backdropClass = 'cdk-overlay-transparent-backdrop';
     config.hasBackdrop = true;
@@ -400,7 +400,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     if ($event) {
       $event.stopPropagation();
     }
-    const target = $event.target || $event.srcElement || $event.currentTarget;
+    const target = $event.target || $event.currentTarget;
     const config = new OverlayConfig({
       panelClass: 'tb-filter-panel',
       backdropClass: 'cdk-overlay-transparent-backdrop',

@@ -46,9 +46,8 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
     @Ignore
     public void testTenantProfiles() throws Exception {
         loginSysAdmin();
-
-        // save current values into tmp to revert after test
-        TenantProfile edgeTenantProfile = doGet("/api/tenantProfile/" + tenantProfileId.getId(), TenantProfile.class);
+        TenantProfile originalTenantProfile = doGet("/api/tenantProfile/" + tenantProfileId.getId(), TenantProfile.class);
+        TenantProfile edgeTenantProfile = new TenantProfile(originalTenantProfile);
 
         // updated edge tenant profile
         edgeTenantProfile.setName("Tenant Profile Edge Test");
@@ -66,6 +65,7 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals("Updated tenant profile Edge Test", tenantProfileMsg.getDescription());
         Assert.assertEquals("Tenant Profile Edge Test", tenantProfileMsg.getName());
 
+        doPost("/api/tenantProfile", originalTenantProfile, TenantProfile.class);
         loginTenantAdmin();
     }
 
@@ -73,19 +73,22 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
     @Ignore
     public void testIsolatedTenantProfile() throws Exception {
         loginSysAdmin();
-
-        TenantProfile edgeTenantProfile = doGet("/api/tenantProfile/" + tenantProfileId.getId(), TenantProfile.class);
+        TenantProfile originalTenantProfile = doGet("/api/tenantProfile/" + tenantProfileId.getId(), TenantProfile.class);
+        TenantProfile edgeTenantProfile = new TenantProfile(originalTenantProfile);
 
         // set tenant profile isolated and add 2 queues - main and isolated
         edgeTenantProfile.setIsolatedTbRuleEngine(true);
         TenantProfileQueueConfiguration mainQueueConfiguration = createQueueConfig(DataConstants.MAIN_QUEUE_NAME, DataConstants.MAIN_QUEUE_TOPIC);
         TenantProfileQueueConfiguration isolatedQueueConfiguration = createQueueConfig("IsolatedHighPriority", "tb_rule_engine.isolated_hp");
         edgeTenantProfile.getProfileData().setQueueConfiguration(List.of(mainQueueConfiguration, isolatedQueueConfiguration));
+        // + 1 TenantProfile
+        // + 1 Queue main
+        // + 1 Queue isolated
         edgeImitator.expectMessageAmount(3);
         edgeTenantProfile = doPost("/api/tenantProfile", edgeTenantProfile, TenantProfile.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        Optional<TenantProfileUpdateMsg> tenantProfileUpdateMsgOpt  = edgeImitator.findMessageByType(TenantProfileUpdateMsg.class);
+        Optional<TenantProfileUpdateMsg> tenantProfileUpdateMsgOpt = edgeImitator.findMessageByType(TenantProfileUpdateMsg.class);
         Assert.assertTrue(tenantProfileUpdateMsgOpt.isPresent());
         TenantProfileUpdateMsg tenantProfileUpdateMsg = tenantProfileUpdateMsgOpt.get();
         TenantProfile tenantProfile = JacksonUtil.fromString(tenantProfileUpdateMsg.getEntity(), TenantProfile.class, true);
@@ -99,7 +102,9 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
 
         loginTenantAdmin();
 
-        edgeImitator.expectMessageAmount(21);
+        // 25 sync message
+        // +1 isolated Queue
+        edgeImitator.expectMessageAmount(SYNC_MESSAGE_COUNT + 1);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
@@ -113,6 +118,10 @@ public class TenantProfileEdgeTest extends AbstractEdgeTest {
             Assert.assertNotNull(queue);
             Assert.assertEquals(tenantId, queue.getTenantId());
         }
+
+        loginSysAdmin();
+        doPost("/api/tenantProfile", originalTenantProfile, TenantProfile.class);
+        loginTenantAdmin();
     }
 
     private TenantProfileQueueConfiguration createQueueConfig(String queueName, String queueTopic) {
