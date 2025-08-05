@@ -38,10 +38,11 @@
         <pkg.implementationTitle>${project.name}</pkg.implementationTitle>
         <pkg.unixLogFolder>/var/log/${pkg.name}</pkg.unixLogFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
+        <jakarta-annotation.version>3.0.0</jakarta-annotation.version>
+        <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <spring-boot.version>3.4.8</spring-boot.version>
         <javax.xml.bind-api.version>2.4.0-b180830.0359</javax.xml.bind-api.version>
         <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
-        <spring-boot.version>3.2.4</spring-boot.version>
         <spring-data.version>3.2.5</spring-data.version>
         <spring-data-redis.version>3.2.5</spring-data-redis.version>
         <spring.version>6.1.6</spring.version>

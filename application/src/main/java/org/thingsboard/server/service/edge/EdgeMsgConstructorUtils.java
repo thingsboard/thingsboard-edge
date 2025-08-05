@@ -476,6 +476,11 @@ public class EdgeMsgConstructorUtils {
                 .build();
     }
 
+    //edge only
+    public static RuleChainMetadataUpdateMsg constructRuleChainMetadataUpdatedMsg(UpdateMsgType msgType, RuleChainMetaData ruleChainMetaData) {
+        return RuleChainMetadataUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(ruleChainMetaData)).build();
+    }
+
     private static String sanitizeMetadataForLegacyEdgeVersion(RuleChainMetaData ruleChainMetaData, EdgeVersion edgeVersion) {
         JsonNode jsonNode = JacksonUtil.valueToTree(ruleChainMetaData);
         JsonNode nodes = jsonNode.get("nodes");
