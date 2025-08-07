@@ -15,11 +15,17 @@
 # limitations under the License.
 #
 
+# Usage: ./update-project-version.sh <BASE_VERSION> <NEW_VERSION>
+# Example: ./update-project-version.sh 4.2.0 4.3.0EDGE-RC
+
+if [ $# -ne 2 ]; then
+    echo "❌ Usage: $0 <BASE_VERSION> <NEW_VERSION>"
+    exit 1
+fi
 
 SEARCH_DIR="./"
-CLEAR_VERSION="4.2.0"
-OLD_VERSION="4.2.0EDGEPE"
-NEW_VERSION="4.2.0EDGE-RC"
+BASE_VERSION="$1"
+NEW_VERSION="$2"
 
 declare -a SUFFIXES=(
   "EDGE-RC" "-RC" "EDGE-SNAPSHOT" "-SNAPSHOT"
@@ -30,7 +36,7 @@ declare -a SUFFIXES=(
 declare -A REPLACEMENTS=()
 
 for suffix in "${SUFFIXES[@]}"; do
-    from_tag="<version>${CLEAR_VERSION}${suffix}</version>"
+    from_tag="<version>${BASE_VERSION}${suffix}</version>"
     to_tag="<version>${NEW_VERSION}</version>"
 
     if [[ "$from_tag" != "$to_tag" ]]; then

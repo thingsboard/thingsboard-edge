@@ -15,31 +15,38 @@
 # limitations under the License.
 #
 
+# Usage: ./detect-old-version.sh <BASE_VERSION> <SKIP_VERSION>
+# Example: ./detect-old-version.sh 4.2.0 4.3.0EDGE-RC
 
+if [ $# -ne 2 ]; then
+    echo "❌ Usage: $0 <BASE_VERSION> <SKIP_VERSION>"
+    exit 1
+fi
+
+BASE_VERSION="$1"
+SKIP_VERSION="$2"
 SEARCH_DIR="./"
-CLEAR_VERSION="4.2.0"
-NEW_VERSION="4.2.0EDGE-RC"
 
 COMBINATIONS=(
-    "EDGE-RC" 
-    "-RC" 
-    "EDGE-SNAPSHOT" 
+    "EDGE-RC"
+    "-RC"
+    "EDGE-SNAPSHOT"
     "-SNAPSHOT"
-    "EDGE" 
-    "" 
-    "EDGEPE-RC" 
+    "EDGE"
+    ""
+    "EDGEPE-RC"
     "PE-RC"
-    "EDGEPE-SNAPSHOT" 
-    "PE-SNAPSHOT" 
-    "EDGEPE" 
+    "EDGEPE-SNAPSHOT"
+    "PE-SNAPSHOT"
+    "EDGEPE"
     "PE"
 )
 
 declare -A matched_files
 
-SKIP_CURRENT_VERSION="<version>${NEW_VERSION}</version>"
+SKIP_CURRENT_VERSION="<version>${SKIP_VERSION}</version>"
 for suffix in "${COMBINATIONS[@]}"; do
-    combo="<version>${CLEAR_VERSION}${suffix}</version>"
+    combo="<version>${BASE_VERSION}${suffix}</version>"
     if [[ "$combo" == "$SKIP_CURRENT_VERSION" ]]; then
         continue
     fi
