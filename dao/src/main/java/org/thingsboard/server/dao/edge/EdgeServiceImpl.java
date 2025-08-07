@@ -60,7 +60,6 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.edge.stats.EdgeStatsCounterService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
@@ -131,9 +130,6 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Autowired
     private EntityCountService countService;
-
-    @Autowired
-    private EdgeStatsCounterService edgeStatsCounterService;
 
     @Value("${edges.enabled}")
     @Getter
