@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.edge.exception.EdgeConnectionException;
 import org.thingsboard.server.common.data.ResourceUtils;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.gen.edge.v1.BandwidthTestMsg;
 import org.thingsboard.server.gen.edge.v1.ConnectRequestMsg;
 import org.thingsboard.server.gen.edge.v1.ConnectResponseCode;
 import org.thingsboard.server.gen.edge.v1.ConnectResponseMsg;
@@ -272,20 +271,6 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                     .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)
                     .setDownlinkResponseMsg(downlinkResponseMsg)
                     .build());
-        } finally {
-            uplinkMsgLock.unlock();
-        }
-    }
-
-    @Override
-    public void sendBandwidthTestMsg(BandwidthTestMsg bandwidthTestMsg) {
-        uplinkMsgLock.lock();
-        try {
-            RequestMsg requestMsg = RequestMsg.newBuilder()
-                    .setMsgType(RequestMsgType.BANDWIDTH_TEST_RPC_MESSAGE)
-                    .setBandwidthTestMsg(bandwidthTestMsg)
-                    .build();
-            inputStream.onNext(requestMsg);
         } finally {
             uplinkMsgLock.unlock();
         }

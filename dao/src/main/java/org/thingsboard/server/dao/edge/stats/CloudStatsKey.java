@@ -23,7 +23,8 @@ public enum CloudStatsKey {
     UPLINK_MSGS_PUSHED("uplinkMsgsPushed"),
     UPLINK_MSGS_PERMANENTLY_FAILED("uplinkMsgsPermanentlyFailed"),
     UPLINK_MSGS_TMP_FAILED("uplinkMsgsTmpFailed"),
-    UPLINK_MSGS_LAG("uplinkMsgsLag");
+    UPLINK_MSGS_LAG("uplinkMsgsLag"),
+    NETWORK_BANDWIDTH("networkBandwidth");
 
     private final String key;
 
