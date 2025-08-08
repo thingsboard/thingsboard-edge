@@ -107,6 +107,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @Value("${cloud.uplink_pack_timeout_sec:60}")
     private long uplinkPackTimeoutSec;
 
+    @Value("${cloud.stats.threshold-bytes:1048576}")
+    private long thresholdBytes;
+
     @Autowired
     private CloudContextComponent cloudCtx;
 
@@ -298,7 +301,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
 
                         long queueSize = Math.max(cloudEvents.getTotalElements() - ((long) pageLink.getPage() * pageLink.getPageSize()), 0);
-                        statsCounterService.setUplinkMsgsLag(tenantId, queueSize);
+                        statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_LAG, tenantId, queueSize);
                         log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
                                 queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
                     }
@@ -768,7 +771,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                             log.error("Error during sleep between batches or on rate limit violation", e);
                         }
                     } else {
-                        log.info("Sending of [{}] uplink msg(s) took {} ms.", uplinkMsgPack.size(), System.currentTimeMillis() - startTime);
+                        long rttMs = System.currentTimeMillis() - startTime;
+                        saveBandwidth(uplinkMsgPack, rttMs);
+                        log.info("Sending of [{}] uplink msg(s) took {} ms.", uplinkMsgPack.size(), rttMs);
                     }
 
                     attempt++;
@@ -787,6 +792,20 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 log.error("Error during send uplink msg", e);
             }
         }, 0L, TimeUnit.MILLISECONDS);
+    }
+
+    private void saveBandwidth(List<UplinkMsg> uplinkMsgPack, long rttMs) {
+        int totalBytes = uplinkMsgPack.stream()
+                .mapToInt(UplinkMsg::getSerializedSize)
+                .sum();
+
+        if (totalBytes >= thresholdBytes) {
+            double rttSeconds = Math.max(rttMs / 1000.0, 0.001);
+            double mbps = (totalBytes * 8) / (rttSeconds * 1_000_000);
+            long roundMbps = Math.round(mbps);
+
+            statsCounterService.recordEvent(CloudStatsKey.NETWORK_BANDWIDTH, tenantId, roundMbps);
+        }
     }
 
     private boolean sendUplinkMsgPack(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue) {
