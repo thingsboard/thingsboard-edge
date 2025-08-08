@@ -18,12 +18,22 @@ package org.thingsboard.server.dao.edge.stats;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 @Data
 public class EdgeStats {
     private final MsgCounters msgCounters;
+    private final Queue<Long> networkBandwidth;
 
     public EdgeStats(TenantId tenantId) {
         this.msgCounters = new MsgCounters(tenantId);
+        this.networkBandwidth = new ConcurrentLinkedQueue<>();
+    }
+
+    public void clear() {
+        msgCounters.clear();
+        networkBandwidth.clear();
     }
 
 }

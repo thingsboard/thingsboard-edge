@@ -39,6 +39,8 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
+import org.thingsboard.server.dao.edge.stats.EdgeStats;
 import org.thingsboard.server.dao.edge.stats.MsgCounters;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.discovery.TopicService;
@@ -48,10 +50,12 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.NETWORK_BANDWIDTH;
 import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.UPLINK_MSGS_ADDED;
 import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.UPLINK_MSGS_LAG;
 import static org.thingsboard.server.dao.edge.stats.CloudStatsKey.UPLINK_MSGS_PERMANENTLY_FAILED;
@@ -85,6 +89,9 @@ public class CloudStatsService {
     @Value("${service.type:monolith}")
     private String serviceType;
 
+    @Value("${cloud.stats.threshold-bytes:1048576}")
+    private int thresholdBytes;
+
     @Scheduled(
             fixedDelayString = "${cloud.stats.report-interval-millis:600000}",
             initialDelayString = "${cloud.stats.report-interval-millis:600000}"
@@ -94,7 +101,8 @@ public class CloudStatsService {
         initTenantIdAndEdgeId();
 
         long ts = (System.currentTimeMillis() / reportIntervalMillis) * reportIntervalMillis;
-        MsgCounters counters = statsCounterService.getCounter(tenantId);
+        EdgeStats edgeStats = statsCounterService.getEdgeStats();
+        MsgCounters counters = edgeStats.getMsgCounters();
         tbKafkaAdmin.ifPresent(this::prepareUplinkLag);
 
         List<TsKvEntry> statsEntries = List.of(
@@ -102,7 +110,8 @@ public class CloudStatsService {
                 entry(ts, UPLINK_MSGS_PUSHED.getKey(), counters.getMsgsPushed().get()),
                 entry(ts, UPLINK_MSGS_PERMANENTLY_FAILED.getKey(), counters.getMsgsPermanentlyFailed().get()),
                 entry(ts, UPLINK_MSGS_TMP_FAILED.getKey(), counters.getMsgsTmpFailed().get()),
-                entry(ts, UPLINK_MSGS_LAG.getKey(), counters.getMsgsLag().get())
+                entry(ts, UPLINK_MSGS_LAG.getKey(), counters.getMsgsLag().get()),
+                entry(ts, NETWORK_BANDWIDTH.getKey(), calculateMbps(edgeStats.getNetworkBandwidth()))
         );
 
         saveTs(ts, statsEntries);
@@ -126,7 +135,16 @@ public class CloudStatsService {
         long lagCloudEvent = groupIdToLag.getOrDefault(cloudEventConsumerGroupId, 0L);
         long lagCloudEventTs = groupIdToLag.getOrDefault(cloudEventTsConsumerGroupId, 0L);
 
-        statsCounterService.setUplinkMsgsLag(tenantId, lagCloudEvent + lagCloudEventTs);
+        statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_LAG, tenantId, lagCloudEvent + lagCloudEventTs);
+    }
+
+    private Long calculateMbps(Queue<Long> mbpsQueue) {
+        double average = mbpsQueue.stream()
+                .mapToLong(Long::longValue)
+                .average()
+                .orElse(0);
+
+        return Math.round(average);
     }
 
     private BasicTsKvEntry entry(long ts, String key, long value) {
@@ -162,7 +180,7 @@ public class CloudStatsService {
             }, MoreExecutors.directExecutor());
         } finally {
             // clear counters for next interval
-            statsCounterService.clear();
+            statsCounterService.resetStats();
         }
     }
 
@@ -171,6 +189,7 @@ public class CloudStatsService {
         entityBody.put("ts", ts);
         ObjectNode data = JacksonUtil.newObjectNode();
         statsEntries.forEach(entry -> data.put(entry.getKey(), entry.getValueAsString()));
+        data.put("padding", " ".repeat(thresholdBytes));
         entityBody.set("data", data);
         return entityBody;
     }
