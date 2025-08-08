@@ -13,41 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.thingsboard.server.dao.edge.stats;
 
-@import '../scss/constants';
+import lombok.Data;
+import org.thingsboard.server.common.data.id.TenantId;
 
-:host {
-  display: flex;
-  max-width: 100%;
-  .mdc-button {
-    max-width: 100%;
-  }
-}
+@Data
+public class EdgeStats {
+    private final MsgCounters msgCounters;
 
-:host ::ng-deep {
-  .mdc-button {
-    .mat-icon {
-      min-width: 24px;
+    public EdgeStats(TenantId tenantId) {
+        this.msgCounters = new MsgCounters(tenantId);
     }
-    .mdc-button__label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-}
 
-::ng-deep {
-  .tb-alarm-filter-config-component {
-    flex: 1;
-
-    tb-entity-subtype-list {
-      flex: 1;
-      @media #{$mat-gt-xs} {
-        width: 180px;
-      }
-      .mdc-evolution-chip-set__chips {
-        width: 100%;
-      }
-    }
-  }
 }
