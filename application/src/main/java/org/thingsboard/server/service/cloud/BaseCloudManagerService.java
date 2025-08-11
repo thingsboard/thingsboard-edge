@@ -796,11 +796,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 .mapToInt(UplinkMsg::getSerializedSize)
                 .sum();
 
-        double rttSeconds = Math.max(transferTimeMs / 1000.0, 0.001);
-        double kbps = totalBytes / (rttSeconds * 1024.0);
-        long roundKbps = Math.round(kbps);
+        double seconds = Math.max(transferTimeMs / 1000.0, 0.001);
+        double bytesPerSecond = totalBytes / seconds;
+        long roundBps = Math.round(bytesPerSecond);
 
-        statsCounterService.recordEvent(CloudStatsKey.UPLINK_RATE, tenantId, roundKbps);
+        statsCounterService.recordEvent(CloudStatsKey.UPLINK_RATE, tenantId, roundBps);
     }
 
     private boolean sendUplinkMsgPack(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue) {
