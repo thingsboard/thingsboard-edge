@@ -298,7 +298,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
 
                         long queueSize = Math.max(cloudEvents.getTotalElements() - ((long) pageLink.getPage() * pageLink.getPageSize()), 0);
-                        statsCounterService.setUplinkMsgsLag(tenantId, queueSize);
+                        statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_LAG, tenantId, queueSize);
                         log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
                                 queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
                     }
@@ -768,7 +768,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                             log.error("Error during sleep between batches or on rate limit violation", e);
                         }
                     } else {
-                        log.info("Sending of [{}] uplink msg(s) took {} ms.", uplinkMsgPack.size(), System.currentTimeMillis() - startTime);
+                        long transferTimeMs = System.currentTimeMillis() - startTime;
+                        recordUplinkRate(uplinkMsgPack, transferTimeMs);
+                        log.info("Sending of [{}] uplink msg(s) took {} ms.", uplinkMsgPack.size(), transferTimeMs);
                     }
 
                     attempt++;
@@ -787,6 +789,18 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 log.error("Error during send uplink msg", e);
             }
         }, 0L, TimeUnit.MILLISECONDS);
+    }
+
+    private void recordUplinkRate(List<UplinkMsg> uplinkMsgPack, long transferTimeMs) {
+        int totalBytes = uplinkMsgPack.stream()
+                .mapToInt(UplinkMsg::getSerializedSize)
+                .sum();
+
+        double seconds = Math.max(transferTimeMs / 1000.0, 0.001);
+        double bytesPerSecond = totalBytes / seconds;
+        long roundBps = Math.round(bytesPerSecond);
+
+        statsCounterService.recordEvent(CloudStatsKey.UPLINK_RATE, tenantId, roundBps);
     }
 
     private boolean sendUplinkMsgPack(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue) {

@@ -25,36 +25,43 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Slf4j
 public class CloudStatsCounterService {
 
-    private MsgCounters counter;
+    private volatile EdgeStats edgeStats;
 
     public void recordEvent(CloudStatsKey type, TenantId tenantId, long value) {
-        initCounter(tenantId);
+        initEdgeStats(tenantId);
+        EdgeStats currentStats = edgeStats;
+        MsgCounters counter = currentStats.getMsgCounters();
         switch (type) {
             case UPLINK_MSGS_ADDED -> counter.getMsgsAdded().addAndGet(value);
             case UPLINK_MSGS_PUSHED -> counter.getMsgsPushed().addAndGet(value);
             case UPLINK_MSGS_PERMANENTLY_FAILED -> counter.getMsgsPermanentlyFailed().addAndGet(value);
             case UPLINK_MSGS_TMP_FAILED -> counter.getMsgsTmpFailed().addAndGet(value);
+            case UPLINK_MSGS_LAG -> counter.getMsgsLag().set(value);
+            case UPLINK_RATE -> currentStats.getUplinkRate().add(value);
         }
     }
 
-    public void setUplinkMsgsLag(TenantId tenantId, long value) {
-        initCounter(tenantId);
-        counter.getMsgsLag().set(value);
-    }
-
-    public void clear() {
-        counter.clear();
-    }
-
-    private void initCounter(TenantId tenantId) {
-        if (counter == null) {
-            counter = new MsgCounters(tenantId);
+    private void initEdgeStats(TenantId tenantId) {
+        if (edgeStats == null) {
+            synchronized (this) {
+                if (edgeStats == null) {
+                    edgeStats = new EdgeStats(tenantId);
+                }
+            }
         }
     }
 
-    public MsgCounters getCounter(TenantId tenantId) {
-        initCounter(tenantId);
-        return counter;
+    public void resetStats() {
+        synchronized (this) {
+            if (edgeStats != null) {
+                edgeStats = new EdgeStats(edgeStats.getMsgCounters().getTenantId());
+            }
+        }
+    }
+
+    public EdgeStats getEdgeStats(TenantId tenantId) {
+        initEdgeStats(tenantId);
+        return edgeStats;
     }
 
 }

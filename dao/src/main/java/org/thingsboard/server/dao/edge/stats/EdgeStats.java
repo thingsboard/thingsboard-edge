@@ -15,21 +15,20 @@
  */
 package org.thingsboard.server.dao.edge.stats;
 
-import lombok.Getter;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Getter
-public enum CloudStatsKey {
-    UPLINK_MSGS_ADDED("uplinkMsgsAdded"),
-    UPLINK_MSGS_PUSHED("uplinkMsgsPushed"),
-    UPLINK_MSGS_PERMANENTLY_FAILED("uplinkMsgsPermanentlyFailed"),
-    UPLINK_MSGS_TMP_FAILED("uplinkMsgsTmpFailed"),
-    UPLINK_MSGS_LAG("uplinkMsgsLag"),
-    UPLINK_RATE("uplinkRate");
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-    private final String key;
+@Data
+public class EdgeStats {
+    private final MsgCounters msgCounters;
+    private final Queue<Long> uplinkRate;
 
-    CloudStatsKey(String key) {
-        this.key = key;
+    public EdgeStats(TenantId tenantId) {
+        this.msgCounters = new MsgCounters(tenantId);
+        this.uplinkRate = new ConcurrentLinkedQueue<>();
     }
 
 }
