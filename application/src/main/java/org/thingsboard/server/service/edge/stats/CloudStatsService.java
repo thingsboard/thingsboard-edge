@@ -148,8 +148,8 @@ public class CloudStatsService {
         statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_LAG, tenantId, lagCloudEvent + lagCloudEventTs);
     }
 
-    private Long getAverageUplinkRate(Queue<Long> kbpsQueue) {
-        double average = kbpsQueue.stream()
+    private Long getAverageUplinkRate(Queue<Long> bpsQueue) {
+        double average = bpsQueue.stream()
                 .mapToLong(Long::longValue)
                 .average()
                 .orElse(0);
