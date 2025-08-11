@@ -87,7 +87,6 @@ public class EdgeStatsTest {
                 topicService,
                 kafkaAdmin
         );
-        // Налаштування приватних полів через Reflection
         ReflectionTestUtils.setField(service, "edgesStatsTtlDays", TTL_DAYS);
         ReflectionTestUtils.setField(service, "reportIntervalMillis", REPORT_INTERVAL_MILLIS);
         return service;
