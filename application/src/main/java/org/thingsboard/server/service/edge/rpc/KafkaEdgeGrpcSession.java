@@ -36,7 +36,6 @@ import org.thingsboard.server.queue.kafka.KafkaAdmin;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -46,7 +45,6 @@ import java.util.function.BiConsumer;
 
 @Slf4j
 public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
-
     private final TopicService topicService;
     private final TbCoreQueueFactory tbCoreQueueFactory;
     private final KafkaAdmin kafkaAdmin;
@@ -68,29 +66,55 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
         this.kafkaAdmin = kafkaAdmin;
     }
 
-    private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) {
-        log.trace("[{}][{}] starting processing edge events", tenantId, edge.getId());
-        if (!isConnected() || isSyncInProgress() || isHighPriorityProcessing) {
-            log.debug("[{}][{}] edge not connected, edge sync is not completed or high priority processing in progress, " +
-                      "connected = {}, sync in progress = {}, high priority in progress = {}. Skipping iteration",
-                    tenantId, edge.getId(), isConnected(), isSyncInProgress(), isHighPriorityProcessing);
-            return;
-        }
-        List<EdgeEvent> edgeEvents = new ArrayList<>();
-        for (TbProtoQueueMsg<ToEdgeEventNotificationMsg> msg : msgs) {
-            EdgeEvent edgeEvent = ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg());
-            edgeEvents.add(edgeEvent);
-        }
+    private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) throws InterruptedException {
+        boolean isProcessed = false;
+
+        do {
+            log.trace("[{}][{}] Trying to process edge events", tenantId, edge.getId());
+
+            if (isConnected() && !isSyncInProgress() && !isHighPriorityProcessing) {
+                isProcessed = tryProcessMsgs(msgs, consumer);
+            } else {
+                log.debug("[{}][{}] edge not connected, edge sync is not completed or high priority processing in progress, " +
+                                "connected = {}, sync in progress = {}, high priority in progress = {}. Skipping iteration",
+                        tenantId, edge.getId(), isConnected(), isSyncInProgress(), isHighPriorityProcessing);
+            }
+
+            if (!isProcessed) {
+                sleep();
+            }
+        } while (!isProcessed);
+    }
+
+    private boolean tryProcessMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs,
+                                   TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) {
+        List<EdgeEvent> edgeEvents = msgs.stream()
+                .map(msg -> ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg()))
+                .toList();
+
         List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(edgeEvents);
+
         try {
             boolean isInterrupted = sendDownlinkMsgsPack(downlinkMsgsPack).get();
             if (isInterrupted) {
-                log.debug("[{}][{}] Send downlink messages task was interrupted", tenantId, edge.getId());
+                log.warn("[{}][{}] Send downlink messages task was interrupted", tenantId, edge.getId());
+                return false;
             } else {
                 consumer.commit();
+                log.trace("[{}][{}] Successfully processed {} edge events", tenantId, edge.getId(), edgeEvents.size());
+                return true;
             }
         } catch (Exception e) {
             log.error("[{}][{}] Failed to process downlink messages", tenantId, edge.getId(), e);
+            return false;
+        }
+    }
+
+    private void sleep() {
+        try {
+            Thread.sleep(ctx.getEdgeEventStorageSettings().getNoRecordsSleepInterval());
+        } catch (InterruptedException interruptedException) {
+            log.trace("[{}][{}] Interrupted while waiting to retry edge events processing", tenantId, edge.getId(), interruptedException);
         }
     }
 
