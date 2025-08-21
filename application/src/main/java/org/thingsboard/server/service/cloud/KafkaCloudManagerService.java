@@ -34,7 +34,6 @@ import org.thingsboard.server.queue.provider.TbCloudEventQueueFactory;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,6 +43,8 @@ import java.util.concurrent.Executors;
 @Primary
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class KafkaCloudManagerService extends BaseCloudManagerService {
+
+    private static final int MAX_PROCESS_CLOUD_EVENT_ATTEMPTS = 3;
 
     private QueueConsumerManager<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer;
     private QueueConsumerManager<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> tsConsumer;
@@ -118,23 +119,30 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         }
     }
 
-    private void processUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
+    private void processUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
+                                       TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) throws InterruptedException {
         log.trace("[{}] starting processing cloud events", tenantId);
-        if (initialized && !syncInProgress) {
+
+        while (!(initialized && !syncInProgress)) {
+            log.debug("[{}] Waiting for initialization/sync to finish before processing uplink messages", tenantId);
+            sleep();
+        }
+
+        try {
             isGeneralProcessInProgress = true;
             processMessages(msgs, consumer, true);
+        } finally {
             isGeneralProcessInProgress = false;
-        } else {
-            sleep();
         }
     }
 
-    private void processTsUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
-        if (initialized && !syncInProgress && !isGeneralProcessInProgress) {
-            processMessages(msgs, consumer, false);
-        } else {
+    private void processTsUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
+                                         TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) throws InterruptedException {
+        while (!(initialized && !syncInProgress && !isGeneralProcessInProgress)) {
             sleep();
         }
+
+        processMessages(msgs, consumer, false);
     }
 
     private void sleep() {
@@ -145,22 +153,33 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         }
     }
 
-    private void processMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer, boolean isGeneralMsg) {
-        List<CloudEvent> cloudEvents = new ArrayList<>();
-        for (TbProtoQueueMsg<TransportProtos.ToCloudEventMsg> msg : msgs) {
-            CloudEvent cloudEvent = ProtoUtils.fromProto(msg.getValue().getCloudEventMsg());
-            cloudEvents.add(cloudEvent);
-        }
-        try {
-            boolean isInterrupted = processCloudEvents(cloudEvents, isGeneralMsg).get();
-            if (isInterrupted) {
-                log.debug("[{}] Send uplink messages task was interrupted", tenantId);
-            } else {
-                consumer.commit();
+    private void processMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
+                                 TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer,
+                                 boolean isGeneralMsg) throws InterruptedException {
+        int attempt = 0;
+
+        while (!msgs.isEmpty() && attempt < MAX_PROCESS_CLOUD_EVENT_ATTEMPTS) {
+            try {
+                List<CloudEvent> cloudEvents = msgs.stream()
+                        .map(msg -> ProtoUtils.fromProto(msg.getValue().getCloudEventMsg()))
+                        .toList();
+
+                boolean isInterrupted = processCloudEvents(cloudEvents, isGeneralMsg).get();
+                if (!isInterrupted) {
+                    consumer.commit();
+                    return;
+                }
+
+                log.debug("[{}] Send uplink messages task was interrupted, retrying... (attempt {})", tenantId, attempt + 1);
+            } catch (Exception e) {
+                log.error("[{}] Failed to process all uplink messages, retrying... (attempt {})", tenantId, attempt + 1, e);
             }
-        } catch (Exception e) {
-            log.error("Failed to process all uplink messages", e);
+
+            attempt++;
+            Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
         }
+
+        log.error("[{}] Failed to process messages after {} retries", tenantId, MAX_PROCESS_CLOUD_EVENT_ATTEMPTS);
     }
 
 }

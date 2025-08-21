@@ -36,7 +36,6 @@ import org.thingsboard.server.queue.kafka.KafkaAdmin;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -46,6 +45,7 @@ import java.util.function.BiConsumer;
 
 @Slf4j
 public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
+    private static final int MAX_PROCESS_EDGE_EVENT_ATTEMPTS = 3;
 
     private final TopicService topicService;
     private final TbCoreQueueFactory tbCoreQueueFactory;
@@ -68,30 +68,41 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
         this.kafkaAdmin = kafkaAdmin;
     }
 
-    private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) {
+    private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) throws InterruptedException {
         log.trace("[{}][{}] starting processing edge events", tenantId, edge.getId());
-        if (!isConnected() || isSyncInProgress() || isHighPriorityProcessing) {
-            log.debug("[{}][{}] edge not connected, edge sync is not completed or high priority processing in progress, " +
-                      "connected = {}, sync in progress = {}, high priority in progress = {}. Skipping iteration",
-                    tenantId, edge.getId(), isConnected(), isSyncInProgress(), isHighPriorityProcessing);
-            return;
+
+        long retrySleepMs = ctx.getEdgeEventStorageSettings().getSleepIntervalBetweenBatches();
+
+        while (!isConnected() || isSyncInProgress() || isHighPriorityProcessing) {
+            log.debug("[{}][{}] Edge not ready. Waiting...", tenantId, edge.getId());
+            Thread.sleep(retrySleepMs);
         }
-        List<EdgeEvent> edgeEvents = new ArrayList<>();
-        for (TbProtoQueueMsg<ToEdgeEventNotificationMsg> msg : msgs) {
-            EdgeEvent edgeEvent = ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg());
-            edgeEvents.add(edgeEvent);
-        }
-        List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(edgeEvents);
-        try {
-            boolean isInterrupted = sendDownlinkMsgsPack(downlinkMsgsPack).get();
-            if (isInterrupted) {
-                log.debug("[{}][{}] Send downlink messages task was interrupted", tenantId, edge.getId());
-            } else {
-                consumer.commit();
+
+        int attempt = 0;
+
+        while (attempt < MAX_PROCESS_EDGE_EVENT_ATTEMPTS) {
+            try {
+                List<EdgeEvent> edgeEvents = msgs.stream()
+                        .map(msg -> ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg()))
+                        .toList();
+
+                List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(edgeEvents);
+
+                if (sendDownlinkMsgsPack(downlinkMsgsPack).get()) {
+                    log.debug("[{}][{}] Send downlink messages task was interrupted, retrying... (attempt {})", tenantId, edge.getId(), attempt + 1);
+                } else {
+                    consumer.commit();
+                    return;
+                }
+            } catch (Exception e) {
+                log.error("[{}][{}] Failed to process downlink messages, retrying... (attempt {})", tenantId, edge.getId(), attempt + 1, e);
             }
-        } catch (Exception e) {
-            log.error("[{}][{}] Failed to process downlink messages", tenantId, edge.getId(), e);
+
+            attempt++;
+            Thread.sleep(retrySleepMs);
         }
+
+        log.error("[{}][{}] Failed to process messages after {} retries", tenantId, edge.getId(), MAX_PROCESS_EDGE_EVENT_ATTEMPTS);
     }
 
     @Override
