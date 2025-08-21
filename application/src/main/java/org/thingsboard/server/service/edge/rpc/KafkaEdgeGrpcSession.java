@@ -69,40 +69,55 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
     }
 
     private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) throws InterruptedException {
-        log.trace("[{}][{}] starting processing edge events", tenantId, edge.getId());
+        boolean isProcessed = false;
 
-        long retrySleepMs = ctx.getEdgeEventStorageSettings().getSleepIntervalBetweenBatches();
+        do {
+            log.trace("[{}][{}] Trying to process edge events", tenantId, edge.getId());
 
-        while (!isConnected() || isSyncInProgress() || isHighPriorityProcessing) {
-            log.debug("[{}][{}] Edge not ready. Waiting...", tenantId, edge.getId());
-            Thread.sleep(retrySleepMs);
-        }
-
-        int attempt = 0;
-
-        while (attempt < MAX_PROCESS_EDGE_EVENT_ATTEMPTS) {
-            try {
-                List<EdgeEvent> edgeEvents = msgs.stream()
-                        .map(msg -> ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg()))
-                        .toList();
-
-                List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(edgeEvents);
-
-                if (sendDownlinkMsgsPack(downlinkMsgsPack).get()) {
-                    log.debug("[{}][{}] Send downlink messages task was interrupted, retrying... (attempt {})", tenantId, edge.getId(), attempt + 1);
-                } else {
-                    consumer.commit();
-                    return;
-                }
-            } catch (Exception e) {
-                log.error("[{}][{}] Failed to process downlink messages, retrying... (attempt {})", tenantId, edge.getId(), attempt + 1, e);
+            if (isConnected() && !isSyncInProgress() && !isHighPriorityProcessing) {
+                isProcessed = tryProcessMsgs(msgs, consumer);
+            } else {
+                log.debug("[{}][{}] edge not connected, edge sync is not completed or high priority processing in progress, " +
+                                "connected = {}, sync in progress = {}, high priority in progress = {}. Skipping iteration",
+                        tenantId, edge.getId(), isConnected(), isSyncInProgress(), isHighPriorityProcessing);
             }
 
-            attempt++;
-            Thread.sleep(retrySleepMs);
-        }
+            if (!isProcessed) {
+                sleep();
+            }
+        } while (!isProcessed);
+    }
 
-        log.error("[{}][{}] Failed to process messages after {} retries", tenantId, edge.getId(), MAX_PROCESS_EDGE_EVENT_ATTEMPTS);
+    private boolean tryProcessMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs,
+                                   TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) {
+        List<EdgeEvent> edgeEvents = msgs.stream()
+                .map(msg -> ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg()))
+                .toList();
+
+        List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(edgeEvents);
+
+        try {
+            boolean isInterrupted = sendDownlinkMsgsPack(downlinkMsgsPack).get();
+            if (isInterrupted) {
+                log.warn("[{}][{}] Send downlink messages task was interrupted", tenantId, edge.getId());
+                return false;
+            } else {
+                consumer.commit();
+                log.trace("[{}][{}] Successfully processed {} edge events", tenantId, edge.getId(), edgeEvents.size());
+                return true;
+            }
+        } catch (Exception e) {
+            log.error("[{}][{}] Failed to process downlink messages", tenantId, edge.getId(), e);
+            return false;
+        }
+    }
+
+    private void sleep() {
+        try {
+            Thread.sleep(ctx.getEdgeEventStorageSettings().getNoRecordsSleepInterval());
+        } catch (InterruptedException interruptedException) {
+            log.trace("[{}][{}] Interrupted while waiting to retry edge events processing", tenantId, edge.getId(), interruptedException);
+        }
     }
 
     @Override
