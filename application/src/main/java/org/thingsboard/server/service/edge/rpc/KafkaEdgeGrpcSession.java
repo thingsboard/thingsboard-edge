@@ -45,8 +45,6 @@ import java.util.function.BiConsumer;
 
 @Slf4j
 public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
-    private static final int MAX_PROCESS_EDGE_EVENT_ATTEMPTS = 3;
-
     private final TopicService topicService;
     private final TbCoreQueueFactory tbCoreQueueFactory;
     private final KafkaAdmin kafkaAdmin;
