@@ -20,7 +20,7 @@ services:
 # Valkey cluster
 # The latest version of Valkey compatible with ThingsBoard is 8.0
   valkey-node-0:
-    image: bitnami/valkey-cluster:8.0
+    image: bitnamilegacy/valkey-cluster:8.0
     volumes:
       - ./tb-node/valkey-cluster-data-0:/bitnami/valkey/data
     environment:
@@ -28,7 +28,7 @@ services:
       - 'VALKEY_NODES=valkey-node-0 valkey-node-1 valkey-node-2 valkey-node-3 valkey-node-4 valkey-node-5'
 
   valkey-node-1:
-    image: bitnami/valkey-cluster:8.0
+    image: bitnamilegacy/valkey-cluster:8.0
     volumes:
       - ./tb-node/valkey-cluster-data-1:/bitnami/valkey/data
     depends_on:
@@ -38,7 +38,7 @@ services:
       - 'VALKEY_NODES=valkey-node-0 valkey-node-1 valkey-node-2 valkey-node-3 valkey-node-4 valkey-node-5'
 
   valkey-node-2:
-    image: bitnami/valkey-cluster:8.0
+    image: bitnamilegacy/valkey-cluster:8.0
     volumes:
       - ./tb-node/valkey-cluster-data-2:/bitnami/valkey/data
     depends_on:
@@ -48,7 +48,7 @@ services:
       - 'VALKEY_NODES=valkey-node-0 valkey-node-1 valkey-node-2 valkey-node-3 valkey-node-4 valkey-node-5'
 
   valkey-node-3:
-    image: bitnami/valkey-cluster:8.0
+    image: bitnamilegacy/valkey-cluster:8.0
     volumes:
       - ./tb-node/valkey-cluster-data-3:/bitnami/valkey/data
     depends_on:
@@ -58,7 +58,7 @@ services:
       - 'VALKEY_NODES=valkey-node-0 valkey-node-1 valkey-node-2 valkey-node-3 valkey-node-4 valkey-node-5'
 
   valkey-node-4:
-    image: bitnami/valkey-cluster:8.0
+    image: bitnamilegacy/valkey-cluster:8.0
     volumes:
       - ./tb-node/valkey-cluster-data-4:/bitnami/valkey/data
     depends_on:
@@ -68,7 +68,7 @@ services:
       - 'VALKEY_NODES=valkey-node-0 valkey-node-1 valkey-node-2 valkey-node-3 valkey-node-4 valkey-node-5'
 
   valkey-node-5:
-    image: bitnami/valkey-cluster:8.0
+    image: bitnamilegacy/valkey-cluster:8.0
     volumes:
       - ./tb-node/valkey-cluster-data-5:/bitnami/valkey/data
     depends_on:
