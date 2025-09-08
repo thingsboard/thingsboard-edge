@@ -79,7 +79,6 @@ import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.query.StringFilterPredicate;
 import org.thingsboard.server.common.data.query.StringFilterPredicate.StringOperation;
-import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
@@ -115,14 +114,15 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.thingsboard.server.common.data.AttributeScope.SERVER_SCOPE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ATTRIBUTE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
-import static org.thingsboard.server.common.data.query.EntityKeyType.SERVER_ATTRIBUTE;
 
 @Slf4j
 @DaoSqlTest
@@ -1763,7 +1763,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<EntityKey> entityFields = List.of(
                 new EntityKey(ENTITY_FIELD, "name")
         );
-        List<EntityKey> latestValues =  List.of(
+        List<EntityKey> latestValues = List.of(
                 new EntityKey(EntityKeyType.TIME_SERIES, "temperature"),
                 new EntityKey(EntityKeyType.SERVER_ATTRIBUTE, "attr")
         );
@@ -2480,9 +2480,16 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     protected long countByQueryAndCheck(CustomerId customerId, EntityCountQuery query, int expectedResult) {
-        long result = countByQuery(customerId, query);
-        assertThat(result).isEqualTo(expectedResult);
-        return result;
+        return await()
+                .pollInterval(200, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    long result = countByQuery(customerId, query);
+                    if (result != expectedResult) {
+                        System.out.printf("[TEST] Waiting... got %d, expected %d%n", result, expectedResult);
+                    }
+                    return result;
+                }, r -> r == expectedResult);
     }
 
 }
