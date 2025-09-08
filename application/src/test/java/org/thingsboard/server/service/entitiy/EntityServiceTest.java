@@ -311,7 +311,9 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<Edge> edges = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
             Edge edge = createEdge(i, "default");
-            edges.add(edgeService.saveEdge(edge));
+            Edge savedEdge = edgeService.saveEdge(edge);
+            edges.add(savedEdge);
+            await().atMost(5, TimeUnit.SECONDS).until(() -> edgeService.findEdgeById(tenantId, savedEdge.getId()) != null);
         }
 
         EdgeTypeFilter filter = new EdgeTypeFilter();
@@ -336,6 +338,8 @@ public class EntityServiceTest extends AbstractControllerTest {
         countByQueryAndCheck(countQuery, 97);
 
         edgeService.deleteEdgesByTenantId(tenantId);
+        await().atMost(5, TimeUnit.SECONDS)
+                .until(() -> countByQuery(new CustomerId(CustomerId.NULL_UUID), new EntityCountQuery(entityListFilter)) == 0);
         countByQueryAndCheck(countQuery, 0);
     }
 
@@ -344,15 +348,18 @@ public class EntityServiceTest extends AbstractControllerTest {
         for (int i = 0; i < 5; i++) {
             Edge edge = createEdge(i, "type" + i);
             edge = edgeService.saveEdge(edge);
-            //TO make sure devices have different created time
-            Thread.sleep(1);
 
             EntityRelation er = new EntityRelation();
             er.setFrom(tenantId);
             er.setTo(edge.getId());
             er.setType("Manages");
             er.setTypeGroup(RelationTypeGroup.COMMON);
-            relationService.saveRelation(tenantId, er);
+            EntityRelation entityRelation = relationService.saveRelation(tenantId, er);
+            Edge finalEdge = edge;
+            await().atMost(5, TimeUnit.SECONDS).until(() ->
+                    edgeService.findEdgeById(tenantId, finalEdge.getId()) != null &&
+                            !relationService.findByFrom(tenantId, tenantId, RelationTypeGroup.COMMON).isEmpty()
+            );
         }
 
         EdgeSearchQueryFilter filter = new EdgeSearchQueryFilter();
@@ -2480,16 +2487,9 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     protected long countByQueryAndCheck(CustomerId customerId, EntityCountQuery query, int expectedResult) {
-        return await()
-                .pollInterval(200, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    long result = countByQuery(customerId, query);
-                    if (result != expectedResult) {
-                        System.out.printf("[TEST] Waiting... got %d, expected %d%n", result, expectedResult);
-                    }
-                    return result;
-                }, r -> r == expectedResult);
+        long result = countByQuery(customerId, query);
+        assertThat(result).isEqualTo(expectedResult);
+        return result;
     }
 
 }
