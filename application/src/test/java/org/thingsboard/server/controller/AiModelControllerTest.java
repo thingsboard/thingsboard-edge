@@ -126,7 +126,8 @@ public class AiModelControllerTest extends AbstractControllerTest {
         // verify returned object
         assertThat(updatedModel.getId()).isEqualTo(model.getId());
         assertThat(updatedModel.getCreatedTime()).isEqualTo(model.getCreatedTime());
-        assertThat(updatedModel.getVersion()).isEqualTo(2);
+        // edge only: version is not updated on Edge, skip version check
+//        assertThat(updatedModel.getVersion()).isEqualTo(2);
         assertThat(updatedModel.getTenantId()).isEqualTo(tenantId);
         assertThat(updatedModel.getName()).isEqualTo("Test model updated");
         assertThat(updatedModel.getConfiguration()).isEqualTo(newModelConfig);

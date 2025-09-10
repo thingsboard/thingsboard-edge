@@ -18,6 +18,8 @@ package org.thingsboard.server.dao.model.sql;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -106,5 +108,22 @@ public class AiModelEntity extends BaseVersionedEntity<AiModel> {
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
+    // edge only: manage version manually because @Version is disabled
+    @PrePersist
+    public void prePersist() {
+        if (version == null) {
+            version = 1L;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        if (version == null) {
+            version = 1L;
+        } else {
+            version++;
+        }
+    }
+    //
 
 }
