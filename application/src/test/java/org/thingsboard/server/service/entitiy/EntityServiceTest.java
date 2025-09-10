@@ -311,9 +311,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<Edge> edges = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
             Edge edge = createEdge(i, "default");
-            Edge savedEdge = edgeService.saveEdge(edge);
-            edges.add(savedEdge);
-            await().atMost(5, TimeUnit.SECONDS).until(() -> edgeService.findEdgeById(tenantId, savedEdge.getId()) != null);
+            edges.add(edgeService.saveEdge(edge));
         }
 
         EdgeTypeFilter filter = new EdgeTypeFilter();
@@ -338,8 +336,6 @@ public class EntityServiceTest extends AbstractControllerTest {
         countByQueryAndCheck(countQuery, 97);
 
         edgeService.deleteEdgesByTenantId(tenantId);
-        await().atMost(5, TimeUnit.SECONDS)
-                .until(() -> countByQuery(new CustomerId(CustomerId.NULL_UUID), new EntityCountQuery(entityListFilter)) == 0);
         countByQueryAndCheck(countQuery, 0);
     }
 
@@ -348,18 +344,15 @@ public class EntityServiceTest extends AbstractControllerTest {
         for (int i = 0; i < 5; i++) {
             Edge edge = createEdge(i, "type" + i);
             edge = edgeService.saveEdge(edge);
+            //TO make sure devices have different created time
+            Thread.sleep(1);
 
             EntityRelation er = new EntityRelation();
             er.setFrom(tenantId);
             er.setTo(edge.getId());
             er.setType("Manages");
             er.setTypeGroup(RelationTypeGroup.COMMON);
-            EntityRelation entityRelation = relationService.saveRelation(tenantId, er);
-            Edge finalEdge = edge;
-            await().atMost(5, TimeUnit.SECONDS).until(() ->
-                    edgeService.findEdgeById(tenantId, finalEdge.getId()) != null &&
-                            !relationService.findByFrom(tenantId, tenantId, RelationTypeGroup.COMMON).isEmpty()
-            );
+            relationService.saveRelation(tenantId, er);
         }
 
         EdgeSearchQueryFilter filter = new EdgeSearchQueryFilter();
