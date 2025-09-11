@@ -217,7 +217,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         try {
             Edge savedEdge = edgeDao.save(edge.getTenantId(), edge);
             publishEvictEvent(evictEvent);
-            // edge-only: event should be published on the Cloud
+            // edge-only: event publishing is disabled here (only Cloud should publish such events)
             if (edgesEnabled) {
                 eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
                         .entityId(savedEdge.getId()).entity(savedEdge).created(edge.getId() == null).build());
