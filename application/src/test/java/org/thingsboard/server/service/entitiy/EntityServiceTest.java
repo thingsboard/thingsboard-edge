@@ -114,12 +114,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.thingsboard.server.common.data.AttributeScope.SERVER_SCOPE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ATTRIBUTE;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
