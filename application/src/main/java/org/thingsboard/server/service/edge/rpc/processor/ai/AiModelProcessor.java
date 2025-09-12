@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.common.msg.cf;
+package org.thingsboard.server.service.edge.rpc.processor.ai;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.id.EntityId;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.ToCalculatedFieldSystemMsg;
+import org.thingsboard.server.gen.edge.v1.AiModelUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
 
-@Data
-public class CalculatedFieldInitProfileEntityMsg implements ToCalculatedFieldSystemMsg {
+public interface AiModelProcessor extends EdgeProcessor {
 
-    private final TenantId tenantId;
-    private final EntityId profileEntityId;
-    private final EntityId entityId;
-
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.CF_INIT_PROFILE_ENTITY_MSG;
-    }
+    ListenableFuture<Void> processAiModelMsgFromEdge(TenantId tenantId, Edge edge, AiModelUpdateMsg aiModelUpdateMsg);
 
 }
