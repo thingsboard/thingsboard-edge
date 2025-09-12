@@ -44,3 +44,23 @@ DROP INDEX IF EXISTS idx_widgets_bundle_external_id;
 -- DROP INDEXES THAT DUPLICATE UNIQUE CONSTRAINT END
 
 ALTER TABLE mobile_app ADD COLUMN IF NOT EXISTS title varchar(255);
+
+-- UPDATE AI_MODEL VERSION COLUMN START
+
+DO
+$$
+    BEGIN
+        -- remove NOT NULL constraint from the version column, if present
+        IF EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name='ai_model'
+              AND column_name='version'
+              AND is_nullable='NO'
+        ) THEN
+            ALTER TABLE ai_model ALTER COLUMN version DROP NOT NULL;
+        END IF;
+    END;
+$$;
+
+-- UPDATE AI_MODEL VERSION COLUMN END

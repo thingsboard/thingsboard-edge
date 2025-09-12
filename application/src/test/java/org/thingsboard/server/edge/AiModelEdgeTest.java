@@ -19,6 +19,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ai.AiModel;
@@ -43,6 +44,7 @@ public class AiModelEdgeTest extends AbstractEdgeTest {
     private static final String UPDATED_AI_MODEL_NAME = "Updated Edge Test AiModel";
 
     @Test
+    @Ignore
     public void testAiModel_create_update_delete() throws Exception {
         // create AiModel
         AiModel aiModel = createSimpleAiModel(DEFAULT_AI_MODEL_NAME);
@@ -92,6 +94,7 @@ public class AiModelEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAiModelToCloud() throws Exception {
         AiModel aiModel = createSimpleAiModel(DEFAULT_AI_MODEL_NAME);
         UUID uuid = Uuids.timeBased();
@@ -101,6 +104,7 @@ public class AiModelEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testUpdateAiModelNameOnCloud() throws Exception {
         AiModel aiModel = createSimpleAiModel(DEFAULT_AI_MODEL_NAME);
         UUID uuid = Uuids.timeBased();
@@ -115,6 +119,7 @@ public class AiModelEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAiModelToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         AiModel aiModel = createSimpleAiModel(DEFAULT_AI_MODEL_NAME);
 

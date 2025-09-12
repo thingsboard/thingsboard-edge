@@ -40,7 +40,8 @@ public enum CloudEventType {
     WIDGET_TYPE(EntityType.WIDGET_TYPE),
     EDGE(EntityType.EDGE),
     TB_RESOURCE(EntityType.TB_RESOURCE),
-    CALCULATED_FIELD(EntityType.CALCULATED_FIELD);
+    CALCULATED_FIELD(EntityType.CALCULATED_FIELD),
+    AI_MODEL(EntityType.AI_MODEL);
 
     private final EntityType entityType;
 
