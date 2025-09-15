@@ -15,8 +15,6 @@
  */
 package org.thingsboard.server.service.install.update;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -165,60 +163,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 ruleChainService.findAllRuleNodeIdsByTypeAndVersionLessThan(type, toVersion, pageLink), DEFAULT_PAGE_SIZE
         ).forEach(ruleNodeIds::add);
         return ruleNodeIds;
-    }
-
-    boolean convertDeviceProfileForVersion330(JsonNode profileData) {
-        boolean isUpdated = false;
-        if (profileData.has("alarms") && !profileData.get("alarms").isNull()) {
-            JsonNode alarms = profileData.get("alarms");
-            for (JsonNode alarm : alarms) {
-                if (alarm.has("createRules")) {
-                    JsonNode createRules = alarm.get("createRules");
-                    for (AlarmSeverity severity : AlarmSeverity.values()) {
-                        if (createRules.has(severity.name())) {
-                            JsonNode spec = createRules.get(severity.name()).get("condition").get("spec");
-                            if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
-                                isUpdated = true;
-                            }
-                        }
-                    }
-                }
-                if (alarm.has("clearRule") && !alarm.get("clearRule").isNull()) {
-                    JsonNode spec = alarm.get("clearRule").get("condition").get("spec");
-                    if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
-                        isUpdated = true;
-                    }
-                }
-            }
-        }
-        return isUpdated;
-    }
-
-    boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {
-        if (spec != null) {
-            if (spec.has("type") && spec.get("type").asText().equals("DURATION")) {
-                if (spec.has("value")) {
-                    long value = spec.get("value").asLong();
-                    var predicate = new FilterPredicateValue<>(
-                            value, null, new DynamicValue<>(null, null, false)
-                    );
-                    ((ObjectNode) spec).remove("value");
-                    ((ObjectNode) spec).putPOJO("predicate", predicate);
-                    return true;
-                }
-            } else if (spec.has("type") && spec.get("type").asText().equals("REPEATING")) {
-                if (spec.has("count")) {
-                    int count = spec.get("count").asInt();
-                    var predicate = new FilterPredicateValue<>(
-                            count, null, new DynamicValue<>(null, null, false)
-                    );
-                    ((ObjectNode) spec).remove("count");
-                    ((ObjectNode) spec).putPOJO("predicate", predicate);
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public static boolean getEnv(String name, boolean defaultValue) {
