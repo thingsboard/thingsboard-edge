@@ -143,10 +143,10 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
                                      TbQueueCalculatedFieldSettings calculatedFieldSettings,
                                      TbKafkaConsumerStatsService consumerStatsService,
                                      TbKafkaTopicConfigs kafkaTopicConfigs,
+                                     TasksQueueConfig tasksQueueConfig,
                                      TbQueueCloudEventSettings cloudEventSettings,
                                      TbQueueCloudEventTSSettings cloudEventTSSettings,
-                                     EdqsConfig edqsConfig,
-                                     TasksQueueConfig tasksQueueConfig) {
+                                     EdqsConfig edqsConfig) {
         this.topicService = topicService;
         this.kafkaSettings = kafkaSettings;
         this.kafkaAdmin = kafkaAdmin;
