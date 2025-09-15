@@ -152,6 +152,13 @@ cloud:
       username: "${CLOUD_RPC_PROXY_USERNAME:}"
       # Password for proxy server authentication
       password: "${CLOUD_RPC_PROXY_PASSWORD:}"
+  stats:
+    # Enable or disable reporting of cloud communication stats (true or false)
+    enabled: "${CLOUD_STATS_ENABLED:true}"
+    # Time-to-live in days for stored edge communication stats in timeseries
+    ttl: "${CLOUD_STATS_TTL:30}"
+    # How often to report edge communication stats in milliseconds
+    report-interval-millis: "${EDGE_STATS_REPORT_INTERVAL_MS:600000}"
 
 # Application info parameters
 app:
@@ -803,9 +810,9 @@ redis:
     # Minumum number of idle connections that can be maintained in the pool without being closed
     minIdle: "${REDIS_POOL_CONFIG_MIN_IDLE:16}"
     # Enable/Disable PING command sent when a connection is borrowed
-    testOnBorrow: "${REDIS_POOL_CONFIG_TEST_ON_BORROW:true}"
+    testOnBorrow: "${REDIS_POOL_CONFIG_TEST_ON_BORROW:false}"
     # The property is used to specify whether to test the connection before returning it to the connection pool.
-    testOnReturn: "${REDIS_POOL_CONFIG_TEST_ON_RETURN:true}"
+    testOnReturn: "${REDIS_POOL_CONFIG_TEST_ON_RETURN:false}"
     # The property is used in the context of connection pooling in Redis
     testWhileIdle: "${REDIS_POOL_CONFIG_TEST_WHILE_IDLE:true}"
     # Minimum time that an idle connection should be idle before it can be evicted from the connection pool. The value is set in milliseconds
@@ -2000,6 +2007,16 @@ queue:
       enabled: "${TB_QUEUE_EDGE_STATS_ENABLED:true}"
       # Statistics printing interval for Edge services
       print-interval-ms: "${TB_QUEUE_EDGE_STATS_PRINT_INTERVAL_MS:60000}"
+  cloud-event:
+    # Default topic name for Kafka, RabbitMQ, etc.
+    topic: "${TB_QUEUE_CLOUD_EVENT_TOPIC:tb_cloud_event}"
+    # Poll interval for topics related to Cloud Event services
+    poll-interval: "${TB_QUEUE_CLOUD_EVENT_POLL_INTERVAL_MS:25}"
+  cloud-event-ts:
+    # Default topic name for Kafka, RabbitMQ, etc.
+    topic: "${TB_QUEUE_CLOUD_EVENT_TS_TOPIC:tb_cloud_event_ts}"
+    # Poll interval for topics related to Cloud Event services
+    poll-interval: "${TB_QUEUE_CLOUD_EVENT_TS_POLL_INTERVAL_MS:25}"
   tasks:
     # Poll interval in milliseconds for tasks topics
     poll_interval: "${TB_QUEUE_TASKS_POLL_INTERVAL_MS:500}"
@@ -2017,16 +2034,6 @@ queue:
       poll_interval: "${TB_QUEUE_TASKS_STATS_POLL_INTERVAL_MS:500}"
       # Interval in milliseconds to process job stats
       processing_interval: "${TB_QUEUE_TASKS_STATS_PROCESSING_INTERVAL_MS:1000}"
-  cloud-event:
-    # Default topic name for Kafka, RabbitMQ, etc.
-    topic: "${TB_QUEUE_CLOUD_EVENT_TOPIC:tb_cloud_event}"
-    # Poll interval for topics related to Cloud Event services
-    poll-interval: "${TB_QUEUE_CLOUD_EVENT_POLL_INTERVAL_MS:25}"
-  cloud-event-ts:
-    # Default topic name for Kafka, RabbitMQ, etc.
-    topic: "${TB_QUEUE_CLOUD_EVENT_TS_TOPIC:tb_cloud_event_ts}"
-    # Poll interval for topics related to Cloud Event services
-    poll-interval: "${TB_QUEUE_CLOUD_EVENT_TS_POLL_INTERVAL_MS:25}"
 
 # Event configuration parameters
 event:

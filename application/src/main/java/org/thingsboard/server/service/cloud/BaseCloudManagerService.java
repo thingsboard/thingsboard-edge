@@ -51,6 +51,8 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
@@ -80,6 +82,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.thingsboard.server.common.data.EdgeUtils.MISORDERING_COMPENSATION_MILLIS;
 import static org.thingsboard.server.service.edge.rpc.EdgeGrpcSession.RATE_LIMIT_REACHED;
 
 @Slf4j
@@ -140,12 +143,17 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @Autowired(required = false)
     private CloudEventMigrationService cloudEventMigrationService;
 
+    @Autowired
+    protected CloudStatsCounterService statsCounterService;
+
     private ScheduledExecutorService uplinkExecutor;
     private ScheduledFuture<?> sendUplinkFuture;
 
     private ScheduledExecutorService shutdownExecutor;
     private ScheduledExecutorService reconnectExecutor;
+    private ScheduledExecutorService connectExecutor;
     private ScheduledFuture<?> reconnectFuture;
+    private ScheduledFuture<?> connectFuture;
 
     private EdgeSettings currentEdgeSettings;
     protected TenantId tenantId;
@@ -159,40 +167,50 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     protected volatile boolean initialized;
     protected volatile boolean isGeneralProcessInProgress = false;
+    protected volatile boolean syncInProgress = false;
     private volatile boolean sendingInProgress = false;
-    private volatile boolean syncInProgress = false;
     private volatile boolean isRateLimitViolated = false;
     private volatile boolean initInProgress = false;
+    private volatile boolean shouldPerformInitialSync = true;
 
     protected void establishRpcConnection() {
-        try {
-            synchronized (this) {
-                if (!isSystemTenantPartitionMine()) {
-                    onDestroy();
-                    return;
-                }
-                if (!initialized && !initInProgress && validateRoutingKeyAndSecret()) {
-                    initInProgress = true;
-                    try {
-                        log.info("Starting Cloud Edge service");
-                        edgeRpcClient.connect(routingKey, routingSecret,
-                                this::onUplinkResponse,
-                                this::onEdgeUpdate,
-                                this::onDownlink,
-                                this::scheduleReconnect);
-                        uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
-                        reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
-                        launchUplinkProcessing();
-                    } catch (Exception e) {
-                        initInProgress = false;
-                        log.error("Failed to establish connection to cloud", e);
-                        reconnectExecutor.schedule(this::establishRpcConnection, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+        if (connectFuture != null) {
+            connectFuture.cancel(true);
+            connectFuture = null;
+        }
+        if (connectExecutor == null) {
+            connectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+        }
+        connectFuture = connectExecutor.schedule(() -> {
+            try {
+                synchronized (this) {
+                    if (!isSystemTenantPartitionMine()) {
+                        onDestroy();
+                        return;
+                    }
+                    if (!initialized && !initInProgress && validateRoutingKeyAndSecret()) {
+                        initInProgress = true;
+                        try {
+                            log.info("Starting Cloud Edge service");
+                            edgeRpcClient.connect(routingKey, routingSecret,
+                                    this::onUplinkResponse,
+                                    this::onEdgeUpdate,
+                                    this::onDownlink,
+                                    this::scheduleReconnect);
+                            uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
+                            reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
+                            launchUplinkProcessing();
+                        } catch (Exception e) {
+                            initInProgress = false;
+                            log.error("Failed to establish connection to cloud", e);
+                            connectExecutor.schedule(this::establishRpcConnection, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+                        }
                     }
                 }
+            } catch (Exception e) {
+                log.error("Failed to establish Cloud Edge service", e);
             }
-        } catch (Exception e) {
-            log.error("Failed to establish Cloud Edge service", e);
-        }
+        }, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
     }
 
     protected abstract void launchUplinkProcessing();
@@ -222,7 +240,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         initialized = false;
 
         if (shutdownExecutor != null) {
-            shutdownExecutor.shutdown();
+            shutdownExecutor.shutdownNow();
         }
 
         updateConnectivityStatus(false);
@@ -237,9 +255,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
         if (uplinkExecutor != null && !uplinkExecutor.isShutdown()) {
             uplinkExecutor.shutdownNow();
+            uplinkExecutor = null;
         }
         if (reconnectExecutor != null) {
             reconnectExecutor.shutdownNow();
+            reconnectExecutor = null;
         }
         log.info("[{}] Destroy was successful", edgeId);
     }
@@ -276,7 +296,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     pageLink = pageLink.nextPageLink();
                     if (cloudEvents.hasNext()) {
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
-                        int queueSize = pageLink.getPageSize() * (cloudEvents.getTotalPages() - pageLink.getPage());
+
+                        long queueSize = Math.max(cloudEvents.getTotalElements() - ((long) pageLink.getPage() * pageLink.getPageSize()), 0);
+                        statsCounterService.setUplinkMsgsLag(tenantId, queueSize);
                         log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
                                 queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
                     }
@@ -313,6 +335,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     protected TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart, String key, CloudEventFinder finder) {
         try {
             long queueStartTs = getLongAttrByKey(tenantId, key).get();
+            // Subtract MISORDERING_COMPENSATION_MILLIS to ensure no events are missed in a clustered environment.
+            // While events are identified using seqId, we use partitioning for performance reasons
+            // and partitioning is based on created_time.
+            queueStartTs = queueStartTs > 0 ? queueStartTs - MISORDERING_COMPENSATION_MILLIS : 0;
             long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
             log.trace("newCloudEventsAvailable, queueSeqIdStart = {}, key = {}, queueStartTs = {}, queueEndTs = {}",
                     queueSeqIdStart, key, queueStartTs, queueEndTs);
@@ -385,9 +411,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         try {
             if (sendingInProgress) {
                 if (msg.getSuccess()) {
+                    statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_PUSHED, tenantId, 1);
                     pendingMsgMap.remove(msg.getUplinkMsgId());
                     log.debug("uplink msg has been processed successfully! {}", msg);
                 } else {
+                    statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_TMP_FAILED, tenantId, 1);
                     if (msg.getErrorMsg().contains(RATE_LIMIT_REACHED)) {
                         log.warn("uplink msg processing failed! {}", RATE_LIMIT_REACHED);
                         isRateLimitViolated = true;
@@ -405,7 +433,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
             interruptPreviousSendUplinkMsgsTask();
-
             if (reconnectFuture != null) {
                 reconnectFuture.cancel(true);
                 reconnectFuture = null;
@@ -435,29 +462,40 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         if (!isSystemTenantPartitionMine()) {
             return;
         }
-        this.tenantId = TenantId.fromUUID(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
+        tenantId = TenantId.fromUUID(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
-        this.currentEdgeSettings = edgeSettingsService.findEdgeSettings();
+        currentEdgeSettings = edgeSettingsService.findEdgeSettings();
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
-        if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
+
+        if (currentEdgeSettings != null && !newEdgeSettings.getEdgeId().equals(currentEdgeSettings.getEdgeId())) {
             cloudCtx.getTenantProcessor().cleanUp();
-            this.currentEdgeSettings = newEdgeSettings;
             resetQueueOffset();
+            currentEdgeSettings = null;
+        }
+
+        if (currentEdgeSettings == null) {
+            currentEdgeSettings = newEdgeSettings;
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
+            currentEdgeSettings.setName(newEdgeSettings.getName());
+            currentEdgeSettings.setType(newEdgeSettings.getType());
+            currentEdgeSettings.setRoutingKey(newEdgeSettings.getRoutingKey());
         }
 
-        cloudCtx.getTenantProcessor().createTenantIfNotExists(this.tenantId);
+        cloudCtx.getTenantProcessor().createTenantIfNotExists(tenantId);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
         if (edgeCustomerIdUpdated) {
-            cloudCtx.getCustomerProcessor().createCustomerIfNotExists(this.tenantId, edgeConfiguration);
+            cloudCtx.getCustomerProcessor().createCustomerIfNotExists(tenantId, edgeConfiguration);
         }
-        // TODO: voba - should sync be executed in some other cases ???
-        log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
-        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
-        syncInProgress = true;
 
-        edgeSettingsService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
+        if (shouldPerformInitialSync) {
+            log.trace("Sending sync request, fullSyncRequired {}", currentEdgeSettings.isFullSyncRequired());
+            edgeRpcClient.sendSyncRequestMsg(currentEdgeSettings.isFullSyncRequired());
+            syncInProgress = true;
+            shouldPerformInitialSync = false;
+        }
+
+        edgeSettingsService.saveEdgeSettings(tenantId, currentEdgeSettings);
 
         saveOrUpdateEdge(tenantId, edgeConfiguration);
 
@@ -640,6 +678,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                         cloudCtx.getTelemetryProcessor().convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
                 case ATTRIBUTES_REQUEST -> cloudCtx.getTelemetryProcessor().convertAttributesRequestEventToUplink(cloudEvent);
                 case RELATION_REQUEST -> cloudCtx.getRelationProcessor().convertRelationRequestEventToUplink(cloudEvent);
+                case CALCULATED_FIELD_REQUEST -> cloudCtx.getCalculatedFieldProcessor().convertCalculatedFieldRequestEventToUplink(cloudEvent);
                 case RPC_CALL -> cloudCtx.getDeviceProcessor().convertRpcCallEventToUplink(cloudEvent);
                 default -> {
                     log.warn("Unsupported action type [{}]", cloudEvent);
@@ -673,10 +712,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     .toList();
 
             if (uplinkMsgPack.isEmpty()) {
-                return Futures.immediateFuture(true);
+                return Futures.immediateFuture(false);
             }
 
-            processMsgPack(uplinkMsgPack);
+            processMsgPack(uplinkMsgPack, isGeneralMsg);
         } finally {
             uplinkSendLock.unlock();
         }
@@ -701,7 +740,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         }
     }
 
-    private void processMsgPack(List<UplinkMsg> uplinkMsgPack) {
+    private void processMsgPack(List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
         pendingMsgMap.clear();
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
         sendUplinkFuture = uplinkExecutor.schedule(() -> {
@@ -715,7 +754,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     success = sendUplinkMsgPack(new LinkedBlockingQueue<>(pendingMsgMap.values())) && pendingMsgMap.isEmpty();
 
                     if (!success) {
-                        log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgMap.values(), attempt);
+                        String batchPrefix = isGeneralMsg ? "General" : "Timeseries";
+                        log.warn("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgMap.values().size(), attempt);
+                        log.trace("Entities in failed batch: {}", pendingMsgMap.values());
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
@@ -732,9 +773,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
                     attempt++;
 
-                    if (attempt > MAX_SEND_UPLINK_ATTEMPTS) {
+                    if (isGeneralMsg && attempt > MAX_SEND_UPLINK_ATTEMPTS) {
                         log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
                                 MAX_SEND_UPLINK_ATTEMPTS, pendingMsgMap.values());
+                        statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_PERMANENTLY_FAILED, tenantId, pendingMsgMap.size());
                         sendUplinkFutureResult.set(false);
                         return;
                     }
@@ -754,7 +796,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             orderedPendingMsgQueue.forEach(this::sendUplinkMsg);
 
             return latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
-         } catch (Exception e) {
+        } catch (Exception e) {
             log.error("Interrupted while waiting for latch, isGeneralProcessInProgress={}", isGeneralProcessInProgress, e);
             for (UplinkMsg value : pendingMsgMap.values()) {
                 log.warn("Message not send due to exception: {}", value);
@@ -773,6 +815,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
                             "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}",
                     uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
+            statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_PERMANENTLY_FAILED, tenantId, 1);
             pendingMsgMap.remove(uplinkMsg.getUplinkMsgId());
             latch.countDown();
         }
@@ -785,6 +828,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @FunctionalInterface
     protected interface CloudEventFinder {
         PageData<CloudEvent> find(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+
     }
 
 }

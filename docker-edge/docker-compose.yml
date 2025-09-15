@@ -38,7 +38,7 @@ services:
       - zookeeper
   tb-edge1:
     restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+    image: "${DOCKER_REPO}/${TB_EDGE_NODE_DOCKER_NAME}:${TB_EDGE_VERSION}"
     ports:
       - "8080"
       - "1883"
@@ -65,7 +65,7 @@ services:
       - kafka
   tb-edge2:
     restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+    image: "${DOCKER_REPO}/${TB_EDGE_NODE_DOCKER_NAME}:${TB_EDGE_VERSION}"
     ports:
       - "8080"
       - "1883"
@@ -92,7 +92,7 @@ services:
       - kafka
   tb-edge3:
     restart: always
-    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+    image: "${DOCKER_REPO}/${TB_EDGE_NODE_DOCKER_NAME}:${TB_EDGE_VERSION}"
     ports:
       - "8080"
       - "1883"
@@ -129,7 +129,6 @@ services:
      - "80:80"
      - "443:443"
      - "1883:1883"
-     - "7070:7070"
      - "9999:9999"
     cap_add:
      - NET_ADMIN

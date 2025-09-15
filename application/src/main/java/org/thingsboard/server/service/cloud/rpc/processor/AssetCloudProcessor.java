@@ -41,6 +41,8 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.asset.BaseAssetProcessor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -55,7 +57,15 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
             return switch (assetUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                     boolean created = saveOrUpdateAssetFromCloud(tenantId, assetId, assetUpdateMsg);
-                    yield created ? requestForAdditionalData(tenantId, assetId) : Futures.immediateFuture(null);
+                    if (created) {
+                        List<ListenableFuture<Void>> futures = new ArrayList<>();
+
+                        futures.add(requestForAdditionalData(tenantId, assetId));
+                        futures.add(requestForCalculatedFieldData(tenantId, assetId));
+
+                        yield Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+                    }
+                    yield Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
                     Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);

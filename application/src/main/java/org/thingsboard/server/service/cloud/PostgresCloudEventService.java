@@ -16,8 +16,10 @@
 package org.thingsboard.server.service.cloud;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,8 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.TsKvCloudEventDao;
+import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.dao.service.DataValidator;
 
 import java.util.List;
@@ -49,9 +53,11 @@ public class PostgresCloudEventService implements CloudEventService {
 
     private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES = List.of(
             EdgeEventActionType.ATTRIBUTES_REQUEST,
-            EdgeEventActionType.RELATION_REQUEST
+            EdgeEventActionType.RELATION_REQUEST,
+            EdgeEventActionType.CALCULATED_FIELD_REQUEST
     );
 
+    private final CloudStatsCounterService statsCounterService;
     private final AttributesService attributesService;
     private final CloudEventDao cloudEventDao;
     private final TsKvCloudEventDao tsKvCloudEventDao;
@@ -111,14 +117,29 @@ public class PostgresCloudEventService implements CloudEventService {
     public ListenableFuture<Void> saveAsync(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
         log.trace("Save cloud event {}", cloudEvent);
-        return cloudEventDao.saveAsync(cloudEvent);
+        return handleSaveResult(cloudEvent, cloudEventDao.saveAsync(cloudEvent));
     }
 
     @Override
     public ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
+        return handleSaveResult(cloudEvent, tsKvCloudEventDao.saveAsync(cloudEvent));
+    }
 
-        return tsKvCloudEventDao.saveAsync(cloudEvent);
+    private ListenableFuture<Void> handleSaveResult(CloudEvent cloudEvent, ListenableFuture<Void> saveFuture) {
+        Futures.addCallback(saveFuture, new FutureCallback<>() {
+            @Override
+            public void onSuccess(Void result) {
+                statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_ADDED, cloudEvent.getTenantId(), 1); ;
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to save cloud event", t);
+            }
+        }, MoreExecutors.directExecutor());
+
+        return saveFuture;
     }
 
     @Override

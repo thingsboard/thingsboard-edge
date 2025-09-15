@@ -29,6 +29,7 @@ public enum CloudEventType {
     ALARM(EntityType.ALARM),
     ALARM_COMMENT(null),
     RULE_CHAIN(EntityType.RULE_CHAIN),
+    RULE_NODE(EntityType.RULE_NODE),
     RULE_CHAIN_METADATA(null),
     USER(EntityType.USER),
     TENANT(EntityType.TENANT),
@@ -38,7 +39,8 @@ public enum CloudEventType {
     WIDGETS_BUNDLE(EntityType.WIDGETS_BUNDLE),
     WIDGET_TYPE(EntityType.WIDGET_TYPE),
     EDGE(EntityType.EDGE),
-    TB_RESOURCE(EntityType.TB_RESOURCE);
+    TB_RESOURCE(EntityType.TB_RESOURCE),
+    CALCULATED_FIELD(EntityType.CALCULATED_FIELD);
 
     private final EntityType entityType;
 

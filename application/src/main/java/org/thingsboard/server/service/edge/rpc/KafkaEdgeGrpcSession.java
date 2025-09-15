@@ -32,13 +32,10 @@ import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
 import org.thingsboard.server.queue.discovery.TopicService;
-import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
-import org.thingsboard.server.queue.kafka.TbKafkaSettings;
-import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
+import org.thingsboard.server.queue.kafka.KafkaAdmin;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -48,12 +45,9 @@ import java.util.function.BiConsumer;
 
 @Slf4j
 public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
-
     private final TopicService topicService;
     private final TbCoreQueueFactory tbCoreQueueFactory;
-
-    private final TbKafkaSettings kafkaSettings;
-    private final TbKafkaTopicConfigs kafkaTopicConfigs;
+    private final KafkaAdmin kafkaAdmin;
 
     private volatile boolean isHighPriorityProcessing;
 
@@ -63,39 +57,64 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
     private ExecutorService consumerExecutor;
 
     public KafkaEdgeGrpcSession(EdgeContextComponent ctx, TopicService topicService, TbCoreQueueFactory tbCoreQueueFactory,
-                                TbKafkaSettings kafkaSettings, TbKafkaTopicConfigs kafkaTopicConfigs, StreamObserver<ResponseMsg> outputStream,
+                                KafkaAdmin kafkaAdmin, StreamObserver<ResponseMsg> outputStream,
                                 BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener, BiConsumer<Edge, UUID> sessionCloseListener,
                                 ScheduledExecutorService sendDownlinkExecutorService, int maxInboundMessageSize, int maxHighPriorityQueueSizePerSession) {
         super(ctx, outputStream, sessionOpenListener, sessionCloseListener, sendDownlinkExecutorService, maxInboundMessageSize, maxHighPriorityQueueSizePerSession);
         this.topicService = topicService;
         this.tbCoreQueueFactory = tbCoreQueueFactory;
-        this.kafkaSettings = kafkaSettings;
-        this.kafkaTopicConfigs = kafkaTopicConfigs;
+        this.kafkaAdmin = kafkaAdmin;
     }
 
-    private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) {
-        log.trace("[{}][{}] starting processing edge events", tenantId, edge.getId());
-        if (!isConnected() || isSyncInProgress() || isHighPriorityProcessing) {
-            log.debug("[{}][{}] edge not connected, edge sync is not completed or high priority processing in progress, " +
-                            "connected = {}, sync in progress = {}, high priority in progress = {}. Skipping iteration",
-                    tenantId, edge.getId(), isConnected(), isSyncInProgress(), isHighPriorityProcessing);
-            return;
-        }
-        List<EdgeEvent> edgeEvents = new ArrayList<>();
-        for (TbProtoQueueMsg<ToEdgeEventNotificationMsg> msg : msgs) {
-            EdgeEvent edgeEvent = ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg());
-            edgeEvents.add(edgeEvent);
-        }
+    private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) throws InterruptedException {
+        boolean isProcessed = false;
+
+        do {
+            log.trace("[{}][{}] Trying to process edge events", tenantId, edge.getId());
+
+            if (isConnected() && !isSyncInProgress() && !isHighPriorityProcessing) {
+                isProcessed = tryProcessMsgs(msgs, consumer);
+            } else {
+                log.debug("[{}][{}] edge not connected, edge sync is not completed or high priority processing in progress, " +
+                                "connected = {}, sync in progress = {}, high priority in progress = {}. Skipping iteration",
+                        tenantId, edge.getId(), isConnected(), isSyncInProgress(), isHighPriorityProcessing);
+            }
+
+            if (!isProcessed) {
+                sleep();
+            }
+        } while (!isProcessed);
+    }
+
+    private boolean tryProcessMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs,
+                                   TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) {
+        List<EdgeEvent> edgeEvents = msgs.stream()
+                .map(msg -> ProtoUtils.fromProto(msg.getValue().getEdgeEventMsg()))
+                .toList();
+
         List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(edgeEvents);
+
         try {
             boolean isInterrupted = sendDownlinkMsgsPack(downlinkMsgsPack).get();
             if (isInterrupted) {
-                log.debug("[{}][{}] Send downlink messages task was interrupted", tenantId, edge.getId());
+                log.warn("[{}][{}] Send downlink messages task was interrupted", tenantId, edge.getId());
+                return false;
             } else {
                 consumer.commit();
+                log.trace("[{}][{}] Successfully processed {} edge events", tenantId, edge.getId(), edgeEvents.size());
+                return true;
             }
         } catch (Exception e) {
             log.error("[{}][{}] Failed to process downlink messages", tenantId, edge.getId(), e);
+            return false;
+        }
+    }
+
+    private void sleep() {
+        try {
+            Thread.sleep(ctx.getEdgeEventStorageSettings().getNoRecordsSleepInterval());
+        } catch (InterruptedException interruptedException) {
+            log.trace("[{}][{}] Interrupted while waiting to retry edge events processing", tenantId, edge.getId(), interruptedException);
         }
     }
 
@@ -159,7 +178,6 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
     @Override
     public void cleanUp() {
         String topic = topicService.buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edge.getId()).getTopic();
-        TbKafkaAdmin kafkaAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeEventConfigs());
         kafkaAdmin.deleteTopic(topic);
         kafkaAdmin.deleteConsumerGroup(topic);
     }

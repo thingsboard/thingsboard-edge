@@ -27,6 +27,7 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
@@ -34,6 +35,7 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.tenant.TenantService;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -60,6 +62,7 @@ import java.util.List;
 public class CloudEventSourcingListener {
 
     private final TbClusterService tbClusterService;
+    private final TenantService tenantService;
     private final CloudSynchronizationManager cloudSynchronizationManager;
 
     private static final List<EntityType> COMMON_ENTITY_TYPES = Arrays.asList(
@@ -70,7 +73,8 @@ public class CloudEventSourcingListener {
             EntityType.ASSET_PROFILE,
             EntityType.DASHBOARD,
             EntityType.RULE_CHAIN,
-            EntityType.TB_RESOURCE);
+            EntityType.TB_RESOURCE,
+            EntityType.CALCULATED_FIELD);
 
     private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{
         add(EntityType.ALARM);
@@ -110,6 +114,11 @@ public class CloudEventSourcingListener {
         if (cloudSynchronizationManager.isSync()) {
             return;
         }
+        TenantId tenantId = event.getTenantId();
+        if (!tenantId.isSysTenantId() && !tenantService.tenantExists(tenantId)) {
+            log.debug("[{}] Ignoring DeleteEntityEvent because tenant does not exist: {}", tenantId, event);
+            return;
+        }
         try {
             if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())
                     && !(event.getEntity() instanceof AlarmComment)) {
@@ -121,7 +130,7 @@ public class CloudEventSourcingListener {
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
                     JacksonUtil.toString(event.getEntity()), type, actionType);
         } catch (Exception e) {
-            log.error("failed to process DeleteEntityEvent: {}", event);
+            log.error("failed to process DeleteEntityEvent: {}", event, e);
         }
     }
 

@@ -701,6 +701,36 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
+    MenuId.edge,
+    {
+      id: MenuId.edge,
+      name: 'edge.edge',
+      type: 'toggle',
+      path: '/edge',
+      icon: 'router'
+    }
+  ],
+  [
+    MenuId.edge_status,
+    {
+      id: MenuId.edge_status,
+      name: 'edge.status',
+      type: 'link',
+      path: '/edge/status',
+      icon: 'info'
+    }
+  ],
+  [
+    MenuId.cloud_events,
+    {
+      id: MenuId.cloud_events,
+      name: 'edge.cloud-events',
+      type: 'link',
+      path: '/edge/cloudEvents',
+      icon: 'date_range'
+    }
+  ],
+  [
     MenuId.trendz_settings,
     {
       id: MenuId.trendz_settings,
@@ -774,6 +804,9 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.mobile_bundles, () => false
+  ],
+  [
+    MenuId.ai_models, () => false
   ]
 ]);
 
