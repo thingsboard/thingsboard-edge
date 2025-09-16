@@ -108,22 +108,5 @@ public class AiModelEntity extends BaseVersionedEntity<AiModel> {
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
-    // edge only: manage version manually because @Version is disabled
-    @PrePersist
-    public void prePersist() {
-        if (version == null) {
-            version = 1L;
-        }
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        if (version == null) {
-            version = 1L;
-        } else {
-            version++;
-        }
-    }
-    //
 
 }
