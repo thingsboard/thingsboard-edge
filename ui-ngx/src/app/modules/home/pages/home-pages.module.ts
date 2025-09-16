@@ -82,9 +82,9 @@ import { AiModelModule } from '@home/pages/ai-model/ai-model.module';
     VcModule,
     AccountModule,
     ScadaSymbolModule,
-    CloudEventModule,
-    EdgeStatusModule,
     AiModelModule,
+    CloudEventModule,
+    EdgeStatusModule
   ]
 })
 export class HomePagesModule { }

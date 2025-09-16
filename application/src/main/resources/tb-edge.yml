@@ -100,6 +100,9 @@ server:
     rate_limits:
       # Limit that prohibits resetting the password for the user too often. The value of the rate limit. By default, no more than 5 requests per hour
       reset_password_per_user: "${RESET_PASSWORD_PER_USER_RATE_LIMIT_CONFIGURATION:5:3600}"
+    rule_engine:
+      # Default timeout for waiting response of REST API request to Rule Engine in milliseconds
+      response_timeout: "${DEFAULT_RULE_ENGINE_RESPONSE_TIMEOUT:10000}"
 
 # Cloud configuration
 cloud:
@@ -272,7 +275,7 @@ ui:
   # Help parameters
   help:
     # Base URL for UI help assets
-    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-ui-help/release-4.2}"
+    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-ui-help/release-4.3}"
 
 # Database telemetry parameters
 database:
@@ -815,9 +818,9 @@ redis:
     # Minumum number of idle connections that can be maintained in the pool without being closed
     minIdle: "${REDIS_POOL_CONFIG_MIN_IDLE:16}"
     # Enable/Disable PING command sent when a connection is borrowed
-    testOnBorrow: "${REDIS_POOL_CONFIG_TEST_ON_BORROW:true}"
+    testOnBorrow: "${REDIS_POOL_CONFIG_TEST_ON_BORROW:false}"
     # The property is used to specify whether to test the connection before returning it to the connection pool.
-    testOnReturn: "${REDIS_POOL_CONFIG_TEST_ON_RETURN:true}"
+    testOnReturn: "${REDIS_POOL_CONFIG_TEST_ON_RETURN:false}"
     # The property is used in the context of connection pooling in Redis
     testWhileIdle: "${REDIS_POOL_CONFIG_TEST_WHILE_IDLE:true}"
     # Minimum time that an idle connection should be idle before it can be evicted from the connection pool. The value is set in milliseconds
@@ -1612,6 +1615,8 @@ swagger:
   version: "${SWAGGER_VERSION:}"
   # The group name (definition) on the API doc UI page.
   group_name: "${SWAGGER_GROUP_NAME:thingsboard}"
+  # Control the initial display state of API operations and tags (none, list or full)
+  doc_expansion: "${SWAGGER_DOC_EXPANSION:list}"
 
 # Queue configuration parameters
 queue:

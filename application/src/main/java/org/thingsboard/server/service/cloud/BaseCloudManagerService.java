@@ -712,7 +712,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     .toList();
 
             if (uplinkMsgPack.isEmpty()) {
-                return Futures.immediateFuture(true);
+                return Futures.immediateFuture(false);
             }
 
             processMsgPack(uplinkMsgPack, isGeneralMsg);

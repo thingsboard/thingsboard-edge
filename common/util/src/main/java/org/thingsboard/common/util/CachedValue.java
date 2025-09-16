@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.common.msg.cf;
+package org.thingsboard.common.util;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.cf.CalculatedField;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.ToCalculatedFieldSystemMsg;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 
-@Data
-public class CalculatedFieldInitMsg implements ToCalculatedFieldSystemMsg {
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
-    private final TenantId tenantId;
-    private final CalculatedField cf;
+public class CachedValue<V> {
 
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.CF_INIT_MSG;
+    private final LoadingCache<Object, V> cache;
+
+    public CachedValue(Supplier<V> supplier, long valueTtlMs) {
+        this.cache = Caffeine.newBuilder()
+                .expireAfterWrite(valueTtlMs, TimeUnit.MILLISECONDS)
+                .build(__ -> supplier.get());
     }
+
+    public V get() {
+        return cache.get(this);
+    }
+
 }

@@ -29,6 +29,7 @@ public enum CloudEventType {
     ALARM(EntityType.ALARM),
     ALARM_COMMENT(null),
     RULE_CHAIN(EntityType.RULE_CHAIN),
+    RULE_NODE(EntityType.RULE_NODE),
     RULE_CHAIN_METADATA(null),
     USER(EntityType.USER),
     TENANT(EntityType.TENANT),

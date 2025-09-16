@@ -42,7 +42,7 @@ import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
 import org.thingsboard.server.dao.edge.stats.MsgCounters;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.discovery.TopicService;
-import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
+import org.thingsboard.server.queue.kafka.KafkaAdmin;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.List;
@@ -73,7 +73,7 @@ public class CloudStatsService {
     private final TopicService topicService;
     private final EdgeSettingsService edgeSettingsService;
     private final CloudEventService cloudEventService;
-    private final Optional<TbKafkaAdmin> tbKafkaAdmin;
+    private final Optional<KafkaAdmin> kafkaAdmin;
 
     private TenantId tenantId;
     private EdgeId edgeId;
@@ -95,7 +95,7 @@ public class CloudStatsService {
 
         long ts = (System.currentTimeMillis() / reportIntervalMillis) * reportIntervalMillis;
         MsgCounters counters = statsCounterService.getCounter(tenantId);
-        tbKafkaAdmin.ifPresent(this::prepareUplinkLag);
+        kafkaAdmin.ifPresent(this::prepareUplinkLag);
 
         List<TsKvEntry> statsEntries = List.of(
                 entry(ts, UPLINK_MSGS_ADDED.getKey(), counters.getMsgsAdded().get()),
@@ -116,7 +116,7 @@ public class CloudStatsService {
         }
     }
 
-    private void prepareUplinkLag(TbKafkaAdmin kafkaAdmin) {
+    private void prepareUplinkLag(KafkaAdmin kafkaAdmin) {
         String cloudEventConsumerGroupId = topicService.buildTopicName(serviceType + CLOUD_EVENT_CONSUMER);
         String cloudEventTsConsumerGroupId = topicService.buildTopicName(serviceType + CLOUD_EVENT_TS_CONSUMER);
         Set<String> groupIds = Set.of(cloudEventConsumerGroupId, cloudEventTsConsumerGroupId);
