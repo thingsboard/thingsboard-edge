@@ -804,9 +804,6 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.mobile_bundles, () => false
-  ],
-  [
-    MenuId.ai_models, () => false
   ]
 ]);
 
