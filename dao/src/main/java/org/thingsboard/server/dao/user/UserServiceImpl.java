@@ -163,6 +163,7 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
     }
 
     @Override
+    @Transactional
     public User saveUser(TenantId tenantId, User user, boolean doValidate) {
         log.trace("Executing saveUser [{}]", user);
         User oldUser = null;
