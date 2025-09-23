@@ -84,7 +84,7 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
 
     public static final String USER_PASSWORD_HISTORY = "userPasswordHistory";
 
-    private static final int DEFAULT_TOKEN_LENGTH = 30;
+    public static final int DEFAULT_TOKEN_LENGTH = 30;
     public static final String INCORRECT_USER_ID = "Incorrect userId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 

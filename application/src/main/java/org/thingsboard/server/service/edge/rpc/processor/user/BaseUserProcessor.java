@@ -30,6 +30,8 @@ import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
+import static org.thingsboard.server.dao.user.UserServiceImpl.DEFAULT_TOKEN_LENGTH;
+
 @Slf4j
 public abstract class BaseUserProcessor extends BaseEdgeProcessor {
 
@@ -115,7 +117,7 @@ public abstract class BaseUserProcessor extends BaseEdgeProcessor {
             userCredentials = new UserCredentials();
             userCredentials.setUserId(userId);
             userCredentials.setEnabled(false);
-            userCredentials.setActivateToken(StringUtils.randomAlphanumeric(30));
+            userCredentials.setActivateToken(StringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
             userCredentials.setAdditionalInfo(JacksonUtil.newObjectNode());
             userCredentials = edgeCtx.getUserService().saveUserCredentials(tenantId, userCredentials, false);
         }
