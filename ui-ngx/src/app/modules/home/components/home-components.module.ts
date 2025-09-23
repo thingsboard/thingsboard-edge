@@ -207,6 +207,12 @@ import {
 } from '@home/components/calculated-fields/components/test-arguments/calculated-field-test-arguments.component';
 import { CheckConnectivityDialogComponent } from '@home/components/ai-model/check-connectivity-dialog.component';
 import { AIModelDialogComponent } from '@home/components/ai-model/ai-model-dialog.component';
+import {
+  CalculatedFieldGeofencingZoneGroupsTableComponent
+} from '@home/components/calculated-fields/components/geofencing-zone-grups-table/calculated-field-geofencing-zone-groups-table.component';
+import {
+  CalculatedFieldGeofencingZoneGroupsPanelComponent
+} from '@home/components/calculated-fields/components/panel/calculated-field-geofencing-zone-groups-panel.component';
 
 @NgModule({
   declarations:
@@ -360,6 +366,8 @@ import { AIModelDialogComponent } from '@home/components/ai-model/ai-model-dialo
       CalculatedFieldDebugDialogComponent,
       CalculatedFieldScriptTestDialogComponent,
       CalculatedFieldTestArgumentsComponent,
+      CalculatedFieldGeofencingZoneGroupsTableComponent,
+      CalculatedFieldGeofencingZoneGroupsPanelComponent,
       CheckConnectivityDialogComponent,
       AIModelDialogComponent,
     ],
@@ -509,6 +517,8 @@ import { AIModelDialogComponent } from '@home/components/ai-model/ai-model-dialo
     CalculatedFieldDebugDialogComponent,
     CalculatedFieldScriptTestDialogComponent,
     CalculatedFieldTestArgumentsComponent,
+    CalculatedFieldGeofencingZoneGroupsTableComponent,
+    CalculatedFieldGeofencingZoneGroupsPanelComponent,
     CheckConnectivityDialogComponent,
     AIModelDialogComponent,
   ],
