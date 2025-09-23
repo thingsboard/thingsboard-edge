@@ -18,18 +18,19 @@ package org.thingsboard.server.service.edge.rpc.processor.user;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -88,12 +89,17 @@ public class UserEdgeProcessor extends BaseUserProcessor implements UserProcesso
     }
 
     private void saveOrUpdateUser(TenantId tenantId, UserId userId, UserUpdateMsg userUpdateMsg, Edge edge) {
-        boolean isCreated = super.saveOrUpdateUser(tenantId, userId, userUpdateMsg);
-
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateUser(tenantId, userId, userUpdateMsg);
+        boolean isCreated = resultPair.getFirst();
         if (isCreated) {
-            createDefaultUserCredentialsIfAbsent(tenantId, userId);
             createRelationFromEdge(tenantId, edge.getId(), userId);
             pushUserCreatedEventToRuleEngine(tenantId, edge, userId);
+        }
+
+        Boolean userEmailUpdated = resultPair.getSecond();
+
+        if (userEmailUpdated) {
+            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.USER, EdgeEventActionType.UPDATED, userId, null);
         }
     }
 
@@ -122,7 +128,7 @@ public class UserEdgeProcessor extends BaseUserProcessor implements UserProcesso
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addUserUpdateMsg(EdgeMsgConstructorUtils.constructUserUpdatedMsg(msgType, user));
                     UserCredentials userCredentialsByUserId = edgeCtx.getUserService().findUserCredentialsByUserId(edgeEvent.getTenantId(), userId);
-                    if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
+                    if (userCredentialsByUserId != null) {
                         builder.addUserCredentialsUpdateMsg(EdgeMsgConstructorUtils.constructUserCredentialsUpdatedMsg(userCredentialsByUserId));
                     }
                     return builder.build();
@@ -136,11 +142,10 @@ public class UserEdgeProcessor extends BaseUserProcessor implements UserProcesso
             }
             case CREDENTIALS_UPDATED -> {
                 UserCredentials userCredentialsByUserId = edgeCtx.getUserService().findUserCredentialsByUserId(edgeEvent.getTenantId(), userId);
-                if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
-                    UserCredentialsUpdateMsg userCredentialsUpdateMsg = EdgeMsgConstructorUtils.constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
+                if (userCredentialsByUserId != null) {
                     return DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addUserCredentialsUpdateMsg(userCredentialsUpdateMsg)
+                            .addUserCredentialsUpdateMsg(EdgeMsgConstructorUtils.constructUserCredentialsUpdatedMsg(userCredentialsByUserId))
                             .build();
                 }
             }
@@ -153,18 +158,10 @@ public class UserEdgeProcessor extends BaseUserProcessor implements UserProcesso
         return EdgeEventType.USER;
     }
 
-    protected void setCustomerId(TenantId tenantId, CustomerId existingCustomerId, User user, UserUpdateMsg userUpdateMsg) {
-        if (user.getAuthority() == Authority.CUSTOMER_USER) {
-            if (user.getCustomerId() == null) {
-                if (existingCustomerId != null) {
-                    user.setCustomerId(existingCustomerId);
-                } else {
-                    throw new RuntimeException("Customer user should be assigned to customer!");
-                }
-            }
-        } else {
-            user.setCustomerId(null);
-        }
+    @Override
+    protected void setCustomerId(TenantId tenantId, CustomerId customerId, User user, UserUpdateMsg userUpdateMsg) {
+        CustomerId customerUUID = user.getCustomerId() != null ? user.getCustomerId() : customerId;
+        user.setCustomerId(customerUUID);
     }
 
 }
