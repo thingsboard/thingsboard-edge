@@ -82,7 +82,6 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
     protected static final Lock assetCreationLock = new ReentrantLock();
     protected static final Lock widgetCreationLock = new ReentrantLock();
     protected static final Lock customerCreationLock = new ReentrantLock();
-    protected static final Lock userCreationLock = new ReentrantLock();
 
     @Lazy
     @Autowired
