@@ -101,10 +101,8 @@ export class UsersTableConfigResolver  {
     this.config.onEntityAction = action => this.onUserAction(action, this.config);
     this.config.addEntity = () => this.addUser();
 
-    // edge-only: allow to read-only
-    this.config.detailsReadonly = () => true;
+    // edge-only: do not allow to remove users, only create or update
     this.config.deleteEnabled = () => false;
-    this.config.addEnabled = false;
     this.config.entitiesDeleteEnabled = false;
   }
 
