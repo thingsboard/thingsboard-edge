@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -437,8 +438,9 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void onResourceChange(TbResourceInfo resource, TbQueueCallback callback) {
+        TenantId tenantId = resource.getTenantId();
+        TbResourceId resourceId = resource.getId();
         if (resource.getResourceType() == ResourceType.LWM2M_MODEL) {
-            TenantId tenantId = resource.getTenantId();
             log.trace("[{}][{}][{}] Processing change resource", tenantId, resource.getResourceType(), resource.getResourceKey());
             ResourceUpdateMsg resourceUpdateMsg = ResourceUpdateMsg.newBuilder()
                     .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
@@ -449,6 +451,7 @@ public class DefaultTbClusterService implements TbClusterService {
             ToTransportMsg transportMsg = ToTransportMsg.newBuilder().setResourceUpdateMsg(resourceUpdateMsg).build();
             broadcast(transportMsg, DataConstants.LWM2M_TRANSPORT_NAME, callback);
         }
+        broadcastEntityStateChangeEvent(tenantId, resourceId, ComponentLifecycleEvent.UPDATED);
     }
 
     @Override
@@ -464,6 +467,7 @@ public class DefaultTbClusterService implements TbClusterService {
             ToTransportMsg transportMsg = ToTransportMsg.newBuilder().setResourceDeleteMsg(resourceDeleteMsg).build();
             broadcast(transportMsg, DataConstants.LWM2M_TRANSPORT_NAME, callback);
         }
+        broadcastEntityStateChangeEvent(resource.getTenantId(), resource.getId(), ComponentLifecycleEvent.DELETED);
     }
 
     private <T> void broadcastEntityChangeToTransport(TenantId tenantId, EntityId entityid, T entity, TbQueueCallback callback) {
@@ -594,7 +598,8 @@ public class DefaultTbClusterService implements TbClusterService {
                 EntityType.TENANT_PROFILE,
                 EntityType.DEVICE_PROFILE,
                 EntityType.ASSET_PROFILE,
-                EntityType.JOB)
+                EntityType.JOB,
+                EntityType.TB_RESOURCE)
                 || (entityType == EntityType.ASSET && msg.getEvent() == ComponentLifecycleEvent.UPDATED)
                 || (entityType == EntityType.DEVICE && msg.getEvent() == ComponentLifecycleEvent.UPDATED)
         ) {
