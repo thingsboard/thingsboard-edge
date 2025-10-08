@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
 import org.junit.Ignore;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
