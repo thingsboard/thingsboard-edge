@@ -997,6 +997,7 @@ CREATE TABLE IF NOT EXISTS ai_model (
     external_id     UUID,
     created_time    BIGINT        NOT NULL,
     tenant_id       UUID          NOT NULL,
+-- NOTE: NOT NULL removed only for Edge, since versioning is not supported on Edge side
     version         BIGINT        DEFAULT 1,
     name            VARCHAR(255)  NOT NULL,
     configuration   JSONB         NOT NULL,
