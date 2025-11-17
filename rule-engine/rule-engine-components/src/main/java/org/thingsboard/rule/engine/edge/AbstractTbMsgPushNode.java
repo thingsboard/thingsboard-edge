@@ -15,7 +15,6 @@
  */
 package org.thingsboard.rule.engine.edge;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +41,9 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.ACTIVITY_EVENT;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_ACK;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_CLEAR;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_CREATED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_SEVERITY_UPDATED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ALARM_UPDATED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.CONNECT_EVENT;
@@ -78,8 +80,8 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         }
     }
 
-    protected S buildEvent(TbMsg msg, TbContext ctx) throws JsonProcessingException {
-        if (msg.isTypeOf(ALARM)) {
+    protected S buildEvent(TbMsg msg, TbContext ctx) {
+        if (msg.isTypeOneOf(ALARM, ALARM_CREATED, ALARM_UPDATED, ALARM_SEVERITY_UPDATED)) {
             EdgeEventActionType actionType = getAlarmActionType(msg);
             return buildEvent(ctx.getTenantId(), actionType, getUUIDFromMsgData(msg), getAlarmEventType(), null);
         } else if (msg.isTypeOneOf(ALARM_ACK, ALARM_CLEAR)) {
@@ -133,7 +135,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         return eventAction;
     }
 
-    private void addRpcRequestsDetailsIntoEventBody(Map<String, Object> entityBody, TbMsg msg, Map<String, String> metadata) throws JsonProcessingException {
+    private void addRpcRequestsDetailsIntoEventBody(Map<String, Object> entityBody, TbMsg msg, Map<String, String> metadata) {
         entityBody.put("requestId", metadata.get("requestId"));
         entityBody.put("serviceId", metadata.get("serviceId"));
         entityBody.put("sessionId", metadata.get("sessionId"));
@@ -195,7 +197,8 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
 
     protected boolean isSupportedMsgType(TbMsg msg) {
         return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED, ATTRIBUTES_DELETED, TIMESERIES_UPDATED,
-                ALARM, ALARM_ACK, ALARM_CLEAR, CONNECT_EVENT, DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT, TO_SERVER_RPC_REQUEST);
+                ALARM, ALARM_CREATED, ALARM_UPDATED, ALARM_SEVERITY_UPDATED, ALARM_ACK, ALARM_CLEAR, CONNECT_EVENT,
+                DISCONNECT_EVENT, ACTIVITY_EVENT, INACTIVITY_EVENT, TO_SERVER_RPC_REQUEST);
     }
 
 }
