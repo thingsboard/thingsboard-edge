@@ -18,15 +18,20 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
@@ -55,7 +60,7 @@ public class UserCloudProcessor extends BaseUserProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     userCreationLock.lock();
                     try {
-                        saveOrUpdateUser(tenantId, userId, userUpdateMsg);
+                        processUserMsgFromCloud(tenantId, userId, userUpdateMsg);
                     } finally {
                         userCreationLock.unlock();
                     }
@@ -72,6 +77,31 @@ public class UserCloudProcessor extends BaseUserProcessor {
             }
         } finally {
             cloudSynchronizationManager.getSync().remove();
+        }
+    }
+
+    private void processUserMsgFromCloud(TenantId tenantId, UserId userId, UserUpdateMsg userUpdateMsg) {
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateUser(tenantId, userId, userUpdateMsg);
+        boolean isCreated = resultPair.getFirst();
+        if (isCreated) {
+            pushUserCreatedEventToRuleEngine(tenantId, userId);
+        }
+
+        boolean userEmailUpdated = resultPair.getSecond();
+        if (userEmailUpdated) {
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.UPDATED, userId, null);
+        }
+    }
+
+    private void pushUserCreatedEventToRuleEngine(TenantId tenantId, UserId userId) {
+        try {
+            User user = edgeCtx.getUserService().findUserById(tenantId, userId);
+            if (user != null) {
+                String userAsString = JacksonUtil.toString(user);
+                pushEntityEventToRuleEngine(tenantId, userId, user.getCustomerId(), TbMsgType.ENTITY_CREATED, userAsString, TbMsgMetaData.EMPTY);
+            }
+        } catch (Exception e) {
+            log.warn("[{}][{}] Failed to push user action to rule engine: {}", tenantId, userId, TbMsgType.ENTITY_CREATED.name(), e);
         }
     }
 
