@@ -158,6 +158,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore("*EdgeTests are ignored on Edge side")
     public void testSendUserDeleteFromEdgeToCloud() throws Exception {
         // create customer
         Customer savedCustomer = createAndAssignCustomerToEdge();
