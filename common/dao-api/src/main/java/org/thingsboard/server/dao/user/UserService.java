@@ -55,13 +55,13 @@ public interface UserService extends EntityDaoService {
 
     UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
-	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
+    UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
-	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
+    UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
 
-	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
+    UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 
-	UserCredentials requestPasswordReset(TenantId tenantId, String email);
+    UserCredentials requestPasswordReset(TenantId tenantId, String email);
 
     UserCredentials requestExpiredPasswordReset(TenantId tenantId, UserCredentialsId userCredentialsId);
 
@@ -72,6 +72,9 @@ public interface UserService extends EntityDaoService {
     UserCredentials checkUserActivationToken(TenantId tenantId, UserCredentials userCredentials);
 
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
+
+    UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials,
+                                           UserCredentialsId oldUserCredentialsId, boolean doValidate);
 
     void deleteUser(TenantId tenantId, User user);
 
