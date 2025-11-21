@@ -36,6 +36,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UserUpdateMsg.Builder;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.user.BaseUserProcessor;
@@ -135,6 +136,16 @@ public class UserCloudProcessor extends BaseUserProcessor {
                 } else {
                     log.info("Skipping event as user was not found [{}]", cloudEvent);
                 }
+            }
+            case DELETED -> {
+                UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+                Builder userUpdateMsg = UserUpdateMsg.newBuilder().setMsgType(msgType)
+                        .setIdMSB(cloudEvent.getEntityId().getMostSignificantBits())
+                        .setIdLSB(cloudEvent.getEntityId().getLeastSignificantBits());
+
+                return UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addUserUpdateMsg(userUpdateMsg).build();
             }
             case CREDENTIALS_UPDATED -> {
                 UserCredentials userCredentials = edgeCtx.getUserService().findUserCredentialsByUserId(cloudEvent.getTenantId(), userId);
