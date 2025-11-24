@@ -77,6 +77,7 @@ import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
+import org.thingsboard.server.dao.pat.ApiKeyService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -377,6 +378,8 @@ public interface TbContext {
     JobService getJobService();
 
     JobManager getJobManager();
+
+    ApiKeyService getApiKeyService();
 
     boolean isExternalNodeForceAck();
 
