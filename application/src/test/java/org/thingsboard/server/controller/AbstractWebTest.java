@@ -38,8 +38,6 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpHeaders;
@@ -53,6 +51,8 @@ import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockPart;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -167,6 +167,7 @@ import org.thingsboard.server.service.entitiy.tenant.profile.TbTenantProfileServ
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
+import org.thingsboard.server.service.system.SystemPatchApplier;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -200,6 +201,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 import static org.thingsboard.server.common.data.CacheConstants.CLAIM_DEVICES_CACHE;
+import static org.thingsboard.server.config.ThingsboardSecurityConfiguration.API_KEY_HEADER_PREFIX;
+import static org.thingsboard.server.config.ThingsboardSecurityConfiguration.BEARER_HEADER_PREFIX;
 
 @Slf4j
 public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
@@ -244,6 +247,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected String refreshToken;
     protected String mobileToken;
     protected String username;
+
+    protected String apiKey;
 
     protected TenantId tenantId;
     protected TenantProfileId tenantProfileId;
@@ -291,17 +296,20 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     @Autowired
     private JwtTokenFactory jwtTokenFactory;
 
-    @SpyBean
-    protected MailService mailService;
-
     @Autowired
     protected InMemoryStorage storage;
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
-    @MockBean
+    @MockitoSpyBean
+    protected MailService mailService;
+
+    @MockitoBean
     protected CfRocksDb cfRocksDb;
+
+    @MockitoBean
+    protected SystemPatchApplier systemPatchApplier;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -644,10 +652,24 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected void setJwtToken(MockHttpServletRequestBuilder request) {
         if (this.token != null) {
-            request.header(ThingsboardSecurityConfiguration.JWT_TOKEN_HEADER_PARAM, "Bearer " + this.token);
+            request.header(ThingsboardSecurityConfiguration.AUTHORIZATION_HEADER, BEARER_HEADER_PREFIX + this.token);
         }
         if (this.mobileToken != null) {
             request.header(UserController.MOBILE_TOKEN_HEADER, this.mobileToken);
+        }
+    }
+
+    protected void resetApiKey() {
+        this.apiKey = null;
+    }
+
+    protected void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    protected void setApiKey(MockHttpServletRequestBuilder request) {
+        if (this.apiKey != null) {
+            request.header(ThingsboardSecurityConfiguration.AUTHORIZATION_HEADER, API_KEY_HEADER_PREFIX + this.apiKey);
         }
     }
 
@@ -768,6 +790,12 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         return mockMvc.perform(getRequest);
     }
 
+    protected ResultActions doGetWithApiKey(String urlTemplate, Object... urlVariables) throws Exception {
+        MockHttpServletRequestBuilder getRequest = get(urlTemplate, urlVariables);
+        setApiKey(getRequest);
+        return mockMvc.perform(getRequest);
+    }
+
     protected <T> T doGet(String urlTemplate, Class<T> responseClass, Object... urlVariables) throws Exception {
         return readResponse(doGet(urlTemplate, urlVariables).andExpect(status().isOk()), responseClass);
     }
@@ -789,6 +817,10 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         getRequest = get(urlTemplate, urlVariables);
         setJwtToken(getRequest);
         return mockMvc.perform(asyncDispatch(mockMvc.perform(getRequest).andExpect(request().asyncStarted()).andReturn()));
+    }
+
+    protected <T> T doGetWithApiKey(String urlTemplate, Class<T> responseClass, Object... urlVariables) throws Exception {
+        return readResponse(doGetWithApiKey(urlTemplate, urlVariables).andExpect(status().isOk()), responseClass);
     }
 
     protected <T> T doGetTyped(String urlTemplate, TypeReference<T> responseType, Object... urlVariables) throws Exception {
@@ -870,6 +902,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         }
     }
 
+    protected <T, R> R doPostWithApiKey(String urlTemplate, T content, Class<R> responseClass, String... params) {
+        try {
+            return readResponse(doPostWithApiKey(urlTemplate, content, params).andExpect(status().isOk()), responseClass);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     protected <T, R> R doPostWithResponse(String urlTemplate, T content, Class<R> responseClass, String... params) throws Exception {
         return readResponse(doPost(urlTemplate, content, params).andExpect(status().isOk()), responseClass);
     }
@@ -937,6 +977,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         return mockMvc.perform(postRequest);
     }
 
+    protected <T> ResultActions doPostWithApiKey(String urlTemplate, T content, String... params) throws Exception {
+        MockHttpServletRequestBuilder postRequest = post(urlTemplate, params);
+        setApiKey(postRequest);
+        String json = json(content);
+        postRequest.contentType(contentType).content(json);
+        return mockMvc.perform(postRequest);
+    }
+
     protected <T> ResultActions doPostAsync(String urlTemplate, T content, Long timeout, String... params) throws Exception {
         MockHttpServletRequestBuilder postRequest = post(urlTemplate, params);
         setJwtToken(postRequest);
@@ -961,6 +1009,13 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         MvcResult result = mockMvc.perform(deleteRequest).andReturn();
         result.getAsyncResult(DEFAULT_TIMEOUT);
         return mockMvc.perform(asyncDispatch(result));
+    }
+
+    protected ResultActions doDeleteWithApiKey(String urlTemplate, String... params) throws Exception {
+        MockHttpServletRequestBuilder deleteRequest = delete(urlTemplate);
+        setApiKey(deleteRequest);
+        populateParams(deleteRequest, params);
+        return mockMvc.perform(deleteRequest);
     }
 
     protected ResultActions doDeleteAsync(String urlTemplate, Long timeout, String... params) throws Exception {
@@ -1358,21 +1413,21 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected void postTelemetry(EntityId entityId, String payload) throws Exception {
         doPostAsync("/api/plugins/telemetry/" + entityId.getEntityType() + "/" + entityId.getId() +
-                    "/timeseries/" + DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode(payload), 30_000L).andExpect(status().isOk());
+                "/timeseries/" + DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode(payload), 30_000L).andExpect(status().isOk());
     }
 
     protected void postAttributes(EntityId entityId, AttributeScope scope, String payload) throws Exception {
         doPostAsync("/api/plugins/telemetry/" + entityId.getEntityType() + "/" + entityId.getId() +
-                    "/attributes/" + scope, JacksonUtil.toJsonNode(payload), 30_000L).andExpect(status().isOk());
+                "/attributes/" + scope, JacksonUtil.toJsonNode(payload), 30_000L).andExpect(status().isOk());
     }
 
     protected CalculatedField saveCalculatedField(CalculatedField calculatedField) {
         return doPost("/api/calculatedField", calculatedField, CalculatedField.class);
     }
 
-    protected PageData<CalculatedField> getCalculatedFields(EntityId entityId, CalculatedFieldType type, PageLink pageLink) throws Exception {
+    protected PageData<CalculatedField> getEntityCalculatedFields(EntityId entityId, CalculatedFieldType type, PageLink pageLink) throws Exception {
         return doGetTypedWithPageLink("/api/" + entityId.getEntityType() + "/" + entityId.getId() + "/calculatedFields" +
-                                      (type != null ? "?type=" + type.name() + "&" : "?"), new TypeReference<>() {}, pageLink);
+                (type != null ? "?type=" + type.name() + "&" : "?"), new TypeReference<>() {}, pageLink);
     }
 
     protected PageData<EventInfo> getDebugEvents(TenantId tenantId, EntityId entityId, int limit) throws Exception {

@@ -85,7 +85,9 @@ export enum MenuId {
   domains = 'domains',
   clients = 'clients',
   audit_log = 'audit_log',
+  alarms_center = 'alarms_center',
   alarms = 'alarms',
+  alarm_rules = 'alarm_rules',
   dashboards = 'dashboards',
   entities = 'entities',
   devices = 'devices',
@@ -498,13 +500,33 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
+    MenuId.alarms_center,
+    {
+      id: MenuId.alarms_center,
+      name: 'alarm.alarms',
+      type: 'link',
+      path: '/alarms',
+      icon: 'mdi:alert-outline'
+    }
+  ],
+  [
     MenuId.alarms,
     {
       id: MenuId.alarms,
       name: 'alarm.alarms',
       type: 'link',
-      path: '/alarms',
+      path: '/alarms/alarms',
       icon: 'mdi:alert-outline'
+    }
+  ],
+  [
+    MenuId.alarm_rules,
+    {
+      id: MenuId.alarm_rules,
+      name: 'alarm-rule.alarm-rules',
+      type: 'link',
+      path: '/alarms/alarm-rules',
+      icon: 'tune'
     }
   ],
   [
@@ -887,7 +909,13 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.cloud_events}
         ]
       },
-      {id: MenuId.alarms},
+      {
+        id: MenuId.alarms_center,
+        pages: [
+          {id: MenuId.alarms},
+          {id: MenuId.alarm_rules}
+        ]
+      },
       {id: MenuId.dashboards},
       {
         id: MenuId.entities,
