@@ -26,8 +26,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 
-import static org.thingsboard.server.common.data.EdgeUtils.MISORDERING_COMPENSATION_MILLIS;
-
 @AllArgsConstructor
 @Slf4j
 public class GeneralEdgeEventFetcher implements EdgeEventFetcher {

@@ -17,6 +17,7 @@ package org.thingsboard.server.dao.customer;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.NameConflictStrategy;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -38,6 +39,8 @@ public interface CustomerService extends EntityDaoService {
     Customer saveCustomer(Customer customer, boolean doValidate);
 
     Customer saveCustomer(Customer customer);
+
+    Customer saveCustomer(Customer customer, NameConflictStrategy nameConflictStrategy);
 
     void deleteCustomer(TenantId tenantId, CustomerId customerId);
 

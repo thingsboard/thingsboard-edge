@@ -37,7 +37,9 @@ import org.thingsboard.server.dao.sql.JpaExecutorService;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
@@ -125,17 +127,19 @@ class AiModelServiceImpl extends CachedVersionedEntityService<AiModelCacheKey, A
     @Override
     @Transactional
     public boolean deleteByTenantIdAndId(TenantId tenantId, AiModelId modelId) {
-        AiModel aiModel = aiModelDao.findById(tenantId, modelId.getId());
-        if (aiModel == null) {
-            return true;
-        }
-        return deleteByTenantIdAndIdInternal(tenantId, aiModel);
+        return deleteByTenantIdAndIdInternal(tenantId, modelId.getId());
     }
 
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return findAiModelByTenantIdAndId(tenantId, (AiModelId) entityId)
                 .map(model -> model); // necessary to cast to HasId<?>
+    }
+
+    @Override
+    public FluentFuture<Optional<HasId<?>>> findEntityAsync(TenantId tenantId, EntityId entityId) {
+        return findAiModelByTenantIdAndIdAsync(tenantId, new AiModelId(entityId.getId()))
+                .transform(modelOpt -> modelOpt.map(model -> model), directExecutor());  // necessary to cast to HasId<?>
     }
 
     @Override
@@ -146,17 +150,16 @@ class AiModelServiceImpl extends CachedVersionedEntityService<AiModelCacheKey, A
     @Override
     @Transactional
     public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
-        AiModel aiModel = aiModelDao.findById(tenantId, id.getId());
-        if (aiModel == null) {
-            return;
-        }
-
-        deleteByTenantIdAndIdInternal(tenantId, aiModel);
+        deleteByTenantIdAndIdInternal(tenantId, id.getId());
     }
 
-    private boolean deleteByTenantIdAndIdInternal(TenantId tenantId, AiModel aiModel) {
-        boolean deleted = aiModelDao.deleteByTenantIdAndId(tenantId, aiModel.getId());
+    private boolean deleteByTenantIdAndIdInternal(TenantId tenantId, UUID modelId) {
+        AiModel aiModel = findAiModelById(tenantId, new AiModelId(modelId)).orElse(null);
+        if (aiModel == null) {
+            return false;
+        }
 
+        boolean deleted = aiModelDao.deleteByTenantIdAndId(tenantId, aiModel.getId());
         if (deleted) {
             publishEvictEvent(new AiModelCacheEvictEvent.Deleted(AiModelCacheKey.of(tenantId, aiModel.getId())));
             eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(aiModel.getId()).entity(aiModel).build());
