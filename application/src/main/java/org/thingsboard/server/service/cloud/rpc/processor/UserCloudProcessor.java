@@ -67,10 +67,7 @@ public class UserCloudProcessor extends BaseUserProcessor {
                     }
                     return requestForAdditionalData(tenantId, userId);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    User userToDelete = edgeCtx.getUserService().findUserById(tenantId, userId);
-                    if (userToDelete != null) {
-                        edgeCtx.getUserService().deleteUser(tenantId, userToDelete);
-                    }
+                    deleteUserAndPushEntityDeletedEventToRuleEngine(tenantId, userId);
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
                 default:
