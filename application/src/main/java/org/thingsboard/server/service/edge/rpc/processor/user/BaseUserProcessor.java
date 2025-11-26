@@ -21,11 +21,13 @@ import org.springframework.data.util.Pair;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
@@ -48,8 +50,12 @@ public abstract class BaseUserProcessor extends BaseEdgeProcessor {
             }
 
             User userById = edgeCtx.getUserService().findUserById(tenantId, userId);
-            isCreated = userById == null;
-            user.setId(isCreated ? null : userId);
+            if (userById == null) {
+                isCreated = true;
+                user.setId(null);
+            } else {
+                user.setId(userId);
+            }
 
             String userEmail = user.getEmail();
             User existing = edgeCtx.getUserService().findUserByTenantIdAndEmail(tenantId, user.getEmail());
@@ -79,7 +85,23 @@ public abstract class BaseUserProcessor extends BaseEdgeProcessor {
         return Pair.of(isCreated, userEmailUpdated);
     }
 
-    protected User deleteUser(TenantId tenantId, UserId userId) {
+    protected void deleteUserAndPushEntityDeletedEventToRuleEngine(TenantId tenantId, UserId userId) {
+        deleteUserAndPushEntityDeletedEventToRuleEngine(tenantId, userId, null);
+    }
+
+    protected void deleteUserAndPushEntityDeletedEventToRuleEngine(TenantId tenantId, UserId userId, Edge edge) {
+        User removedUser = deleteUser(tenantId, userId);
+        if (removedUser == null) {
+            return;
+        }
+        CustomerId userCustomerId = removedUser.getCustomerId();
+        String userAsString = JacksonUtil.toString(removedUser);
+        TbMsgMetaData msgMetaData = edge == null ? new TbMsgMetaData() : getEdgeActionTbMsgMetaData(edge, userCustomerId);
+        addRemovedUserMetadata(msgMetaData, removedUser);
+        pushEntityEventToRuleEngine(tenantId, userId, userCustomerId, TbMsgType.ENTITY_DELETED, userAsString, msgMetaData);
+    }
+
+    private User deleteUser(TenantId tenantId, UserId userId) {
         User userById = edgeCtx.getUserService().findUserById(tenantId, userId);
         if (userById == null) {
             log.trace("[{}] User with id {} does not exist", tenantId, userId);
@@ -90,45 +112,40 @@ public abstract class BaseUserProcessor extends BaseEdgeProcessor {
     }
 
     protected void updateUserCredentials(TenantId tenantId, UserCredentialsUpdateMsg updateMsg) {
-        UserCredentials userCredentialsFromUpdateMsg = JacksonUtil.fromString(updateMsg.getEntity(), UserCredentials.class, true);
-        if (userCredentialsFromUpdateMsg == null) {
+        UserCredentials userCredentials = JacksonUtil.fromString(updateMsg.getEntity(), UserCredentials.class, true);
+        if (userCredentials == null) {
             throw new IllegalArgumentException(String.format("[%s] Failed to parse UserCredentials from updateMsg: %s", tenantId, updateMsg));
         }
-
-        User user = edgeCtx.getUserService().findUserById(tenantId, userCredentialsFromUpdateMsg.getUserId());
+        User user = edgeCtx.getUserService().findUserById(tenantId, userCredentials.getUserId());
         if (user == null) {
             log.warn("[{}] Can't find user by id [{}] skipping credentials update. UserCredentialsUpdateMsg [{}]",
-                    tenantId, userCredentialsFromUpdateMsg.getUserId(), updateMsg);
+                    tenantId, userCredentials.getUserId(), updateMsg);
             return;
         }
-
         log.debug("[{}] Updating user credentials for user [{}]. New credentials Id [{}], enabled [{}]",
-                tenantId, user.getName(), userCredentialsFromUpdateMsg.getId(), userCredentialsFromUpdateMsg.isEnabled());
-
+                tenantId, user.getName(), userCredentials.getId(), userCredentials.isEnabled());
         try {
-            UserCredentials existing = edgeCtx.getUserService().findUserCredentialsByUserId(tenantId, user.getId());
-            boolean created = existing == null;
-            UserCredentialsId oldCredentialsId = created ? null : existing.getId();
-
-            UserCredentials updated = created ? new UserCredentials() : existing;
-            updated.setId(userCredentialsFromUpdateMsg.getId());
-            updated.setUserId(user.getId());
-            updated.setEnabled(userCredentialsFromUpdateMsg.isEnabled());
-            updated.setActivateToken(userCredentialsFromUpdateMsg.getActivateToken());
-            updated.setAdditionalInfo(userCredentialsFromUpdateMsg.getAdditionalInfo());
-            updated.setPassword(userCredentialsFromUpdateMsg.getPassword());
-            updated.setResetToken(userCredentialsFromUpdateMsg.getResetToken());
-
-
-            if (created) {
-                edgeCtx.getUserService().saveUserCredentials(tenantId, updated, false);
-            } else {
-                edgeCtx.getUserService().replaceUserCredentials(tenantId, updated, oldCredentialsId, false);
+            UserCredentials userCredentialsByUserId = edgeCtx.getUserService().findUserCredentialsByUserId(tenantId, user.getId());
+            if (userCredentialsByUserId != null && !userCredentialsByUserId.getId().equals(userCredentials.getId())) {
+                edgeCtx.getUserService().deleteUserCredentials(tenantId, userCredentialsByUserId);
             }
+            edgeCtx.getUserService().saveUserCredentials(tenantId, userCredentials, false);
         } catch (Exception e) {
             log.error("[{}] Can't update user credentials for user [{}], userCredentialsUpdateMsg [{}]",
                     tenantId, user.getName(), updateMsg, e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private void addRemovedUserMetadata(TbMsgMetaData metaData, User removedUser) {
+        metaData.putValue("userId", removedUser.getId().toString());
+        metaData.putValue("userName", removedUser.getName());
+        metaData.putValue("userEmail", removedUser.getEmail());
+        if (removedUser.getFirstName() != null) {
+            metaData.putValue("userFirstName", removedUser.getFirstName());
+        }
+        if (removedUser.getLastName() != null) {
+            metaData.putValue("userLastName", removedUser.getLastName());
         }
     }
 
