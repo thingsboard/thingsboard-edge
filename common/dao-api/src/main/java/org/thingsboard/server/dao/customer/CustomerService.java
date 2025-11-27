@@ -36,11 +36,11 @@ public interface CustomerService extends EntityDaoService {
 
     ListenableFuture<Customer> findCustomerByIdAsync(TenantId tenantId, CustomerId customerId);
 
-    Customer saveCustomer(Customer customer, boolean doValidate);
-
     Customer saveCustomer(Customer customer);
 
     Customer saveCustomer(Customer customer, NameConflictStrategy nameConflictStrategy);
+
+    Customer saveCustomer(Customer customer, boolean doValidate);
 
     void deleteCustomer(TenantId tenantId, CustomerId customerId);
 
