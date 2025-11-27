@@ -50,29 +50,21 @@ import java.util.concurrent.locks.ReentrantLock;
 @TbCoreComponent
 public class UserCloudProcessor extends BaseUserProcessor {
 
-    private final Lock userCreationLock = new ReentrantLock();
-
     public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId, UserUpdateMsg userUpdateMsg) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
-            switch (userUpdateMsg.getMsgType()) {
-                case ENTITY_CREATED_RPC_MESSAGE:
-                case ENTITY_UPDATED_RPC_MESSAGE:
-                    userCreationLock.lock();
-                    try {
-                        processUserMsgFromCloud(tenantId, userId, userUpdateMsg);
-                    } finally {
-                        userCreationLock.unlock();
-                    }
-                    return requestForAdditionalData(tenantId, userId);
-                case ENTITY_DELETED_RPC_MESSAGE:
+            return switch (userUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
+                    processUserMsgFromCloud(tenantId, userId, userUpdateMsg);
+                    yield requestForAdditionalData(tenantId, userId);
+                }
+                case ENTITY_DELETED_RPC_MESSAGE -> {
                     deleteUserAndPushEntityDeletedEventToRuleEngine(tenantId, userId);
-                    return Futures.immediateFuture(null);
-                case UNRECOGNIZED:
-                default:
-                    return handleUnsupportedMsgType(userUpdateMsg.getMsgType());
-            }
+                    yield Futures.immediateFuture(null);
+                }
+                default -> handleUnsupportedMsgType(userUpdateMsg.getMsgType());
+            };
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
