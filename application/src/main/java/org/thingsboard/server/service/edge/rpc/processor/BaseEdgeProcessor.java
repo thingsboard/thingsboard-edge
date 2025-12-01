@@ -392,7 +392,7 @@ public abstract class BaseEdgeProcessor implements EdgeProcessor {
         try {
             String entityAsString = JacksonUtil.toString(entity);
             CustomerId customerId = getCustomerId(entity);
-            TbMsgMetaData tbMsgMetaData = edge == null ? new TbMsgMetaData() : getEdgeActionTbMsgMetaData(edge, customerId);
+            TbMsgMetaData tbMsgMetaData = edge == null ? TbMsgMetaData.EMPTY : getEdgeActionTbMsgMetaData(edge, customerId);
 
             pushEntityEventToRuleEngine(tenantId, entity.getId(), customerId, msgType, entityAsString, tbMsgMetaData);
         } catch (Exception e) {
