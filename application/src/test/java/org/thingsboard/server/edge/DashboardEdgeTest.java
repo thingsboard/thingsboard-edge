@@ -232,7 +232,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
 
     @Test
     @Ignore
-    public void testSendDeleteEntityViewOnEdgeToCloud() throws Exception {
+    public void testSendDeleteDashboardOnEdgeToCloud() throws Exception {
         Dashboard savedDashboard = saveDashboardOnCloudAndVerifyDeliveryToEdge();
 
         UplinkMsg.Builder upLinkMsgBuilder = UplinkMsg.newBuilder();
