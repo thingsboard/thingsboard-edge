@@ -62,11 +62,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                     }
                     return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Dashboard dashboardById = edgeCtx.getDashboardService().findDashboardById(tenantId, dashboardId);
-                    if (dashboardById != null) {
-                        edgeCtx.getDashboardService().deleteDashboard(tenantId, dashboardId);
-                        pushDashboardDeletedEventToRuleEngine(tenantId, dashboardById);
-                    }
+                    deleteDashboard(tenantId, dashboardId);
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
                 default:
@@ -79,20 +75,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
 
     private void pushDashboardCreatedEventToRuleEngine(TenantId tenantId, DashboardId dashboardId) {
         Dashboard dashboard = edgeCtx.getDashboardService().findDashboardById(tenantId, dashboardId);
-        pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_CREATED);
-    }
-
-    private void pushDashboardDeletedEventToRuleEngine(TenantId tenantId, Dashboard dashboard) {
-        pushDashboardEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_DELETED);
-    }
-
-    private void pushDashboardEventToRuleEngine(TenantId tenantId, Dashboard dashboard, TbMsgType msgType) {
-        try {
-            String dashboardAsString = JacksonUtil.toString(dashboard);
-            pushEntityEventToRuleEngine(tenantId, dashboard.getId(), null, msgType, dashboardAsString, new TbMsgMetaData());
-        } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push dashboard action to rule engine: {}", tenantId, dashboard.getId(), msgType.name(), e);
-        }
+        pushEntityEventToRuleEngine(tenantId, dashboard, TbMsgType.ENTITY_CREATED);
     }
 
     @Override
@@ -132,7 +115,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     }
 
     @Override
-    protected Set<ShortCustomerInfo> filterNonExistingCustomers(TenantId tenantId, Set<ShortCustomerInfo> currentAssignedCustomers, Set<ShortCustomerInfo> newAssignedCustomers) {
+    protected Set<ShortCustomerInfo> filterNonExistingCustomers(TenantId tenantId, CustomerId edgeCustomerId, Set<ShortCustomerInfo> currentAssignedCustomers, Set<ShortCustomerInfo> newAssignedCustomers) {
         if (newAssignedCustomers != null && !newAssignedCustomers.isEmpty()) {
             newAssignedCustomers.removeIf(assignedCustomer ->
                     checkCustomerOnEdge(tenantId, assignedCustomer.getCustomerId()) == null);
