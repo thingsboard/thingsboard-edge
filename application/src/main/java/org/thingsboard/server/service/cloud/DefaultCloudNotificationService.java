@@ -79,7 +79,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             ListenableFuture<Void> future;
             switch (cloudEventType) {
                 // TODO: voba - handle cloud updates
-                case EDGE, ASSET, DEVICE, ASSET_PROFILE, DEVICE_PROFILE, ENTITY_VIEW, DASHBOARD, RULE_CHAIN, TB_RESOURCE, CALCULATED_FIELD, AI_MODEL ->
+                case EDGE, ASSET, DEVICE, ASSET_PROFILE, DEVICE_PROFILE, ENTITY_VIEW, DASHBOARD, RULE_CHAIN, TB_RESOURCE, CALCULATED_FIELD, USER, AI_MODEL ->
                         future = processEntity(tenantId, cloudNotificationMsg);
                 case ALARM -> future = processAlarm(tenantId, cloudNotificationMsg);
                 case RELATION -> future = processRelation(tenantId, cloudNotificationMsg);

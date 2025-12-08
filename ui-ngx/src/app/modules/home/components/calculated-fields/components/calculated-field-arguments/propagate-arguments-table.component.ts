@@ -93,7 +93,15 @@ export class PropagateArgumentsTableComponent extends CalculatedFieldArgumentsTa
       this.displayColumns = ['name', 'type', 'key', 'actions'];
       this.panelAdditionalCtx = {
         argumentEntityTypes: [ArgumentEntityType.Current],
-        isOutputKey: true,
+        argumentNameContext: {
+          label: 'calculated-fields.output-key',
+          required: 'calculated-fields.hint.output-key-required',
+          duplicate: 'calculated-fields.hint.output-key-duplicate',
+          pattern: 'calculated-fields.hint.output-key-pattern',
+          maxlength: 'calculated-fields.hint.output-key-max-length',
+          forbidden: 'calculated-fields.hint.output-key-forbidden'
+        },
+        watchKeyChange: true,
         forbiddenNames: [...FORBIDDEN_NAMES, 'propagationCtx'],
       };
     }
@@ -115,7 +123,7 @@ export class PropagateArgumentsTableComponent extends CalculatedFieldArgumentsTa
       this.errorText = 'calculated-fields.hint.arguments-entity-not-found';
     } else if (!this.argumentsFormArray.controls.length) {
       this.errorText = 'calculated-fields.hint.arguments-empty';
-    } if (this.isScript && !this.argumentsFormArray.controls.some(control => isUndefinedOrNull(control.value?.refEntityId) && isUndefinedOrNull(control.value.refDynamicSourceConfiguration))) {
+    } else if (this.isScript && !this.argumentsFormArray.controls.some(control => isUndefinedOrNull(control.value?.refEntityId) && isUndefinedOrNull(control.value.refDynamicSourceConfiguration))) {
       this.errorText = 'calculated-fields.hint.arguments-propagate-argument-must-current-entity';
     } else {
       this.errorText = '';

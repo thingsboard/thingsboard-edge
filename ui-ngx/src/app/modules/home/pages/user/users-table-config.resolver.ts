@@ -100,12 +100,6 @@ export class UsersTableConfigResolver  {
     this.config.deleteEntity = id => this.userService.deleteUser(id.id);
     this.config.onEntityAction = action => this.onUserAction(action, this.config);
     this.config.addEntity = () => this.addUser();
-
-    // edge-only: allow to read-only
-    this.config.detailsReadonly = () => true;
-    this.config.deleteEnabled = () => false;
-    this.config.addEnabled = false;
-    this.config.entitiesDeleteEnabled = false;
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<User>> {

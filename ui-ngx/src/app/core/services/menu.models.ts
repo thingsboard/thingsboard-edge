@@ -513,7 +513,7 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     MenuId.alarms,
     {
       id: MenuId.alarms,
-      name: 'alarm.alarms',
+      name: 'alarm.alarm-list',
       type: 'link',
       path: '/alarms/alarms',
       icon: 'mdi:alert-outline'

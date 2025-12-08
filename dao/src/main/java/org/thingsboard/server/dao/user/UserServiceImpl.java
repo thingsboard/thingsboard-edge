@@ -98,6 +98,7 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
 
     public static final int DEFAULT_TOKEN_LENGTH = 30;
     public static final String INCORRECT_USER_ID = "Incorrect userId ";
+    public static final String INCORRECT_USER_CREDENTIALS_ID = "Incorrect userCredentialsId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
     @Value("${security.user_login_case_sensitive:true}")
@@ -353,6 +354,15 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
                 .entityId(userCredentials.getUserId())
                 .actionType(ActionType.CREDENTIALS_UPDATED).build());
         return result;
+    }
+
+    @Override
+    public void deleteUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
+        Objects.requireNonNull(userCredentials, "UserCredentials is null");
+        UserCredentialsId userCredentialsId = userCredentials.getId();
+        log.trace("[{}] Executing deleteUserCredentials [{}]", tenantId, userCredentialsId);
+        validateId(userCredentialsId, id -> INCORRECT_USER_CREDENTIALS_ID + id);
+        userCredentialsDao.removeById(tenantId, userCredentialsId.getId());
     }
 
     @Override

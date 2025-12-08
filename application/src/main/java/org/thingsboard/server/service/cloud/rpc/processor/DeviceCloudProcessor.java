@@ -83,11 +83,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     yield Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
-                    if (deviceById != null) {
-                        edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId);
-                        pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
-                    }
+                    deleteDevice(tenantId, deviceId);
                     yield Futures.immediateFuture(null);
                 }
                 default -> handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
@@ -112,20 +108,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
         Device device = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
-        pushDeviceEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_CREATED);
-    }
-
-    private void pushDeviceDeletedEventToRuleEngine(TenantId tenantId, Device device) {
-        pushDeviceEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_DELETED);
-    }
-
-    private void pushDeviceEventToRuleEngine(TenantId tenantId, Device device, TbMsgType msgType) {
-        try {
-            String deviceAsString = JacksonUtil.toString(device);
-            pushEntityEventToRuleEngine(tenantId, device.getId(), device.getCustomerId(), msgType, deviceAsString, new TbMsgMetaData());
-        } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, device.getId(), msgType.name(), e);
-        }
+        pushEntityEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_CREATED);
     }
 
     public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
