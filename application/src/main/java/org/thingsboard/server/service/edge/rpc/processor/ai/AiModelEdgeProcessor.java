@@ -97,8 +97,8 @@ public class AiModelEdgeProcessor extends BaseAiModelProcessor implements AiMode
 
     private void processAiModel(TenantId tenantId, AiModelId aiModelId, AiModelUpdateMsg aiModelUpdateMsg, Edge edge) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAiModel(tenantId, aiModelId, aiModelUpdateMsg);
-        Boolean wasCreated = resultPair.getFirst();
-        if (wasCreated) {
+        Boolean created = resultPair.getFirst();
+        if (created) {
             Optional<AiModel> aiModel = edgeCtx.getAiModelService().findAiModelById(tenantId, aiModelId);
             aiModel.ifPresent(model -> pushEntityEventToRuleEngine(tenantId, edge, model, TbMsgType.ENTITY_CREATED));
         }
