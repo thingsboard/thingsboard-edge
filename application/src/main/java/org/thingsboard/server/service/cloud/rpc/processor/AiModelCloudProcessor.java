@@ -32,12 +32,14 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.gen.edge.v1.AiModelUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.ai.BaseAiModelProcessor;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -55,11 +57,7 @@ public class AiModelCloudProcessor extends BaseAiModelProcessor {
                     yield Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    AiModel aiModel = edgeCtx.getAiModelService().findAiModelById(tenantId, aiModelId).orElse(null);
-                    if (aiModel != null) {
-                        edgeCtx.getAiModelService().deleteByTenantIdAndId(tenantId, aiModelId);
-                        pushAiModelEventToRuleEngine(tenantId, aiModel, TbMsgType.ENTITY_DELETED);
-                    }
+                    deleteAiModel(tenantId, null, aiModelId);
                     yield Futures.immediateFuture(null);
                 }
                 default -> handleUnsupportedMsgType(aiModelUpdateMsg.getMsgType());
@@ -71,25 +69,14 @@ public class AiModelCloudProcessor extends BaseAiModelProcessor {
 
     private void saveOrUpdateAiModelFromCloud(TenantId tenantId, AiModelId aiModelId, AiModelUpdateMsg aiModelUpdateMsg) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAiModel(tenantId, aiModelId, aiModelUpdateMsg);
-        Boolean wasCreated = resultPair.getFirst();
-        if (wasCreated) {
-            AiModel aiModel = edgeCtx.getAiModelService().findAiModelById(tenantId, aiModelId).orElse(null);
-            if (aiModel != null) {
-                pushAiModelEventToRuleEngine(tenantId, aiModel, TbMsgType.ENTITY_CREATED);
-            }
+        Boolean create = resultPair.getFirst();
+        if (create) {
+            Optional<AiModel> aiModel = edgeCtx.getAiModelService().findAiModelById(tenantId, aiModelId);
+            aiModel.ifPresent(model -> pushEntityEventToRuleEngine(tenantId, null, model, TbMsgType.ENTITY_CREATED));
         }
-        Boolean aiModelNameWasUpdated = resultPair.getSecond();
-        if (aiModelNameWasUpdated) {
+        Boolean aiModelNameUpdated = resultPair.getSecond();
+        if (aiModelNameUpdated) {
             cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.AI_MODEL, EdgeEventActionType.UPDATED, aiModelId, null);
-        }
-    }
-
-    private void pushAiModelEventToRuleEngine(TenantId tenantId, AiModel aiModel, TbMsgType msgType) {
-        try {
-            String aiModelAsString = JacksonUtil.toString(aiModel);
-            pushEntityEventToRuleEngine(tenantId, aiModel.getId(), null, msgType, aiModelAsString, new TbMsgMetaData());
-        } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push AiModel action to rule engine: {}", tenantId, aiModel.getId(), msgType.name(), e);
         }
     }
 
@@ -109,6 +96,13 @@ public class AiModelCloudProcessor extends BaseAiModelProcessor {
                 } else {
                     log.info("Skipping event as AiModel was not found [{}]", cloudEvent);
                 }
+            }
+            case DELETED -> {
+                AiModelUpdateMsg aiModelUpdateMsg = EdgeMsgConstructorUtils.constructAiModelDeleteMsg(aiModelId);
+                return UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addAiModelUpdateMsg(aiModelUpdateMsg)
+                        .build();
             }
         }
         return null;
