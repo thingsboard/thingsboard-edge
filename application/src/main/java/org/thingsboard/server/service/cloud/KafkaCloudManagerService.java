@@ -35,6 +35,7 @@ import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -172,19 +173,20 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
                 .map(msg -> ProtoUtils.fromProto(msg.getValue().getCloudEventMsg()))
                 .toList();
 
+        boolean isInterrupted;
         try {
-            boolean isInterrupted = processCloudEvents(cloudEvents, isGeneralMsg).get();
-            if (isInterrupted) {
-                log.warn("[{}] Send uplink messages task was interrupted", tenantId);
-                return false;
-            } else {
-                consumer.commit();
-                log.trace("[{}] Successfully processed {} uplink messages (type={})", tenantId, cloudEvents.size(), isGeneralMsg ? "GENERAL" : "TS");
-                return true;
-            }
-        } catch (Exception e) {
+            isInterrupted = processCloudEvents(cloudEvents, isGeneralMsg).get();
+        } catch (InterruptedException | ExecutionException e) {
             log.error("Failed to process all uplink messages", e);
             return false;
+        }
+        if (isInterrupted) {
+            log.warn("[{}] Send uplink messages task was interrupted", tenantId);
+            return false;
+        } else {
+            consumer.commit();
+            log.trace("[{}] Successfully processed {} uplink messages (type={})", tenantId, cloudEvents.size(), isGeneralMsg ? "GENERAL" : "TS");
+            return true;
         }
     }
 

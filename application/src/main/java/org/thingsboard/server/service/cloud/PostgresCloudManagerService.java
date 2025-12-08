@@ -55,7 +55,6 @@ public class PostgresCloudManagerService extends BaseCloudManagerService {
         }
     }
 
-
     @PostConstruct
     private void onInit() {
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("postgres-cloud-manager"));
