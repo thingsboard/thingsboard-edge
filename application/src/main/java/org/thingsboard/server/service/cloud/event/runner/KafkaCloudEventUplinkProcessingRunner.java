@@ -13,36 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.service.cloud.event.runner;
 
 import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCloudEventQueueFactory;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
+import org.thingsboard.server.service.cloud.event.sender.GrpcCloudEventUplinkSender;
+import org.thingsboard.server.service.cloud.info.EdgeInfoHolder;
+import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Slf4j
 @Service
-@Primary
+@Slf4j
+@RequiredArgsConstructor
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
-public class KafkaCloudManagerService extends BaseCloudManagerService {
+public class KafkaCloudEventUplinkProcessingRunner implements CloudEventUplinkProcessingRunner {
+
+    private final TbQueueCloudEventTSSettings tbQueueCloudEventTSSettings;
+    private final TbQueueCloudEventSettings tbQueueCloudEventSettings;
+    private final CloudEventStorageSettings cloudEventStorageSettings;
+    private final TbCloudEventQueueFactory tbCloudEventQueueProvider;
+    private final GrpcCloudEventUplinkSender cloudEventUplinkSender;
+    private final EdgeInfoHolder edgeInfo;
 
     private QueueConsumerManager<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer;
     private QueueConsumerManager<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> tsConsumer;
@@ -50,27 +58,11 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
     private ExecutorService consumerExecutor;
     private ExecutorService tsConsumerExecutor;
 
-    @Autowired
-    private TbCloudEventQueueFactory tbCloudEventQueueProvider;
-
-    @Autowired
-    private TbQueueCloudEventTSSettings tbQueueCloudEventTSSettings;
-
-    @Autowired
-    private TbQueueCloudEventSettings tbQueueCloudEventSettings;
-
     @Override
-    protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        if (ServiceType.TB_CORE.equals(event.getServiceType())) {
-            establishRpcConnection();
-        }
-    }
-
-    @Override
-    protected void launchUplinkProcessing() {
+    public void init() {
         if (consumer == null) {
             this.consumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-event-consumer"));
-            this.consumer = QueueConsumerManager.<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>>builder()
+            this.consumer = QueueConsumerManager.<TbProtoQueueMsg<ToCloudEventMsg>>builder()
                     .name("TB Cloud Events")
                     .msgPackProcessor(this::processUplinkMessages)
                     .pollInterval(tbQueueCloudEventSettings.getPollInterval())
@@ -97,13 +89,8 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
     }
 
     @Override
-    protected void resetQueueOffset() {
-    }
-
     @PreDestroy
-    protected void onDestroy() throws InterruptedException {
-        super.destroy();
-
+    public void shutdown() {
         if (consumer != null) {
             consumer.stop();
             consumer = null;
@@ -117,18 +104,19 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         }
     }
 
-    private void processUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
-                                       TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
+    private void processUplinkMessages(List<TbProtoQueueMsg<ToCloudEventMsg>> msgs,
+                                       TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> consumer) {
         boolean isProcessed = false;
+        int attempt = 1;
         do {
-            log.trace("[{}] Trying to process general uplink messages", tenantId);
+            log.trace("[{}] Trying to process general uplink messages, attempt: {}", edgeInfo.getTenantId(), attempt++);
 
-            if (initialized && !syncInProgress) {
-                isGeneralProcessInProgress = true;
-                isProcessed = processMessages(msgs, consumer, true);
-                isGeneralProcessInProgress = false;
+            if (canProcessGeneralMessages()) {
+                edgeInfo.setGeneralProcessInProgress(true);
+                isProcessed = doProcessMessages(msgs, consumer, true);
+                edgeInfo.setGeneralProcessInProgress(false);
             } else {
-                log.debug("[{}] Waiting: initialized={}, syncInProgress={}", tenantId, initialized, syncInProgress);
+                log.debug("[{}] Waiting: initialized={}, syncInProgress={}", edgeInfo.getTenantId(), edgeInfo.isInitialized(), edgeInfo.isSyncInProgress());
             }
 
             if (!isProcessed) {
@@ -138,17 +126,17 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
     }
 
     private void processTsUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
-                                         TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer) {
+                                         TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> consumer) {
         boolean isProcessed = false;
 
         do {
-            log.trace("[{}] Trying to process TS uplink messages", tenantId);
+            log.trace("[{}] Trying to process TS uplink messages", edgeInfo.getTenantId());
 
-            if (initialized && !syncInProgress && !isGeneralProcessInProgress) {
-                isProcessed = processMessages(msgs, consumer, false);
+            if (canProcessTsMessages()) {
+                isProcessed = doProcessMessages(msgs, consumer, false);
             } else {
                 log.debug("[{}] Waiting: initialized={}, syncInProgress={}, generalInProgress={}",
-                        tenantId, initialized, syncInProgress, isGeneralProcessInProgress);
+                        edgeInfo.getTenantId(), edgeInfo.isInitialized(), edgeInfo.isSyncInProgress(), edgeInfo.isGeneralProcessInProgress());
             }
 
             if (!isProcessed) {
@@ -165,27 +153,39 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
         }
     }
 
-    private boolean processMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
-                                    TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer,
-                                    boolean isGeneralMsg) {
-        List<CloudEvent> cloudEvents = msgs.stream()
-                .map(msg -> ProtoUtils.fromProto(msg.getValue().getCloudEventMsg()))
-                .toList();
-
+    private boolean doProcessMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
+                                      TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> consumer,
+                                      boolean isGeneralMsg) {
+        List<CloudEvent> cloudEvents = convertQueueMsgsToCloudEvents(msgs);
+        boolean isInterrupted;
         try {
-            boolean isInterrupted = processCloudEvents(cloudEvents, isGeneralMsg).get();
-            if (isInterrupted) {
-                log.warn("[{}] Send uplink messages task was interrupted", tenantId);
-                return false;
-            } else {
-                consumer.commit();
-                log.trace("[{}] Successfully processed {} uplink messages (type={})", tenantId, cloudEvents.size(), isGeneralMsg ? "GENERAL" : "TS");
-                return true;
-            }
+            isInterrupted = cloudEventUplinkSender.sendCloudEvents(cloudEvents, isGeneralMsg).get();
         } catch (Exception e) {
             log.error("Failed to process all uplink messages", e);
             return false;
         }
+        if (isInterrupted) {
+            log.warn("[{}] Send uplink messages task was interrupted", edgeInfo.getTenantId());
+            return false;
+        } else {
+            consumer.commit();
+            log.trace("[{}] Successfully processed {} uplink messages (type={})", edgeInfo.getTenantId(), cloudEvents.size(), isGeneralMsg ? "GENERAL" : "TS");
+            return true;
+        }
+    }
+
+    private List<CloudEvent> convertQueueMsgsToCloudEvents(List<TbProtoQueueMsg<ToCloudEventMsg>> msgs) {
+        return msgs.stream()
+                .map(msg -> ProtoUtils.fromProto(msg.getValue().getCloudEventMsg()))
+                .toList();
+    }
+
+    private boolean canProcessTsMessages() {
+        return edgeInfo.isInitialized() && !edgeInfo.isSyncInProgress() && !edgeInfo.isGeneralProcessInProgress();
+    }
+
+    private boolean canProcessGeneralMessages() {
+        return edgeInfo.isInitialized() && !edgeInfo.isSyncInProgress();
     }
 
 }
