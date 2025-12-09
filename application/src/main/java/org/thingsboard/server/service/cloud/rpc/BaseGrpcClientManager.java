@@ -291,7 +291,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
     private boolean validateRoutingKeyAndSecret() {
         if (StringUtils.isBlank(edgeInfo.getRoutingKey()) || StringUtils.isBlank(edgeInfo.getRoutingSecret())) {
-            shutdownExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-shutdown")); // todo: move to separate init (& destroy?)
+            shutdownExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-shutdown"));
             shutdownExecutor.scheduleAtFixedRate(() -> log.error(
                     "Routing Key and Routing Secret must be provided! " +
                             "Please configure Routing Key and Routing Secret in the tb-edge.yml file " +

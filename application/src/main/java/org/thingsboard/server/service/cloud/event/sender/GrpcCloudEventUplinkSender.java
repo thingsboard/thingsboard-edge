@@ -134,8 +134,7 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
-                            if (edgeInfo.isRateLimitViolated()) {
-                                edgeInfo.setRateLimitViolated(false);
+                            if (edgeInfo.clearRateLimitViolationIfSet()) {
                                 TimeUnit.SECONDS.sleep(60);
                             }
                         } catch (InterruptedException e) {

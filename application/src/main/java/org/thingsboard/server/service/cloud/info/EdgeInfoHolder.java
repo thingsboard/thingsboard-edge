@@ -22,6 +22,7 @@ import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -41,13 +42,12 @@ public class EdgeInfoHolder {
     private CustomerId customerId;
     private EdgeSettings settings;
 
-    // todo: atomic booleans?
     private volatile boolean generalProcessInProgress;
     private volatile boolean initialized;
     private volatile boolean initInProgress;
     private volatile boolean syncInProgress;
     private volatile boolean sendingInProgress;
-    private volatile boolean isRateLimitViolated;
+    private AtomicBoolean isRateLimitViolated = new AtomicBoolean(false);
     private volatile boolean performInitialSyncRequired = true;
 
     private final Lock uplinkSendLock;
@@ -62,5 +62,13 @@ public class EdgeInfoHolder {
 
     public void unlockSend() {
         uplinkSendLock.unlock();
+    }
+
+    public void setRateLimitViolated(boolean rateLimitViolated) {
+        isRateLimitViolated.set(rateLimitViolated);
+    }
+
+    public boolean clearRateLimitViolationIfSet() {
+        return isRateLimitViolated.compareAndSet(true, false);
     }
 }

@@ -91,7 +91,6 @@ public class KafkaCloudEventMigrationService implements CloudEventMigrationServi
                     processMigration();
 
                     if (isMigrated && isTsMigrated) {
-                        Thread.currentThread().interrupt();
                         break;
                     }
                 }

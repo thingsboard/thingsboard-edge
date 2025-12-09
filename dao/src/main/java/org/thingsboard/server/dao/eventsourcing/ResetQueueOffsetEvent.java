@@ -19,5 +19,5 @@ public class ResetQueueOffsetEvent {
 
     public static final ResetQueueOffsetEvent INSTANCE = new ResetQueueOffsetEvent();
 
-    private  ResetQueueOffsetEvent() {}
+    private ResetQueueOffsetEvent() {}
 }

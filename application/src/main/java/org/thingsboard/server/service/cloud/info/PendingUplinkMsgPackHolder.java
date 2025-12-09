@@ -47,6 +47,10 @@ public class PendingUplinkMsgPackHolder {
         latch.countDown();
     }
 
+    public void countDown() {
+        latch.countDown();
+    }
+
     public boolean awaitBatchCompletion() throws InterruptedException {
         return latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
     }
@@ -78,9 +82,5 @@ public class PendingUplinkMsgPackHolder {
 
     public boolean isQueueEmpty() {
         return pendingMsgMap.isEmpty();
-    }
-
-    public void countDown() {
-        latch.countDown();
     }
 }
