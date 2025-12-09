@@ -296,7 +296,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
                     .filter(state -> state.getEntityType() == EntityType.TENANT)
                     .map(state -> (TenantApiUsageState) state)
                     .forEach(state -> {
-                        if (tenantProfile.getId().equals(state.getTenantProfileId())) {
+                        if (tenantProfile != null && tenantProfile.getId().equals(state.getTenantProfileId())) {
                             updateTenantState(state, tenantProfile);
                         }
                     });

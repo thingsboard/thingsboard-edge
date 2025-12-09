@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -190,6 +191,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private TenantProfileService tenantProfileService;
+
+    @Autowired
+    private TbTenantProfileCache tenantProfileCache;
 
     @Autowired
     private TenantService tenantService;

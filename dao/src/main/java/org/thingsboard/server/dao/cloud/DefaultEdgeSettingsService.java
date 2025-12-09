@@ -50,7 +50,7 @@ public class DefaultEdgeSettingsService implements EdgeSettingsService {
         try {
             List<Tenant> tenants = tenantService.findTenants(new PageLink(1)).getData();
             if (tenants.isEmpty()) {
-                log.error("Tenant not found. Returning empty EdgeSettings!");
+                log.info("Tenant not found. Returning empty EdgeSettings!");
                 return null;
             }
             TenantId tenantId = tenants.get(0).getId();

@@ -67,12 +67,14 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                     }
 
                     clearRateLimitsProfileConfiguration(tenantProfileMsg);
-                    edgeCtx.getTenantProfileService().saveTenantProfile(tenantId, tenantProfileMsg, false);
 
                     if (removePreviousProfile) {
                         updateTenants(tenantProfileMsg.getId(), tenantProfileByName.getId());
                         edgeCtx.getTenantProfileService().deleteTenantProfile(tenantId, tenantProfileByName.getId());
                     }
+
+                    TenantProfile savedTenantProfile = edgeCtx.getTenantProfileService().saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg, false);
+                    edgeCtx.getTenantProfileCache().put(savedTenantProfile);
 
                     break;
                 case UNRECOGNIZED:
@@ -149,6 +151,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
             if (tenantIdList.contains(tenant.getId())) {
                 tenant.setTenantProfileId(newTenantProfileId);
                 edgeCtx.getTenantService().saveTenant(tenant);
+                edgeCtx.getTenantProfileCache().evict(tenant.getId());
             }
         }
     }
