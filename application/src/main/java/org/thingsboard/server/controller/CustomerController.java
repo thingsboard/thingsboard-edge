@@ -203,6 +203,22 @@ public class CustomerController extends BaseController {
         return checkNotNull(customerService.findCustomerByTenantIdAndTitle(tenantId, customerTitle), "Customer with title [" + customerTitle + "] is not found");
     }
 
+    @ApiOperation(value = "Get customers by Customer Ids (getCustomersByIds)",
+            notes = "Returns a list of Customer objects based on the provided ids." +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @GetMapping(value = "/customers", params = {"customerIds"})
+    public List<Customer> getCustomersByIds(
+            @Parameter(description = "A list of customer ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
+            @RequestParam("customerIds") Set<UUID> customerUUIDs) throws ThingsboardException {
+        TenantId tenantId = getCurrentUser().getTenantId();
+        List<CustomerId> customerIds = new ArrayList<>();
+        for (UUID customerUUID : customerUUIDs) {
+            customerIds.add(new CustomerId(customerUUID));
+        }
+        return customerService.findCustomersByTenantIdAndIds(tenantId, customerIds);
+    }
+
     // Edge-only: temporary method, to fix public customer tests
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/customer/public", method = RequestMethod.POST)
@@ -221,21 +237,4 @@ public class CustomerController extends BaseController {
             return customerService.saveCustomer(publicCustomer, false);
         }
     }
-
-    @ApiOperation(value = "Get customers by Customer Ids (getCustomersByIds)",
-            notes = "Returns a list of Customer objects based on the provided ids." +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @GetMapping(value = "/customers", params = {"customerIds"})
-    public List<Customer> getCustomersByIds(
-            @Parameter(description = "A list of customer ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
-            @RequestParam("customerIds") Set<UUID> customerUUIDs) throws ThingsboardException {
-        TenantId tenantId = getCurrentUser().getTenantId();
-        List<CustomerId> customerIds = new ArrayList<>();
-        for (UUID customerUUID : customerUUIDs) {
-            customerIds.add(new CustomerId(customerUUID));
-        }
-        return customerService.findCustomersByTenantIdAndIds(tenantId, customerIds);
-    }
-
 }
