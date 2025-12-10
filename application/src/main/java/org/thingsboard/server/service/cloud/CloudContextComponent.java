@@ -27,6 +27,7 @@ import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.processor.AdminSettingsCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.AiModelCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCommentCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
@@ -166,6 +167,9 @@ public class CloudContextComponent {
 
     @Autowired
     private CalculatedFieldCloudProcessor calculatedFieldProcessor;
+
+    @Autowired
+    private AiModelCloudProcessor aiModelProcessor;
 
     // callback
     @Autowired

@@ -89,7 +89,8 @@ public class AiModelControllerTest extends AbstractControllerTest {
         assertThat(savedModel.getUuidId()).isNotNull().isNotEqualTo(EntityId.NULL_UUID);
         assertThat(savedModel.getId().getEntityType()).isEqualTo(EntityType.AI_MODEL);
         assertThat(savedModel.getCreatedTime()).isPositive();
-        assertThat(savedModel.getVersion()).isEqualTo(1);
+        //edge only: version field is not supported
+        // assertThat(savedModel.getVersion()).isEqualTo(1);
         assertThat(savedModel.getTenantId()).isEqualTo(tenantId);
         assertThat(savedModel.getName()).isEqualTo("Test model");
         assertThat(savedModel.getConfiguration()).isEqualTo(model.getConfiguration());
@@ -129,7 +130,8 @@ public class AiModelControllerTest extends AbstractControllerTest {
         // verify returned object
         assertThat(updatedModel.getId()).isEqualTo(model.getId());
         assertThat(updatedModel.getCreatedTime()).isEqualTo(model.getCreatedTime());
-        assertThat(updatedModel.getVersion()).isEqualTo(2);
+        //edge only: version field is not supported
+        // assertThat(updatedModel.getVersion()).isEqualTo(2);
         assertThat(updatedModel.getTenantId()).isEqualTo(tenantId);
         assertThat(updatedModel.getName()).isEqualTo("Test model updated");
         assertThat(updatedModel.getConfiguration()).isEqualTo(newModelConfig);

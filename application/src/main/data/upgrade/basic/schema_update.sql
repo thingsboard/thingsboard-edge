@@ -74,3 +74,23 @@ DROP TABLE IF EXISTS calculated_field_link;
 ANALYZE calculated_field;
 
 -- REMOVAL OF CALCULATED FIELD LINKS PERSISTENCE END
+
+-- UPDATE AI_MODEL VERSION COLUMN START
+
+DO
+$$
+    BEGIN
+        -- remove NOT NULL constraint from the version column, if present
+        IF EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name='ai_model'
+              AND column_name='version'
+              AND is_nullable='NO'
+        ) THEN
+            ALTER TABLE ai_model ALTER COLUMN version DROP NOT NULL;
+        END IF;
+    END;
+$$;
+
+-- UPDATE AI_MODEL VERSION COLUMN END

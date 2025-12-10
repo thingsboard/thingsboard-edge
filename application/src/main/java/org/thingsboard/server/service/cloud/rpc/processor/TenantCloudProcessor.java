@@ -57,6 +57,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             tenant.setId(tenantId);
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
             Tenant savedTenant = edgeCtx.getTenantService().saveTenant(tenant, null, false);
+            edgeCtx.getTenantProfileCache().evict(savedTenant.getId());
 
             try {
                 apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
