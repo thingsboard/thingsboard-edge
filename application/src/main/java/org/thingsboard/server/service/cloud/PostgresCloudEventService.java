@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.server.service.cloud.PostgresCloudManagerService.QUEUE_START_TS_ATTR_KEY;
+import static org.thingsboard.server.common.data.edge.EdgeConstants.QUEUE_START_TS_ATTR_KEY;
 
 @Slf4j
 @Service
