@@ -62,6 +62,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -82,7 +83,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.thingsboard.server.common.data.EdgeUtils.MISORDERING_COMPENSATION_MILLIS;
 import static org.thingsboard.server.service.edge.rpc.EdgeGrpcSession.RATE_LIMIT_REACHED;
 
 @Slf4j
@@ -704,6 +704,8 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             }
             interruptPreviousSendUplinkMsgsTask();
             sendUplinkFutureResult = SettableFuture.create();
+
+            cloudEvents = EdgeMsgConstructorUtils.mergeAndFilterUplinkDuplicates(cloudEvents);
 
             log.trace("[{}] event(s) are going to be converted.", cloudEvents.size());
             List<UplinkMsg> uplinkMsgPack = cloudEvents.stream()

@@ -38,6 +38,8 @@ import org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode;
 import org.thingsboard.rule.engine.telemetry.TbCalculatedFieldsNode;
 import org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode;
 import org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -252,5 +254,92 @@ public class EdgeMsgConstructorUtilsTest {
         edgeEvent.setType(type);
         edgeEvent.setBody(body);
         return edgeEvent;
+    }
+
+    @Test
+    @DisplayName("mergeUplinkDuplicates: retains only latest attribute updates per key and sorts by seqId")
+    public void testMergeUplinkDuplicates() {
+        UUID deviceId = UUID.randomUUID();
+        UUID assetId = UUID.randomUUID();
+        TenantId tenantId = TenantId.fromUUID(UUID.randomUUID());
+
+        var deviceAttrUpdate1 = createCloudEvent(tenantId, 1, EdgeEventActionType.ATTRIBUTES_UPDATED,
+                deviceId, CloudEventType.DEVICE, createAttrBody(1_000L, "{\"a\":1,\"b\":1,\"d\":1}"));
+        var deviceAttrUpdate2 = createCloudEvent(tenantId, 2, EdgeEventActionType.ATTRIBUTES_UPDATED,
+                deviceId, CloudEventType.DEVICE, createAttrBody(2_000L, "{\"a\":2,\"b\":2,\"c\":2}"));
+        var deviceAttrUpdate3 = createCloudEvent(tenantId, 3, EdgeEventActionType.ATTRIBUTES_UPDATED,
+                deviceId, CloudEventType.DEVICE, createAttrBody(3_000L, "{\"a\":3,\"d\":3}"));
+
+        var deviceUpdate = createCloudEvent(tenantId, 4, EdgeEventActionType.UPDATED,
+                deviceId, CloudEventType.DEVICE, null);
+        var deviceUpdateDup = createCloudEvent(tenantId, 4, EdgeEventActionType.UPDATED,
+                deviceId, CloudEventType.DEVICE, null);
+
+        var assetAttrUpdate1 = createCloudEvent(tenantId, 6, EdgeEventActionType.ATTRIBUTES_UPDATED,
+                assetId, CloudEventType.ASSET, createAttrBody(6_000L, "{\"a\":6,\"d\":6}"));
+        var assetAttrUpdate2 = createCloudEvent(tenantId, 7, EdgeEventActionType.ATTRIBUTES_UPDATED,
+                assetId, CloudEventType.ASSET, createAttrBody(7_000L, "{\"a\":7,\"b\":7,\"c\":7}"));
+        var assetAttrUpdate3 = createCloudEvent(tenantId, 8, EdgeEventActionType.ATTRIBUTES_UPDATED,
+                assetId, CloudEventType.ASSET, createAttrBody(8_000L, "{\"a\":8,\"d\":8}"));
+
+        List<CloudEvent> input = List.of(
+                deviceAttrUpdate1, deviceAttrUpdate2, deviceAttrUpdate3,
+                deviceUpdate, deviceUpdateDup,
+                assetAttrUpdate1, assetAttrUpdate2, assetAttrUpdate3
+        );
+
+        List<CloudEvent> merged = EdgeMsgConstructorUtils.mergeAndFilterUplinkDuplicates(input);
+
+        Assertions.assertEquals(5, merged.size());
+
+        CloudEvent deviceMergedAttrBC = merged.get(0);
+        Assertions.assertEquals(2, deviceMergedAttrBC.getSeqId());
+        Assertions.assertEquals(deviceId, deviceMergedAttrBC.getEntityId());
+        Assertions.assertEquals(2_000L, deviceMergedAttrBC.getEntityBody().get("ts").asLong());
+        Assertions.assertEquals(2, getIntValue(deviceMergedAttrBC.getEntityBody(), "b"));
+        Assertions.assertEquals(2, getIntValue(deviceMergedAttrBC.getEntityBody(), "c"));
+        Assertions.assertNull(getIntValue(deviceMergedAttrBC.getEntityBody(), "a"));
+
+        CloudEvent deviceMergedAttrAD = merged.get(1);
+        Assertions.assertEquals(3, deviceMergedAttrAD.getSeqId());
+        Assertions.assertEquals(deviceId, deviceMergedAttrAD.getEntityId());
+        Assertions.assertEquals(3_000L, deviceMergedAttrAD.getEntityBody().get("ts").asLong());
+        Assertions.assertEquals(3, getIntValue(deviceMergedAttrAD.getEntityBody(), "a"));
+        Assertions.assertEquals(3, getIntValue(deviceMergedAttrAD.getEntityBody(), "d"));
+
+        CloudEvent mergedDeviceUpdate = merged.get(2);
+        Assertions.assertEquals(4, mergedDeviceUpdate.getSeqId());
+        Assertions.assertEquals(EdgeEventActionType.UPDATED, mergedDeviceUpdate.getAction());
+
+        CloudEvent assetMergedAttrBC = merged.get(3);
+        Assertions.assertEquals(7, assetMergedAttrBC.getSeqId());
+        Assertions.assertEquals(assetId, assetMergedAttrBC.getEntityId());
+        Assertions.assertEquals(7_000L, assetMergedAttrBC.getEntityBody().get("ts").asLong());
+        Assertions.assertEquals(7, getIntValue(assetMergedAttrBC.getEntityBody(), "b"));
+        Assertions.assertEquals(7, getIntValue(assetMergedAttrBC.getEntityBody(), "c"));
+        Assertions.assertNull(getIntValue(assetMergedAttrBC.getEntityBody(), "a"));
+
+        CloudEvent assetMergedAttrAD = merged.get(4);
+        Assertions.assertEquals(8, assetMergedAttrAD.getSeqId());
+        Assertions.assertEquals(assetId, assetMergedAttrAD.getEntityId());
+        Assertions.assertEquals(8_000L, assetMergedAttrAD.getEntityBody().get("ts").asLong());
+        Assertions.assertEquals(8, getIntValue(assetMergedAttrAD.getEntityBody(), "a"));
+        Assertions.assertEquals(8, getIntValue(assetMergedAttrAD.getEntityBody(), "d"));
+    }
+
+    private static CloudEvent createCloudEvent(TenantId tenantId,
+                                               long seqId,
+                                               EdgeEventActionType action,
+                                               UUID entityId,
+                                               CloudEventType type,
+                                               JsonNode body) {
+        CloudEvent cloudEvent = new CloudEvent();
+        cloudEvent.setSeqId(seqId);
+        cloudEvent.setTenantId(tenantId);
+        cloudEvent.setAction(action);
+        cloudEvent.setEntityId(entityId);
+        cloudEvent.setType(type);
+        cloudEvent.setEntityBody(body);
+        return cloudEvent;
     }
 }

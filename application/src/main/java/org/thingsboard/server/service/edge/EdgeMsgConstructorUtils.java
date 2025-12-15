@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.cf.CalculatedField;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.domain.DomainInfo;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -808,4 +809,62 @@ public class EdgeMsgConstructorUtils {
     private record AttrUpdateMsg(UUID entityId, JsonNode body) {
     }
 
+    public static List<CloudEvent> mergeAndFilterUplinkDuplicates(List<CloudEvent> cloudEvents) {
+        try {
+            cloudEvents = removeUplinkDuplicates(cloudEvents);
+
+            List<AttrUpdateMsg> attrUpdateMsgs = new ArrayList<>();
+            for (CloudEvent cloudEvent : cloudEvents) {
+                if (EdgeEventActionType.ATTRIBUTES_UPDATED.equals(cloudEvent.getAction())) {
+                    attrUpdateMsgs.add(new AttrUpdateMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody()));
+                }
+            }
+            Map<UUID, Map<String, Long>> latestTsByEntityAndKey = computeLatestTsByEntityAndKey(attrUpdateMsgs);
+
+            List<CloudEvent> result = new ArrayList<>();
+            for (CloudEvent cloudEvent : cloudEvents) {
+                if (!EdgeEventActionType.ATTRIBUTES_UPDATED.equals(cloudEvent.getAction())) {
+                    result.add(cloudEvent);
+                    continue;
+                }
+
+                Map<String, Long> latestByKey = latestTsByEntityAndKey.get(cloudEvent.getEntityId());
+                JsonNode filteredBody = filterAttributesBody(cloudEvent.getEntityBody(), latestByKey);
+                if (filteredBody == null) {
+                    continue;
+                }
+
+                result.add(createFilteredCloudEvent(cloudEvent, filteredBody));
+            }
+
+            result.sort(Comparator.comparingLong(CloudEvent::getSeqId));
+            return result;
+        } catch (Exception e) {
+            log.warn("Can't merge uplink duplicates, cloudEvents [{}]", cloudEvents, e);
+            return cloudEvents;
+        }
+    }
+
+    private static List<CloudEvent> removeUplinkDuplicates(List<CloudEvent> cloudEvents) {
+        Set<EventKey> seen = new HashSet<>();
+        return cloudEvents.stream()
+                .filter(e -> seen.add(new EventKey(
+                        e.getTenantId(),
+                        e.getAction(),
+                        e.getEntityId(),
+                        e.getType().name(),
+                        (e.getEntityBody() != null ? e.getEntityBody().toString() : "null"))))
+                .collect(Collectors.toList());
+    }
+
+    private static CloudEvent createFilteredCloudEvent(CloudEvent cloudEvent, JsonNode filteredBody) {
+        CloudEvent filtered = new CloudEvent();
+        filtered.setSeqId(cloudEvent.getSeqId());
+        filtered.setTenantId(cloudEvent.getTenantId());
+        filtered.setAction(cloudEvent.getAction());
+        filtered.setEntityId(cloudEvent.getEntityId());
+        filtered.setType(cloudEvent.getType());
+        filtered.setEntityBody(filteredBody);
+        return filtered;
+    }
 }
