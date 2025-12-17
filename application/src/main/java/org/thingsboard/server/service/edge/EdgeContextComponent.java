@@ -210,7 +210,6 @@ public class EdgeContextComponent {
     @Autowired
     private Optional<EdgeStatsCounterService> statsCounterService;
 
-
     // processors
     @Autowired
     private AlarmProcessor alarmProcessor;
