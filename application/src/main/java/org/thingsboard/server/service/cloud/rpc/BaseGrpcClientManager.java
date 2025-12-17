@@ -86,8 +86,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
     @PreDestroy
     private void destroy() {
-        edgeInfo.setInitInProgress(false);
-        edgeInfo.setInitialized(false);
+        edgeInfo.resetProcessingFlags();
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
@@ -142,6 +141,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
                         onDestroy();
                         return;
                     }
+                    edgeInfo.resetProcessingFlags();
                     if (!edgeInfo.isInitialized() && !edgeInfo.isInitInProgress() && validateRoutingKeyAndSecret()) {
                         connectToServerAndLaunchEventsProcessing();
                     }
@@ -163,15 +163,13 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
                     this::scheduleReconnect);
             launchCloudEventsProcessing();
         } catch (Exception e) {
-            edgeInfo.setInitInProgress(false);
             log.error("Failed to establish connection to cloud", e);
             connectExecutor.schedule(this::establishRpcConnection, edgeInfo.getReconnectTimeoutMs(), TimeUnit.MILLISECONDS);
         }
     }
 
     private void scheduleReconnect(Exception e) {
-        edgeInfo.setInitialized(false);
-
+        edgeInfo.resetProcessingFlags();
         connectionStatusManager.updateConnectivityStatus(false);
 
         if (reconnectFuture == null) {
@@ -200,6 +198,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         if (edgeInfo.isSyncInProgress() && downlinkMsg.hasSyncCompletedMsg()) {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             edgeInfo.setSyncInProgress(false);
+            edgeInfo.setPerformInitialSyncRequired(false);
         }
         Futures.addCallback(
                 downlinkMessageService.processDownlinkMsg(edgeInfo.getTenantId(), edgeInfo.getCustomerId(), downlinkMsg, edgeInfo.getSettings()),
@@ -251,7 +250,6 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         if (edgeInfo.isPerformInitialSyncRequired()) {
             log.trace("Sending sync request, fullSyncRequired {}", edgeSettings.isFullSyncRequired());
             requestSyncToCloud(edgeSettings.isFullSyncRequired());
-            edgeInfo.setPerformInitialSyncRequired(false);
         }
         edgeInfo.setInitialized(true);
     }

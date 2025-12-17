@@ -56,6 +56,14 @@ public class EdgeInfoHolder {
         this.uplinkSendLock = new ReentrantLock();
     }
 
+    public void resetProcessingFlags() {
+        this.generalProcessInProgress = false;
+        this.initialized = false;
+        this.initInProgress = false;
+        this.syncInProgress = false;
+        this.sendingInProgress = false;
+    }
+
     public void lockSend() {
         uplinkSendLock.lock();
     }
