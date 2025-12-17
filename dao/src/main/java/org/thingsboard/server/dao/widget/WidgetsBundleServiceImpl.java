@@ -48,6 +48,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
 
 @Service("WidgetsBundleDaoService")
@@ -257,6 +258,12 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
             }
             widgetTypeService.updateWidgetsBundleWidgetFqns(TenantId.SYS_TENANT_ID, widgetsBundle.getId(), widgetTypeFqns);
         });
+    }
+
+    @Override
+    public List<WidgetsBundle> findSystemOrTenantWidgetsBundlesByIds(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds) {
+        log.trace("Executing findSystemOrTenantWidgetsBundlesByIds, tenantId [{}], widgetsBundleIds [{}]", tenantId, widgetsBundleIds);
+        return widgetsBundleDao.findSystemOrTenantWidgetBundlesByIds(tenantId.getId(), toUUIDs(widgetsBundleIds));
     }
 
     private WidgetTypeDetails updateSystemWidget(JsonNode widgetTypeJson) {

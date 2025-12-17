@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.CalculatedFieldLink;
 import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+import org.thingsboard.server.common.data.cf.configuration.HasRelationPathLevel;
 import org.thingsboard.server.common.data.cf.configuration.aggregation.RelatedEntitiesAggregationCalculatedFieldConfiguration;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationPathQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationPathLevel;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.msg.CalculatedFieldStatePartitionRestoreMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldCacheInitMsg;
 import org.thingsboard.server.common.msg.cf.CalculatedFieldEntityLifecycleMsg;
@@ -115,6 +117,8 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
     private final TbQueueCalculatedFieldSettings cfSettings;
     protected final TenantId tenantId;
 
+    private long cfCheckInterval;
+
     protected TbActorCtx ctx;
 
     CalculatedFieldManagerMessageProcessor(ActorSystemContext systemContext, TenantId tenantId) {
@@ -144,10 +148,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         calculatedFields.clear();
         entityIdCalculatedFields.clear();
         entityIdCalculatedFieldLinks.clear();
-        if (cfsReevaluationTask != null) {
-            cfsReevaluationTask.cancel(true);
-            cfsReevaluationTask = null;
-        }
+        cancelReevaluationTask();
         ctx.stop(ctx.getSelf());
     }
 
@@ -155,6 +156,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         log.debug("[{}] Processing CF actor init message.", msg.getTenantId().getId());
         initEntitiesCache();
         initCalculatedFields();
+        cfCheckInterval = systemContext.getApiLimitService().getLimit(tenantId, DefaultTenantProfileConfiguration::getCfReevaluationCheckInterval);
         scheduleCfsReevaluation();
         msg.getCallback().onSuccess();
     }
@@ -165,10 +167,13 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
 
         if (ctx != null) {
             msg.setCtx(ctx);
-            log.debug("Pushing CF state restore msg to specific actor [{}]", msg.getId().entityId());
+            log.debug("[{}] Pushing CF state restore msg to specific actor [{}]", tenantId, msg.getId().entityId());
             getOrCreateActor(msg.getId().entityId()).tellWithHighPriority(msg);
-        } else {
+        } else if (msg.getState() != null) {
+            log.debug("[{}] Received CF state restore msg for non-existing CF [{}]. Removing state", tenantId, cfId);
             cfStateService.deleteState(msg.getId(), msg.getCallback());
+        } else {
+            msg.getCallback().onSuccess();
         }
     }
 
@@ -190,7 +195,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
             } catch (Exception e) {
                 log.warn("[{}] Failed to trigger CFs reevaluation", tenantId, e);
             }
-        }, systemContext.getCfCheckInterval(), systemContext.getCfCheckInterval(), TimeUnit.SECONDS);
+        }, cfCheckInterval, cfCheckInterval, TimeUnit.SECONDS);
     }
 
     public void onEntityLifecycleMsg(CalculatedFieldEntityLifecycleMsg msg) throws CalculatedFieldException {
@@ -257,10 +262,16 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
     }
 
     private void onTenantProfileUpdated(ComponentLifecycleMsg msg, TbCallback callback) {
+        long updatedCfCheckInterval = systemContext.getApiLimitService().getLimit(tenantId, DefaultTenantProfileConfiguration::getCfReevaluationCheckInterval);
+        if (cfCheckInterval != updatedCfCheckInterval) {
+            cfCheckInterval = updatedCfCheckInterval;
+            cancelReevaluationTask();
+            scheduleCfsReevaluation();
+        }
         Stream.concat(
                 calculatedFields.values().stream(),
                 entityIdCalculatedFields.values().stream().flatMap(Collection::stream)
-        ).forEach(CalculatedFieldCtx::updateTenantProfileProperties);
+        ).forEach(CalculatedFieldCtx::setTenantProfileProperties);
         callback.onSuccess();
     }
 
@@ -363,7 +374,7 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
 
         List<CalculatedFieldCtx> matchingCfs = cfsByEntityIdAndProfile.stream()
                 .filter(cf -> {
-                    if (cf.getCalculatedField().getConfiguration() instanceof RelatedEntitiesAggregationCalculatedFieldConfiguration config) {
+                    if (cf.getCalculatedField().getConfiguration() instanceof HasRelationPathLevel config) {
                         RelationPathLevel relation = config.getRelation();
                         return direction.equals(relation.direction()) && relationType.equals(relation.relationType());
                     }
@@ -455,6 +466,8 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
                     stateAction = StateAction.REINIT; // refetch arguments, call state.init, then calculate
                 } else if (newCfCtx.hasContextOnlyChanges(oldCfCtx)) {
                     stateAction = StateAction.REPROCESS; // call state.setCtx, then calculate
+                } else if (newCfCtx.hasRefreshContextOnlyChanges(oldCfCtx)) {
+                    stateAction = StateAction.REFRESH_CTX;
                 } else {
                     callback.onSuccess();
                     return;
@@ -872,6 +885,13 @@ public class CalculatedFieldManagerMessageProcessor extends AbstractContextAware
         }
         if (isMyPartition(entityId, parentCallback)) {
             consumer.accept(List.of(entityId), parentCallback);
+        }
+    }
+
+    private void cancelReevaluationTask() {
+        if (cfsReevaluationTask != null) {
+            cfsReevaluationTask.cancel(true);
+            cfsReevaluationTask = null;
         }
     }
 

@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.dao.exception;
+package org.thingsboard.server.service.cf.ctx.state;
 
-public class DataValidationException extends RuntimeException {
+public interface HasLatestTs {
 
-    private static final long serialVersionUID = 7659985660312721830L;
+    long getLatestTs();
 
-    public DataValidationException(String message) {
-        super(message);
-    }
-
-    public DataValidationException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

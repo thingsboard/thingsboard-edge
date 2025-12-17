@@ -26,8 +26,6 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.service.cf.ctx.CalculatedFieldEntityCtxId;
 import org.thingsboard.server.service.cf.ctx.state.aggregation.RelatedEntitiesArgumentEntry;
 import org.thingsboard.server.service.cf.ctx.state.aggregation.single.EntityAggregationArgumentEntry;
-import org.thingsboard.server.service.cf.ctx.state.geofencing.GeofencingArgumentEntry;
-import org.thingsboard.server.service.cf.ctx.state.geofencing.GeofencingZoneState;
 import org.thingsboard.server.utils.CalculatedFieldUtils;
 
 import java.io.Closeable;
@@ -41,6 +39,8 @@ import java.util.stream.Collectors;
 @Getter
 public abstract class BaseCalculatedFieldState implements CalculatedFieldState, Closeable {
 
+    public static final long DEFAULT_LAST_UPDATE_TS = -1L;
+
     protected final EntityId entityId;
     protected CalculatedFieldCtx ctx;
     protected TbActorRef actorCtx;
@@ -48,7 +48,7 @@ public abstract class BaseCalculatedFieldState implements CalculatedFieldState, 
 
     protected Map<String, ArgumentEntry> arguments = new HashMap<>();
     protected boolean sizeExceedsLimit;
-    protected long latestTimestamp = -1;
+    protected long latestTimestamp = DEFAULT_LAST_UPDATE_TS;
     protected ReadinessStatus readinessStatus;
 
     @Setter
@@ -63,7 +63,7 @@ public abstract class BaseCalculatedFieldState implements CalculatedFieldState, 
         this.ctx = ctx;
         this.actorCtx = actorCtx;
         this.requiredArguments = ctx.getArgNames();
-        this.readinessStatus = checkReadiness(requiredArguments, arguments);
+        this.readinessStatus = checkReadiness();
     }
 
     @Override
@@ -85,16 +85,15 @@ public abstract class BaseCalculatedFieldState implements CalculatedFieldState, 
 
             if (existingEntry == null || newEntry.isForceResetPrevious()) {
                 validateNewEntry(key, newEntry);
-                if (existingEntry instanceof RelatedEntitiesArgumentEntry relatedEntitiesArgumentEntry) {
-                    relatedEntitiesArgumentEntry.updateEntry(newEntry);
-                } else if (existingEntry instanceof EntityAggregationArgumentEntry entityAggArgumentEntry) {
-                    entityAggArgumentEntry.updateEntry(newEntry);
+                if (existingEntry instanceof RelatedEntitiesArgumentEntry ||
+                    existingEntry instanceof EntityAggregationArgumentEntry) {
+                    updateEntry(existingEntry, newEntry);
                 } else {
                     arguments.put(key, newEntry);
                 }
                 entryUpdated = true;
             } else {
-                entryUpdated = existingEntry.updateEntry(newEntry);
+                entryUpdated = updateEntry(existingEntry, newEntry);
             }
 
             if (entryUpdated) {
@@ -102,7 +101,6 @@ public abstract class BaseCalculatedFieldState implements CalculatedFieldState, 
                     updatedArguments = new HashMap<>(argumentValues.size());
                 }
                 updatedArguments.put(key, newEntry);
-                updateLastUpdateTimestamp(newEntry);
             }
 
         }
@@ -110,8 +108,12 @@ public abstract class BaseCalculatedFieldState implements CalculatedFieldState, 
         if (updatedArguments == null) {
             return Collections.emptyMap();
         }
-        readinessStatus = checkReadiness(requiredArguments, arguments);
+        readinessStatus = checkReadiness();
         return updatedArguments;
+    }
+
+    protected boolean updateEntry(ArgumentEntry existingEntry, ArgumentEntry newEntry) {
+        return existingEntry.updateEntry(newEntry);
     }
 
     @Override
@@ -119,7 +121,7 @@ public abstract class BaseCalculatedFieldState implements CalculatedFieldState, 
         requiredArguments = null;
         arguments.clear();
         sizeExceedsLimit = false;
-        latestTimestamp = -1;
+        latestTimestamp = DEFAULT_LAST_UPDATE_TS;
     }
 
     @Override
@@ -147,7 +149,7 @@ public abstract class BaseCalculatedFieldState implements CalculatedFieldState, 
             return valuesNode;
         }
         long latestTs = getLatestTimestamp();
-        if (latestTs == -1) {
+        if (latestTs == DEFAULT_LAST_UPDATE_TS) {
             return valuesNode;
         }
         ObjectNode resultNode = JacksonUtil.newObjectNode();
@@ -156,32 +158,38 @@ public abstract class BaseCalculatedFieldState implements CalculatedFieldState, 
         return resultNode;
     }
 
-    private void updateLastUpdateTimestamp(ArgumentEntry entry) {
-        long newTs = this.latestTimestamp;
-        if (entry instanceof SingleValueArgumentEntry singleValueArgumentEntry) {
-            newTs = singleValueArgumentEntry.getTs();
-        } else if (entry instanceof TsRollingArgumentEntry tsRollingArgumentEntry) {
-            Map.Entry<Long, Double> lastEntry = tsRollingArgumentEntry.getTsRecords().lastEntry();
-            newTs = (lastEntry != null) ? lastEntry.getKey() : System.currentTimeMillis();
-        } else if (entry instanceof RelatedEntitiesArgumentEntry relatedEntitiesArgumentEntry) {
-            newTs = relatedEntitiesArgumentEntry.getEntityInputs().values().stream()
-                    .mapToLong(e -> (e instanceof SingleValueArgumentEntry s) ? s.getTs() : 0L)
-                    .max()
-                    .orElse(0L);
-        } else if (entry instanceof GeofencingArgumentEntry geofencingArgumentEntry) {
-            newTs = geofencingArgumentEntry.getZoneStates().values().stream()
-                    .mapToLong(GeofencingZoneState::getTs).max().orElse(0L);
+    public long getLatestTimestamp() {
+        long latestTs = DEFAULT_LAST_UPDATE_TS;
+
+        boolean allDefault = arguments.values().stream().allMatch(entry -> {
+            if (entry instanceof SingleValueArgumentEntry single) {
+                return single.isDefaultValue();
+            }
+            return false;
+        });
+
+        for (ArgumentEntry entry : arguments.values()) {
+            if (entry instanceof SingleValueArgumentEntry single) {
+                if (allDefault) {
+                    latestTs = Math.max(latestTs, single.getTs());
+                } else if (!single.isDefaultValue()) {
+                    latestTs = Math.max(latestTs, single.getTs());
+                }
+            } else if (entry instanceof HasLatestTs hasLatestTsEntry) {
+                latestTs = Math.max(latestTs, hasLatestTsEntry.getLatestTs());
+            }
         }
-        this.latestTimestamp = Math.max(this.latestTimestamp, newTs);
+
+        return latestTs;
     }
 
-    protected ReadinessStatus checkReadiness(List<String> requiredArguments, Map<String, ArgumentEntry> currentArguments) {
-        if (currentArguments == null) {
+    protected ReadinessStatus checkReadiness() {
+        if (arguments == null) {
             return ReadinessStatus.from(requiredArguments);
         }
         List<String> emptyArguments = null;
         for (String requiredArgumentKey : requiredArguments) {
-            ArgumentEntry argumentEntry = currentArguments.get(requiredArgumentKey);
+            ArgumentEntry argumentEntry = arguments.get(requiredArgumentKey);
             if (argumentEntry == null || argumentEntry.isEmpty()) {
                 if (emptyArguments == null) {
                     emptyArguments = new ArrayList<>();

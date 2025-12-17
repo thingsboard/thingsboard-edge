@@ -41,6 +41,7 @@ import org.thingsboard.server.service.cf.ctx.state.ArgumentEntryType;
 import org.thingsboard.server.service.cf.ctx.state.BaseCalculatedFieldState;
 import org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx;
 import org.thingsboard.server.service.cf.ctx.state.aggregation.function.AggEntry;
+import org.thingsboard.server.service.cf.ctx.state.geofencing.ScheduledRefreshSupported;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,18 +52,20 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.thingsboard.server.service.cf.ctx.state.CalculatedFieldCtx.DISABLED_INTERVAL_VALUE;
+import static org.thingsboard.server.service.cf.ctx.state.CalculatedFieldState.ReadinessStatus.MISSING_AGGREGATION_ENTITIES_ERROR;
 
 @Slf4j
-@Getter
-public class RelatedEntitiesAggregationCalculatedFieldState extends BaseCalculatedFieldState {
+public class RelatedEntitiesAggregationCalculatedFieldState extends BaseCalculatedFieldState implements ScheduledRefreshSupported {
 
     @Setter
-    private long lastArgsRefreshTs = -1;
+    @Getter
+    private long lastArgsRefreshTs = DEFAULT_LAST_UPDATE_TS;
     @Setter
-    private long lastMetricsEvalTs = -1;
-    @Setter
-    private long lastRelatedEntitiesRefreshTs = -1;
-    private long deduplicationIntervalMs = -1;
+    @Getter
+    private long lastMetricsEvalTs = DEFAULT_LAST_UPDATE_TS;
+    private long lastRelatedEntitiesRefreshTs = DEFAULT_LAST_UPDATE_TS;
+    private long deduplicationIntervalMs = DISABLED_INTERVAL_VALUE;
     private Map<String, AggMetric> metrics;
 
     private ScheduledFuture<?> reevaluationFuture;
@@ -102,13 +105,24 @@ public class RelatedEntitiesAggregationCalculatedFieldState extends BaseCalculat
     @Override
     public void reset() { // must reset everything dependent on arguments
         super.reset();
-        lastArgsRefreshTs = -1;
-        lastMetricsEvalTs = -1;
-        lastRelatedEntitiesRefreshTs = -1;
+        resetScheduledRefreshTs();
+        lastArgsRefreshTs = DEFAULT_LAST_UPDATE_TS;
+        lastMetricsEvalTs = DEFAULT_LAST_UPDATE_TS;
         metrics = null;
     }
 
-    public void updateLastRelatedEntitiesRefreshTs() {
+    @Override
+    public void resetScheduledRefreshTs() {
+        lastRelatedEntitiesRefreshTs = DEFAULT_LAST_UPDATE_TS;
+    }
+
+    @Override
+    public long getLastScheduledRefreshTs() {
+        return lastRelatedEntitiesRefreshTs;
+    }
+
+    @Override
+    public void updateScheduledRefreshTs() {
         lastRelatedEntitiesRefreshTs = System.currentTimeMillis();
     }
 
@@ -126,7 +140,7 @@ public class RelatedEntitiesAggregationCalculatedFieldState extends BaseCalculat
     public List<EntityId> checkRelatedEntities(List<EntityId> relatedEntities) {
         Map<EntityId, Map<String, ArgumentEntry>> entityInputs = prepareInputs();
         findOutdatedEntities(entityInputs, relatedEntities).forEach(this::cleanupEntityData);
-        updateLastRelatedEntitiesRefreshTs();
+        updateScheduledRefreshTs();
         return findMissingEntities(entityInputs, relatedEntities);
     }
 
@@ -153,7 +167,7 @@ public class RelatedEntitiesAggregationCalculatedFieldState extends BaseCalculat
     }
 
     public Map<String, ArgumentEntry> updateEntityData(Map<String, ArgumentEntry> fetchedArgs) {
-        lastMetricsEvalTs = -1;
+        lastMetricsEvalTs = DEFAULT_LAST_UPDATE_TS;
         return update(fetchedArgs, ctx);
     }
 
@@ -162,8 +176,9 @@ public class RelatedEntitiesAggregationCalculatedFieldState extends BaseCalculat
             RelatedEntitiesArgumentEntry aggEntry = (RelatedEntitiesArgumentEntry) argEntry;
             aggEntry.getEntityInputs().remove(relatedEntityId);
         });
-        lastMetricsEvalTs = -1;
+        lastMetricsEvalTs = DEFAULT_LAST_UPDATE_TS;
         lastArgsRefreshTs = System.currentTimeMillis();
+        readinessStatus = checkReadiness();
     }
 
     public void scheduleReevaluation() {
@@ -274,5 +289,19 @@ public class RelatedEntitiesAggregationCalculatedFieldState extends BaseCalculat
     record RelatedEntitiesArgument(ArgumentEntryType type, List<EntityArgument> entitiesArguments) {}
 
     record EntityArgument(EntityInfo entity, JsonNode entityArguments) {}
+
+    @Override
+    protected ReadinessStatus checkReadiness() {
+        if (arguments == null) {
+            return ReadinessStatus.notReady(MISSING_AGGREGATION_ENTITIES_ERROR);
+        }
+        for (String requiredArgumentKey : requiredArguments) {
+            ArgumentEntry argumentEntry = arguments.get(requiredArgumentKey);
+            if (argumentEntry == null || argumentEntry.isEmpty()) {
+                return ReadinessStatus.notReady(MISSING_AGGREGATION_ENTITIES_ERROR);
+            }
+        }
+        return ReadinessStatus.READY;
+    }
 
 }

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.cloud.CloudContextComponent;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,6 +34,7 @@ public class UplinkMsgMapper {
     private final CloudContextComponent cloudCtx;
 
     public List<UplinkMsg> convertCloudEventsToUplink(List<CloudEvent> cloudEvents) {
+        cloudEvents = EdgeMsgConstructorUtils.mergeAndFilterUplinkDuplicates(cloudEvents);
         log.trace("[{}] event(s) are going to be converted.", cloudEvents.size());
         return cloudEvents.stream()
                 .map(this::convertCloudEventToUplink)

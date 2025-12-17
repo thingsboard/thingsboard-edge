@@ -816,6 +816,9 @@ const menuFilters = new Map<MenuId, MenuFilter>([
     MenuId.auto_commit_settings, () => false
   ],
   [
+    MenuId.trendz_settings, () => false
+  ],
+  [
     MenuId.edge_instances, () => false
   ],
   [
@@ -826,9 +829,6 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.mobile_bundles, () => false
-  ],
-  [
-    MenuId.ai_models, () => false
   ]
 ]);
 

@@ -105,6 +105,7 @@ import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.id.AiModelId;
 import org.thingsboard.server.common.data.id.AlarmCommentId;
 import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.ApiKeyId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
@@ -146,6 +147,8 @@ import org.thingsboard.server.common.data.notification.NotificationRequestInfo;
 import org.thingsboard.server.common.data.notification.NotificationRequestPreview;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
+import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientLoginInfo;
@@ -154,6 +157,8 @@ import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.pat.ApiKey;
+import org.thingsboard.server.common.data.pat.ApiKeyInfo;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -286,6 +291,10 @@ public class RestClient implements Closeable {
             }
             return execution.execute(wrapper, bytes);
         });
+    }
+
+    public static RestClient withApiKey(String baseURL, String token) {
+        return withApiKey(new RestTemplate(), baseURL, token);
     }
 
     public static RestClient withApiKey(RestTemplate rt, String baseURL, String token) {
@@ -2294,7 +2303,8 @@ public class RestClient implements Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<DomainInfo>>() {
-                }).getBody();
+                },
+                params).getBody();
     }
 
     public Optional<DomainInfo> getDomainInfoById(DomainId domainId) {
@@ -2330,7 +2340,8 @@ public class RestClient implements Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<MobileApp>>() {
-                }).getBody();
+                },
+                params).getBody();
     }
 
     public Optional<MobileApp> getMobileAppById(MobileAppId mobileAppId) {
@@ -2362,7 +2373,8 @@ public class RestClient implements Closeable {
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<MobileAppBundleInfo>>() {
-                }).getBody();
+                },
+                params).getBody();
     }
 
     public Optional<MobileAppBundle> getMobileBundleById(MobileAppBundleId mobileAppBundleId) {
@@ -3036,6 +3048,44 @@ public class RestClient implements Closeable {
                 null,
                 userId.getId(),
                 userCredentialsEnabled);
+    }
+
+    public ApiKey saveApiKey(ApiKeyInfo apiKeyInfo) {
+        return restTemplate.postForEntity(baseURL + "/api/apiKey", apiKeyInfo, ApiKey.class).getBody();
+    }
+
+    public PageData<ApiKeyInfo> getUserApiKeys(UserId userId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("userId", userId.getId().toString());
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/apiKeys/{userId}?" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<ApiKeyInfo>>() {}, params).getBody();
+    }
+
+    public ApiKeyInfo updateApiKeyDescription(ApiKeyId apiKeyId, String description) {
+        return restTemplate.exchange(
+                baseURL + "/api/apiKey/{id}/description",
+                HttpMethod.PUT,
+                new HttpEntity<>(description),
+                ApiKeyInfo.class,
+                apiKeyId.getId()).getBody();
+    }
+
+    public ApiKeyInfo enableApiKey(ApiKeyId apiKeyId, boolean enabled) {
+        return restTemplate.exchange(
+                baseURL + "/api/apiKey/{id}/enabled/{enabledValue}",
+                HttpMethod.PUT,
+                HttpEntity.EMPTY,
+                ApiKeyInfo.class,
+                apiKeyId.getId(),
+                enabled).getBody();
+    }
+
+    public void deleteApiKey(ApiKeyId apiKeyId) {
+        restTemplate.delete(baseURL + "/api/apiKey/{id}", apiKeyId.getId());
     }
 
     public Optional<WidgetsBundle> getWidgetsBundleById(WidgetsBundleId widgetsBundleId) {
@@ -4302,11 +4352,23 @@ public class RestClient implements Closeable {
         }
     }
 
-    public PageData<Notification> getNotifications(PageLink pageLink) {
+    public PageData<Notification> getNotifications(Boolean unreadOnly, NotificationDeliveryMethod deliveryMethod, PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
+
+        StringBuilder urlBuilder = new StringBuilder();
+        urlBuilder.append(baseURL).append("/api/notifications?").append(getUrlParams(pageLink));
         addPageLinkToParam(params, pageLink);
-        return restTemplate.exchange(
-                baseURL + "/api/notifications?" + getUrlParams(pageLink),
+
+        if (unreadOnly != null) {
+            urlBuilder.append("&unreadOnly={unreadOnly}");
+            params.put("unreadOnly", unreadOnly.toString());
+        }
+        if (deliveryMethod != null) {
+            urlBuilder.append("&deliveryMethod={deliveryMethod}");
+            params.put("deliveryMethod", deliveryMethod.name());
+        }
+
+        return restTemplate.exchange(urlBuilder.toString(),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<Notification>>() {
@@ -4347,7 +4409,8 @@ public class RestClient implements Closeable {
                 baseURL + uri,
                 HttpMethod.PUT,
                 HttpEntity.EMPTY,
-                Void.class);
+                Void.class,
+                params);
     }
 
 
@@ -4355,7 +4418,7 @@ public class RestClient implements Closeable {
         restTemplate.delete(baseURL + "/api/notification/{id}", notificationId.getId());
     }
 
-    public NotificationRequest createNotificationRequest(NotificationRequest notificationRequest) {
+    public NotificationRequest saveNotificationRequest(NotificationRequest notificationRequest) {
         return restTemplate.postForEntity(baseURL + "/api/notification/request", notificationRequest, NotificationRequest.class).getBody();
     }
 
@@ -4434,6 +4497,14 @@ public class RestClient implements Closeable {
         }
     }
 
+    public NotificationTarget saveNotificationTarget(NotificationTarget notificationTarget) {
+        return restTemplate.postForEntity(baseURL + "/api/notification/target", notificationTarget, NotificationTarget.class).getBody();
+    }
+
+    public NotificationTemplate saveNotificationTemplate(NotificationTemplate notificationTemplate) {
+        return restTemplate.postForEntity(baseURL + "/api/notification/template", notificationTemplate, NotificationTemplate.class).getBody();
+    }
+
     public AiModel saveAiModel(AiModel aiModel) {
         return restTemplate.postForEntity(baseURL + "/api/ai/model", aiModel, AiModel.class).getBody();
     }
@@ -4441,7 +4512,7 @@ public class RestClient implements Closeable {
     public Optional<AiModel> getAiModel(AiModelId aiModelId) {
         try {
             ResponseEntity<AiModel> response = restTemplate.getForEntity(
-                    baseURL + "/api/aiModel/{aiModelId}", AiModel.class, aiModelId.getId());
+                    baseURL + "/api/ai/model/{aiModelId}", AiModel.class, aiModelId.getId());
             return Optional.ofNullable(response.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -4453,7 +4524,7 @@ public class RestClient implements Closeable {
     }
 
     public void deleteAiModel(AiModelId aiModelId) {
-        restTemplate.delete(baseURL + "/api/aiModel/{aiModelId}", aiModelId.getId());
+        restTemplate.delete(baseURL + "/api/ai/model/{aiModelId}", aiModelId.getId());
     }
 
 
