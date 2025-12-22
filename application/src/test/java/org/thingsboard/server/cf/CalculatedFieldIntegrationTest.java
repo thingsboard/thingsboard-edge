@@ -799,23 +799,22 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         doPost("/api/calculatedField", cf, CalculatedField.class);
 
-        // --- Assert initial evaluation (ENTERED / OUTSIDE) ---
+        // --- Assert initial evaluation ---
         await().alias("initial geofencing evaluation")
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     ArrayNode attrs = getServerAttributes(device.getId(),
                             "allowedZonesEvent", "allowedZonesStatus", "restrictedZonesStatus", "restrictedZonesEvent");
-                    // --- no restrictedZonesEvent as no transition happened yet
-                    assertThat(attrs).isNotNull().isNotEmpty().hasSize(3);
+                    // --- no transition events as no transitions happened yet
+                    assertThat(attrs).isNotNull().isNotEmpty().hasSize(2);
                     Map<String, String> m = kv(attrs);
-                    assertThat(m).containsEntry("allowedZonesEvent", "ENTERED")
-                            .containsEntry("allowedZonesStatus", "INSIDE")
+                    assertThat(m).containsEntry("allowedZonesStatus", "INSIDE")
                             .containsEntry("restrictedZonesStatus", "OUTSIDE");
                 });
 
         // --- delete attributes reported in previous evaluation
-        doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/SERVER_SCOPE?keys=allowedZonesEvent,allowedZonesStatus,restrictedZonesStatus", String.class);
+        doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/SERVER_SCOPE?keys=allowedZonesStatus,restrictedZonesStatus", String.class);
 
         // --- Update restrictedZone by 'restrictedZone' attribute update
         doPost("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/attributes/" + DataConstants.SERVER_SCOPE,
@@ -909,17 +908,16 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         doPost("/api/calculatedField", cf, CalculatedField.class);
 
-        // --- Assert initial evaluation (ENTERED / OUTSIDE) ---
+        // --- Assert initial evaluation ---
         await().alias("initial geofencing evaluation")
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     ArrayNode attrs = getServerAttributes(device.getId(),
-                            "allowedZonesEvent", "allowedZonesStatus", "restrictedZonesStatus");
-                    assertThat(attrs).isNotNull().isNotEmpty().hasSize(3);
+                            "allowedZonesEvent", "allowedZonesStatus", "restrictedZonesStatus", "restrictedZonesEvent");
+                    assertThat(attrs).isNotNull().isNotEmpty().hasSize(2);
                     Map<String, String> m = kv(attrs);
-                    assertThat(m).containsEntry("allowedZonesEvent", "ENTERED")
-                            .containsEntry("allowedZonesStatus", "INSIDE")
+                    assertThat(m).containsEntry("allowedZonesStatus", "INSIDE")
                             .containsEntry("restrictedZonesStatus", "OUTSIDE");
                 });
 
@@ -1014,16 +1012,15 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
         var geofencingConfiguration = (GeofencingCalculatedFieldConfiguration) configuration;
         assertThat(geofencingConfiguration.isScheduledUpdateEnabled()).isTrue();
 
-        // --- Assert initial evaluation (ENTERED) ---
+        // --- Assert initial evaluation ---
         await().alias("initial geofencing evaluation")
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     ArrayNode attrs = getServerAttributes(device.getId(), "allowedZonesEvent", "allowedZonesStatus");
-                    assertThat(attrs).isNotNull().isNotEmpty().hasSize(2);
+                    assertThat(attrs).isNotNull().isNotEmpty().hasSize(1);
                     Map<String, String> m = kv(attrs);
-                    assertThat(m).containsEntry("allowedZonesEvent", "ENTERED")
-                            .containsEntry("allowedZonesStatus", "INSIDE");
+                    assertThat(m).containsEntry("allowedZonesStatus", "INSIDE");
                 });
 
         // --- Move device OUTSIDE Zone A (expect LEFT) ---
@@ -1057,11 +1054,11 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
 
         awaitForCalculatedFieldEntityMessageProcessorToRegisterCfStateAsReadyToRefreshDynamicArguments(device.getId(), savedCalculatedField.getId(), minAllowedScheduledUpdateIntervalInSecForCF);
 
-        // --- Same coordinates as before, but now we expect ENTERED since a new zone is registered ---
+        // --- Same coordinates as before, but now we expect INSIDE group status since a new zone is registered ---
         doPost("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/timeseries/unusedScope",
                 JacksonUtil.toJsonNode("{\"latitude\":50.4760,\"longitude\":30.5110}")).andExpect(status().isOk());
 
-        // --- Assert dynamic refresh picks up new relation and flips event back to ENTERED on the next telemetry update ---
+        // --- Assert dynamic refresh picks up a new relation and flips status back to INSIDE on the next telemetry update ---
         await().alias("dynamic refresh rebinds allowedZones")
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(1, TimeUnit.SECONDS)
@@ -1069,7 +1066,7 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
                     ArrayNode attrs = getServerAttributes(device.getId(), "allowedZonesEvent", "allowedZonesStatus");
                     assertThat(attrs).isNotNull().isNotEmpty().hasSize(2);
                     Map<String, String> m = kv(attrs);
-                    assertThat(m).containsEntry("allowedZonesEvent", "ENTERED")
+                    assertThat(m).containsEntry("allowedZonesEvent", "LEFT") // attribute from previous eval with outdated ts.
                             .containsEntry("allowedZonesStatus", "INSIDE");
                 });
     }
@@ -1312,6 +1309,83 @@ public class CalculatedFieldIntegrationTest extends CalculatedFieldControllerTes
                     ObjectNode c = getLatestTelemetry(testDevice.getId(), "c");
                     assertThat(c).isNotNull();
                     assertThat(c.get("c").get(0).get("value").asText()).isEqualTo("20");
+                });
+    }
+
+    @Test
+    public void testCalculatedFieldWhenBatchOfTelemetrySent() throws Exception {
+        Device testDevice = createDevice("Test device", "1234567890");
+        long now = System.currentTimeMillis();
+        doPost("/api/plugins/telemetry/DEVICE/" + testDevice.getUuidId() + "/timeseries/" + DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode(String.format("{\"ts\": %s, \"values\": {\"a\":5, \"b\":10}}", now - TimeUnit.MINUTES.toMillis(3))));
+        doPost("/api/plugins/telemetry/DEVICE/" + testDevice.getUuidId() + "/timeseries/" + DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode(String.format("{\"ts\": %s, \"values\": {\"b\":20}}", now - TimeUnit.MINUTES.toMillis(1))));
+
+        CalculatedField calculatedField = new CalculatedField();
+        calculatedField.setEntityId(testDevice.getId());
+        calculatedField.setType(CalculatedFieldType.SCRIPT);
+        calculatedField.setName("Script CF");
+        calculatedField.setDebugSettings(DebugSettings.all());
+
+        ScriptCalculatedFieldConfiguration config = new ScriptCalculatedFieldConfiguration();
+
+        ReferencedEntityKey refEntityKeyA = new ReferencedEntityKey("a", ArgumentType.TS_LATEST, null);
+        Argument argumentA = new Argument();
+        argumentA.setRefEntityKey(refEntityKeyA);
+        Argument argumentB = new Argument();
+        ReferencedEntityKey refEntityKeyB = new ReferencedEntityKey("b", ArgumentType.TS_ROLLING, null);
+        argumentB.setTimeWindow(TimeUnit.MINUTES.toMillis(10));
+        argumentB.setLimit(1000);
+        argumentB.setRefEntityKey(refEntityKeyB);
+        config.setArguments(Map.of("a", argumentA, "b", argumentB));
+        config.setExpression("""
+                return {
+                    "latestA": a,
+                    "avgB": b.avg
+                };
+                """);
+
+        config.setOutput(new TimeSeriesOutput());
+
+        calculatedField.setConfiguration(config);
+
+        doPost("/api/calculatedField", calculatedField, CalculatedField.class);
+
+        await().alias("create CF -> perform initial calculation").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    ObjectNode result = getLatestTelemetry(testDevice.getId(), "latestA", "avgB");
+                    assertThat(result).isNotNull();
+                    assertThat(result.get("latestA").get(0).get("value").asText()).isEqualTo("5");
+                    assertThat(result.get("avgB").get(0).get("value").asText()).isEqualTo("15.0");
+                });
+
+        doPost("/api/plugins/telemetry/DEVICE/" + testDevice.getUuidId() + "/timeseries/" + DataConstants.SERVER_SCOPE, JacksonUtil.toJsonNode(String.format("""
+                [{
+                    "ts": %s,
+                    "values": {
+                        "a": 6,
+                        "b": 100
+                    }
+                }, {
+                    "ts": %s,
+                    "values": {
+                        "a": 7,
+                        "b": 200
+                    }
+                }, {
+                    "ts": %s,
+                    "values": {
+                        "a": 8,
+                        "b": 300
+                    }
+                }]""", now - TimeUnit.MINUTES.toMillis(2), now, now - TimeUnit.MINUTES.toMillis(5))));
+
+        await().alias("update telemetry -> recalculate state").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    ObjectNode result = getLatestTelemetry(testDevice.getId(), "latestA", "avgB");
+                    assertThat(result).isNotNull();
+                    assertThat(result.get("latestA").get(0).get("value").asText()).isEqualTo("7");
+                    assertThat(result.get("avgB").get(0).get("value").asText()).isEqualTo("126.0");
                 });
     }
 
