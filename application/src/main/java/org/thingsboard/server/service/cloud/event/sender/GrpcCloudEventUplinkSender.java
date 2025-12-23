@@ -34,6 +34,7 @@ import org.thingsboard.server.service.cloud.info.EdgeInfoHolder;
 import org.thingsboard.server.service.cloud.info.PendingUplinkMsgPackHolder;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.GrpcClientManager;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -80,6 +81,8 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
             }
             interruptPreviousSendUplinkMsgsTask();
             sendUplinkFutureResult = SettableFuture.create();
+
+            cloudEvents = EdgeMsgConstructorUtils.mergeAndFilterUplinkDuplicates(cloudEvents);
 
             List<UplinkMsg> uplinkMsgPack = uplinkMsgMapper.convertCloudEventsToUplink(cloudEvents);
 
