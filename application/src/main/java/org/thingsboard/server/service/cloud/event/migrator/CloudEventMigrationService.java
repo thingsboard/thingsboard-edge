@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.service.cloud.event.migrator;
 
 public interface CloudEventMigrationService {
 
-    boolean isMigrated();
-
-    boolean isTsMigrated();
-
+    boolean isMigrationRequired();
     void migrateUnprocessedEventToKafka();
 
 }
