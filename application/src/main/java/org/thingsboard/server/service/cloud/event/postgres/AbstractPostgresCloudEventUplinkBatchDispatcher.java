@@ -22,6 +22,7 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.service.cloud.CloudEventFinder;
 import org.thingsboard.server.service.cloud.event.sender.CloudEventUplinkSender;
 import org.thingsboard.server.service.cloud.info.EdgeInfoHolder;
@@ -76,7 +77,7 @@ public abstract class AbstractPostgresCloudEventUplinkBatchDispatcher {
                         String queueName = isGeneralMsg ? "Cloud Event" : "TSKv Cloud Event";
 
                         long queueSize = Math.max(cloudEvents.getTotalElements() - ((long) pageLink.getPage() * pageLink.getPageSize()), 0);
-                        statsCounterService.setUplinkMsgsLag(edgeInfo.getTenantId(), queueSize);
+                        statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_LAG, edgeInfo.getTenantId(), queueSize);
                         log.info("[{}] Uplink Processing Lag Stats: queue size = [{}], current page = [{}], total pages = [{}]",
                                 queueName, queueSize, pageLink.getPage(), cloudEvents.getTotalPages());
                     }

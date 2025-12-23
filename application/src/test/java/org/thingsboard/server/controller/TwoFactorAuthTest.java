@@ -117,9 +117,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         twoFaConfigManager.deletePlatformTwoFaSettings(TenantId.SYS_TENANT_ID);
     }
 
-    // edge-only: @Ignore - two factor disabled on Edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testTwoFa_totp() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa();
 
@@ -139,9 +138,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         assertThat(currentUser.getId()).isEqualTo(user.getId());
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on edge")
     public void testTwoFa_sms() throws Exception {
         configureSmsTwoFa();
 
@@ -163,9 +161,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         assertThat(currentUser.getId()).isEqualTo(user.getId());
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testTwoFaPreVerificationTokenLifetime() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setTotalAllowedTimeForVerification(65);
@@ -182,9 +179,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 });
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testCheckVerificationCode_userBlocked() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(10);
@@ -213,9 +209,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         assertThat(errorMessage).containsIgnoringCase("user is disabled");
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testSendVerificationCode_rateLimit() throws Exception {
         configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setMinVerificationCodeSendPeriod(10);
@@ -239,9 +234,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 });
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testCheckVerificationCode_rateLimit() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa(twoFaSettings -> {
             twoFaSettings.setVerificationCodeCheckRateLimit("3:10");
@@ -272,9 +266,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testCheckVerificationCode_invalidVerificationCode() throws Exception {
         configureTotpTwoFa();
         logInWithMfaToken(username, password, Authority.PRE_VERIFICATION_TOKEN);
@@ -286,9 +279,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         }
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testCheckVerificationCode_codeExpiration() throws Exception {
         configureSmsTwoFa(smsTwoFaProviderConfig -> {
             smsTwoFaProviderConfig.setVerificationCodeLifetime(10);
@@ -313,9 +305,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 });
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testTwoFa_logLoginAction() throws Exception {
         TotpTwoFaAccountConfig totpTwoFaAccountConfig = configureTotpTwoFa();
 
@@ -354,9 +345,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
                 new TimePageLink(new PageLink(10, 0, null, new SortOrder("createdTime", SortOrder.Direction.DESC)), 0L, System.currentTimeMillis())).getData();
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testAuthWithoutTwoFaAccountConfig() throws ThingsboardException {
         configureTotpTwoFa();
         twoFaConfigManager.deleteTwoFaAccountConfig(tenantId, user, TwoFaProviderType.TOTP);
@@ -366,9 +356,8 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
         });
     }
 
-    // edge-only: @Ignore - two factor disabled on edge
     @Test
-    @Ignore
+    @Ignore("two factor disabled on Edge")
     public void testTwoFa_multipleProviders() throws Exception {
         PlatformTwoFaSettings platformTwoFaSettings = new PlatformTwoFaSettings();
 
@@ -423,6 +412,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("two factor disabled on Edge")
     public void testEnforceTwoFa() throws Exception {
         TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
         totpTwoFaProviderConfig.setIssuerName("tb");
@@ -459,6 +449,7 @@ public class TwoFactorAuthTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("two factor disabled on Edge")
     public void testEnforceTwoFa_sysadmin() throws Exception {
         TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
         totpTwoFaProviderConfig.setIssuerName("tb");

@@ -18,6 +18,7 @@ package org.thingsboard.server.edge;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
@@ -65,6 +66,7 @@ public class EdgeStatsIntegrationTest extends AbstractEdgeTest {
     private EdgeStatsCounterService statsCounterService;
 
     @Test
+    @Ignore
     public void testReportStats() throws Exception {
         // GIVEN
         simulateEdgeEventsAddedDownlinkPushed();

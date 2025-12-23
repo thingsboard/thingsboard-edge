@@ -165,8 +165,8 @@ cloud:
     enabled: "${CLOUD_STATS_ENABLED:true}"
     # Time-to-live in days for stored edge communication stats in timeseries
     ttl: "${CLOUD_STATS_TTL:30}"
-    # How often to report edge communication stats in milliseconds
-    report-interval-millis: "${EDGE_STATS_REPORT_INTERVAL_MS:600000}"
+    # How often to report cloud communication stats in milliseconds
+    report-interval-millis: "${CLOUD_STATS_REPORT_INTERVAL_MS:60000}"
 
 # Application info parameters
 app:

@@ -19,6 +19,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.thingsboard.server.common.data.User;
@@ -57,6 +58,7 @@ public class ApiKeyAuthenticationProviderTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge support disabled for edge side")
     public void testSaveEdgeWithApiKey() throws Exception {
         Edge edge = constructEdge("My edge", "default");
 
