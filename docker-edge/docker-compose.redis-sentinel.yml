@@ -18,7 +18,7 @@ services:
   # Redis sentinel
   # The latest version of Redis compatible with ThingsBoard is 7.2
   redis-master:
-    image: 'bitnami/redis:7.2'
+    image: 'bitnamilegacy/redis:7.2'
     volumes:
       - ./tb-edge/redis-sentinel-data-master:/bitnami/redis/data
     environment:
@@ -26,7 +26,7 @@ services:
       - 'REDIS_PASSWORD=thingsboard'
 
   redis-slave:
-    image: 'bitnami/redis:7.2'
+    image: 'bitnamilegacy/redis:7.2'
     volumes:
       - ./tb-edge/redis-sentinel-data-slave:/bitnami/redis/data
     environment:
@@ -38,7 +38,7 @@ services:
       - redis-master
 
   redis-sentinel:
-    image: 'bitnami/redis-sentinel:7.2'
+    image: 'bitnamilegacy/redis-sentinel:7.2'
     volumes:
       - ./tb-edge/redis-sentinel-data-sentinel:/bitnami/redis/data
     environment:

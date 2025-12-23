@@ -68,11 +68,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                     yield Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    Asset assetById = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
-                    if (assetById != null) {
-                        edgeCtx.getAssetService().deleteAsset(tenantId, assetId);
-                        pushAssetDeletedEventToRuleEngine(tenantId, assetById);
-                    }
+                    deleteAsset(tenantId, assetId);
                     yield Futures.immediateFuture(null);
                 }
                 default -> handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
@@ -97,20 +93,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
 
     private void pushAssetCreatedEventToRuleEngine(TenantId tenantId, AssetId assetId) {
         Asset asset = edgeCtx.getAssetService().findAssetById(tenantId, assetId);
-        pushAssetEventToRuleEngine(tenantId, asset, TbMsgType.ENTITY_CREATED);
-    }
-
-    private void pushAssetDeletedEventToRuleEngine(TenantId tenantId, Asset asset) {
-        pushAssetEventToRuleEngine(tenantId, asset, TbMsgType.ENTITY_DELETED);
-    }
-
-    private void pushAssetEventToRuleEngine(TenantId tenantId, Asset asset, TbMsgType msgType) {
-        try {
-            String assetAsString = JacksonUtil.toString(asset);
-            pushEntityEventToRuleEngine(tenantId, asset.getId(), asset.getCustomerId(), msgType, assetAsString, new TbMsgMetaData());
-        } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push asset action to rule engine: {}", tenantId, asset.getId(), msgType.name(), e);
-        }
+        pushEntityEventToRuleEngine(tenantId, asset, TbMsgType.ENTITY_CREATED);
     }
 
     @Override

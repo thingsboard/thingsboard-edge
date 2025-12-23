@@ -25,7 +25,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Slf4j
 public class CloudStatsCounterService {
 
-    private MsgCounters counter;
+    private volatile MsgCounters counter;
 
     public void recordEvent(CloudStatsKey type, TenantId tenantId, long value) {
         initCounter(tenantId);
@@ -34,6 +34,7 @@ public class CloudStatsCounterService {
             case UPLINK_MSGS_PUSHED -> counter.getMsgsPushed().addAndGet(value);
             case UPLINK_MSGS_PERMANENTLY_FAILED -> counter.getMsgsPermanentlyFailed().addAndGet(value);
             case UPLINK_MSGS_TMP_FAILED -> counter.getMsgsTmpFailed().addAndGet(value);
+            case UPLINK_MSGS_LAG -> counter.getMsgsLag().set(value);
         }
     }
 
@@ -43,12 +44,16 @@ public class CloudStatsCounterService {
     }
 
     public void clear() {
-        counter.clear();
+        synchronized (this) {
+            counter.clear();
+        }
     }
 
     private void initCounter(TenantId tenantId) {
-        if (counter == null) {
-            counter = new MsgCounters(tenantId);
+        synchronized (this) {
+            if (counter == null) {
+                counter = new MsgCounters(tenantId);
+            }
         }
     }
 

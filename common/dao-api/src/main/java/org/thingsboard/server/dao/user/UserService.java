@@ -17,12 +17,15 @@ package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserAuthDetails;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.mobile.MobileSessionInfo;
+import org.thingsboard.server.common.data.notification.targets.platform.SystemLevelUsersFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
@@ -53,13 +56,13 @@ public interface UserService extends EntityDaoService {
 
     UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
-	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
+    UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
-	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
+    UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
 
-	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
+    UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 
-	UserCredentials requestPasswordReset(TenantId tenantId, String email);
+    UserCredentials requestPasswordReset(TenantId tenantId, String email);
 
     UserCredentials requestExpiredPasswordReset(TenantId tenantId, UserCredentialsId userCredentialsId);
 
@@ -70,6 +73,8 @@ public interface UserService extends EntityDaoService {
     UserCredentials checkUserActivationToken(TenantId tenantId, UserCredentials userCredentials);
 
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
+
+    void deleteUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
     void deleteUser(TenantId tenantId, User user);
 
@@ -114,4 +119,14 @@ public interface UserService extends EntityDaoService {
     void removeMobileSession(TenantId tenantId, String mobileToken);
 
     int countTenantAdmins(TenantId tenantId);
+
+    PageData<User> findUsersByFilter(TenantId tenantId, UsersFilter filter, PageLink pageLink);
+
+    boolean matchesFilter(TenantId tenantId, SystemLevelUsersFilter filter, User user);
+
+    UserAuthDetails findUserAuthDetailsByUserId(TenantId tenantId, UserId userId);
+
+
+    List<User> findUsersByTenantIdAndIds(TenantId tenantId, List<UserId> userIds);
+
 }

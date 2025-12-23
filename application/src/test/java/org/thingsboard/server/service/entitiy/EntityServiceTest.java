@@ -23,6 +23,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -305,6 +306,7 @@ public class EntityServiceTest extends AbstractControllerTest {
 
 
     @Test
+    @Ignore("Edge management is only on cloud")
     public void testCountEdgeEntitiesByQuery() throws InterruptedException {
         List<Edge> edges = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
@@ -338,6 +340,7 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge management is only on cloud")
     public void testCountHierarchicalEntitiesByEdgeSearchQuery() throws InterruptedException {
         for (int i = 0; i < 5; i++) {
             Edge edge = createEdge(i, "type" + i);

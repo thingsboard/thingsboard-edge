@@ -24,6 +24,7 @@ import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+import org.thingsboard.server.dao.ai.AiModelService;
 import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
@@ -50,6 +51,7 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -59,6 +61,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.ai.AiModelProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.comment.AlarmCommentProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessor;
@@ -73,6 +76,7 @@ import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgePr
 import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainMetadataEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.telemetry.TelemetryEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.user.UserProcessor;
 import org.thingsboard.server.service.edge.rpc.sync.EdgeRequestsService;
 import org.thingsboard.server.service.executors.GrpcCallbackExecutorService;
 
@@ -189,6 +193,9 @@ public class EdgeContextComponent {
     private TenantProfileService tenantProfileService;
 
     @Autowired
+    private TbTenantProfileCache tenantProfileCache;
+
+    @Autowired
     private TenantService tenantService;
 
     @Autowired
@@ -202,7 +209,6 @@ public class EdgeContextComponent {
 
     @Autowired
     private Optional<EdgeStatsCounterService> statsCounterService;
-
 
     // processors
     @Autowired
@@ -260,6 +266,15 @@ public class EdgeContextComponent {
 
     @Autowired
     private CalculatedFieldProcessor calculatedFieldProcessor;
+
+    @Autowired
+    private AiModelService aiModelService;
+
+    @Autowired
+    private AiModelProcessor aiModelProcessor;
+
+    @Autowired
+    private UserProcessor userProcessor;
 
     public EdgeProcessor getProcessor(EdgeEventType edgeEventType) {
         EdgeProcessor processor = processorMap.get(edgeEventType);

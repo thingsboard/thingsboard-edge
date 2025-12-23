@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.dao.edge.stats.MsgCounters;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.discovery.TopicService;
@@ -90,9 +91,11 @@ public class CloudStatsService {
             initialDelayString = "${cloud.stats.report-interval-millis:600000}"
     )
     public void reportStats() {
-        log.debug("Reporting cloud communication stats...");
-        initTenantIdAndEdgeId();
+        if (!initTenantIdAndEdgeId()) {
+            return;
+        }
 
+        log.debug("Reporting cloud communication stats...");
         long ts = (System.currentTimeMillis() / reportIntervalMillis) * reportIntervalMillis;
         MsgCounters counters = statsCounterService.getCounter(tenantId);
         kafkaAdmin.ifPresent(this::prepareUplinkLag);
@@ -108,11 +111,22 @@ public class CloudStatsService {
         saveTs(ts, statsEntries);
     }
 
-    private void initTenantIdAndEdgeId() {
-        if (tenantId == null || edgeId == null) {
+    private boolean initTenantIdAndEdgeId() {
+        if (tenantId != null && edgeId != null) {
+            return true;
+        }
+        try {
             EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings();
-            this.tenantId = TenantId.fromUUID(UUID.fromString(edgeSettings.getTenantId()));
-            this.edgeId = new EdgeId(UUID.fromString(edgeSettings.getEdgeId()));
+            if (edgeSettings == null) {
+                log.warn("EdgeSettings not found, skipping stats reporting.");
+                return false;
+            }
+            tenantId = TenantId.fromUUID(UUID.fromString(edgeSettings.getTenantId()));
+            edgeId = new EdgeId(UUID.fromString(edgeSettings.getEdgeId()));
+            return true;
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid UUID format in EdgeSettings, skipping stats reporting.", e);
+            return false;
         }
     }
 
@@ -126,7 +140,7 @@ public class CloudStatsService {
         long lagCloudEvent = groupIdToLag.getOrDefault(cloudEventConsumerGroupId, 0L);
         long lagCloudEventTs = groupIdToLag.getOrDefault(cloudEventTsConsumerGroupId, 0L);
 
-        statsCounterService.setUplinkMsgsLag(tenantId, lagCloudEvent + lagCloudEventTs);
+        statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_LAG, tenantId, lagCloudEvent + lagCloudEventTs);
     }
 
     private BasicTsKvEntry entry(long ts, String key, long value) {
@@ -161,7 +175,6 @@ public class CloudStatsService {
                 }
             }, MoreExecutors.directExecutor());
         } finally {
-            // clear counters for next interval
             statsCounterService.clear();
         }
     }

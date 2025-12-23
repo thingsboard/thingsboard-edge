@@ -56,11 +56,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                     yield created ? requestForAdditionalData(tenantId, entityViewId) : Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    EntityView entityViewById = edgeCtx.getEntityViewService().findEntityViewById(tenantId, entityViewId);
-                    if (entityViewById != null) {
-                        edgeCtx.getEntityViewService().deleteEntityView(tenantId, entityViewId);
-                        pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewById);
-                    }
+                    deleteEntityView(tenantId, entityViewId);
                     yield Futures.immediateFuture(null);
                 }
                 default -> handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
@@ -85,20 +81,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
 
     private void pushEntityViewCreatedEventToRuleEngine(TenantId tenantId, EntityViewId entityViewId) {
         EntityView entityView = edgeCtx.getEntityViewService().findEntityViewById(tenantId, entityViewId);
-        pushEntityViewEventToRuleEngine(tenantId, entityView, TbMsgType.ENTITY_CREATED);
-    }
-
-    private void pushEntityViewDeletedEventToRuleEngine(TenantId tenantId, EntityView entityView) {
-        pushEntityViewEventToRuleEngine(tenantId, entityView, TbMsgType.ENTITY_DELETED);
-    }
-
-    private void pushEntityViewEventToRuleEngine(TenantId tenantId, EntityView entityView, TbMsgType msgType) {
-        try {
-            String entityViewAsString = JacksonUtil.toString(entityView);
-            pushEntityEventToRuleEngine(tenantId, entityView.getId(), entityView.getCustomerId(), msgType, entityViewAsString, new TbMsgMetaData());
-        } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push entityView action to rule engine: {}", tenantId, entityView.getId(), msgType.name(), e);
-        }
+        pushEntityEventToRuleEngine(tenantId, entityView, TbMsgType.ENTITY_CREATED);
     }
 
     @Override

@@ -26,8 +26,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 
-import static org.thingsboard.server.common.data.EdgeUtils.MISORDERING_COMPENSATION_MILLIS;
-
 @AllArgsConstructor
 @Slf4j
 public class GeneralEdgeEventFetcher implements EdgeEventFetcher {
@@ -38,6 +36,10 @@ public class GeneralEdgeEventFetcher implements EdgeEventFetcher {
     private boolean seqIdNewCycleStarted;
     private Long maxReadRecordsCount;
     private final EdgeEventService edgeEventService;
+    // Subtract from queueStartTs to compensate for possible misalignment between `created_time` and `seqId`.
+    // This ensures early events with lower seqId are not skipped due to partitioning by `created_time`.
+    // See: edge_event is partitioned by created_time but sorted by seqId during retrieval.
+    private final long misorderingCompensationMillis;
 
     @Override
     public PageLink getPageLink(int pageSize) {
@@ -46,7 +48,7 @@ public class GeneralEdgeEventFetcher implements EdgeEventFetcher {
                 0,
                 null,
                 null,
-                queueStartTs > 0 ? queueStartTs - MISORDERING_COMPENSATION_MILLIS : 0,
+                queueStartTs > 0 ? queueStartTs - misorderingCompensationMillis : 0,
                 System.currentTimeMillis());
     }
 

@@ -66,7 +66,7 @@ import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -208,6 +208,10 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Override
     public Edge saveEdge(Edge edge, boolean doValidate) {
+        return saveEntity(edge, () -> doSaveEdge(edge, doValidate));
+    }
+
+    private Edge doSaveEdge(Edge edge, boolean doValidate) {
         log.trace("Executing saveEdge [{}]", edge);
         Edge oldEdge = null;
         if (doValidate) {
