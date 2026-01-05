@@ -99,16 +99,20 @@ interface CalculatedFieldTypeTranslate {
 export const CalculatedFieldTypeTranslations = new Map<CalculatedFieldType, CalculatedFieldTypeTranslate>(
   [
     [CalculatedFieldType.SIMPLE, {
-      name: 'calculated-fields.type.simple'
+      name: 'calculated-fields.type.simple',
+      hint: 'calculated-fields.type.simple-hint',
     }],
     [CalculatedFieldType.SCRIPT, {
-      name: 'calculated-fields.type.script'
+      name: 'calculated-fields.type.script',
+      hint: 'calculated-fields.type.script-hint',
     }],
     [CalculatedFieldType.GEOFENCING, {
-      name: 'calculated-fields.type.geofencing'
+      name: 'calculated-fields.type.geofencing',
+      hint: 'calculated-fields.type.geofencing-hint',
     }],
     [CalculatedFieldType.PROPAGATION, {
-      name: 'calculated-fields.type.propagation'
+      name: 'calculated-fields.type.propagation',
+      hint: 'calculated-fields.type.propagation-hint',
     }],
     [CalculatedFieldType.RELATED_ENTITIES_AGGREGATION, {
       name: 'calculated-fields.type.related-entities-aggregation',
@@ -521,7 +525,7 @@ export const ArgumentEntityTypeParamsMap =new Map<ArgumentEntityType, ArgumentEn
 ])
 
 export const getCalculatedFieldCurrentEntityFilter = (entityName: string, entityId: EntityId) => {
-  switch (entityId.entityType) {
+  switch (entityId?.entityType) {
     case EntityType.ASSET_PROFILE:
       return {
         assetTypes: [entityName],
@@ -538,6 +542,12 @@ export const getCalculatedFieldCurrentEntityFilter = (entityName: string, entity
         singleEntity: entityId,
       };
   }
+}
+
+export const debugCfActionEnabled = (cf: CalculatedField) => {
+  return (cf.type === CalculatedFieldType.SCRIPT ||
+    (cf.type === CalculatedFieldType.PROPAGATION && cf.configuration.applyExpressionToResolvedArguments)
+  );
 }
 
 export interface CalculatedFieldArgumentValueBase {
