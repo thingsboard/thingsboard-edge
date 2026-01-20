@@ -61,7 +61,8 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_UPDATE
                 "Message will be routed via <b>Failure</b> route if node was not able to save cloud event to database or unsupported originator type/message type arrived. " +
                 "In case successful storage cloud event to database message will be routed via <b>Success</b> route.",
         configDirective = "tbActionNodePushToCloudConfig",
-        icon = "cloud_upload"
+        icon = "cloud_upload",
+        docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/nodes/action/push-to-cloud/"
 )
 public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloudNodeConfiguration, CloudEvent, CloudEventType> {
 
