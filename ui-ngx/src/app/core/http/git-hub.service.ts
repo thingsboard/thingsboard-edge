@@ -30,7 +30,7 @@ export class GitHubService {
   ) { }
 
   public getGitHubStar(config?: RequestConfig): Observable<number> {
-    return this.http.get<any>('https://api.github.com/repos/thingsboard/thingsboard', defaultHttpOptionsFromConfig(config)).pipe(
+    return this.http.get<any>('https://api.github.com/repos/thingsboard/thingsboard-edge', defaultHttpOptionsFromConfig(config)).pipe(
       catchError(() => of({})),
       map((res: any) => res?.stargazers_count ?? 0)
     )
