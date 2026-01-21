@@ -132,7 +132,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
     }
 
     @Override
-    protected Set<ShortCustomerInfo> filterNonExistingCustomers(TenantId tenantId, Set<ShortCustomerInfo> currentAssignedCustomers, Set<ShortCustomerInfo> newAssignedCustomers) {
+    protected Set<ShortCustomerInfo> filterNonExistingCustomers(TenantId tenantId, CustomerId edgeCustomerId, Set<ShortCustomerInfo> currentAssignedCustomers, Set<ShortCustomerInfo> newAssignedCustomers) {
         if (newAssignedCustomers != null && !newAssignedCustomers.isEmpty()) {
             newAssignedCustomers.removeIf(assignedCustomer ->
                     checkCustomerOnEdge(tenantId, assignedCustomer.getCustomerId()) == null);

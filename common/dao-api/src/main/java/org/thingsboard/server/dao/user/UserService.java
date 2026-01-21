@@ -113,4 +113,5 @@ public interface UserService extends EntityDaoService {
 
     void removeMobileSession(TenantId tenantId, String mobileToken);
 
+    int countTenantAdmins(TenantId tenantId);
 }

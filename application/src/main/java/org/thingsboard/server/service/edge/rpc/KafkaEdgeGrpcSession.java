@@ -93,21 +93,16 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
                 .toList();
 
         List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(edgeEvents);
-
+        boolean isInterrupted = true;
         try {
-            boolean isInterrupted = sendDownlinkMsgsPack(downlinkMsgsPack).get();
+            isInterrupted = sendDownlinkMsgsPack(downlinkMsgsPack).get();
             if (isInterrupted) {
-                log.warn("[{}][{}] Send downlink messages task was interrupted", tenantId, edge.getId());
-                return false;
-            } else {
-                consumer.commit();
-                log.trace("[{}][{}] Successfully processed {} edge events", tenantId, edge.getId(), edgeEvents.size());
-                return true;
+                log.debug("[{}][{}] Send downlink messages task was interrupted", tenantId, edge.getId());
             }
         } catch (Exception e) {
             log.error("[{}][{}] Failed to process downlink messages", tenantId, edge.getId(), e);
-            return false;
         }
+        return isInterrupted;
     }
 
     private void sleep() {
@@ -125,8 +120,21 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
 
     @Override
     public ListenableFuture<Boolean> processEdgeEvents() {
+        if (!isConnected() || isSyncInProgress() || isHighPriorityProcessing) {
+            log.warn("[{}][{}] Session is not ready (connected={}, syncInProgress={}, highPriority={}), skip starting edge event consumer",
+                    tenantId, edge != null ? edge.getId() : null, isConnected(), isSyncInProgress(), isHighPriorityProcessing);
+            return Futures.immediateFuture(Boolean.FALSE);
+        }
         if (consumer == null || (consumer.getConsumer() != null && consumer.getConsumer().isStopped())) {
             try {
+                if (consumerExecutor != null && !consumerExecutor.isShutdown()) {
+                    try {
+                        consumerExecutor.shutdown();
+                        awaitConsumerTermination();
+                    } catch (Exception e) {
+                        log.warn("[{}][{}] Failed to shutdown previous consumer executor", tenantId, edge.getId(), e);
+                    }
+                }
                 this.consumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("edge-event-consumer"));
                 this.consumer = QueueConsumerManager.<TbProtoQueueMsg<ToEdgeEventNotificationMsg>>builder()
                         .name("TB Edge events [" + edge.getId() + "]")
@@ -157,6 +165,7 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
     public boolean destroy() {
         try {
             if (consumer != null) {
+                log.info("[{}][{}] Stopping edge event consumer...", tenantId, edge != null ? edge.getId() : null);
                 consumer.stop();
             }
         } catch (Exception e) {
@@ -165,14 +174,23 @@ public class KafkaEdgeGrpcSession extends EdgeGrpcSession {
         }
         consumer = null;
         try {
-            if (consumerExecutor != null) {
+            if (consumerExecutor != null && !consumerExecutor.isShutdown()) {
                 consumerExecutor.shutdown();
+                awaitConsumerTermination();
             }
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to shutdown consumer executor", tenantId, edge.getId(), e);
+            log.warn("[{}][{}] Failed to shutdown edge event consumer executor", tenantId, edge.getId(), e);
             return false;
         }
         return true;
+    }
+
+    private void awaitConsumerTermination() {
+        try {
+            consumerExecutor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException ie) {
+            log.warn("[{}][{}] Interrupted while awaiting consumer executor termination", tenantId, edge.getId());
+        }
     }
 
     @Override
