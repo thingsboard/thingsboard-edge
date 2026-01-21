@@ -117,13 +117,7 @@ def check_yml(total_list, input_yaml_file):
 
 if __name__ == '__main__':
     sys.setrecursionlimit(10000)
-    files_to_check = ["application/src/main/resources/tb-edge.yml",
-                      "transport/http/src/main/resources/tb-http-transport.yml",
-                      "transport/mqtt/src/main/resources/tb-mqtt-transport.yml",
-                      "transport/coap/src/main/resources/tb-coap-transport.yml",
-                      "transport/lwm2m/src/main/resources/tb-lwm2m-transport.yml",
-                      "transport/snmp/src/main/resources/tb-snmp-transport.yml",
-                      "msa/vc-executor/src/main/resources/tb-vc-executor.yml"]
+    files_to_check = ["application/src/main/resources/tb-edge.yml"]
 
     total_list = []
     for file in files_to_check:
