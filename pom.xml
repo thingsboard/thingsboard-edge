@@ -99,6 +99,7 @@
         <google-api-gax.version>2.65.0</google-api-gax.version>
         <google-proto-common.version>2.37.1</google-proto-common.version>
         <google-proto-iam-v1.version>1.51.0</google-proto-iam-v1.version>
+        <docker-maven-plugin.version>0.45.1</docker-maven-plugin.version>
 
         <passay.version>1.6.4</passay.version>
         <ua-parser.version>1.6.1</ua-parser.version>
