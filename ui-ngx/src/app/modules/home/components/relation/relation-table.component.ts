@@ -54,10 +54,11 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
-  selector: 'tb-relation-table',
-  templateUrl: './relation-table.component.html',
-  styleUrls: ['./relation-table.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'tb-relation-table',
+    templateUrl: './relation-table.component.html',
+    styleUrls: ['./relation-table.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class RelationTableComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy {
 

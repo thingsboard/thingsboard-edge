@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.2.1.2EDGE-SNAPSHOT</version>
+        <version>4.2.1.3EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>application</artifactId>
@@ -458,6 +458,7 @@
                 <configuration>
                     <systemPropertyVariables>
                         <spring.config.name>tb-edge</spring.config.name>
+                        <project.version>${project.version}</project.version>
                     </systemPropertyVariables>
                     <excludes>
                         <exclude>**/nosql/*Test.java</exclude>
