@@ -44,7 +44,8 @@ export interface CloudEventDetailsDialogData {
 @Component({
   selector: 'tb-cloud-event-details-dialog',
   templateUrl: './cloud-event-details-dialog.component.html',
-  styleUrls: ['./cloud-event-details-dialog.component.scss']
+  styleUrls: ['./cloud-event-details-dialog.component.scss'],
+  standalone: false
 })
 export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEventDetailsDialogData> implements OnInit {
 
