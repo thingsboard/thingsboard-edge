@@ -37,6 +37,7 @@
         <pkg.name>tb-edge</pkg.name>
         <tb.docker.name>tb-edge</tb.docker.name>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
+        <docker.push-arm-amd-image.phase>pre-integration-test</docker.push-arm-amd-image.phase>
     </properties>
 
     <dependencies>
