@@ -108,7 +108,7 @@
                                 <configuration>
                                     <skip>${docker.skip.latest.tag}</skip>
                                     <executable>docker</executable>
-                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                    <workingDirectory>${project.build.directory}/docker-${docker.name}</workingDirectory>
                                     <arguments>
                                         <argument>buildx</argument>
                                         <argument>build</argument>
@@ -129,7 +129,7 @@
                                 </goals>
                                 <configuration>
                                     <executable>docker</executable>
-                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                    <workingDirectory>${project.build.directory}/docker-${docker.name}</workingDirectory>
                                     <arguments>
                                         <argument>buildx</argument>
                                         <argument>build</argument>
@@ -150,7 +150,7 @@
                                 </goals>
                                 <configuration>
                                     <executable>docker</executable>
-                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                    <workingDirectory>${project.build.directory}/docker-${docker.name}</workingDirectory>
                                     <arguments>
                                         <argument>buildx</argument>
                                         <argument>build</argument>
