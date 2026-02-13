@@ -35,8 +35,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
         <pkg.name>tb-edge</pkg.name>
-        <tb.docker.name>tb-edge</tb.docker.name>
+        <docker.name>tb-edge</docker.name>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
+        <docker.push-arm-amd-image.phase>pre-integration-test</docker.push-arm-amd-image.phase>
     </properties>
 
     <dependencies>
@@ -119,7 +120,7 @@
                     <skip>${dockerfile.skip}</skip>
                     <images>
                         <image>
-                            <name>${docker.repo}/${tb.docker.name}</name>
+                            <name>${docker.repo}/${docker.name}</name>
                             <build>
                                 <dockerFileDir>${project.build.directory}/docker-tb-edge</dockerFileDir>
                                 <tags>
@@ -186,7 +187,7 @@
                                         <argument>build</argument>
                                         <argument>--pull</argument>
                                         <argument>-t</argument>
-                                        <argument>${docker.repo}/${tb.docker.name}:latest</argument>
+                                        <argument>${docker.repo}/${docker.name}:latest</argument>
                                         <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>--no-cache</argument>
                                         <argument>-o</argument>
@@ -209,7 +210,7 @@
                                         <argument>build</argument>
                                         <argument>--pull</argument>
                                         <argument>-t</argument>
-                                        <argument>${docker.repo}/${tb.docker.name}:${project.version}</argument>
+                                        <argument>${docker.repo}/${docker.name}:${project.version}</argument>
                                         <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>--no-cache</argument>
                                         <argument>-o</argument>
