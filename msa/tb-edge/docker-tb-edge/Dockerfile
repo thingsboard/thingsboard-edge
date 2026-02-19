@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM thingsboard/openjdk17:bookworm-slim
+FROM ${docker.base.image}
 
 ENV DATA_FOLDER=/data
 
@@ -27,8 +27,7 @@ ENV SPRING_DATASOURCE_PASSWORD=postgres
 
 COPY logback.xml ${pkg.name}.conf start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb /tmp/
 
-RUN echo 'networkaddress.cache.ttl=60' >> /etc/java-17-openjdk/security/java.security \
-    && chmod a+x /tmp/*.sh \
+RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-tb-edge.sh /usr/bin \
     && mv /tmp/upgrade-tb-edge.sh /usr/bin \
     && mv /tmp/install-tb-edge.sh /usr/bin \
