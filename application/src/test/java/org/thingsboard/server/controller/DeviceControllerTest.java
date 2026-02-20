@@ -72,10 +72,10 @@ import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportColumn
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.dao.device.DeviceDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -1739,13 +1739,6 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         Device fifthDevice = doPost("/api/device?nameConflictPolicy=UNIQUIFY&uniquifyStrategy=INCREMENTAL", device, Device.class);
         assertThat(fifthDevice.getName()).isEqualTo("My unique device_2");
-    }
-
-    private Device createDevice(String name) {
-        Device device = new Device();
-        device.setName(name);
-        device.setType("default");
-        return doPost("/api/device", device, Device.class);
     }
 
 }
