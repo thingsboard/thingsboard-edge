@@ -13,35 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  .hex-input-container {
-    display: flex;
-    gap: 8px;
-  }
-  .hex-input {
-    max-width: 220px;
-  }
-  .alpha-input {
-    min-width: 72px;
-    max-width: 72px;
-  }
+package org.thingsboard.server.dao.nosql;
 
-  ::ng-deep {
-    .mdc-text-field--filled, .mat-mdc-form-field-focus-overlay {
-      &:before {
-        background-color: transparent !important;
-      }
-    }
-    .mat-mdc-form-field-icon-prefix, .mdc-line-ripple, .copy-button {
-      opacity: 0.4;
-    }
-    .alpha-input {
-      .mat-mdc-text-field-wrapper {
-        padding-left: 0;
-      }
+import lombok.Getter;
+
+@Getter
+public class ResultSetSizeLimitExceededException extends IllegalArgumentException {
+
+    private final long limitBytes;
+    private final long actualBytes;
+
+    public ResultSetSizeLimitExceededException(long limitBytes, long actualBytes) {
+        super("Result set size exceeds the maximum allowed limit. Please narrow your query");
+        this.limitBytes = limitBytes;
+        this.actualBytes = actualBytes;
     }
 
-  }
 }
-
-
