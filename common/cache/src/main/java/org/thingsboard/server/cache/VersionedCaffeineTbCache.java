@@ -41,7 +41,7 @@ public abstract class VersionedCaffeineTbCache<K extends VersionedCacheKey, V ex
     public void put(K key, V value) {
         Long version = getVersion(value);
         if (version == null) {
-            return;
+            version = 0L; // edge-only: version on edge is static to update cache correctly
         }
         doPut(key, value, version);
     }
