@@ -448,21 +448,12 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     protected void deleteTenant(TenantId tenantId) {
-        // Wait until all tasks are processed before starting tenant deletion
-        Awaitility.await("pre-delete: all tasks processed")
-                .atMost(90, TimeUnit.SECONDS)
-                .pollInterval(300, TimeUnit.MILLISECONDS)
-                .until(() -> storage.getLag("tb_housekeeper") == 0);
         try {
             doDelete("/api/tenant/" + tenantId.getId()).andExpect(status().isOk());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        // Wait until all tasks are processed after tenant deletion
-        Awaitility.await("post-delete: all tasks processed")
-                .atMost(90, TimeUnit.SECONDS)
-                .pollInterval(300, TimeUnit.MILLISECONDS)
+        Awaitility.await("all tasks processed").atMost(90, TimeUnit.SECONDS).during(300, TimeUnit.MILLISECONDS)
                 .until(() -> storage.getLag("tb_housekeeper") == 0);
     }
 
