@@ -79,29 +79,29 @@
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
                         <executions>
-                            <execution>
-                                <id>push-latest-docker-amd-arm-images</id>
-                                <phase>${docker.push-arm-amd-image.phase}</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>docker</executable>
-                                    <workingDirectory>${project.build.directory}</workingDirectory>
-                                    <arguments>
-                                        <argument>buildx</argument>
-                                        <argument>build</argument>
-                                        <argument>--pull</argument> <!-- forces latest base image -->
-                                        <argument>-t</argument>
-                                        <argument>${docker.repo}/${docker.name}:latest</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
-                                        <argument>--no-cache</argument> <!-- ensures no cache is used -->
-                                        <argument>-o</argument>
-                                        <argument>type=registry</argument>
-                                        <argument>.</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
+<!--                            <execution>-->
+<!--                                <id>push-latest-docker-amd-arm-images</id>-->
+<!--                                <phase>${docker.push-arm-amd-image.phase}</phase>-->
+<!--                                <goals>-->
+<!--                                    <goal>exec</goal>-->
+<!--                                </goals>-->
+<!--                                <configuration>-->
+<!--                                    <executable>docker</executable>-->
+<!--                                    <workingDirectory>${project.build.directory}</workingDirectory>-->
+<!--                                    <arguments>-->
+<!--                                        <argument>buildx</argument>-->
+<!--                                        <argument>build</argument>-->
+<!--                                        <argument>&#45;&#45;pull</argument> &lt;!&ndash; forces latest base image &ndash;&gt;-->
+<!--                                        <argument>-t</argument>-->
+<!--                                        <argument>${docker.repo}/${docker.name}:latest</argument>-->
+<!--                                        <argument>&#45;&#45;platform=linux/amd64,linux/arm64,linux/arm/v7</argument>-->
+<!--                                        <argument>&#45;&#45;no-cache</argument> &lt;!&ndash; ensures no cache is used &ndash;&gt;-->
+<!--                                        <argument>-o</argument>-->
+<!--                                        <argument>type=registry</argument>-->
+<!--                                        <argument>.</argument>-->
+<!--                                    </arguments>-->
+<!--                                </configuration>-->
+<!--                            </execution>-->
                             <execution>
                                 <id>push-version-docker-amd-arm-images</id>
                                 <phase>${docker.push-arm-amd-image.phase}</phase>
