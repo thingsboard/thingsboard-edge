@@ -80,7 +80,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.thingsboard.server.common.data.EdgeUtils.MISORDERING_COMPENSATION_MILLIS;
 import static org.thingsboard.server.service.edge.rpc.EdgeGrpcSession.RATE_LIMIT_REACHED;
 
 @Slf4j
@@ -331,7 +330,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             // Subtract MISORDERING_COMPENSATION_MILLIS to ensure no events are missed in a clustered environment.
             // While events are identified using seqId, we use partitioning for performance reasons
             // and partitioning is based on created_time.
-            queueStartTs = queueStartTs > 0 ? queueStartTs - MISORDERING_COMPENSATION_MILLIS : 0;
+            queueStartTs = queueStartTs > 0 ? queueStartTs - cloudCtx.getCloudEventStorageSettings().getMisorderingCompensationMillis() : 0;
             long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
             log.trace("newCloudEventsAvailable, queueSeqIdStart = {}, key = {}, queueStartTs = {}, queueEndTs = {}",
                     queueSeqIdStart, key, queueStartTs, queueEndTs);
