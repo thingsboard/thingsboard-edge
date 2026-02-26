@@ -29,4 +29,6 @@ public class CloudEventStorageSettings {
     private long noRecordsSleepInterval;
     @Value("${cloud.rpc.storage.sleep_between_batches}")
     private long sleepIntervalBetweenBatches;
+    @Value("${cloud.rpc.storage.misordering_compensation_millis:60000}")
+    private long misorderingCompensationMillis;
 }
