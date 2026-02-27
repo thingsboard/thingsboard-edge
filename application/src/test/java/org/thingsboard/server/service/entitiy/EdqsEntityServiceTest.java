@@ -18,6 +18,7 @@ package org.thingsboard.server.service.entitiy;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
@@ -102,6 +103,16 @@ public class EdqsEntityServiceTest extends EntityServiceTest {
         deviceService.deleteDevicesByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
     }
+
+    @Override
+    @Test
+    @Disabled("Skip on Edge: Cloud events (SaveEntityEvent) are not sent when edges.enabled=false, so EDQS test cannot run")
+    public void testCountEdgeEntitiesByQuery() throws InterruptedException {}
+
+    @Override
+    @Test
+    @Disabled("Skip on Edge: Cloud events (SaveEntityEvent) are not sent when edges.enabled=false, so EDQS test cannot run")
+    public void testCountHierarchicalEntitiesByEdgeSearchQuery() throws InterruptedException {}
 
     @Override
     protected PageData<EntityData> findByQueryAndCheck(CustomerId customerId, EntityDataQuery query, long expectedResultSize) {
