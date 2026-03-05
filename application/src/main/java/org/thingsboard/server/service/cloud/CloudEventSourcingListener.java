@@ -76,7 +76,8 @@ public class CloudEventSourcingListener {
             EntityType.TB_RESOURCE,
             EntityType.CALCULATED_FIELD,
             EntityType.USER,
-            EntityType.AI_MODEL);
+            EntityType.AI_MODEL,
+            EntityType.API_KEY);
 
     private final List<EntityType> supportableEntityTypes = new ArrayList<>(COMMON_ENTITY_TYPES) {{
         add(EntityType.ALARM);
