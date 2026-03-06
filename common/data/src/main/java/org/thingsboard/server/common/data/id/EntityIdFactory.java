@@ -116,6 +116,7 @@ public class EntityIdFactory {
             case CALCULATED_FIELD -> new CalculatedFieldId(uuid);
             case AI_MODEL -> new AiModelId(uuid);
             case ADMIN_SETTINGS -> new AdminSettingsId(uuid);
+            case API_KEY -> new ApiKeyId(uuid);
             default -> throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
         };
     }
@@ -139,6 +140,7 @@ public class EntityIdFactory {
             case TB_RESOURCE -> new TbResourceId(uuid);
             case CALCULATED_FIELD -> new CalculatedFieldId(uuid);
             case AI_MODEL -> new AiModelId(uuid);
+            case API_KEY -> new ApiKeyId(uuid);
             default -> throw new IllegalArgumentException("CloudEventType " + cloudEventType + " is not supported!");
         };
     }

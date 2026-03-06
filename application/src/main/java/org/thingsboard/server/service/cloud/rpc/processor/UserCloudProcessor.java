@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.pat.ApiKey;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -32,6 +33,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.gen.edge.v1.ApiKeyUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
@@ -41,6 +43,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 import org.thingsboard.server.service.edge.rpc.processor.user.BaseUserProcessor;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -120,6 +123,10 @@ public class UserCloudProcessor extends BaseUserProcessor {
                     UserCredentials userCredentials = edgeCtx.getUserService().findUserCredentialsByUserId(cloudEvent.getTenantId(), userId);
                     if (userCredentials != null) {
                         builder.addUserCredentialsUpdateMsg(EdgeMsgConstructorUtils.constructUserCredentialsUpdatedMsg(userCredentials));
+                    }
+                    List<ApiKey> apiKeys = edgeCtx.getApiKeyService().findApiKeysByUserId(cloudEvent.getTenantId(), userId);
+                    for (ApiKey apiKey : apiKeys) {
+                        builder.addApiKeyUpdateMsg(EdgeMsgConstructorUtils.constructApiKeyUpdatedMsg(msgType, apiKey));
                     }
                     return builder.build();
                 } else {
