@@ -522,6 +522,9 @@
                                     <task>buildDeb</task>
                                     <task>buildRpm</task>
                                 </tasks>
+                                <jvmArgs>
+                                    <jvmArg>-Xmx512m</jvmArg>
+                                </jvmArgs>
                                 <args>
                                     <arg>-PpackagingDir=${main.dir}/packaging</arg>
                                     <arg>-PprojectBuildDir=${basedir}/target</arg>
