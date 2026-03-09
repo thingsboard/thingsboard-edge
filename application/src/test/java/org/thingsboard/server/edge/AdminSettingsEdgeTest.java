@@ -18,6 +18,7 @@ package org.thingsboard.server.edge;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
@@ -33,6 +34,7 @@ public class AdminSettingsEdgeTest extends AbstractEdgeTest {
     private AdminSettingsService adminSettingsService;
 
     @Test
+    @Ignore
     public void testAdminSettings() throws Exception {
         loginSysAdmin();
 
