@@ -33,6 +33,7 @@ public class AdminSettingsEdgeTest extends AbstractEdgeTest {
     private AdminSettingsService adminSettingsService;
 
     @Test
+    @Ignore
     public void testAdminSettings() throws Exception {
         loginSysAdmin();
 

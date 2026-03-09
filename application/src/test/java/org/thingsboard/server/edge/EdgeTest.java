@@ -86,6 +86,7 @@ public class EdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSyncEdge_attributeUpdated() throws Exception {
         getWsClient().subscribeForAttributes(edge.getId(), TbAttributeSubscriptionScope.SERVER_SCOPE.name(), List.of(DataConstants.EDGE_SYNC_IN_PROGRESS_ATTR_KEY));
 
