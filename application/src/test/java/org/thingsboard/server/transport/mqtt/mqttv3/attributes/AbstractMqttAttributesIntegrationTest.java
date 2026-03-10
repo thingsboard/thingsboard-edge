@@ -426,6 +426,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
 
         Awaitility.await()
                 .atMost(10, TimeUnit.SECONDS)
+                .ignoreExceptions()
                 .until(() -> {
                     List<Map<String, Object>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {
                     });
