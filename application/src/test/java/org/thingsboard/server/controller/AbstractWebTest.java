@@ -422,6 +422,10 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     public void teardownWebTest() throws Exception {
         log.debug("Executing web test teardown");
 
+        // Drain any pending housekeeper work left by the test body (e.g., bulk tenant deletes)
+        // before proceeding with teardown deletions, to avoid 90s per-tenant wait timing out.
+        awaitHousekeeperDrained();
+
         loginSysAdmin();
         deleteTenant(tenantId);
         deleteDifferentTenant();
@@ -459,6 +463,11 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         Awaitility.await("post-delete: all tasks processed")
                 .atMost(90, TimeUnit.SECONDS)
                 .pollInterval(300, TimeUnit.MILLISECONDS)
+                .until(() -> storage.getLag("tb_housekeeper") == 0);
+    }
+
+    protected void awaitHousekeeperDrained() {
+        Awaitility.await("housekeeper drained").atMost(5, TimeUnit.MINUTES).during(300, TimeUnit.MILLISECONDS)
                 .until(() -> storage.getLag("tb_housekeeper") == 0);
     }
 

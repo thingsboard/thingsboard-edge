@@ -30,7 +30,8 @@ import { EntityService } from '@core/http/entity.service';
 @Component({
   selector: 'tb-cloud-event-table',
   templateUrl: './cloud-event-table.component.html',
-  styleUrls: ['./cloud-event-table.component.scss']
+  styleUrls: ['./cloud-event-table.component.scss'],
+  standalone: false
 })
 export class CloudEventTableComponent implements OnInit {
 

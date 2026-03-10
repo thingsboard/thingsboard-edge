@@ -28,7 +28,8 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'tb-edge-status',
   templateUrl: './edge-status.component.html',
-  styleUrls: ['./edge-status.component.scss']
+  styleUrls: ['./edge-status.component.scss'],
+  standalone: false
 })
 export class EdgeStatusComponent extends PageComponent implements OnInit {
 
