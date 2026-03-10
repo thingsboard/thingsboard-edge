@@ -122,7 +122,7 @@
           </tb-widgets-bundle-select>
         </div>
         <!-- Edge-only:  merge comment -->
-        <button mat-raised-button [class.!hidden]="!widgetsList.length ?? false"
+        <button mat-raised-button [class.!hidden]="!widgetsList.length"
                 color="accent"
                 class="button-widget-action"
                 [disabled]="isLoading$ | async"
