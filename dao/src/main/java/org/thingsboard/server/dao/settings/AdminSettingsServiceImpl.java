@@ -82,7 +82,6 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     @Override
     public PageData<AdminSettings> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
         return adminSettingsDao.findAllByTenantId(tenantId, pageLink);
-
     }
 
     @Override
