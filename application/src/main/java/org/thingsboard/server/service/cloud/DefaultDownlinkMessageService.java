@@ -30,6 +30,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AiModelUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.ApiKeyUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
@@ -268,6 +269,11 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.getAiModelUpdateMsgCount() > 0) {
                 for (AiModelUpdateMsg aiModelUpdateMsg : downlinkMsg.getAiModelUpdateMsgList()) {
                     result.add(cloudCtx.getAiModelProcessor().processAiModelMsgFromCloud(tenantId, aiModelUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getApiKeyUpdateMsgCount() > 0) {
+                for (ApiKeyUpdateMsg apiKeyUpdateMsg : downlinkMsg.getApiKeyUpdateMsgList()) {
+                    result.add(cloudCtx.getApiKeyCloudProcessor().processApiKeyMsgFromCloud(tenantId, apiKeyUpdateMsg));
                 }
             }
 
