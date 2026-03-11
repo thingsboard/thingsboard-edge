@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.ws;
+package org.thingsboard.server.service.edge.rpc.processor.apikey;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.gen.edge.v1.ApiKeyUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AuthCmd implements WsCmd {
+public interface ApiKeyProcessor extends EdgeProcessor {
 
-    private int cmdId;
-    private String token;
-    private String apiKey;
-
-    @Override
-    public WsCmdType getType() {
-        return WsCmdType.AUTH;
-    }
+    ListenableFuture<Void> processApiKeyMsgFromEdge(TenantId tenantId, Edge edge, ApiKeyUpdateMsg apiKeyUpdateMsg);
 
 }
