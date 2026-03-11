@@ -18,6 +18,7 @@ package org.thingsboard.server.controller;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -338,6 +339,7 @@ public class CalculatedFieldControllerTest extends AbstractControllerTest {
         calculatedField.setType(cfType);
         calculatedField.setName("Test Calculated Field for " + entityId);
         calculatedField.setConfigurationVersion(1);
+        calculatedField.setAdditionalInfo(JacksonUtil.newObjectNode());
         if (customConfiguration != null) {
             calculatedField.setConfiguration(customConfiguration);
         } else switch (cfType) {

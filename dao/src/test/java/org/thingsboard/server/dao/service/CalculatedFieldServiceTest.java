@@ -18,6 +18,7 @@ package org.thingsboard.server.dao.service;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -501,6 +502,7 @@ public class CalculatedFieldServiceTest extends AbstractServiceTest {
         calculatedField.setName("Test Calculated Field");
         calculatedField.setConfigurationVersion(1);
         calculatedField.setConfiguration(getCalculatedFieldConfig(referencedEntityId));
+        calculatedField.setAdditionalInfo(JacksonUtil.newObjectNode());
         return calculatedField;
     }
 

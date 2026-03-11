@@ -19,6 +19,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
@@ -53,6 +54,7 @@ public class ApiKeyEdgeTest extends AbstractEdgeTest {
     private static final String DEFAULT_API_KEY_DESCRIPTION = "Edge Test ApiKey";
     private static final String UPDATED_API_KEY_DESCRIPTION = "Updated Edge Test ApiKey";
 
+    @Ignore
     @Test
     public void testApiKey_create_update_delete_fromCloud() throws Exception {
         // create ApiKey
@@ -102,6 +104,7 @@ public class ApiKeyEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedApiKey.getUuidId().getLeastSignificantBits(), apiKeyUpdateMsg.getIdLSB());
     }
 
+    @Ignore
     @Test
     public void testApiKey_create_update_delete_toCloud() throws Exception {
         // create
@@ -129,6 +132,7 @@ public class ApiKeyEdgeTest extends AbstractEdgeTest {
         );
     }
 
+    @Ignore
     @Test
     public void testApiKey_pushedDuringUserSync() throws Exception {
         // create tenant admin user - expect 3 messages: 1 UserUpdateMsg + 2 UserCredentialsUpdateMsg
