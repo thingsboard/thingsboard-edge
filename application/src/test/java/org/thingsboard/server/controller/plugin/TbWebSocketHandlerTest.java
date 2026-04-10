@@ -42,6 +42,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.ws.WebSocketService;
 import org.thingsboard.server.service.ws.WebSocketSessionRef;
+import org.thingsboard.server.service.ws.WebSocketSessionType;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
