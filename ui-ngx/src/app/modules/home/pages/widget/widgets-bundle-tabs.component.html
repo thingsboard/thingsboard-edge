@@ -15,11 +15,13 @@
     limitations under the License.
 
 -->
-<!-- Edge-only:  merge comment
-<mat-tab *ngIf="isTenantWidgetsBundle() && authUser.authority === authorities.TENANT_ADMIN"
-         label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
-  <tb-version-control detailsMode="true" singleEntityMode="true"
-                      (versionRestored)="entitiesTableConfig.updateData()"
-                      [active]="versionControlTab.isActive" [entityId]="entity.id" [entityName]="entity.title" [externalEntityId]="entity.externalId || entity.id"></tb-version-control>
-</mat-tab>
+<!-- Edge-only: not visible on edge
+@if (isTenantWidgetsBundle() && authUser.authority === authorities.TENANT_ADMIN) {
+  <mat-tab
+    label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
+    <tb-version-control detailsMode="true" singleEntityMode="true"
+                        (versionRestored)="entitiesTableConfig.updateData()"
+    [active]="versionControlTab.isActive" [entityId]="entity.id" [entityName]="entity.title" [externalEntityId]="entity.externalId || entity.id"></tb-version-control>
+  </mat-tab>
+}
 -->

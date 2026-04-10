@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,12 +63,14 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.ai.model.chat.AiChatModelConfig;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.exception.ThingsboardCredentialsExpiredResponse;
 import org.thingsboard.server.exception.ThingsboardErrorResponse;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginResponse;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
@@ -76,6 +79,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -115,6 +119,8 @@ public class SwaggerConfiguration {
     // Keyed by the schema name that swagger-core generates (see resolveSchemaName).
     private final Map<String, List<String>> schemaPropertyOrders = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> schemaOwnProps = new ConcurrentHashMap<>();
+    // Tracks schema name → fully-qualified class names to detect collisions.
+    private final Map<String, Set<String>> schemaNameToClasses = new ConcurrentHashMap<>();
 
     @Value("${swagger.api_path:/api/**}")
     private String apiPath;
@@ -294,6 +300,19 @@ public class SwaggerConfiguration {
     @Lazy(false)
     ModelConverter mapAwareConverter() {
         return (type, context, chain) -> {
+            // Strip field-level @JsonIgnoreProperties from context annotations so it
+            // doesn't pollute the global schema. The OpenAPI schema should show all
+            // properties; field-level ignore is a serialization concern only.
+            Annotation[] ctxAnnotations = type.getCtxAnnotations();
+            if (ctxAnnotations != null) {
+                Annotation[] filtered = Arrays.stream(ctxAnnotations)
+                        .filter(a -> !(a instanceof JsonIgnoreProperties))
+                        .toArray(Annotation[]::new);
+                if (filtered.length != ctxAnnotations.length) {
+                    type.ctxAnnotations(filtered);
+                }
+            }
+
             JavaType javaType = Json.mapper().constructType(type.getType());
             if (javaType != null) {
                 Class<?> cls = javaType.getRawClass();
@@ -326,6 +345,10 @@ public class SwaggerConfiguration {
                         try {
                             var beanDesc = Json.mapper().getSerializationConfig().introspect(javaType);
                             String schemaName = resolveSchemaName(javaType);
+                            Set<String> classes = schemaNameToClasses.computeIfAbsent(schemaName, k -> ConcurrentHashMap.newKeySet());
+                            if (classes.add(cls.getName()) && classes.size() > 1) {
+                                log.error("Duplicate OpenAPI schema name '{}' mapped by: {}. Use @Schema(name = ...) to disambiguate.", schemaName, classes);
+                            }
                             schemaPropertyOrders.put(schemaName, resolvePropertyOrder(cls, beanDesc));
                             Set<String> ownProps = computeOwnPropNames(cls, beanDesc);
                             if (!ownProps.isEmpty()) {
@@ -355,7 +378,8 @@ public class SwaggerConfiguration {
                 .addSchemas("LoginResponse", ModelConverters.getInstance().readAllAsResolvedSchema(new AnnotatedType().type(LoginResponse.class)).schema)
                 .addSchemas("ThingsboardErrorResponse", ModelConverters.getInstance().readAllAsResolvedSchema(new AnnotatedType().type(ThingsboardErrorResponse.class)).schema)
                 .addSchemas("ThingsboardCredentialsExpiredResponse", ModelConverters.getInstance().readAllAsResolvedSchema(new AnnotatedType().type(ThingsboardCredentialsExpiredResponse.class)).schema)
-                .addSchemas("ThingsboardErrorCode", errorCodeSchema);
+                .addSchemas("ThingsboardErrorCode", errorCodeSchema)
+                .addSchemas("AiChatModelConfig", ModelConverters.getInstance().readAllAsResolvedSchema(new AnnotatedType().type(AiChatModelConfig.class)).schema);
     }
 
     private OperationCustomizer operationCustomizer() {
@@ -372,6 +396,19 @@ public class SwaggerConfiguration {
         var apiKeyRequirement = createSecurityRequirement(API_KEY_SCHEME);
 
         return openAPI -> {
+            // Fail fast on duplicate schema names — two different classes resolving to the same
+            // OpenAPI schema name causes one to silently overwrite the other.
+            List<String> duplicates = schemaNameToClasses.entrySet().stream()
+                    .filter(e -> e.getValue().size() > 1)
+                    .map(e -> "'" + e.getKey() + "' mapped by: " + e.getValue())
+                    .sorted()
+                    .toList();
+            if (!duplicates.isEmpty()) {
+                throw new IllegalStateException(
+                        "Duplicate OpenAPI schema names detected. Use @Schema(name = ...) to disambiguate:\n  "
+                                + String.join("\n  ", duplicates));
+            }
+
             var paths = openAPI.getPaths();
             paths.entrySet().stream()
                     .peek(entry -> {
@@ -406,6 +443,64 @@ public class SwaggerConfiguration {
                         log.debug("Added type 'object' to schema: {}", schemaName);
                     }
                 });
+
+                // Springdoc creates duplicate schemas with an "Object" suffix when a type is
+                // resolved through multiple inheritance paths or via generic type resolution.
+                // Remove the "*Object" duplicate when the base schema exists (either
+                // pre-registered in addDefaultSchemas or generated by springdoc).
+                for (String name : new ArrayList<>(schemas.keySet())) {
+                    if (!name.endsWith("Object")) continue;
+                    String baseName = name.substring(0, name.length() - "Object".length());
+                    if (!schemas.containsKey(baseName)) continue;
+
+                    schemas.remove(name);
+                    String refToRemove = "#/components/schemas/" + name;
+                    schemas.values().forEach(s -> {
+                        if (s.getAllOf() != null) {
+                            s.getAllOf().removeIf(allOfEntry -> refToRemove.equals(((Schema<?>) allOfEntry).get$ref()));
+                        }
+                    });
+                    log.debug("Removed duplicate schema '{}' (base '{}' exists)", name, baseName);
+                }
+
+                // Remove duplicate or redundant inline entries in allOf. Springdoc can
+                // generate multiple inline property blocks when resolving a type through
+                // multiple parent paths (e.g. record + sealed interface). One block may be
+                // a strict subset of another (same properties, but the superset has extras
+                // like "modelType"). Keep only the superset in that case.
+                schemas.values().forEach(schema -> {
+                    if (schema.getAllOf() != null && schema.getAllOf().size() > 1) {
+                        List<Schema> allOf = schema.getAllOf();
+                        Set<Integer> redundant = new HashSet<>();
+                        for (int i = 0; i < allOf.size(); i++) {
+                            if (redundant.contains(i)) continue;
+                            Schema a = allOf.get(i);
+                            if (a.get$ref() != null || a.getProperties() == null) continue;
+                            for (int j = i + 1; j < allOf.size(); j++) {
+                                if (redundant.contains(j)) continue;
+                                Schema b = allOf.get(j);
+                                if (b.get$ref() != null || b.getProperties() == null) continue;
+                                if (a.getProperties().entrySet().containsAll(b.getProperties().entrySet())) {
+                                    redundant.add(j); // b is a subset of a
+                                } else if (b.getProperties().entrySet().containsAll(a.getProperties().entrySet())) {
+                                    redundant.add(i); // a is a subset of b
+                                    break;
+                                }
+                            }
+                        }
+                        if (!redundant.isEmpty()) {
+                            List<Schema> filtered = new ArrayList<>();
+                            for (int i = 0; i < allOf.size(); i++) {
+                                if (!redundant.contains(i)) {
+                                    filtered.add(allOf.get(i));
+                                }
+                            }
+                            allOf.clear();
+                            allOf.addAll(filtered);
+                        }
+                    }
+                });
+
 
                 // Fix polymorphic properties: replace inline oneOf with base type $ref
                 schemas.values().forEach(schema -> {
@@ -544,6 +639,16 @@ public class SwaggerConfiguration {
                             refSchema.set$ref("#/components/schemas/" + baseType);
                             prop.setAdditionalProperties(refSchema);
                             log.debug("Replaced oneOf in additionalProperties with $ref to {} in property {}", baseType, propName);
+                        }
+                    }
+                    // Check if additionalProperties is an array whose items has oneOf (e.g. Map<K, List<PolymorphicType>>)
+                    if (additionalProps.getItems() != null && additionalProps.getItems().getOneOf() != null && !additionalProps.getItems().getOneOf().isEmpty()) {
+                        String baseType = findBaseTypeForOneOf(allSchemas, additionalProps.getItems().getOneOf());
+                        if (baseType != null) {
+                            Schema<?> refSchema = new Schema<>();
+                            refSchema.set$ref("#/components/schemas/" + baseType);
+                            additionalProps.setItems(refSchema);
+                            log.debug("Replaced oneOf in additionalProperties.items with $ref to {} in property {}", baseType, propName);
                         }
                     }
                 }
@@ -799,7 +904,13 @@ public class SwaggerConfiguration {
      * This matches the naming convention used by swagger-core's {@code TypeNameResolver}.
      */
     private static String resolveSchemaName(JavaType javaType) {
-        StringBuilder sb = new StringBuilder(javaType.getRawClass().getSimpleName());
+        Class<?> cls = javaType.getRawClass();
+        io.swagger.v3.oas.annotations.media.Schema schemaAnnotation =
+                cls.getAnnotation(io.swagger.v3.oas.annotations.media.Schema.class);
+        if (schemaAnnotation != null && !schemaAnnotation.name().isEmpty()) {
+            return schemaAnnotation.name();
+        }
+        StringBuilder sb = new StringBuilder(cls.getSimpleName());
         if (javaType.hasGenericTypes()) {
             for (int i = 0; i < javaType.containedTypeCount(); i++) {
                 JavaType param = javaType.containedType(i);
@@ -904,8 +1015,14 @@ public class SwaggerConfiguration {
         // Map backing field names to their JSON property names (respects @JsonProperty)
         Map<String, String> fieldToJsonName = new LinkedHashMap<>();
         for (var prop : beanDesc.findProperties()) {
-            if (prop.getField() != null && prop.couldSerialize()) {
-                fieldToJsonName.put(prop.getField().getName(), prop.getName());
+            if (prop.couldSerialize()) {
+                if (prop.getField() != null) {
+                    fieldToJsonName.put(prop.getField().getName(), prop.getName());
+                } else {
+                    // For transient fields, Jackson may not associate the field with the property.
+                    // Fall back to using the property name as the field name key.
+                    fieldToJsonName.putIfAbsent(prop.getName(), prop.getName());
+                }
             }
         }
 
