@@ -18,6 +18,7 @@ package org.thingsboard.server.controller;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -111,6 +112,7 @@ public class CalculatedFieldControllerTest extends AbstractControllerTest {
         // edge-only: optimistic locking mechanism is not used, so the version should be null
         // See the 'doSave' method in the 'JpaAbstractDao' class for more details.
         //assertThat(savedCalculatedField.getVersion()).isEqualTo(1L);
+        assertThat(savedCalculatedField.getAdditionalInfo()).isEqualTo(calculatedField.getAdditionalInfo());
 
         savedCalculatedField.setName("Test CF");
 
@@ -120,6 +122,7 @@ public class CalculatedFieldControllerTest extends AbstractControllerTest {
         // edge-only: optimistic locking mechanism is not used, so the version should be null
         // See the 'doSave' method in the 'JpaAbstractDao' class for more details.
         //assertThat(updatedCalculatedField.getVersion()).isEqualTo(savedCalculatedField.getVersion() + 1);
+        assertThat(updatedCalculatedField.getAdditionalInfo()).isEqualTo(savedCalculatedField.getAdditionalInfo());
 
         doDelete("/api/calculatedField/" + savedCalculatedField.getId().getId().toString())
                 .andExpect(status().isOk());
@@ -338,6 +341,7 @@ public class CalculatedFieldControllerTest extends AbstractControllerTest {
         calculatedField.setType(cfType);
         calculatedField.setName("Test Calculated Field for " + entityId);
         calculatedField.setConfigurationVersion(1);
+        calculatedField.setAdditionalInfo(JacksonUtil.newObjectNode());
         if (customConfiguration != null) {
             calculatedField.setConfiguration(customConfiguration);
         } else switch (cfType) {
