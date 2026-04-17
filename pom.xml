@@ -70,6 +70,7 @@
         <metrics.version>4.2.25</metrics.version>
         <cassandra-all.version>5.0.4</cassandra-all.version> <!-- tools -->
         <guava.version>33.1.0-jre</guava.version>
+        <tomcat.version>10.1.54</tomcat.version> <!-- to fix CVE-2026-34487, CVE-2026-34486, CVE-2026-34483. TODO: remove when fixed in spring-boot-dependencies -->
         <commons-lang3.version>3.18.0</commons-lang3.version> <!-- to fix CVE-2025-48924. TODO: remove when fixed in spring-boot-dependencies -->
         <commons-io.version>2.16.1</commons-io.version>
         <commons-logging.version>1.3.1</commons-logging.version>
@@ -992,6 +993,25 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Temporary tomcat version override to fix CVE-2026-34487, CVE-2026-34486, CVE-2026-34483.
+                 Must be declared before the spring-boot-dependencies BOM import to take precedence.
+                 TODO: remove when fixed in spring-boot-dependencies -->
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-el</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-websocket</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <!-- End of tomcat version override -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>

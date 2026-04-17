@@ -40,6 +40,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,7 +49,7 @@ import java.util.stream.Stream;
 
 /**
  * Runs at application startup and applies no-downtime data updates
- * when the package PATCH version increases (e.g., 4.2.1.0 -> 4.2.1.1).
+ * when the package version increases within the same LTS family (e.g., 4.3.0.0 -> 4.3.1.0 or 4.3.0.0 -> 4.3.0.1).
  */
 @Slf4j
 @Component
@@ -91,6 +92,8 @@ public class SystemPatchApplier {
         }
 
         try {
+            updateLtsSqlSchema();
+
             updateSqlViews();
             log.info("Updated sql database views");
 
@@ -119,17 +122,37 @@ public class SystemPatchApplier {
             return false;
         }
 
-        if (!isPatchVersionChanged(packageVersionInfo, dbVersionInfo)) {
+        if (!isVersionIncreased(packageVersionInfo, dbVersionInfo)) {
             return false;
         }
 
-        log.info("Patch version increased from {} to {}. Starting system data update.", dbVersion, packageVersion);
+        log.info("Version increased from {} to {}. Starting system data update.", dbVersion, packageVersion);
         return true;
     }
 
-    private boolean isPatchVersionChanged(VersionInfo packageVersion, VersionInfo dbVersion) {
-        return packageVersion.major == dbVersion.major && packageVersion.minor == dbVersion.minor
-                && packageVersion.maintenance == dbVersion.maintenance && packageVersion.patch > dbVersion.patch;
+    private boolean isVersionIncreased(VersionInfo packageVersion, VersionInfo dbVersion) {
+        if (packageVersion.major != dbVersion.major || packageVersion.minor != dbVersion.minor) {
+            return false;
+        }
+        if (packageVersion.maintenance != dbVersion.maintenance) {
+            return packageVersion.maintenance > dbVersion.maintenance;
+        }
+        return packageVersion.patch > dbVersion.patch;
+    }
+
+    private void updateLtsSqlSchema() {
+        Path sqlFile = Paths.get(installScripts.getDataDir(), "upgrade", "lts", "schema_update.sql");
+        if (!Files.exists(sqlFile)) {
+            log.trace("LTS schema update file does not exist: {}", sqlFile);
+            return;
+        }
+        try {
+            String sql = Files.readString(sqlFile);
+            jdbcTemplate.execute(sql);
+            log.info("Applied LTS SQL schema update from {}", sqlFile);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read LTS schema update file: " + sqlFile, e);
+        }
     }
 
     private void updateSqlViews() {

@@ -78,6 +78,7 @@ public class CalculatedFieldServiceTest extends AbstractServiceTest {
         // edge-only: optimistic locking mechanism is not used, so the version should be null
         // See the 'doSave' method in the 'JpaAbstractDao' class for more details.
         assertThat(savedCalculatedField.getVersion()).isEqualTo(null);
+        assertThat(savedCalculatedField.getAdditionalInfo()).isEqualTo(calculatedField.getAdditionalInfo());
 
         savedCalculatedField.setName("Test CF");
 
@@ -87,6 +88,7 @@ public class CalculatedFieldServiceTest extends AbstractServiceTest {
         // edge-only: optimistic locking mechanism is not used, so the version should be null
         // See the 'doSave' method in the 'JpaAbstractDao' class for more details.
         assertThat(updatedCalculatedField.getVersion()).isEqualTo(null);
+        assertThat(updatedCalculatedField.getAdditionalInfo()).isEqualTo(savedCalculatedField.getAdditionalInfo());
 
         calculatedFieldService.deleteCalculatedField(tenantId, savedCalculatedField.getId());
     }
