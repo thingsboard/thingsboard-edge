@@ -33,6 +33,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.thingsboard.server.service.install.DatabaseSchemaSettingsService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.system.SystemPatchApplier;
 
@@ -70,6 +71,9 @@ public class SystemPatchApplierTest {
 
     @Mock
     private InstallScripts installScripts;
+
+    @Mock
+    private DatabaseSchemaSettingsService schemaSettingsService;
 
     @Mock
     private WidgetTypeService widgetTypeService;
@@ -371,6 +375,247 @@ public class SystemPatchApplierTest {
         assertFalse(secondThreadSavedWidget.get(), "Second thread should NOT save widget");
 
         verify(widgetTypeService, times(1)).saveWidgetType(any());
+    }
+
+    // --- isVersionIncreased tests ---
+
+    @ParameterizedTest(name = "isVersionIncreased: {0} (package={1}, db={2}) -> {3}")
+    @MethodSource("provideVersionComparisonTestCases")
+    void testIsVersionIncreased(String testName, SystemPatchApplier.VersionInfo packageVersion,
+                                SystemPatchApplier.VersionInfo dbVersion, boolean expected) {
+        Boolean result = ReflectionTestUtils.invokeMethod(reconciler, "isVersionIncreased", packageVersion, dbVersion);
+        assertEquals(expected, result, testName);
+    }
+
+    private static Stream<Arguments> provideVersionComparisonTestCases() {
+        return Stream.of(
+                // Maintenance digit increases within same LTS family
+                Arguments.of("maintenance increased",
+                        new SystemPatchApplier.VersionInfo(4, 3, 1, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), true),
+                Arguments.of("maintenance increased by more than one",
+                        new SystemPatchApplier.VersionInfo(4, 3, 3, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), true),
+
+                // Patch digit increases within same maintenance
+                Arguments.of("patch increased",
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 1),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), true),
+                Arguments.of("patch increased by more than one",
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 5),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 2), true),
+
+                // Both maintenance and patch increased
+                Arguments.of("maintenance and patch both increased",
+                        new SystemPatchApplier.VersionInfo(4, 3, 1, 1),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), true),
+
+                // Maintenance increased, patch value is lower (irrelevant — maintenance wins)
+                Arguments.of("maintenance increased, patch is lower",
+                        new SystemPatchApplier.VersionInfo(4, 3, 2, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 1, 5), true),
+
+                // Same version — no increase
+                Arguments.of("same version",
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), false),
+                Arguments.of("same version with non-zero parts",
+                        new SystemPatchApplier.VersionInfo(4, 3, 1, 2),
+                        new SystemPatchApplier.VersionInfo(4, 3, 1, 2), false),
+
+                // Decreased versions — no increase
+                Arguments.of("maintenance decreased",
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 1, 0), false),
+                Arguments.of("patch decreased",
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 1), false),
+
+                // Different major — different family, skip
+                Arguments.of("different major",
+                        new SystemPatchApplier.VersionInfo(5, 3, 0, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), false),
+                Arguments.of("major decreased",
+                        new SystemPatchApplier.VersionInfo(3, 3, 0, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), false),
+
+                // Different minor — different LTS family, skip
+                Arguments.of("minor increased (different LTS family)",
+                        new SystemPatchApplier.VersionInfo(4, 4, 0, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), false),
+                Arguments.of("minor decreased",
+                        new SystemPatchApplier.VersionInfo(4, 2, 0, 0),
+                        new SystemPatchApplier.VersionInfo(4, 3, 0, 0), false)
+        );
+    }
+
+    // --- isVersionChanged tests ---
+
+    @Test
+    void whenVersionIncreased_thenVersionChangedReturnsTrue() {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("4.3.1.0");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("4.3.0.0");
+
+        Boolean result = ReflectionTestUtils.invokeMethod(reconciler, "isVersionChanged");
+
+        assertTrue(result);
+    }
+
+    @Test
+    void whenVersionNotIncreased_thenVersionChangedReturnsFalse() {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("4.3.0.0");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("4.3.0.0");
+
+        Boolean result = ReflectionTestUtils.invokeMethod(reconciler, "isVersionChanged");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void whenVersionUnparseable_thenVersionChangedReturnsFalse() {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("invalid");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("4.3.0.0");
+
+        Boolean result = ReflectionTestUtils.invokeMethod(reconciler, "isVersionChanged");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void whenDbVersionUnparseable_thenVersionChangedReturnsFalse() {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("4.3.1.0");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("bad");
+
+        Boolean result = ReflectionTestUtils.invokeMethod(reconciler, "isVersionChanged");
+
+        assertFalse(result);
+    }
+
+    // --- updateLtsSqlSchema tests ---
+
+    @Test
+    void whenLtsSqlFileExists_thenExecutesSql() throws Exception {
+        Path dataDir = tempDir.resolve("data");
+        Path ltsDir = dataDir.resolve("upgrade").resolve("lts");
+        Files.createDirectories(ltsDir);
+        Files.writeString(ltsDir.resolve("schema_update.sql"), "ALTER TABLE device ADD COLUMN IF NOT EXISTS test_col VARCHAR(255);");
+        when(installScripts.getDataDir()).thenReturn(dataDir.toString());
+
+        ReflectionTestUtils.invokeMethod(reconciler, "updateLtsSqlSchema");
+
+        verify(jdbcTemplate).execute("ALTER TABLE device ADD COLUMN IF NOT EXISTS test_col VARCHAR(255);");
+    }
+
+    @Test
+    void whenLtsSqlFileDoesNotExist_thenSkips() {
+        Path dataDir = tempDir.resolve("data");
+        // Don't create the file
+        when(installScripts.getDataDir()).thenReturn(dataDir.toString());
+
+        ReflectionTestUtils.invokeMethod(reconciler, "updateLtsSqlSchema");
+
+        verify(jdbcTemplate, never()).execute(anyString());
+    }
+
+    @Test
+    void whenLtsSqlFileHasMultipleStatements_thenExecutesAll() throws Exception {
+        Path dataDir = tempDir.resolve("data");
+        Path ltsDir = dataDir.resolve("upgrade").resolve("lts");
+        Files.createDirectories(ltsDir);
+        String sql = "DO $$ BEGIN\n" +
+                "  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'test_type') THEN\n" +
+                "    CREATE TYPE test_type AS ENUM ('A', 'B');\n" +
+                "  END IF;\n" +
+                "END $$;\n" +
+                "ALTER TABLE device ADD COLUMN IF NOT EXISTS test_col VARCHAR(255);";
+        Files.writeString(ltsDir.resolve("schema_update.sql"), sql);
+        when(installScripts.getDataDir()).thenReturn(dataDir.toString());
+
+        ReflectionTestUtils.invokeMethod(reconciler, "updateLtsSqlSchema");
+
+        verify(jdbcTemplate).execute(sql);
+    }
+
+    // --- applyPatchIfNeeded flow tests ---
+
+    @Test
+    void whenVersionIncreased_thenAppliesLtsSqlBeforeViewsAndWidgets() throws Exception {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("4.3.1.0");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("4.3.0.0");
+        when(jdbcTemplate.queryForObject(contains("pg_try_advisory_lock"), eq(Boolean.class), anyLong())).thenReturn(true);
+        when(jdbcTemplate.queryForObject(contains("pg_advisory_unlock"), eq(Boolean.class), anyLong())).thenReturn(true);
+
+        Path dataDir = tempDir.resolve("data");
+        Path ltsDir = dataDir.resolve("upgrade").resolve("lts");
+        Files.createDirectories(ltsDir);
+        Files.writeString(ltsDir.resolve("schema_update.sql"), "SELECT 1;");
+        when(installScripts.getDataDir()).thenReturn(dataDir.toString());
+
+        Path widgetTypesDir = tempDir.resolve("widget_types");
+        Files.createDirectories(widgetTypesDir);
+        when(installScripts.getWidgetTypesDir()).thenReturn(widgetTypesDir);
+
+        ReflectionTestUtils.invokeMethod(reconciler, "applyPatchIfNeeded");
+
+        // LTS SQL was executed
+        verify(jdbcTemplate).execute("SELECT 1;");
+        // Schema version was updated
+        verify(schemaSettingsService).updateSchemaVersion();
+    }
+
+    @Test
+    void whenVersionNotIncreased_thenSkipsEverything() {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("4.3.0.0");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("4.3.0.0");
+
+        ReflectionTestUtils.invokeMethod(reconciler, "applyPatchIfNeeded");
+
+        // No lock acquired
+        verify(jdbcTemplate, never()).queryForObject(contains("pg_try_advisory_lock"), eq(Boolean.class), anyLong());
+        // No schema update
+        verify(schemaSettingsService, never()).updateSchemaVersion();
+    }
+
+    @Test
+    void whenLockNotAcquired_thenSkipsPatchApplication() {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("4.3.1.0");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("4.3.0.0");
+        when(jdbcTemplate.queryForObject(contains("pg_try_advisory_lock"), eq(Boolean.class), anyLong())).thenReturn(false);
+
+        ReflectionTestUtils.invokeMethod(reconciler, "applyPatchIfNeeded");
+
+        verify(schemaSettingsService, never()).updateSchemaVersion();
+        verify(jdbcTemplate, never()).execute(anyString());
+    }
+
+    @Test
+    void whenMaintenanceVersionIncreased_thenAppliesPatch() throws Exception {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("4.3.2.0");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("4.3.1.0");
+        when(jdbcTemplate.queryForObject(contains("pg_try_advisory_lock"), eq(Boolean.class), anyLong())).thenReturn(true);
+        when(jdbcTemplate.queryForObject(contains("pg_advisory_unlock"), eq(Boolean.class), anyLong())).thenReturn(true);
+
+        Path dataDir = tempDir.resolve("data");
+        when(installScripts.getDataDir()).thenReturn(dataDir.toString());
+
+        Path widgetTypesDir = tempDir.resolve("widget_types");
+        Files.createDirectories(widgetTypesDir);
+        when(installScripts.getWidgetTypesDir()).thenReturn(widgetTypesDir);
+
+        ReflectionTestUtils.invokeMethod(reconciler, "applyPatchIfNeeded");
+
+        verify(schemaSettingsService).updateSchemaVersion();
+    }
+
+    @Test
+    void whenDifferentLtsFamily_thenSkipsPatch() {
+        when(schemaSettingsService.getPackageSchemaVersion()).thenReturn("4.4.0.0");
+        when(schemaSettingsService.getDbSchemaVersion()).thenReturn("4.3.0.0");
+
+        ReflectionTestUtils.invokeMethod(reconciler, "applyPatchIfNeeded");
+
+        verify(jdbcTemplate, never()).queryForObject(contains("pg_try_advisory_lock"), eq(Boolean.class), anyLong());
+        verify(schemaSettingsService, never()).updateSchemaVersion();
     }
 
     private static Stream<Arguments> provideDescriptorComparisonTestCases() {
