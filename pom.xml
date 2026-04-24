@@ -97,6 +97,7 @@
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
         <maven-install-plugin.version>3.1.4</maven-install-plugin.version>
         <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+        <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
         <springdoc-swagger.version>2.8.8TB</springdoc-swagger.version>
         <swagger-annotations.version>2.2.30</swagger-annotations.version>
         <spatial4j.version>0.8</spatial4j.version>
@@ -625,7 +626,6 @@
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-assembly-plugin</artifactId>
                             <configuration>
-                                <skipAssembly>${pkg.skip.zip}</skipAssembly>
                                 <finalName>${pkg.name}</finalName>
                                 <descriptors>
                                     <descriptor>${main.dir}/packaging/${pkg.type}/assembly/windows.xml</descriptor>
@@ -638,6 +638,9 @@
                                     <goals>
                                         <goal>single</goal>
                                     </goals>
+                                    <configuration>
+                                        <skipAssembly>${pkg.skip.zip}</skipAssembly>
+                                    </configuration>
                                 </execution>
                             </executions>
                         </plugin>
@@ -922,6 +925,12 @@
                             <exclude>**/resources/lwm2m/models/**</exclude>
                             <exclude>src/main/data/resources/**</exclude>
                             <exclude>.claude/**</exclude>
+                            <exclude>**/lombok.config</exclude>
+                            <exclude>**/eslint.config.mjs</exclude>
+                            <exclude>**/config.monitoring</exclude>
+                            <exclude>**/valkey-certs/**</exclude>
+                            <exclude>**/data/certs/**</exclude>
+                            <exclude>**/*.otf</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>
@@ -974,6 +983,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
+                <version>${maven-clean-plugin.version}</version>
                 <inherited>false</inherited>
                 <configuration>
                     <filesets>
