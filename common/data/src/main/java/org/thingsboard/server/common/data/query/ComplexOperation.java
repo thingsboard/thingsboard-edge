@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  .tb-editable-switch {
-    padding-left: 10px;
+package org.thingsboard.server.common.data.query;
 
-    .editable-switch {
-      margin: 0;
-    }
+import io.swagger.v3.oas.annotations.media.Schema;
 
-    .editable-label {
-      margin: 5px 0;
-    }
-  }
+@Schema(name = "AlarmRuleComplexOperation")
+public enum ComplexOperation {
+    AND,
+    OR
 }
