@@ -36,7 +36,6 @@ import { SaveToCustomTableConfigComponent } from './save-to-custom-table-config.
 import { CommonRuleNodeConfigModule } from '../common/common-rule-node-config.module';
 import { UnassignCustomerConfigComponent } from './unassign-customer-config.component';
 import { DeviceProfileConfigComponent } from './device-profile-config.component';
-import { PushToEdgeConfigComponent } from './push-to-edge-config.component';
 import { PushToCloudConfigComponent } from './push-to-cloud-config.component';
 import { DeleteAttributesConfigComponent } from './delete-attributes-config.component';
 import { MathFunctionConfigComponent } from './math-function-config.component';
@@ -70,7 +69,6 @@ import {
     UnassignCustomerConfigComponent,
     SendRestApiCallReplyConfigComponent,
     DeviceProfileConfigComponent,
-    PushToEdgeConfigComponent,
     PushToCloudConfigComponent,
     MathFunctionConfigComponent,
     DeviceStateConfigComponent,
@@ -103,7 +101,6 @@ import {
     UnassignCustomerConfigComponent,
     SendRestApiCallReplyConfigComponent,
     DeviceProfileConfigComponent,
-    PushToEdgeConfigComponent,
     PushToCloudConfigComponent,
     MathFunctionConfigComponent,
     DeviceStateConfigComponent
