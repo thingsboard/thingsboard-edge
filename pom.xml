@@ -62,7 +62,7 @@
         <pkg.implementationTitle>${project.name}</pkg.implementationTitle>
         <pkg.unixLogFolder>/var/log/${pkg.name}</pkg.unixLogFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
-        <thingsboard.client.version>4.3.1.2-SNAPSHOT</thingsboard.client.version>
+        <thingsboard.client.version>4.3.1.2</thingsboard.client.version>
         <spring-boot.version>3.5.13</spring-boot.version>
         <javax.xml.bind-api.version>2.4.0-b180830.0359</javax.xml.bind-api.version>
         <jjwt.version>0.12.5</jjwt.version>
