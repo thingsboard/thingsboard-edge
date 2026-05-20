@@ -171,7 +171,6 @@ export const HelpLinks = {
     ruleNodeCalculateDelta: `${helpBaseUrl}/docs/user-guide/rule-engine-2-0/nodes/enrichment/calculate-delta/`,
     ruleNodeRestCallReply: `${helpBaseUrl}/docs/user-guide/rule-engine-2-0/nodes/action/rest-call-reply/`,
     ruleNodePushToCloud: `${helpBaseUrl}/docs/user-guide/rule-engine-2-0/nodes/action/push-to-cloud/`,
-    ruleNodePushToEdge: `${helpBaseUrl}/docs/user-guide/rule-engine-2-0/nodes/action/push-to-edge/`,
     ruleNodeDeviceProfile: `${helpBaseUrl}/docs/user-guide/rule-engine-2-0/nodes/action/device-profile/`,
     ruleNodeAcknowledge: `${helpBaseUrl}/docs/user-guide/rule-engine-2-0/nodes/flow/acknowledge/`,
     ruleNodeCheckpoint: `${helpBaseUrl}/docs/user-guide/rule-engine-2-0/nodes/flow/checkpoint/`,
