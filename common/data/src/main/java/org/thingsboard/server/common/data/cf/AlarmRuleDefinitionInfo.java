@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.rule.engine.edge;
+package org.thingsboard.server.common.data.cf;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.AttributeScope;
+import lombok.NoArgsConstructor;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class TbMsgPushToEdgeNodeConfiguration extends BaseTbMsgPushNodeConfiguration {
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class AlarmRuleDefinitionInfo extends AlarmRuleDefinition {
 
-    @Override
-    public TbMsgPushToEdgeNodeConfiguration defaultConfiguration() {
-        TbMsgPushToEdgeNodeConfiguration configuration = new TbMsgPushToEdgeNodeConfiguration();
-        configuration.setScope(AttributeScope.SERVER_SCOPE.name());
-        return configuration;
+    private String entityName;
+
+    public AlarmRuleDefinitionInfo(AlarmRuleDefinition alarmRuleDefinition, String entityName) {
+        super(alarmRuleDefinition);
+        this.entityName = entityName;
+    }
+
+    public static AlarmRuleDefinitionInfo fromCalculatedFieldInfo(CalculatedFieldInfo cfi) {
+        AlarmRuleDefinition def = AlarmRuleDefinition.fromCalculatedField(cfi);
+        return new AlarmRuleDefinitionInfo(def, cfi.getEntityName());
     }
 
 }
